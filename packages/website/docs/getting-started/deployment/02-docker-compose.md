@@ -13,6 +13,7 @@ pieces. This is what we use to deploy our demo Apollo site.
     `example.com/apollo`. Subdomains are fine, though, so you could use
     `apollo.example.com`
 - Docker (with docker-compose)
+- Node.js
 
 Apollo 3 is not limited to running on Linux, but this guide assumes a Linux
 environment for simplicity. Docker must be installed on the server, as well as
@@ -36,12 +37,147 @@ directory.
 cd ~
 mkdir apollo
 cd apollo/
-touch docker-compose.yml apollo.env config.json
+touch compose.yml apollo.env Dockerfile
 ```
 
 Using whatever file editing method you'd like, copy the contents of these sample
-files into `apollo.env`, `docker-compose.yml`, and `config.json`. Then we'll
-need to update a few values in `apollo.env`. Where it says
+files into `apollo.env`, `compose.yml`, and `Dockerfile`.
+
+```sh title="apollo.env"
+URL=http://example.com/apollo/
+NAME=My Apollo Instance
+MONGODB_URI=mongodb://mongo-node-1:27017,mongo-node-2:27018/apolloDb?replicaSet=rs0
+FILE_UPLOAD_FOLDER=/data/uploads
+JWT_SECRET=some-secret-value
+SESSION_SECRET=some-other-secret-value
+GOOGLE_CLIENT_ID=1000521104117-bhd8r4v11cc053g0b80ui00ss9s5fitv.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=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
+ALLOW_ROOT_USER=true
+ROOT_USER_NAME=root
+ROOT_USER_PASSWORD=some-secret-password
+ALLOW_GUEST_USER=true
+```
+
+```yml title="compose.yml"
+name: my-apollo-site
+
+services:
+  apollo-collaboration-server:
+    image: ghcr.io/gmod/apollo-collaboration-server
+    depends_on:
+      mongo-node-1:
+        condition: service_healthy
+    env_file: apollo.env
+    ports:
+      - 3999:3999
+    volumes:
+      - uploaded-files-volume:/data/uploads
+    restart: unless-stopped
+
+  client:
+    build:
+      args:
+        JBROWSE_VERSION: 2.13.1
+      context: .
+    depends_on:
+      - apollo-collaboration-server
+    ports:
+      - '80:80'
+    volumes:
+      - /home/ec2-user/deployment/data/:/usr/local/apache2/htdocs/data/
+      - /home/ec2-user/deployment/demoData/:/usr/local/apache2/htdocs/demoData/
+    restart: unless-stopped
+
+  mongo-node-1:
+    image: mongo:7
+    command:
+      - '--replSet'
+      - rs0
+      - '--bind_ip_all'
+      - '--port'
+      - '27017'
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_interval: 5s
+      start_period: 2m
+      test: |
+        mongosh --port 27017 --quiet --eval "
+        try {
+          rs.status()
+          console.log('replica set ok')
+        } catch {
+          rs.initiate({
+            _id: 'rs0',
+            members: [
+              { _id: 0, host: 'mongo-node-1:27017', priority: 1 },
+              { _id: 1, host: 'mongo-node-2:27018', priority: 0.5 },
+            ],
+          })
+          console.log('replica set initiated')
+        }
+        "
+      timeout: 10s
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-node-1_data:/data/db
+      - mongo-node-1_config:/data/configdb
+    restart: unless-stopped
+
+  mongo-node-2:
+    image: mongo:7
+    command:
+      - '--replSet'
+      - rs0
+      - '--bind_ip_all'
+      - '--port'
+      - '27018'
+    ports:
+      - '27018:27018'
+    volumes:
+      - mongo-node-2_data:/data/db
+      - mongo-node-2_config:/data/configdb
+    restart: unless-stopped
+
+volumes:
+  mongo-node-1_config: null
+  mongo-node-1_data: null
+  mongo-node-2_config: null
+  mongo-node-2_data: null
+  uploaded-files-volume: null
+```
+
+```Dockerfile title="Dockerfile"
+FROM httpd:alpine
+COPY <<EOF /usr/local/apache2/conf/httpd.conf.append
+LogLevel debug
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_http_module modules/mod_proxy_http.so
+LoadModule proxy_wstunnel_module modules/mod_proxy_wstunnel.so
+ProxyPass "/config.json" "http://apollo-collaboration-server:3999/jbrowse/config.json"
+ProxyPassReverse "/config.json" "http://apollo-collaboration-server:3999/jbrowse/config.json"
+ProxyPassMatch "^/apollo/(.*)$" "http://apollo-collaboration-server:3999/\$1" upgrade=websocket connectiontimeout=3600 timeout=3600
+ProxyPassReverse "/apollo/" "http://apollo-collaboration-server:3999/"
+EOF
+WORKDIR /usr/local/apache2/htdocs/
+RUN <<EOF
+set -o errexit
+set -o nounset
+set -o pipefail
+cat /usr/local/apache2/conf/httpd.conf.append >> /usr/local/apache2/conf/httpd.conf
+wget https://github.com/GMOD/jbrowse-components/releases/download/v2.18.0/jbrowse-web-v2.18.0.zip
+unzip -o jbrowse-web-v2.18.0.zip
+rm jbrowse-web-v2.18.0.zip
+wget --output-document=- --quiet https://registry.npmjs.org/@apollo-annotation/jbrowse-plugin-apollo/-/jbrowse-plugin-apollo-0.2.1.tgz | \
+tar --extract --gzip --file=- --strip=2 package/dist/jbrowse-plugin-apollo.umd.production.min.js
+mv jbrowse-plugin-apollo.umd.production.min.js apollo.js
+wget --quiet https://github.com/The-Sequence-Ontology/SO-Ontologies/raw/refs/heads/master/Ontology_Files/so.json
+mv so.json sequence_ontology.json
+EOF
+```
+
+Then we'll need to update a few values in `apollo.env`. Where it says
 `URL=http://example.com`, replace `http://example.com` with the URL of your
 server using the domain name mentioned above. You'll also need to change
 `JWT_SECRET`. This value can be anything, but it's best if it's a secure random
@@ -50,21 +186,209 @@ here. The last value you'll need to change is `SESSION_SECRET`. This should also
 be a random value, the same as `JWT_SECRET`. All the other entries in this file
 can be left as they are for now.
 
-We'll also need to change a couple things in `config.json`. Under
-"internetAccounts" where it says "baseURL", change it to the same URL you used
-above with `:3999` appended to the end. For example:
+## Details
 
-```
-"baseURL": "http://example.com:3999"
+Let's talk a bit about what's in the `compose.yml` file, which contains all the
+pieces you need to run Apollo on a server.
+
+### Name
+
+At the top of the example file is `name: apollo-demo-site`. You can rename this
+or even remove it, it's mostly there as an easy-to-recognize name in various
+Docker command outputs.
+
+### Volumes
+
+Next we're going to skip to the bottom section called `volumes`. In this compose
+file, we're using volumes to keep certain kinds of data around even if one of
+the containers needs to be rebuild. For example, let's say you're using a
+MongoDB container that uses v7.0.6 of MongoDB, but you want to upgrade to
+v7.0.7. With Docker, instead of upgrading the running container, you usually
+build a brand new container based on a Docker image that has the new version you
+want. Volumes give Docker a place to store files outside the container, so a new
+container can connect to the old volume and then all your data is still in your
+database with your upgraded container.
+
+In the example `compose.yml`, we use simple entries like
+`mongo-node-1_config: null` means that we are defining a volume with the name
+"mongo-node-1_config" that we can refer to elsewhere in the compose file.
+
+### Services
+
+Services are where most of the configuration is done in the compose file. Each
+entry in the `services` section will be run as a separate Docker container, and
+the service names can be used so that different services can refer to each
+other.
+
+#### Client
+
+We'll start by describing the `client` service. Here is the section from the
+compose file:
+
+```yml
+client:
+  build:
+    args:
+      APOLLO_VERSION: 0.1.0
+      JBROWSE_VERSION: 2.10.3
+      FORWARD_HOSTNAME: apollo-collaboration-server
+      FORWARD_PORT: 3999
+    context: .
+  depends_on:
+    - apollo-collaboration-server
+  ports:
+    - '80:80'
 ```
 
-Then in the "plugins" section, change the "url" to that same URL with
-`:9000/jbrowse-plugin-apollo.umd.production.min.js` appended to the end. For
-example:
+This service will be a static file server that serves the JBrowse and Apollo
+JBrowse Plugin code. We're using Apache (`httpd`) in this example, but if you
+know how to properly configure it, you could use NGINX as well.
 
+The `build` section included here means that instead of using a pre-built Docker
+image, this container will use an image built from a Dockerfile. The reason we
+don't publish a pre-built container for this service is that it would be
+complicated to organize and publish images with every combination of Apollo and
+JBrowse versions, and it's much easier to download the exact versions you
+specify when deploying your app.
+
+Docker Compose will expect this Dockerfile to be named `Dockerfile` and be
+located next to the `compose.yml` in the filesystem. There is an example
+Dockerfile [here](Dockerfile) which configures the file server, downloads the
+specified versions of Apollo and JBrowse, and adds the JBrowse and Apollo
+configuration. The `FORWARD_HOSTNAME` and `FORWARD_PORT` args should match the
+service name and port of the Apollo Collaboration Server service (described in
+the next section).
+
+The configuration added to the `httpd.conf` file in that Dockerfile makes it so
+that any request that comes to the server that doesn't match a file hosted on
+the server is forwarded to the Apollo Collaboration Server.
+
+The `depends_on` section makes sure the collaboration server has started before
+starting the client, and the `port` section makes the container's server
+available outside the container on port 80.
+
+#### Apollo Collaboration Server
+
+The next service is the Apollo server component. Here is its section of the
+compose file:
+
+```yml
+apollo-collaboration-server:
+  image: ghcr.io/gmod/apollo-collaboration-server:development
+  depends_on:
+    mongo-node-1:
+      condition: service_healthy
+  env_file: .env
+  environment:
+    MONGODB_URI: mongodb://mongo-node-1:27017,mongo-node-2:27018/apolloDb?replicaSet=rs0
+    FILE_UPLOAD_FOLDER: /data/uploads
+    ALLOW_GUEST_USER: true
+    URL: http://my-apollo-site.org
+    JWT_SECRET: change_this_value
+    SESSION_SECRET: change_this_value
+  ports:
+    - 3999:3999
+  volumes:
+    - uploaded-files-volume:/data/uploads
 ```
-"url": "http://example.com:9000/jbrowse-plugin-apollo.umd.production.min.js"
+
+This service uses a published Docker image for its container. It also uses
+`depends_on` to ensure that the database is started and in a healthy state
+before starting the collaboration server, and defines which port the app is
+exposed on.
+
+The collaboration server is configured with environment variables, often in a
+`.env` file. However, we use the `environment` option to set a couple variables
+whose value depends on other places in the compose file, to try to keep the
+related options all in one place. These two variables are `MONGODB_URI` and
+`FILE_UPLOAD_FOLDER`. The example URI is
+`mongodb://mongo-node-1:27017,mongo-node-2:27018/apolloDb?replicaSet=rs0`. If
+you change the names of either of the MongoDB services, their ports, or add or
+remove a MongoDB service, be sure to update this value. The value of
+`FILE_UPLOAD_FOLDER` should match what's on the right side of the colon in the
+`volumes` section (e.g. `/data/uploads`).
+
+There are a few other variables that need to be configured for the Apollo
+Collaboration Server to work. They are `URL`, `JWT_SECRET`, and `SESSION_SECRET`
+variables. `URL` is the URL of the server that's hosting Apollo. We'll discuss
+this more in a later section when talking about authentication. You can think of
+`JWT_SECRET` and `SESSION_SECRET` as kind of like passwords. They need to be a
+random string, but should be the same each time you run the server so that user
+sessions are not invalidated (unless you want to intentionally invalidate user
+sessions). You can use a password generator to create them.
+
+You can put these variables in the `environment` section, or you can put them in
+a `.env` file, which has a format that looks like this
+
+```env
+URL=https://my-apollo-site.org
 ```
+
+There are several other options you can configure. You can see [this](.env)
+sample `.env` file for a description of the other configuration options. For
+now, we will set `ALLOW_GUEST_USER` to be true to simplify testing.
+
+#### MongoDB
+
+MongoDB needs to be in a replica set configuration for the Apollo Collaboration
+Server to work properly. MongoDB replica sets are intended to ensure
+uninterrupted connection to the database even if one database node goes down. In
+our case we're running all our nodes on the same server, so some of that
+protection is lost, but we still run two different node containers so if one
+container goes down, the database can still be accessed. We're using two nodes,
+although you can use only a single node if you like. If you need high
+availability in a production environment, you might need more nodes hosted on
+different servers. In that case you could delete the MongoDB sections from the
+compose file and update the `MONGODB_URI` variable in the collaboration server
+appropriately.
+
+Here is one of the MongoDB service entries:
+
+```yml
+mongo-node-1:
+  image: mongo:7
+  command:
+    - '--replSet'
+    - rs0
+    - '--bind_ip_all'
+    - '--port'
+    - '27017'
+  healthcheck:
+    interval: 30s
+    retries: 3
+    start_interval: 5s
+    start_period: 2m
+    test: |
+      mongosh --port 27017 --quiet --eval "
+      try {
+        rs.status()
+        console.log('replica set ok')
+      } catch {
+        rs.initiate({
+          _id: 'rs0',
+          members: [
+            { _id: 0, host: 'mongo-node-1:27017', priority: 1 },
+            { _id: 1, host: 'mongo-node-2:27018', priority: 0.5 },
+          ],
+        })
+        console.log('replica set initiated')
+      }
+      "
+    timeout: 10s
+  ports:
+    - '27017:27017'
+  volumes:
+    - mongo-node-1_data:/data/db
+    - mongo-node-1_config:/data/configdb
+```
+
+This uses the official MongoDB image, runs on port 27017, and uses two volumes
+to store data and configuration in. The second node is almost identical, with a
+different and and port and without the `healthcheck` section.
+
+The `healthcheck` section is there to initialize the replica set the first time
+the container runs, and then to provide a way for the collaboration server to
+know the database is healthy and ready for requests from the app.
 
 ## Starting Apollo
 
@@ -98,97 +422,7 @@ And, you can stop Apollo by running
 docker compose down
 ```
 
-Next we need to copy the `config.json` file into the running Apollo app. We can
-do this by running
-
-```sh
-docker compose cp ./config.json jbrowse-web:/usr/local/apache2/htdocs/
-```
-
 We are now ready to access Apollo. Open a web browser and got the URL you
 entered in the `apollo.env` file above. You should see a JBrowse instance with a
-prompt to log in with Google or Microsoft or to continue as a guest. We don't
-have Google and Microsoft logins configured yet, so click "Log in as guest". You
-should see a view with an assembly selector, but there aren't any assemblies
-yet, so there's not much we can do for now.
-
-## Configuring logins
-
-We'll need to do some more setup to get regular Apollo logins working. As a
-note, this is why a domain name is necessary. You can access Apollo using just
-the public IP address of your server, but Google and Microsoft will not allow
-you to configure a login for the server without a domain name.
-
-The first thing you'll need to do is
-
-### Set up Google login:
-
-We'll start by configuring Google. You'll need to use a Google account to create
-a "client ID" and "client secret" for your Apollo instance. Here is how to set
-up authentication with Google and get those values.
-
-- Go to https://console.developers.google.com/
-- Log in
-- To the left of the search, click on the project selector dropdown
-- Click "New project", enter a "Project name" and "Location"
-- Once in the project, click the top left hamburger menu -> "APIs & Services" ->
-  "Credentials"
-- Click "+ Create Credentials" at the top, select "OAuth client ID"
-- Select application type "Web application"
-- Give it a name (e.g. MyOrg's Apollo)
-- Enter the URL of your app as an authorized JavaScript origin, e.g.
-  `http://example.com`
-- Enter the following as an authorized redirect URI, replacing the `example.com`
-  with the correct value for your URL: `http://example.com:3999/auth/google`
-- Click "Create"
-- Take note of Client ID and Client secret listed
-
-Now that you have the client ID and secret, you'll need to add them to your
-`apollo.env` file. There are placeholders in the file for these in the file, so
-you'll need to uncomment those lines (remove the `# ` from the beginning) and
-fill in the correct values for `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
-
-Now restart the Docker Compose stack and re-copy `config.json` by running
-
-```sh
-docker compose restart
-docker compose cp ./config.json jbrowse-web:/usr/local/apache2/htdocs/
-```
-
-Now when you refresh the page (you may need to clear your cache), you should be
-able to log in with a Google account. The first user to log in automatically
-becomes an admin user, and all following users get the role specified by
-`DEFAULT_NEW_USER_ROLE` in `apollo.env`. By default, new users do not have any
-role (not even read-only access) and must be assigned one by an admin.
-
-At this point you can also make other changes to your `apollo.env` if you would
-like, making sure to run `docker compose restart` to apply them. For example,
-you can disable guest access, or change the role of guest users.
-
-Congratulations! As an admin user, you can now start adding assemblies to Apollo
-and start annotating!
-
-### Set up Microsoft login (incomplete)
-
-The guide for Microsoft logins is still in development and is incomplete. A
-rough sketch for creating the necessary tokens is below. Microsoft logins,
-however, require HTTPS access, and this section requires more work to lay out
-the requirements and options of working with SSL certificates.
-
-- Go to
-  https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade
-- Log in
-- Click "New registration"
-- Give the app a name
-- Select supported account types (suggest "Accounts in any organizational
-  directory (Any Azure AD directory - Multitenant) and personal Microsoft
-  accounts (e.g. Skype, Xbox)")
-  - Could be either or depending on use case
-- Click "Register"
-- Note Application (client) ID
-- Go to new app's details
-- Under "Client credentials" click "Add a certificate or secret"
-- Click "New client secret"
-- Enter a description and an expiration date
-  - Note the expiration date so you can rotate keys before then
-- Note newly registered client secret (Value, not Secret ID)
+prompt to log in as a guest. You should see a view with an assembly selector,
+but there aren't any assemblies yet, so there's not much we can do for now.
