@@ -68,10 +68,10 @@ If you need to log in again, run `apollo logout` first, or use
 
 ## Adding assemblies
 
-The next step is to add an assembly. We're going to use use trimmed-down
-assembly that only includes a single chromosome. This is so that the data is
-small enough to be self-contained inside this repository, without the need for
-any external data.
+The next step is to add an assembly. We're going to use trimmed-down assembly
+that only includes a single chromosome. This is so that the data is small enough
+to be self-contained inside this repository, without the need for any external
+data.
 
 We are going to use a FASTA file that has been prepared with `bgzip` and
 `samtools` to be compressed and indexed. The organism this assembly belongs to
