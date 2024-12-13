@@ -29,7 +29,7 @@ function apollo() {
 ```
 
 Paste and run the above command in your terminal to create the function, then
-run `apollo version` in your terminal. You should see something like this
+run `apollo --version` in your terminal. You should see something like this
 output:
 
 ```
