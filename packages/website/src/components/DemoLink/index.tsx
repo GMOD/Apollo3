@@ -13,7 +13,7 @@ export default function HomepageFeatures(): React.JSX.Element {
             <div className={styles.buttons}>
               <Link
                 className="button button--secondary button--lg"
-                to="//demo.apollo.jbrowse.org/"
+                to="//demo.apollo.jbrowse.org/?session=share-eZDit63bNm&password=Px6yn"
               >
                 Try a Demo — 🧬
               </Link>
