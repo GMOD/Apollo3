@@ -154,7 +154,14 @@ export function extendSession(
             dynamicBlocks.forEach((block) => {
               if (block.regionNumber !== undefined) {
                 const { assemblyName, end, refName, start } = block
-                locations.push({ assemblyName, refName, start, end })
+                const assembly =
+                  self.apolloDataStore.assemblies.get(assemblyName)
+                if (
+                  assembly &&
+                  assembly.backendDriverType === 'CollaborationServerDriver'
+                ) {
+                  locations.push({ assemblyName, refName, start, end })
+                }
               }
             })
           }
@@ -217,7 +224,14 @@ export function extendSession(
                 dynamicBlocks.forEach((block) => {
                   if (block.regionNumber !== undefined) {
                     const { assemblyName, end, refName, start } = block
-                    locations.push({ assemblyName, refName, start, end })
+                    const assembly =
+                      self.apolloDataStore.assemblies.get(assemblyName)
+                    if (
+                      assembly &&
+                      assembly.backendDriverType === 'CollaborationServerDriver'
+                    ) {
+                      locations.push({ assemblyName, refName, start, end })
+                    }
                   }
                 })
               }
