@@ -427,7 +427,7 @@ export function extendSession(
       }
     })
   return types.snapshotProcessor(sm, {
-    postProcessor(snap: SnapshotOut<typeof sm>) {
+    postProcessor(snap: SnapshotOut<typeof sm>, node) {
       snap.apolloSelectedFeature = undefined
       const assemblies = Object.fromEntries(
         Object.entries(snap.apolloDataStore.assemblies).filter(
@@ -439,6 +439,21 @@ export function extendSession(
         typeName: 'Client',
         assemblies,
         checkResults: {},
+      }
+      if (!node) {
+        return snap
+      }
+      const { apolloDataStore } = node
+      const { checkResults } = apolloDataStore
+      for (const [, cr] of checkResults) {
+        const [feature] = cr.ids
+        if (!feature) {
+          continue
+        }
+        const assembly = apolloDataStore.assemblies.get(feature.assemblyId)
+        if (assembly && assembly.backendDriverType === 'InMemoryFileDriver') {
+          snap.apolloDataStore.checkResults[cr._id] = getSnapshot(cr)
+        }
       }
       return snap
     },

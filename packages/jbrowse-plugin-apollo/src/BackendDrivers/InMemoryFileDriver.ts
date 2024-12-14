@@ -10,6 +10,7 @@ import { Region, getSession } from '@jbrowse/core/util'
 
 import { SubmitOpts } from '../ChangeManager'
 import { BackendDriver, RefNameAliases } from './BackendDriver'
+import { checkFeatures } from '../util'
 
 export class InMemoryFileDriver extends BackendDriver {
   async getFeatures(): Promise<
@@ -84,6 +85,15 @@ export class InMemoryFileDriver extends BackendDriver {
     _change: Change | AssemblySpecificChange,
     _opts: SubmitOpts = {},
   ) {
+    const { clientStore } = this
+    const { assemblies } = clientStore
+    clientStore.clearCheckResults()
+    for (const [, assembly] of assemblies) {
+      if (assembly.backendDriverType === 'InMemoryFileDriver') {
+        const checkResults = await checkFeatures(assembly)
+        clientStore.addCheckResults(checkResults)
+      }
+    }
     return new ValidationResultSet()
   }
 

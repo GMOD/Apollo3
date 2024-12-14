@@ -38,6 +38,7 @@ export interface ClientDataStore {
     assemblyId: string,
     backendDriverType?: BackendDriverType,
   ): ApolloAssemblyI
+  clearCheckResults(): void
 }
 
 export type SerializedChange = SerializedOperation
