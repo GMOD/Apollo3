@@ -300,6 +300,7 @@ export function extendSession(
             continue
           }
           applySnapshot(jbrowse, jbrowseConfig)
+          // @ts-expect-error snapshot seems to get wrong type?
           applySnapshot(self, sessionSnapshot)
         }
       }),

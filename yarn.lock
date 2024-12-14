@@ -410,7 +410,7 @@ __metadata:
     material-ui-popup-state: "npm:^5.0.4"
     mobx: "npm:^6.6.1"
     mobx-react: "npm:^7.2.1"
-    mobx-state-tree: "npm:^5.1.7"
+    mobx-state-tree: "npm:^5.4.0"
     mongodb: "npm:^4.7.0"
     mongoose: "npm:^6.12.0"
     mongoose-id-validator: "npm:^0.6.0"
@@ -464,7 +464,7 @@ __metadata:
     "@mui/x-data-grid": ^7.0.0
     mobx: ^6.6.1
     mobx-react: ^7.2.1
-    mobx-state-tree: ^5.1.7
+    mobx-state-tree: ^5.4.0
     prop-types: ^15.8.1
     react: ^18.2.0
     react-dom: ^18.2.0
@@ -515,7 +515,7 @@ __metadata:
     librpc-web-mod: "npm:^1.1.9"
     mobx: "npm:^6.6.1"
     mobx-react: "npm:^7.2.1"
-    mobx-state-tree: "npm:^5.1.7"
+    mobx-state-tree: "npm:^5.4.0"
     nanoid: "npm:^4.0.2"
     npm-run-all: "npm:^4.1.5"
     prop-types: "npm:^15.8.1"
@@ -538,7 +538,7 @@ __metadata:
     "@mui/material": ^5.11.14
     mobx: ^6.6.1
     mobx-react: ^7.2.1
-    mobx-state-tree: ^5.1.7
+    mobx-state-tree: ^5.4.0
     prop-types: ^15.8.1
     react: ^18.2.0
     react-dom: ^18.2.0
@@ -553,7 +553,7 @@ __metadata:
   dependencies:
     "@jbrowse/core": "npm:^2.13.1"
     mobx: "npm:^6.6.1"
-    mobx-state-tree: "npm:^5.1.7"
+    mobx-state-tree: "npm:^5.4.0"
     react-dom: "npm:^18.2.0"
     rxjs: "npm:^7.4.0"
     tslib: "npm:^2.3.1"
@@ -599,7 +599,7 @@ __metadata:
     glob: "npm:^11.0.0"
     jwt-decode: "npm:^3.1.2"
     mobx: "npm:^6.6.1"
-    mobx-state-tree: "npm:^5.1.7"
+    mobx-state-tree: "npm:^5.4.0"
     mongoose: "npm:^6.12.0"
     react-dom: "npm:^18.2.0"
     rimraf: "npm:^3.0.2"
@@ -612,7 +612,7 @@ __metadata:
     "@mui/x-data-grid": ^7.0.0
     mobx: ^6.6.1
     mobx-react: ^7.2.1
-    mobx-state-tree: ^5.1.7
+    mobx-state-tree: ^5.4.0
     prop-types: ^15.8.1
     react: ^18.2.0
     react-dom: ^18.2.0
@@ -23201,12 +23201,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mobx-state-tree@npm:^5.1.7":
-  version: 5.2.0
-  resolution: "mobx-state-tree@npm:5.2.0"
+"mobx-state-tree@npm:^5.4.0":
+  version: 5.4.2
+  resolution: "mobx-state-tree@npm:5.4.2"
   peerDependencies:
     mobx: ^6.3.0
-  checksum: 10c0/90439e27ca9cae7253636cffe4489f47b6e28a579c33ff548ba3a81bc24e7f7a49d15a6007fb54f6a2363f503a88af88aa5d8dd4bcb5d711b2d6950755c26ee8
+  checksum: 10c0/0d803686da2618759f4046a9503863716d2ded3c8e2ff2984ff30cb85b039613f39541a2fc970d68b04aed73a6bd25837faa6a9a9033ab4eeb8376f673960675
   languageName: node
   linkType: hard
 

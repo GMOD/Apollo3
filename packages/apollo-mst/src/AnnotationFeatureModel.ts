@@ -352,7 +352,7 @@ interface AnnotationFeatureRaw
 // not a Map, but it's better than typing it as any.
 export interface AnnotationFeature
   extends Omit<AnnotationFeatureRaw, 'children'> {
-  children?: Map<string, AnnotationFeature>
+  children?: Map<string | number, AnnotationFeature>
 }
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface AnnotationFeatureSnapshotRaw

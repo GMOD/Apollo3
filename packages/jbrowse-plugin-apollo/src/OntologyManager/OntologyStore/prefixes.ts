@@ -13,10 +13,13 @@
 /**
  * compact the given URI using the given prefixes
  */
-export function applyPrefixes(uri: string, prefixes: Map<string, string>) {
+export function applyPrefixes(
+  uri: string,
+  prefixes: Map<string | number, string>,
+) {
   for (const [prefix, uriBase] of prefixes.entries()) {
     if (uri.startsWith(uriBase)) {
-      return uri.replace(uriBase, prefix)
+      return uri.replace(uriBase, String(prefix))
     }
   }
   return uri
@@ -25,10 +28,13 @@ export function applyPrefixes(uri: string, prefixes: Map<string, string>) {
 /**
  * expand the given compacted URI using given prefixes
  */
-export function expandPrefixes(uri: string, prefixes: Map<string, string>) {
+export function expandPrefixes(
+  uri: string,
+  prefixes: Map<string | number, string>,
+) {
   for (const [prefix, uriBase] of prefixes.entries()) {
-    if (uri.startsWith(prefix)) {
-      return uri.replace(prefix, uriBase)
+    if (uri.startsWith(String(prefix))) {
+      return uri.replace(String(prefix), uriBase)
     }
   }
   return uri
