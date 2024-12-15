@@ -14,7 +14,6 @@ The Apollo server must be configured to accept root user access. For this edit
 
 ```
 sed -i'' 's/# ALLOW_ROOT_USER=false/ALLOW_ROOT_USER=true/;
-          s/# ROOT_USER_NAME=root/ROOT_USER_NAME=admin/;
           s/# ROOT_USER_PASSWORD=password/ROOT_USER_PASSWORD=pass/' packages/apollo-collaboration-server/.development.env
 ```
 

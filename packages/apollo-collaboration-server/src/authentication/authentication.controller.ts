@@ -72,9 +72,7 @@ export class AuthenticationController {
   }
 
   @Post('root')
-  rootLogin(
-    @Body() { password, username }: { password: string; username: string },
-  ) {
-    return this.authService.rootLogin(username, password)
+  rootLogin(@Body() { password }: { password: string }) {
+    return this.authService.rootLogin(password)
   }
 }
