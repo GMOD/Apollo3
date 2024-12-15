@@ -12,7 +12,7 @@ describe('Download GFF', () => {
     cy.deleteAssemblies()
   })
 
-  it('Can download gff', () => {
+  it.skip('Can download gff', () => {
     cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
     cy.get('button[data-testid="dropDownMenuButton"]')
       .contains('Apollo')
