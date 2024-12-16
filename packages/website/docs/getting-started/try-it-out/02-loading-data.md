@@ -66,7 +66,7 @@ apollo login
 If you need to log in again, run `apollo logout` first, or use
 `apollo login --force`.
 
-## Adding assemblies
+## Adding assemblies and annotations
 
 The next step is to add an assembly. We're going to use use trimmed-down
 assembly that only includes a single chromosome. This is so that the data is
@@ -95,8 +95,6 @@ apollo feature \
   ./data/Schistosoma/mansoni/SM_V10_3/smansoni_SM_v10_3_subset.gff3 \
   --assembly 'Schistosoma mansoni'
 ```
-
-## Adding annotations
 
 Next we're going to add a second assembly and set of annotations. This assembly
 is from the related species Schistosoma haematobium. Run these two commands to
@@ -149,8 +147,7 @@ The first step is to get the JBrowse configuration stored in Apollo so we can
 update it. Run these commands:
 
 ```sh
-cd jbrowse_data/
-apollo jbrowse get-config >config.json
+apollo jbrowse get-config > data/config.json
 ```
 
 Now that we have the configuration, we can use the `jbrowse` CLI tool to add the
@@ -163,22 +160,25 @@ jbrowse add-track \
   data/smansoni_SM_v10_3_subset.cram \
   --load inPlace \
   --name "S. mansoni RNA-seq" \
-  --assemblyNames "${MANSONI_ID}"
+  --assemblyNames "${MANSONI_ID}" \
+  --out data/config.json
 jbrowse add-track \
   data/shaematobium_CHR_3_subset.cram \
   --load inPlace \
   --name "S. haematobium RNA-seq" \
-  --assemblyNames "${HAEMATOBIUM_ID}"
+  --assemblyNames "${HAEMATOBIUM_ID}" \
+  --out data/config.json
 jbrowse add-track \
   data/shaematobium_vs_smansoni.paf \
   --load inPlace \
   --name "S. haematobium vs. S. mansoni TBLASTX" \
-  --assemblyNames "${HAEMATOBIUM_ID}","${MANSONI_ID}"
+  --assemblyNames "${HAEMATOBIUM_ID}","${MANSONI_ID}" \
+  --out data/config.json
 ```
 
 Now the last step is to send the updated JBrowse config back to Apollo.
 
 ```sh
-apollo jbrowse set-config config.json
-rm config.json
+apollo jbrowse set-config data/config.json
+rm data/config.json
 ```
