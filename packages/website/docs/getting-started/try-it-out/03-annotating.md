@@ -57,14 +57,21 @@ Next click "Add new" in that same panel and add "Note" as a custom attribute
 key. Click "Add", and then in the newly added "Note" attribute, add some text
 (e.g. "UTR extended due to RNA-seq evidence").
 
-Now re-open the track selector and select the synteny track. Right-click on one
-of the features and choose "Open synteny view for this position". Leave the
-default and click "Submit". Then close your original Linear Genome View.
+<img src="extend-exon.svg" widht="100%">
+
+Now re-open the track selector and select the synteny track (_S. haematobium vs.
+S. mansoni TBLASTX_). Right-click on one of the features and choose "Open
+synteny view for this position". Leave the default and click "Submit". Then
+close your original Linear Genome View by clicking on the cross circled in red.
+
+<img src="open-synteny-track.svg" widht="100%">
 
 Click "Open track selector" on the top track and then open the Annotations and
 RNA-seq tracks. Do the same on the bottom view. We might want the annotations
 closer to each other, so in the top view, open the track selector of the RNA-seq
 track and select "Track order -> Move track up".
+
+<img src="synteny-tracks.svg" widht="100%">
 
 If you wanted to share this particular view, you can click the "Share" button at
 the top and copy the link. You can also use this for coming back to the same
@@ -75,9 +82,13 @@ This time we'll enter the gene's ID, `Smp_124460`, into the search box and click
 "Open." You can also try searching for `ATPase` and see that there are two
 matches for that term. The one we're working on is the first match.
 
+<img src="search-text.svg" widht="100%">
+
 Somewhere to the side of the existing gene, click and drag an area in the ruler
 and then select "Add new feature". Look a the possible ontology types suggested,
 and then choose "match". On the new feature, click "Add child feature" and
 choose the coordinates and "Match part" as the type.
 
 Now right-click on the "match" feature and select "Delete feature".
+
+<img src="add-feature.svg" widht="100%">
