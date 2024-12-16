@@ -1,0 +1,117 @@
+{
+  "_id": "66d70e4ccc30b55b65e5f619",
+  "refSeq": "chr1",
+  "type": "gene",
+  "min": 999,
+  "max": 9000,
+  "strand": 1,
+  "attributes": {
+    "gff_id": ["gene10001"],
+    "gff_name": ["EDEN"],
+    "gff_score": ["123"],
+    "gff_source": ["test_data"],
+    "testid": ["t001", "t003"],
+    "gff_ontology_term": ["GO1234"],
+    "Gene Ontology": ["GO4567"],
+    "Sequence Ontology": ["SO1234"],
+    "gff_alias": ["myalias"],
+    "gff_target": ["mytarget"],
+    "gff_gap": ["mygap"],
+    "gff_derives_from": ["myderives"],
+    "gff_note": ["mynote"],
+    "gff_dbxref": ["mydbxref"],
+    "gff_is_circular": ["true"]
+  },
+  "children": {
+    "66d70e4ccc30b55b65e5f618": {
+      "_id": "66d70e4ccc30b55b65e5f618",
+      "refSeq": "chr1",
+      "type": "mRNA",
+      "min": 1049,
+      "max": 9000,
+      "strand": 1,
+      "attributes": {
+        "gff_id": ["mRNA10001"],
+        "gff_name": ["EDEN.1"],
+        "testid": ["t004", "t001", "t004"]
+      },
+      "children": {
+        "66d70e4ccc30b55b65e5f615": {
+          "_id": "66d70e4ccc30b55b65e5f615",
+          "refSeq": "chr1",
+          "type": "exon",
+          "min": 1049,
+          "max": 1500,
+          "strand": 1,
+          "attributes": {
+            "gff_id": ["exon10001"],
+            "testid": ["t007"]
+          }
+        },
+        "66d70e4ccc30b55b65e5f616": {
+          "_id": "66d70e4ccc30b55b65e5f616",
+          "refSeq": "chr1",
+          "type": "exon",
+          "min": 4999,
+          "max": 5500,
+          "strand": 1,
+          "attributes": {
+            "gff_id": ["exon10004"],
+            "testid": ["t010"]
+          },
+          "children": {
+            "xyz": {
+              "_id": "xyz",
+              "refSeq": "chr1",
+              "type": "exon_region",
+              "min": 5300,
+              "max": 5400,
+              "strand": 1,
+              "attributes": {
+                "gff_id": ["exon_region10001"]
+              }
+            }
+          }
+        },
+        "66d70e4ccc30b55b65e5f617": {
+          "_id": "66d70e4ccc30b55b65e5f617",
+          "refSeq": "chr1",
+          "type": "CDS",
+          "min": 1200,
+          "max": 5100,
+          "strand": 1,
+          "attributes": {
+            "gff_id": ["cds10001"],
+            "gff_name": ["edenprotein.1"],
+            "testid": ["t012", "t013", "t014", "t015"]
+          },
+          "children": {
+            "abc": {
+              "id": "abc",
+              "refSeq": "chr1",
+              "type": "CDS_region",
+              "min": "1350",
+              "max": "1400",
+              "strand": 1,
+              "attributes": {
+                "gff_id": ["cds_region10001"]
+              }
+            }
+          }
+        },
+        "66e049f17b9cedae9ad89106": {
+          "_id": "66e049f17b9cedae9ad89106",
+          "refSeq": "chr1",
+          "type": "CDS",
+          "min": 1300,
+          "max": 5200,
+          "strand": 1,
+          "attributes": {
+            "gff_id": ["cds10004"],
+            "gff_name": ["edenprotein.4"]
+          }
+        }
+      }
+    }
+  }
+}

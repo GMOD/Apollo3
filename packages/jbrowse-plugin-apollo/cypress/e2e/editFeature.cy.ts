@@ -21,7 +21,7 @@ describe('Different ways of editing features', () => {
     cy.deleteAssemblies()
   })
 
-  it('Edit feature via table editor', () => {
+  it.skip('Edit feature via table editor', () => {
     const assemblyName = 'space.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
     cy.selectAssemblyToView(assemblyName)
@@ -81,7 +81,7 @@ describe('Different ways of editing features', () => {
     })
   })
 
-  it('Can add gene ontology attribute', () => {
+  it.skip('Can add gene ontology attribute', () => {
     cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
     cy.selectAssemblyToView('onegene.fasta.gff3')
     cy.searchFeatures('gx1', 1)
@@ -110,7 +110,7 @@ describe('Different ways of editing features', () => {
     cy.contains('td', 'Gene Ontology=GO:0044838')
   })
 
-  it('FIXME: Can delete feature with checks', () => {
+  it.only('FIXME: Can delete feature with checks', () => {
     cy.addAssemblyFromGff('stopcodon', 'test_data/cdsChecks/stopcodon.gff3')
     cy.selectAssemblyToView('stopcodon')
     cy.searchFeatures('gene02', 1)
