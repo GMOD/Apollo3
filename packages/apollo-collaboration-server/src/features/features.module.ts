@@ -30,10 +30,10 @@ import { FeaturesService } from './features.service'
         useFactory: (connection: Connection, checksService: ChecksService) => {
           FeatureSchema.plugin(idValidator, { connection })
           const runChecksOnDocument = async (doc: FeatureDocument) => {
-            await checksService.checkFeatures([doc])
+            await checksService.checkFeatures([doc], false)
           }
           const runChecksOnDocuments = async (docs: FeatureDocument[]) => {
-            await checksService.checkFeatures(docs)
+            await checksService.checkFeatures(docs, false)
           }
           FeatureSchema.post('save', runChecksOnDocument)
           FeatureSchema.post('updateOne', runChecksOnDocument)
