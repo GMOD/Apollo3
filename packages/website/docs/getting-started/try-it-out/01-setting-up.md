@@ -1,8 +1,9 @@
 # Setting up
 
 To run this demo, you'll need to have
-[Docker](//docs.docker.com/engine/install/) and
-[Docker Compose](//docs.docker.com/compose/install/) installed.
+[Docker](//docs.docker.com/engine/install/) (minimum version 27) and
+[Docker Compose](//docs.docker.com/compose/install/) (minimum version 2.17.0)
+installed.
 
 ## Getting the data
 
@@ -71,10 +72,10 @@ services:
         set -o nounset
         set -o pipefail
         cat /usr/local/apache2/conf/httpd.conf.append >> /usr/local/apache2/conf/httpd.conf
-        wget https://github.com/GMOD/jbrowse-components/releases/download/v2.15.4/jbrowse-web-v2.15.4.zip
-        unzip -o jbrowse-web-v2.15.4.zip
-        rm jbrowse-web-v2.15.4.zip
-        wget --output-document=- --quiet https://registry.npmjs.org/@apollo-annotation/jbrowse-plugin-apollo/-/jbrowse-plugin-apollo-0.1.21.tgz | \
+        wget https://github.com/GMOD/jbrowse-components/releases/download/v2.18.0/jbrowse-web-v2.18.0.zip --output-document=jbrowse-web.zip
+        unzip -o jbrowse-web.zip
+        rm jbrowse-web.zip
+        wget --output-document=- --quiet https://registry.npmjs.org/@apollo-annotation/jbrowse-plugin-apollo/-/jbrowse-plugin-apollo-0.2.2.tgz | \
         tar --extract --gzip --file=- --strip=2 package/dist/jbrowse-plugin-apollo.umd.production.min.js
         mv jbrowse-plugin-apollo.umd.production.min.js apollo.js
         wget --quiet https://github.com/The-Sequence-Ontology/SO-Ontologies/raw/refs/heads/master/Ontology_Files/so.json

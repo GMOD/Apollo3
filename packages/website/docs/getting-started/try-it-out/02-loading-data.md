@@ -58,8 +58,7 @@ a single default profile. Run these commands:
 ```sh
 apollo config address http://host.docker.internal/apollo
 apollo config accessType root
-apollo config rootCredentials.username root
-apollo config rootCredentials.password password
+apollo config rootPassword password
 apollo login
 ```
 
