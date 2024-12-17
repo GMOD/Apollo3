@@ -66,11 +66,8 @@ const config: Config = {
           position: 'left',
           label: 'Docs',
         },
-        {
-          to: 'contact',
-          label: 'Contact',
-          position: 'left',
-        },
+        { to: 'blog', label: 'Blog', position: 'left' },
+        { to: 'contact', label: 'Contact', position: 'left' },
         {
           href: 'https://github.com/GMOD/Apollo3',
           label: 'GitHub',
@@ -82,21 +79,20 @@ const config: Config = {
       style: 'dark',
       links: [
         {
-          title: 'Docs',
+          title: 'Learn',
           items: [
             {
               label: 'Docs',
-              to: '/docs/',
+              to: 'docs',
             },
           ],
         },
         {
           title: 'More',
           items: [
-            {
-              label: 'GitHub',
-              href: 'https://github.com/GMOD/Apollo3',
-            },
+            { label: 'Blog', to: 'blog' },
+            { label: 'Contact', to: 'contact' },
+            { label: 'GitHub', href: 'https://github.com/GMOD/Apollo3' },
           ],
         },
       ],
