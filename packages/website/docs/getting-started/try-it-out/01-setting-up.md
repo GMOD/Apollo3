@@ -42,7 +42,6 @@ services:
       ALLOW_GUEST_USER: true
       GUEST_USER_ROLE: admin
       ALLOW_ROOT_USER: true
-      ROOT_USER_NAME: root
       ROOT_USER_PASSWORD: password
       JWT_SECRET: local_testing_only
       SESSION_SECRET: local_testing_only

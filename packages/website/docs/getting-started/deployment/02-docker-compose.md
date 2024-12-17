@@ -53,7 +53,6 @@ SESSION_SECRET=some-other-secret-value
 GOOGLE_CLIENT_ID=1000521104117-bhd8r4v11cc053g0b80ui00ss9s5fitv.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=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
 ALLOW_ROOT_USER=true
-ROOT_USER_NAME=root
 ROOT_USER_PASSWORD=some-secret-password
 ALLOW_GUEST_USER=true
 ```
