@@ -12,7 +12,7 @@ module.exports = defineConfig({
   // Make viewport long and thin to avoid the scrollbar on the right interfere
   // with the coordinates
   viewportHeight: 2000,
-  viewportWidth: 1000,
+  viewportWidth: 1300,
   retries: {
     runMode: 2,
   },
