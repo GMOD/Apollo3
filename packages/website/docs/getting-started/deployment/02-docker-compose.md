@@ -1,7 +1,7 @@
 # Deploying with Docker Compose
 
 One way to deploy Apollo is to use Docker Compose to organize all the needed
-pieces. This is what we use to deploy our demo Apollo site.
+pieces. This is what the Apollo developers use to deploy our demo Apollo site.
 
 ## Prerequisites
 
@@ -50,8 +50,6 @@ MONGODB_URI=mongodb://mongo-node-1:27017,mongo-node-2:27018/apolloDb?replicaSet=
 FILE_UPLOAD_FOLDER=/data/uploads
 JWT_SECRET=some-secret-value
 SESSION_SECRET=some-other-secret-value
-GOOGLE_CLIENT_ID=1000521104117-bhd8r4v11cc053g0b80ui00ss9s5fitv.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=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
 ALLOW_ROOT_USER=true
 ROOT_USER_PASSWORD=some-secret-password
 ALLOW_GUEST_USER=true

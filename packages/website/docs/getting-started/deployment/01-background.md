@@ -1,7 +1,14 @@
 # Background
 
-There are several ways to deploy Apollo. Here we'll review the different parts
-of Apollo that each deployment strategy will need to consider.
+A full deployment of a collaborative Apollo instance is made up of several
+different components. When setting up Apollo, you'll have to decide how you
+want to handle each of these components. We provide some examples of how to
+deploy Apollo, but the deployment can be customized to fit your needs. For
+example, you may want to utilize an existing MongoDB installation (perhaps
+managed by your institution) and deploy the rest of Apollo using Docker.
+
+Here we'll review the different parts of Apollo that each deployment strategy
+will need to consider.
 
 ## Basic components
 
@@ -43,3 +50,17 @@ The Apollo Collaboration Server stores its data in a MongoDB database. Since the
 server uses some specialized MongoDB functionality, the database needs to be in
 a replica set configuration. The database can be on the same machine as the
 collaboration server, or it can be external.
+
+## Deployment examples
+
+- [Deploying with Docker](02-docker-compose.md)
+- Other examples coming soon
+
+## Customizing your deployment
+
+Our deployment examples cover setting up Apollo with the most common default
+settings and guest user access. You'll most likely want to then configure user
+logins, which we cover in our [Login Management](03-login-management.md) guide.
+
+We also cover more options for customizing Apollo in our
+[Configuration options](04-configuration-options.md) guide.
