@@ -63,6 +63,13 @@ apollo config rootCredentials.password password
 apollo login
 ```
 
+:::tip
+
+If you're using the Apollo CLI installed from NPM, change the first line above
+to `apollo config address http://localhost/apollo`.
+
+:::
+
 If you need to log in again, run `apollo logout` first, or use
 `apollo login --force`.
 

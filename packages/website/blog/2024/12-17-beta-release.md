@@ -28,9 +28,9 @@ The genome annotation database you see when you open this link represents a
 small slice of a genome stored directly in your JBrowse session. This genome
 database is not collaborative: anything you change is limited to your current
 browsing session and is only visible to you. Anything you do on this genome
-won't affect any else's experience, so feel free to experiment however you like.
-If you want to start fresh again without any of your changes, you can open the
-original link again.
+won't affect anyone else's experience, so feel free to experiment however you
+like. If you want to start fresh again without any of your changes, you can open
+the original link again.
 
 ### 2. Full demo
 
