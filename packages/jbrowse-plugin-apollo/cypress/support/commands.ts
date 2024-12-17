@@ -119,10 +119,8 @@ Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
   cy.contains('AddAssemblyAndFeaturesFromFileChange')
     .parent()
     .should('contain', 'All operations successful')
-  // eslint-disable-next-line cypress/no-unnecessary-waiting
-  cy.wait(1000)
-  cy.reload()
   cy.get('button[aria-label="Close drawer"]', { timeout: 20_000 }).click()
+  cy.reload()
   cy.contains('Select assembly to view', { timeout: 10_000 })
 })
 
