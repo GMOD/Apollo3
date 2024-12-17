@@ -67,6 +67,11 @@ const config: Config = {
           label: 'Docs',
         },
         {
+          to: 'contact',
+          label: 'Contact',
+          position: 'left',
+        },
+        {
           href: 'https://github.com/GMOD/Apollo3',
           label: 'GitHub',
           position: 'right',
