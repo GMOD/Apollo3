@@ -119,16 +119,10 @@ Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
   cy.contains('AddAssemblyAndFeaturesFromFileChange')
     .parent()
     .should('contain', 'All operations successful')
-  // cy.get('button[aria-label="Close drawer"]', { timeout: 20_000 }).click()
+  cy.get('button[aria-label="Close drawer"]', { timeout: 10_000 }).click()
   // eslint-disable-next-line cypress/no-unnecessary-waiting
   cy.wait(1000)
   cy.reload()
-  // If the drawer is still open close it
-  cy.get('body').then(($body) => {
-    if ($body.find('button[aria-label="Close drawer"]').length > 0) {
-      cy.get('button[aria-label="Close drawer"]').click()
-    }
-  })
   cy.contains('Select assembly to view', { timeout: 10_000 })
 })
 
