@@ -34,7 +34,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/refseq/add-alias.ts](https://github.com/GMOD/Apollo3/blob/v0.2.2/packages/apollo-cli/src/commands/refseq/add-alias.ts)_
+[src/commands/refseq/add-alias.ts](https://github.com/GMOD/Apollo3/blob/v0.3.0/packages/apollo-cli/src/commands/refseq/add-alias.ts)_
 
 ## `apollo refseq get`
 
@@ -66,4 +66,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/refseq/get.ts](https://github.com/GMOD/Apollo3/blob/v0.2.2/packages/apollo-cli/src/commands/refseq/get.ts)_
+[src/commands/refseq/get.ts](https://github.com/GMOD/Apollo3/blob/v0.3.0/packages/apollo-cli/src/commands/refseq/get.ts)_
