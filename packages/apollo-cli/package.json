@@ -1,6 +1,6 @@
 {
   "name": "@apollo-annotation/cli",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Command line interface for the Apollo annotation server",
   "repository": {
     "type": "git",
@@ -29,7 +29,7 @@
     "test": "mocha --require src/test/fixtures.ts 'src/**/*.test.ts'",
     "posttest": "yarn lint",
     "test:ci": "nyc mocha 'src/**/*.test.ts'",
-    "version": "oclif readme --multi --dir ../website/docs/cli/ && oclif readme && git add README.md"
+    "version": "oclif readme --multi --dir ../website/docs/admin/cli/ && oclif readme && git add README.md"
   },
   "oclif": {
     "bin": "apollo",

@@ -35,7 +35,7 @@ function main() {
         'readme',
         '--multi',
         '--dir',
-        '../website/docs/cli/',
+        '../website/docs/admin/cli/',
       ],
       { stdio: 'inherit' },
     )
@@ -49,7 +49,7 @@ function main() {
       [
         'add',
         'packages/apollo-cli/README.md',
-        'packages/website/docs/cli/*.md',
+        'packages/website/docs/admin/cli/*.md',
       ],
       { stdio: 'inherit' },
     )
