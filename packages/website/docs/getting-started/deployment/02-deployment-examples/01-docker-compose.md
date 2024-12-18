@@ -75,7 +75,7 @@ services:
     build:
       args:
         JBROWSE_VERSION: 2.18.0
-        JBROWSE_VERSION: 0.2.2
+        APOLLO_VERSION: 0.3.0
       context: .
     depends_on:
       - apollo-collaboration-server
@@ -230,7 +230,7 @@ client:
   build:
     args:
       JBROWSE_VERSION: 2.18.0
-      JBROWSE_VERSION: 0.2.2
+      APOLLO_VERSION: 0.3.0
     context: .
   depends_on:
     - apollo-collaboration-server
