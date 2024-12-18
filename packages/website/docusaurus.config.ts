@@ -1,6 +1,7 @@
 import { themes as prismThemes } from 'prism-react-renderer'
 import type { Config } from '@docusaurus/types'
 import type * as Preset from '@docusaurus/preset-classic'
+import remarkPluginNpm2Yarn from '@docusaurus/remark-plugin-npm2yarn'
 
 const config: Config = {
   title: 'Apollo',
@@ -39,7 +40,8 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+            'https://github.com/GMOD/Apollo3/tree/main/packages/website/',
+          remarkPlugins: [[remarkPluginNpm2Yarn, { sync: true }]],
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -64,6 +66,8 @@ const config: Config = {
           position: 'left',
           label: 'Docs',
         },
+        { to: 'blog', label: 'Blog', position: 'left' },
+        { to: 'contact', label: 'Contact', position: 'left' },
         {
           href: 'https://github.com/GMOD/Apollo3',
           label: 'GitHub',
@@ -75,21 +79,20 @@ const config: Config = {
       style: 'dark',
       links: [
         {
-          title: 'Docs',
+          title: 'Learn',
           items: [
             {
               label: 'Docs',
-              to: '/docs/installation',
+              to: 'docs',
             },
           ],
         },
         {
           title: 'More',
           items: [
-            {
-              label: 'GitHub',
-              href: 'https://github.com/GMOD/Apollo3',
-            },
+            { label: 'Blog', to: 'blog' },
+            { label: 'Contact', to: 'contact' },
+            { label: 'GitHub', href: 'https://github.com/GMOD/Apollo3' },
           ],
         },
       ],
@@ -98,6 +101,7 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
+      additionalLanguages: ['docker'],
     },
   } satisfies Preset.ThemeConfig,
 }
