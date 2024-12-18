@@ -1,11 +1,11 @@
 # Background
 
 A full deployment of a collaborative Apollo instance is made up of several
-different components. When setting up Apollo, you'll have to decide how you
-want to handle each of these components. We provide some examples of how to
-deploy Apollo, but the deployment can be customized to fit your needs. For
-example, you may want to utilize an existing MongoDB installation (perhaps
-managed by your institution) and deploy the rest of Apollo using Docker.
+different components. When setting up Apollo, you'll have to decide how you want
+to handle each of these components. We provide some examples of how to deploy
+Apollo, but the deployment can be customized to fit your needs. For example, you
+may want to utilize an existing MongoDB installation (perhaps managed by your
+institution) and deploy the rest of Apollo using Docker.
 
 Here we'll review the different parts of Apollo that each deployment strategy
 will need to consider.
@@ -53,7 +53,7 @@ collaboration server, or it can be external.
 
 ## Deployment examples
 
-- [Deploying with Docker](02-docker-compose.md)
+- [Deploying with Docker](./02-deployment-examples/01-docker-compose.md)
 - Other examples coming soon
 
 ## Customizing your deployment

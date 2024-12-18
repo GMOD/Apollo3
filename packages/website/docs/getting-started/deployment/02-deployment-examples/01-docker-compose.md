@@ -74,7 +74,8 @@ services:
   client:
     build:
       args:
-        JBROWSE_VERSION: 2.13.1
+        JBROWSE_VERSION: 2.18.0
+        JBROWSE_VERSION: 0.2.2
       context: .
     depends_on:
       - apollo-collaboration-server
@@ -147,6 +148,8 @@ volumes:
 
 ```Dockerfile title="Dockerfile"
 FROM httpd:alpine
+ARG JBROWSE_VERSION
+ARG APOLLO_VERSION
 COPY <<EOF /usr/local/apache2/conf/httpd.conf.append
 LogLevel debug
 LoadModule proxy_module modules/mod_proxy.so
@@ -163,10 +166,10 @@ set -o errexit
 set -o nounset
 set -o pipefail
 cat /usr/local/apache2/conf/httpd.conf.append >> /usr/local/apache2/conf/httpd.conf
-wget https://github.com/GMOD/jbrowse-components/releases/download/v2.18.0/jbrowse-web-v2.18.0.zip
-unzip -o jbrowse-web-v2.18.0.zip
-rm jbrowse-web-v2.18.0.zip
-wget --output-document=- --quiet https://registry.npmjs.org/@apollo-annotation/jbrowse-plugin-apollo/-/jbrowse-plugin-apollo-0.2.1.tgz | \
+wget --output-document jbrowse-web.zip https://github.com/GMOD/jbrowse-components/releases/download/v$JBROWSE_VERSION/jbrowse-web-v$JBROWSE_VERSION.zip
+unzip -o jbrowse-web.zip
+rm jbrowse-web.zip
+wget --output-document=- --quiet https://registry.npmjs.org/@apollo-annotation/jbrowse-plugin-apollo/-/jbrowse-plugin-apollo-$APOLLO_VERSION.tgz | \
 tar --extract --gzip --file=- --strip=2 package/dist/jbrowse-plugin-apollo.umd.production.min.js
 mv jbrowse-plugin-apollo.umd.production.min.js apollo.js
 wget --quiet https://github.com/The-Sequence-Ontology/SO-Ontologies/raw/refs/heads/master/Ontology_Files/so.json
@@ -226,15 +229,17 @@ compose file:
 client:
   build:
     args:
-      APOLLO_VERSION: 0.1.0
-      JBROWSE_VERSION: 2.10.3
-      FORWARD_HOSTNAME: apollo-collaboration-server
-      FORWARD_PORT: 3999
+      JBROWSE_VERSION: 2.18.0
+      JBROWSE_VERSION: 0.2.2
     context: .
   depends_on:
     - apollo-collaboration-server
   ports:
     - '80:80'
+  volumes:
+    - /home/ec2-user/deployment/data/:/usr/local/apache2/htdocs/data/
+    - /home/ec2-user/deployment/demoData/:/usr/local/apache2/htdocs/demoData/
+  restart: unless-stopped
 ```
 
 This service will be a static file server that serves the JBrowse and Apollo
@@ -251,13 +256,11 @@ specify when deploying your app.
 Docker Compose will expect this Dockerfile to be named `Dockerfile` and be
 located next to the `compose.yml` in the filesystem. The above Dockerfile
 configures the file server, downloads the specified versions of Apollo and
-JBrowse, and adds the JBrowse and Apollo configuration. The `FORWARD_HOSTNAME`
-and `FORWARD_PORT` args should match the service name and port of the Apollo
-Collaboration Server service (described in the next section).
+JBrowse, and adds the JBrowse and Apollo configuration.
 
 The configuration added to the `httpd.conf` file in that Dockerfile makes it so
-that any request that comes to the server that doesn't match a file hosted on
-the server is forwarded to the Apollo Collaboration Server.
+that any request that starts with the path `/apollo/` gets sent to the
+collaboration server, while any other requests are handled normally by Apache.
 
 The `depends_on` section makes sure the collaboration server has started before
 starting the client, and the `port` section makes the container's server
@@ -270,22 +273,16 @@ compose file:
 
 ```yml
 apollo-collaboration-server:
-  image: ghcr.io/gmod/apollo-collaboration-server:development
+  image: ghcr.io/gmod/apollo-collaboration-server
   depends_on:
     mongo-node-1:
       condition: service_healthy
-  env_file: .env
-  environment:
-    MONGODB_URI: mongodb://mongo-node-1:27017,mongo-node-2:27018/apolloDb?replicaSet=rs0
-    FILE_UPLOAD_FOLDER: /data/uploads
-    ALLOW_GUEST_USER: true
-    URL: http://my-apollo-site.org
-    JWT_SECRET: change_this_value
-    SESSION_SECRET: change_this_value
+  env_file: apollo.env
   ports:
     - 3999:3999
   volumes:
     - uploaded-files-volume:/data/uploads
+  restart: unless-stopped
 ```
 
 This service uses a published Docker image for its container. It also uses
@@ -294,31 +291,39 @@ before starting the collaboration server, and defines which port the app is
 exposed on.
 
 The collaboration server is configured with environment variables, often in a
-`.env` file. However, we use the `environment` option to set a couple variables
-whose value depends on other places in the compose file, to try to keep the
-related options all in one place. These two variables are `MONGODB_URI` and
-`FILE_UPLOAD_FOLDER`. The example URI is
+`.env` file. Here we use `apollo.env` as the name of our environment variable
+file. You could also specify the environment variables inline under an
+`environment` section in the service.
+
+Let's talk about a few of the options for the collaboration server specified in
+the `.env` file:
+
+##### `NAME`
+
+A name for your Apollo instance. It is shown in the UI during the login process.
+
+##### `MONGODB_URI`
+
+In this example, it is
 `mongodb://mongo-node-1:27017,mongo-node-2:27018/apolloDb?replicaSet=rs0`. If
 you change the names of either of the MongoDB services, their ports, or add or
-remove a MongoDB service, be sure to update this value. The value of
-`FILE_UPLOAD_FOLDER` should match what's on the right side of the colon in the
-`volumes` section (e.g. `/data/uploads`).
+remove a MongoDB service, be sure to update this value.
 
-There are a few other variables that need to be configured for the Apollo
-Collaboration Server to work. They are `URL`, `JWT_SECRET`, and `SESSION_SECRET`
-variables. `URL` is the URL of the server that's hosting Apollo. We'll discuss
-this more in a later section when talking about authentication. You can think of
-`JWT_SECRET` and `SESSION_SECRET` as kind of like passwords. They need to be a
-random string, but should be the same each time you run the server so that user
+##### `FILE_UPLOAD_FOLDER`
+
+This should match what's on the right side of the colon in the `volumes` section
+(e.g. `/data/uploads`).
+
+##### `URL`
+
+The URL of the server that's hosting Apollo.
+
+##### `JWT_SECRET` and `SESSION_SECRET`
+
+You can think of these as kind of like passwords. They need to be a random
+string, but should be the same each time you run the server so that user
 sessions are not invalidated (unless you want to intentionally invalidate user
 sessions). You can use a password generator to create them.
-
-You can put these variables in the `environment` section, or you can put them in
-a `.env` file, which has a format that looks like this
-
-```env
-URL=https://my-apollo-site.org
-```
 
 #### MongoDB
 
@@ -417,4 +422,5 @@ docker compose down
 We are now ready to access Apollo. Open a web browser and got the URL you
 entered in the `apollo.env` file above. You should see a JBrowse instance with a
 prompt to log in as a guest. You should see a view with an assembly selector,
-but there aren't any assemblies yet, so there's not much we can do for now.
+but there aren't any assemblies yet. You're now ready to head over to our
+[Admin guide](../../../category/admin) to learn how to load data into Apollo.
