@@ -101,7 +101,7 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
-      additionalLanguages: ['docker'],
+      additionalLanguages: ['docker', 'shell-session'],
     },
   } satisfies Preset.ThemeConfig,
 }

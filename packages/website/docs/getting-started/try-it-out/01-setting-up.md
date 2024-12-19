@@ -3,7 +3,11 @@
 To run this demo, you'll need to have
 [Docker](//docs.docker.com/engine/install/) (minimum version 27) and
 [Docker Compose](//docs.docker.com/compose/install/) (minimum version 2.17.0)
-installed.
+installed, as well as [`jq`](https://jqlang.github.io/jq/).
+
+We also recommend a Node.js package manager (such as `npm` or `yarn`) to make
+things a easier, but we will provide directions for doing everything without one
+that you can follow if you prefer.
 
 ## Getting the data
 
@@ -75,7 +79,7 @@ services:
         wget https://github.com/GMOD/jbrowse-components/releases/download/v2.18.0/jbrowse-web-v2.18.0.zip --output-document=jbrowse-web.zip
         unzip -o jbrowse-web.zip
         rm jbrowse-web.zip
-        wget --output-document=- --quiet https://registry.npmjs.org/@apollo-annotation/jbrowse-plugin-apollo/-/jbrowse-plugin-apollo-0.2.2.tgz | \
+        wget --output-document=- --quiet https://registry.npmjs.org/@apollo-annotation/jbrowse-plugin-apollo/-/jbrowse-plugin-apollo-0.3.0.tgz | \
         tar --extract --gzip --file=- --strip=2 package/dist/jbrowse-plugin-apollo.umd.production.min.js
         mv jbrowse-plugin-apollo.umd.production.min.js apollo.js
         wget --quiet https://github.com/The-Sequence-Ontology/SO-Ontologies/raw/refs/heads/master/Ontology_Files/so.json

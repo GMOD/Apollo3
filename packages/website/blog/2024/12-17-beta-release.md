@@ -5,7 +5,7 @@ authors: garrettjstevens
 # Apollo 3 Genome Annotation Editor - Beta Release
 
 Thank you to all those who have shown an interest in Apollo 3, our tool for
-collaborative genome annotation.Due to Apollo 3’s flexible client-server
+collaborative genome annotation. Due to Apollo 3’s flexible client-server
 architecture, there are a few different ways you can use it, both single-user to
 collaborative, and using demo servers or configuring your own data. We would
 like to introduce four different ways you can try out Apollo, ranging from
