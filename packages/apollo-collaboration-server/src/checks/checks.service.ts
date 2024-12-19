@@ -94,7 +94,6 @@ export class ChecksService {
     doc: FeatureDocument,
     checkTimestamps = true,
   ): Promise<void> {
-    await this.clearChecksForFeature(doc)
     const flatDoc: AnnotationFeatureSnapshot = doc.toObject({
       flattenMaps: true,
     })
@@ -103,6 +102,7 @@ export class ChecksService {
       if (checkTimestamps && doc.updatedAt && check.updatedAt < doc.updatedAt) {
         continue
       }
+      await this.clearChecksForFeature(doc, check.name)
       const c = checkRegistry.getCheck(check.name)
       if (!c) {
         throw new Error(`Check "${check.name}" not registered`)
@@ -113,7 +113,9 @@ export class ChecksService {
           return this.getSequence({ start, end, featureDoc: doc })
         },
       )
-      await this.checkResultModel.insertMany(result)
+      if (result.length > 0) {
+        await this.checkResultModel.insertMany(result)
+      }
     }
   }
 
@@ -130,9 +132,9 @@ export class ChecksService {
     return this.sequenceService.getSequence({ start, end, refSeq: refSeqId })
   }
 
-  async clearChecksForFeature(featureDoc: FeatureDocument) {
+  async clearChecksForFeature(featureDoc: FeatureDocument, checkName: string) {
     return this.checkResultModel
-      .deleteMany({ ids: { $in: featureDoc.allIds } })
+      .deleteMany({ ids: { $in: featureDoc.allIds }, name: checkName })
       .exec()
   }
 
