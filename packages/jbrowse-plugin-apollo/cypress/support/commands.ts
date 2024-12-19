@@ -34,6 +34,13 @@ async function loadOntology(
     OntologyKey,
     unknown[]
   >
+  // @ts-expect-error could use more typing
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  ontologyData.meta[0].storeOptions.prefixes = new Map(
+    // @ts-expect-error could use more typing
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+    Object.entries(ontologyData.meta[0].storeOptions.prefixes),
+  )
   await openDB(name, version, {
     async upgrade(database: IDBPDatabase): Promise<void> {
       const meta = database.createObjectStore('meta')
