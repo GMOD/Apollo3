@@ -71,6 +71,8 @@ describe('Different ways of editing features', () => {
         })
       })
     cy.get('body').click(0, 0)
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(5000)
 
     // Check edit is done
     cy.reload()
