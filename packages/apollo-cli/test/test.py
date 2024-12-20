@@ -286,7 +286,9 @@ class TestCLI(unittest.TestCase):
         self.assertTrue(p.returncode != 0)
         self.assertTrue('Error: Assembly "vv1" already exists' in p.stderr)
 
-        p = shell(f"{apollo} assembly add-from-fasta {P} na.fa -a vv1 -e -f", strict=False)
+        p = shell(
+            f"{apollo} assembly add-from-fasta {P} na.fa -a vv1 -e -f", strict=False
+        )
         self.assertTrue(p.returncode != 0)
         self.assertTrue("Input" in p.stderr)
 
@@ -649,8 +651,12 @@ class TestCLI(unittest.TestCase):
         shell(
             f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a source -f"
         )
-        shell(f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a dest -e -f")
-        shell(f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a dest2 -e -f")
+        shell(
+            f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a dest -e -f"
+        )
+        shell(
+            f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a dest2 -e -f"
+        )
         p = shell(f"{apollo} feature search {P} -a source -t contig")
         fid = json.loads(p.stdout)[0]["_id"]
 
@@ -851,9 +857,7 @@ class TestCLI(unittest.TestCase):
         self.assertTrue("InternalStopCodonCheck" in p.stdout)
 
     def testFeatureChecksIndexed(self):
-        shell(
-            f"{apollo} assembly add-from-fasta {P} -a v1 test_data/tiny.fasta.gz -f"
-        )
+        shell(f"{apollo} assembly add-from-fasta {P} -a v1 test_data/tiny.fasta.gz -f")
         shell(f"{apollo} assembly check {P} -a v1 -c CDSCheck")
         shell(f"{apollo} feature import {P} -a v1 test_data/tiny.fasta.gff3 -d")
         p = shell(f"{apollo} feature check {P} -a v1")
@@ -987,6 +991,7 @@ class TestCLI(unittest.TestCase):
         )  # NB: "Timeout" comes from utils.py, not Apollo
         # This should be ok
         shell(f"{apollo} login {P} --force", timeout=5, strict=True)
+
     def testFileUpload(self):
         p = shell(f"{apollo} file upload {P} test_data/tiny.fasta")
         out = json.loads(p.stdout)
@@ -1012,16 +1017,16 @@ class TestCLI(unittest.TestCase):
         # Uploading a gzip file must skip compression and just copy the file
         with open("test_data/tiny.fasta.gz", "rb") as gz:
             md5 = hashlib.md5(gz.read()).hexdigest()
-        p = shell(
-            f"{apollo} file upload {P} test_data/tiny.fasta.gz -t text/x-fasta"
-        )
+        p = shell(f"{apollo} file upload {P} test_data/tiny.fasta.gz -t text/x-fasta")
         out = json.loads(p.stdout)
         self.assertEqual(md5, out["checksum"])
         shell(f"{apollo} assembly add-from-fasta {P} -e -f {out['_id']}")
 
     def testAddAssemblyGzip(self):
         # Autodetect format
-        shell(f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta.gz -e -f -a vv1")
+        shell(
+            f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta.gz -e -f -a vv1"
+        )
         p = shell(f"{apollo} assembly sequence {P} -a vv1")
         self.assertTrue(p.stdout.startswith(">"))
         self.assertTrue("cattgttgcggagttgaaca" in p.stdout)
@@ -1054,9 +1059,7 @@ class TestCLI(unittest.TestCase):
 
     def testAddAssemblyFromFilesNotEditable(self):
         # It would be good to check that really there was no sequence loading
-        shell(
-            f"{apollo} assembly add-from-fasta {P} -f test_data/tiny.fasta.gz"
-        )
+        shell(f"{apollo} assembly add-from-fasta {P} -f test_data/tiny.fasta.gz")
         p = shell(f"{apollo} assembly sequence {P} -a tiny.fasta.gz")
         self.assertTrue(p.stdout.startswith(">"))
         self.assertTrue("cattgttgcggagttgaaca" in p.stdout)
@@ -1174,6 +1177,37 @@ class TestCLI(unittest.TestCase):
         p = shell(f"{apollo} file get {P} -i {up1['_id']} {up2['_id']}")
         out = json.loads(p.stdout)
         self.assertEqual(0, len(out))
+
+    def testFIXMEChecksAreTriggeredAndResolved(self):
+        shell(f"{apollo} assembly add-from-gff {P} test_data/checks.gff -f")
+        # Get the ID of the CDS
+        p = shell(f"{apollo} feature get {P} -a checks.gff")
+        out = json.loads(p.stdout)
+        gene = [x for x in out if x["attributes"]["gff_id"] == ["gene01"]][0]
+        mrna = list(gene["children"].values())[0]
+        cds_id = [
+            x
+            for x in list(mrna["children"].values())
+            if x["attributes"]["gff_id"] == ["cds01"]
+        ][0]["_id"]
+
+        p = shell(f"{apollo} feature check {P} -a checks.gff")
+        self.assertEqual(0, len(json.loads(p.stdout)))  # No failing check
+
+        # Introduce problems
+        shell(f"{apollo} feature edit-coords {P} -i {cds_id} --start 4 --end 24")
+        p = shell(f"{apollo} feature check {P} -a checks.gff")
+        checks = json.loads(p.stdout)
+        # FIXME: There should be 2 failing checks, not 3
+        self.assertEqual(3, len(checks))
+        self.assertTrue("InternalStopCodonCheck" in p.stdout)
+        self.assertTrue("MissingStopCodonCheck" in p.stdout)
+
+        # Problems fixed
+        shell(f"{apollo} feature edit-coords {P} -i {cds_id} --start 16 --end 27")
+        p = shell(f"{apollo} feature check {P} -a checks.gff")
+        checks = json.loads(p.stdout)
+        self.assertEqual(0, len(checks))
 
 
 if __name__ == "__main__":

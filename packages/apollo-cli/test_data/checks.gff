@@ -1,0 +1,8 @@
+##gff-version 3
+chr1	.	gene	4	27	.	+	.	ID=gene01
+chr1	.	mRNA	4	27	.	+	.	ID=mrna01;Parent=gene01
+chr1	.	exon	4	27	.	+	0	ID=exon01;Parent=mrna01
+chr1	.	CDS	16	27	.	+	0	ID=cds01;Parent=mrna01
+##FASTA
+>chr1
+ATGGTGtagCAAAGTACTGTTAGGtagTAAnnnnnnnnnnnnnnnnnnnnn
