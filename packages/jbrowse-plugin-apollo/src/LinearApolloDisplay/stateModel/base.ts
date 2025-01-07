@@ -169,7 +169,7 @@ export function baseModelFactory(
       },
     }))
     .views((self) => {
-      const { trackMenuItems: superTrackMenuItems } = self
+      const { filteredFeatureTypes, trackMenuItems: superTrackMenuItems } = self
       return {
         trackMenuItems() {
           const { graphical, table } = self
@@ -217,8 +217,7 @@ export function baseModelFactory(
                       handleClose: () => {
                         doneCallback()
                       },
-                      // eslint-disable-next-line unicorn/consistent-destructuring
-                      featureTypes: getSnapshot(self.filteredFeatureTypes),
+                      featureTypes: getSnapshot(filteredFeatureTypes),
                       onUpdate: (types: string[]) => {
                         self.updateFilteredFeatureTypes(types)
                       },
