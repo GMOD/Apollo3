@@ -19,10 +19,10 @@ const P = '--profile testAdmin'
 
 describe('Test CLI', () => {
   before(() => {
-    //new shell(`${apollo} config ${P} address http://localhost:3999`)
-    //new shell(`${apollo} config ${P} accessType root`)
-    //new shell(`${apollo} config ${P} rootPassword pass`)
-    //new shell(`${apollo} login ${P} -f`)
+    new shell(`${apollo} config ${P} address http://localhost:3999`)
+    new shell(`${apollo} config ${P} accessType root`)
+    new shell(`${apollo} config ${P} rootPassword pass`)
+    new shell(`${apollo} login ${P} -f`)
   })
 
   globalThis.itName('Print help', () => {
@@ -297,41 +297,628 @@ describe('Test CLI', () => {
 
   globalThis.itName('FIXME Checks are triggered and resolved', () => {
     new shell(`${apollo} assembly add-from-gff ${P} test_data/checks.gff -f`)
-    // Get the ID of the CDS
     let p = new shell(`${apollo} feature get ${P} -a checks.gff`)
     const out = JSON.parse(p.stdout)
+
+    p = new shell(`${apollo} feature check ${P} -a checks.gff`)
+    assert.deepStrictEqual(p.stdout.trim(), '[]') // No failing check
+
+    // Get the ID of the CDS. We need need it to modify the CDS coordinates
     const gene = out.filter(
-      (x) => JSON.stringify(x.attributes.gff_id) === JSON.stringify(['gene01']),
-    ) // [x for x in out if x["attributes"]["gff_id"] == ["gene01"]][0]
-    const mrna = Object.values(gene.at(0).children).at(0) // list(gene["children"].values())[0]
-    const cds_id = Object.values(mrna.children)
-      .filter((x) => x.attributes.gff_id.at(0) === 'cds01')
+      (x: any) =>
+        JSON.stringify(x.attributes.gff_id) === JSON.stringify(['gene01']),
+    )
+    const mrna = Object.values(gene.at(0).children).at(0) as any
+    const cds = Object.values(mrna.children)
+      .filter((x: any) => x.attributes.gff_id.at(0) === 'cds01')
+      .at(0) as any
+    const cds_id = cds._id
+
+    // Introduce problems
+    new shell(
+      `${apollo} feature edit-coords ${P} -i ${cds_id} --start 4 --end 24`,
+    )
+    p = new shell(`${apollo} feature check ${P} -a checks.gff`)
+    let checks = JSON.parse(p.stdout)
+    // FIXME: There should be 2 failing checks, not 3
+    assert.strictEqual(checks.length, 3)
+    assert.ok(p.stdout.includes('InternalStopCodonCheck'))
+    assert.ok(p.stdout.includes('MissingStopCodonCheck'))
+
+    // Problems fixed
+    new shell(
+      `${apollo} feature edit-coords ${P} -i ${cds_id} --start 16 --end 27`,
+    )
+    p = new shell(`${apollo} feature check ${P} -a checks.gff`)
+    assert.deepStrictEqual(p.stdout.trim(), '[]')
+  })
+
+  globalThis.itName('Add assembly from local fasta', () => {
+    let p = new shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a vv1 -e -f`,
+    )
+    const out = JSON.parse(p.stdout)
+    assert.ok(Object.keys(out.fileIds).includes('fa'))
+
+    p = new shell(`${apollo} assembly get ${P} -a vv1`)
+    assert.ok(p.stdout.includes('vv1'))
+    p = new shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a vv1 -e`,
+      false,
+    )
+    assert.ok(p.returncode != 0)
+    assert.ok(p.stderr.includes('Error: Assembly "vv1" already exists'))
+
+    p = new shell(
+      `${apollo} assembly add-from-fasta ${P} na.fa -a vv1 -e -f`,
+      false,
+    )
+    assert.ok(p.returncode != 0)
+    assert.ok(p.stderr.includes('Input'))
+
+    // Test default name
+    new shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -e -f`,
+    )
+    p = new shell(`${apollo} assembly get ${P} -a tiny.fasta`)
+    assert.ok(p.stdout.includes('tiny.fasta'))
+  })
+
+  globalThis.itName('Add assembly from external fasta', () => {
+    // You can also use https://raw.githubusercontent.com/GMOD/Apollo3/refs/heads/main/packages/apollo-cli/test_data/tiny.fasta.gz
+    let p = new shell(
+      `${apollo} assembly add-from-fasta ${P} -a vv1 -f http://localhost:3131/volvox.fa.gz`,
+    )
+    const out = JSON.parse(p.stdout)
+    assert.ok(Object.keys(out.externalLocation).includes('fa'))
+
+    p = new shell(`${apollo} assembly get ${P} -a vv1`)
+    assert.ok(p.stdout.includes('vv1'))
+
+    p = new shell(`${apollo} assembly sequence ${P} -a vv1 -r ctgA -s 1 -e 10`)
+    const seq = p.stdout.trim().split('\n')
+    assert.strictEqual(seq[1], 'cattgttgcg')
+
+    p = new shell(
+      `${apollo} assembly add-from-fasta ${P} -a vv1 -f https://x.fa.gz --fai https://x.fa.gz.fai --gzi https://x.fa.gz.gzi`,
+      false,
+    )
+    assert.ok(p.returncode != 0)
+  })
+
+  globalThis.itName('Edit feature from json', () => {
+    new shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
+    )
+    let p = new shell(`${apollo} feature search ${P} -a vv1 -t BAC`)
+    let out = JSON.parse(p.stdout).at(0)
+    assert.strictEqual(out.type, 'BAC')
+
+    p = new shell(`${apollo} assembly get ${P} -a vv1`)
+    const asm_id = JSON.parse(p.stdout).at(0)._id
+
+    const req = [
+      {
+        typeName: 'TypeChange',
+        changedIds: [out['_id']],
+        assembly: asm_id,
+        featureId: out['_id'],
+        oldType: 'BAC',
+        newType: 'G_quartet',
+      },
+    ]
+    const j = JSON.stringify(req)
+    new shell(`echo '${j}' | ${apollo} feature edit ${P} -j -`)
+    p = new shell(`${apollo} feature search ${P} -a vv1 -t G_quartet`)
+    out = JSON.parse(p.stdout).at(0)
+    assert.strictEqual(out['type'], 'G_quartet')
+  })
+
+  globalThis.itName('Edit feature type', () => {
+    new shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
+    )
+
+    // Get id of assembly named vv1
+    let p = new shell(`${apollo} assembly get ${P} -a vv1`)
+    const asm_id = JSON.parse(p.stdout).at(0)._id
+
+    // Get refseqs in assembly vv1
+    p = new shell(
+      `${apollo} refseq get ${P} | jq '.[] | select(.assembly == "${asm_id}" and .name == "ctgA") | ._id'`,
+    )
+    const refseq = p.stdout.trim()
+
+    // Get feature in vv1
+    p = new shell(`${apollo} feature get ${P} -r ${refseq}`)
+    const features = JSON.parse(p.stdout)
+    assert.ok(features.length > 2)
+
+    // Get id of feature of type contig
+    let contig = features.filter((x: any) => x.type === 'contig')
+    assert.strictEqual(contig.length, 1)
+    const contig_id = contig.at(0)._id
+
+    // Edit type of "contig" feature
+    p = new shell(`${apollo} feature edit-type ${P} -i ${contig_id} -t region`)
+
+    p = new shell(
+      `${apollo} feature get ${P} -r ${refseq} | jq '.[] | select(._id == "${contig_id}")'`,
+    )
+    contig = JSON.parse(p.stdout)
+    assert.deepStrictEqual(contig.type, 'region')
+
+    // Return current type
+    p = new shell(`${apollo} feature edit-type ${P} -i ${contig_id}`)
+    assert.deepStrictEqual(p.stdout.trim(), 'region')
+  })
+
+  globalThis.itName('Edit feature coords', () => {
+    new shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
+    )
+
+    // Get id of assembly named vv1
+    let p = new shell(`${apollo} assembly get ${P} -a vv1`)
+    const asm_id = JSON.parse(p.stdout).at(0)._id
+
+    // Get refseqs in assembly vv1
+    p = new shell(
+      `${apollo} refseq get ${P} | jq '.[] | select(.assembly == "${asm_id}" and .name == "ctgA") | ._id'`,
+    )
+    const refseq = p.stdout.trim()
+
+    // Get feature in vv1
+    p = new shell(`${apollo} feature get ${P} -r ${refseq}`)
+    const features = JSON.parse(p.stdout)
+    assert.ok(features.length > 2)
+
+    // Get id of feature of type contig
+    let contig = features.filter((x: any) => x.type === 'contig')
+    assert.strictEqual(contig.length, 1)
+    const contig_id = contig.at(0)._id
+
+    // Edit start and end coordinates
+    new shell(`${apollo} feature edit-coords ${P} -i ${contig_id} -s 80 -e 160`)
+    new shell(`${apollo} feature edit-coords ${P} -i ${contig_id} -s 20 -e 100`)
+
+    p = new shell(
+      `${apollo} feature get ${P} -r ${refseq} | jq '.[] | select(._id == "${contig_id}")'`,
+    )
+    contig = JSON.parse(p.stdout)
+    assert.strictEqual(contig.min, 20 - 1)
+    assert.strictEqual(contig.max, 100)
+
+    p = new shell(
+      `${apollo} feature edit-coords ${P} -i ${contig_id} -s 1 -e 1`,
+    )
+    p = new shell(
+      `${apollo} feature get ${P} -r ${refseq} | jq '.[] | select(._id == "${contig_id}")'`,
+    )
+    contig = JSON.parse(p.stdout)
+    assert.strictEqual(contig.min, 0)
+    assert.strictEqual(contig.max, 1)
+
+    p = new shell(
+      `${apollo} feature edit-coords ${P} -i ${contig_id} -s 0`,
+      false,
+    )
+    assert.strictEqual(p.returncode, 2)
+    assert.ok(p.stderr.includes('Coordinates must be greater than 0'))
+
+    p = new shell(
+      `${apollo} feature edit-coords ${P} -i ${contig_id} -s 10 -e 9`,
+      false,
+    )
+    assert.strictEqual(p.returncode, 2)
+    assert.ok(
+      p.stderr.includes(
+        'Error: The new end coordinate is lower than the new start coordinate',
+      ),
+    )
+
+    // Edit a feature by extending beyond the boundary of its parent and
+    // check it throws a meaningful error message
+    // let eden_gene = undefined
+    const eden_gene = features
+      .filter(
+        (x) => x.type === 'gene' && x.attributes.gff_name.at(0) === 'EDEN',
+      )
+      .at(0) as any
+    assert.ok(eden_gene)
+    const mrna_id = Object.keys(eden_gene.children).at(0)
+    p = new shell(
+      `${apollo} feature edit-coords ${P} -i ${mrna_id} -s 1`,
+      false,
+    )
+    assert.ok(p.returncode != 0)
+    assert.ok(p.stderr.includes('exceeds the bounds of its parent'))
+  })
+
+  globalThis.itName('Edit attributes', () => {
+    new shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
+    )
+
+    // Get id of assembly named vv1
+    let p = new shell(`${apollo} assembly get ${P} -a vv1`)
+    const asm_id = JSON.parse(p.stdout).at(0)._id
+
+    p = new shell(
+      `${apollo} refseq get ${P} | jq '.[] | select(.assembly == "${asm_id}" and .name == "ctgA") | ._id'`,
+    )
+    const refseq = p.stdout.trim()
+
+    // Get feature in vv1
+    p = new shell(
+      `${apollo} feature get ${P} -r ${refseq} | jq '.[] | select(.type == "contig") | ._id'`,
+    )
+    const fid = p.stdout.trim()
+
+    // Edit existing attribute value
+    p = new shell(
+      `${apollo} feature edit-attribute ${P} -i $${fid} -a source -v 'Eggs & Stuff'`,
+    )
+    p = new shell(`${apollo} feature edit-attribute ${P} -i ${fid} -a source`)
+    let out = JSON.parse(p.stdout)
+    assert.deepStrictEqual(out.at(0), `Eggs & Stuff`)
+
+    // Add attribute
+    new shell(
+      `${apollo} feature edit-attribute ${P} -i ${fid} -a newAttr -v stuff`,
+    )
+    p = new shell(`${apollo} feature edit-attribute ${P} -i ${fid} -a newAttr`)
+    assert.ok(p.stdout.includes('stuf'))
+
+    // Non existing attr
+    p = new shell(`${apollo} feature edit-attribute ${P} -i ${fid} -a NonExist`)
+    assert.deepStrictEqual(p.stdout.trim(), '')
+
+    // List of values
+    p = new shell(
+      `${apollo} feature edit-attribute ${P} -i ${fid} -a newAttr -v A B C`,
+    )
+    p = new shell(`${apollo} feature edit-attribute ${P} -i ${fid} -a newAttr`)
+    out = JSON.parse(p.stdout)
+    assert.deepStrictEqual(out, ['A', 'B', 'C'])
+
+    // Delete attribute
+    new shell(`${apollo} feature edit-attribute ${P} -i ${fid} -a newAttr -d`)
+    p = new shell(`${apollo} feature edit-attribute ${P} -i ${fid} -a newAttr`)
+    assert.deepStrictEqual(p.stdout.trim(), '')
+    // Delete again is ok
+    new shell(`${apollo} feature edit-attribute ${P} -i ${fid} -a newAttr -d`)
+
+    // Special fields
+    p = new shell(
+      `${apollo} feature edit-attribute ${P} -i ${fid} -a 'Gene Ontology' -v GO:0051728 GO:0019090`,
+    )
+    p = new shell(
+      `${apollo} feature edit-attribute ${P} -i ${fid} -a 'Gene Ontology'`,
+    )
+    out = JSON.parse(p.stdout)
+    assert.deepStrictEqual(out, ['GO:0051728', 'GO:0019090'])
+
+    // This should fail
+    p = new shell(
+      `${apollo} feature edit-attribute ${P} -i ${fid} -a 'Gene Ontology' -v FOOBAR`,
+    )
+  })
+
+  globalThis.itName('Search features', () => {
+    new shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
+    )
+    new shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv2 -f`,
+    )
+
+    let p = new shell(`${apollo} feature search ${P} -a vv1 vv2 -t EDEN`)
+    let out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 2)
+    assert.ok(p.stdout.includes('EDEN'))
+
+    p = new shell(`${apollo} feature search ${P} -t EDEN`)
+    out = JSON.parse(p.stdout)
+    assert.ok(out.length >= 2)
+
+    p = new shell(`${apollo} feature search ${P} -a vv1 -t EDEN`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.ok(p.stdout.includes('EDEN'))
+
+    p = new shell(`${apollo} feature search ${P} -a foobar -t EDEN`)
+    assert.strictEqual('[]', p.stdout.trim())
+    assert.ok(p.stderr.includes('Warning'))
+
+    p = new shell(`${apollo} feature search ${P} -a vv1 -t foobarspam`)
+    assert.deepStrictEqual(p.stdout.trim(), '[]')
+
+    // It searches attributes values, not attribute names
+    p = new shell(`${apollo} feature search ${P} -a vv1 -t multivalue`)
+    assert.deepStrictEqual(p.stdout.trim(), '[]')
+
+    // Search feature type
+    p = new shell(`${apollo} feature search ${P} -a vv1 -t contig`)
+    assert.ok(p.stdout.includes('"type": "contig"'))
+
+    // Search source (which in fact is an attribute)
+    p = new shell(`${apollo} feature search ${P} -a vv1 -t someExample`)
+    assert.ok(p.stdout.includes('SomeContig'))
+
+    // Case insensitive
+    p = new shell(`${apollo} feature search ${P} -a vv1 -t SOMEexample`)
+    assert.ok(p.stdout.includes('SomeContig'))
+
+    // No partial word match
+    p = new shell(`${apollo} feature search ${P} -a vv1 -t Fingerpri`)
+    assert.deepStrictEqual(p.stdout.trim(), '[]')
+
+    // Match full word not necessarily full value
+    p = new shell(`${apollo} feature search ${P} -a vv1 -t Fingerprinted`)
+    assert.ok(p.stdout.includes('Fingerprinted'))
+
+    // Does not search contig names (reference sequence name)
+    p = new shell(`${apollo} feature search ${P} -a vv1 -t ctgB`)
+    assert.deepStrictEqual(p.stdout.trim(), '[]')
+
+    // Does not match common words (?) ...
+    p = new shell(`${apollo} feature search ${P} -a vv1 -t with`)
+    assert.deepStrictEqual(p.stdout.trim(), '[]')
+
+    // ...But "fake" is ok
+    p = new shell(`${apollo} feature search ${P} -a vv1 -t fake`)
+    assert.ok(p.stdout.includes('FakeSNP1'))
+
+    // ...or a single unusual letter
+    p = new shell(`${apollo} feature search ${P} -a vv1 -t Q`)
+    assert.ok(p.stdout.includes('"Q"'))
+  })
+
+  globalThis.itName('Delete features', () => {
+    new shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
+    )
+    let p = new shell(`${apollo} feature search ${P} -a vv1 -t EDEN`)
+    const fid = JSON.parse(p.stdout).at(0)._id
+
+    p = new shell(`${apollo} feature delete ${P} -i ${fid} --dry-run`)
+    assert.ok(p.stdout.includes(fid))
+
+    new shell(`${apollo} feature delete ${P} -i ${fid}`)
+    p = new shell(`${apollo} feature search ${P} -a vv1 -t EDEN`)
+    assert.deepStrictEqual(p.stdout.trim(), '[]')
+
+    p = new shell(`${apollo} feature delete ${P} -i ${fid}`, false)
+    assert.strictEqual(p.returncode, 1)
+    assert.ok(
+      p.stderr.includes('The following featureId was not found in database'),
+    )
+
+    p = new shell(`${apollo} feature delete ${P} --force -i ${fid}`)
+    assert.strictEqual(p.returncode, 0)
+  })
+
+  globalThis.itName('Add child features', () => {
+    new shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
+    )
+    let p = new shell(`${apollo} feature search ${P} -a vv1 -t contig`)
+    const fid = JSON.parse(p.stdout).at(0)._id
+
+    new shell(
+      `${apollo} feature add-child ${P} -i ${fid} -s 10 -e 20 -t contig_read`,
+    )
+    p = new shell(`${apollo} feature search ${P} -a vv1 -t contig_read`)
+    assert.ok(p.stdout.includes('contig_read'))
+    assert.ok(p.stdout.includes('"min": 9'))
+    assert.ok(p.stdout.includes('"max": 20'))
+
+    p = new shell(
+      `${apollo} feature add-child ${P} -i ${fid} -s 10 -e 2000 -t contig_read`,
+      false,
+    )
+    assert.ok(p.returncode != 0)
+    assert.ok(p.stderr.includes('Child feature coordinates'))
+
+    // Should this fail?
+    p = new shell(
+      `${apollo} feature add-child ${P} -i ${fid} -s 10 -e 20 -t FOOBAR`,
+      false,
+    )
+    assert.strictEqual(p.returncode, 0)
+  })
+
+  globalThis.itName('Import features', () => {
+    new shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a vv1 -e -f`,
+    )
+    new shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
+    let p = new shell(`${apollo} feature search ${P} -a vv1 -t contig`)
+    let out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 2)
+
+    // Import again: Add to existing feature
+    p = new shell(
+      `${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`,
+    )
+    p = new shell(`${apollo} feature search ${P} -a vv1 -t contig`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 4)
+
+    // Import again: delete ${P} existing
+    p = new shell(
+      `${apollo} feature import ${P} -d test_data/tiny.fasta.gff3 -a vv1`,
+    )
+    p = new shell(`${apollo} feature search ${P} -a vv1 -t contig`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 2)
+
+    p = new shell(`${apollo} assembly delete ${P} -a vv2`)
+    p = new shell(
+      `${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv2`,
+      false,
+    )
+    assert.ok(p.returncode != 0)
+    assert.ok(p.stderr.includes('Assembly "vv2" does not exist'))
+
+    p = new shell(`${apollo} feature import ${P} foo.gff3 -a vv1`, false)
+    assert.ok(p.returncode != 0)
+    assert.ok(p.stderr.includes('File "foo.gff3" does not exist'))
+  })
+
+  globalThis.itName('Copy feature', () => {
+    new shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a source -f`,
+    )
+    new shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a dest -e -f`,
+    )
+    new shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a dest2 -e -f`,
+    )
+    let p = new shell(`${apollo} feature search ${P} -a source -t contig`)
+    const fid = JSON.parse(p.stdout).at(0)._id
+
+    new shell(`${apollo} feature copy ${P} -i ${fid} -r ctgA -a dest -s 1`)
+    p = new shell(`${apollo} feature search ${P} -a dest -t contig`)
+    let out = JSON.parse(p.stdout)[0]
+    assert.strictEqual(out.min, 0)
+    assert.strictEqual(out.max, 50)
+
+    // RefSeq id does not need assembly
+    p = new shell(`${apollo} refseq get ${P} -a dest2`)
+    const destRefSeq = JSON.parse(p.stdout)
+      .filter((x: any) => x.name === 'ctgA')
       .at(0)._id
 
-    /*
-        cds_id = [
-            x
-            for x in list(mrna["children"].values())
-            if x["attributes"]["gff_id"] == ["cds01"]
-        ][0]["_id"]
+    p = new shell(`${apollo} feature copy ${P} -i ${fid} -r ${destRefSeq} -s 2`)
+    p = new shell(`${apollo} feature search ${P} -a dest2 -t contig`)
+    out = JSON.parse(p.stdout)[0]
+    assert.strictEqual(out['min'], 1)
+    assert.strictEqual(out['max'], 51)
 
-        p = shell(f"{apollo} feature check {P} -a checks.gff")
-        self.assertEqual(0, len(json.loads(p.stdout)))  # No failing check
+    // Copy to same assembly
+    new shell(`${apollo} feature copy ${P} -i ${fid} -r ctgA -a source -s 10`)
+    p = new shell(`${apollo} feature search ${P} -a source -t contig`)
+    out = JSON.parse(p.stdout)
 
-        # Introduce problems
-        shell(f"{apollo} feature edit-coords {P} -i {cds_id} --start 4 --end 24")
-        p = shell(f"{apollo} feature check {P} -a checks.gff")
-        checks = json.loads(p.stdout)
-        # FIXME: There should be 2 failing checks, not 3
-        self.assertEqual(3, len(checks))
-        self.assertTrue("InternalStopCodonCheck" in p.stdout)
-        self.assertTrue("MissingStopCodonCheck" in p.stdout)
+    // Copy non-existant feature or refseq
+    p = new shell(
+      `${apollo} feature copy ${P} -i FOOBAR -r ctgA -a dest -s 1`,
+      false,
+    )
+    assert.ok(p.returncode != 0)
+    assert.ok(p.stderr.includes('ERROR'))
 
-        # Problems fixed
-        shell(f"{apollo} feature edit-coords {P} -i {cds_id} --start 16 --end 27")
-        p = shell(f"{apollo} feature check {P} -a checks.gff")
-        checks = json.loads(p.stdout)
-        self.assertEqual(0, len(checks))
-        */
+    p = new shell(
+      `${apollo} feature copy ${P} -i ${fid} -r FOOBAR -a dest -s 1`,
+      false,
+    )
+    assert.ok(p.returncode != 0)
+    assert.ok(p.stderr.includes('No reference'))
+
+    // Ambiguous refseq
+    p = new shell(`${apollo} feature copy ${P} -i ${fid} -r ctgA -s 1`, false)
+    assert.ok(p.returncode != 0)
+    assert.ok(p.stderr.includes('more than one'))
+  })
+
+  globalThis.itName('Get changes', () => {
+    new shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a myAssembly -e -f`,
+    )
+    new shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a yourAssembly -e -f`,
+    )
+    new shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a ourAssembly -e -f`,
+    )
+
+    let p = new shell(`${apollo} change get ${P}`)
+    JSON.parse(p.stdout)
+    assert.ok(p.stdout.includes('myAssembly'))
+    assert.ok(p.stdout.includes('yourAssembly'))
+
+    p = new shell(`${apollo} change get ${P} -a myAssembly ourAssembly`)
+    assert.ok(p.stdout.includes('myAssembly'))
+    assert.ok(p.stdout.includes('ourAssembly'))
+    assert.ok(p.stdout.includes('yourAssembly') == false)
+
+    // Delete assemblies and get changes by assembly name: Nothing is
+    // returned because the assemblies collection doesn't contain that name
+    // anymore. Ideally you should still be able to get changes by name?
+    new shell(
+      `${apollo} assembly delete ${P} -a myAssembly yourAssembly ourAssembly`,
+    )
+    p = new shell(`${apollo} change get ${P} -a myAssembly`)
+    const out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 0)
+  })
+
+  globalThis.itName('Get sequence', () => {
+    new shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a v1 -e -f`,
+    )
+    new shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a v2 -e -f`,
+    )
+
+    let p = new shell(`${apollo} assembly sequence ${P} -a nonExistant`, false)
+    assert.ok(p.returncode != 0)
+    assert.ok(p.stderr.includes('returned 0 assemblies'))
+
+    p = new shell(`${apollo} assembly sequence ${P} -a v1 -s 0`, false)
+    assert.ok(p.returncode != 0)
+    assert.ok(p.stderr.includes('must be greater than 0'))
+
+    p = new shell(`${apollo} assembly sequence ${P} -a v1`)
+    let seq = p.stdout.trim().split('\n')
+    assert.strictEqual(seq.length, 25)
+    assert.deepStrictEqual(seq.at(0), '>ctgA:1..420')
+    assert.deepStrictEqual(
+      seq.at(1),
+      'cattgttgcggagttgaacaACGGCATTAGGAACACTTCCGTCTCtcacttttatacgattatgattggttctttagcct',
+    )
+    assert.deepStrictEqual(seq.at(6), 'ttggtcgctccgttgtaccc')
+    assert.deepStrictEqual(seq.at(7), '>ctgB:1..800')
+    assert.deepStrictEqual(seq.at(-1), 'ttggtcgctccgttgtaccc')
+
+    p = new shell(`${apollo} assembly sequence ${P} -a v1 -r ctgB -s 1 -e 1`)
+    seq = p.stdout.split('\n')
+    assert.deepStrictEqual(seq.at(0), '>ctgB:1..1')
+    assert.deepStrictEqual(seq.at(1), 'A')
+
+    p = new shell(`${apollo} assembly sequence ${P} -a v1 -r ctgB -s 2 -e 4`)
+    seq = p.stdout.split('\n')
+    assert.deepStrictEqual(seq.at(0), '>ctgB:2..4')
+    assert.deepStrictEqual(seq.at(1), 'CAT')
+
+    p = new shell(`${apollo} assembly sequence ${P} -r ctgB`, false)
+    assert.ok(p.returncode != 0)
+    assert.ok(p.stderr.includes('found in more than one'))
+  })
+
+  globalThis.itName('Get feature by id', () => {
+    new shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a v1 -f`,
+    )
+    let p = new shell(`${apollo} feature get ${P} -a v1`)
+    const ff = JSON.parse(p.stdout)
+
+    const x1 = ff.at(0)._id
+    const x2 = ff.at(1)._id
+    p = new shell(`${apollo} feature get-id ${P} -i ${x1} ${x1} ${x2}`)
+    let out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 2)
+    assert.deepStrictEqual(out.at(0)._id, x1)
+    assert.deepStrictEqual(out.at(1)._id, x2)
+
+    p = new shell(`${apollo} feature get-id ${P} -i FOOBAR`)
+    assert.deepStrictEqual(p.stdout.trim(), '[]')
+
+    p = new shell(`echo -e '${x1} \n ${x2}' | ${apollo} feature get-id ${P}`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 2)
   })
 })
