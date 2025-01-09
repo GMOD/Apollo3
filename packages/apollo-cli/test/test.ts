@@ -10,9 +10,10 @@
  */
 
 import assert from 'node:assert'
-import { before, describe, it } from 'node:test'
+import { before, describe } from 'node:test'
 import { shell } from './utils'
-import { createWriteStream, unlinkSync, writeFileSync } from 'fs'
+import fs from 'node:fs'
+import * as crypto from 'crypto'
 
 const apollo = 'yarn dev'
 const P = '--profile testAdmin'
@@ -196,14 +197,14 @@ describe('Test CLI', () => {
     p = new shell(`${apollo} assembly get ${P} -a test_data/tmp.json`)
     out = JSON.parse(p.stdout)
     assert.ok(out.length >= 3)
-    unlinkSync('test_data/tmp.json')
+    fs.unlinkSync('test_data/tmp.json')
 
     // From text file, one name or id per line
-    writeFileSync('test_data/tmp.txt', 'v1 \n v2 \r\n v3 \n')
+    fs.writeFileSync('test_data/tmp.txt', 'v1 \n v2 \r\n v3 \n')
     p = new shell(`${apollo} assembly get ${P} -a test_data/tmp.txt`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(out.length, 3)
-    unlinkSync('test_data/tmp.txt')
+    fs.unlinkSync('test_data/tmp.txt')
 
     // From json string
     const aid = xall.at(0)._id
@@ -268,8 +269,8 @@ describe('Test CLI', () => {
   })
 
   globalThis.itName('Add assembly large input', () => {
-    writeFileSync('test_data/tmp.fa', '>chr1\n')
-    const stream = createWriteStream('test_data/tmp.fa', { flags: 'a' })
+    fs.writeFileSync('test_data/tmp.fa', '>chr1\n')
+    const stream = fs.createWriteStream('test_data/tmp.fa', { flags: 'a' })
     for (let i = 0; i < 10000; i++) {
       stream.write('CATTGTTGCGGAGTTGAACAACGGCATTAGGAACACTTCCGTCTC\n')
     }
@@ -292,7 +293,7 @@ describe('Test CLI', () => {
       60000,
     )
 
-    unlinkSync('test_data/tmp.fa')
+    fs.unlinkSync('test_data/tmp.fa')
   })
 
   globalThis.itName('FIXME Checks are triggered and resolved', () => {
@@ -920,5 +921,420 @@ describe('Test CLI', () => {
     p = new shell(`echo -e '${x1} \n ${x2}' | ${apollo} feature get-id ${P}`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(out.length, 2)
+  })
+
+  globalThis.itName('Assembly checks', () => {
+    // TODO: Improve tests once more checks exist (currently there is only
+    // CDSCheck)
+    new shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a v1 -f`,
+    )
+
+    // Test view available check type
+    let p = new shell(`${apollo} assembly check ${P}`)
+    let out = JSON.parse(p.stdout)
+    assert.ok(p.stdout.includes('CDSCheck'))
+    const cdsCheckId = out.filter((x: any) => x.name === 'CDSCheck').at(0)._id
+
+    // Test view checks set for assembly
+    p = new shell(`${apollo} assembly check ${P} -a v1`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+
+    // Test non-existant assembly
+    p = new shell(`${apollo} assembly check ${P} -a non-existant`, false)
+    assert.strictEqual(p.returncode, 1)
+    assert.ok(p.stderr.includes('non-existant'))
+
+    // Test non-existant check
+    p = new shell(`${apollo} assembly check ${P} -a v1 -c not-a-check`, false)
+    assert.strictEqual(p.returncode, 1)
+    assert.ok(p.stderr.includes('not-a-check'))
+
+    // Test add checks. Test check is added as opposed to replacing current
+    // checks with input list
+    new shell(`${apollo} assembly check ${P} -a v1 -c CDSCheck CDSCheck`)
+    p = new shell(`${apollo} assembly check ${P} -a v1`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.deepStrictEqual(out.at(0).name, 'CDSCheck')
+
+    // Works also with check id
+    new shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a v2 -f`,
+    )
+    new shell(`${apollo} assembly check ${P} -a v2 -c ${cdsCheckId}`)
+    p = new shell(`${apollo} assembly check ${P} -a v2`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.deepStrictEqual(out.at(0).name, 'CDSCheck')
+
+    // Delete check
+    new shell(`${apollo} assembly check ${P} -a v1 -d -c CDSCheck`)
+    p = new shell(`${apollo} assembly check ${P} -a v1`)
+    out = JSON.parse(p.stdout)
+    assert.deepStrictEqual(p.stdout.trim(), '[]')
+  })
+
+  globalThis.itName('Feature checks', () => {
+    new shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a v1 -f`,
+    )
+    new shell(`${apollo} assembly check ${P} -a v1 -c CDSCheck`)
+    let p = new shell(`${apollo} feature check ${P} -a v1`)
+    const out = JSON.parse(p.stdout)
+    assert.ok(out.length > 1)
+    assert.ok(p.stdout.includes('InternalStopCodonCheck'))
+
+    // Ids with checks
+    const ids: string[] = out.map((x: any) => x.ids)
+    assert.ok(new Set(ids).size > 1)
+
+    // Retrieve by feature id
+    const xid = [...ids].join(' ')
+    p = new shell(`${apollo} feature check ${P} -i ${xid}`)
+    assert.ok(p.stdout.includes('InternalStopCodonCheck'))
+  })
+
+  globalThis.itName('Feature checks indexed', () => {
+    new shell(
+      `${apollo} assembly add-from-fasta ${P} -a v1 test_data/tiny.fasta.gz -f`,
+    )
+    new shell(`${apollo} assembly check ${P} -a v1 -c CDSCheck`)
+    new shell(
+      `${apollo} feature import ${P} -a v1 test_data/tiny.fasta.gff3 -d`,
+    )
+    let p = new shell(`${apollo} feature check ${P} -a v1`)
+    const out = JSON.parse(p.stdout)
+    assert.ok(out.length > 1)
+    assert.ok(p.stdout.includes('InternalStopCodonCheck'))
+
+    // Ids with checks
+    const ids: string[] = out.map((x: any) => x.ids)
+    assert.ok(new Set(ids).size > 1)
+
+    // Retrieve by feature id
+    const xid = [...ids].join(' ')
+    p = new shell(`${apollo} feature check ${P} -i ${xid}`)
+    assert.ok(p.stdout.includes('InternalStopCodonCheck'))
+  })
+
+  globalThis.itName('User', () => {
+    let p = new shell(`${apollo} user get ${P}`)
+    let out = JSON.parse(p.stdout)
+    assert.ok(out.length > 0)
+
+    p = new shell(`${apollo} user get ${P} -r admin`)
+    const out2 = JSON.parse(p.stdout)
+    assert.ok(out.length > 0)
+    assert.ok(out.length > out2.length)
+
+    p = new shell(`${apollo} user get ${P} -r admin -u root`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+
+    p = new shell(`${apollo} user get ${P} -r readOnly -u root`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 0)
+  })
+
+  globalThis.itName('Apollo profile env', () => {
+    let p = new shell(
+      `export APOLLO_PROFILE=testAdmin2
+          ${apollo} config address http://localhost:3999
+          ${apollo} config accessType root
+          ${apollo} config rootPassword pass
+          ${apollo} login -f
+          ${apollo} status
+          ${apollo} user get`,
+    )
+    assert.ok(p.stdout.includes('testAdmin2: Logged in'))
+    assert.ok(p.stdout.includes('createdAt'))
+  })
+
+  globalThis.itName('Apollo config create env', () => {
+    let p = new shell(
+      `\
+            export APOLLO_DISABLE_CONFIG_CREATE=1
+            rm -f tmp.yml
+            ${apollo} config --config-file tmp.yml address http://localhost:3999`,
+      false,
+    )
+    assert.ok(p.returncode != 0)
+    assert.ok(p.stderr.includes('does not exist yet'))
+    assert.ok(fs.existsSync('tmp.yml') == false)
+
+    p = new shell(
+      `\
+            export APOLLO_DISABLE_CONFIG_CREATE=0
+            rm -f tmp.yml
+            ${apollo} config --config-file tmp.yml address http://localhost:3999`,
+    )
+    assert.strictEqual(0, p.returncode)
+    assert.ok(fs.existsSync('tmp.yml'))
+
+    p = new shell(
+      `\
+            unset APOLLO_DISABLE_CONFIG_CREATE
+            rm -f tmp.yml
+            ${apollo} config --config-file tmp.yml address http://localhost:3999`,
+    )
+    assert.strictEqual(0, p.returncode)
+    assert.ok(fs.existsSync('tmp.yml'))
+
+    fs.unlinkSync('tmp.yml')
+  })
+
+  globalThis.itName('Invalid access', () => {
+    let p = new shell(`${apollo} user get --profile foo`, false)
+    assert.strictEqual(1, p.returncode)
+    assert.ok(p.stderr.includes('Profile "foo" does not exist'))
+  })
+
+  globalThis.itName('Refname alias configuration', () => {
+    new shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a asm1 -f`,
+    )
+
+    let p = new shell(`${apollo} assembly get ${P} -a asm1`)
+    assert.ok(p.stdout.includes('asm1'))
+    assert.ok(p.stdout.includes('asm2') == false)
+    const asm_id = JSON.parse(p.stdout)[0]['_id']
+
+    p = new shell(
+      `${apollo} refseq add-alias ${P} test_data/alias.txt -a asm2`,
+      false,
+    )
+    assert.ok(p.stderr.includes('Assembly asm2 not found'))
+
+    p = new shell(
+      `${apollo} refseq add-alias ${P} test_data/alias.txt -a asm1`,
+      false,
+    )
+    assert.ok(
+      p.stdout.includes(
+        'Reference name aliases added successfully to assembly asm1',
+      ),
+    )
+
+    p = new shell(`${apollo} refseq get ${P}`)
+    const refseq = JSON.parse(p.stdout.trim())
+    const vv1ref = refseq.filter((x: any) => x.assembly === asm_id)
+    const refname_aliases: Record<string, string[]> = {}
+    for (const x of vv1ref) {
+      refname_aliases[x.name] = x.aliases
+    }
+    assert.deepStrictEqual(
+      JSON.stringify(refname_aliases['ctgA'].sort()),
+      JSON.stringify(['ctga', 'CTGA'].sort()),
+    )
+    assert.deepStrictEqual(
+      JSON.stringify(refname_aliases['ctgB'].sort()),
+      JSON.stringify(['ctgb', 'CTGB'].sort()),
+    )
+    assert.deepStrictEqual(
+      JSON.stringify(refname_aliases['ctgC'].sort()),
+      JSON.stringify(['ctgc', 'CTGC'].sort()),
+    )
+  })
+
+  // Works locally but fails on github
+  globalThis.itName('Login', () => {
+    // This should wait for user's input
+    let p = new shell(`${apollo} login ${P}`, false, 5000)
+    assert.ok(p.returncode != 0)
+    // This should be ok
+    new shell(`${apollo} login ${P} --force`, true, 5000)
+  })
+
+  globalThis.itName('File upload', () => {
+    let p = new shell(`${apollo} file upload ${P} test_data/tiny.fasta`)
+    let out = JSON.parse(p.stdout)
+    assert.deepStrictEqual(out.type, 'text/x-fasta')
+    assert.ok(out._id)
+
+    p = new shell(`${apollo} file upload ${P} test_data/tiny.fasta`)
+    out = JSON.parse(p.stdout)
+    assert.deepStrictEqual(out.type, 'text/x-fasta')
+
+    p = new shell(`${apollo} file upload ${P} test_data/tiny.fasta.gff3`)
+    out = JSON.parse(p.stdout)
+    assert.deepStrictEqual(out.type, 'text/x-gff3')
+
+    p = new shell(`${apollo} file upload ${P} test_data/guest.yaml`, false)
+    assert.ok(p.returncode != 0)
+
+    p = new shell(`${apollo} file upload ${P} test_data/tiny.fasta.gz`, false)
+    assert.ok(p.stderr.includes('it may be gzip or bgzip compressed'))
+    assert.ok(p.returncode != 0)
+  })
+
+  globalThis.itName('File upload gzip', () => {
+    // Uploading a gzip file must skip compression and just copy the file
+    const gz = fs.readFileSync('test_data/tiny.fasta.gz')
+    const md5 = crypto.createHash('md5').update(gz).digest('hex')
+
+    const p = new shell(
+      `${apollo} file upload ${P} test_data/tiny.fasta.gz -t text/x-fasta`,
+    )
+    const out = JSON.parse(p.stdout)
+    assert.strictEqual(out.checksum, md5)
+    new shell(`${apollo} assembly add-from-fasta ${P} -e -f ${out._id}`)
+  })
+
+  globalThis.itName('Add assembly gzip', () => {
+    // Autodetect format
+    new shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta.gz -e -f -a vv1`,
+    )
+    let p = new shell(`${apollo} assembly sequence ${P} -a vv1`)
+    assert.ok(p.stdout.startsWith('>'))
+    assert.ok(p.stdout.includes('cattgttgcggagttgaaca'))
+
+    // Skip autodetect
+    fs.copyFileSync('test_data/tiny.fasta', 'test_data/tmp.gz')
+    new shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tmp.gz -e -f -a vv1 --decompressed`,
+    )
+    p = new shell(`${apollo} assembly sequence ${P} -a vv1`)
+    assert.ok(p.stdout.startsWith('>'))
+    assert.ok(p.stdout.includes('cattgttgcggagttgaaca'))
+    fs.unlinkSync('test_data/tmp.gz')
+
+    fs.copyFileSync('test_data/tiny.fasta.gz', 'test_data/fasta.tmp')
+    new shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/fasta.tmp -e -f -a vv1 --gzip`,
+    )
+    p = new shell(`${apollo} assembly sequence ${P} -a vv1`)
+    assert.ok(p.stdout.startsWith('>'))
+    assert.ok(p.stdout.includes('cattgttgcggagttgaaca'))
+
+    // Autodetect false positive
+    p = new shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/fasta.tmp -e -f -a vv1`,
+      false,
+    )
+    assert.ok(p.returncode != 0)
+    fs.unlinkSync('test_data/fasta.tmp')
+  })
+
+  globalThis.itName('Add assembly from files not editable', () => {
+    // It would be good to check that really there was no sequence loading
+    new shell(
+      `${apollo} assembly add-from-fasta ${P} -f test_data/tiny.fasta.gz`,
+    )
+    let p = new shell(`${apollo} assembly sequence ${P} -a tiny.fasta.gz`)
+    assert.ok(p.stdout.startsWith('>'))
+    assert.ok(p.stdout.includes('cattgttgcggagttgaaca'))
+
+    p = new shell(
+      `${apollo} assembly add-from-fasta ${P} -f test_data/tiny.fasta`,
+      false,
+    )
+    assert.ok(p.returncode != 0)
+
+    // Setting --gzi & --fai
+    new shell(
+      `${apollo} assembly add-from-fasta ${P} -f test_data/tiny2.fasta.gz --gzi test_data/tiny.fasta.gz.gzi --fai test_data/tiny.fasta.gz.fai`,
+    )
+    p = new shell(`${apollo} assembly sequence ${P} -a tiny2.fasta.gz`)
+    assert.ok(p.stdout.startsWith('>'))
+    assert.ok(p.stdout.includes('cattgttgcggagttgaaca'))
+  })
+
+  globalThis.itName('Add assembly from file ids not editable', () => {
+    // Upload and get Ids for: bgzip fasta, fai and gzi
+    let p = new shell(
+      `${apollo} file upload ${P} test_data/tiny.fasta.gz -t application/x-bgzip-fasta`,
+    )
+    const fastaId = JSON.parse(p.stdout)._id
+
+    p = new shell(`${apollo} file upload ${P} test_data/tiny.fasta.gz.fai`)
+    const faiId = JSON.parse(p.stdout)._id
+
+    p = new shell(`${apollo} file upload ${P} test_data/tiny.fasta.gz.gzi`)
+    const gziId = JSON.parse(p.stdout)._id
+
+    new shell(
+      `${apollo} assembly add-from-fasta ${P} -f ${fastaId} --fai test_data/tiny.fasta.gz.fai --gzi test_data/tiny.fasta.gz.gzi`,
+    )
+    p = new shell(`${apollo} assembly sequence ${P} -a ${fastaId}`)
+    assert.ok(p.stdout.startsWith('>'))
+    assert.ok(p.stdout.includes('cattgttgcggagttgaaca'))
+
+    new shell(
+      `${apollo} assembly add-from-fasta ${P} -f ${fastaId} --fai ${faiId} --gzi ${gziId}`,
+    )
+    p = new shell(`${apollo} assembly sequence ${P} -a ${fastaId}`)
+    assert.ok(p.stdout.startsWith('>'))
+  })
+
+  globalThis.itName('Add assembly from file id', () => {
+    let p = new shell(`${apollo} file upload ${P} test_data/tiny.fasta`)
+    const fid = JSON.parse(p.stdout)._id
+    p = new shell(`${apollo} assembly add-from-fasta ${P} ${fid} -a up -e -f`)
+    const out = JSON.parse(p.stdout)
+    assert.deepStrictEqual(out.name, 'up')
+    assert.deepStrictEqual(out.fileIds.fa, fid)
+  })
+
+  globalThis.itName('Get files', () => {
+    new shell(`${apollo} file upload ${P} test_data/tiny.fasta`)
+    let p = new shell(`${apollo} file upload ${P} test_data/tiny.fasta`)
+    const fid = JSON.parse(p.stdout)._id
+
+    p = new shell(`${apollo} file get ${P}`)
+    let out = JSON.parse(p.stdout)
+    assert.ok(out.length >= 2)
+    assert.ok(out.filter((x) => x._id === fid))
+
+    p = new shell(`${apollo} file get ${P} -i ${fid} ${fid}`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+
+    p = new shell(`${apollo} file get ${P} -i nonexists`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 0)
+  })
+
+  globalThis.itName('Download file', () => {
+    let p = new shell(`${apollo} file upload ${P} test_data/tiny.fasta`)
+    const up = JSON.parse(p.stdout)
+    if (fs.existsSync(up.basename)) {
+      throw new Error(
+        `File ${up.basename} exists - if safe to do so, delete it before running this test`,
+      )
+    }
+
+    new shell(`${apollo} file download ${P} -i ${up._id}`)
+    let down = fs.readFileSync(up.basename).toString()
+    assert.ok(down.startsWith('>'))
+    assert.ok(down.trim().endsWith('accc'))
+    fs.unlinkSync(up.basename)
+
+    new shell(`${apollo} file download ${P} -i ${up._id} -o tmp.fa`)
+    down = fs.readFileSync('tmp.fa').toString()
+    assert.ok(down.startsWith('>'))
+    assert.ok(down.trim().endsWith('accc'))
+    fs.unlinkSync('tmp.fa')
+
+    p = new shell(`${apollo} file download ${P} -i ${up['_id']} -o -`)
+    assert.ok(p.stdout.startsWith('>'))
+    assert.ok(p.stdout.trim().endsWith('accc'))
+  })
+
+  globalThis.itName('Delete file', () => {
+    let p = new shell(`${apollo} file upload ${P} test_data/tiny.fasta`)
+    const up1 = JSON.parse(p.stdout)
+    p = new shell(`${apollo} file upload ${P} test_data/tiny.fasta`)
+    const up2 = JSON.parse(p.stdout)
+
+    p = new shell(`${apollo} file delete ${P} -i ${up1._id} ${up2._id}`)
+    let out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 2)
+
+    p = new shell(`${apollo} file get ${P} -i ${up1._id} ${up2._id}`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 0)
   })
 })

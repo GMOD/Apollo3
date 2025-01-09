@@ -9,8 +9,12 @@ These are instructions to execute the CLI tests.
 
 # Setup
 
-The Apollo server must be configured to accept root user access. For this edit
-`packages/apollo-collaboration-server/.development.env` as:
+In VSCode open the Apollo project as container as usual (Ctrl+Shift+P then
+`Dev container: Open folder in container`). Start Apollo for CLI testing:
+Ctrl+Shift+P then `Run task` (enter) `Start-cli-test`.
+
+Alternatively, the Apollo server must be configured to accept root user access.
+For this edit `packages/apollo-collaboration-server/.development.env` as:
 
 ```
 sed -i'' 's/# ALLOW_ROOT_USER=false/ALLOW_ROOT_USER=true/;
@@ -21,27 +25,26 @@ then restart the collaboration server to make changes effective.
 
 # Run CLI tests
 
-Change to Apollo3/packages/apollo-cli and make this script executable:
+Change to:
 
 ```
-chmod a+x ./test/test.py
+cd Apollo3/packages/apollo-cli
 ```
 
 - To run all tests:
 
 ```
-./test/test.py
+* yarn tsx test/test.ts
 ```
 
-- To run only one test, e.g. `testAddAssemblyFromGff`:
+- To run only tests matching aregular expression:
 
 ```
-./test/test.py TestCLI.testAddAssemblyFromGff
+ yarn tsx --test-name-pattern='Print help|Feature get' test/test.ts
 ```
 
-If you edit the `test.py`, you may want to re-format it with
-[black](https://black.readthedocs.io/en/stable/index.html):
+# Run docker test
 
 ```
-black test/test.py
+yarn tsx ./test/test_docker.ts
 ```
