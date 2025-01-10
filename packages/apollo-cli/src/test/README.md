@@ -2,6 +2,7 @@
 
 - [Setup](#setup)
 - [Run CLI tests](#run-cli-tests)
+- [Run docker test](#run-docker-test)
 
 <!-- vim-markdown-toc -->
 
@@ -34,17 +35,17 @@ cd Apollo3/packages/apollo-cli
 - To run all tests:
 
 ```
-* yarn tsx test/test.ts
+* yarn tsx src/test/test.ts
 ```
 
 - To run only tests matching aregular expression:
 
 ```
- yarn tsx --test-name-pattern='Print help|Feature get' test/test.ts
+ yarn tsx --test-name-pattern='Print help|Feature get' src/test/test.ts
 ```
 
 # Run docker test
 
 ```
-yarn tsx ./test/test_docker.ts
+yarn tsx ./src/test/test_docker.ts
 ```
