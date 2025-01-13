@@ -17,7 +17,7 @@
  */
 
 import assert from 'node:assert'
-import { before, describe } from 'node:test'
+import { before, beforeEach, afterEach, describe } from 'node:test'
 import { Shell } from './utils.js'
 import fs from 'node:fs'
 import * as crypto from 'node:crypto'
@@ -25,13 +25,32 @@ import path from 'node:path'
 
 const apollo = 'yarn dev'
 const P = '--profile testAdmin'
+let configFile = ''
+let configFileBak = ''
 
 void describe('Test CLI', () => {
   before(() => {
+    configFile = new Shell(`${apollo} config --get-config-file`).stdout.trim()
+    configFileBak = `${path.basename(configFile)}.bak`
+    if (fs.existsSync(configFileBak)) {
+      throw new Error(
+        `Backup config file ${configFileBak} already exists. If safe to do so, delete it before testing`,
+      )
+    }
     new Shell(`${apollo} config ${P} address http://localhost:3999`)
     new Shell(`${apollo} config ${P} accessType root`)
     new Shell(`${apollo} config ${P} rootPassword pass`)
     new Shell(`${apollo} login ${P} -f`)
+  })
+
+  beforeEach(() => {
+    // Backup starting config file
+    fs.copyFileSync(configFile, configFileBak)
+  })
+
+  afterEach(() => {
+    // Put back starting config file
+    fs.renameSync(configFileBak, configFile)
   })
 
   void globalThis.itName('Print help', () => {
@@ -45,13 +64,6 @@ void describe('Test CLI', () => {
   })
 
   void globalThis.itName('Config invalid keys', () => {
-    // Backup original config file
-    const cfgOrig = new Shell(
-      `${apollo} config --get-config-file`,
-    ).stdout.trim()
-    const bak = `${path.basename(cfgOrig)}.bak`
-    fs.copyFileSync(cfgOrig, bak)
-
     let p = new Shell(`${apollo} config ${P} address spam`, false)
     assert.strictEqual(1, p.returncode)
     assert.ok(p.stderr.includes('Invalid setting:'))
@@ -63,22 +75,11 @@ void describe('Test CLI', () => {
     p = new Shell(`${apollo} config ${P} accessType spam`, false)
     assert.strictEqual(1, p.returncode)
     assert.ok(p.stderr.includes('Invalid setting:'))
-
-    fs.renameSync(bak, cfgOrig)
   })
 
   void globalThis.itName('Can change access type', () => {
-    // Backup original config file
-    const cfgOrig = new Shell(
-      `${apollo} config --get-config-file`,
-    ).stdout.trim()
-    const bak = `${path.basename(cfgOrig)}.bak`
-    fs.copyFileSync(cfgOrig, bak)
-
     const p = new Shell(`${apollo} config ${P} accessType google`)
     assert.strictEqual('', p.stdout.trim())
-
-    fs.renameSync(bak, cfgOrig)
   })
 
   void globalThis.itName('Apollo status', () => {
