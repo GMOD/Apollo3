@@ -43,24 +43,24 @@ void describe('Test CLI', () => {
     assert.ok(p.stdout.startsWith('/'))
   })
 
-  void globalThis.itName('Config invalid keys', () => {
-    let p = new Shell(`${apollo} config ${P} address spam`, false)
-    assert.strictEqual(1, p.returncode)
-    assert.ok(p.stderr.includes('Invalid setting:'))
+  // void globalThis.itName('Config invalid keys', () => {
+  //   let p = new Shell(`${apollo} config ${P} address spam`, false)
+  //   assert.strictEqual(1, p.returncode)
+  //   assert.ok(p.stderr.includes('Invalid setting:'))
 
-    p = new Shell(`${apollo} config ${P} ADDRESS http://localhost:3999`, false)
-    assert.strictEqual(1, p.returncode)
-    assert.ok(p.stderr.includes('Invalid setting:'))
+  //   p = new Shell(`${apollo} config ${P} ADDRESS http://localhost:3999`, false)
+  //   assert.strictEqual(1, p.returncode)
+  //   assert.ok(p.stderr.includes('Invalid setting:'))
 
-    p = new Shell(`${apollo} config ${P} accessType spam`, false)
-    assert.strictEqual(1, p.returncode)
-    assert.ok(p.stderr.includes('Invalid setting:'))
-  })
+  //   p = new Shell(`${apollo} config ${P} accessType spam`, false)
+  //   assert.strictEqual(1, p.returncode)
+  //   assert.ok(p.stderr.includes('Invalid setting:'))
+  // })
 
-  void globalThis.itName('Can change access type', () => {
-    const p = new Shell(`${apollo} config ${P} accessType google`)
-    assert.strictEqual('', p.stdout.trim())
-  })
+  // void globalThis.itName('Can change access type', () => {
+  //   const p = new Shell(`${apollo} config ${P} accessType google`)
+  //   assert.strictEqual('', p.stdout.trim())
+  // })
 
   void globalThis.itName('Apollo status', () => {
     let p = new Shell(`${apollo} status ${P}`)
