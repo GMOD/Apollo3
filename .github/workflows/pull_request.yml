@@ -33,9 +33,9 @@ jobs:
         with:
           mongodb-version: 7
           mongodb-replica-set: test-rs
-      #- name: Run Cypress tests
-      #  run: yarn run test:e2e
-      #  working-directory: packages/jbrowse-plugin-apollo
+      - name: Run Cypress tests
+        run: yarn run test:e2e
+        working-directory: packages/jbrowse-plugin-apollo
       - name: Start apollo
         run: |
           yarn --cwd packages/apollo-collaboration-server/test/data/ serve --listen 3131 &
