@@ -33,6 +33,9 @@ jobs:
         with:
           mongodb-version: 7
           mongodb-replica-set: test-rs
+      - name: Run CLI tests
+        run: yarn tsx src/test/test.ts
+        working-directory: packages/apollo-cli
       - name: Run Cypress tests
         run: yarn run test:e2e
         working-directory: packages/jbrowse-plugin-apollo
@@ -41,9 +44,6 @@ jobs:
           yarn --cwd packages/apollo-collaboration-server/test/data/ serve --listen 3131 &
           yarn --cwd packages/apollo-shared start &
           ALLOW_ROOT_USER=true ROOT_USER_PASSWORD=pass yarn --cwd packages/apollo-collaboration-server start &
-      - name: Run CLI tests
-        run: yarn tsx src/test/test.ts
-        working-directory: packages/apollo-cli
       # - name: Run docker tests
       #   working-directory: packages/apollo-cli
       #   run: python3 ./src/test/test_docker.py
