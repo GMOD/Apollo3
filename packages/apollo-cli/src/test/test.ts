@@ -70,7 +70,7 @@ void describe('Test CLI', () => {
     p = new Shell(`${apollo} status ${P}`)
     assert.strictEqual(p.stdout.trim(), 'testAdmin: Logged out')
 
-    // new Shell(`${apollo} login ${P} -f`)
+    new Shell(`${apollo} login ${P} -f`)
   })
 
   void globalThis.itName('Feature get', () => {
