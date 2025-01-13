@@ -42,9 +42,7 @@ jobs:
           yarn --cwd packages/apollo-shared start &
           ALLOW_ROOT_USER=true ROOT_USER_PASSWORD=pass yarn --cwd packages/apollo-collaboration-server start &
       - name: Run CLI tests
-        run:
-          yarn tsx --test-name-pattern='Feature get|Apollo status'
-          src/test/test.ts
+        run: yarn tsx src/test/test.ts
         working-directory: packages/apollo-cli
       # - name: Run docker tests
       #   working-directory: packages/apollo-cli
