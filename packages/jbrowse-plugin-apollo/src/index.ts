@@ -70,7 +70,10 @@ import {
   stateModelFactory as LinearApolloSixFrameDisplayStateModelFactory,
   configSchema as linearApolloSixFrameDisplayConfigSchema,
 } from './LinearApolloSixFrameDisplay'
-import { DisplayComponent } from './makeDisplayComponent'
+import {
+  LinearApolloDisplayComponent,
+  LinearApolloSixFrameDisplayComponent,
+} from './makeDisplayComponent'
 import { ApolloSessionModel, extendSession } from './session'
 import { installApolloRefNameAliasAdapter } from './ApolloRefNameAliasAdapter'
 
@@ -181,7 +184,7 @@ export default class ApolloPlugin extends Plugin {
         ),
         trackType: 'ApolloTrack',
         viewType: 'LinearGenomeView',
-        ReactComponent: DisplayComponent,
+        ReactComponent: LinearApolloSixFrameDisplayComponent,
       })
     })
 
@@ -196,7 +199,7 @@ export default class ApolloPlugin extends Plugin {
         ),
         trackType: 'ApolloTrack',
         viewType: 'LinearGenomeView',
-        ReactComponent: DisplayComponent,
+        ReactComponent: LinearApolloDisplayComponent,
       })
     })
 
