@@ -8,50 +8,57 @@ import PluggableElementBase from '@jbrowse/core/pluggableElementTypes/PluggableE
 import AddIcon from '@mui/icons-material/Add'
 import {
   AbstractSessionModel,
-  doesIntersect2,
   getContainingView,
   getSession,
 } from '@jbrowse/core/util'
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import ObjectID from 'bson-objectid'
-import { SimpleFeatureSerializedNoId } from '@jbrowse/core/util/simpleFeature'
+import { Feature } from '@jbrowse/core/util/simpleFeature'
 import { CreateApolloAnnotation } from '../components/CreateApolloAnnotation'
+import { GFF3Feature } from '@gmod/gff'
+import { gff3ToAnnotationFeature } from '@apollo-annotation/shared'
 
-// Map Jbrowse SimpleFeature to Apollo AnnotationFeature. This is similar to gff3ToAnnotationFeature.ts
-function simpleFeatureToAnnotationFeature(
-  feature: SimpleFeatureSerializedNoId,
+function simpleFeatureToGFF3Feature(
+  feature: Feature,
   refSeqId: string,
-  featureIds: string[],
-) {
-  if (!feature.type) {
-    throw new Error(`feature does not have type: ${JSON.stringify(feature)}`)
-  }
-
-  const { end, start, strand } = feature
-  const f: AnnotationFeatureSnapshot = {
-    _id: ObjectID().toHexString(),
-    refSeq: refSeqId,
-    min: start,
-    max: end,
-    type: feature.type,
-    strand: strand as 1 | -1 | undefined,
-  }
-  const convertedChildren = convertSubFeatures(feature, refSeqId, featureIds)
-
-  if (convertedChildren) {
-    f.children = convertedChildren
-  }
-
-  f.attributes = convertFeatureAttributes(feature)
-  featureIds.push(f._id)
-  return f
+): GFF3Feature {
+  const xfeature = JSON.parse(JSON.stringify(feature))
+  const children = xfeature.subfeatures
+  const gff3Feature = [
+    {
+      start: (xfeature.start as number) + 1,
+      end: xfeature.end as number,
+      seq_id: refSeqId,
+      source: xfeature.source ? (xfeature.source as string) : null,
+      type: xfeature.type ?? null,
+      score:
+        xfeature.score !== undefined || xfeature.score !== null
+          ? (xfeature.score as number)
+          : null,
+      strand: xfeature.strand ? (xfeature.strand === 1 ? '+' : '-') : null,
+      phase:
+        xfeature.phase !== null || xfeature.phase !== undefined
+          ? (xfeature.phase as string)
+          : null,
+      attributes: convertFeatureAttributes(feature),
+      derived_features: [],
+      child_features: children
+        ? children.map((x: Feature) => simpleFeatureToGFF3Feature(x, refSeqId))
+        : [],
+    },
+  ]
+  return gff3Feature
 }
 
-function convertFeatureAttributes(
-  feature: SimpleFeatureSerializedNoId,
-): Record<string, string[]> {
+export function jbrowseFeatureToAnnotationFeature(
+  feature: Feature,
+  refSeqId: string,
+): AnnotationFeatureSnapshot {
+  return gff3ToAnnotationFeature(simpleFeatureToGFF3Feature(feature, refSeqId))
+}
+
+function convertFeatureAttributes(feature: Feature): Record<string, string[]> {
   const attributes: Record<string, string[]> = {}
   const defaultFields = new Set([
     'start',
@@ -70,164 +77,6 @@ function convertFeatureAttributes(
     attributes[key] = Array.isArray(value) ? value.map(String) : [String(value)]
   }
   return attributes
-}
-
-function convertSubFeatures(
-  feature: SimpleFeatureSerializedNoId,
-  refSeqId: string,
-  featureIds: string[],
-) {
-  if (!feature.subfeatures) {
-    return
-  }
-  const children: Record<string, AnnotationFeatureSnapshot> = {}
-  const cdsFeatures: SimpleFeatureSerializedNoId[] = []
-  for (const subFeature of feature.subfeatures) {
-    if (
-      subFeature.type === 'three_prime_UTR' ||
-      subFeature.type === 'five_prime_UTR' ||
-      subFeature.type === 'intron' ||
-      subFeature.type === 'start_codon' ||
-      subFeature.type === 'stop_codon'
-    ) {
-      continue
-    }
-    if (subFeature.type === 'CDS') {
-      cdsFeatures.push(subFeature)
-    } else {
-      const child = simpleFeatureToAnnotationFeature(
-        subFeature,
-        refSeqId,
-        featureIds,
-      )
-      children[child._id] = child
-    }
-  }
-  const processedCDS =
-    cdsFeatures.length > 0 ? processCDS(cdsFeatures, refSeqId, featureIds) : []
-  for (const cds of processedCDS) {
-    children[cds._id] = cds
-  }
-
-  if (Object.keys(children).length > 0) {
-    return children
-  }
-  return
-}
-
-function getFeatureMinMax(
-  cdsFeatures: SimpleFeatureSerializedNoId[],
-): [number, number] {
-  const mins = cdsFeatures.map((f) => f.start)
-  const maxes = cdsFeatures.map((f) => f.end)
-  const min = Math.min(...mins)
-  const max = Math.max(...maxes)
-  return [min, max]
-}
-
-function processCDS(
-  cdsFeatures: SimpleFeatureSerializedNoId[],
-  refSeqId: string,
-  featureIds: string[],
-): AnnotationFeatureSnapshot[] {
-  const annotationFeatures: AnnotationFeatureSnapshot[] = []
-  const cdsWithIds: Record<string, SimpleFeatureSerializedNoId[]> = {}
-  const cdsWithoutIds: SimpleFeatureSerializedNoId[] = []
-
-  for (const cds of cdsFeatures) {
-    if ('id' in cds) {
-      const id = cds.id as string
-      cdsWithIds[id] = cdsWithIds[id] ?? []
-      cdsWithIds[id].push(cds)
-    } else {
-      cdsWithoutIds.push(cds)
-    }
-  }
-
-  for (const [, cds] of Object.entries(cdsWithIds)) {
-    const [min, max] = getFeatureMinMax(cds)
-    const f: AnnotationFeatureSnapshot = {
-      _id: ObjectID().toHexString(),
-      refSeq: refSeqId,
-      min,
-      max,
-      type: 'CDS',
-      strand: cds[0].strand as 1 | -1 | undefined,
-      attributes: convertFeatureAttributes(cds[0]),
-    }
-    featureIds.push(f._id)
-    annotationFeatures.push(f)
-  }
-
-  if (cdsWithoutIds.length === 0) {
-    return annotationFeatures
-  }
-
-  // If we don't have ID CDS features then check If there are overlapping CDS
-  // features, If they're not overlapping then assume it's a single CDS feature
-  const sortedCDSLocations = cdsWithoutIds.sort(
-    (cdsA, cdsB) => cdsA.start - cdsB.start,
-  )
-  const overlapping = sortedCDSLocations.some((loc, idx) => {
-    const nextLoc = sortedCDSLocations.at(idx + 1)
-    if (!nextLoc) {
-      return false
-    }
-    return doesIntersect2(loc.start, loc.end, nextLoc.start, nextLoc.end)
-  })
-  // If no overlaps, assume it's a single CDS feature
-  if (!overlapping) {
-    const [min, max] = getFeatureMinMax(sortedCDSLocations)
-    const f: AnnotationFeatureSnapshot = {
-      _id: ObjectID().toHexString(),
-      refSeq: refSeqId,
-      min,
-      max,
-      type: 'CDS',
-      strand: sortedCDSLocations[0].strand as 1 | -1 | undefined,
-      attributes: convertFeatureAttributes(sortedCDSLocations[0]),
-    }
-    featureIds.push(f._id)
-    annotationFeatures.push(f)
-  }
-
-  const groupedLocations: SimpleFeatureSerializedNoId[][] = []
-  for (const location of cdsWithoutIds) {
-    const lastGroup = groupedLocations.at(-1)
-    if (!lastGroup) {
-      groupedLocations.push([location])
-      continue
-    }
-    const overlaps = lastGroup.some((lastGroupLoc) =>
-      doesIntersect2(
-        lastGroupLoc.start,
-        lastGroupLoc.end,
-        location.start,
-        location.end,
-      ),
-    )
-    if (overlaps) {
-      groupedLocations.push([location])
-    } else {
-      lastGroup.push(location)
-    }
-  }
-  for (const group of groupedLocations) {
-    const [min, max] = getFeatureMinMax(group)
-    const f: AnnotationFeatureSnapshot = {
-      _id: ObjectID().toHexString(),
-      refSeq: refSeqId,
-      min,
-      max,
-      type: 'CDS',
-      strand: group[0].strand as 1 | -1 | undefined,
-      attributes: convertFeatureAttributes(group[0]),
-    }
-    featureIds.push(f._id)
-    annotationFeatures.push(f)
-  }
-
-  return annotationFeatures
 }
 
 export function annotationFromJBrowseFeature(
@@ -275,12 +124,9 @@ export function annotationFromJBrowseFeature(
         return refSeqId
       },
       getAnnotationFeature(assembly: Assembly) {
-        // Map SimpleFeature to Apollo AnnotationFeature
-        const feature: SimpleFeatureSerializedNoId =
-          self.contextMenuFeature.data
         const refSeqId = self.getRefSeqId(assembly)
-        const featureIds: string[] = []
-        return simpleFeatureToAnnotationFeature(feature, refSeqId, featureIds)
+        const sfeature: Feature = self.contextMenuFeature.data
+        return jbrowseFeatureToAnnotationFeature(sfeature, refSeqId)
       },
     }))
     .views((self) => {
