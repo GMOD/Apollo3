@@ -30,18 +30,15 @@ function simpleFeatureToGFF3Feature(
       start: (xfeature.start as number) + 1,
       end: xfeature.end as number,
       seq_id: refSeqId,
-      source: xfeature.source ? (xfeature.source as string) : null,
+      source: xfeature.source ?? null,
       type: xfeature.type ?? null,
-      score:
-        xfeature.score !== undefined || xfeature.score !== null
-          ? (xfeature.score as number)
-          : null,
+      score: xfeature.score ?? null,
       strand: xfeature.strand ? (xfeature.strand === 1 ? '+' : '-') : null,
       phase:
         xfeature.phase !== null || xfeature.phase !== undefined
           ? (xfeature.phase as string)
           : null,
-      attributes: convertFeatureAttributes(feature),
+      attributes: convertFeatureAttributes(xfeature),
       derived_features: [],
       child_features: children
         ? children.map((x: Feature) => simpleFeatureToGFF3Feature(x, refSeqId))
@@ -69,6 +66,8 @@ function convertFeatureAttributes(feature: Feature): Record<string, string[]> {
     'subfeatures',
     'derived_features',
     'phase',
+    'source',
+    'score',
   ])
   for (const [key, value] of Object.entries(feature)) {
     if (defaultFields.has(key)) {
