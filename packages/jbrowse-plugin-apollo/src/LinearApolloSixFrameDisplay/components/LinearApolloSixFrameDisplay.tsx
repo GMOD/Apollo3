@@ -16,6 +16,7 @@ import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { LinearApolloSixFrameDisplay as LinearApolloSixFrameDisplayI } from '../stateModel'
+import { TrackLines } from './TrackLines'
 
 interface LinearApolloSixFrameDisplayProps {
   model: LinearApolloSixFrameDisplayI
@@ -140,6 +141,7 @@ export const LinearApolloSixFrameDisplay = observer(
             // Promise.resolve() in these 3 callbacks is to avoid infinite rendering loop
             // https://github.com/mobxjs/mobx/issues/3728#issuecomment-1715400931
             <>
+              <TrackLines model={model} />
               <canvas
                 ref={async (node: HTMLCanvasElement) => {
                   await Promise.resolve()
