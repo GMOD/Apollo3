@@ -48,7 +48,7 @@ describe('Add Assembly', () => {
     cy.searchFeatures('EDEN', 0)
   })
 
-  it.only('FIXME: Can add assembly from 2bit', () => {
+  it('FIXME: Can add assembly from 2bit', () => {
     cy.contains('button[data-testid="dropDownMenuButton"]', 'Apollo').click()
     cy.contains('Add Assembly').click()
     cy.get('input[type="TextField"]').type('volvox_deleteme')
