@@ -1,6 +1,6 @@
 {
   "name": "@apollo-annotation/common",
-  "version": "0.1.21",
+  "version": "0.3.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/GMOD/Apollo3.git",
@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@apollo-annotation/schemas": "workspace:^",
-    "@gmod/gff": "1.2.0",
     "@jbrowse/core": "^2.13.1",
     "bson-objectid": "^2.0.4",
     "tslib": "^2.3.1"
@@ -31,7 +30,7 @@
     "@mui/x-data-grid": "^7.0.0",
     "mobx": "^6.6.1",
     "mobx-react": "^7.2.1",
-    "mobx-state-tree": "^5.1.7",
+    "mobx-state-tree": "^5.4.0",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

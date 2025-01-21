@@ -242,12 +242,7 @@ export const Attributes = observer(function Attributes({
 
   return (
     <>
-      <Typography
-        style={{ display: 'inline', marginLeft: '15px' }}
-        variant="h5"
-      >
-        Attributes
-      </Typography>
+      <Typography variant="h5">Attributes</Typography>
       <Grid container direction="column" spacing={1}>
         {Object.entries(attributes).map(([key, value]) => {
           if (key === '') {

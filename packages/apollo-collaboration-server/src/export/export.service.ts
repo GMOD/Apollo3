@@ -25,7 +25,7 @@ import {
   RefSeqDocument,
 } from '@apollo-annotation/schemas'
 import {
-  makeGFF3Feature,
+  annotationFeatureToGFF3,
   splitStringIntoChunks,
 } from '@apollo-annotation/shared'
 import gff from '@gmod/gff'
@@ -179,7 +179,7 @@ export class ExportService {
             const refSeqNames = Object.fromEntries(
               refSeqs.map((refSeq) => [refSeq._id, refSeq.name]),
             )
-            const gff3Feature = makeGFF3Feature(
+            const gff3Feature = annotationFeatureToGFF3(
               flattened as unknown as AnnotationFeatureSnapshot,
               undefined,
               refSeqNames,

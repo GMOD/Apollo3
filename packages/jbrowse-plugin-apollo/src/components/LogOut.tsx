@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import {
   Button,
   DialogActions,
@@ -49,7 +50,7 @@ export function LogOut({ handleClose, session }: DeleteAssemblyProps) {
     event.preventDefault()
     setErrorMessage('')
     selectedInternetAccount.removeToken()
-    window.location.reload()
+    globalThis.location.reload()
   }
 
   return (

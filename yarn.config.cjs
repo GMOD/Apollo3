@@ -1,6 +1,7 @@
 // @ts-check
 
 /** @type {import('@yarnpkg/types')} */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { defineConfig } = require('@yarnpkg/types')
 
 /**
@@ -13,12 +14,16 @@ const { defineConfig } = require('@yarnpkg/types')
  */
 function enforceConsistentDependenciesAcrossTheProject({ Yarn }) {
   for (const dependency of Yarn.dependencies()) {
-    if (dependency.type === 'peerDependencies') continue
+    if (dependency.type === 'peerDependencies') {
+      continue
+    }
 
     for (const otherDependency of Yarn.dependencies({
       ident: dependency.ident,
     })) {
-      if (otherDependency.type === 'peerDependencies') continue
+      if (otherDependency.type === 'peerDependencies') {
+        continue
+      }
 
       dependency.update(otherDependency.range)
     }
@@ -26,7 +31,8 @@ function enforceConsistentDependenciesAcrossTheProject({ Yarn }) {
 }
 
 module.exports = defineConfig({
-  constraints: async (ctx) => {
+  constraints: (ctx) => {
     enforceConsistentDependenciesAcrossTheProject(ctx)
+    return Promise.resolve()
   },
 })

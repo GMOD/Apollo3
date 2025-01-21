@@ -19,7 +19,6 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       ALLOW_ROOT_USER: true
-      ROOT_USER_NAME: ${ROOT_USER_NAME}
       ROOT_USER_PASSWORD: ${ROOT_USER_PASSWORD}
     ports:
       - 3999:3999
@@ -30,7 +29,7 @@ services:
   client:
     build:
       args:
-        JBROWSE_VERSION: 2.13.1
+        JBROWSE_VERSION: 2.18.0
       context: .
     depends_on:
       - apollo-collaboration-server

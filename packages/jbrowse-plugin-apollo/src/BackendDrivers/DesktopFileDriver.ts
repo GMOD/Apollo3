@@ -9,8 +9,8 @@ import {
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 import {
+  annotationFeatureToGFF3,
   ValidationResultSet,
-  makeGFF3Feature,
   splitStringIntoChunks,
 } from '@apollo-annotation/shared'
 import gff, { GFF3Item } from '@gmod/gff'
@@ -31,7 +31,8 @@ export class DesktopFileDriver extends BackendDriver {
     const { file } = getConf(assembly, ['sequence', 'metadata']) as {
       file: string
     }
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const fs = require('node:fs') as typeof import('fs')
     const fileContents = await fs.promises.readFile(file, 'utf8')
     return loadAssemblyIntoClient(assemblyName, fileContents, this.clientStore)
@@ -147,7 +148,7 @@ export class DesktopFileDriver extends BackendDriver {
     for (const [, refSeq] of clientAssembly.refSeqs) {
       const { features } = refSeq
       for (const [, feature] of features) {
-        gff3Items.push(makeGFF3Feature(getSnapshot(feature)))
+        gff3Items.push(annotationFeatureToGFF3(getSnapshot(feature)))
       }
     }
     for (const [, refSeq] of clientAssembly.refSeqs) {
@@ -165,7 +166,7 @@ export class DesktopFileDriver extends BackendDriver {
 
     const gff3Contents = gff.formatSync(gff3Items)
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const fs = require('node:fs') as typeof import('fs')
     await fs.promises.writeFile(file, gff3Contents, 'utf8')
 

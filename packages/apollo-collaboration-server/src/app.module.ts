@@ -58,7 +58,6 @@ const validationSchema = Joi.object({
   FEATURE_TYPE_ONTOLOGY_LOCATION: Joi.string(),
   PLUGIN_LOCATION: Joi.string(),
   ALLOW_ROOT_USER: Joi.boolean().default(false),
-  ROOT_USER_NAME: Joi.string(),
   ROOT_USER_PASSWORD: Joi.string(),
   ROOT_USER_PASSWORD_FILE: Joi.string(),
 

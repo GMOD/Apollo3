@@ -154,7 +154,14 @@ export function extendSession(
             dynamicBlocks.forEach((block) => {
               if (block.regionNumber !== undefined) {
                 const { assemblyName, end, refName, start } = block
-                locations.push({ assemblyName, refName, start, end })
+                const assembly =
+                  self.apolloDataStore.assemblies.get(assemblyName)
+                if (
+                  assembly &&
+                  assembly.backendDriverType === 'CollaborationServerDriver'
+                ) {
+                  locations.push({ assemblyName, refName, start, end })
+                }
               }
             })
           }
@@ -217,7 +224,14 @@ export function extendSession(
                 dynamicBlocks.forEach((block) => {
                   if (block.regionNumber !== undefined) {
                     const { assemblyName, end, refName, start } = block
-                    locations.push({ assemblyName, refName, start, end })
+                    const assembly =
+                      self.apolloDataStore.assemblies.get(assemblyName)
+                    if (
+                      assembly &&
+                      assembly.backendDriverType === 'CollaborationServerDriver'
+                    ) {
+                      locations.push({ assemblyName, refName, start, end })
+                    }
                   }
                 })
               }
@@ -286,6 +300,7 @@ export function extendSession(
             continue
           }
           applySnapshot(jbrowse, jbrowseConfig)
+          // @ts-expect-error snapshot seems to get wrong type?
           applySnapshot(self, sessionSnapshot)
         }
       }),
@@ -412,17 +427,33 @@ export function extendSession(
       }
     })
   return types.snapshotProcessor(sm, {
-    postProcessor(snap: SnapshotOut<typeof sm>) {
+    postProcessor(snap: SnapshotOut<typeof sm>, node) {
       snap.apolloSelectedFeature = undefined
       const assemblies = Object.fromEntries(
         Object.entries(snap.apolloDataStore.assemblies).filter(
           ([, assembly]) => assembly.backendDriverType === 'InMemoryFileDriver',
         ),
       )
+      // @ts-expect-error ontologyManager isn't actually required
       snap.apolloDataStore = {
         typeName: 'Client',
         assemblies,
         checkResults: {},
+      }
+      if (!node) {
+        return snap
+      }
+      const { apolloDataStore } = node
+      const { checkResults } = apolloDataStore
+      for (const [, cr] of checkResults) {
+        const [feature] = cr.ids
+        if (!feature) {
+          continue
+        }
+        const assembly = apolloDataStore.assemblies.get(feature.assemblyId)
+        if (assembly && assembly.backendDriverType === 'InMemoryFileDriver') {
+          snap.apolloDataStore.checkResults[cr._id] = getSnapshot(cr)
+        }
       }
       return snap
     },
@@ -433,5 +464,5 @@ export type ApolloSessionStateModel = ReturnType<typeof extendSession>
 // @ts-expect-error Snapshots seem to mess up types here
 // eslint disable because of
 // https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ApolloSessionModel extends Instance<ApolloSessionStateModel> {}

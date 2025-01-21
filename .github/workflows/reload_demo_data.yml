@@ -57,7 +57,7 @@ jobs:
             --description "Staging server"
       - name: Load data
         run: |
-          docker pull ghcr.io/gmod/apollo-cli:${{ vars.DOCKER_TAG }}
+          docker --context staging pull ghcr.io/gmod/apollo-cli:${{ vars.DOCKER_TAG }}
           function apollo() {
             docker \
               --context staging \
@@ -75,8 +75,7 @@ jobs:
           set -x
           apollo config address http://host.docker.internal/apollo
           apollo config accessType root
-          apollo config rootCredentials.username ${{ secrets.ROOT_USER_NAME }}
-          apollo config rootCredentials.password ${{ secrets.ROOT_USER_PASSWORD }}
+          apollo config rootPassword ${{ secrets.ROOT_USER_PASSWORD }}
           apollo login --force
 
           apollo jbrowse set-config /data/config.json

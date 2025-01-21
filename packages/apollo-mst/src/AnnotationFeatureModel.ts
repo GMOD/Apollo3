@@ -17,6 +17,24 @@ const LateAnnotationFeature = types.late(
   (): IAnyModelType => AnnotationFeatureModel,
 )
 
+export interface TranscriptPartLocation {
+  min: number
+  max: number
+}
+
+export interface TranscriptPartNonCoding extends TranscriptPartLocation {
+  type: 'fivePrimeUTR' | 'threePrimeUTR' | 'intron'
+}
+
+export interface TranscriptPartCoding extends TranscriptPartLocation {
+  type: 'CDS'
+  phase: 0 | 1 | 2
+}
+
+export type TranscriptPart = TranscriptPartCoding | TranscriptPartNonCoding
+
+type TranscriptParts = TranscriptPart[]
+
 export const AnnotationFeatureModel = types
   .model('AnnotationFeatureModel', {
     _id: types.identifier,
@@ -108,7 +126,7 @@ export const AnnotationFeatureModel = types
       }
       return false
     },
-    get cdsLocations(): { min: number; max: number; phase: 0 | 1 | 2 }[][] {
+    get transcriptParts(): TranscriptParts[] {
       if (self.type !== 'mRNA') {
         throw new Error(
           'Only features of type "mRNA" or equivalent can calculate CDS locations',
@@ -124,14 +142,22 @@ export const AnnotationFeatureModel = types
       if (cdsChildren.length === 0) {
         throw new Error('no CDS in mRNA')
       }
-      const cdsLocations: { min: number; max: number; phase: 0 | 1 | 2 }[][] =
-        []
+      const transcriptParts: TranscriptParts[] = []
       for (const cds of cdsChildren) {
         const { max: cdsMax, min: cdsMin } = cds
-        const locs: { min: number; max: number }[] = []
+        const parts: TranscriptParts = []
+        let hasIntersected = false
+        const exonLocations: TranscriptPartLocation[] = []
         for (const [, child] of children) {
-          if (child.type !== 'exon') {
-            continue
+          if (child.type === 'exon') {
+            exonLocations.push({ min: child.min, max: child.max })
+          }
+        }
+        exonLocations.sort(({ min: a }, { min: b }) => a - b)
+        for (const child of exonLocations) {
+          const lastPart = parts.at(-1)
+          if (lastPart) {
+            parts.push({ min: lastPart.max, max: child.min, type: 'intron' })
           }
           const [start, end] = intersection2(
             cdsMin,
@@ -139,16 +165,53 @@ export const AnnotationFeatureModel = types
             child.min,
             child.max,
           )
+          let utrType: 'fivePrimeUTR' | 'threePrimeUTR'
+          if (hasIntersected) {
+            utrType = self.strand === 1 ? 'threePrimeUTR' : 'fivePrimeUTR'
+          } else {
+            utrType = self.strand === 1 ? 'fivePrimeUTR' : 'threePrimeUTR'
+          }
           if (start !== undefined && end !== undefined) {
-            locs.push({ min: start, max: end })
+            hasIntersected = true
+            if (start === child.min && end === child.max) {
+              parts.push({ min: start, max: end, phase: 0, type: 'CDS' })
+            } else if (start === child.min) {
+              parts.push(
+                { min: start, max: end, phase: 0, type: 'CDS' },
+                { min: end, max: child.max, type: utrType },
+              )
+            } else if (end === child.max) {
+              parts.push(
+                { min: child.min, max: start, type: utrType },
+                { min: start, max: end, phase: 0, type: 'CDS' },
+              )
+            } else {
+              parts.push(
+                { min: child.min, max: start, type: utrType },
+                { min: start, max: end, phase: 0, type: 'CDS' },
+                {
+                  min: end,
+                  max: child.max,
+                  type:
+                    utrType === 'fivePrimeUTR'
+                      ? 'threePrimeUTR'
+                      : 'fivePrimeUTR',
+                },
+              )
+            }
+          } else {
+            parts.push({ min: child.min, max: child.max, type: utrType })
           }
         }
-        locs.sort(({ min: a }, { min: b }) => a - b)
+        parts.sort(({ min: a }, { min: b }) => a - b)
         if (self.strand === -1) {
-          locs.reverse()
+          parts.reverse()
         }
         let nextPhase: 0 | 1 | 2 = 0
-        const phasedLocs = locs.map((loc) => {
+        const phasedParts = parts.map((loc) => {
+          if (loc.type !== 'CDS') {
+            return loc
+          }
           const phase = nextPhase
           nextPhase = ((3 - ((loc.max - loc.min - phase + 3) % 3)) % 3) as
             | 0
@@ -156,9 +219,17 @@ export const AnnotationFeatureModel = types
             | 2
           return { ...loc, phase }
         })
-        cdsLocations.push(phasedLocs)
+        transcriptParts.push(phasedParts)
       }
-      return cdsLocations
+      return transcriptParts
+    },
+  }))
+  .views((self) => ({
+    get cdsLocations(): TranscriptPartCoding[][] {
+      const { transcriptParts } = self
+      return transcriptParts.map((transcript) =>
+        transcript.filter((transcriptPart) => transcriptPart.type === 'CDS'),
+      )
     },
   }))
   .actions((self) => ({
@@ -193,7 +264,7 @@ export const AnnotationFeatureModel = types
         self.max = max
       }
     },
-    setStrand(strand?: 1 | -1 | undefined) {
+    setStrand(strand?: 1 | -1) {
       self.strand = strand
     },
     addChild(childFeature: AnnotationFeatureSnapshot) {
@@ -274,16 +345,16 @@ export type Children = IMSTMap<typeof AnnotationFeatureModel> | undefined
 
 // eslint disables because of
 // https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface AnnotationFeatureRaw
   extends Instance<typeof AnnotationFeatureModel> {}
 // This type isn't exactly right, since "children" is actually an IMSTMap and
 // not a Map, but it's better than typing it as any.
 export interface AnnotationFeature
   extends Omit<AnnotationFeatureRaw, 'children'> {
-  children?: Map<string, AnnotationFeature>
+  children?: Map<string | number, AnnotationFeature>
 }
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface AnnotationFeatureSnapshotRaw
   extends SnapshotIn<typeof AnnotationFeatureModel> {}
 export interface AnnotationFeatureSnapshot

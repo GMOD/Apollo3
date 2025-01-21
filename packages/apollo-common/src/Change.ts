@@ -20,8 +20,8 @@ import {
 
 export interface ClientDataStore {
   typeName: 'Client'
-  assemblies: Map<string, ApolloAssemblyI>
-  checkResults: Map<string, CheckResultI>
+  assemblies: Map<string | number, ApolloAssemblyI>
+  checkResults: Map<string | number, CheckResultI>
   internetAccounts: AppRootModel['internetAccounts']
   getInternetAccount(
     assemblyName?: string,
@@ -38,6 +38,7 @@ export interface ClientDataStore {
     assemblyId: string,
     backendDriverType?: BackendDriverType,
   ): ApolloAssemblyI
+  clearCheckResults(): void
 }
 
 export type SerializedChange = SerializedOperation

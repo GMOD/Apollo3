@@ -88,7 +88,7 @@ export default class RefNameAliasAdapter
     return refNameAliases
   }
 
-  async freeResources() {
+  freeResources() {
     // no resources to free
   }
 }

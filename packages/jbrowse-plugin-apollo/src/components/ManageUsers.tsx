@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
@@ -154,7 +155,7 @@ export function ManageUsers({
           key={`delete-${params.id}`}
           icon={<DeleteIcon />}
           onClick={async () => {
-            if (window.confirm('Delete this user?')) {
+            if (globalThis.confirm('Delete this user?')) {
               await deleteUser(params.id)
             }
           }}
