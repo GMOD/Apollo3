@@ -1,6 +1,7 @@
 ##gff-version 3
 ctgA	example	gene	1	100	.	+	.	ID=gx1
 ctgA	example	mRNA	1	100	.	+	.	ID=tx1;Parent=gx1
+ctgA	example	exon	1	99	.	+	.	ID=exon1;Parent=tx1
 ctgA	example	CDS	1	99	.	+	.	ID=CDS1;Parent=tx1
 ##FASTA
 >ctgA
