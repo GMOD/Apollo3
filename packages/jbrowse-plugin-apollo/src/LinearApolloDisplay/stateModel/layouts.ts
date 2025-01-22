@@ -9,7 +9,7 @@ import { addDisposer, isAlive } from 'mobx-state-tree'
 
 import { ApolloSessionModel } from '../../session'
 import { baseModelFactory } from './base'
-import { getGlyph } from './getGlyph'
+import { boxGlyph, geneGlyph, genericChildGlyph } from '../glyphs'
 
 export function layoutsModelFactory(
   pluginManager: PluginManager,
@@ -60,6 +60,48 @@ export function layoutsModelFactory(
           return
         })
       },
+      getGlyph(feature: AnnotationFeature) {
+        if (this.looksLikeGene(feature)) {
+          return geneGlyph
+        }
+        if (feature.children?.size) {
+          return genericChildGlyph
+        }
+        return boxGlyph
+      },
+      looksLikeGene(feature: AnnotationFeature): boolean {
+        const { featureTypeOntology } =
+          self.session.apolloDataStore.ontologyManager
+        if (!featureTypeOntology) {
+          return false
+        }
+        const { children } = feature
+        if (!children?.size) {
+          return false
+        }
+        const isGene = featureTypeOntology.isTypeOf(feature.type, 'gene')
+        if (!isGene) {
+          return false
+        }
+        for (const [, child] of children) {
+          if (featureTypeOntology.isTypeOf(child.type, 'mRNA')) {
+            const { children: grandChildren } = child
+            if (!grandChildren?.size) {
+              return false
+            }
+            const hasCDS = [...grandChildren.values()].some((grandchild) =>
+              featureTypeOntology.isTypeOf(grandchild.type, 'CDS'),
+            )
+            const hasExon = [...grandChildren.values()].some((grandchild) =>
+              featureTypeOntology.isTypeOf(grandchild.type, 'exon'),
+            )
+            if (hasCDS && hasExon) {
+              return true
+            }
+          }
+        }
+        return false
+      },
     }))
     .actions((self) => ({
       addSeenFeature(feature: AnnotationFeature) {
@@ -94,10 +136,14 @@ export function layoutsModelFactory(
             ) {
               continue
             }
-            const rowCount = getGlyph(feature).getRowCount(
-              feature,
-              self.lgv.bpPerPx,
-            )
+            const { featureTypeOntology } =
+              self.session.apolloDataStore.ontologyManager
+            if (!featureTypeOntology) {
+              throw new Error('featureTypeOntology is undefined')
+            }
+            const rowCount = self
+              .getGlyph(feature)
+              .getRowCount(feature, featureTypeOntology, self.lgv.bpPerPx)
             let startingRow = 0
             let placed = false
             while (!placed) {
@@ -158,6 +204,8 @@ export function layoutsModelFactory(
       },
       getFeatureLayoutPosition(feature: AnnotationFeature) {
         const { featureLayouts } = this
+        const { featureTypeOntology } =
+          self.session.apolloDataStore.ontologyManager
         for (const [idx, layout] of featureLayouts.entries()) {
           for (const [layoutRowNum, layoutRow] of layout) {
             for (const [featureRowNum, layoutFeature] of layoutRow) {
@@ -174,10 +222,12 @@ export function layoutsModelFactory(
                 }
               }
               if (layoutFeature.hasDescendant(feature._id)) {
-                const row = getGlyph(layoutFeature).getRowForFeature(
-                  layoutFeature,
-                  feature,
-                )
+                if (!featureTypeOntology) {
+                  throw new Error('featureTypeOntology is undefined')
+                }
+                const row = self
+                  .getGlyph(layoutFeature)
+                  .getRowForFeature(layoutFeature, feature, featureTypeOntology)
                 if (row !== undefined) {
                   return {
                     layoutIndex: idx,
