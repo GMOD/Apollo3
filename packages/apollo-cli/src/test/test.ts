@@ -9,11 +9,11 @@
  * USAGE
  * From package root directory (`packages/apollo-cli`). Run all tests:
  *
- * yarn tsx test/test.ts
+ * yarn tsx src/test/test.ts
  *
  * Run only matching pattern:
  *
- * yarn tsx --test-name-pattern='Print help|Feature get' test/test.ts
+ * yarn tsx --test-name-pattern='Print help|Feature get' src/test/test.ts
  */
 
 import assert from 'node:assert'
@@ -394,7 +394,6 @@ void describe('Test CLI', () => {
   })
 
   void globalThis.itName('Add assembly from external fasta', () => {
-    // You can also use https://raw.githubusercontent.com/GMOD/Apollo3/refs/heads/main/packages/apollo-cli/test_data/tiny.fasta.gz
     let p = new Shell(
       `${apollo} assembly add-from-fasta ${P} -a vv1 -f http://localhost:3131/volvox.fa.gz`,
     )
@@ -414,6 +413,29 @@ void describe('Test CLI', () => {
     )
     assert.ok(p.returncode != 0)
   })
+
+  void globalThis.itName('Detect missing external index', () => {
+    const p = new Shell(
+      `${apollo} assembly add-from-fasta ${P} -a vv1 -f https://raw.githubusercontent.com/GMOD/Apollo3/refs/heads/main/packages/apollo-cli/test_data/tiny.fasta`,
+      false,
+    )
+    assert.ok(p.returncode != 0)
+    assert.ok(
+      p.stderr.includes('Index file') && p.stderr.includes('does not exist'),
+    )
+  })
+
+  void globalThis.itName(
+    'Editable sequence not allowed with external source',
+    () => {
+      const cmd = `${apollo} assembly add-from-fasta ${P} -a vv1 -f https://raw.githubusercontent.com/GMOD/Apollo3/refs/heads/main/packages/apollo-cli/test_data/tiny.fasta.gz`
+      new Shell(cmd)
+
+      const p = new Shell(`${cmd} -e`, false)
+      assert.ok(p.returncode != 0)
+      assert.ok(p.stderr.includes('External fasta files are not editable'))
+    },
+  )
 
   void globalThis.itName('Edit feature from json', () => {
     new Shell(
@@ -1246,7 +1268,7 @@ void describe('Test CLI', () => {
     fs.unlinkSync('test_data/fasta.tmp')
   })
 
-  void globalThis.itName('Add assembly from files not editable', () => {
+  void globalThis.itName('Add editable assembly', () => {
     // It would be good to check that really there was no sequence loading
     new Shell(
       `${apollo} assembly add-from-fasta ${P} -f test_data/tiny.fasta.gz`,
@@ -1260,6 +1282,7 @@ void describe('Test CLI', () => {
       false,
     )
     assert.ok(p.returncode != 0)
+    assert.ok(p.stderr.includes('unless option -e/--editable is set'))
 
     // Setting --gzi & --fai
     new Shell(
