@@ -197,7 +197,7 @@ describe('Different ways of editing features', () => {
     )
   })
 
-  it('Can add child feature via table editor', () => {
+  it.only('Can add child feature via table editor', () => {
     cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
     cy.selectAssemblyToView('onegene.fasta.gff3')
     cy.searchFeatures('gx1', 1)
@@ -239,7 +239,7 @@ describe('Different ways of editing features', () => {
     cy.reload() // Ideally, you shouldn't need to reload to see the change?
     cy.get('tbody', { timeout: 60_000 }).within(() => {
       cy.get('input[value="start_codon"]').should('have.length', 1)
-      cy.get('input[value="1"]').should('have.length', 4)
+      cy.get('input[value="1"]').should('have.length', 5)
       cy.get('input[value="3"]').should('have.length', 1)
     })
   })

@@ -15,7 +15,7 @@ describe('Add Assembly', () => {
 
     cy.intercept('/changes').as('changes')
     cy.contains('Submit').click()
-    cy.contains('is being added', { timeout: 10_000 })
+    cy.contains('added successfully', { timeout: 10_000 })
     cy.wait('@changes').its('response.statusCode').should('match', /2../)
   })
 
