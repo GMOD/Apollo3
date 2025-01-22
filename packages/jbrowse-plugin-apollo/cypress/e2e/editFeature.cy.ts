@@ -197,7 +197,7 @@ describe('Different ways of editing features', () => {
     )
   })
 
-  it.only('Can add child feature via table editor', () => {
+  it('Can add child feature via table editor', () => {
     cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
     cy.selectAssemblyToView('onegene.fasta.gff3')
     cy.searchFeatures('gx1', 1)
