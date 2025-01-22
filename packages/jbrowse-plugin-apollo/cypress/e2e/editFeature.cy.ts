@@ -2,10 +2,10 @@ describe('Different ways of editing features', () => {
   before(() => {
     cy.deleteAssemblies()
     cy.wrap(
-      window.indexedDB.databases().then((dbs) => {
+      globalThis.indexedDB.databases().then((dbs) => {
         for (const db of dbs) {
           if (db.name) {
-            window.indexedDB.deleteDatabase(db.name)
+            globalThis.indexedDB.deleteDatabase(db.name)
           }
         }
       }),
@@ -71,6 +71,8 @@ describe('Different ways of editing features', () => {
         })
       })
     cy.get('body').click(0, 0)
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(5000)
 
     // Check edit is done
     cy.reload()

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
-import { isAbortException } from '@jbrowse/core/util'
+import { isAbortException } from '@jbrowse/core/util/aborting'
 import {
   Button,
   DialogActions,
@@ -51,7 +51,9 @@ export const AuthTypeSelector = ({
       setLoginTypes(data)
     }
     getAuthTypes().catch((error) => {
-      isAbortException(error) ? '' : setErrorMessage(String(error))
+      if (!isAbortException(error)) {
+        setErrorMessage(String(error))
+      }
     })
     return () => {
       controller.abort()

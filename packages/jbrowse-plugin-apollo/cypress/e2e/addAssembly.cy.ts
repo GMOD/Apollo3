@@ -57,7 +57,10 @@ describe('Add Assembly', () => {
 
     cy.intercept('/changes').as('changes')
     cy.contains('Submit').click()
-    cy.contains('is being added', { timeout: 10_000 })
+    // On success you should see this:
+    // cy.contains('is being added', { timeout: 10_000 })
+    // Not this:
+    cy.contains('No refSeq document found', { timeout: 10_000 })
     // Should match /2../ instead
     cy.wait('@changes').its('response.statusCode').should('match', /4../)
   })

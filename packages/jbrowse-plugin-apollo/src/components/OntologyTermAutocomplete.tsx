@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { AbstractSessionModel, isAbortException } from '@jbrowse/core/util'
+
+import { AbstractSessionModel } from '@jbrowse/core/util'
+import { isAbortException } from '@jbrowse/core/util/aborting'
 import {
   Autocomplete,
   AutocompleteRenderInputParams,
@@ -76,7 +76,6 @@ export function OntologyTermAutocomplete({
   // effect for clearing choices when not open
   useEffect(() => {
     if (!open) {
-      // eslint-disable-next-line unicorn/no-useless-undefined
       setTermChoices(undefined)
     }
   }, [open])
@@ -93,7 +92,7 @@ export function OntologyTermAutocomplete({
             setCurrentOntologyTerm(term)
           }
         },
-        (error) => {
+        (error: unknown) => {
           if (!signal.aborted && !isAbortException(error)) {
             setCurrentOntologyTermInvalid(String(error))
           }
@@ -116,10 +115,10 @@ export function OntologyTermAutocomplete({
             setTermChoices(soTerms)
           }
         },
-        (error) => {
+        (error: unknown) => {
           if (!signal.aborted && !isAbortException(error)) {
             ;(session as unknown as AbstractSessionModel).notify(
-              error.message,
+              error instanceof Error ? error.message : String(error),
               'error',
             )
           }
@@ -145,7 +144,6 @@ export function OntologyTermAutocomplete({
       return
     }
     if (typeof newValue === 'string') {
-      // eslint-disable-next-line unicorn/no-useless-undefined
       setCurrentOntologyTerm(undefined)
       onChange(valueString, newValue)
     } else if (newValue.lbl !== valueString) {
@@ -212,7 +210,7 @@ async function getCurrentTerm(
     currentTermLabel,
     { includeSubclasses: false },
   )
-  const term = terms.find(filterTerms ?? (() => true))
+  const term = terms.find((term) => (filterTerms ?? (() => true))(term))
   if (!term) {
     throw new Error(`not a valid ${ontologyStore.ontologyName} term`)
   }

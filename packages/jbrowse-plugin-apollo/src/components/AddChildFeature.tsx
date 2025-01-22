@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { AnnotationFeature } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'

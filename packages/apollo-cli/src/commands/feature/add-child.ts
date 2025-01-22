@@ -120,7 +120,7 @@ to retrive the parent ID of interest and to populate the child feature with attr
     }
     const res = await queryApollo(address, accessToken, 'refSeqs')
     const refSeqs = (await res.json()) as object[]
-    const { refSeq } = parentFeature
+    const { refSeq, _id } = parentFeature
     let assembly = ''
     for (const x of refSeqs) {
       if (x['_id' as keyof typeof x] === refSeq) {
@@ -130,8 +130,8 @@ to retrive the parent ID of interest and to populate the child feature with attr
     }
     const change: SerializedAddFeatureChange = {
       typeName: 'AddFeatureChange',
-      // eslint-disable-next-line unicorn/consistent-destructuring
-      changedIds: [parentFeature._id],
+
+      changedIds: [_id],
       assembly,
       addedFeature: {
         _id: new ObjectId().toHexString(),
@@ -140,8 +140,8 @@ to retrive the parent ID of interest and to populate the child feature with attr
         max,
         type,
       },
-      // eslint-disable-next-line unicorn/consistent-destructuring
-      parentFeatureId: parentFeature._id,
+
+      parentFeatureId: _id,
     }
     const url = new URL(localhostToAddress(`${address}/changes`))
     const auth = {

@@ -124,7 +124,7 @@ async function checkMRNA(
           refSeq: refSeq.toString(),
           start: max,
           end: max,
-          message: `Feature "${_id}" is missing a stop codon`,
+          message: `Missing stop codon`,
         })
       }
     } else {

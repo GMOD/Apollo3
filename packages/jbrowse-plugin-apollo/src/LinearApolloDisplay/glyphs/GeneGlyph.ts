@@ -17,7 +17,7 @@ let forwardFillLight: CanvasPattern | null = null
 let backwardFillLight: CanvasPattern | null = null
 let forwardFillDark: CanvasPattern | null = null
 let backwardFillDark: CanvasPattern | null = null
-if ('document' in window) {
+if ('document' in globalThis) {
   for (const direction of ['forward', 'backward']) {
     for (const themeMode of ['light', 'dark']) {
       const canvas = document.createElement('canvas')

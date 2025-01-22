@@ -14,8 +14,7 @@ export enum KEYS {
   address = 'address',
   accessType = 'accessType',
   accessToken = 'accessToken',
-  rootCredentials_username = 'rootCredentials.username',
-  rootCredentials_password = 'rootCredentials.password',
+  rootPassword = 'rootPassword',
 }
 
 function optionDocs(): { key: string; description: string }[] {
@@ -44,15 +43,7 @@ function optionDocs(): { key: string; description: string }[] {
         })
         break
       }
-      case 'rootCredentials.username': {
-        docs.push({
-          key: v,
-          description:
-            'Username of root account. Only set this for "root" access type',
-        })
-        break
-      }
-      case 'rootCredentials.password': {
+      case 'rootPassword': {
         docs.push({
           key: v,
           description:
@@ -127,7 +118,7 @@ export class ApolloConf extends Conf {
 
   public setAccessType(profileName: string, accessType: string) {
     if (accessType != 'root') {
-      this.delete(`${profileName}.rootCredentials`)
+      this.delete(`${profileName}.rootPassword`)
     }
     this.set(`${profileName}.accessType`, accessType)
   }
@@ -158,12 +149,8 @@ const profileSchema = Joi.object({
   address: Joi.string().uri({ scheme: /https?/ }),
   accessType: Joi.string().valid('google', 'microsoft', 'root', 'guest'),
   accessToken: Joi.string(),
-  rootCredentials: Joi.object({
-    username: Joi.string(),
-    password: Joi.string(),
-  }).when('accessType', {
+  rootPassword: Joi.string().when('accessType', {
     is: Joi.string().valid('root'),
-
     otherwise: Joi.forbidden(),
   }),
 })

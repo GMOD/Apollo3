@@ -1,17 +1,18 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+
 const { defineConfig } = require('cypress')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+
 const { configurePlugin } = require('cypress-mongodb')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+
 const fs = require('node:fs')
 
 module.exports = defineConfig({
   // Make viewport long and thin to avoid the scrollbar on the right interfere
   // with the coordinates
   viewportHeight: 2000,
-  viewportWidth: 1000,
+  viewportWidth: 1300,
   retries: {
     runMode: 2,
   },

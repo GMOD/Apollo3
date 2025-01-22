@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { ChangeManager } from '../ChangeManager'
 import { ApolloSessionModel } from '../session'
 import { Dialog } from './Dialog'

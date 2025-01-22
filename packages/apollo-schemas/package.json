@@ -1,6 +1,6 @@
 {
   "name": "@apollo-annotation/schemas",
-  "version": "0.1.21",
+  "version": "0.3.1",
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc"
@@ -11,7 +11,6 @@
     "@nestjs/mongoose": "^10.0.0",
     "mongoose": "^6.12.0",
     "reflect-metadata": "^0.1.13",
-    "regenerator-runtime": "^0.13.9",
     "rxjs": "^7.4.0",
     "tslib": "^2.3.1"
   },

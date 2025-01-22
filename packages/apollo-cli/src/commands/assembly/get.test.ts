@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import { dirname } from 'node:path'
+import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { expect, test } from '@oclif/test'
@@ -26,7 +26,7 @@ describe.skip('apollo assembly get: Fail without token', () => {
   const cmd = ['assembly:get']
   test
     .stderr()
-    .command(cmd, { root: dirname(dirname(__dirname)) })
+    .command(cmd, { root: path.dirname(path.dirname(__dirname)) })
     .exit(1)
     .do((output) =>
       expect(output.stderr).to.contain('Profile "default" has no access token'),
@@ -47,7 +47,7 @@ describe.skip('apollo assembly get: Get assemblies as YAML string', () => {
   const cmd = ['assembly:get']
   test
     .stdout()
-    .command(cmd, { root: dirname(dirname(__dirname)) })
+    .command(cmd, { root: path.dirname(path.dirname(__dirname)) })
     .it(cmd.join(' '), (output) => {
       JSON.parse(output.stdout)
     })
@@ -60,7 +60,7 @@ describe.skip('apollo assembly get: Test nock', () => {
     .nock('http://127.0.0.1:3999', (api) =>
       api.persist().get('/assemblies').reply(200, { stuff: 'foo' }),
     )
-    .command(cmd, { root: dirname(dirname(__dirname)) })
+    .command(cmd, { root: path.dirname(path.dirname(__dirname)) })
     .it(cmd.join(' '), (output) => {
       console.error(output.stdout)
       // const out = JSON.parse(output.stdout)

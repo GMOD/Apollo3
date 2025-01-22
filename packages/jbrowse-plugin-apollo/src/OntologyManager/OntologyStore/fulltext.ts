@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 // jsonpath triggers this rule for some reason. import { query } from 'jsonpath' does not work
 
-import { checkAbortSignal } from '@jbrowse/core/util'
+import { checkAbortSignal } from '@jbrowse/core/util/aborting'
 import jsonpath from 'jsonpath'
 
 import { stopwords } from './fulltext-stopwords'
@@ -170,7 +170,10 @@ export function elaborateMatch(
   const sortedWordIndexes = [...queryWordIndexes].sort()
   const matchedQueryWords = sortedWordIndexes.map((i) => queryWords[i])
   const queryWordRegexps = matchedQueryWords.map((queryWord) => {
-    const escaped = queryWord.replaceAll(/[$()*+./?[\\\]^{|}-]/g, '\\$&')
+    const escaped = queryWord.replaceAll(
+      /[$()*+./?[\\\]^{|}-]/g,
+      String.raw`\$&`,
+    )
     return new RegExp(`\\b${escaped}`, 'gi')
   })
   // const needle = matchedQueryWords.join(' ')

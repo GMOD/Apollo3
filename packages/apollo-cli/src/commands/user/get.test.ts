@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import { dirname } from 'node:path'
+import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { expect, test } from '@oclif/test'
@@ -25,7 +25,7 @@ describe.skip('apollo user get: Get users as YAML string', () => {
   const cmd = ['user:get']
   test
     .stdout()
-    .command(cmd, { root: dirname(dirname(__dirname)) })
+    .command(cmd, { root: path.dirname(path.dirname(__dirname)) })
     .it(cmd.join(' '), (output) => {
       const str: string = JSON.stringify(JSON.parse(output.stdout))
       expect(str).contain('username')

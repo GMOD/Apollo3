@@ -121,6 +121,9 @@ function convertFeatureAttributes(
         const newKey = isGFFReservedAttribute(key) ? gffToInternal[key] : key
         const existingVal = convertedAttributes[newKey]
         if (existingVal) {
+          // if (JSON.stringify(existingVal) === JSON.stringify(val)) {
+          //   continue
+          // }
           const valSet = new Set([...existingVal, ...val])
           convertedAttributes[newKey] = [...valSet]
         } else {

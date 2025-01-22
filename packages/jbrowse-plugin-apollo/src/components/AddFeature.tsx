@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { AddFeatureChange } from '@apollo-annotation/shared'
@@ -101,7 +102,6 @@ export function AddFeature({
         break
       }
       default: {
-        // eslint-disable-next-line unicorn/no-useless-undefined
         setStrand(undefined)
       }
     }
