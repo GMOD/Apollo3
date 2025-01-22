@@ -115,7 +115,7 @@ often has unintended side effects.',
         this.error(`Index file ${fai} does not exist`)
       }
       const gzi = flags.gzi ?? `${args.input}.gzi`
-      const gziExists = await fetch(fai)
+      const gziExists = await fetch(gzi)
       if (!gziExists.ok) {
         this.error(`Index file ${gzi} does not exist`)
       }
