@@ -197,6 +197,37 @@ describe('gff3ToAnnotationFeature examples', () => {
   })
 })
 
+describe('CDS without exons', () => {
+  it('Convert mRNA with CDS but without exon', () => {
+    const [gffFeature] = readFeatureFile('test_data/cds_without_exon.gff')
+    const actual = gff3ToAnnotationFeature(gffFeature)
+    const expected = readAnnotationFeatureSnapshot(
+      'test_data/cds_without_exon.json',
+    )
+    compareFeatures(actual, expected)
+  })
+  it('Convert mRNA with CDS but without exon and spliced UTR', () => {
+    const [gffFeature] = readFeatureFile(
+      'test_data/cds_without_exon_spliced_utr.gff',
+    )
+    const actual = gff3ToAnnotationFeature(gffFeature)
+    const expected = readAnnotationFeatureSnapshot(
+      'test_data/cds_without_exon_spliced_utr.json',
+    )
+    compareFeatures(actual, expected)
+  })
+  it('Convert mRNA with one CDS, without exons non-adjacent UTR', () => {
+    const [gffFeature] = readFeatureFile(
+      'test_data/onecds_without_exon_spliced_utr.gff',
+    )
+    const actual = gff3ToAnnotationFeature(gffFeature)
+    const expected = readAnnotationFeatureSnapshot(
+      'test_data/onecds_without_exon_spliced_utr.json',
+    )
+    compareFeatures(actual, expected)
+  })
+})
+
 describe('gff3ToAnnotationFeature', () => {
   for (const testCase of testCases) {
     const [description, featureLine, convertedFeature] = testCase

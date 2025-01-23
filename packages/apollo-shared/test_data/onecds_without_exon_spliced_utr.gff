@@ -1,0 +1,6 @@
+##gff-version 3
+chr1	.	gene	1000	9000	.	+	.	ID=gene00001
+chr1	.	mRNA	1300	9000	.	+	.	ID=mRNA00001;Parent=gene00001
+chr1	.	five_prime_UTR	3000	3300	.	+	.	Parent=mRNA00001
+chr1	.	CDS	5000	5500	.	+	1	ID=cds00001;Parent=mRNA00001
+chr1	.	three_prime_UTR	7601	8000	.	+	.	Parent=mRNA00001
