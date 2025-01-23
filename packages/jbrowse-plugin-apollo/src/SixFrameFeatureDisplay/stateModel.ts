@@ -270,6 +270,11 @@ export function stateModelFactory(
         return codonLayout
       },
       get featureLayout() {
+        const { featureTypeOntology } =
+          self.session.apolloDataStore.ontologyManager
+        if (!featureTypeOntology) {
+          throw new Error('featureTypeOntology is undefined')
+        }
         const featureLayout = new Map<number, [string, AnnotationFeature][]>()
         for (const [refSeq, featuresForRefSeq] of this.features || []) {
           if (!featuresForRefSeq) {
@@ -295,11 +300,13 @@ export function stateModelFactory(
             },
           )) {
             for (const [, childFeature] of feature.children ?? new Map()) {
-              if (childFeature.type === 'mRNA') {
+              if (featureTypeOntology.isTypeOf(childFeature.type, 'mRNA')) {
                 for (const [, grandChildFeature] of childFeature.children ||
                   new Map()) {
                   let startingRow
-                  if (grandChildFeature.type === 'CDS') {
+                  if (
+                    featureTypeOntology.isTypeOf(grandChildFeature.type, 'CDS')
+                  ) {
                     let discontinuousLocations
                     if (grandChildFeature.discontinuousLocations.length > 0) {
                       ;({ discontinuousLocations } = grandChildFeature)

@@ -15,7 +15,6 @@ import type { CSSProperties } from 'react'
 import { Coord } from '../components'
 import { Glyph } from '../glyphs/Glyph'
 import { CanvasMouseEvent } from '../types'
-import { getGlyph } from './getGlyph'
 import { renderingModelFactory } from './rendering'
 import { Frame, getFrame } from '@jbrowse/core/util'
 
@@ -147,11 +146,17 @@ export function mouseEventsModelIntermediateFactory(
           return mousePosition
         }
         const [featureRow, topLevelFeature] = foundFeature
-        const glyph = getGlyph(topLevelFeature)
+        const glyph = self.getGlyph(topLevelFeature)
+        const { featureTypeOntology } =
+          self.session.apolloDataStore.ontologyManager
+        if (!featureTypeOntology) {
+          throw new Error('featureTypeOntology is undefined')
+        }
         const feature = glyph.getFeatureFromLayout(
           topLevelFeature,
           bp,
           featureRow,
+          featureTypeOntology,
         )
         if (!feature) {
           return mousePosition
@@ -227,15 +232,27 @@ export function mouseEventsSeqHightlightModelFactory(
               self.lgv.bpPerPx <= 1 ? 125 : 95,
             )
 
-            const { apolloHover, lgv, regions, sequenceRowHeight, theme } = self
+            const {
+              apolloHover,
+              lgv,
+              regions,
+              sequenceRowHeight,
+              session,
+              theme,
+            } = self
 
             if (!apolloHover) {
               return
             }
             const { feature } = apolloHover
 
+            const { featureTypeOntology } =
+              session.apolloDataStore.ontologyManager
+            if (!featureTypeOntology) {
+              throw new Error('featureTypeOntology is undefined')
+            }
             for (const [idx, region] of regions.entries()) {
-              if (feature.type === 'CDS') {
+              if (featureTypeOntology.isTypeOf(feature.type, 'CDS')) {
                 const parentFeature = feature.parent
                 if (!parentFeature) {
                   continue
@@ -323,7 +340,7 @@ export function mouseEventsModelFactory(
         return []
       }
       const { topLevelFeature } = apolloHover
-      const glyph = getGlyph(topLevelFeature)
+      const glyph = self.getGlyph(topLevelFeature)
       return glyph.getContextMenuItems(self)
     },
   }))
@@ -483,7 +500,9 @@ export function mouseEventsModelFactory(
               if (apolloDragging) {
                 // NOTE: the glyph where the drag started is responsible for drawing the preview.
                 // it can call methods in other glyphs to help with this though.
-                const glyph = getGlyph(apolloDragging.feature.topLevelFeature)
+                const glyph = self.getGlyph(
+                  apolloDragging.feature.topLevelFeature,
+                )
                 glyph.drawDragPreview(self, ctx)
               }
             },

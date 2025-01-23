@@ -209,3 +209,30 @@ describe('gff3ToAnnotationFeature', () => {
     })
   }
 })
+
+describe('Source and score', () => {
+  it('Convert score and source', () => {
+    const gffFeature: GFF3Feature = [
+      {
+        seq_id: 'chr1',
+        source: 'mySource',
+        type: 'gene',
+        start: 1000,
+        end: 9000,
+        score: 0,
+        strand: '+',
+        phase: null,
+        attributes: {
+          ID: ['gene10001'],
+          Name: ['EDEN'],
+          testid: ['t003'],
+        },
+        child_features: [],
+        derived_features: [],
+      },
+    ]
+    const actual = gff3ToAnnotationFeature(gffFeature)
+    assert.deepStrictEqual(actual.attributes?.gff_source?.at(0), 'mySource')
+    assert.deepStrictEqual(actual.attributes?.gff_score?.at(0), '0')
+  })
+})
