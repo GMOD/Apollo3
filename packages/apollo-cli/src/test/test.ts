@@ -1365,4 +1365,39 @@ void describe('Test CLI', () => {
     out = JSON.parse(p.stdout)
     assert.strictEqual(out.length, 0)
   })
+
+  void globalThis.itName(
+    'Export gff3 from editable assembly includes fasta',
+    () => {
+      new Shell(
+        `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta.gz -a vv1 -f -e`,
+      )
+      new Shell(
+        `${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`,
+      )
+      const p = new Shell(`${apollo} export gff3 ${P} vv1`)
+      const gff = p.stdout
+      assert.ok(gff.startsWith('##gff-version 3'))
+      assert.ok(gff.includes('multivalue=val1,val2,val3'))
+      assert.ok(gff.includes('##FASTA\n'))
+      assert.deepStrictEqual('taccc\n', gff.slice(-6, gff.length))
+    },
+  )
+
+  void globalThis.itName(
+    'Export gff3 from non-editable assembly excludes fasta',
+    () => {
+      new Shell(
+        `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta.gz -a vv1 -f`,
+      )
+      new Shell(
+        `${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`,
+      )
+      const p = new Shell(`${apollo} export gff3 ${P} vv1`)
+      const gff = p.stdout
+      assert.ok(gff.startsWith('##gff-version 3'))
+      assert.ok(gff.includes('multivalue=val1,val2,val3'))
+      assert.deepStrictEqual('##FASTA\n', gff.slice(-8, gff.length))
+    },
+  )
 })

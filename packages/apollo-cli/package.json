@@ -51,6 +51,9 @@
       "change": {
         "description": "Commands to manage the change log"
       },
+      "export": {
+        "description": "Commands to export data"
+      },
       "feature": {
         "description": "Commands to manage features"
       },
