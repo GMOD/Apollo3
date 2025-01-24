@@ -88,10 +88,7 @@ export const OntologyRecordType = types
         void self.loadEquivalentTypes(typeOf)
         return false
       }
-      if (equivalents.includes(queryType)) {
-        return true
-      }
-      return false
+      return equivalents.includes(queryType)
     },
   }))
 

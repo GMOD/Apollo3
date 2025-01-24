@@ -176,7 +176,7 @@ describe('Different ways of editing features', () => {
     cy.contains('td', '=CDS1').should('not.exist')
   })
 
-  it.only('Suggest only valid SO terms from dropdown', () => {
+  it('Suggest only valid SO terms from dropdown', () => {
     cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
     cy.selectAssemblyToView('onegene.fasta.gff3')
     cy.searchFeatures('gx1', 1)
