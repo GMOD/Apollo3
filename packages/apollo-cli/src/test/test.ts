@@ -1375,12 +1375,17 @@ void describe('Test CLI', () => {
       new Shell(
         `${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`,
       )
-      const p = new Shell(`${apollo} export gff3 ${P} vv1`)
+      let p = new Shell(`${apollo} export gff3 ${P} vv1`)
       const gff = p.stdout
       assert.ok(gff.startsWith('##gff-version 3'))
       assert.ok(gff.includes('multivalue=val1,val2,val3'))
       assert.ok(gff.includes('##FASTA\n'))
       assert.deepStrictEqual('taccc\n', gff.slice(-6, gff.length))
+
+      // Invalid assembly
+      p = new Shell(`${apollo} export gff3 ${P} foobar`, false)
+      assert.ok(p.returncode != 0)
+      assert.ok(p.stderr.includes('foobar'))
     },
   )
 

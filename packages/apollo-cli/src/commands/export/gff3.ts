@@ -39,6 +39,9 @@ export default class Get extends BaseCommand<typeof Get> {
       access.accessToken,
       assembly,
     )
+    if (!assemblyId) {
+      this.error(`Invalid assembly name or id: ${args.assembly}`)
+    }
 
     const url = new URL(localhostToAddress(`${access.address}/export/getID`))
     const searchParams = new URLSearchParams({
