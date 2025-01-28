@@ -1,4 +1,4 @@
-import { Args } from '@oclif/core'
+import { Args, Flags } from '@oclif/core'
 import { fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
@@ -25,6 +25,13 @@ export default class Get extends BaseCommand<typeof Get> {
     assembly: Args.string({
       description: 'Export features for this assembly name or id',
       required: true,
+    }),
+  }
+
+  static flags = {
+    'with-fasta': Flags.boolean({
+      description: 'Append fasta sequence to output',
+      default: false,
     }),
   }
 
@@ -66,7 +73,13 @@ export default class Get extends BaseCommand<typeof Get> {
     const { exportID } = (await response.json()) as { exportID: string }
 
     const exportURL = new URL(localhostToAddress(`${access.address}/export`))
-    const exportSearchParams = new URLSearchParams({ exportID })
+
+    const params: Record<string, string> = {
+      exportID,
+      assemblyId,
+      withFasta: this.flags['with-fasta'] ? 'True' : 'False',
+    }
+    const exportSearchParams = new URLSearchParams(params)
     exportURL.search = exportSearchParams.toString()
     const exportUri = exportURL.toString()
 

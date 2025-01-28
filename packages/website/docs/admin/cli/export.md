@@ -10,7 +10,7 @@ Export the annotation of an assembly to stdout as gff3
 
 ```
 USAGE
-  $ apollo export gff3 ASSEMBLY [--profile <value>] [--config-file <value>]
+  $ apollo export gff3 ASSEMBLY [--profile <value>] [--config-file <value>] [--with-fasta]
 
 ARGUMENTS
   ASSEMBLY  Export features for this assembly name or id
@@ -18,6 +18,7 @@ ARGUMENTS
 FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
   --profile=<value>      Use credentials from this profile
+  --with-fasta           Append fasta sequence to output
 
 DESCRIPTION
   Export the annotation of an assembly to stdout as gff3

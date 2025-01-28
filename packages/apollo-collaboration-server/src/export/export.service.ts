@@ -19,6 +19,7 @@ import {
   ExportDocument,
   Feature,
   FeatureDocument,
+  FileDocument,
   RefSeq,
   RefSeqChunk,
   RefSeqChunkDocument,
@@ -31,11 +32,27 @@ import {
 import gff from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model } from 'mongoose'
+import { FilterQuery, Model, Types } from 'mongoose'
 import StreamConcat from 'stream-concat'
+import { FilesService } from 'src/files/files.service'
+import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
+import { RemoteFile } from 'generic-filehandle'
 
+interface AssemblyDocumentWithId extends AssemblyDocument {
+  _id: Types.ObjectId
+}
 interface FastaTransformOptions extends TransformOptions {
   fastaWidth?: number
+}
+
+function makeFastaHeader(refSeqDoc: {
+  description: string
+  name: string
+}): string {
+  const refSeqDescription = refSeqDoc.description
+    ? ` ${refSeqDoc.description}`
+    : ''
+  return `>${refSeqDoc.name}${refSeqDescription}\n`
 }
 
 class FastaTransform extends Transform {
@@ -59,11 +76,7 @@ class FastaTransform extends Transform {
     const refSeqDocId = refSeqDoc._id.toString()
     if (refSeqDocId !== this.currentRefSeq) {
       this.flushLineBuffer()
-      const refSeqDescription = refSeqDoc.description
-        ? ` ${refSeqDoc.description}`
-        : ''
-      const fastaHeader = `>${refSeqDoc.name}${refSeqDescription}\n`
-      this.push(fastaHeader)
+      this.push(makeFastaHeader(refSeqDoc))
       this.currentRefSeq = refSeqDocId
     }
     let { sequence } = refSeqChunkDoc
@@ -111,6 +124,9 @@ export class ExportService {
     private readonly exportModel: Model<ExportDocument>,
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
+    @InjectModel(File.name)
+    private readonly fileModel: Model<FileDocument>,
+    private readonly filesService: FilesService,
     @InjectModel(RefSeq.name)
     private readonly refSeqModel: Model<RefSeqDocument>,
     @InjectModel(RefSeqChunk.name)
@@ -133,14 +149,13 @@ export class ExportService {
 
   async exportGFF3(
     exportID: string,
-    opts: { fastaWidth?: number },
+    opts: { withFasta?: boolean; fastaWidth?: number },
   ): Promise<[Readable, string]> {
     const exportDoc = await this.exportModel.findById(exportID)
     if (!exportDoc) {
       throw new NotFoundException()
     }
-    const { fastaWidth } = opts
-
+    const { fastaWidth, withFasta } = opts
     const { assembly } = exportDoc
     const refSeqs = await this.refSeqModel.find({ assembly }).exec()
     const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
@@ -199,6 +214,123 @@ export class ExportService {
       },
     )
 
+    let sequenceStream = null
+    if (withFasta) {
+      // We need to know whether the sequence comes from mongo or from fasta files
+      // So we need the document for this assembly
+      const assemblyDoc = await this.assemblyModel.findById(assembly.toString())
+      if (!assemblyDoc) {
+        throw new Error(
+          `Error getting document for assembly: ${assembly.toString()}`,
+        )
+      }
+      sequenceStream =
+        // The linter thinks fileIds and externalLocation are always present
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        assemblyDoc?.fileIds?.fai || assemblyDoc?.externalLocation
+          ? this.streamFromFasta(
+              assemblyDoc,
+              new FastaTransform({ fastaWidth }).fastaWidth,
+            )
+          : this.streamFromRefSeqCollection(
+              query,
+              new FastaTransform({ fastaWidth }).fastaWidth,
+            )
+    }
+    const combinedStream: Readable = new StreamConcat([
+      headerStream,
+      featureStream,
+      sequenceStream,
+    ])
+    return [combinedStream, assembly.toString()]
+  }
+
+  async streamFromFasta(
+    assemblyDoc: AssemblyDocumentWithId,
+    fastaWidth: number,
+  ): Promise<Readable> {
+    let sequenceAdapter
+    // The linter thinks externalLocation and fileIds are always present
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (assemblyDoc.fileIds) {
+      const { fa: faId, fai: faiId, gzi: gziId } = assemblyDoc.fileIds
+      const faDoc = await this.fileModel.findById(faId)
+      if (!faDoc) {
+        throw new Error(`No checksum for file document ${faId}`)
+      }
+      const faiDoc = await this.fileModel.findById(faiId)
+      if (!faiDoc) {
+        throw new Error(`File document not found for ${faiId}`)
+      }
+      const gziDoc = await this.fileModel.findById(gziId)
+      if (!gziDoc) {
+        throw new Error(`File document not found for ${gziId}`)
+      }
+      const fasta = this.filesService.getFileHandle(faDoc)
+      const fai = this.filesService.getFileHandle(faiDoc)
+      const gzi = gziId ? this.filesService.getFileHandle(gziDoc) : undefined
+      sequenceAdapter = gziId
+        ? new BgzipIndexedFasta({ fasta, fai, gzi })
+        : new IndexedFasta({ fasta, fai })
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    } else if (assemblyDoc.externalLocation) {
+      const { fa, fai, gzi } = assemblyDoc.externalLocation
+      sequenceAdapter = gzi
+        ? new BgzipIndexedFasta({
+            fasta: new RemoteFile(fa, { fetch }),
+            fai: new RemoteFile(fai, { fetch }),
+            gzi: new RemoteFile(gzi, { fetch }),
+          })
+        : new IndexedFasta({
+            fasta: new RemoteFile(fa, { fetch }),
+            fai: new RemoteFile(fai, { fetch }),
+          })
+    } else {
+      throw new Error('Error getting sequence files')
+    }
+
+    // Get all refSeqIds for this assembly
+    const assemblyId = assemblyDoc._id
+    const refSeq = await this.refSeqModel.find({
+      assembly: { $eq: assemblyId },
+    })
+    const refSeqIds = refSeq.map((x: { _id: Types.ObjectId }) =>
+      x._id.toString(),
+    )
+    const stream = new Readable()
+    stream._read = () => {
+      // We need a (dummy) implementation of _read
+      return
+    }
+    stream.push('##FASTA\n')
+    for (const refSeqId of refSeqIds) {
+      const refSeqDoc = await this.refSeqModel.findById(refSeqId)
+      if (!refSeqDoc) {
+        throw new Error('Error getting refseq document')
+      }
+      stream.push(makeFastaHeader(refSeqDoc))
+      let start = 0
+      let sequence: string | undefined = '_'
+      while (sequence) {
+        sequence = await sequenceAdapter.getSequence(
+          refSeqDoc.name,
+          start,
+          start + fastaWidth,
+        )
+        start += fastaWidth
+        if (sequence) {
+          stream.push(`${sequence}\n`)
+        }
+      }
+    }
+    stream.push(null)
+    return stream
+  }
+
+  streamFromRefSeqCollection(
+    query: FilterQuery<RefSeqDocument>,
+    fastaWidth: number,
+  ) {
     const sequenceStream = pipeline(
       this.refSeqChunksModel
         // unicorn thinks this is an Array.prototype.find, so we ignore it
@@ -215,12 +347,6 @@ export class ExportService {
         }
       },
     )
-
-    const combinedStream: Readable = new StreamConcat([
-      headerStream,
-      featureStream,
-      sequenceStream,
-    ])
-    return [combinedStream, assembly.toString()]
+    return sequenceStream
   }
 }

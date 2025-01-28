@@ -1366,43 +1366,65 @@ void describe('Test CLI', () => {
     assert.strictEqual(out.length, 0)
   })
 
-  void globalThis.itName(
-    'Export gff3 from editable assembly includes fasta',
-    () => {
-      new Shell(
-        `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta.gz -a vv1 -f -e`,
-      )
-      new Shell(
-        `${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`,
-      )
-      let p = new Shell(`${apollo} export gff3 ${P} vv1`)
-      const gff = p.stdout
-      assert.ok(gff.startsWith('##gff-version 3'))
-      assert.ok(gff.includes('multivalue=val1,val2,val3'))
-      assert.ok(gff.includes('##FASTA\n'))
-      assert.deepStrictEqual('taccc\n', gff.slice(-6, gff.length))
+  void globalThis.itName('Export gff3 from editable assembly', () => {
+    new Shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta.gz -a vv1 -f --editable`,
+    )
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
+    let p = new Shell(`${apollo} export gff3 ${P} vv1 --with-fasta`)
+    let gff = p.stdout
+    assert.ok(gff.startsWith('##gff-version 3'))
+    assert.ok(gff.includes('multivalue=val1,val2,val3'))
+    assert.ok(gff.includes('##FASTA\n'))
+    assert.deepStrictEqual('taccc\n', gff.slice(-6, gff.length))
 
-      // Invalid assembly
-      p = new Shell(`${apollo} export gff3 ${P} foobar`, false)
-      assert.ok(p.returncode != 0)
-      assert.ok(p.stderr.includes('foobar'))
-    },
-  )
+    p = new Shell(`${apollo} export gff3 ${P} vv1`)
+    gff = p.stdout
+    assert.ok(gff.startsWith('##gff-version 3'))
+    assert.ok(gff.includes('multivalue=val1,val2,val3'))
+    assert.ok(!gff.includes('##FASTA\n'))
 
-  void globalThis.itName(
-    'Export gff3 from non-editable assembly excludes fasta',
-    () => {
-      new Shell(
-        `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta.gz -a vv1 -f`,
-      )
-      new Shell(
-        `${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`,
-      )
-      const p = new Shell(`${apollo} export gff3 ${P} vv1`)
-      const gff = p.stdout
-      assert.ok(gff.startsWith('##gff-version 3'))
-      assert.ok(gff.includes('multivalue=val1,val2,val3'))
-      assert.deepStrictEqual('##FASTA\n', gff.slice(-8, gff.length))
-    },
-  )
+    // Invalid assembly
+    p = new Shell(`${apollo} export gff3 ${P} foobar`, false)
+    assert.ok(p.returncode != 0)
+    assert.ok(p.stderr.includes('foobar'))
+  })
+
+  void globalThis.itName('Export gff3 from non-editable assembly', () => {
+    new Shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta.gz -a vv1 -f`,
+    )
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
+    let p = new Shell(`${apollo} export gff3 ${P} vv1 --with-fasta`)
+    let gff = p.stdout
+    assert.ok(gff.startsWith('##gff-version 3'))
+    assert.ok(gff.includes('multivalue=val1,val2,val3'))
+    assert.ok(gff.includes('##FASTA\n'))
+    assert.deepStrictEqual('taccc\n', gff.slice(-6, gff.length))
+
+    p = new Shell(`${apollo} export gff3 ${P} vv1`)
+    gff = p.stdout
+    assert.ok(gff.startsWith('##gff-version 3'))
+    assert.ok(gff.includes('multivalue=val1,val2,val3'))
+    assert.ok(!gff.includes('##FASTA\n'))
+  })
+
+  void globalThis.itName('Export gff3 from external fasta', () => {
+    new Shell(
+      `${apollo} assembly add-from-fasta ${P} https://raw.githubusercontent.com/GMOD/Apollo3/refs/heads/main/packages/apollo-cli/test_data/tiny.fasta.gz -a vv1 -f`,
+    )
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
+    let p = new Shell(`${apollo} export gff3 ${P} vv1 --with-fasta`)
+    let gff = p.stdout
+    assert.ok(gff.startsWith('##gff-version 3'))
+    assert.ok(gff.includes('multivalue=val1,val2,val3'))
+    assert.ok(gff.includes('##FASTA\n'))
+    assert.deepStrictEqual('taccc\n', gff.slice(-6, gff.length))
+
+    p = new Shell(`${apollo} export gff3 ${P} vv1`)
+    gff = p.stdout
+    assert.ok(gff.startsWith('##gff-version 3'))
+    assert.ok(gff.includes('multivalue=val1,val2,val3'))
+    assert.ok(!gff.includes('##FASTA\n'))
+  })
 })

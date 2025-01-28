@@ -41,11 +41,20 @@ export class ExportController {
   @Validations(Role.None)
   @Get()
   async exportGFF3(
-    @Query() request: { exportID: string; fastaWidth?: number },
+    @Query()
+    request: {
+      exportID: string
+      withFasta: 'True' | 'False'
+      fastaWidth?: number
+    },
     @Response({ passthrough: true }) res: ExpressResponse,
   ) {
-    const { exportID, ...rest } = request
+    const { exportID, withFasta, ...rest } = request
+    if (!['True', 'False'].includes(withFasta)) {
+      throw new Error(`withFasta must be "True" or "False", got: ${withFasta}`)
+    }
     const [stream, assembly] = await this.exportService.exportGFF3(exportID, {
+      withFasta: withFasta === 'True',
       ...rest,
     })
     const assemblyName = await this.exportService.getAssemblyName(assembly)
