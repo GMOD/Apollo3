@@ -12,7 +12,7 @@ describe('Download GFF', () => {
     cy.deleteAssemblies()
   })
 
-  it.skip('Can download gff', () => {
+  it('Can download gff', () => {
     cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
     cy.get('button[data-testid="dropDownMenuButton"]')
       .contains('Apollo')
@@ -29,13 +29,13 @@ describe('Download GFF', () => {
 
     // We don't know when the download is done
     // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(4000)
+    cy.wait(10_000)
     cy.task('readdirSync', Cypress.config('downloadsFolder')).then((out) => {
       const gff = out as string
       cy.readFile(`${Cypress.config('downloadsFolder')}/${gff[0]}`).then(
         (x: string) => {
           const lines: string[] = x.trim().split('\n')
-          expect(lines.length).eq(933)
+          expect(lines.length).eq(962)
         },
       )
     })

@@ -11,6 +11,8 @@ import {
   pipeline,
 } from 'node:stream'
 
+import { ReadableStream } from 'node:stream/web'
+
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import {
   Assembly,
@@ -35,12 +37,11 @@ import { InjectModel } from '@nestjs/mongoose'
 import { FilterQuery, Model, Types } from 'mongoose'
 import StreamConcat from 'stream-concat'
 import { FilesService } from 'src/files/files.service'
-import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
-import { RemoteFile } from 'generic-filehandle'
+import { createReadStream } from 'node:fs'
+import { ConfigService } from '@nestjs/config'
+import path from 'node:path'
+import { createGunzip } from 'node:zlib'
 
-interface AssemblyDocumentWithId extends AssemblyDocument {
-  _id: Types.ObjectId
-}
 interface FastaTransformOptions extends TransformOptions {
   fastaWidth?: number
 }
@@ -131,6 +132,10 @@ export class ExportService {
     private readonly refSeqModel: Model<RefSeqDocument>,
     @InjectModel(RefSeqChunk.name)
     private readonly refSeqChunksModel: Model<RefSeqDocument>,
+    private readonly configService: ConfigService<
+      { FILE_UPLOAD_FOLDER: string },
+      true
+    >,
   ) {}
 
   private readonly logger = new Logger(ExportService.name)
@@ -208,123 +213,77 @@ export class ExportService {
       gff.formatStream({ insertVersionDirective: true }),
       (error) => {
         if (error) {
-          this.logger.error('GFF3 export failed')
+          this.logger.error('GFF3 export failed here')
           this.logger.error(error)
         }
       },
     )
 
-    let sequenceStream = null
+    let sequenceStream: Readable[] = []
     if (withFasta) {
-      // We need to know whether the sequence comes from mongo or from fasta files
-      // So we need the document for this assembly
       const assemblyDoc = await this.assemblyModel.findById(assembly.toString())
       if (!assemblyDoc) {
         throw new Error(
-          `Error getting document for assembly: ${assembly.toString()}`,
+          `Error getting document for assembly ${assembly.toString()}`,
         )
       }
-      sequenceStream =
-        // The linter thinks fileIds and externalLocation are always present
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (assemblyDoc?.fileIds?.fai) {
+        sequenceStream = await this.streamFromLocalFasta(assemblyDoc.fileIds.fa)
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        assemblyDoc?.fileIds?.fai || assemblyDoc?.externalLocation
-          ? this.streamFromFasta(
-              assemblyDoc,
-              new FastaTransform({ fastaWidth }).fastaWidth,
-            )
-          : this.streamFromRefSeqCollection(
-              query,
-              new FastaTransform({ fastaWidth }).fastaWidth,
-            )
+      } else if (assemblyDoc.externalLocation) {
+        sequenceStream = await this.streamFromRemoteFasta(
+          assemblyDoc.externalLocation.fa,
+        )
+      } else {
+        sequenceStream = this.streamFromRefSeqCollection(
+          query,
+          new FastaTransform({ fastaWidth }).fastaWidth,
+        )
+      }
     }
     const combinedStream: Readable = new StreamConcat([
       headerStream,
       featureStream,
-      sequenceStream,
+      ...sequenceStream,
     ])
     return [combinedStream, assembly.toString()]
   }
 
-  async streamFromFasta(
-    assemblyDoc: AssemblyDocumentWithId,
-    fastaWidth: number,
-  ): Promise<Readable> {
-    let sequenceAdapter
-    // The linter thinks externalLocation and fileIds are always present
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (assemblyDoc.fileIds) {
-      const { fa: faId, fai: faiId, gzi: gziId } = assemblyDoc.fileIds
-      const faDoc = await this.fileModel.findById(faId)
-      if (!faDoc) {
-        throw new Error(`No checksum for file document ${faId}`)
-      }
-      const faiDoc = await this.fileModel.findById(faiId)
-      if (!faiDoc) {
-        throw new Error(`File document not found for ${faiId}`)
-      }
-      const gziDoc = await this.fileModel.findById(gziId)
-      if (!gziDoc) {
-        throw new Error(`File document not found for ${gziId}`)
-      }
-      const fasta = this.filesService.getFileHandle(faDoc)
-      const fai = this.filesService.getFileHandle(faiDoc)
-      const gzi = gziId ? this.filesService.getFileHandle(gziDoc) : undefined
-      sequenceAdapter = gziId
-        ? new BgzipIndexedFasta({ fasta, fai, gzi })
-        : new IndexedFasta({ fasta, fai })
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    } else if (assemblyDoc.externalLocation) {
-      const { fa, fai, gzi } = assemblyDoc.externalLocation
-      sequenceAdapter = gzi
-        ? new BgzipIndexedFasta({
-            fasta: new RemoteFile(fa, { fetch }),
-            fai: new RemoteFile(fai, { fetch }),
-            gzi: new RemoteFile(gzi, { fetch }),
-          })
-        : new IndexedFasta({
-            fasta: new RemoteFile(fa, { fetch }),
-            fai: new RemoteFile(fai, { fetch }),
-          })
-    } else {
-      throw new Error('Error getting sequence files')
+  async streamFromLocalFasta(fastaFileId: string): Promise<Readable[]> {
+    const faDoc = await this.fileModel.findById(fastaFileId)
+    if (!faDoc) {
+      throw new Error('Undefined document')
+    }
+    const fastaLineStream = new Readable()
+    fastaLineStream.push('##FASTA\n')
+    // eslint-disable-next-line unicorn/no-array-push-push
+    fastaLineStream.push(null)
+
+    const fileUploadFolder = this.configService.get('FILE_UPLOAD_FOLDER', {
+      infer: true,
+    })
+    const fileStream = createReadStream(
+      path.join(fileUploadFolder, faDoc.checksum),
+    )
+    const gunzip = createGunzip()
+    return [fastaLineStream, fileStream.pipe(gunzip)]
+  }
+
+  async streamFromRemoteFasta(fastaUrl: string): Promise<Readable[]> {
+    const fastaLineStream = new Readable()
+    fastaLineStream.push('##FASTA\n')
+    // eslint-disable-next-line unicorn/no-array-push-push
+    fastaLineStream.push(null)
+
+    const response = await fetch(fastaUrl)
+    if (response.body === null) {
+      throw new Error(`No body in response from ${fastaUrl}`)
     }
 
-    // Get all refSeqIds for this assembly
-    const assemblyId = assemblyDoc._id
-    const refSeq = await this.refSeqModel.find({
-      assembly: { $eq: assemblyId },
-    })
-    const refSeqIds = refSeq.map((x: { _id: Types.ObjectId }) =>
-      x._id.toString(),
-    )
-    const stream = new Readable()
-    stream._read = () => {
-      // We need a (dummy) implementation of _read
-      return
-    }
-    stream.push('##FASTA\n')
-    for (const refSeqId of refSeqIds) {
-      const refSeqDoc = await this.refSeqModel.findById(refSeqId)
-      if (!refSeqDoc) {
-        throw new Error('Error getting refseq document')
-      }
-      stream.push(makeFastaHeader(refSeqDoc))
-      let start = 0
-      let sequence: string | undefined = '_'
-      while (sequence) {
-        sequence = await sequenceAdapter.getSequence(
-          refSeqDoc.name,
-          start,
-          start + fastaWidth,
-        )
-        start += fastaWidth
-        if (sequence) {
-          stream.push(`${sequence}\n`)
-        }
-      }
-    }
-    stream.push(null)
-    return stream
+    const gunzip = createGunzip()
+    const fastaData = Readable.fromWeb(response.body as ReadableStream)
+    return [fastaLineStream, fastaData.pipe(gunzip)]
   }
 
   streamFromRefSeqCollection(
@@ -347,6 +306,6 @@ export class ExportService {
         }
       },
     )
-    return sequenceStream
+    return [sequenceStream]
   }
 }

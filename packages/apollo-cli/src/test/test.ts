@@ -9,11 +9,11 @@
  * USAGE
  * From package root directory (`packages/apollo-cli`). Run all tests:
  *
- * yarn tsx test/test.ts
+ * yarn tsx src/test/test.ts
  *
  * Run only matching pattern:
  *
- * yarn tsx --test-name-pattern='Print help|Feature get' test/test.ts
+ * yarn tsx --test-name-pattern='Print help|Feature get' src/test/test.ts
  */
 
 import assert from 'node:assert'
@@ -1376,7 +1376,7 @@ void describe('Test CLI', () => {
     assert.ok(gff.startsWith('##gff-version 3'))
     assert.ok(gff.includes('multivalue=val1,val2,val3'))
     assert.ok(gff.includes('##FASTA\n'))
-    assert.deepStrictEqual('taccc\n', gff.slice(-6, gff.length))
+    assert.deepStrictEqual(gff.slice(-6, gff.length), 'taccc\n')
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
     gff = p.stdout
@@ -1400,7 +1400,8 @@ void describe('Test CLI', () => {
     assert.ok(gff.startsWith('##gff-version 3'))
     assert.ok(gff.includes('multivalue=val1,val2,val3'))
     assert.ok(gff.includes('##FASTA\n'))
-    assert.deepStrictEqual('taccc\n', gff.slice(-6, gff.length))
+    // We have end with two newlines because the test data does have an extra newline at the end.
+    assert.deepStrictEqual(gff.slice(-7, gff.length), 'taccc\n\n')
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
     gff = p.stdout
@@ -1409,7 +1410,7 @@ void describe('Test CLI', () => {
     assert.ok(!gff.includes('##FASTA\n'))
   })
 
-  void globalThis.itName('Export gff3 from external fasta', () => {
+  void globalThis.itName('Export gff3 from external assembly', () => {
     new Shell(
       `${apollo} assembly add-from-fasta ${P} https://raw.githubusercontent.com/GMOD/Apollo3/refs/heads/main/packages/apollo-cli/test_data/tiny.fasta.gz -a vv1 -f`,
     )
@@ -1419,7 +1420,8 @@ void describe('Test CLI', () => {
     assert.ok(gff.startsWith('##gff-version 3'))
     assert.ok(gff.includes('multivalue=val1,val2,val3'))
     assert.ok(gff.includes('##FASTA\n'))
-    assert.deepStrictEqual('taccc\n', gff.slice(-6, gff.length))
+    // We have end with two newlines because the test data does have an extra newline at the end.
+    assert.deepStrictEqual(gff.slice(-7, gff.length), 'taccc\n\n')
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
     gff = p.stdout
