@@ -34,7 +34,7 @@ import {
 import gff from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { FilterQuery, Model, Types } from 'mongoose'
+import { FilterQuery, Model } from 'mongoose'
 import StreamConcat from 'stream-concat'
 import { FilesService } from 'src/files/files.service'
 import { createReadStream } from 'node:fs'
