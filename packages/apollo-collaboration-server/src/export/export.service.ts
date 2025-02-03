@@ -21,6 +21,7 @@ import {
   ExportDocument,
   Feature,
   FeatureDocument,
+  File,
   FileDocument,
   RefSeq,
   RefSeqChunk,
@@ -36,7 +37,6 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { FilterQuery, Model } from 'mongoose'
 import StreamConcat from 'stream-concat'
-import { FilesService } from 'src/files/files.service'
 import { createReadStream } from 'node:fs'
 import { ConfigService } from '@nestjs/config'
 import path from 'node:path'
@@ -127,7 +127,6 @@ export class ExportService {
     private readonly featureModel: Model<FeatureDocument>,
     @InjectModel(File.name)
     private readonly fileModel: Model<FileDocument>,
-    private readonly filesService: FilesService,
     @InjectModel(RefSeq.name)
     private readonly refSeqModel: Model<RefSeqDocument>,
     @InjectModel(RefSeqChunk.name)
