@@ -9,7 +9,7 @@ import { addDisposer, isAlive } from 'mobx-state-tree'
 
 import { ApolloSessionModel } from '../../session'
 import { baseModelFactory } from './base'
-import { getGlyph } from './getGlyph'
+import { boxGlyph, genericChildGlyph } from '../glyphs'
 
 export function layoutsModelFactory(
   pluginManager: PluginManager,
@@ -65,6 +65,12 @@ export function layoutsModelFactory(
           return
         })
       },
+      getGlyph(feature: AnnotationFeature) {
+        if (feature.children?.size) {
+          return genericChildGlyph
+        }
+        return boxGlyph
+      },
     }))
     .actions((self) => ({
       addSeenFeature(feature: AnnotationFeature) {
@@ -99,10 +105,9 @@ export function layoutsModelFactory(
             ) {
               continue
             }
-            const rowCount = getGlyph(feature).getRowCount(
-              feature,
-              self.lgv.bpPerPx,
-            )
+            const rowCount = self
+              .getGlyph(feature)
+              .getRowCount(feature, self.lgv.bpPerPx)
             let startingRow = 0
             let placed = false
             while (!placed) {
@@ -179,10 +184,9 @@ export function layoutsModelFactory(
                 }
               }
               if (layoutFeature.hasDescendant(feature._id)) {
-                const row = getGlyph(layoutFeature).getRowForFeature(
-                  layoutFeature,
-                  feature,
-                )
+                const row = self
+                  .getGlyph(layoutFeature)
+                  .getRowForFeature(layoutFeature, feature)
                 if (row !== undefined) {
                   return {
                     layoutIndex: idx,

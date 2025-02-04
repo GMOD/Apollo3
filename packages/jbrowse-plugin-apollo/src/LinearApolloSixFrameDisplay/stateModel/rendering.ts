@@ -7,7 +7,6 @@ import { autorun } from 'mobx'
 import { Instance, addDisposer } from 'mobx-state-tree'
 
 import { ApolloSessionModel } from '../../session'
-import { getGlyph } from './getGlyph'
 import { layoutsModelFactory } from './layouts'
 
 export function renderingModelIntermediateFactory(
@@ -428,7 +427,7 @@ export function renderingModelFactory(
                   ) {
                     continue
                   }
-                  getGlyph(feature).draw(ctx, feature, row, self, idx)
+                  self.getGlyph(feature).draw(ctx, feature, row, self, idx)
                 }
               }
             }
