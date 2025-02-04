@@ -15,7 +15,6 @@ import type { CSSProperties } from 'react'
 import { Coord } from '../components'
 import { Glyph } from '../glyphs/Glyph'
 import { CanvasMouseEvent } from '../types'
-import { getGlyph } from './getGlyph'
 import { renderingModelFactory } from './rendering'
 import { Frame, getFrame } from '@jbrowse/core/util'
 
@@ -149,7 +148,7 @@ export function mouseEventsModelIntermediateFactory(
           return mousePosition
         }
         const [featureRow, topLevelFeature] = foundFeature
-        const glyph = getGlyph(topLevelFeature)
+        const glyph = self.getGlyph(topLevelFeature)
         const feature = glyph.getFeatureFromLayout(
           topLevelFeature,
           bp,
@@ -321,7 +320,7 @@ export function mouseEventsModelFactory(
         return []
       }
       const { topLevelFeature } = apolloHover
-      const glyph = getGlyph(topLevelFeature)
+      const glyph = self.getGlyph(topLevelFeature)
       return glyph.getContextMenuItems(self)
     },
   }))
@@ -481,7 +480,9 @@ export function mouseEventsModelFactory(
               if (apolloDragging) {
                 // NOTE: the glyph where the drag started is responsible for drawing the preview.
                 // it can call methods in other glyphs to help with this though.
-                const glyph = getGlyph(apolloDragging.feature.topLevelFeature)
+                const glyph = self.getGlyph(
+                  apolloDragging.feature.topLevelFeature,
+                )
                 glyph.drawDragPreview(self, ctx)
               }
             },
