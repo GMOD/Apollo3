@@ -158,7 +158,7 @@ export const AnnotationFeatureModel = types
         const exonLocations: TranscriptPartLocation[] = []
         for (const [, child] of children) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-          if (!featureTypeOntology.isTypeOf(child.type, 'exon')) {
+          if (featureTypeOntology.isTypeOf(child.type, 'exon')) {
             exonLocations.push({ min: child.min, max: child.max })
           }
         }
