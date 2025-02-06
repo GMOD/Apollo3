@@ -137,7 +137,14 @@ export function featureContextMenuItems(
         },
       },
     )
-    if (feature.type === 'mRNA' && isSessionModelWithWidgets(session)) {
+    const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+    if (!featureTypeOntology) {
+      throw new Error('featureTypeOntology is undefined')
+    }
+    if (
+      featureTypeOntology.isTypeOf(feature.type, 'mRNA') &&
+      isSessionModelWithWidgets(session)
+    ) {
       menuItems.push({
         label: 'Edit transcript details',
         onClick: () => {

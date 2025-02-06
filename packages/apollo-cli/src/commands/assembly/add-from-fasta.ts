@@ -15,19 +15,26 @@ import {
 export default class AddFasta extends FileCommand {
   static summary = 'Add a new assembly from fasta input'
   static description = `Add new assembly. The input fasta may be:
-    * A local file
-    * An external fasta file
+    * A local file bgzip'd and indexed. It can be uncompressed if the -e/--editable is set (but see description of -e)
+    * An external fasta file bgzip'd and indexed
     * The id of a file previously uploaded to Apollo`
 
   static examples = [
     {
-      description: 'From local file:',
+      description:
+        'From local file assuming indexes genome.gz.fai and genome.gz.gzi are present:',
+      command: '<%= config.bin %> <%= command.id %> genome.fa.gz -a myAssembly',
+    },
+    {
+      description:
+        'Local file with editable sequence does not require compression and indexing:',
       command: '<%= config.bin %> <%= command.id %> genome.fa -a myAssembly',
     },
     {
-      description: 'From external source we also need the URL of the index:',
+      description:
+        'From external source assuming there are also indexes https://.../genome.fa.gz.fai and https://.../genome.fa.gz.gzi:',
       command:
-        '<%= config.bin %> <%= command.id %> https://.../genome.fa -x https://.../genome.fa.fai -a myAssembly',
+        '<%= config.bin %> <%= command.id %> https://.../genome.fa.gz -a myAssembly',
     },
   ]
 
@@ -38,7 +45,7 @@ export default class AddFasta extends FileCommand {
 file. For local or remote files, it is assumed the file is bgzip'd with \
 `bgzip` and indexed with `samtools faidx`. The indexes are assumed to be at \
 <my.fasta.gz>.fai and <my.fasta.gz>.gzi unless the options --fai and --gzi are \
-provided.",
+provided. A local file can be uncompressed if the flag -e/--editable is set (but see below about using -e)",
       required: true,
     }),
   }
@@ -97,8 +104,21 @@ often has unintended side effects.',
       | SerializedAddAssemblyFromFileChange
       | SerializedAddAssemblyFromExternalChange
     if (isExternal) {
+      if (flags.editable) {
+        this.error(
+          `External fasta files are not editable. The -e/--editable has been set with an external input file.`,
+        )
+      }
       const fai = flags.fai ?? `${args.input}.fai`
+      const faiExists = await fetch(fai)
+      if (!faiExists.ok) {
+        this.error(`Index file ${fai} does not exist`)
+      }
       const gzi = flags.gzi ?? `${args.input}.gzi`
+      const gziExists = await fetch(gzi)
+      if (!gziExists.ok) {
+        this.error(`Index file ${gzi} does not exist`)
+      }
       body = {
         assemblyName,
         typeName: 'AddAssemblyFromExternalChange',
@@ -147,9 +167,9 @@ often has unintended side effects.',
         access.accessToken,
       )
 
-      if (!fs.existsSync(gzi) && !gziIsFileId) {
+      if (!fs.existsSync(gzi) && !gziIsFileId && !flags.editable) {
         this.error(
-          `Only bgzip'd and indexed fasta files are supported at the moment. "${gzi}" is neither a file or a file id`,
+          `Only bgzip'd and indexed fasta files are supported unless option -e/--editable is set. "${gzi}" is neither a file or a file id`,
         )
       }
       if (!fs.existsSync(fai) && !faiIsFileId) {

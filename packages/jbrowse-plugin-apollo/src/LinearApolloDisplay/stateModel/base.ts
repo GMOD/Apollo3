@@ -17,11 +17,12 @@ import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { autorun } from 'mobx'
-import { addDisposer, getRoot, types } from 'mobx-state-tree'
+import { addDisposer, cast, getRoot, types, getSnapshot } from 'mobx-state-tree'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { ApolloSessionModel } from '../../session'
 import { ApolloRootModel } from '../../types'
+import { FilterFeatures } from '../../components/FilterFeatures'
 
 const minDisplayHeight = 20
 
@@ -42,6 +43,7 @@ export function baseModelFactory(
           (n) => n >= minDisplayHeight,
         ),
       ),
+      filteredFeatureTypes: types.optional(types.array(types.string), ['gene']),
     })
     .views((self) => {
       const { configuration, renderProps: superRenderProps } = self
@@ -162,9 +164,12 @@ export function baseModelFactory(
         self.graphical = true
         self.table = true
       },
+      updateFilteredFeatureTypes(types: string[]) {
+        self.filteredFeatureTypes = cast(types)
+      },
     }))
     .views((self) => {
-      const { trackMenuItems: superTrackMenuItems } = self
+      const { filteredFeatureTypes, trackMenuItems: superTrackMenuItems } = self
       return {
         trackMenuItems() {
           const { graphical, table } = self
@@ -199,6 +204,27 @@ export function baseModelFactory(
                   },
                 },
               ],
+            },
+            {
+              label: 'Filter features by type',
+              onClick: () => {
+                const session = self.session as unknown as ApolloSessionModel
+                ;(self.session as unknown as AbstractSessionModel).queueDialog(
+                  (doneCallback) => [
+                    FilterFeatures,
+                    {
+                      session,
+                      handleClose: () => {
+                        doneCallback()
+                      },
+                      featureTypes: getSnapshot(filteredFeatureTypes),
+                      onUpdate: (types: string[]) => {
+                        self.updateFilteredFeatureTypes(types)
+                      },
+                    },
+                  ],
+                )
+              },
             },
           ]
         },

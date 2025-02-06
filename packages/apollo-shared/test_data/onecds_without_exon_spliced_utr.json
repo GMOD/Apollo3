@@ -1,0 +1,55 @@
+{
+  "_id": "675af35f5758c90ab1d55838",
+  "refSeq": "chr1",
+  "type": "gene",
+  "min": 999,
+  "max": 9000,
+  "strand": 1,
+  "children": {
+    "675af35f5758c90ab1d55837": {
+      "_id": "675af35f5758c90ab1d55837",
+      "refSeq": "chr1",
+      "type": "mRNA",
+      "min": 1299,
+      "max": 9000,
+      "strand": 1,
+      "children": {
+        "675af35f5758c90ab1d55833": {
+          "_id": "675af35f5758c90ab1d55833",
+          "refSeq": "chr1",
+          "type": "CDS",
+          "min": 4999,
+          "max": 5500,
+          "strand": 1,
+          "attributes": { "gff_id": ["cds00001"] }
+        },
+        "675af35f5758c90ab1d55834": {
+          "_id": "675af35f5758c90ab1d55834",
+          "refSeq": "chr1",
+          "type": "exon",
+          "min": 2999,
+          "max": 3300,
+          "strand": 1
+        },
+        "675af35f5758c90ab1d55836": {
+          "_id": "675af35f5758c90ab1d55836",
+          "refSeq": "chr1",
+          "type": "exon",
+          "min": 4999,
+          "max": 5500,
+          "strand": 1
+        },
+        "675af35f5758c90ab1d55835": {
+          "_id": "675af35f5758c90ab1d55835",
+          "refSeq": "chr1",
+          "type": "exon",
+          "min": 7600,
+          "max": 8000,
+          "strand": 1
+        }
+      },
+      "attributes": { "gff_id": ["mRNA00001"] }
+    }
+  },
+  "attributes": { "gff_id": ["gene00001"] }
+}

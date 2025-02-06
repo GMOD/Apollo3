@@ -197,6 +197,37 @@ describe('gff3ToAnnotationFeature examples', () => {
   })
 })
 
+describe('CDS without exons', () => {
+  it('Convert mRNA with CDS but without exon', () => {
+    const [gffFeature] = readFeatureFile('test_data/cds_without_exon.gff')
+    const actual = gff3ToAnnotationFeature(gffFeature)
+    const expected = readAnnotationFeatureSnapshot(
+      'test_data/cds_without_exon.json',
+    )
+    compareFeatures(actual, expected)
+  })
+  it('Convert mRNA with CDS but without exon and spliced UTR', () => {
+    const [gffFeature] = readFeatureFile(
+      'test_data/cds_without_exon_spliced_utr.gff',
+    )
+    const actual = gff3ToAnnotationFeature(gffFeature)
+    const expected = readAnnotationFeatureSnapshot(
+      'test_data/cds_without_exon_spliced_utr.json',
+    )
+    compareFeatures(actual, expected)
+  })
+  it('Convert mRNA with one CDS, without exons non-adjacent UTR', () => {
+    const [gffFeature] = readFeatureFile(
+      'test_data/onecds_without_exon_spliced_utr.gff',
+    )
+    const actual = gff3ToAnnotationFeature(gffFeature)
+    const expected = readAnnotationFeatureSnapshot(
+      'test_data/onecds_without_exon_spliced_utr.json',
+    )
+    compareFeatures(actual, expected)
+  })
+})
+
 describe('gff3ToAnnotationFeature', () => {
   for (const testCase of testCases) {
     const [description, featureLine, convertedFeature] = testCase
@@ -208,4 +239,31 @@ describe('gff3ToAnnotationFeature', () => {
       compareFeatures(convertedFeature, feature)
     })
   }
+})
+
+describe('Source and score', () => {
+  it('Convert score and source', () => {
+    const gffFeature: GFF3Feature = [
+      {
+        seq_id: 'chr1',
+        source: 'mySource',
+        type: 'gene',
+        start: 1000,
+        end: 9000,
+        score: 0,
+        strand: '+',
+        phase: null,
+        attributes: {
+          ID: ['gene10001'],
+          Name: ['EDEN'],
+          testid: ['t003'],
+        },
+        child_features: [],
+        derived_features: [],
+      },
+    ]
+    const actual = gff3ToAnnotationFeature(gffFeature)
+    assert.deepStrictEqual(actual.attributes?.gff_source?.at(0), 'mySource')
+    assert.deepStrictEqual(actual.attributes?.gff_score?.at(0), '0')
+  })
 })

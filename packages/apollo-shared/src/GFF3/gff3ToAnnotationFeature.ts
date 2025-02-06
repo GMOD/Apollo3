@@ -121,6 +121,9 @@ function convertFeatureAttributes(
         const newKey = isGFFReservedAttribute(key) ? gffToInternal[key] : key
         const existingVal = convertedAttributes[newKey]
         if (existingVal) {
+          // if (JSON.stringify(existingVal) === JSON.stringify(val)) {
+          //   continue
+          // }
           const valSet = new Set([...existingVal, ...val])
           convertedAttributes[newKey] = [...valSet]
         } else {
@@ -154,8 +157,19 @@ function convertChildren(
   const { child_features: childFeatures } = firstFeature
 
   const cdsFeatures: GFF3Feature[] = []
+  const exonFeatures: GFF3Feature[] = []
+  const utrFeatures: GFF3Feature[] = []
   for (const childFeature of childFeatures) {
     const [firstChildFeatureLocation] = childFeature
+    if (firstChildFeatureLocation.type === 'exon') {
+      exonFeatures.push(childFeature)
+    }
+    if (
+      firstChildFeatureLocation.type === 'three_prime_UTR' ||
+      firstChildFeatureLocation.type === 'five_prime_UTR'
+    ) {
+      utrFeatures.push(childFeature)
+    }
     if (
       firstChildFeatureLocation.type === 'three_prime_UTR' ||
       firstChildFeatureLocation.type === 'five_prime_UTR' ||
@@ -172,16 +186,172 @@ function convertChildren(
       convertedChildren[child._id] = child
     }
   }
-  const processedCDS =
-    cdsFeatures.length > 0 ? processCDS(cdsFeatures, refSeq, featureIds) : []
-  for (const cds of processedCDS) {
-    convertedChildren[cds._id] = cds
+
+  if (cdsFeatures.length > 0) {
+    const processedCDS = processCDS(cdsFeatures, refSeq, featureIds)
+
+    for (const cds of processedCDS) {
+      convertedChildren[cds._id] = cds
+    }
+
+    const missingExons = inferMissingExons(
+      cdsFeatures,
+      exonFeatures,
+      utrFeatures,
+      processedCDS[0].refSeq,
+    )
+    for (const exon of missingExons) {
+      convertedChildren[exon._id] = exon
+    }
   }
 
   if (Object.keys(convertedChildren).length > 0) {
     return convertedChildren
   }
   return
+}
+
+function inferMissingExons(
+  cdsFeatures: GFF3Feature[],
+  existingExons: GFF3Feature[],
+  utrFeatures: GFF3Feature[],
+  refSeq: string,
+): AnnotationFeatureSnapshot[] {
+  // Convert utrFeatures from GFF3Feature to AnnotationFeatureSnapshot
+  const utrExons: AnnotationFeatureSnapshot[] = []
+  for (const utrs of utrFeatures) {
+    for (const utr of utrs) {
+      if (!utr.start || !utr.end) {
+        throw new Error(
+          `UTR has undefined start and/or end\n: ${JSON.stringify(utr, null, 2)}`,
+        )
+      }
+      let strand: 1 | -1 | undefined = undefined
+      if (utr.strand === '+') {
+        strand = 1
+      } else if (utr.strand === '-') {
+        strand = -1
+      }
+      utrExons.push({
+        _id: new ObjectID().toHexString(),
+        refSeq,
+        type: 'exon',
+        min: utr.start - 1,
+        max: utr.end,
+        strand,
+      })
+    }
+  }
+  utrExons.sort((a, b) => a.min - b.min)
+
+  const missingExons: AnnotationFeatureSnapshot[] = []
+  for (const protein of cdsFeatures) {
+    protein.sort((a, b) => {
+      if (!a.start || !b.start) {
+        throw new Error('CDS has undefined start')
+      }
+      return a.start - b.start
+    })
+    for (let cdsIdx = 0; cdsIdx < protein.length; cdsIdx++) {
+      const cds = protein[cdsIdx]
+      // For CDS check if there is an exon containing it. If not, create an exon with same coords as the CDS.
+      let exonFound = false
+      for (const x of existingExons) {
+        if (x.length != 1) {
+          throw new Error('Unexpected number of exons')
+        }
+        const [exon] = x
+        if (
+          exon.start &&
+          exon.end &&
+          cds.start &&
+          cds.end &&
+          exon.start <= cds.start &&
+          exon.end >= cds.end
+        ) {
+          exonFound = true
+          break
+        }
+      }
+      if (!exonFound) {
+        if (!cds.start || !cds.end) {
+          throw new Error(
+            `CDS has undefined start and/or end: ${JSON.stringify(cds, null, 2)}`,
+          )
+        }
+        let strand: 1 | -1 | undefined = undefined
+        if (cds.strand === '+') {
+          strand = 1
+        } else if (cds.strand === '-') {
+          strand = -1
+        }
+        const newExon: AnnotationFeatureSnapshot = {
+          _id: new ObjectID().toHexString(),
+          refSeq,
+          type: 'exon',
+          min: cds.start - 1,
+          max: cds.end,
+          strand,
+        }
+        if (cdsIdx === 0) {
+          // If this CDS is the leftmost (or the only CDS in this protein), check if we need to add UTRs before it
+          for (const utr of utrExons) {
+            if (utr.max > newExon.min) {
+              break
+            }
+            if (utr.max === newExon.min) {
+              // UTR ends where exon begins: Extend the exon to include this UTR
+              newExon.min = utr.min
+            } else {
+              missingExons.push(utr)
+            }
+          }
+        }
+        if (cdsIdx === protein.length - 1) {
+          // If this CDS is the rightmost (or the only CDS in this protein), check if we need to add UTRs after it
+          for (const utr of utrExons) {
+            if (utr.min < newExon.max) {
+              continue
+            }
+            if (utr.min === newExon.max) {
+              // UTR begins where exon end: Extend the exon to include this UTR
+              newExon.max = utr.max
+            } else {
+              missingExons.push(utr)
+            }
+          }
+        }
+        missingExons.push(newExon)
+      }
+    }
+  }
+  const mergedExons = mergeAnnotationFeatures(missingExons)
+  return mergedExons
+}
+
+function mergeAnnotationFeatures(
+  features: AnnotationFeatureSnapshot[],
+): AnnotationFeatureSnapshot[] {
+  if (features.length === 0) {
+    return []
+  }
+  features.sort((a, b) => a.min - b.min)
+
+  const res = []
+  res.push(features[0])
+
+  for (let i = 1; i < features.length; i++) {
+    const last = res.at(-1)
+    const curr = features[i]
+
+    // If current interval overlaps with the last merged interval, merge them
+    if (last && curr.min <= last.max) {
+      last.max = Math.max(last.max, curr.max)
+    } else {
+      res.push(curr)
+    }
+  }
+  return res
 }
 
 /**
