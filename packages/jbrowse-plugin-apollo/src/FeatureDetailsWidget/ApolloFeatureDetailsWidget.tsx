@@ -62,7 +62,6 @@ export const ApolloFeatureDetailsWidget = observer(
         />
         <hr />
         <FeatureDetailsNavigation model={model} feature={feature} />
-        <hr />
       </div>
     )
   },

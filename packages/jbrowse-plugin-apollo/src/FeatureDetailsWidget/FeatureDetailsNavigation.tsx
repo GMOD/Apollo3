@@ -20,11 +20,16 @@ export const FeatureDetailsNavigation = observer(
       }
     }
 
+    if (!(parent || childFeatures.length > 0)) {
+      return null
+    }
+
     return (
       <div>
+        <Typography variant="h5">Go to related feature</Typography>
         {parent && (
           <div>
-            <Typography variant="h5">Parent: </Typography>
+            <Typography variant="h6">Parent:</Typography>
             <Button
               variant="contained"
               onClick={() => {
@@ -37,7 +42,9 @@ export const FeatureDetailsNavigation = observer(
         )}
         {childFeatures.length > 0 && (
           <div>
-            <Typography variant="h5">Children: </Typography>
+            <Typography variant="h6">
+              {childFeatures.length === 1 ? 'Child' : 'Children'}:
+            </Typography>
             {childFeatures.map((child) => (
               <div key={child._id} style={{ marginBottom: 5 }}>
                 <Button
