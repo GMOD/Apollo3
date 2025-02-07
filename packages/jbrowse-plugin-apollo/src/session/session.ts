@@ -15,10 +15,7 @@ import {
 import { readConfObject, getConf } from '@jbrowse/core/configuration'
 import { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
-import {
-  AbstractSessionModel,
-  SessionWithConfigEditing,
-} from '@jbrowse/core/util'
+import { AbstractSessionModel, SessionWithAddTracks } from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import SaveIcon from '@mui/icons-material/Save'
 import { autorun, observable } from 'mobx'
@@ -103,7 +100,7 @@ export function extendSession(
           (track) => track.trackId === trackId,
         )
         if (!hasTrack) {
-          ;(self as unknown as SessionWithConfigEditing).addTrackConf({
+          ;(self as unknown as SessionWithAddTracks).addTrackConf({
             type: 'ApolloTrack',
             trackId,
             name: `Annotations (${
