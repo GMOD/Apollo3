@@ -38,7 +38,7 @@ export function layoutsModelFactory(
               refName !== assembly?.getCanonicalRefName(feature.refSeq) ||
               !doesIntersect2(start, end, feature.min, feature.max) ||
               feature.length > self.featuresMinMaxLimit ||
-              (self.filteredFeatureTypes &&
+              (self.filteredFeatureTypes.length > 0 &&
                 !self.filteredFeatureTypes.includes(feature.type))
             ) {
               continue
@@ -135,7 +135,7 @@ export function layoutsModelFactory(
             if (
               refName !== assembly?.getCanonicalRefName(feature.refSeq) ||
               !doesIntersect2(start, end, feature.min, feature.max) ||
-              (self.filteredFeatureTypes &&
+              (self.filteredFeatureTypes.length > 0 &&
                 !self.filteredFeatureTypes.includes(feature.type))
             ) {
               continue
