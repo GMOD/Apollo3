@@ -176,7 +176,7 @@ export function clientDataStoreFactory(
                 const jobName = `Loading ontology "${name}"`
                 const job = {
                   name: jobName,
-                  statusMessage: `Loading ontology "${name}", version "${version}", this may take awhile`,
+                  statusMessage: `Loading ontology "${name}", version "${version}", this may take a while`,
                   progressPct: 0,
                   cancelCallback: () => {
                     controller.abort()
