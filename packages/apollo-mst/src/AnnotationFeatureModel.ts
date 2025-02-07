@@ -133,22 +133,25 @@ export const AnnotationFeatureModel = types
       const { apolloDataStore } = session
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       const { featureTypeOntology } = apolloDataStore.ontologyManager
+      console.log(self.type)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      if (!featureTypeOntology.isTypeOf(self.type, 'mRNA')) {
+      console.log(featureTypeOntology.isTypeOf(self.type, 'transcript'))
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      if (!featureTypeOntology.isTypeOf(self.type, 'transcript')) {
         throw new Error(
-          'Only features of type "mRNA" or equivalent can calculate CDS locations',
+          'Only features of type "transcript" or equivalent can calculate CDS locations',
         )
       }
       const children = self.children as Children
       if (!children) {
-        throw new Error('no CDS or exons in mRNA')
+        throw new Error('no CDS or exons in transcript')
       }
       const cdsChildren = [...children.values()].filter(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         (child) => featureTypeOntology.isTypeOf(child.type, 'CDS'),
       )
       if (cdsChildren.length === 0) {
-        throw new Error('no CDS in mRNA')
+        throw new Error('no CDS in transcript')
       }
       const transcriptParts: TranscriptParts[] = []
       for (const cds of cdsChildren) {

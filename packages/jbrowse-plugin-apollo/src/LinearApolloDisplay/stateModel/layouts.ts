@@ -86,7 +86,7 @@ export function layoutsModelFactory(
           return false
         }
         for (const [, child] of children) {
-          if (featureTypeOntology.isTypeOf(child.type, 'mRNA')) {
+          if (featureTypeOntology.isTypeOf(child.type, 'transcript')) {
             const { children: grandChildren } = child
             if (!grandChildren?.size) {
               return false
