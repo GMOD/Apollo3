@@ -20,7 +20,7 @@ export const FeatureDetailsNavigation = observer(
       }
     }
 
-    if (!(parent || childFeatures.length > 0)) {
+    if (!(parent ?? childFeatures.length > 0)) {
       return null
     }
 
