@@ -7,7 +7,7 @@ import {
   Chip,
   DialogContent,
   DialogContentText,
-  Grid,
+  Grid2,
   TextField,
 } from '@mui/material'
 import { isOntologyClass } from '../OntologyManager'
@@ -60,8 +60,8 @@ export const FilterFeatures = observer(function FilterFeatures({
         <DialogContentText>
           Select the feature types you want to display in the apollo track
         </DialogContentText>
-        <Grid container spacing={2}>
-          <Grid item xs={7}>
+        <Grid2 container spacing={2}>
+          <Grid2>
             <OntologyTermAutocomplete
               session={session}
               ontologyName="Sequence Ontology"
@@ -82,8 +82,8 @@ export const FilterFeatures = observer(function FilterFeatures({
                 }
               }}
             />
-          </Grid>
-          <Grid item xs={5}>
+          </Grid2>
+          <Grid2>
             <Button
               variant="contained"
               onClick={handleAddFeatureType}
@@ -93,8 +93,8 @@ export const FilterFeatures = observer(function FilterFeatures({
             >
               Add
             </Button>
-          </Grid>
-        </Grid>
+          </Grid2>
+        </Grid2>
         {selectedFeatureTypes.length > 0 && (
           <div>
             <hr />

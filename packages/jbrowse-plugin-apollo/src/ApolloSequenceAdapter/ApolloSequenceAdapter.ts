@@ -4,10 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { readConfObject } from '@jbrowse/core/configuration'
-import {
-  BaseOptions,
-  BaseSequenceAdapter,
-} from '@jbrowse/core/data_adapters/BaseAdapter'
+import { BaseSequenceAdapter } from '@jbrowse/core/data_adapters/BaseAdapter'
 import { ObservableCreate } from '@jbrowse/core/util/rxjs'
 import SimpleFeature, { Feature } from '@jbrowse/core/util/simpleFeature'
 import { NoAssemblyRegion, Region } from '@jbrowse/core/util/types'
@@ -48,12 +45,12 @@ const isInWebWorker = typeof sessionStorage === 'undefined'
 export class ApolloSequenceAdapter extends BaseSequenceAdapter {
   private regions: NoAssemblyRegion[] | undefined
 
-  public async getRefNames(opts?: BaseOptions) {
-    const regions = await this.getRegions(opts)
+  public async getRefNames() {
+    const regions = await this.getRegions()
     return regions.map((regions) => regions.refName)
   }
 
-  public async getRegions(opts?: BaseOptions): Promise<NoAssemblyRegion[]> {
+  public async getRegions(): Promise<NoAssemblyRegion[]> {
     if (this.regions) {
       return this.regions
     }
@@ -93,7 +90,7 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
           removeEventListener('message', messageListener)
           resolve(data.regions)
         }
-        addEventListener('message', messageListener, opts)
+        addEventListener('message', messageListener)
         // @ts-expect-error waiting for types to be published
         globalThis.rpcServer.emit('apollo', {
           apollo: true,
@@ -112,7 +109,7 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
    * @param param -
    * @returns Observable of Feature objects in the region
    */
-  public getFeatures(region: Region, opts?: BaseOptions) {
+  public getFeatures(region: Region) {
     const { end, refName, start } = region
     const assemblyId = readConfObject(this.config, 'assemblyId')
     const regionWithAssemblyName = { ...region, assemblyName: assemblyId }
@@ -161,7 +158,7 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
             removeEventListener('message', messageListener)
             resolve(data.sequence)
           }
-          addEventListener('message', messageListener, opts)
+          addEventListener('message', messageListener)
           // @ts-expect-error waiting for types to be published
           globalThis.rpcServer.emit('apollo', {
             apollo: true,

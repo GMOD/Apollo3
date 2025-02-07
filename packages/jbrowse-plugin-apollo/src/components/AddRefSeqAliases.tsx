@@ -8,7 +8,7 @@ import {
   DialogContent,
   DialogContentText,
   FormControl,
-  Grid,
+  Grid2,
   InputLabel,
   MenuItem,
   Select,
@@ -210,8 +210,8 @@ export function AddRefSeqAliases({
       fullWidth
     >
       <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-        <Grid container spacing={2}>
-          <Grid item xs={4}>
+        <Grid2 container spacing={2}>
+          <Grid2>
             <FormControl disabled={enableSubmit && !errorMessage} fullWidth>
               <InputLabel id="demo-simple-select-label">Assembly</InputLabel>
               <Select
@@ -228,9 +228,8 @@ export function AddRefSeqAliases({
                 ))}
               </Select>
             </FormControl>
-          </Grid>
-          <Grid item xs={1}></Grid>
-          <Grid item xs={7}>
+          </Grid2>
+          <Grid2>
             <InputLabel>Load RefName alias</InputLabel>
             <input
               type="file"
@@ -238,8 +237,8 @@ export function AddRefSeqAliases({
               ref={fileRef}
               disabled={(enableSubmit && !errorMessage) || !selectedAssembly}
             />
-          </Grid>
-        </Grid>
+          </Grid2>
+        </Grid2>
         {selectedAssembly && refNameAliasMap.size > 0 ? (
           <div style={{ height: 200, width: '100%', marginTop: 20 }}>
             <InputLabel>

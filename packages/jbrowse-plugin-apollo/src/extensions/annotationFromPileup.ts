@@ -54,7 +54,7 @@ export function annotationFromPileup(pluggableElement: PluggableElementBase) {
           .filter(([id, refName]) => id !== refName)
           .map(([id, refName]) => ({
             _id: id,
-            name: refName ?? '',
+            name: refName,
           }))
         const refSeqId = newRefNames.find((item) => item.name === refName)?._id
         if (!refSeqId) {
