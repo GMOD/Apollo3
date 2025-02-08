@@ -133,9 +133,6 @@ export const AnnotationFeatureModel = types
       const { apolloDataStore } = session
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       const { featureTypeOntology } = apolloDataStore.ontologyManager
-      console.log(self.type)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      console.log(featureTypeOntology.isTypeOf(self.type, 'transcript'))
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       if (!featureTypeOntology.isTypeOf(self.type, 'transcript')) {
         throw new Error(
