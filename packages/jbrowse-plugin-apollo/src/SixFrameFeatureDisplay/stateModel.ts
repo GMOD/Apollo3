@@ -300,7 +300,9 @@ export function stateModelFactory(
             },
           )) {
             for (const [, childFeature] of feature.children ?? new Map()) {
-              if (featureTypeOntology.isTypeOf(childFeature.type, 'mRNA')) {
+              if (
+                featureTypeOntology.isTypeOf(childFeature.type, 'transcript')
+              ) {
                 for (const [, grandChildFeature] of childFeature.children ||
                   new Map()) {
                   let startingRow

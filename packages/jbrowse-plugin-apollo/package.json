@@ -54,8 +54,8 @@
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
     "@gmod/gff": "1.2.0",
-    "@jbrowse/plugin-authentication": "^2.0.1",
-    "@jbrowse/plugin-linear-genome-view": "^2.0.1",
+    "@jbrowse/plugin-authentication": "^3.0.1",
+    "@jbrowse/plugin-linear-genome-view": "^3.0.1",
     "@mui/icons-material": "^5.8.4",
     "@types/jsonpath": "^0.2.0",
     "autosuggest-highlight": "^3.3.4",
@@ -71,11 +71,11 @@
     "tslib": "^2.3.1"
   },
   "devDependencies": {
-    "@jbrowse/cli": "^2.6.2",
-    "@jbrowse/core": "^2.13.1",
+    "@jbrowse/cli": "^3.0.1",
+    "@jbrowse/core": "^3.0.1",
     "@jbrowse/development-tools": "^2.1.1",
     "@jest/globals": "^29.0.3",
-    "@mui/material": "^5.11.14",
+    "@mui/material": "^6.0.0",
     "@mui/x-data-grid": "^7.0.0",
     "@types/autosuggest-highlight": "^3",
     "@types/file-saver": "^2",
@@ -110,8 +110,8 @@
     "typescript": "^5.5.3"
   },
   "peerDependencies": {
-    "@jbrowse/core": "^2.13.1",
-    "@mui/material": "^5.11.14",
+    "@jbrowse/core": "^3.0.1",
+    "@mui/material": "^6.0.0",
     "mobx": "^6.6.1",
     "mobx-react": "^7.2.1",
     "mobx-state-tree": "^5.4.0",

@@ -38,12 +38,12 @@ export class JBrowseService {
     return `${name}-apolloInternetAccount`
   }
 
-  getConfiguration() {
+  getConfiguration(role: Role) {
     const feature_type_ontology_location =
       this.configService.get('FEATURE_TYPE_ONTOLOGY_LOCATION', {
         infer: true,
       }) ?? 'sequence_ontology.json'
-    return {
+    const configuration = {
       theme: {
         palette: {
           primary: {
@@ -69,6 +69,12 @@ export class JBrowseService {
           ],
         },
       },
+    }
+    if (role === Role.None) {
+      return configuration
+    }
+    return {
+      ...configuration,
       ApolloPlugin: {
         ontologies: [
           {
@@ -210,14 +216,14 @@ export class JBrowseService {
   async getConfig(role: Role) {
     if (role === Role.None) {
       return {
-        configuration: this.getConfiguration(),
+        configuration: this.getConfiguration(role),
         plugins: this.getPlugins(),
         internetAccounts: this.getInternetAccounts(),
       }
     }
     const storedConfig = await this.getJBrowseConfig()
     const generatedConfig = {
-      configuration: this.getConfiguration(),
+      configuration: this.getConfiguration(role),
       assemblies: await this.getAssemblies(),
       tracks: await this.getTracks(),
       plugins: this.getPlugins(),

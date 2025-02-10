@@ -142,7 +142,7 @@ export function featureContextMenuItems(
       throw new Error('featureTypeOntology is undefined')
     }
     if (
-      featureTypeOntology.isTypeOf(feature.type, 'mRNA') &&
+      featureTypeOntology.isTypeOf(feature.type, 'transcript') &&
       isSessionModelWithWidgets(session)
     ) {
       menuItems.push({

@@ -6,7 +6,7 @@
     "rootDir": "./src",
     "noEmit": true,
     "noEmitOnError": false,
-    "esModuleInterop": true,
+    "resolveJsonModule": true,
   },
   "include": ["src"],
   "exclude": ["**/dist/"],
