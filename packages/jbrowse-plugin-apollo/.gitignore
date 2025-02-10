@@ -4,6 +4,6 @@
 cypress/videos
 cypress/screenshots
 cypress/downloads
-cypress-image-diff-html-report
-cypress-image-diff-screenshots/comparison
-cypress-image-diff-screenshots/diff
+cypress/cypress-image-diff-html-report
+cypress/cypress-image-diff-screenshots/comparison
+cypress/cypress-image-diff-screenshots/diff
