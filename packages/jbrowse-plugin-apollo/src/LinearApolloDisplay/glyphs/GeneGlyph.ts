@@ -562,6 +562,9 @@ function featuresForRow(
     for (const cds of cdss) {
       features.push([cds, ...exons, child, feature])
     }
+    if (cdss.length === 0) {
+      features.push([...exons, child, feature])
+    }
   }
   return features
 }
