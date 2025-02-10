@@ -91,15 +91,9 @@ export function layoutsModelFactory(
             if (!grandChildren?.size) {
               return false
             }
-            const hasCDS = [...grandChildren.values()].some((grandchild) =>
-              featureTypeOntology.isTypeOf(grandchild.type, 'CDS'),
-            )
-            const hasExon = [...grandChildren.values()].some((grandchild) =>
+            return [...grandChildren.values()].some((grandchild) =>
               featureTypeOntology.isTypeOf(grandchild.type, 'exon'),
             )
-            if (hasCDS && hasExon) {
-              return true
-            }
           }
         }
         return false

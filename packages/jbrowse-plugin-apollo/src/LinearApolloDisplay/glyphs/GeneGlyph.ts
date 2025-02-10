@@ -74,7 +74,6 @@ function draw(
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const { refName, reversed } = displayedRegion
   const rowHeight = apolloRowHeight
-  const exonHeight = Math.round(0.6 * rowHeight)
   const cdsHeight = Math.round(0.9 * rowHeight)
   const { children, min, strand } = feature
   if (!children) {
@@ -121,29 +120,36 @@ function draw(
       currentRow += 1
       continue
     }
-    const { children: childrenOfTranscript, min } = transcript
-    if (!childrenOfTranscript) {
+    const { children: transcriptChildren } = transcript
+    if (!transcriptChildren) {
       continue
     }
-    for (const [, cds] of childrenOfTranscript) {
-      if (!featureTypeOntology.isTypeOf(cds.type, 'CDS')) {
+
+    const cdsCount = getCDSCount(transcript, featureTypeOntology)
+    for (const [, childFeature] of transcriptChildren) {
+      if (!featureTypeOntology.isTypeOf(childFeature.type, 'CDS')) {
         continue
       }
-      const minX =
-        (lgv.bpToPx({
-          refName,
-          coord: min,
-          regionNumber: displayedRegionIndex,
-        })?.offsetPx ?? 0) - offsetPx
-      const widthPx = transcript.length / bpPerPx
-      const startPx = reversed ? minX - widthPx : minX
-      const height =
-        Math.round((currentRow + 1 / 2) * rowHeight) + row * rowHeight
-      ctx.strokeStyle = theme?.palette.text.primary ?? 'black'
-      ctx.beginPath()
-      ctx.moveTo(startPx, height)
-      ctx.lineTo(startPx + widthPx, height)
-      ctx.stroke()
+      drawLine(
+        ctx,
+        stateModel,
+        displayedRegionIndex,
+        row,
+        transcript,
+        currentRow,
+      )
+      currentRow += 1
+    }
+
+    if (cdsCount === 0) {
+      drawLine(
+        ctx,
+        stateModel,
+        displayedRegionIndex,
+        row,
+        transcript,
+        currentRow,
+      )
       currentRow += 1
     }
   }
@@ -160,118 +166,203 @@ function draw(
       currentRow += 1
       continue
     }
-    for (const cdsRow of child.cdsLocations) {
-      const { _id, children: childrenOfTranscript } = child
-      if (!childrenOfTranscript) {
-        continue
-      }
-      for (const [, exon] of childrenOfTranscript) {
-        if (!featureTypeOntology.isTypeOf(exon.type, 'exon')) {
+    const cdsCount = getCDSCount(child, featureTypeOntology)
+    if (cdsCount != 0) {
+      for (const cdsRow of child.cdsLocations) {
+        const { _id, children: transcriptChildren } = child
+        if (!transcriptChildren) {
           continue
         }
-        const minX =
-          (lgv.bpToPx({
-            refName,
-            coord: exon.min,
-            regionNumber: displayedRegionIndex,
-          })?.offsetPx ?? 0) - offsetPx
-        const widthPx = exon.length / bpPerPx
-        const startPx = reversed ? minX - widthPx : minX
-
-        const top = (row + currentRow) * rowHeight
-        const exonTop = top + (rowHeight - exonHeight) / 2
-        ctx.fillStyle = theme?.palette.text.primary ?? 'black'
-        ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
-        if (widthPx > 2) {
-          ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
-          ctx.fillStyle =
-            apolloSelectedFeature && exon._id === apolloSelectedFeature._id
-              ? 'rgb(0,0,0)'
-              : 'rgb(211,211,211)'
-          ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
-          if (forwardFill && backwardFill && strand) {
-            const reversal = reversed ? -1 : 1
-            const [topFill, bottomFill] =
-              strand * reversal === 1
-                ? [forwardFill, backwardFill]
-                : [backwardFill, forwardFill]
-            ctx.fillStyle = topFill
-            ctx.fillRect(
-              startPx + 1,
-              exonTop + 1,
-              widthPx - 2,
-              (exonHeight - 2) / 2,
-            )
-            ctx.fillStyle = bottomFill
-            ctx.fillRect(
-              startPx + 1,
-              exonTop + 1 + (exonHeight - 2) / 2,
-              widthPx - 2,
-              (exonHeight - 2) / 2,
-            )
+        for (const [, exon] of transcriptChildren) {
+          if (!featureTypeOntology.isTypeOf(exon.type, 'exon')) {
+            continue
           }
+          drawExon(
+            ctx,
+            stateModel,
+            displayedRegionIndex,
+            row,
+            exon,
+            currentRow,
+            strand,
+            forwardFill,
+            backwardFill,
+          )
         }
-      }
-      for (const cds of cdsRow) {
-        const cdsWidthPx = (cds.max - cds.min) / bpPerPx
-        const minX =
-          (lgv.bpToPx({
-            refName,
-            coord: cds.min,
-            regionNumber: displayedRegionIndex,
-          })?.offsetPx ?? 0) - offsetPx
-        const cdsStartPx = reversed ? minX - cdsWidthPx : minX
-        ctx.fillStyle = theme?.palette.text.primary ?? 'black'
-        const cdsTop =
-          (row + currentRow) * rowHeight + (rowHeight - cdsHeight) / 2
-        ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
-        if (cdsWidthPx > 2) {
-          ctx.clearRect(
-            cdsStartPx + 1,
-            cdsTop + 1,
-            cdsWidthPx - 2,
-            cdsHeight - 2,
-          )
-          const frame = getFrame(cds.min, cds.max, child.strand ?? 1, cds.phase)
-          const frameColor = theme?.palette.framesCDS.at(frame)?.main
-          const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
-          ctx.fillStyle =
-            apolloSelectedFeature && _id === apolloSelectedFeature._id
-              ? 'rgb(0,0,0)'
-              : cdsColorCode
-          ctx.fillStyle = cdsColorCode
-          ctx.fillRect(
-            cdsStartPx + 1,
-            cdsTop + 1,
-            cdsWidthPx - 2,
-            cdsHeight - 2,
-          )
-          if (forwardFill && backwardFill && strand) {
-            const reversal = reversed ? -1 : 1
-            const [topFill, bottomFill] =
-              strand * reversal === 1
-                ? [forwardFill, backwardFill]
-                : [backwardFill, forwardFill]
-            ctx.fillStyle = topFill
+        for (const cds of cdsRow) {
+          const cdsWidthPx = (cds.max - cds.min) / bpPerPx
+          const minX =
+            (lgv.bpToPx({
+              refName,
+              coord: cds.min,
+              regionNumber: displayedRegionIndex,
+            })?.offsetPx ?? 0) - offsetPx
+          const cdsStartPx = reversed ? minX - cdsWidthPx : minX
+          ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+          const cdsTop =
+            (row + currentRow) * rowHeight + (rowHeight - cdsHeight) / 2
+          ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
+          if (cdsWidthPx > 2) {
+            ctx.clearRect(
+              cdsStartPx + 1,
+              cdsTop + 1,
+              cdsWidthPx - 2,
+              cdsHeight - 2,
+            )
+            const frame = getFrame(
+              cds.min,
+              cds.max,
+              child.strand ?? 1,
+              cds.phase,
+            )
+            const frameColor = theme?.palette.framesCDS.at(frame)?.main
+            const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
+            ctx.fillStyle =
+              apolloSelectedFeature && _id === apolloSelectedFeature._id
+                ? 'rgb(0,0,0)'
+                : cdsColorCode
+            ctx.fillStyle = cdsColorCode
             ctx.fillRect(
               cdsStartPx + 1,
               cdsTop + 1,
               cdsWidthPx - 2,
-              (cdsHeight - 2) / 2,
+              cdsHeight - 2,
             )
-            ctx.fillStyle = bottomFill
-            ctx.fillRect(
-              cdsStartPx + 1,
-              cdsTop + (cdsHeight - 2) / 2,
-              cdsWidthPx - 2,
-              (cdsHeight - 2) / 2,
-            )
+            if (forwardFill && backwardFill && strand) {
+              const reversal = reversed ? -1 : 1
+              const [topFill, bottomFill] =
+                strand * reversal === 1
+                  ? [forwardFill, backwardFill]
+                  : [backwardFill, forwardFill]
+              ctx.fillStyle = topFill
+              ctx.fillRect(
+                cdsStartPx + 1,
+                cdsTop + 1,
+                cdsWidthPx - 2,
+                (cdsHeight - 2) / 2,
+              )
+              ctx.fillStyle = bottomFill
+              ctx.fillRect(
+                cdsStartPx + 1,
+                cdsTop + (cdsHeight - 2) / 2,
+                cdsWidthPx - 2,
+                (cdsHeight - 2) / 2,
+              )
+            }
           }
         }
+        currentRow += 1
+      }
+    }
+
+    const { children: transcriptChildren } = child
+    // Draw exons for non-coding genes
+    if (cdsCount === 0 && transcriptChildren) {
+      for (const [, exon] of transcriptChildren) {
+        if (!featureTypeOntology.isTypeOf(exon.type, 'exon')) {
+          continue
+        }
+        drawExon(
+          ctx,
+          stateModel,
+          displayedRegionIndex,
+          row,
+          exon,
+          currentRow,
+          strand,
+          forwardFill,
+          backwardFill,
+        )
       }
       currentRow += 1
     }
   }
+}
+
+function drawExon(
+  ctx: CanvasRenderingContext2D,
+  stateModel: LinearApolloDisplayRendering,
+  displayedRegionIndex: number,
+  row: number,
+  exon: AnnotationFeature,
+  currentRow: number,
+  strand: number | undefined,
+  forwardFill: CanvasPattern | null,
+  backwardFill: CanvasPattern | null,
+) {
+  const { apolloRowHeight, lgv, session, theme } = stateModel
+  const { bpPerPx, displayedRegions, offsetPx } = lgv
+  const displayedRegion = displayedRegions[displayedRegionIndex]
+  const { refName, reversed } = displayedRegion
+  const { apolloSelectedFeature } = session
+
+  const minX =
+    (lgv.bpToPx({
+      refName,
+      coord: exon.min,
+      regionNumber: displayedRegionIndex,
+    })?.offsetPx ?? 0) - offsetPx
+  const widthPx = exon.length / bpPerPx
+  const startPx = reversed ? minX - widthPx : minX
+
+  const top = (row + currentRow) * apolloRowHeight
+  const exonHeight = Math.round(0.6 * apolloRowHeight)
+  const exonTop = top + (apolloRowHeight - exonHeight) / 2
+  ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+  ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
+  if (widthPx > 2) {
+    ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
+    ctx.fillStyle =
+      apolloSelectedFeature && exon._id === apolloSelectedFeature._id
+        ? 'rgb(0,0,0)'
+        : 'rgb(211,211,211)'
+    ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
+    if (forwardFill && backwardFill && strand) {
+      const reversal = reversed ? -1 : 1
+      const [topFill, bottomFill] =
+        strand * reversal === 1
+          ? [forwardFill, backwardFill]
+          : [backwardFill, forwardFill]
+      ctx.fillStyle = topFill
+      ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, (exonHeight - 2) / 2)
+      ctx.fillStyle = bottomFill
+      ctx.fillRect(
+        startPx + 1,
+        exonTop + 1 + (exonHeight - 2) / 2,
+        widthPx - 2,
+        (exonHeight - 2) / 2,
+      )
+    }
+  }
+}
+
+function drawLine(
+  ctx: CanvasRenderingContext2D,
+  stateModel: LinearApolloDisplayRendering,
+  displayedRegionIndex: number,
+  row: number,
+  transcript: AnnotationFeature,
+  currentRow: number,
+) {
+  const { apolloRowHeight, lgv, theme } = stateModel
+  const { bpPerPx, displayedRegions, offsetPx } = lgv
+  const displayedRegion = displayedRegions[displayedRegionIndex]
+  const { refName, reversed } = displayedRegion
+  const minX =
+    (lgv.bpToPx({
+      refName,
+      coord: transcript.min,
+      regionNumber: displayedRegionIndex,
+    })?.offsetPx ?? 0) - offsetPx
+  const widthPx = transcript.length / bpPerPx
+  const startPx = reversed ? minX - widthPx : minX
+  const height =
+    Math.round((currentRow + 1 / 2) * apolloRowHeight) + row * apolloRowHeight
+  ctx.strokeStyle = theme?.palette.text.primary ?? 'black'
+  ctx.beginPath()
+  ctx.moveTo(startPx, height)
+  ctx.lineTo(startPx + widthPx, height)
+  ctx.stroke()
 }
 
 function drawDragPreview(
@@ -384,6 +475,26 @@ function getFeatureFromLayout(
   return feature
 }
 
+function getCDSCount(
+  feature: AnnotationFeature,
+  featureTypeOntology: OntologyRecord,
+): number {
+  const { children, type } = feature
+  if (!children) {
+    return 0
+  }
+  const isMrna = featureTypeOntology.isTypeOf(type, 'mRNA')
+  let cdsCount = 0
+  if (isMrna) {
+    for (const [, child] of children) {
+      if (featureTypeOntology.isTypeOf(child.type, 'CDS')) {
+        cdsCount += 1
+      }
+    }
+  }
+  return cdsCount
+}
+
 function getRowCount(
   feature: AnnotationFeature,
   featureTypeOntology: OntologyRecord,
@@ -397,12 +508,13 @@ function getRowCount(
   let rowCount = 0
   if (isTranscript) {
     for (const [, child] of children) {
-      const isCds = featureTypeOntology.isTypeOf(child.type, 'CDS')
-      if (isCds) {
+      if (featureTypeOntology.isTypeOf(child.type, 'CDS')) {
         rowCount += 1
       }
     }
-    return rowCount
+
+    // return 1 if there are no CDSs for non coding genes
+    return rowCount === 0 ? 1 : rowCount
   }
   for (const [, child] of children) {
     rowCount += getRowCount(child, featureTypeOntology)
@@ -448,6 +560,9 @@ function featuresForRow(
     }
     for (const cds of cdss) {
       features.push([cds, ...exons, child, feature])
+    }
+    if (cdss.length === 0) {
+      features.push([...exons, child, feature])
     }
   }
   return features
