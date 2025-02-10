@@ -168,7 +168,6 @@ function draw(
     }
     const cdsCount = getCDSCount(child, featureTypeOntology)
     if (cdsCount != 0) {
-      // Draw lines on different rows for each mRNA
       for (const cdsRow of child.cdsLocations) {
         const { _id, children: transcriptChildren } = child
         if (!transcriptChildren) {
