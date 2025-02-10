@@ -42,6 +42,7 @@ import {
 } from '../OntologyManager'
 import { ApolloRootModel } from '../types'
 import { autorun } from 'mobx'
+import { ApolloSessionModel } from './session'
 
 export function clientDataStoreFactory(
   AnnotationFeatureExtended: typeof AnnotationFeatureModel,
@@ -167,8 +168,36 @@ export function clientDataStoreFactory(
                 ) as TextIndexFieldDefinition[],
               ]
               if (!ontologyManager.findOntology(name)) {
+                const session = getSession(
+                  self,
+                ) as unknown as ApolloSessionModel
+                const { jobsManager } = session
+                const controller = new AbortController()
+                const jobName = `Loading ontology "${name}"`
+                const job = {
+                  name: jobName,
+                  statusMessage: `Loading ontology "${name}", version "${version}", this may take a while`,
+                  progressPct: 0,
+                  cancelCallback: () => {
+                    controller.abort()
+                    jobsManager.abortJob(job.name)
+                  },
+                }
+                const update = (message: string, progress: number): void => {
+                  if (progress === 0) {
+                    jobsManager.runJob(job)
+                    return
+                  }
+                  if (progress === 100) {
+                    jobsManager.done(job)
+                    return
+                  }
+                  jobsManager.update(jobName, message, progress)
+                  return
+                }
                 ontologyManager.addOntology(name, version, source, {
                   textIndexing: { indexFields },
+                  update,
                 })
               }
             }

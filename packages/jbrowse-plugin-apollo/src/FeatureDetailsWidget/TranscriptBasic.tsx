@@ -83,7 +83,12 @@ export const TranscriptBasicInformation = observer(
       return null
     }
 
-    const { strand, transcriptParts } = feature
+    let strand, transcriptParts
+    try {
+      ;({ strand, transcriptParts } = feature)
+    } catch {
+      return null
+    }
     const [firstLocation] = transcriptParts
 
     const locationData = firstLocation

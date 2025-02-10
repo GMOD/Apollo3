@@ -109,30 +109,47 @@ function draw(
     topLevelFeatureHeight,
   )
 
-  // Draw lines on different rows for each mRNA
+  // Draw lines on different rows for each transcript
   let currentRow = 0
-  for (const [, mrna] of children) {
-    const isMrna = featureTypeOntology.isTypeOf(mrna.type, 'mRNA')
-    if (!isMrna) {
+  for (const [, transcript] of children) {
+    const isTranscript = featureTypeOntology.isTypeOf(
+      transcript.type,
+      'transcript',
+    )
+    if (!isTranscript) {
       currentRow += 1
       continue
     }
-    const { children: childrenOfmRNA } = mrna
-    if (!childrenOfmRNA) {
+    const { children: transcriptChildren } = transcript
+    if (!transcriptChildren) {
       continue
     }
 
-    const cdsCount = getCDSCount(mrna, featureTypeOntology)
-    for (const [, childFeature] of childrenOfmRNA) {
+    const cdsCount = getCDSCount(transcript, featureTypeOntology)
+    for (const [, childFeature] of transcriptChildren) {
       if (!featureTypeOntology.isTypeOf(childFeature.type, 'CDS')) {
         continue
       }
-      drawLine(ctx, stateModel, displayedRegionIndex, row, mrna, currentRow)
+      drawLine(
+        ctx,
+        stateModel,
+        displayedRegionIndex,
+        row,
+        transcript,
+        currentRow,
+      )
       currentRow += 1
     }
 
     if (cdsCount === 0) {
-      drawLine(ctx, stateModel, displayedRegionIndex, row, mrna, currentRow)
+      drawLine(
+        ctx,
+        stateModel,
+        displayedRegionIndex,
+        row,
+        transcript,
+        currentRow,
+      )
       currentRow += 1
     }
   }
@@ -141,10 +158,10 @@ function draw(
     theme?.palette.mode === 'dark' ? forwardFillDark : forwardFillLight
   const backwardFill =
     theme?.palette.mode === 'dark' ? backwardFillDark : backwardFillLight
-  // Draw exon and CDS for each mRNA
+  // Draw exon and CDS for each transcript
   currentRow = 0
   for (const [, child] of children) {
-    if (!featureTypeOntology.isTypeOf(child.type, 'mRNA')) {
+    if (!featureTypeOntology.isTypeOf(child.type, 'transcript')) {
       boxGlyph.draw(ctx, child, row, stateModel, displayedRegionIndex)
       currentRow += 1
       continue
@@ -153,11 +170,11 @@ function draw(
     if (cdsCount != 0) {
       // Draw lines on different rows for each mRNA
       for (const cdsRow of child.cdsLocations) {
-        const { _id, children: childrenOfmRNA } = child
-        if (!childrenOfmRNA) {
+        const { _id, children: transcriptChildren } = child
+        if (!transcriptChildren) {
           continue
         }
-        for (const [, exon] of childrenOfmRNA) {
+        for (const [, exon] of transcriptChildren) {
           if (!featureTypeOntology.isTypeOf(exon.type, 'exon')) {
             continue
           }
@@ -239,10 +256,10 @@ function draw(
       }
     }
 
-    const { children: childrenOfmRNA } = child
+    const { children: transcriptChildren } = child
     // Draw exons for non-coding genes
-    if (cdsCount === 0 && childrenOfmRNA) {
-      for (const [, exon] of childrenOfmRNA) {
+    if (cdsCount === 0 && transcriptChildren) {
+      for (const [, exon] of transcriptChildren) {
         if (!featureTypeOntology.isTypeOf(exon.type, 'exon')) {
           continue
         }
@@ -325,7 +342,7 @@ function drawLine(
   stateModel: LinearApolloDisplayRendering,
   displayedRegionIndex: number,
   row: number,
-  mRNA: AnnotationFeature,
+  transcript: AnnotationFeature,
   currentRow: number,
 ) {
   const { apolloRowHeight, lgv, theme } = stateModel
@@ -335,10 +352,10 @@ function drawLine(
   const minX =
     (lgv.bpToPx({
       refName,
-      coord: mRNA.min,
+      coord: transcript.min,
       regionNumber: displayedRegionIndex,
     })?.offsetPx ?? 0) - offsetPx
-  const widthPx = mRNA.length / bpPerPx
+  const widthPx = transcript.length / bpPerPx
   const startPx = reversed ? minX - widthPx : minX
   const height =
     Math.round((currentRow + 1 / 2) * apolloRowHeight) + row * apolloRowHeight
@@ -439,7 +456,7 @@ function getFeatureFromLayout(
     if (
       featureTypeOntology.isTypeOf(featureObj.type, 'CDS') &&
       featureObj.parent &&
-      featureTypeOntology.isTypeOf(featureObj.parent.type, 'mRNA')
+      featureTypeOntology.isTypeOf(featureObj.parent.type, 'transcript')
     ) {
       const { cdsLocations } = featureObj.parent
       for (const cdsLoc of cdsLocations) {
@@ -450,7 +467,7 @@ function getFeatureFromLayout(
         }
       }
 
-      // If mouse position is in the intron region, return the mRNA
+      // If mouse position is in the intron region, return the transcript
       return featureObj.parent
     }
     // If mouse position is in a feature that is not a CDS, return the feature
@@ -488,9 +505,9 @@ function getRowCount(
   if (!children) {
     return 1
   }
-  const isMrna = featureTypeOntology.isTypeOf(type, 'mRNA')
+  const isTranscript = featureTypeOntology.isTypeOf(type, 'transcript')
   let rowCount = 0
-  if (isMrna) {
+  if (isTranscript) {
     for (const [, child] of children) {
       if (featureTypeOntology.isTypeOf(child.type, 'CDS')) {
         rowCount += 1
@@ -509,8 +526,8 @@ function getRowCount(
 /**
  * A list of all the subfeatures for each row for a given feature, as well as
  * the feature itself.
- * If the row contains an mRNA, the order is CDS -\> exon -\> mRNA -\> gene
- * If the row does not contain an mRNA, the order is subfeature -\> gene
+ * If the row contains a transcript, the order is CDS -\> exon -\> transcript -\> gene
+ * If the row does not contain an transcript, the order is subfeature -\> gene
  */
 function featuresForRow(
   feature: AnnotationFeature,
@@ -526,7 +543,7 @@ function featuresForRow(
   }
   const features: AnnotationFeature[][] = []
   for (const [, child] of children) {
-    if (!featureTypeOntology.isTypeOf(child.type, 'mRNA')) {
+    if (!featureTypeOntology.isTypeOf(child.type, 'transcript')) {
       features.push([child, feature])
       continue
     }
@@ -633,9 +650,9 @@ function getDraggableFeatureInfo(
     throw new Error('featureTypeOntology is undefined')
   }
   const isGene = featureTypeOntology.isTypeOf(feature.type, 'gene')
-  const isMrna = featureTypeOntology.isTypeOf(feature.type, 'mRNA')
+  const isTranscript = featureTypeOntology.isTypeOf(feature.type, 'transcript')
   const isCds = featureTypeOntology.isTypeOf(feature.type, 'CDS')
-  if (isGene || isMrna) {
+  if (isGene || isTranscript) {
     return
   }
   const { bp, refName, regionNumber, x } = mousePosition
@@ -659,12 +676,12 @@ function getDraggableFeatureInfo(
     return { feature, edge: 'max' }
   }
   if (isCds) {
-    const mRNA = feature.parent
-    if (!mRNA?.children) {
+    const transcript = feature.parent
+    if (!transcript?.children) {
       return
     }
     const exonChildren: AnnotationFeature[] = []
-    for (const child of mRNA.children.values()) {
+    for (const child of transcript.children.values()) {
       const childIsExon = featureTypeOntology.isTypeOf(child.type, 'exon')
       if (childIsExon) {
         exonChildren.push(child)

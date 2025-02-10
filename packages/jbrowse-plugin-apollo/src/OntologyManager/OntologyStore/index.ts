@@ -68,6 +68,7 @@ export interface OntologyStoreOptions {
     indexFields?: { displayName: string; jsonPath: string }[]
   }
   maxSearchResults?: number
+  update?(message: string, progress: number): void
 }
 
 export interface PropertiesOptions {
@@ -107,8 +108,8 @@ export default class OntologyStore {
     this.ontologyName = name
     this.ontologyVersion = version
     this.sourceLocation = source
-    this.db = this.prepareDatabase()
     this.options = options ?? {}
+    this.db = this.prepareDatabase()
   }
 
   /**
@@ -174,9 +175,12 @@ export default class OntologyStore {
     }
 
     try {
-      const { sourceLocation, sourceType } = this
+      const { options, sourceLocation, sourceType } = this
       if (sourceType === 'obo-graph-json') {
+        options.update?.('', 0)
+        // add more updates inside `loadOboGraphJson`
         await this.loadOboGraphJson(db)
+        options.update?.('', 100)
       } else {
         throw new Error(
           `ontology source file ${JSON.stringify(
