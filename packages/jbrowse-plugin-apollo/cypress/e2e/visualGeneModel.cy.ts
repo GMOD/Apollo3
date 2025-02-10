@@ -12,6 +12,9 @@ describe('Simple tests for visuals', () => {
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(5000) // Wait for the gene model to render. It would be better to ensure some element of the canvas is actually there
 
+    // Wait for the Job list drwaer to disappear so we don't affect the size of the image
+    cy.get('input[value="JobList"]', { timeout: 60_000 }).should('not.exist')
+
     cy.get('canvas[data-testid="overlayCanvas"]').compareSnapshot('gene-model')
   })
 })
