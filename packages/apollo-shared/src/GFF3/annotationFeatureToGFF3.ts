@@ -14,7 +14,7 @@ export function annotationFeatureToGFF3(
   refSeqNames?: Record<string, string | undefined>,
 ): GFF3Feature {
   const attributes: Record<string, string[] | undefined> = JSON.parse(
-    JSON.stringify(feature.attributes),
+    JSON.stringify(feature.attributes ?? {}),
   )
   const ontologyTerms: string[] = []
   const source = feature.attributes?.gff_source?.[0] ?? null

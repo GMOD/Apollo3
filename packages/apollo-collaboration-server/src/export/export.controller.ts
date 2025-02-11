@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Controller,
+  DefaultValuePipe,
   Get,
   Logger,
+  ParseBoolPipe,
+  ParseIntPipe,
   Query,
   Response,
   StreamableFile,
@@ -41,12 +44,17 @@ export class ExportController {
   @Validations(Role.None)
   @Get()
   async exportGFF3(
-    @Query() request: { exportID: string; fastaWidth?: number },
+    // @Query()
+    @Query('exportID') exportID: string,
+    @Query('includeFASTA', new DefaultValuePipe(false), ParseBoolPipe)
+    includeFASTA: boolean,
+    @Query('fastaWidth', new DefaultValuePipe(80), ParseIntPipe)
+    fastaWidth: number,
     @Response({ passthrough: true }) res: ExpressResponse,
   ) {
-    const { exportID, ...rest } = request
     const [stream, assembly] = await this.exportService.exportGFF3(exportID, {
-      ...rest,
+      includeFASTA,
+      fastaWidth,
     })
     const assemblyName = await this.exportService.getAssemblyName(assembly)
     res.set({

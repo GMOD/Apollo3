@@ -8,11 +8,13 @@ import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
 import { ExportController } from './export.controller'
 import { ExportService } from './export.service'
+import { FilesModule } from '../files/files.module'
 
 @Module({
   imports: [
     AssembliesModule,
     FeaturesModule,
+    FilesModule,
     MongooseModule.forFeature([{ name: Export.name, schema: ExportSchema }]),
     RefSeqsModule,
     RefSeqChunksModule,
