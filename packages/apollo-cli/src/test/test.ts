@@ -9,7 +9,7 @@
  * USAGE
  * From package root directory (`packages/apollo-cli`). Run all tests:
  *
- * yarn tsx src/test/test.ts
+ * yarn test:cli
  *
  * Run only matching pattern:
  *
@@ -1371,7 +1371,7 @@ void describe('Test CLI', () => {
       `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta.gz -a vv1 -f --editable`,
     )
     new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
-    let p = new Shell(`${apollo} export gff3 ${P} vv1 --with-fasta`)
+    let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
     let gff = p.stdout
     assert.ok(gff.startsWith('##gff-version 3'))
     assert.ok(gff.includes('multivalue=val1,val2,val3'))
@@ -1395,12 +1395,12 @@ void describe('Test CLI', () => {
       `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta.gz -a vv1 -f`,
     )
     new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
-    let p = new Shell(`${apollo} export gff3 ${P} vv1 --with-fasta`)
+    let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
     let gff = p.stdout
     assert.ok(gff.startsWith('##gff-version 3'))
     assert.ok(gff.includes('multivalue=val1,val2,val3'))
     assert.ok(gff.includes('##FASTA\n'))
-    // We have end with two newlines because the test data does have an extra newline at the end.
+    // We end with two newlines because the test data does have an extra newline at the end.
     assert.deepStrictEqual(gff.slice(-7, gff.length), 'taccc\n\n')
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
@@ -1415,12 +1415,12 @@ void describe('Test CLI', () => {
       `${apollo} assembly add-from-fasta ${P} https://raw.githubusercontent.com/GMOD/Apollo3/refs/heads/main/packages/apollo-cli/test_data/tiny.fasta.gz -a vv1 -f`,
     )
     new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
-    let p = new Shell(`${apollo} export gff3 ${P} vv1 --with-fasta`)
+    let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
     let gff = p.stdout
     assert.ok(gff.startsWith('##gff-version 3'))
     assert.ok(gff.includes('multivalue=val1,val2,val3'))
     assert.ok(gff.includes('##FASTA\n'))
-    // We have end with two newlines because the test data does have an extra newline at the end.
+    // We end with two newlines because the test data does have an extra newline at the end.
     assert.deepStrictEqual(gff.slice(-7, gff.length), 'taccc\n\n')
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)

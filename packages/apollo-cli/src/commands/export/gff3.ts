@@ -12,25 +12,26 @@ import {
 import { Readable } from 'node:stream'
 
 export default class Get extends BaseCommand<typeof Get> {
-  static description = 'Export the annotation of an assembly to stdout as gff3'
+  static description =
+    'Export the annotations for an assembly to stdout as gff3'
 
   static examples = [
     {
-      description: 'Export annotation for myAssembly:',
+      description: 'Export annotations for myAssembly:',
       command: '<%= config.bin %> <%= command.id %> myAssembly > out.gff3',
     },
   ]
 
   static args = {
     assembly: Args.string({
-      description: 'Export features for this assembly name or id',
+      description: 'Export annotations for this assembly name or id',
       required: true,
     }),
   }
 
   static flags = {
-    'with-fasta': Flags.boolean({
-      description: 'Append fasta sequence to output',
+    'include-fasta': Flags.boolean({
+      description: 'Include fasta sequence in output',
       default: false,
     }),
   }
@@ -77,7 +78,7 @@ export default class Get extends BaseCommand<typeof Get> {
     const params: Record<string, string> = {
       exportID,
       assemblyId,
-      withFasta: this.flags['with-fasta'] ? 'True' : 'False',
+      includeFASTA: this.flags['include-fasta'] ? 'true' : 'false',
     }
     const exportSearchParams = new URLSearchParams(params)
     exportURL.search = exportSearchParams.toString()
@@ -95,6 +96,8 @@ export default class Get extends BaseCommand<typeof Get> {
     if (body) {
       const readable = Readable.from(body)
       readable.pipe(process.stdout)
+    } else {
+      this.error('Failed to export gff3')
     }
   }
 }

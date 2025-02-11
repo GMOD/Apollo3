@@ -153,13 +153,13 @@ export class ExportService {
 
   async exportGFF3(
     exportID: string,
-    opts: { withFasta?: boolean; fastaWidth?: number },
+    opts: { includeFASTA?: boolean; fastaWidth?: number },
   ): Promise<[Readable, string]> {
     const exportDoc = await this.exportModel.findById(exportID)
     if (!exportDoc) {
       throw new NotFoundException()
     }
-    const { fastaWidth, withFasta } = opts
+    const { fastaWidth, includeFASTA } = opts
     const { assembly } = exportDoc
     const refSeqs = await this.refSeqModel.find({ assembly }).exec()
     const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
@@ -212,14 +212,14 @@ export class ExportService {
       gff.formatStream({ insertVersionDirective: true }),
       (error) => {
         if (error) {
-          this.logger.error('GFF3 export failed here')
+          this.logger.error('GFF3 export failed')
           this.logger.error(error)
         }
       },
     )
 
     let sequenceStream: Readable[] = []
-    if (withFasta) {
+    if (includeFASTA) {
       const assemblyDoc = await this.assemblyModel.findById(assembly.toString())
       if (!assemblyDoc) {
         throw new Error(
