@@ -1,4 +1,4 @@
-describe('Visual', () => {
+describe('Warning signs', () => {
   beforeEach(() => {
     cy.loginAsGuest()
   })
