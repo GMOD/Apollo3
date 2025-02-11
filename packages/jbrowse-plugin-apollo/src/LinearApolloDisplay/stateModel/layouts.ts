@@ -38,7 +38,7 @@ export function layoutsModelFactory(
               refName !== assembly?.getCanonicalRefName(feature.refSeq) ||
               !doesIntersect2(start, end, feature.min, feature.max) ||
               feature.length > self.featuresMinMaxLimit ||
-              (self.filteredFeatureTypes &&
+              (self.filteredFeatureTypes.length > 0 &&
                 !self.filteredFeatureTypes.includes(feature.type))
             ) {
               continue
@@ -86,7 +86,7 @@ export function layoutsModelFactory(
           return false
         }
         for (const [, child] of children) {
-          if (featureTypeOntology.isTypeOf(child.type, 'mRNA')) {
+          if (featureTypeOntology.isTypeOf(child.type, 'transcript')) {
             const { children: grandChildren } = child
             if (!grandChildren?.size) {
               return false
@@ -135,7 +135,7 @@ export function layoutsModelFactory(
             if (
               refName !== assembly?.getCanonicalRefName(feature.refSeq) ||
               !doesIntersect2(start, end, feature.min, feature.max) ||
-              (self.filteredFeatureTypes &&
+              (self.filteredFeatureTypes.length > 0 &&
                 !self.filteredFeatureTypes.includes(feature.type))
             ) {
               continue

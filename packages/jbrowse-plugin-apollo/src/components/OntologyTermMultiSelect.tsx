@@ -6,7 +6,7 @@ import {
   Autocomplete,
   AutocompleteRenderGetTagProps,
   Chip,
-  Grid,
+  Grid2,
   TextField,
   Tooltip,
   Typography,
@@ -333,8 +333,8 @@ function Option(props: {
   //   .join(', ')
   return (
     <li {...other}>
-      <Grid container>
-        <Grid item>
+      <Grid2 container>
+        <Grid2>
           <Typography component="span">
             {ontologyManager.applyPrefixes(option.term.id)}
           </Typography>{' '}
@@ -344,8 +344,8 @@ function Option(props: {
           />{' '}
           {/* ({lblScore}) */}
           <dl>{fields}</dl>
-        </Grid>
-      </Grid>
+        </Grid2>
+      </Grid2>
     </li>
   )
 }

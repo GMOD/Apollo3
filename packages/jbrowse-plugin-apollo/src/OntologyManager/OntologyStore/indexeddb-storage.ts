@@ -81,6 +81,8 @@ function serializeWords(foundWords: Iterable<[string, string]>): string[] {
 export async function loadOboGraphJson(this: OntologyStore, db: Database) {
   const startTime = Date.now()
 
+  let percentProgress = 1
+  this.options.update?.('Parsing JSON', percentProgress)
   // TODO: using file streaming along with an event-based json parser
   // instead of JSON.parse and .readFile could probably make this faster
   // and less memory intensive
@@ -92,6 +94,9 @@ export async function loadOboGraphJson(this: OntologyStore, db: Database) {
   } catch {
     throw new Error('Error in loading ontology')
   }
+
+  percentProgress += 5
+  this.options.update?.('Parsing JSON complete', percentProgress)
 
   const parseTime = Date.now()
 
@@ -114,29 +119,52 @@ export async function loadOboGraphJson(this: OntologyStore, db: Database) {
     const fullTextIndexPaths = getTextIndexFields
       .call(this)
       .map((def) => def.jsonPath)
-    for (const node of graph.nodes ?? []) {
-      if (isOntologyDBNode(node)) {
-        await nodeStore.add({
-          ...node,
-          fullTextWords: serializeWords(
-            getWords(node, fullTextIndexPaths, this.prefixes),
-          ),
-        })
+    if (graph.nodes) {
+      let lastProgress = Math.round(percentProgress)
+      for (const [, node] of graph.nodes.entries()) {
+        percentProgress += 64 * (1 / graph.nodes.length)
+        if (
+          Math.round(percentProgress) != lastProgress &&
+          percentProgress < 100
+        ) {
+          this.options.update?.('Processing nodes', percentProgress)
+          lastProgress = Math.round(percentProgress)
+        }
+        if (isOntologyDBNode(node)) {
+          await nodeStore.add({
+            ...node,
+            fullTextWords: serializeWords(
+              getWords(node, fullTextIndexPaths, this.prefixes),
+            ),
+          })
+        }
       }
     }
 
     // load edges
     const edgeStore = tx.objectStore('edges')
-    for (const edge of graph.edges ?? []) {
-      if (isOntologyDBEdge(edge)) {
-        await edgeStore.add(edge)
+    if (graph.edges) {
+      let lastProgress = Math.round(percentProgress)
+      for (const [, edge] of graph.edges.entries()) {
+        percentProgress += 30 * (1 / graph.edges.length)
+        if (
+          Math.round(percentProgress) != lastProgress &&
+          percentProgress < 100
+        ) {
+          this.options.update?.('Processing edges', percentProgress)
+          lastProgress = Math.round(percentProgress)
+        }
+        if (isOntologyDBEdge(edge)) {
+          await edgeStore.add(edge)
+        }
       }
     }
-
     await tx.done
 
     // record some metadata about this ontology and load operation
     const tx2 = db.transaction('meta', 'readwrite')
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { update, ...otherOptions } = this.options
     await tx2.objectStore('meta').add(
       {
         ontologyRecord: {
@@ -144,7 +172,7 @@ export async function loadOboGraphJson(this: OntologyStore, db: Database) {
           version: this.ontologyVersion,
           sourceLocation: this.sourceLocation,
         },
-        storeOptions: this.options,
+        storeOptions: otherOptions,
         graphMeta: graph.meta,
         timestamp: String(new Date()),
         schemaVersion,

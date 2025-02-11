@@ -43,7 +43,7 @@ export function baseModelFactory(
           (n) => n >= minDisplayHeight,
         ),
       ),
-      filteredFeatureTypes: types.optional(types.array(types.string), ['gene']),
+      filteredFeatureTypes: types.array(types.string),
     })
     .views((self) => {
       const { configuration, renderProps: superRenderProps } = self

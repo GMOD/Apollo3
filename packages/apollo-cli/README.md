@@ -76,7 +76,8 @@ USAGE
 ARGUMENTS
   INPUT  Input fasta file, local or remote, or id of a previously uploaded file. For local or remote files, it is
          assumed the file is bgzip'd with `bgzip` and indexed with `samtools faidx`. The indexes are assumed to be at
-         <my.fasta.gz>.fai and <my.fasta.gz>.gzi unless the options --fai and --gzi are provided.
+         <my.fasta.gz>.fai and <my.fasta.gz>.gzi unless the options --fai and --gzi are provided. A local file can be
+         uncompressed if the flag -e/--editable is set (but see below about using -e)
 
 FLAGS
   -a, --assembly=<value>     Name for this assembly. Use the file name if omitted
@@ -94,18 +95,22 @@ DESCRIPTION
   Add a new assembly from fasta input
 
   Add new assembly. The input fasta may be:
-  * A local file
-  * An external fasta file
+  * A local file bgzip'd and indexed. It can be uncompressed if the -e/--editable is set (but see description of -e)
+  * An external fasta file bgzip'd and indexed
   * The id of a file previously uploaded to Apollo
 
 EXAMPLES
-  From local file:
+  From local file assuming indexes genome.gz.fai and genome.gz.gzi are present:
+
+    $ apollo assembly add-from-fasta genome.fa.gz -a myAssembly
+
+  Local file with editable sequence does not require compression and indexing:
 
     $ apollo assembly add-from-fasta genome.fa -a myAssembly
 
-  From external source we also need the URL of the index:
+  From external source assuming there are also indexes https://.../genome.fa.gz.fai and https://.../genome.fa.gz.gzi:
 
-    $ apollo assembly add-from-fasta https://.../genome.fa -x https://.../genome.fa.fai -a myAssembly
+    $ apollo assembly add-from-fasta https://.../genome.fa.gz -a myAssembly
 ```
 
 _See code:

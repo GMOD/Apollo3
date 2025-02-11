@@ -13,7 +13,7 @@ import {
   FormControl,
   FormControlLabel,
   FormLabel,
-  Grid,
+  Grid2,
   IconButton,
   Paper,
   Radio,
@@ -300,25 +300,25 @@ export function ModifyFeatureAttribute({
     >
       <form onSubmit={onSubmit}>
         <DialogContent>
-          <Grid container direction="column" spacing={1}>
+          <Grid2 container direction="column" spacing={1}>
             {Object.entries(attributes).map(([key, value]) => {
               const EditorComponent =
                 reservedKeys.get(key) ?? CustomAttributeValueEditor
               return (
-                <Grid container item spacing={3} alignItems="center" key={key}>
-                  <Grid item xs="auto">
+                <Grid2 container spacing={3} alignItems="center" key={key}>
+                  <Grid2>
                     <Paper variant="outlined" className={classes.attributeName}>
                       <Typography>{key}</Typography>
                     </Paper>
-                  </Grid>
-                  <Grid item flexGrow={1}>
+                  </Grid2>
+                  <Grid2 flexGrow={1}>
                     <EditorComponent
                       session={session}
                       value={value}
                       onChange={makeOnChange(key)}
                     />
-                  </Grid>
-                  <Grid item xs={1}>
+                  </Grid2>
+                  <Grid2>
                     <IconButton
                       aria-label="delete"
                       size="medium"
@@ -329,11 +329,11 @@ export function ModifyFeatureAttribute({
                     >
                       <DeleteIcon fontSize="medium" key={key} />
                     </IconButton>
-                  </Grid>
-                </Grid>
+                  </Grid2>
+                </Grid2>
               )
             })}
-            <Grid item>
+            <Grid2>
               <Button
                 color="primary"
                 variant="contained"
@@ -344,12 +344,12 @@ export function ModifyFeatureAttribute({
               >
                 Add new
               </Button>
-            </Grid>
+            </Grid2>
             {showAddNewForm ? (
-              <Grid item>
+              <Grid2>
                 <Paper elevation={8} className={classes.newAttributePaper}>
-                  <Grid container direction="column">
-                    <Grid item>
+                  <Grid2 container direction="column">
+                    <Grid2>
                       <FormControl>
                         <FormLabel id="attribute-radio-button-group">
                           Select attribute type
@@ -365,11 +365,11 @@ export function ModifyFeatureAttribute({
                             control={<Radio />}
                             disableTypography
                             label={
-                              <Grid container spacing={1} alignItems="center">
-                                <Grid item>
+                              <Grid2 container spacing={1} alignItems="center">
+                                <Grid2>
                                   <Typography>Custom</Typography>
-                                </Grid>
-                                <Grid item>
+                                </Grid2>
+                                <Grid2>
                                   <TextField
                                     label="Custom attribute key"
                                     variant="outlined"
@@ -383,8 +383,8 @@ export function ModifyFeatureAttribute({
                                       setNewAttributeKey(event.target.value)
                                     }}
                                   />
-                                </Grid>
-                              </Grid>
+                                </Grid2>
+                              </Grid2>
                             }
                           />
                           {[...reservedKeys.keys()].map((key) => (
@@ -397,8 +397,8 @@ export function ModifyFeatureAttribute({
                           ))}
                         </RadioGroup>
                       </FormControl>
-                    </Grid>
-                    <Grid item>
+                    </Grid2>
+                    <Grid2>
                       <DialogActions>
                         <Button
                           key="addButton"
@@ -423,12 +423,12 @@ export function ModifyFeatureAttribute({
                           Cancel
                         </Button>
                       </DialogActions>
-                    </Grid>
-                  </Grid>
+                    </Grid2>
+                  </Grid2>
                 </Paper>
-              </Grid>
+              </Grid2>
             ) : null}
-          </Grid>
+          </Grid2>
           {errorMessage ? (
             <DialogContentText color="error">{errorMessage}</DialogContentText>
           ) : null}
