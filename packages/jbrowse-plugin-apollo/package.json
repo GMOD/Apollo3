@@ -34,7 +34,7 @@
     "test:e2e": "yarn build && start-test \"npm-run-all --parallel start:server browse start:collab-cypress\" \"9000|8999|http://localhost:3999/health\" \"npm-run-all cypress:run\"",
     "test:e2e:debug": "yarn build && start-test \"npm-run-all --parallel start:server browse start:collab-cypress\" \"9000|8999|http://localhost:3999/health\" \"npm-run-all cypress:debug\"",
     "cypress:run": "cypress run --browser chrome",
-    "cypress:debug": "cypress run --browser chrome --config screenshotOnRunFailure=true,video=true",
+    "cypress:debug": "cypress run --browser chrome --config screenshotOnRunFailure=true,video=true --spec cypress/e2e/visualGeneModel.cy.ts",
     "cypress:open": "cypress open --config baseUrl=http://localhost:3000",
     "prepublish": "yarn test",
     "prepack": "yarn build",
