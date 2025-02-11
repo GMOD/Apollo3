@@ -17,8 +17,6 @@ describe('Simple tests for visuals', () => {
         cy.get('button[aria-label="Close drawer"]').click()
       }
     })
-    // Wait for the Job list drawer to disappear so we don't affect the size of the image
-    // cy.get('button[aria-label="Close drawer"]', { timeout: 60_000 }).click()
 
     cy.get('canvas[data-testid="overlayCanvas"]').compareSnapshot('gene-model')
   })
