@@ -24,13 +24,20 @@ import {
   FormGroup,
   FormLabel,
   MenuItem,
+  Paper,
   Radio,
   RadioGroup,
   Select,
   SelectChangeEvent,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
   TextField,
   Typography,
 } from '@mui/material'
+
 import InputAdornment from '@mui/material/InputAdornment'
 import LinearProgress from '@mui/material/LinearProgress'
 import ObjectID from 'bson-objectid'
@@ -75,6 +82,7 @@ export function AddAssembly({
   const [file, setFile] = useState<File | null>(null)
   const [fileType, setFileType] = useState(FileType.GFF3)
   const [importFeatures, setImportFeatures] = useState(true)
+  const [sequenceIsEditable, setSequenceIsEditable] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [selectedInternetAccount, setSelectedInternetAccount] = useState(
     apolloInternetAccounts[0],
@@ -97,7 +105,7 @@ export function AddAssembly({
     setSelectedInternetAccount(newlySelectedInternetAccount)
   }
 
-  function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChangeFastaFile(e: React.ChangeEvent<HTMLInputElement>) {
     if (!e.target.files) {
       return
     }
@@ -106,19 +114,20 @@ export function AddAssembly({
     if (!selectedFile) {
       return
     }
-    const fileNameLower = selectedFile.name.toLowerCase()
-    if (
-      fileNameLower.endsWith('.fasta') ||
-      fileNameLower.endsWith('.fna') ||
-      fileNameLower.endsWith('.fa')
-    ) {
-      setFileType(FileType.FASTA)
-    } else if (
-      fileNameLower.endsWith('.gff3') ||
-      fileNameLower.endsWith('.gff')
-    ) {
-      setFileType(FileType.GFF3)
-    }
+    setFileType(FileType.FASTA)
+    // const fileNameLower = selectedFile.name.toLowerCase()
+    // if (
+    //   fileNameLower.endsWith('.fasta') ||
+    //   fileNameLower.endsWith('.fna') ||
+    //   fileNameLower.endsWith('.fa')
+    // ) {
+    //   setFileType(FileType.FASTA)
+    // } else if (
+    //   fileNameLower.endsWith('.gff3') ||
+    //   fileNameLower.endsWith('.gff')
+    // ) {
+    //   setFileType(FileType.GFF3)
+    // }
   }
 
   function handleChangeFileType(e: React.ChangeEvent<HTMLInputElement>) {
@@ -186,10 +195,17 @@ export function AddAssembly({
       if (apolloFetchFile) {
         jobsManager.update(job.name, 'Uploading file, this may take awhile')
         const { signal } = controller
+
+        const headers = new Headers()
+        if (file.name.endsWith('.gz')) {
+          headers.append('Content-Encoding', 'gzip')
+        }
+
         const response = await apolloFetchFile(uri, {
           method: 'POST',
           body: formData,
           signal,
+          headers,
         })
         if (!response.ok) {
           const newErrorMessage = await createFetchErrorMessage(
@@ -278,6 +294,108 @@ export function AddAssembly({
     // pass
   }
 
+  return (
+    <Dialog
+      open={true}
+      handleClose={handleClose}
+      data-testid="add-assembly-dialog"
+      title="Add new assembly"
+      maxWidth={false}
+    >
+      <form onSubmit={onSubmit}>
+        <TextField
+          margin="dense"
+          id="name"
+          label="Assembly name"
+          type="TextField"
+          fullWidth
+          variant="outlined"
+          onChange={(e) => {
+            setSubmitted(false)
+            setAssemblyName(e.target.value)
+            checkAssemblyName(e.target.value)
+          }}
+          disabled={submitted && !errorMessage}
+        />
+
+        <FormGroup>
+          <FormGroup>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  onChange={() => {
+                    setSequenceIsEditable(!sequenceIsEditable)
+                  }}
+                />
+              }
+              label="Sequence is editable"
+            />
+          </FormGroup>
+
+          <Table size="small" sx={{ mt: 2 }}>
+            <TableBody>
+              <TableRow />
+              <TableCell>FASTA</TableCell>
+              <TableCell>
+                <input
+                  type="file"
+                  onChange={handleChangeFastaFile}
+                  // {(e: React.ChangeEvent<HTMLInputElement>) => {
+                  //   console.log(e.target.value)
+                  //   setFastaFile(e.target.value)
+                  // }}
+                  disabled={submitted && !errorMessage}
+                />
+              </TableCell>
+
+              <TableRow />
+              <TableCell>FASTA index (.fai)</TableCell>
+              <TableCell>
+                <input
+                  type="file"
+                  onChange={handleChangeFaiFile}
+                  // onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  //   setFastaIndexFile(e.target.value)
+                  // }}
+                  disabled={(submitted && !errorMessage) || sequenceIsEditable}
+                />
+              </TableCell>
+
+              <TableRow />
+              <TableCell>FASTA binary index (.gzi)</TableCell>
+              <TableCell>
+                <input
+                  type="file"
+                  onChange={handleChangeGziFile}
+                  disabled={(submitted && !errorMessage) || sequenceIsEditable}
+                />
+              </TableCell>
+            </TableBody>
+          </Table>
+        </FormGroup>
+        <DialogActions>
+          <Button
+            disabled={!validAsm || submitted}
+            variant="contained"
+            type="submit"
+          >
+            {submitted ? 'Submitting...' : 'Submit'}
+          </Button>
+          <Button variant="outlined" type="submit" onClick={handleClose}>
+            Cancel
+          </Button>
+        </DialogActions>
+      </form>
+      {errorMessage ? (
+        <DialogContent>
+          <DialogContentText color="error">{errorMessage}</DialogContentText>
+        </DialogContent>
+      ) : null}
+    </Dialog>
+  )
+}
+
+/*
   return (
     <Dialog
       open
@@ -475,4 +593,4 @@ export function AddAssembly({
       ) : null}
     </Dialog>
   )
-}
+  */
