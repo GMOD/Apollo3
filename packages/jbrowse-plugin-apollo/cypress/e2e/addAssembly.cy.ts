@@ -32,6 +32,14 @@ describe('Add Assembly', () => {
     cy.wait('@changes').its('response.statusCode').should('match', /2../)
   })
 
+  it.only('Add assembly from gzip file', () => {
+    cy.exec(
+      'gzip -c test_data/volvox.fasta.gff3 > test_data/volvox.fasta.gff3.gz',
+    )
+    cy.addAssemblyFromGff('volvox.fasta', 'test_data/volvox.fasta.gff3.gz')
+    cy.exec('rm test_data/volvox.fasta.gff3.gz')
+  })
+
   it('Can import and add features', () => {
     cy.addAssemblyFromGff('volvox.fasta', 'test_data/volvox.fasta.gff3')
     cy.importFeatures('test_data/onegene.fasta.gff3', 'volvox.fasta', false)

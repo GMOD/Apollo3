@@ -72,7 +72,10 @@ export async function writeFileAndCalculateHash(
 
   const fileWriteStream = createWriteStream(tmpFileName)
 
-  if (contentEncoding === 'gzip') {
+  if (
+    contentEncoding === 'gzip' ||
+    (!contentEncoding && originalname.toLocaleLowerCase().endsWith('.gz'))
+  ) {
     await pipeline(stream, fileWriteStream)
   } else {
     const gz = createGzip()
