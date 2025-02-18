@@ -34,19 +34,34 @@ interface CreateApolloAnnotationProps {
   refSeqId: string
 }
 
-// TODO: Integrate SO
-const isGeneOrTranscript = (annotationFeature: AnnotationFeatureSnapshot) => {
+const isGeneOrTranscript = (
+  annotationFeature: AnnotationFeatureSnapshot,
+  apolloSessionModel: ApolloSessionModel,
+) => {
+  const { featureTypeOntology } =
+    apolloSessionModel.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
   return (
-    annotationFeature.type === 'gene' ||
-    annotationFeature.type === 'mRNA' ||
-    annotationFeature.type === 'transcript'
+    featureTypeOntology.isTypeOf(annotationFeature.type, 'gene') ||
+    featureTypeOntology.isTypeOf(annotationFeature.type, 'mRNA') ||
+    featureTypeOntology.isTypeOf(annotationFeature.type, 'transcript')
   )
 }
 
-// TODO: Integrate SO
-const isTranscript = (annotationFeature: AnnotationFeatureSnapshot) => {
+const isTranscript = (
+  annotationFeature: AnnotationFeatureSnapshot,
+  apolloSessionModel: ApolloSessionModel,
+) => {
+  const { featureTypeOntology } =
+    apolloSessionModel.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
   return (
-    annotationFeature.type === 'mRNA' || annotationFeature.type === 'transcript'
+    featureTypeOntology.isTypeOf(annotationFeature.type, 'mRNA') ||
+    featureTypeOntology.isTypeOf(annotationFeature.type, 'transcript')
   )
 }
 
@@ -109,7 +124,7 @@ export function CreateApolloAnnotation({
       const checkedAnnotationFeatureChildren = Object.values(
         annotationFeature.children,
       )
-        .filter((child) => isTranscript(child))
+        .filter((child) => isTranscript(child, apolloSessionModel))
         .filter((child) => checkedChildrens.includes(child._id))
       const mins = checkedAnnotationFeatureChildren.map((f) => f.min)
       const maxes = checkedAnnotationFeatureChildren.map((f) => f.max)
@@ -202,7 +217,7 @@ export function CreateApolloAnnotation({
       </DialogTitle>
       <DialogContent>
         <Box sx={{ ml: 3 }}>
-          {isGeneOrTranscript(annotationFeature) && (
+          {isGeneOrTranscript(annotationFeature, apolloSessionModel) && (
             <FormControlLabel
               control={
                 <Checkbox
@@ -217,7 +232,7 @@ export function CreateApolloAnnotation({
           {annotationFeature.children && (
             <Box sx={{ display: 'flex', flexDirection: 'column', ml: 3 }}>
               {Object.values(annotationFeature.children)
-                .filter((child) => isTranscript(child))
+                .filter((child) => isTranscript(child, apolloSessionModel))
                 .map((child) => (
                   <FormControlLabel
                     key={child._id}
