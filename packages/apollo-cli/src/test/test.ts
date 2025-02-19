@@ -9,11 +9,11 @@
  * USAGE
  * From package root directory (`packages/apollo-cli`). Run all tests:
  *
- * yarn tsx src/test/test.ts
+ * yarn test:cli
  *
  * Run only matching pattern:
  *
- * yarn tsx --test-name-pattern='Print help|Feature get' src/test/test.ts
+ * yarn test:cli --test-name-pattern='Print help|Feature get'
  */
 
 import assert from 'node:assert'
@@ -1387,5 +1387,69 @@ void describe('Test CLI', () => {
     p = new Shell(`${apollo} file get ${P} -i ${up1._id} ${up2._id}`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(out.length, 0)
+  })
+
+  void globalThis.itName('Export gff3 from editable assembly', () => {
+    new Shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta.gz -a vv1 -f --editable`,
+    )
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
+    let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
+    let gff = p.stdout
+    assert.ok(gff.startsWith('##gff-version 3'))
+    assert.ok(gff.includes('multivalue=val1,val2,val3'))
+    assert.ok(gff.includes('##FASTA\n'))
+    assert.deepStrictEqual(gff.slice(-6, gff.length), 'taccc\n')
+
+    p = new Shell(`${apollo} export gff3 ${P} vv1`)
+    gff = p.stdout
+    assert.ok(gff.startsWith('##gff-version 3'))
+    assert.ok(gff.includes('multivalue=val1,val2,val3'))
+    assert.ok(!gff.includes('##FASTA\n'))
+
+    // Invalid assembly
+    p = new Shell(`${apollo} export gff3 ${P} foobar`, false)
+    assert.ok(p.returncode != 0)
+    assert.ok(p.stderr.includes('foobar'))
+  })
+
+  void globalThis.itName('Export gff3 from non-editable assembly', () => {
+    new Shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta.gz -a vv1 -f`,
+    )
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
+    let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
+    let gff = p.stdout
+    assert.ok(gff.startsWith('##gff-version 3'))
+    assert.ok(gff.includes('multivalue=val1,val2,val3'))
+    assert.ok(gff.includes('##FASTA\n'))
+    // We end with two newlines because the test data does have an extra newline at the end.
+    assert.deepStrictEqual(gff.slice(-7, gff.length), 'taccc\n\n')
+
+    p = new Shell(`${apollo} export gff3 ${P} vv1`)
+    gff = p.stdout
+    assert.ok(gff.startsWith('##gff-version 3'))
+    assert.ok(gff.includes('multivalue=val1,val2,val3'))
+    assert.ok(!gff.includes('##FASTA\n'))
+  })
+
+  void globalThis.itName('Export gff3 from external assembly', () => {
+    new Shell(
+      `${apollo} assembly add-from-fasta ${P} https://raw.githubusercontent.com/GMOD/Apollo3/refs/heads/main/packages/apollo-cli/test_data/tiny.fasta.gz -a vv1 -f`,
+    )
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
+    let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
+    let gff = p.stdout
+    assert.ok(gff.startsWith('##gff-version 3'))
+    assert.ok(gff.includes('multivalue=val1,val2,val3'))
+    assert.ok(gff.includes('##FASTA\n'))
+    // We end with two newlines because the test data does have an extra newline at the end.
+    assert.deepStrictEqual(gff.slice(-7, gff.length), 'taccc\n\n')
+
+    p = new Shell(`${apollo} export gff3 ${P} vv1`)
+    gff = p.stdout
+    assert.ok(gff.startsWith('##gff-version 3'))
+    assert.ok(gff.includes('multivalue=val1,val2,val3'))
+    assert.ok(!gff.includes('##FASTA\n'))
   })
 })
