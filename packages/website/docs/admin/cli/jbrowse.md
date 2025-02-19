@@ -29,7 +29,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/jbrowse/get-config.ts](https://github.com/GMOD/Apollo3/blob/v0.3.2/packages/apollo-cli/src/commands/jbrowse/get-config.ts)_
+[src/commands/jbrowse/get-config.ts](https://github.com/GMOD/Apollo3/blob/v0.3.3/packages/apollo-cli/src/commands/jbrowse/get-config.ts)_
 
 ## `apollo jbrowse set-config INPUTFILE`
 
@@ -58,4 +58,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/jbrowse/set-config.ts](https://github.com/GMOD/Apollo3/blob/v0.3.2/packages/apollo-cli/src/commands/jbrowse/set-config.ts)_
+[src/commands/jbrowse/set-config.ts](https://github.com/GMOD/Apollo3/blob/v0.3.3/packages/apollo-cli/src/commands/jbrowse/set-config.ts)_
