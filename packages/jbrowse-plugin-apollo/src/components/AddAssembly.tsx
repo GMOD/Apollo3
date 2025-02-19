@@ -31,7 +31,7 @@ import {
   InputAdornment,
 } from '@mui/material'
 
-// import InputAdornment from '@mui/material/InputAdornment'
+import LinearProgress from '@mui/material/LinearProgress'
 import ObjectID from 'bson-objectid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
@@ -284,6 +284,7 @@ export function AddAssembly({
       title="Add new assembly"
       maxWidth={false}
     >
+      {loading ? <LinearProgress /> : null}
       <form onSubmit={onSubmit}>
         <TextField
           margin="dense"
