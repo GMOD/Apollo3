@@ -276,6 +276,34 @@ export function AddAssembly({
     setLoading(false)
   }
 
+  let validFastaUrl = false
+  try {
+    const url = new URL(fastaUrl)
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      validFastaUrl = true
+    }
+  } catch {
+    // pass
+  }
+  let validFastaIndexUrl = false
+  try {
+    const url = new URL(fastaIndexUrl)
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      validFastaIndexUrl = true
+    }
+  } catch {
+    // pass
+  }
+  let validFastaGziIndexUrl = false
+  try {
+    const url = new URL(fastaGziIndexUrl)
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      validFastaGziIndexUrl = true
+    }
+  } catch {
+    // pass
+  }
+
   return (
     <Dialog
       open={true}
@@ -402,6 +430,7 @@ export function AddAssembly({
                   <TableCell style={{ borderBottomWidth: 0 }}>
                     <TextField
                       value={fastaUrl}
+                      error={!validFastaUrl}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         setFastaUrl(e.target.value)
                       }}
@@ -423,6 +452,7 @@ export function AddAssembly({
                   <TableCell style={{ borderBottomWidth: 0 }}>
                     <TextField
                       value={fastaIndexUrl}
+                      error={!validFastaIndexUrl}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         setFastaIndexUrl(e.target.value)
                       }}
@@ -444,6 +474,7 @@ export function AddAssembly({
                   <TableCell style={{ borderBottomWidth: 0 }}>
                     <TextField
                       value={fastaGziIndexUrl}
+                      error={!validFastaGziIndexUrl}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         setFastaGziIndexUrl(e.target.value)
                       }}
