@@ -13,7 +13,7 @@
  *
  * Run only matching pattern:
  *
- * yarn tsx --test-name-pattern='Print help|Feature get' src/test/test.ts
+ * yarn test:cli --test-name-pattern='Print help|Feature get'
  */
 
 import assert from 'node:assert'
