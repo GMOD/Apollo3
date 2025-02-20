@@ -29,7 +29,12 @@ import {
   TextField,
   Typography,
   InputAdornment,
+  Tooltip,
+  IconButton,
+  styled,
 } from '@mui/material'
+
+import InfoIcon from '@mui/icons-material/Info'
 
 import LinearProgress from '@mui/material/LinearProgress'
 import ObjectID from 'bson-objectid'
@@ -42,6 +47,14 @@ import { ApolloSessionModel } from '../session'
 import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 import { Dialog } from './Dialog'
+
+import MuiAccordionDetails from '@mui/material/AccordionDetails'
+import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp'
+import MuiAccordion, { AccordionProps } from '@mui/material/Accordion'
+import MuiAccordionSummary, {
+  AccordionSummaryProps,
+  accordionSummaryClasses,
+} from '@mui/material/AccordionSummary'
 
 interface AddAssemblyProps {
   session: ApolloSessionModel
@@ -78,9 +91,7 @@ export function AddAssembly({
   const [importFeatures, setImportFeatures] = useState(true)
   const [sequenceIsEditable, setSequenceIsEditable] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const [selectedInternetAccount, setSelectedInternetAccount] = useState(
-    apolloInternetAccounts[0],
-  )
+
   const [fastaFile, setFastaFile] = useState<File | null>(null)
   const [fastaIndexFile, setFastaIndexFile] = useState<File | null>(null)
   const [fastaGziIndexFile, setFastaGziIndexFile] = useState<File | null>(null)
@@ -98,19 +109,6 @@ export function AddAssembly({
   useEffect(() => {
     setFastaGziIndexUrl(fastaUrl ? `${fastaUrl}.gzi` : '')
   }, [fastaUrl])
-
-  function handleChangeInternetAccount(e: SelectChangeEvent) {
-    setSubmitted(false)
-    const newlySelectedInternetAccount = apolloInternetAccounts.find(
-      (ia) => ia.internetAccountId === e.target.value,
-    )
-    if (!newlySelectedInternetAccount) {
-      throw new Error(
-        `Could not find internetAccount with ID "${e.target.value}"`,
-      )
-    }
-    setSelectedInternetAccount(newlySelectedInternetAccount)
-  }
 
   function checkAssemblyName(assembly: string) {
     const { assemblies } = session as unknown as AbstractSessionModel
@@ -130,7 +128,7 @@ export function AddAssembly({
     const { jobsManager } = session
     const controller = new AbortController()
 
-    const { baseURL, getFetcher } = selectedInternetAccount
+    const [{ baseURL, getFetcher }] = apolloInternetAccounts
     const url = new URL('files', baseURL)
 
     url.searchParams.set('type', fileType)
@@ -267,7 +265,7 @@ export function AddAssembly({
       }
     }
 
-    const { internetAccountId } = selectedInternetAccount
+    const [{ internetAccountId }] = apolloInternetAccounts
     await changeManager.submit(change, {
       internetAccountId,
       updateJobsManager: true,
@@ -312,235 +310,257 @@ export function AddAssembly({
       title="Add new assembly"
       maxWidth={false}
     >
-      {loading ? <LinearProgress /> : null}
       <form onSubmit={onSubmit}>
-        <TextField
-          margin="dense"
-          id="name"
-          label="Assembly name"
-          type="TextField"
-          fullWidth
-          variant="outlined"
-          onChange={(e) => {
-            setSubmitted(false)
-            setAssemblyName(e.target.value)
-            checkAssemblyName(e.target.value)
-          }}
-          disabled={submitted && !errorMessage}
-        />
-
-        <Typography
-          variant="h6"
-          style={{ marginTop: '10px', display: 'block' }}
-        >
-          <input
-            type="radio"
-            name="fastaInputOption"
-            checked={
-              fileType === FileType.BGZIP_FASTA ||
-              fileType === FileType.EXTERNAL
-            }
-            onChange={() => {
-              setFileType(FileType.BGZIP_FASTA)
+        <DialogContent>
+          {loading ? <LinearProgress /> : null}
+          <TextField
+            margin="dense"
+            id="name"
+            label="Assembly name"
+            type="TextField"
+            fullWidth
+            variant="outlined"
+            onChange={(e) => {
+              setSubmitted(false)
+              setAssemblyName(e.target.value)
+              checkAssemblyName(e.target.value)
             }}
+            disabled={submitted && !errorMessage}
           />
-          FASTA input
-        </Typography>
-        {fileType === FileType.BGZIP_FASTA || fileType === FileType.EXTERNAL ? (
-          <FormGroup>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  onChange={() => {
-                    setFileType(
-                      fileType === FileType.EXTERNAL
-                        ? FileType.BGZIP_FASTA
-                        : FileType.EXTERNAL,
-                    )
-                  }}
-                  disabled={sequenceIsEditable}
-                />
-              }
-              label="Files are on remote URL"
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  onChange={() => {
-                    setSequenceIsEditable(!sequenceIsEditable)
-                  }}
-                />
-              }
-              label="Sequence is editable"
-              disabled={fileType === FileType.EXTERNAL}
-            />
-            {fileType === FileType.BGZIP_FASTA ? (
-              <Table size="small" sx={{ mt: 2 }}>
-                <TableBody>
-                  <TableRow />
-                  <TableCell style={{ borderBottomWidth: 0 }}>FASTA</TableCell>
-                  <TableCell style={{ borderBottomWidth: 0 }}>
-                    <input
-                      type="file"
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFastaFile(e.target.files?.item(0) ?? null)
-                      }}
-                      disabled={submitted && !errorMessage}
-                    />
-                  </TableCell>
 
-                  <TableRow />
-                  <TableCell style={{ borderBottomWidth: 0 }}>
-                    FASTA index (.fai)
-                  </TableCell>
-                  <TableCell style={{ borderBottomWidth: 0 }}>
-                    <input
-                      type="file"
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFastaIndexFile(e.target.files?.item(0) ?? null)
-                      }}
-                      disabled={
-                        (submitted && !errorMessage) || sequenceIsEditable
-                      }
-                    />
-                  </TableCell>
-
-                  <TableRow />
-                  <TableCell style={{ borderBottomWidth: 0 }}>
-                    FASTA binary index (.gzi)
-                  </TableCell>
-                  <TableCell style={{ borderBottomWidth: 0 }}>
-                    <input
-                      type="file"
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFastaGziIndexFile(e.target.files?.item(0) ?? null)
-                      }}
-                      disabled={
-                        (submitted && !errorMessage) || sequenceIsEditable
-                      }
-                    />
-                  </TableCell>
-                </TableBody>
-              </Table>
-            ) : (
-              <Table size="small" sx={{ mt: 2 }}>
-                <TableBody>
-                  <TableRow />
-                  <TableCell style={{ borderBottomWidth: 0 }}>FASTA</TableCell>
-                  <TableCell style={{ borderBottomWidth: 0 }}>
-                    <TextField
-                      value={fastaUrl}
-                      error={!validFastaUrl}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFastaUrl(e.target.value)
-                      }}
-                      disabled={submitted && !errorMessage}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <LinkIcon />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </TableCell>
-
-                  <TableRow />
-                  <TableCell style={{ borderBottomWidth: 0 }}>
-                    FASTA index (.fai)
-                  </TableCell>
-                  <TableCell style={{ borderBottomWidth: 0 }}>
-                    <TextField
-                      value={fastaIndexUrl}
-                      error={!validFastaIndexUrl}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFastaIndexUrl(e.target.value)
-                      }}
-                      disabled={submitted && !errorMessage}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <LinkIcon />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </TableCell>
-
-                  <TableRow />
-                  <TableCell style={{ borderBottomWidth: 0 }}>
-                    FASTA binary index (.gzi)
-                  </TableCell>
-                  <TableCell style={{ borderBottomWidth: 0 }}>
-                    <TextField
-                      value={fastaGziIndexUrl}
-                      error={!validFastaGziIndexUrl}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFastaGziIndexUrl(e.target.value)
-                      }}
-                      disabled={submitted && !errorMessage}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <LinkIcon />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </TableCell>
-                </TableBody>
-              </Table>
-            )}
-          </FormGroup>
-        ) : (
-          <div></div>
-        )}
-
-        <Typography
-          variant="h6"
-          style={{ marginTop: '10px', display: 'block' }}
-        >
-          <input
-            type="radio"
-            name="gffInputOption"
-            checked={fileType === FileType.GFF3}
-            onChange={() => {
-              setFileType(FileType.GFF3)
-            }}
-          />
-          GFF input
-        </Typography>
-
-        {fileType === FileType.GFF3 ? (
-          <Box style={{ marginTop: 20 }}>
+          <Typography
+            variant="h6"
+            style={{ marginTop: '10px', display: 'block' }}
+          >
             <input
-              type="file"
-              disabled={submitted && !errorMessage}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setFastaFile(e.target.files?.item(0) ?? null)
-                setSequenceIsEditable(true)
+              type="radio"
+              name="fastaInputOption"
+              checked={
+                fileType === FileType.BGZIP_FASTA ||
+                fileType === FileType.EXTERNAL
+              }
+              onChange={() => {
+                setFileType(FileType.BGZIP_FASTA)
               }}
             />
+            FASTA input
+            <Tooltip title="Some information">
+              <IconButton>
+                <InfoIcon />
+              </IconButton>
+            </Tooltip>
+          </Typography>
+          {fileType === FileType.BGZIP_FASTA ||
+          fileType === FileType.EXTERNAL ? (
             <FormGroup>
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={fileType === FileType.GFF3 && importFeatures}
                     onChange={() => {
-                      setImportFeatures(!importFeatures)
+                      setFileType(
+                        fileType === FileType.EXTERNAL
+                          ? FileType.BGZIP_FASTA
+                          : FileType.EXTERNAL,
+                      )
                     }}
-                    disabled={
-                      fileType !== FileType.GFF3 || (submitted && !errorMessage)
-                    }
+                    disabled={sequenceIsEditable}
                   />
                 }
-                label="Also load features from GFF3 file"
+                label="Files are on remote URL"
               />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    onChange={() => {
+                      setSequenceIsEditable(!sequenceIsEditable)
+                    }}
+                  />
+                }
+                label="Sequence is editable"
+                disabled={fileType === FileType.EXTERNAL}
+              />
+              {fileType === FileType.BGZIP_FASTA ? (
+                <Table size="small" sx={{ mt: 2 }}>
+                  <TableBody>
+                    <TableRow />
+                    <TableCell style={{ borderBottomWidth: 0 }}>
+                      FASTA
+                    </TableCell>
+                    <TableCell style={{ borderBottomWidth: 0 }}>
+                      <input
+                        type="file"
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setFastaFile(e.target.files?.item(0) ?? null)
+                        }}
+                        disabled={submitted && !errorMessage}
+                      />
+                    </TableCell>
+
+                    <TableRow />
+                    <TableCell style={{ borderBottomWidth: 0 }}>
+                      FASTA index (.fai)
+                    </TableCell>
+                    <TableCell style={{ borderBottomWidth: 0 }}>
+                      <input
+                        type="file"
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setFastaIndexFile(e.target.files?.item(0) ?? null)
+                        }}
+                        disabled={
+                          (submitted && !errorMessage) || sequenceIsEditable
+                        }
+                      />
+                    </TableCell>
+
+                    <TableRow />
+                    <TableCell style={{ borderBottomWidth: 0 }}>
+                      FASTA binary index (.gzi)
+                    </TableCell>
+                    <TableCell style={{ borderBottomWidth: 0 }}>
+                      <input
+                        type="file"
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setFastaGziIndexFile(e.target.files?.item(0) ?? null)
+                        }}
+                        disabled={
+                          (submitted && !errorMessage) || sequenceIsEditable
+                        }
+                      />
+                    </TableCell>
+                  </TableBody>
+                </Table>
+              ) : (
+                <Table size="small" sx={{ mt: 2 }}>
+                  <TableBody>
+                    <TableRow />
+                    <TableCell style={{ borderBottomWidth: 0 }}>
+                      FASTA
+                    </TableCell>
+                    <TableCell style={{ borderBottomWidth: 0 }}>
+                      <TextField
+                        variant="outlined"
+                        value={fastaUrl}
+                        error={!validFastaUrl}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setFastaUrl(e.target.value)
+                        }}
+                        disabled={submitted && !errorMessage}
+                        slotProps={{
+                          input: {
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <LinkIcon />
+                              </InputAdornment>
+                            ),
+                          },
+                        }}
+                      />
+                    </TableCell>
+
+                    <TableRow />
+                    <TableCell style={{ borderBottomWidth: 0 }}>
+                      FASTA index (.fai)
+                    </TableCell>
+                    <TableCell style={{ borderBottomWidth: 0 }}>
+                      <TextField
+                        variant="outlined"
+                        value={fastaIndexUrl}
+                        error={!validFastaIndexUrl}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setFastaIndexUrl(e.target.value)
+                        }}
+                        disabled={submitted && !errorMessage}
+                        slotProps={{
+                          input: {
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <LinkIcon />
+                              </InputAdornment>
+                            ),
+                          },
+                        }}
+                      />
+                    </TableCell>
+
+                    <TableRow />
+                    <TableCell style={{ borderBottomWidth: 0 }}>
+                      FASTA binary index (.gzi)
+                    </TableCell>
+                    <TableCell style={{ borderBottomWidth: 0 }}>
+                      <TextField
+                        variant="outlined"
+                        value={fastaGziIndexUrl}
+                        error={!validFastaGziIndexUrl}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setFastaGziIndexUrl(e.target.value)
+                        }}
+                        disabled={submitted && !errorMessage}
+                        slotProps={{
+                          input: {
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <LinkIcon />
+                              </InputAdornment>
+                            ),
+                          },
+                        }}
+                      />
+                    </TableCell>
+                  </TableBody>
+                </Table>
+              )}
             </FormGroup>
-          </Box>
-        ) : (
-          <div></div>
-        )}
+          ) : (
+            <div></div>
+          )}
+
+          <Typography
+            variant="h6"
+            style={{ marginTop: '10px', display: 'block' }}
+          >
+            <input
+              type="radio"
+              name="gffInputOption"
+              checked={fileType === FileType.GFF3}
+              onChange={() => {
+                setFileType(FileType.GFF3)
+              }}
+            />
+            GFF input
+          </Typography>
+
+          {fileType === FileType.GFF3 ? (
+            <Box style={{ marginTop: 20 }}>
+              <input
+                type="file"
+                disabled={submitted && !errorMessage}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setFastaFile(e.target.files?.item(0) ?? null)
+                  setSequenceIsEditable(true)
+                }}
+              />
+              <FormGroup>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={fileType === FileType.GFF3 && importFeatures}
+                      onChange={() => {
+                        setImportFeatures(!importFeatures)
+                      }}
+                      disabled={
+                        fileType !== FileType.GFF3 ||
+                        (submitted && !errorMessage)
+                      }
+                    />
+                  }
+                  label="Also load features from GFF3 file"
+                />
+              </FormGroup>
+            </Box>
+          ) : (
+            <div></div>
+          )}
+        </DialogContent>
         <DialogActions>
           <Button
             disabled={!validAsm || submitted}
@@ -562,203 +582,3 @@ export function AddAssembly({
     </Dialog>
   )
 }
-
-/*
-  return (
-    <Dialog
-      open
-      maxWidth={false}
-      data-testid="add-assembly-dialog"
-      title="Add new assembly"
-      handleClose={handleClose}
-    >
-      {loading ? <LinearProgress /> : null}
-      <form onSubmit={onSubmit}>
-        <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-          {apolloInternetAccounts.length > 1 ? (
-            <>
-              <DialogContentText>Select account</DialogContentText>
-              <Select
-                value={selectedInternetAccount.internetAccountId}
-                onChange={handleChangeInternetAccount}
-                disabled={submitted && !errorMessage}
-              >
-                {internetAccounts.map((option) => (
-                  <MenuItem key={option.id} value={option.internetAccountId}>
-                    {option.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </>
-          ) : null}
-          <TextField
-            margin="dense"
-            id="name"
-            label="Assembly name"
-            type="TextField"
-            fullWidth
-            variant="outlined"
-            onChange={(e) => {
-              setSubmitted(false)
-              setAssemblyName(e.target.value)
-              checkAssemblyName(e.target.value)
-            }}
-            disabled={submitted && !errorMessage}
-          />
-          <FormControl style={{ marginTop: 20 }}>
-            <FormLabel>Select GFF3, FASTA or EXTERNAL option</FormLabel>
-            <RadioGroup
-              aria-labelledby="demo-radio-buttons-group-label"
-              defaultValue={FileType.GFF3}
-              name="radio-buttons-group"
-              onChange={handleChangeFileType}
-              value={fileType}
-            >
-              <FormControlLabel
-                value={FileType.GFF3}
-                control={<Radio />}
-                label="GFF3"
-                disabled={submitted && !errorMessage}
-              />
-              <FormControlLabel
-                value={FileType.FASTA}
-                control={<Radio />}
-                label="FASTA"
-                disabled={submitted && !errorMessage}
-              />
-              <FormControlLabel
-                value={FileType.EXTERNAL}
-                control={<Radio />}
-                label="External"
-                disabled={submitted && !errorMessage}
-              />
-            </RadioGroup>
-          </FormControl>
-          {fileType === FileType.EXTERNAL ? (
-            <Box style={{ marginTop: 20 }}>
-              <Typography variant="caption">
-                Enter FASTA and FASTA index(es) URL
-              </Typography>
-              <TextField
-                margin="dense"
-                helperText="Can be bgz-compressed"
-                id="fasta"
-                label="FASTA"
-                type="TextField"
-                fullWidth
-                variant="outlined"
-                error={!validFastaFile}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  setFastaFile(e.target.value)
-                }}
-                disabled={submitted && !errorMessage}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LinkIcon />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              <TextField
-                margin="dense"
-                id="fasta-index"
-                label="FASTA Index"
-                helperText=".fai or .gz.fai"
-                type="TextField"
-                fullWidth
-                variant="outlined"
-                error={!validFastaIndexFile}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  setFastaIndexFile(e.target.value)
-                }}
-                disabled={submitted && !errorMessage}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LinkIcon />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              <TextField
-                margin="dense"
-                id="fasta-gzi-index"
-                label="FASTA GZI Index"
-                helperText="Only for bgz-compressed FASTA, .gz.gzi"
-                type="TextField"
-                fullWidth
-                variant="outlined"
-                error={Boolean(fastaGziIndexFile) && !validFastaGziIndexFile}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  setFastaGziIndexFile(e.target.value)
-                }}
-                disabled={submitted && !errorMessage}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LinkIcon />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Box>
-          ) : (
-            <Box style={{ marginTop: 20 }}>
-              <input
-                type="file"
-                onChange={handleChangeFile}
-                disabled={submitted && !errorMessage}
-              />
-              <FormGroup>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={fileType === FileType.GFF3 && importFeatures}
-                      onChange={() => {
-                        setImportFeatures(!importFeatures)
-                      }}
-                      disabled={
-                        fileType !== FileType.GFF3 ||
-                        (submitted && !errorMessage)
-                      }
-                    />
-                  }
-                  label="Also load features from GFF3 file"
-                />
-              </FormGroup>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button
-            disabled={
-              !validAsm ||
-              !(
-                (assemblyName && file) ??
-                (assemblyName &&
-                  fastaFile &&
-                  fastaIndexFile &&
-                  validFastaFile &&
-                  validFastaIndexFile)
-              ) ||
-              submitted
-            }
-            variant="contained"
-            type="submit"
-          >
-            {submitted ? 'Submitting...' : 'Submit'}
-          </Button>
-          <Button variant="outlined" type="submit" onClick={handleClose}>
-            Cancel
-          </Button>
-        </DialogActions>
-      </form>
-      {errorMessage ? (
-        <DialogContent>
-          <DialogContentText color="error">{errorMessage}</DialogContentText>
-        </DialogContent>
-      ) : null}
-    </Dialog>
-  )
-  */
