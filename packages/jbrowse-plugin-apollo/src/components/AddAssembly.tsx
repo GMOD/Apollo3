@@ -364,7 +364,7 @@ export function AddAssembly({
                 }
                 label={
                   <Box display="flex" alignItems="center">
-                    <span>Allow sequence to be edited</span>
+                    <span>Allow sequence to be editable</span>
                     <Tooltip
                       title="Use with care: If checked, users can edit the genomic sequence together with the annotation"
                       placement="top-start"
