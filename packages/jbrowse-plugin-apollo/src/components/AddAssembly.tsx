@@ -21,7 +21,6 @@ import {
   DialogContentText,
   FormControlLabel,
   FormGroup,
-  SelectChangeEvent,
   Table,
   TableBody,
   TableCell,
@@ -31,7 +30,6 @@ import {
   InputAdornment,
   Tooltip,
   IconButton,
-  styled,
 } from '@mui/material'
 
 import InfoIcon from '@mui/icons-material/Info'
@@ -47,14 +45,6 @@ import { ApolloSessionModel } from '../session'
 import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 import { Dialog } from './Dialog'
-
-import MuiAccordionDetails from '@mui/material/AccordionDetails'
-import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp'
-import MuiAccordion, { AccordionProps } from '@mui/material/Accordion'
-import MuiAccordionSummary, {
-  AccordionSummaryProps,
-  accordionSummaryClasses,
-} from '@mui/material/AccordionSummary'
 
 interface AddAssemblyProps {
   session: ApolloSessionModel
@@ -344,11 +334,6 @@ export function AddAssembly({
               }}
             />
             FASTA input
-            <Tooltip title="Some information">
-              <IconButton>
-                <InfoIcon />
-              </IconButton>
-            </Tooltip>
           </Typography>
           {fileType === FileType.BGZIP_FASTA ||
           fileType === FileType.EXTERNAL ? (
@@ -368,6 +353,7 @@ export function AddAssembly({
                 }
                 label="Files are on remote URL"
               />
+
               <FormControlLabel
                 control={
                   <Checkbox
@@ -376,15 +362,35 @@ export function AddAssembly({
                     }}
                   />
                 }
-                label="Sequence is editable"
+                label={
+                  <Box display="flex" alignItems="center">
+                    <span>Allow sequence to be edited</span>
+                    <Tooltip
+                      title="Use with care: If checked, users can edit the genomic sequence together with the annotation"
+                      placement="top-start"
+                    >
+                      <IconButton size="small">
+                        <InfoIcon sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                }
                 disabled={fileType === FileType.EXTERNAL}
               />
+
               {fileType === FileType.BGZIP_FASTA ? (
                 <Table size="small" sx={{ mt: 2 }}>
                   <TableBody>
                     <TableRow />
                     <TableCell style={{ borderBottomWidth: 0 }}>
-                      FASTA
+                      <Box display="flex" alignItems="center">
+                        <span>FASTA</span>
+                        <Tooltip title="Unless the editable option is enabled, FASTA input must be compressed with bgzip and indexed with samtools faidx (or equivalent). Compression and indexing are optional for editable input.">
+                          <IconButton size="small">
+                            <InfoIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </TableCell>
                     <TableCell style={{ borderBottomWidth: 0 }}>
                       <input
@@ -434,7 +440,14 @@ export function AddAssembly({
                   <TableBody>
                     <TableRow />
                     <TableCell style={{ borderBottomWidth: 0 }}>
-                      FASTA
+                      <Box display="flex" alignItems="center">
+                        <span>FASTA</span>
+                        <Tooltip title="Remote FASTA input must be compressed with bgzip and indexed with samtools faidx (or equivalent)">
+                          <IconButton size="small">
+                            <InfoIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </TableCell>
                     <TableCell style={{ borderBottomWidth: 0 }}>
                       <TextField
@@ -513,21 +526,27 @@ export function AddAssembly({
           ) : (
             <div></div>
           )}
-
-          <Typography
-            variant="h6"
-            style={{ marginTop: '10px', display: 'block' }}
-          >
-            <input
-              type="radio"
-              name="gffInputOption"
-              checked={fileType === FileType.GFF3}
-              onChange={() => {
-                setFileType(FileType.GFF3)
-              }}
-            />
-            GFF input
-          </Typography>
+          <Box display="flex" alignItems="center">
+            <Typography
+              variant="h6"
+              style={{ marginTop: '10px', display: 'block' }}
+            >
+              <input
+                type="radio"
+                name="gffInputOption"
+                checked={fileType === FileType.GFF3}
+                onChange={() => {
+                  setFileType(FileType.GFF3)
+                }}
+              />
+              <span>GFF3 input</span>
+              <Tooltip title="Alternatively, upload assembly from a GFF3 file which includes FASTA sequences. File can be gzip compressed.">
+                <IconButton size="small">
+                  <InfoIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              </Tooltip>
+            </Typography>
+          </Box>
 
           {fileType === FileType.GFF3 ? (
             <Box style={{ marginTop: 20 }}>
