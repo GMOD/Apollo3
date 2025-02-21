@@ -413,8 +413,9 @@ export function renderingModelFactory(
             for (const [idx, featureLayout] of featureLayouts.entries()) {
               const displayedRegion = displayedRegions[idx]
               for (const [row, featureLayoutRow] of featureLayout.entries()) {
-                for (const [featureRow, feature] of featureLayoutRow) {
-                  if (featureRow > 0) {
+                for (const [featureRow, featureId] of featureLayoutRow) {
+                  const feature = self.getAnnotationFeatureById(featureId)
+                  if (featureRow > 0 || !feature) {
                     continue
                   }
                   if (

@@ -62,6 +62,9 @@ export function layoutsModelFactory(
           return
         })
       },
+      getAnnotationFeatureById(id: string) {
+        return self.seenFeatures.get(id)
+      },
       getGlyph(feature: AnnotationFeature) {
         if (this.looksLikeGene(feature)) {
           return geneGlyph
@@ -113,7 +116,7 @@ export function layoutsModelFactory(
           self.session as unknown as AbstractSessionModel
         return self.lgv.displayedRegions.map((region, idx) => {
           const assembly = assemblyManager.get(region.assemblyName)
-          const featureLayout = new Map<number, [number, AnnotationFeature][]>()
+          const featureLayout = new Map<number, [number, string][]>()
           const minMax = self.featuresMinMax[idx]
           if (!minMax) {
             return featureLayout
@@ -192,7 +195,7 @@ export function layoutsModelFactory(
                 }
                 row.fill(true, start, end)
                 const layoutRow = featureLayout.get(rowNum)
-                layoutRow?.push([rowNum - startingRow, feature])
+                layoutRow?.push([rowNum - startingRow, feature._id])
               }
               placed = true
             }
@@ -206,10 +209,15 @@ export function layoutsModelFactory(
           self.session.apolloDataStore.ontologyManager
         for (const [idx, layout] of featureLayouts.entries()) {
           for (const [layoutRowNum, layoutRow] of layout) {
-            for (const [featureRowNum, layoutFeature] of layoutRow) {
+            for (const [featureRowNum, layoutFeatureId] of layoutRow) {
               if (featureRowNum !== 0) {
                 // Same top-level feature in all feature rows, so only need to
                 // check the first one
+                continue
+              }
+              const layoutFeature =
+                self.getAnnotationFeatureById(layoutFeatureId)
+              if (!layoutFeature) {
                 continue
               }
               if (feature._id === layoutFeature._id) {

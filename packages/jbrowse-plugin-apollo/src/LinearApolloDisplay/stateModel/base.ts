@@ -44,6 +44,7 @@ export function baseModelFactory(
         ),
       ),
       filteredFeatureTypes: types.array(types.string),
+      fetchedFeaturesMinMaxPicture: types.array(types.array(types.number)),
     })
     .views((self) => {
       const { configuration, renderProps: superRenderProps } = self
@@ -167,6 +168,31 @@ export function baseModelFactory(
       updateFilteredFeatureTypes(types: string[]) {
         self.filteredFeatureTypes = cast(types)
       },
+      // Merge overlapping min max intervals and update fetchedFeaturesMinMaxPicture
+      updateFetchedFeaturesMinMaxPicture(minMax: number[]) {
+        let [min, max] = minMax
+        const minMaxPicture = []
+        let inserted = false
+        for (const [s, e] of self.fetchedFeaturesMinMaxPicture) {
+          if (max < s) {
+            if (!inserted) {
+              minMaxPicture.push([min, max])
+              inserted = true
+            }
+            minMaxPicture.push([s, e])
+          } else if (min > e) {
+            minMaxPicture.push([s, e])
+          } else {
+            min = Math.min(min, s)
+            max = Math.max(max, e)
+          }
+        }
+
+        if (!inserted) {
+          minMaxPicture.push([min, max])
+        }
+        self.fetchedFeaturesMinMaxPicture = cast(minMaxPicture)
+      },
     }))
     .views((self) => {
       const { filteredFeatureTypes, trackMenuItems: superTrackMenuItems } = self
@@ -244,9 +270,32 @@ export function baseModelFactory(
               if (!self.lgv.initialized || self.regionCannotBeRendered()) {
                 return
               }
-              void (
-                self.session as unknown as ApolloSessionModel
-              ).apolloDataStore.loadFeatures(self.regions)
+              // Only fetch features that are not already loaded
+              const regionsToLoad = []
+              for (const region of self.regions) {
+                let found = false
+                for (const [min, max] of self.fetchedFeaturesMinMaxPicture) {
+                  if (min <= region.start && region.end <= max) {
+                    found = true
+                    break
+                  }
+                }
+
+                if (!found) {
+                  regionsToLoad.push(region)
+                }
+              }
+              if (regionsToLoad.length > 0) {
+                for (const region of regionsToLoad) {
+                  self.updateFetchedFeaturesMinMaxPicture([
+                    region.start,
+                    region.end,
+                  ])
+                }
+                void (
+                  self.session as unknown as ApolloSessionModel
+                ).apolloDataStore.loadFeatures(regionsToLoad)
+              }
               if (self.lgv.bpPerPx <= 3) {
                 void (
                   self.session as unknown as ApolloSessionModel
