@@ -51,6 +51,9 @@ export function layoutsModelFactory(
   const BaseLinearApolloDisplay = baseModelFactory(pluginManager, configSchema)
 
   return BaseLinearApolloDisplay.named('LinearApolloDisplayLayouts')
+    .props({
+      cleanupBoundary: 200_000,
+    })
     .volatile(() => ({
       seenFeatures: observable.map<string, AnnotationFeature>(),
     }))
@@ -235,6 +238,30 @@ export function layoutsModelFactory(
               if (!self.lgv.initialized || self.regionCannotBeRendered()) {
                 return
               }
+              // Clear out features that are no longer in the view and out of the cleanup boundary
+              // cleanup boundary + region boundary + cleanup boundary
+              for (const [id, feature] of self.seenFeatures.entries()) {
+                let shouldKeep = false
+                for (const region of self.regions) {
+                  const extendedStart = region.start - self.cleanupBoundary
+                  const extendedEnd = region.end + self.cleanupBoundary
+                  if (
+                    doesIntersect2(
+                      extendedStart,
+                      extendedEnd,
+                      feature.min,
+                      feature.max,
+                    )
+                  ) {
+                    shouldKeep = true
+                    break
+                  }
+                }
+                if (!shouldKeep) {
+                  self.deleteSeenFeature(id)
+                }
+              }
+              // Add features that are in the current view
               for (const region of self.regions) {
                 const assembly = (
                   self.session as unknown as ApolloSessionModel
