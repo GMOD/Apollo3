@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { Menu, MenuItem } from '@jbrowse/core/ui'
+import { Menu, MenuItem, LoadingEllipses } from '@jbrowse/core/ui'
 import {
   AbstractSessionModel,
   doesIntersect2,
@@ -39,6 +39,15 @@ const useStyles = makeStyles()((theme) => ({
     color: theme.palette.warning.light,
     backgroundColor: theme.palette.warning.contrastText,
   },
+  loading: {
+    backgroundColor: theme.palette.background.default,
+    backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 5px, ${theme.palette.action.disabledBackground} 5px, ${theme.palette.action.disabledBackground} 10px)`,
+    position: 'absolute',
+    right: 0,
+    zIndex: 10,
+    pointerEvents: 'none',
+    textAlign: 'center',
+  },
 }))
 
 export const LinearApolloDisplay = observer(function LinearApolloDisplay(
@@ -47,6 +56,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const theme = useTheme()
   const { model } = props
   const {
+    loading,
     apolloRowHeight,
     contextMenuItems: getContextMenuItems,
     cursor,
@@ -128,6 +138,14 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
           }
         }}
       >
+        {loading ? (
+          <div
+            className={classes.loading}
+            style={{ width: '100%', height: 18 }}
+          >
+            <LoadingEllipses message="Fetching annotations, Please wait..." />
+          </div>
+        ) : null}
         {message ? (
           <Alert severity="warning" classes={{ message: classes.ellipses }}>
             <Tooltip title={message}>

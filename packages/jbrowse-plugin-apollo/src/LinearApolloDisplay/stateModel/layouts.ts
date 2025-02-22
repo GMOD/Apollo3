@@ -1,3 +1,4 @@
+import { addDisposer, isAlive } from 'mobx-state-tree'
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 
 import { AnnotationFeature } from '@apollo-annotation/mst'
@@ -5,11 +6,43 @@ import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configur
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
 import { autorun, observable } from 'mobx'
-import { addDisposer, isAlive } from 'mobx-state-tree'
 
 import { ApolloSessionModel } from '../../session'
 import { baseModelFactory } from './base'
 import { boxGlyph, geneGlyph, genericChildGlyph } from '../glyphs'
+
+function getRowsForFeature(
+  startingRow: number,
+  rowCount: number,
+  filledRowLocations: Map<number, [number, number][]>,
+) {
+  const rowsForFeature = []
+  for (let i = startingRow; i < startingRow + rowCount; i++) {
+    const row = filledRowLocations.get(i)
+    if (row) {
+      rowsForFeature.push(row)
+    }
+  }
+  return rowsForFeature
+}
+
+function canPlaceFeatureInRows(
+  rowsForFeature: [number, number][][],
+  feature: AnnotationFeature,
+) {
+  for (const rowForFeature of rowsForFeature) {
+    for (const [rowStart, rowEnd] of rowForFeature) {
+      if (
+        doesIntersect2(feature.min, feature.max, rowStart, rowEnd) ||
+        doesIntersect2(rowStart, rowEnd, feature.min, feature.max)
+      ) {
+        return false
+      }
+    }
+  }
+
+  return true
+}
 
 export function layoutsModelFactory(
   pluginManager: PluginManager,
@@ -18,50 +51,10 @@ export function layoutsModelFactory(
   const BaseLinearApolloDisplay = baseModelFactory(pluginManager, configSchema)
 
   return BaseLinearApolloDisplay.named('LinearApolloDisplayLayouts')
-    .props({
-      featuresMinMaxLimit: 500_000,
-    })
     .volatile(() => ({
       seenFeatures: observable.map<string, AnnotationFeature>(),
     }))
     .views((self) => ({
-      get featuresMinMax() {
-        const { assemblyManager } =
-          self.session as unknown as AbstractSessionModel
-        return self.lgv.displayedRegions.map((region) => {
-          const assembly = assemblyManager.get(region.assemblyName)
-          let min: number | undefined
-          let max: number | undefined
-          const { end, refName, start } = region
-          for (const [, feature] of self.seenFeatures) {
-            if (
-              refName !== assembly?.getCanonicalRefName(feature.refSeq) ||
-              !doesIntersect2(start, end, feature.min, feature.max) ||
-              feature.length > self.featuresMinMaxLimit ||
-              (self.filteredFeatureTypes.length > 0 &&
-                !self.filteredFeatureTypes.includes(feature.type))
-            ) {
-              continue
-            }
-            if (min === undefined) {
-              ;({ min } = feature)
-            }
-            if (max === undefined) {
-              ;({ max } = feature)
-            }
-            if (feature.minWithChildren < min) {
-              ;({ min } = feature)
-            }
-            if (feature.maxWithChildren > max) {
-              ;({ max } = feature)
-            }
-          }
-          if (min !== undefined && max !== undefined) {
-            return [min, max]
-          }
-          return
-        })
-      },
       getAnnotationFeatureById(id: string) {
         return self.seenFeatures.get(id)
       },
@@ -114,15 +107,11 @@ export function layoutsModelFactory(
       get featureLayouts() {
         const { assemblyManager } =
           self.session as unknown as AbstractSessionModel
-        return self.lgv.displayedRegions.map((region, idx) => {
+        return self.lgv.displayedRegions.map((region) => {
           const assembly = assemblyManager.get(region.assemblyName)
           const featureLayout = new Map<number, [number, string][]>()
-          const minMax = self.featuresMinMax[idx]
-          if (!minMax) {
-            return featureLayout
-          }
-          const [min, max] = minMax
-          const rows: boolean[][] = []
+          // Track the occupied coordinates in each row
+          const filledRowLocations = new Map<number, [number, number][]>()
           const { end, refName, start } = region
           for (const [id, feature] of self.seenFeatures.entries()) {
             if (!isAlive(feature)) {
@@ -148,36 +137,24 @@ export function layoutsModelFactory(
             let startingRow = 0
             let placed = false
             while (!placed) {
-              let rowsForFeature = rows.slice(
+              let rowsForFeature = getRowsForFeature(
                 startingRow,
-                startingRow + rowCount,
+                rowCount,
+                filledRowLocations,
               )
               if (rowsForFeature.length < rowCount) {
                 for (let i = 0; i < rowCount - rowsForFeature.length; i++) {
-                  const newRowNumber = rows.length
-                  rows[newRowNumber] = Array.from({ length: max - min })
+                  const newRowNumber = filledRowLocations.size
+                  filledRowLocations.set(newRowNumber, [])
                   featureLayout.set(newRowNumber, [])
                 }
-                rowsForFeature = rows.slice(startingRow, startingRow + rowCount)
+                rowsForFeature = getRowsForFeature(
+                  startingRow,
+                  rowCount,
+                  filledRowLocations,
+                )
               }
-              if (
-                rowsForFeature
-                  .map((rowForFeature) => {
-                    // zero-length features are allowed in the spec
-                    const featureMax =
-                      feature.max - feature.min === 0
-                        ? feature.min + 1
-                        : feature.max
-                    let start = feature.min - min,
-                      end = featureMax - min
-                    if (feature.min - min < 0) {
-                      start = 0
-                      end = featureMax - feature.min
-                    }
-                    return rowForFeature.slice(start, end).some(Boolean)
-                  })
-                  .some(Boolean)
-              ) {
+              if (!canPlaceFeatureInRows(rowsForFeature, feature)) {
                 startingRow += 1
                 continue
               }
@@ -186,14 +163,7 @@ export function layoutsModelFactory(
                 rowNum < startingRow + rowCount;
                 rowNum++
               ) {
-                const row = rows[rowNum]
-                let start = feature.min - min,
-                  end = feature.max - min
-                if (feature.min - min < 0) {
-                  start = 0
-                  end = feature.max - feature.min
-                }
-                row.fill(true, start, end)
+                filledRowLocations.get(rowNum)?.push([feature.min, feature.max])
                 const layoutRow = featureLayout.get(rowNum)
                 layoutRow?.push([rowNum - startingRow, feature._id])
               }

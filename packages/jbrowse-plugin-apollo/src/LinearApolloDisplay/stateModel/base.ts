@@ -16,7 +16,7 @@ import {
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { autorun } from 'mobx'
+import { autorun, observable } from 'mobx'
 import { addDisposer, cast, getRoot, types, getSnapshot } from 'mobx-state-tree'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
@@ -44,8 +44,11 @@ export function baseModelFactory(
         ),
       ),
       filteredFeatureTypes: types.array(types.string),
-      fetchedFeaturesMinMaxPicture: types.array(types.array(types.number)),
     })
+    .volatile(() => ({
+      loadingState: observable.box(false),
+      fetchedFeaturesMinMaxPicture: observable.array<number[]>([]),
+    }))
     .views((self) => {
       const { configuration, renderProps: superRenderProps } = self
       return {
@@ -76,6 +79,9 @@ export function baseModelFactory(
           return 200
         }
         return 300
+      },
+      get loading() {
+        return self.loadingState.get()
       },
     }))
     .views((self) => ({
@@ -191,7 +197,10 @@ export function baseModelFactory(
         if (!inserted) {
           minMaxPicture.push([min, max])
         }
-        self.fetchedFeaturesMinMaxPicture = cast(minMaxPicture)
+        self.fetchedFeaturesMinMaxPicture.replace(minMaxPicture)
+      },
+      setLoading(loading: boolean) {
+        self.loadingState.set(loading)
       },
     }))
     .views((self) => {
@@ -270,6 +279,7 @@ export function baseModelFactory(
               if (!self.lgv.initialized || self.regionCannotBeRendered()) {
                 return
               }
+              self.setLoading(true)
               // Only fetch features that are not already loaded
               const regionsToLoad = []
               for (const region of self.regions) {
@@ -294,8 +304,17 @@ export function baseModelFactory(
                 }
                 void (
                   self.session as unknown as ApolloSessionModel
-                ).apolloDataStore.loadFeatures(regionsToLoad)
+                ).apolloDataStore
+                  .loadFeatures(regionsToLoad)
+                  .then(() => {
+                    self.setLoading(false)
+                  })
+              } else {
+                self.setLoading(false)
               }
+              // void (
+              //   self.session as unknown as ApolloSessionModel
+              // ).apolloDataStore.loadFeatures(self.regions)
               if (self.lgv.bpPerPx <= 3) {
                 void (
                   self.session as unknown as ApolloSessionModel
