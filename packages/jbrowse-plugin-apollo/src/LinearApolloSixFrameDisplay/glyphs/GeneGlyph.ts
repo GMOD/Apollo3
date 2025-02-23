@@ -73,7 +73,7 @@ function draw(
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const { refName, reversed } = displayedRegion
   const rowHeight = apolloRowHeight
-  const exonHeight = Math.round(0.6 * rowHeight)
+  // const exonHeight = Math.round(0.6 * rowHeight)
   const cdsHeight = Math.round(0.9 * rowHeight)
   const { children, min, strand } = feature
   if (!children) {
@@ -104,13 +104,13 @@ function draw(
   )
 
   // Draw lines on different rows for each mRNA
-  let currentRow = 0
+  let currentRow = -1
   for (const [, mrna] of children) {
     if (mrna.type !== 'mRNA') {
       currentRow += 1
       continue
     }
-    const { children: childrenOfmRNA, min } = mrna
+    const { children: childrenOfmRNA } = mrna
     if (!childrenOfmRNA) {
       continue
     }
@@ -128,11 +128,11 @@ function draw(
       const startPx = reversed ? minX - widthPx : minX
       const height =
         Math.round((currentRow + 1 / 2) * rowHeight) + row * rowHeight
-      ctx.strokeStyle = theme?.palette.text.primary ?? 'black'
+      // ctx.strokeStyle = theme?.palette.text.primary ?? 'black'
       ctx.beginPath()
       ctx.moveTo(startPx, height)
       ctx.lineTo(startPx + widthPx, height)
-      ctx.stroke()
+      // ctx.stroke()
       currentRow += 1
     }
   }
@@ -142,65 +142,68 @@ function draw(
   const backwardFill =
     theme?.palette.mode === 'dark' ? backwardFillDark : backwardFillLight
   // Draw exon and CDS for each mRNA
-  currentRow = 0
+  // currentRow = 0
   for (const [, child] of children) {
-    if (child.type !== 'mRNA') {
-      boxGlyph.draw(ctx, child, row, stateModel, displayedRegionIndex)
-      currentRow += 1
-      continue
-    }
+    // if (child.type !== 'mRNA') {
+    //   boxGlyph.draw(ctx, child, row, stateModel, displayedRegionIndex)
+    //   // currentRow += 1
+    //   continue
+    // }
     for (const cdsRow of child.cdsLocations) {
       const { _id, children: childrenOfmRNA } = child
       if (!childrenOfmRNA) {
         continue
       }
-      for (const [, exon] of childrenOfmRNA) {
-        if (exon.type !== 'exon') {
-          continue
-        }
-        const minX =
-          (lgv.bpToPx({
-            refName,
-            coord: exon.min,
-            regionNumber: displayedRegionIndex,
-          })?.offsetPx ?? 0) - offsetPx
-        const widthPx = exon.length / bpPerPx
-        const startPx = reversed ? minX - widthPx : minX
+      //   for (const [, exon] of childrenOfmRNA) {
+      //     if (exon.type !== 'exon') {
+      //       continue
+      //     }
+      //     const minX =
+      //       (lgv.bpToPx({
+      //         refName,
+      //         coord: exon.min,
+      //         regionNumber: displayedRegionIndex,
+      //       })?.offsetPx ?? 0) - offsetPx
+      //     const widthPx = exon.length / bpPerPx
+      //     const startPx = reversed ? minX - widthPx : minX
 
-        const top = (row + currentRow) * rowHeight
-        const exonTop = top + (rowHeight - exonHeight) / 2
-        ctx.fillStyle = theme?.palette.text.primary ?? 'black'
-        ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
-        if (widthPx > 2) {
-          ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
-          ctx.fillStyle =
-            apolloSelectedFeature && exon._id === apolloSelectedFeature._id
-              ? 'rgb(0,0,0)'
-              : 'rgb(211,211,211)'
-          ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
-          if (forwardFill && backwardFill && strand) {
-            const reversal = reversed ? -1 : 1
-            const [topFill, bottomFill] =
-              strand * reversal === 1
-                ? [forwardFill, backwardFill]
-                : [backwardFill, forwardFill]
-            ctx.fillStyle = topFill
-            ctx.fillRect(
-              startPx + 1,
-              exonTop + 1,
-              widthPx - 2,
-              (exonHeight - 2) / 2,
-            )
-            ctx.fillStyle = bottomFill
-            ctx.fillRect(
-              startPx + 1,
-              exonTop + 1 + (exonHeight - 2) / 2,
-              widthPx - 2,
-              (exonHeight - 2) / 2,
-            )
-          }
-        }
-      }
+      //     const top = (row + currentRow) * rowHeight
+      //     const exonTop = top + (rowHeight - exonHeight) / 2
+      //     ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+      //     ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
+      //     if (widthPx > 2) {
+      //       ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
+      //       ctx.fillStyle =
+      //         apolloSelectedFeature && exon._id === apolloSelectedFeature._id
+      //           ? 'rgb(0,0,0)'
+      //           : 'rgb(211,211,211)'
+      //       ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
+      //       if (forwardFill && backwardFill && strand) {
+      //         const reversal = reversed ? -1 : 1
+      //         const [topFill, bottomFill] =
+      //           strand * reversal === 1
+      //             ? [forwardFill, backwardFill]
+      //             : [backwardFill, forwardFill]
+      //         ctx.fillStyle = topFill
+      //         ctx.fillRect(
+      //           startPx + 1,
+      //           exonTop + 1,
+      //           widthPx - 2,
+      //           (exonHeight - 2) / 2,
+      //         )
+      //         ctx.fillStyle = bottomFill
+      //         ctx.fillRect(
+      //           startPx + 1,
+      //           exonTop + 1 + (exonHeight - 2) / 2,
+      //           widthPx - 2,
+      //           (exonHeight - 2) / 2,
+      //         )
+      //       }
+      //     }
+      //   }
+      let prevCDSTop = 0
+      let prevCDSEndPx = 0
+      let counter = 1
       for (const cds of cdsRow) {
         const cdsWidthPx = (cds.max - cds.min) / bpPerPx
         const minX =
@@ -211,8 +214,8 @@ function draw(
           })?.offsetPx ?? 0) - offsetPx
         const cdsStartPx = reversed ? minX - cdsWidthPx : minX
         ctx.fillStyle = theme?.palette.text.primary ?? 'black'
-        const cdsTop =
-          (row + currentRow) * rowHeight + (rowHeight - cdsHeight) / 2
+        const frame = getFrame(cds.min, cds.max, child.strand ?? 1, cds.phase)
+        const cdsTop = (row + frame) * rowHeight + (rowHeight - cdsHeight) / 2
         ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
         if (cdsWidthPx > 2) {
           ctx.clearRect(
@@ -221,9 +224,10 @@ function draw(
             cdsWidthPx - 2,
             cdsHeight - 2,
           )
-          const frame = getFrame(cds.min, cds.max, child.strand ?? 1, cds.phase)
-          const frameColor = theme?.palette.framesCDS.at(frame)?.main
-          const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
+
+          // const frameColor = theme?.palette.framesCDS.at(frame)?.main
+          // const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
+          const cdsColorCode = 'rgb(171,71,188)'
           ctx.fillStyle =
             apolloSelectedFeature && _id === apolloSelectedFeature._id
               ? 'rgb(0,0,0)'
@@ -235,6 +239,19 @@ function draw(
             cdsWidthPx - 2,
             cdsHeight - 2,
           )
+
+          // Draw lines to connect CDS features with shared mRNA parent
+          if (counter > 1) {
+            ctx.strokeStyle = 'red'
+            ctx.beginPath()
+            ctx.moveTo(prevCDSEndPx, prevCDSTop)
+            ctx.lineTo(cdsStartPx, cdsTop + rowHeight / 2)
+            ctx.stroke()
+          }
+          prevCDSEndPx = cdsStartPx + cdsWidthPx
+          prevCDSTop = cdsTop + rowHeight / 2
+          counter += 1
+
           if (forwardFill && backwardFill && strand) {
             const reversal = reversed ? -1 : 1
             const [topFill, bottomFill] =
@@ -258,7 +275,7 @@ function draw(
           }
         }
       }
-      currentRow += 1
+      // currentRow += 1
     }
   }
 }
