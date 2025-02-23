@@ -61,6 +61,18 @@ if ('document' in globalThis) {
   }
 }
 
+/**
+ * Use the golden ratio to generate distinct colors for a given integer
+ * See https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
+ * @param number -
+ * @returns HSL string
+ */
+function selectColor(number: number) {
+  const goldenAngle = 180 * (3 - Math.sqrt(5))
+  const hue = number * goldenAngle + 60
+  return `hsl(${hue},100%,50%)`
+}
+
 function draw(
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
@@ -242,9 +254,20 @@ function draw(
 
           // Draw lines to connect CDS features with shared mRNA parent
           if (counter > 1) {
-            ctx.strokeStyle = 'red'
+            // Mid-point for intron line "hat"
+            const midPoint: [number, number] = [
+              (cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx,
+              Math.max(
+                1, // Avoid render ceiling
+                Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
+              ),
+            ]
+            ctx.strokeStyle = selectColor(counter)
             ctx.beginPath()
             ctx.moveTo(prevCDSEndPx, prevCDSTop)
+            ctx.lineTo(...midPoint)
+            ctx.stroke()
+            ctx.moveTo(...midPoint)
             ctx.lineTo(cdsStartPx, cdsTop + rowHeight / 2)
             ctx.stroke()
           }
