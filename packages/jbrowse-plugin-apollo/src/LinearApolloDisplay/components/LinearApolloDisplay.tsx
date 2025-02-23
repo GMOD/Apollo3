@@ -143,7 +143,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             className={classes.loading}
             style={{ width: '100%', height: 18 }}
           >
-            <LoadingEllipses message="Fetching annotations, Please wait..." />
+            <LoadingEllipses message="Loading annotations, Please wait..." />
           </div>
         ) : null}
         {message ? (

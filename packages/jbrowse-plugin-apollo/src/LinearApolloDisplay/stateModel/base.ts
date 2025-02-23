@@ -16,7 +16,7 @@ import {
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { autorun, observable } from 'mobx'
+import { autorun } from 'mobx'
 import { addDisposer, cast, getRoot, types, getSnapshot } from 'mobx-state-tree'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
@@ -44,11 +44,8 @@ export function baseModelFactory(
         ),
       ),
       filteredFeatureTypes: types.array(types.string),
+      loadingState: false,
     })
-    .volatile(() => ({
-      loadingState: observable.box(false),
-      fetchedFeaturesMinMaxPicture: observable.array<number[]>([]),
-    }))
     .views((self) => {
       const { configuration, renderProps: superRenderProps } = self
       return {
@@ -81,7 +78,7 @@ export function baseModelFactory(
         return 300
       },
       get loading() {
-        return self.loadingState.get()
+        return self.loadingState
       },
     }))
     .views((self) => ({
@@ -174,33 +171,8 @@ export function baseModelFactory(
       updateFilteredFeatureTypes(types: string[]) {
         self.filteredFeatureTypes = cast(types)
       },
-      // Merge overlapping min max intervals and update fetchedFeaturesMinMaxPicture
-      updateFetchedFeaturesMinMaxPicture(minMax: number[]) {
-        let [min, max] = minMax
-        const minMaxPicture = []
-        let inserted = false
-        for (const [s, e] of self.fetchedFeaturesMinMaxPicture) {
-          if (max < s) {
-            if (!inserted) {
-              minMaxPicture.push([min, max])
-              inserted = true
-            }
-            minMaxPicture.push([s, e])
-          } else if (min > e) {
-            minMaxPicture.push([s, e])
-          } else {
-            min = Math.min(min, s)
-            max = Math.max(max, e)
-          }
-        }
-
-        if (!inserted) {
-          minMaxPicture.push([min, max])
-        }
-        self.fetchedFeaturesMinMaxPicture.replace(minMaxPicture)
-      },
       setLoading(loading: boolean) {
-        self.loadingState.set(loading)
+        self.loadingState = loading
       },
     }))
     .views((self) => {
@@ -280,41 +252,15 @@ export function baseModelFactory(
                 return
               }
               self.setLoading(true)
-              // Only fetch features that are not already loaded
-              const regionsToLoad = []
-              for (const region of self.regions) {
-                let found = false
-                for (const [min, max] of self.fetchedFeaturesMinMaxPicture) {
-                  if (min <= region.start && region.end <= max) {
-                    found = true
-                    break
-                  }
-                }
-
-                if (!found) {
-                  regionsToLoad.push(region)
-                }
-              }
-              if (regionsToLoad.length > 0) {
-                for (const region of regionsToLoad) {
-                  self.updateFetchedFeaturesMinMaxPicture([
-                    region.start,
-                    region.end,
-                  ])
-                }
-                void (
-                  self.session as unknown as ApolloSessionModel
-                ).apolloDataStore
-                  .loadFeatures(regionsToLoad)
-                  .then(() => {
+              void (
+                self.session as unknown as ApolloSessionModel
+              ).apolloDataStore
+                .loadFeatures(self.regions)
+                .then(() => {
+                  setTimeout(() => {
                     self.setLoading(false)
-                  })
-              } else {
-                self.setLoading(false)
-              }
-              // void (
-              //   self.session as unknown as ApolloSessionModel
-              // ).apolloDataStore.loadFeatures(self.regions)
+                  }, 1000)
+                })
               if (self.lgv.bpPerPx <= 3) {
                 void (
                   self.session as unknown as ApolloSessionModel
