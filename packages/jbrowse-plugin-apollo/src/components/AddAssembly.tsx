@@ -26,10 +26,15 @@ import {
   TableCell,
   TableRow,
   TextField,
-  Typography,
   InputAdornment,
   Tooltip,
   IconButton,
+  AccordionSummary,
+  Accordion,
+  AccordionDetails,
+  Typography,
+  Tabs,
+  Tab,
 } from '@mui/material'
 
 import InfoIcon from '@mui/icons-material/Info'
@@ -59,6 +64,13 @@ enum FileType {
   FAI = 'text/x-fai',
   GZI = 'application/x-gzi',
   EXTERNAL = 'text/x-external',
+}
+
+function a11yProps(index: number) {
+  return {
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`,
+  }
 }
 
 export function AddAssembly({
@@ -292,6 +304,34 @@ export function AddAssembly({
     // pass
   }
 
+  interface TabPanelProps {
+    children?: React.ReactNode
+    index: number
+    value: number
+  }
+
+  function CustomTabPanel(props: TabPanelProps) {
+    const { children, value, index, ...other } = props
+
+    return (
+      <div
+        role="tabpanel"
+        hidden={value !== index}
+        id={`simple-tabpanel-${index}`}
+        aria-labelledby={`simple-tab-${index}`}
+        {...other}
+      >
+        {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+      </div>
+    )
+  }
+
+  const [value, setValue] = React.useState(0)
+
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setValue(newValue)
+  }
+
   return (
     <Dialog
       open={true}
@@ -301,7 +341,7 @@ export function AddAssembly({
       maxWidth={false}
     >
       <form onSubmit={onSubmit}>
-        <DialogContent>
+        <DialogContent sx={{ minWidth: '550px' }}>
           {loading ? <LinearProgress /> : null}
           <TextField
             margin="dense"
@@ -318,25 +358,29 @@ export function AddAssembly({
             disabled={submitted && !errorMessage}
           />
 
-          <Typography
-            variant="h6"
-            style={{ marginTop: '10px', display: 'block' }}
-          >
-            <input
-              type="radio"
-              name="fastaInputOption"
-              checked={
-                fileType === FileType.BGZIP_FASTA ||
-                fileType === FileType.EXTERNAL
-              }
-              onChange={() => {
-                setFileType(FileType.BGZIP_FASTA)
-              }}
-            />
-            FASTA input
-          </Typography>
-          {fileType === FileType.BGZIP_FASTA ||
-          fileType === FileType.EXTERNAL ? (
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs
+              value={value}
+              onChange={handleChange}
+              aria-label="input selector"
+            >
+              <Tab
+                label="FASTA input"
+                {...a11yProps(0)}
+                onClick={() => {
+                  setFileType(FileType.BGZIP_FASTA)
+                }}
+              />
+              <Tab
+                label="GFF3 input"
+                {...a11yProps(1)}
+                onClick={() => {
+                  setFileType(FileType.GFF3)
+                }}
+              />
+            </Tabs>
+          </Box>
+          <CustomTabPanel value={value} index={0}>
             <FormGroup>
               <FormControlLabel
                 control={
@@ -348,6 +392,7 @@ export function AddAssembly({
                           : FileType.EXTERNAL,
                       )
                     }}
+                    checked={fileType === FileType.EXTERNAL}
                     disabled={sequenceIsEditable}
                   />
                 }
@@ -360,11 +405,12 @@ export function AddAssembly({
                     onChange={() => {
                       setSequenceIsEditable(!sequenceIsEditable)
                     }}
+                    checked={sequenceIsEditable}
                   />
                 }
                 label={
                   <Box display="flex" alignItems="center">
-                    <span>Allow sequence to be editable</span>
+                    <span>Allow sequence to be edited</span>
                     <Tooltip
                       title="Use with care: If checked, users can edit the genomic sequence together with the annotation"
                       placement="top-start"
@@ -523,32 +569,8 @@ export function AddAssembly({
                 </Table>
               )}
             </FormGroup>
-          ) : (
-            <div></div>
-          )}
-          <Box display="flex" alignItems="center">
-            <Typography
-              variant="h6"
-              style={{ marginTop: '10px', display: 'block' }}
-            >
-              <input
-                type="radio"
-                name="gffInputOption"
-                checked={fileType === FileType.GFF3}
-                onChange={() => {
-                  setFileType(FileType.GFF3)
-                }}
-              />
-              <span>GFF3 input</span>
-              <Tooltip title="Alternatively, upload assembly from a GFF3 file which includes FASTA sequences. File can be gzip compressed.">
-                <IconButton size="small">
-                  <InfoIcon sx={{ fontSize: 18 }} />
-                </IconButton>
-              </Tooltip>
-            </Typography>
-          </Box>
-
-          {fileType === FileType.GFF3 ? (
+          </CustomTabPanel>
+          <CustomTabPanel value={value} index={1}>
             <Box style={{ marginTop: 20 }}>
               <input
                 type="file"
@@ -576,9 +598,7 @@ export function AddAssembly({
                 />
               </FormGroup>
             </Box>
-          ) : (
-            <div></div>
-          )}
+          </CustomTabPanel>
         </DialogContent>
         <DialogActions>
           <Button
