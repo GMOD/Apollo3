@@ -9,7 +9,13 @@ import {
 } from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import ErrorIcon from '@mui/icons-material/Error'
-import { Alert, Avatar, Tooltip, useTheme } from '@mui/material'
+import {
+  Alert,
+  Avatar,
+  CircularProgress,
+  Tooltip,
+  useTheme,
+} from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
@@ -39,6 +45,13 @@ const useStyles = makeStyles()((theme) => ({
     color: theme.palette.warning.light,
     backgroundColor: theme.palette.warning.contrastText,
   },
+  loading: {
+    position: 'absolute',
+    right: theme.spacing(3),
+    zIndex: 10,
+    pointerEvents: 'none',
+    textAlign: 'right',
+  },
 }))
 
 export const LinearApolloDisplay = observer(function LinearApolloDisplay(
@@ -47,6 +60,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const theme = useTheme()
   const { model } = props
   const {
+    loading,
     apolloRowHeight,
     contextMenuItems: getContextMenuItems,
     cursor,
@@ -128,6 +142,11 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
           }
         }}
       >
+        {loading ? (
+          <div className={classes.loading}>
+            <CircularProgress size="18px" />
+          </div>
+        ) : null}
         {message ? (
           <Alert severity="warning" classes={{ message: classes.ellipses }}>
             <Tooltip title={message}>

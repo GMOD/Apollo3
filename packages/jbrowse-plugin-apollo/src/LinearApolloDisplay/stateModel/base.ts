@@ -44,6 +44,7 @@ export function baseModelFactory(
         ),
       ),
       filteredFeatureTypes: types.array(types.string),
+      loadingState: false,
     })
     .views((self) => {
       const { configuration, renderProps: superRenderProps } = self
@@ -75,6 +76,9 @@ export function baseModelFactory(
           return 200
         }
         return 300
+      },
+      get loading() {
+        return self.loadingState
       },
     }))
     .views((self) => ({
@@ -167,6 +171,9 @@ export function baseModelFactory(
       updateFilteredFeatureTypes(types: string[]) {
         self.filteredFeatureTypes = cast(types)
       },
+      setLoading(loading: boolean) {
+        self.loadingState = loading
+      },
     }))
     .views((self) => {
       const { filteredFeatureTypes, trackMenuItems: superTrackMenuItems } = self
@@ -244,9 +251,16 @@ export function baseModelFactory(
               if (!self.lgv.initialized || self.regionCannotBeRendered()) {
                 return
               }
+              self.setLoading(true)
               void (
                 self.session as unknown as ApolloSessionModel
-              ).apolloDataStore.loadFeatures(self.regions)
+              ).apolloDataStore
+                .loadFeatures(self.regions)
+                .then(() => {
+                  setTimeout(() => {
+                    self.setLoading(false)
+                  }, 1000)
+                })
               if (self.lgv.bpPerPx <= 3) {
                 void (
                   self.session as unknown as ApolloSessionModel
