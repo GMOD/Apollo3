@@ -47,7 +47,7 @@ const useStyles = makeStyles()((theme) => ({
   },
   loading: {
     position: 'absolute',
-    right: 0,
+    right: theme.spacing(3),
     zIndex: 10,
     pointerEvents: 'none',
     textAlign: 'right',
