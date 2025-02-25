@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { Menu, MenuItem, LoadingEllipses } from '@jbrowse/core/ui'
+import { Menu, MenuItem } from '@jbrowse/core/ui'
 import {
   AbstractSessionModel,
   doesIntersect2,
@@ -9,7 +9,13 @@ import {
 } from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import ErrorIcon from '@mui/icons-material/Error'
-import { Alert, Avatar, Tooltip, useTheme } from '@mui/material'
+import {
+  Alert,
+  Avatar,
+  CircularProgress,
+  Tooltip,
+  useTheme,
+} from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
@@ -40,13 +46,11 @@ const useStyles = makeStyles()((theme) => ({
     backgroundColor: theme.palette.warning.contrastText,
   },
   loading: {
-    backgroundColor: theme.palette.background.default,
-    backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 5px, ${theme.palette.action.disabledBackground} 5px, ${theme.palette.action.disabledBackground} 10px)`,
     position: 'absolute',
     right: 0,
     zIndex: 10,
     pointerEvents: 'none',
-    textAlign: 'center',
+    textAlign: 'right',
   },
 }))
 
@@ -139,11 +143,8 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
         }}
       >
         {loading ? (
-          <div
-            className={classes.loading}
-            style={{ width: '100%', height: 18 }}
-          >
-            <LoadingEllipses message="Loading annotations, Please wait..." />
+          <div className={classes.loading}>
+            <CircularProgress size="18px" />
           </div>
         ) : null}
         {message ? (
