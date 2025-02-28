@@ -151,7 +151,7 @@ void describe('Test CLI', () => {
     assert.ok(p.stdout.includes('vv3') == false)
 
     const out = JSON.parse(p.stdout)
-    const aid = out.filter((x: any) => x.name === 'vv1').at(0)._id
+    const aid = out.find((x: any) => x.name === 'vv1')._id
     p = new Shell(`${apollo} assembly get ${P} -a ${aid} vv2`)
     assert.ok(p.stdout.includes('vv1'))
     assert.ok(p.stdout.includes('vv2'))
@@ -274,7 +274,7 @@ void describe('Test CLI', () => {
     p = new Shell(`${apollo} refseq get ${P}`)
     const refseq = JSON.parse(p.stdout.trim())
     const vv1ref = refseq.filter((x: any) => x.assembly === asm_id)
-    const refseq_id = vv1ref.filter((x: any) => x.name === 'ctgA').at(0)._id
+    const refseq_id = vv1ref.find((x: any) => x.name === 'ctgA')._id
 
     p = new Shell(`${apollo} feature get ${P} -r ${refseq_id}`)
     const ff = JSON.parse(p.stdout)
@@ -571,11 +571,9 @@ void describe('Test CLI', () => {
     // Edit a feature by extending beyond the boundary of its parent and
     // check it throws a meaningful error message
     // let eden_gene = undefined
-    const eden_gene = features
-      .filter(
-        (x: any) => x.type === 'gene' && x.attributes.gff_name.at(0) === 'EDEN',
-      )
-      .at(0)
+    const eden_gene = features.find(
+      (x: any) => x.type === 'gene' && x.attributes.gff_name.at(0) === 'EDEN',
+    )
     assert.ok(eden_gene)
     const mrna_id = Object.keys(eden_gene.children).at(0)
     p = new Shell(
@@ -839,9 +837,9 @@ void describe('Test CLI', () => {
 
     // RefSeq id does not need assembly
     p = new Shell(`${apollo} refseq get ${P} -a dest2`)
-    const destRefSeq = JSON.parse(p.stdout)
-      .filter((x: any) => x.name === 'ctgA')
-      .at(0)._id
+    const destRefSeq = JSON.parse(p.stdout).find(
+      (x: any) => x.name === 'ctgA',
+    )._id
 
     p = new Shell(`${apollo} feature copy ${P} -i ${fid} -r ${destRefSeq} -s 2`)
     p = new Shell(`${apollo} feature search ${P} -a dest2 -t contig`)
@@ -984,7 +982,7 @@ void describe('Test CLI', () => {
     let p = new Shell(`${apollo} assembly check ${P}`)
     let out = JSON.parse(p.stdout)
     assert.ok(p.stdout.includes('CDSCheck'))
-    const cdsCheckId = out.filter((x: any) => x.name === 'CDSCheck').at(0)._id
+    const cdsCheckId = out.find((x: any) => x.name === 'CDSCheck')._id
 
     // Test view checks set for assembly
     p = new Shell(`${apollo} assembly check ${P} -a v1`)
@@ -1399,7 +1397,7 @@ void describe('Test CLI', () => {
     assert.ok(gff.startsWith('##gff-version 3'))
     assert.ok(gff.includes('multivalue=val1,val2,val3'))
     assert.ok(gff.includes('##FASTA\n'))
-    assert.deepStrictEqual(gff.slice(-6, gff.length), 'taccc\n')
+    assert.deepStrictEqual(gff.slice(-6), 'taccc\n')
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
     gff = p.stdout
@@ -1424,7 +1422,7 @@ void describe('Test CLI', () => {
     assert.ok(gff.includes('multivalue=val1,val2,val3'))
     assert.ok(gff.includes('##FASTA\n'))
     // We end with two newlines because the test data does have an extra newline at the end.
-    assert.deepStrictEqual(gff.slice(-7, gff.length), 'taccc\n\n')
+    assert.deepStrictEqual(gff.slice(-7), 'taccc\n\n')
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
     gff = p.stdout
@@ -1444,7 +1442,7 @@ void describe('Test CLI', () => {
     assert.ok(gff.includes('multivalue=val1,val2,val3'))
     assert.ok(gff.includes('##FASTA\n'))
     // We end with two newlines because the test data does have an extra newline at the end.
-    assert.deepStrictEqual(gff.slice(-7, gff.length), 'taccc\n\n')
+    assert.deepStrictEqual(gff.slice(-7), 'taccc\n\n')
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
     gff = p.stdout
