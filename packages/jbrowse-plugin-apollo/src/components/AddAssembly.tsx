@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -176,7 +175,11 @@ export function AddAssembly({
     }
   }
 
-  async function uploadFile(file: File, fileType: FileType): Promise<string> {
+  async function uploadFile(
+    file: File,
+    fileType: FileType,
+    isGzip: boolean | null,
+  ): Promise<string> {
     const { jobsManager } = session
     const controller = new AbortController()
 
@@ -211,7 +214,7 @@ export function AddAssembly({
       const { signal } = controller
 
       const headers = new Headers()
-      if (file.name.endsWith('.gz')) {
+      if (isGzip || (isGzip === null && file.name.endsWith('.gz'))) {
         headers.append('Content-Encoding', 'gzip')
       }
 
@@ -269,7 +272,7 @@ export function AddAssembly({
         throw new Error('Missing fasta file')
       }
       if (fileType === FileType.GFF3 && importFeatures) {
-        const faId = await uploadFile(fastaFile, FileType.GFF3)
+        const faId = await uploadFile(fastaFile, FileType.GFF3, null)
         change = new AddAssemblyAndFeaturesFromFileChange({
           typeName: 'AddAssemblyAndFeaturesFromFileChange',
           assembly: new ObjectID().toHexString(),
@@ -277,7 +280,7 @@ export function AddAssembly({
           fileIds: { fa: faId },
         })
       } else if (fileType === FileType.GFF3) {
-        const faId = await uploadFile(fastaFile, FileType.GFF3)
+        const faId = await uploadFile(fastaFile, FileType.GFF3, null)
         change = new AddAssemblyFromFileChange({
           typeName: 'AddAssemblyFromFileChange',
           assembly: new ObjectID().toHexString(),
@@ -287,7 +290,7 @@ export function AddAssembly({
           },
         })
       } else if (sequenceIsEditable) {
-        const faId = await uploadFile(fastaFile, FileType.FASTA)
+        const faId = await uploadFile(fastaFile, FileType.FASTA, null)
         change = new AddAssemblyFromFileChange({
           typeName: 'AddAssemblyFromFileChange',
           assembly: new ObjectID().toHexString(),
@@ -300,9 +303,9 @@ export function AddAssembly({
         if (!fastaIndexFile || !fastaGziIndexFile) {
           throw new Error('Missing fasta index files')
         }
-        const faId = await uploadFile(fastaFile, FileType.BGZIP_FASTA)
-        const faiId = await uploadFile(fastaIndexFile, FileType.FAI)
-        const gziId = await uploadFile(fastaGziIndexFile, FileType.GZI)
+        const faId = await uploadFile(fastaFile, FileType.BGZIP_FASTA, null)
+        const faiId = await uploadFile(fastaIndexFile, FileType.FAI, null)
+        const gziId = await uploadFile(fastaGziIndexFile, FileType.GZI, null)
 
         change = new AddAssemblyFromFileChange({
           typeName: 'AddAssemblyFromFileChange',
@@ -371,7 +374,7 @@ export function AddAssembly({
       title="Add new assembly"
       maxWidth={false}
     >
-      <form onSubmit={onSubmit}>
+      <form onSubmit={onSubmit} data-testid="submit-form">
         <DialogContent className={classes.dialog}>
           {loading ? <LinearProgress /> : null}
           <TextField
@@ -420,6 +423,7 @@ export function AddAssembly({
             <AccordionDetails className={classes.accordionDetails}>
               <FormGroup>
                 <FormControlLabel
+                  data-testid="files-on-url-checkbox"
                   control={
                     <Checkbox
                       onChange={() => {
@@ -442,6 +446,7 @@ export function AddAssembly({
                 />
 
                 <FormControlLabel
+                  data-testid="sequence-is-editable-checkbox"
                   control={
                     <Checkbox
                       onChange={() => {
@@ -483,6 +488,7 @@ export function AddAssembly({
                       </TableCell>
                       <TableCell style={{ borderBottomWidth: 0 }}>
                         <input
+                          data-testid="fasta-input-file"
                           type="file"
                           onChange={(
                             e: React.ChangeEvent<HTMLInputElement>,
@@ -499,6 +505,7 @@ export function AddAssembly({
                       </TableCell>
                       <TableCell style={{ borderBottomWidth: 0 }}>
                         <input
+                          data-testid="fai-input-file"
                           type="file"
                           onChange={(
                             e: React.ChangeEvent<HTMLInputElement>,
@@ -517,6 +524,7 @@ export function AddAssembly({
                       </TableCell>
                       <TableCell style={{ borderBottomWidth: 0 }}>
                         <input
+                          data-testid="gzi-input-file"
                           type="file"
                           onChange={(
                             e: React.ChangeEvent<HTMLInputElement>,
@@ -548,6 +556,7 @@ export function AddAssembly({
                       </TableCell>
                       <TableCell style={{ borderBottomWidth: 0 }}>
                         <TextField
+                          data-testid="fasta-input-url"
                           variant="outlined"
                           value={fastaUrl}
                           error={!validFastaUrl}
@@ -575,6 +584,7 @@ export function AddAssembly({
                       </TableCell>
                       <TableCell style={{ borderBottomWidth: 0 }}>
                         <TextField
+                          data-testid="fai-input-url"
                           variant="outlined"
                           value={fastaIndexUrl}
                           error={!validFastaIndexUrl}
@@ -602,6 +612,7 @@ export function AddAssembly({
                       </TableCell>
                       <TableCell style={{ borderBottomWidth: 0 }}>
                         <TextField
+                          data-testid="gzi-input-url"
                           variant="outlined"
                           value={fastaGziIndexUrl}
                           error={!validFastaGziIndexUrl}
@@ -652,7 +663,6 @@ export function AddAssembly({
                 )
               }
               aria-controls="panelGffInputd-content"
-              id="panelGffInputd-header"
             >
               <Typography component="span">
                 GFF3 input
@@ -667,6 +677,7 @@ export function AddAssembly({
             <AccordionDetails className={classes.accordionDetails}>
               <Box style={{ marginTop: 20 }}>
                 <input
+                  data-testid="gff3-input-file"
                   type="file"
                   disabled={submitted && !errorMessage}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -709,6 +720,7 @@ export function AddAssembly({
             }
             variant="contained"
             type="submit"
+            data-testid="submit-button"
           >
             {submitted ? 'Submitting...' : 'Submit'}
           </Button>
