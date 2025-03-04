@@ -220,12 +220,12 @@ export function AddAssembly({
       const { signal } = controller
 
       const headers = new Headers()
-      // if (
-      //   isGzip ||
-      //   (isGzip === null && file.name.toLowerCase().endsWith('.gz'))
-      // ) {
-      //   headers.append('Content-Encoding', 'gzip')
-      // }
+      if (
+        isGzip ||
+        (isGzip === null && file.name.toLowerCase().endsWith('.gz'))
+      ) {
+        headers.append('Content-Encoding', 'gzip')
+      }
 
       const response = await apolloFetchFile(uri, {
         method: 'POST',
