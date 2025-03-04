@@ -32,7 +32,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/file/delete.ts](https://github.com/GMOD/Apollo3/blob/v0.3.1/packages/apollo-cli/src/commands/file/delete.ts)_
+[src/commands/file/delete.ts](https://github.com/GMOD/Apollo3/blob/v0.3.3/packages/apollo-cli/src/commands/file/delete.ts)_
 
 ## `apollo file download`
 
@@ -60,7 +60,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/file/download.ts](https://github.com/GMOD/Apollo3/blob/v0.3.1/packages/apollo-cli/src/commands/file/download.ts)_
+[src/commands/file/download.ts](https://github.com/GMOD/Apollo3/blob/v0.3.3/packages/apollo-cli/src/commands/file/download.ts)_
 
 ## `apollo file get`
 
@@ -87,7 +87,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/file/get.ts](https://github.com/GMOD/Apollo3/blob/v0.3.1/packages/apollo-cli/src/commands/file/get.ts)_
+[src/commands/file/get.ts](https://github.com/GMOD/Apollo3/blob/v0.3.3/packages/apollo-cli/src/commands/file/get.ts)_
 
 ## `apollo file upload INPUT-FILE`
 
@@ -124,4 +124,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/file/upload.ts](https://github.com/GMOD/Apollo3/blob/v0.3.1/packages/apollo-cli/src/commands/file/upload.ts)_
+[src/commands/file/upload.ts](https://github.com/GMOD/Apollo3/blob/v0.3.3/packages/apollo-cli/src/commands/file/upload.ts)_

@@ -1,6 +1,6 @@
 {
   "name": "@apollo-annotation/cli",
-  "version": "0.3.1",
+  "version": "0.3.3",
   "description": "Command line interface for the Apollo annotation server",
   "repository": {
     "type": "git",
