@@ -32,6 +32,11 @@ import {
   TableBody,
   InputAdornment,
   TableRow,
+  FormControl,
+  InputLabel,
+  Select,
+  SelectChangeEvent,
+  MenuItem,
 } from '@mui/material'
 
 import { makeStyles } from 'tss-react/mui'
@@ -152,6 +157,7 @@ export function AddAssembly({
   const [fastaGziIndexUrl, setFastaGziIndexUrl] = useState<string>('')
 
   const [loading, setLoading] = useState(false)
+  const [isGzip, setIsGzip] = React.useState<boolean | null>(null)
 
   useEffect(() => {
     setFastaIndexUrl(fastaUrl ? `${fastaUrl}.fai` : '')
@@ -214,9 +220,12 @@ export function AddAssembly({
       const { signal } = controller
 
       const headers = new Headers()
-      if (isGzip || (isGzip === null && file.name.endsWith('.gz'))) {
-        headers.append('Content-Encoding', 'gzip')
-      }
+      // if (
+      //   isGzip ||
+      //   (isGzip === null && file.name.toLowerCase().endsWith('.gz'))
+      // ) {
+      //   headers.append('Content-Encoding', 'gzip')
+      // }
 
       const response = await apolloFetchFile(uri, {
         method: 'POST',
@@ -272,7 +281,7 @@ export function AddAssembly({
         throw new Error('Missing fasta file')
       }
       if (fileType === FileType.GFF3 && importFeatures) {
-        const faId = await uploadFile(fastaFile, FileType.GFF3, null)
+        const faId = await uploadFile(fastaFile, FileType.GFF3, isGzip)
         change = new AddAssemblyAndFeaturesFromFileChange({
           typeName: 'AddAssemblyAndFeaturesFromFileChange',
           assembly: new ObjectID().toHexString(),
@@ -280,7 +289,7 @@ export function AddAssembly({
           fileIds: { fa: faId },
         })
       } else if (fileType === FileType.GFF3) {
-        const faId = await uploadFile(fastaFile, FileType.GFF3, null)
+        const faId = await uploadFile(fastaFile, FileType.GFF3, isGzip)
         change = new AddAssemblyFromFileChange({
           typeName: 'AddAssemblyFromFileChange',
           assembly: new ObjectID().toHexString(),
@@ -290,7 +299,7 @@ export function AddAssembly({
           },
         })
       } else if (sequenceIsEditable) {
-        const faId = await uploadFile(fastaFile, FileType.FASTA, null)
+        const faId = await uploadFile(fastaFile, FileType.FASTA, isGzip)
         change = new AddAssemblyFromFileChange({
           typeName: 'AddAssemblyFromFileChange',
           assembly: new ObjectID().toHexString(),
@@ -303,9 +312,9 @@ export function AddAssembly({
         if (!fastaIndexFile || !fastaGziIndexFile) {
           throw new Error('Missing fasta index files')
         }
-        const faId = await uploadFile(fastaFile, FileType.BGZIP_FASTA, null)
-        const faiId = await uploadFile(fastaIndexFile, FileType.FAI, null)
-        const gziId = await uploadFile(fastaGziIndexFile, FileType.GZI, null)
+        const faId = await uploadFile(fastaFile, FileType.BGZIP_FASTA, true)
+        const faiId = await uploadFile(fastaIndexFile, FileType.FAI, false)
+        const gziId = await uploadFile(fastaGziIndexFile, FileType.GZI, false)
 
         change = new AddAssemblyFromFileChange({
           typeName: 'AddAssemblyFromFileChange',
@@ -685,7 +694,7 @@ export function AddAssembly({
                     setFileType(FileType.GFF3)
                   }}
                 />
-                <FormGroup>
+                <FormGroup style={{ display: 'grid' }}>
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -698,6 +707,26 @@ export function AddAssembly({
                     }
                     label="Also load features from GFF3 file"
                   />
+                  <FormControl sx={{ width: 200 }}>
+                    <InputLabel>Input is gzip compressed</InputLabel>
+                    <Select
+                      defaultValue="Autodetect"
+                      label="Input is gzip compressed"
+                      onChange={(event: SelectChangeEvent) => {
+                        if (event.target.value === 'Yes') {
+                          setIsGzip(true)
+                        } else if (event.target.value === 'No') {
+                          setIsGzip(false)
+                        } else {
+                          setIsGzip(null)
+                        }
+                      }}
+                    >
+                      <MenuItem value={'Yes'}>Yes</MenuItem>
+                      <MenuItem value={'No'}>No</MenuItem>
+                      <MenuItem value={'Autodetect'}>Autodetect</MenuItem>
+                    </Select>
+                  </FormControl>
                 </FormGroup>
               </Box>
             </AccordionDetails>
