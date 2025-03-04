@@ -222,7 +222,7 @@ describe('Add Assembly', () => {
     })
   })
 
-  it('Add assembly from gzip file', () => {
+  it('Add assembly from gzip GFF3 file', () => {
     cy.exec(
       'gzip -c test_data/volvox.fasta.gff3 > test_data/volvox.fasta.gff3.gz',
     )

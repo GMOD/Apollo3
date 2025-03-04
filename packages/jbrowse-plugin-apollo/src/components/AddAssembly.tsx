@@ -32,11 +32,6 @@ import {
   TableBody,
   InputAdornment,
   TableRow,
-  FormControl,
-  InputLabel,
-  Select,
-  SelectChangeEvent,
-  MenuItem,
 } from '@mui/material'
 
 import { makeStyles } from 'tss-react/mui'
@@ -57,6 +52,7 @@ import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked'
 
 import InfoIcon from '@mui/icons-material/Info'
 import LinkIcon from '@mui/icons-material/Link'
+import { ConstructionOutlined } from '@mui/icons-material'
 
 interface AddAssemblyProps {
   session: ApolloSessionModel
@@ -157,7 +153,7 @@ export function AddAssembly({
   const [fastaGziIndexUrl, setFastaGziIndexUrl] = useState<string>('')
 
   const [loading, setLoading] = useState(false)
-  const [isGzip, setIsGzip] = React.useState<boolean | null>(null)
+  const [isGzip, setIsGzip] = useState<boolean>(false)
 
   useEffect(() => {
     setFastaIndexUrl(fastaUrl ? `${fastaUrl}.fai` : '')
@@ -166,6 +162,16 @@ export function AddAssembly({
   useEffect(() => {
     setFastaGziIndexUrl(fastaUrl ? `${fastaUrl}.gzi` : '')
   }, [fastaUrl])
+
+  useEffect(() => {
+    if (sequenceIsEditable || fileType === FileType.GFF3) {
+      setIsGzip(
+        fastaFile?.name.toLocaleLowerCase().endsWith('.gz') ? true : false,
+      )
+    } else {
+      setIsGzip(true)
+    }
+  }, [fastaFile, sequenceIsEditable, fileType])
 
   function checkAssemblyName(assembly: string) {
     const { assemblies } = session as unknown as AbstractSessionModel
@@ -184,7 +190,7 @@ export function AddAssembly({
   async function uploadFile(
     file: File,
     fileType: FileType,
-    isGzip: boolean | null,
+    isGzip: boolean,
   ): Promise<string> {
     const { jobsManager } = session
     const controller = new AbortController()
@@ -220,13 +226,9 @@ export function AddAssembly({
       const { signal } = controller
 
       const headers = new Headers()
-      if (
-        isGzip ||
-        (isGzip === null && file.name.toLowerCase().endsWith('.gz'))
-      ) {
+      if (isGzip) {
         headers.append('Content-Encoding', 'gzip')
       }
-
       const response = await apolloFetchFile(uri, {
         method: 'POST',
         body: formData,
@@ -312,7 +314,7 @@ export function AddAssembly({
         if (!fastaIndexFile || !fastaGziIndexFile) {
           throw new Error('Missing fasta index files')
         }
-        const faId = await uploadFile(fastaFile, FileType.BGZIP_FASTA, true)
+        const faId = await uploadFile(fastaFile, FileType.BGZIP_FASTA, isGzip)
         const faiId = await uploadFile(fastaIndexFile, FileType.FAI, false)
         const gziId = await uploadFile(fastaGziIndexFile, FileType.GZI, false)
 
@@ -478,6 +480,22 @@ export function AddAssembly({
                       </Tooltip>
                     </Box>
                   }
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={isGzip}
+                      onChange={() => {
+                        if (sequenceIsEditable) {
+                          setIsGzip(!isGzip)
+                        } else {
+                          setIsGzip(true)
+                        }
+                      }}
+                      disabled={!sequenceIsEditable}
+                    />
+                  }
+                  label="Input is gzip compressed"
                 />
 
                 {fileType === FileType.BGZIP_FASTA ||
@@ -707,26 +725,18 @@ export function AddAssembly({
                     }
                     label="Also load features from GFF3 file"
                   />
-                  <FormControl sx={{ width: 200 }}>
-                    <InputLabel>Input is gzip compressed</InputLabel>
-                    <Select
-                      defaultValue="Autodetect"
-                      label="Input is gzip compressed"
-                      onChange={(event: SelectChangeEvent) => {
-                        if (event.target.value === 'Yes') {
-                          setIsGzip(true)
-                        } else if (event.target.value === 'No') {
-                          setIsGzip(false)
-                        } else {
-                          setIsGzip(null)
-                        }
-                      }}
-                    >
-                      <MenuItem value={'Yes'}>Yes</MenuItem>
-                      <MenuItem value={'No'}>No</MenuItem>
-                      <MenuItem value={'Autodetect'}>Autodetect</MenuItem>
-                    </Select>
-                  </FormControl>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={isGzip}
+                        onChange={() => {
+                          setIsGzip(!isGzip)
+                        }}
+                        disabled={submitted && !errorMessage}
+                      />
+                    }
+                    label="Input is gzip compressed"
+                  />
                 </FormGroup>
               </Box>
             </AccordionDetails>

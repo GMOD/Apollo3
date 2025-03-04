@@ -11,6 +11,10 @@ export interface UploadedFile extends Express.Multer.File {
   checksum: string
 }
 
+export interface FileUpload extends Express.Multer.File {
+  contentEncoding: string
+}
+
 @Injectable()
 export class FileStorageEngine implements StorageEngine {
   private readonly logger = new Logger(FileStorageEngine.name)
