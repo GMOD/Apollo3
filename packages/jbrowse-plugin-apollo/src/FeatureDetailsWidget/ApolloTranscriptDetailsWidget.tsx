@@ -3,6 +3,16 @@ import { observer } from 'mobx-react'
 import { getRoot } from 'mobx-state-tree'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Tooltip,
+  Typography,
+} from '@mui/material'
+
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import InfoIcon from '@mui/icons-material/Info'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloSessionModel } from '../session'
@@ -55,26 +65,64 @@ export const ApolloTranscriptDetailsWidget = observer(
 
     return (
       <div className={classes.root}>
-        <TranscriptBasicInformation
-          feature={feature}
-          session={apolloSession}
-          assembly={currentAssembly._id || ''}
-          refName={refName}
-        />
-        <hr />
-        <Attributes
-          feature={feature}
-          session={apolloSession}
-          assembly={currentAssembly._id || ''}
-          editable={editable}
-        />
-        <hr />
-        <TranscriptSequence
-          feature={feature}
-          session={apolloSession}
-          assembly={currentAssembly._id || ''}
-          refName={refName}
-        />
+        <Accordion defaultExpanded>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
+            aria-controls="panel1-content"
+            id="panel1-header"
+          >
+            <Typography component="span">Transcript</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <TranscriptBasicInformation
+              feature={feature}
+              session={apolloSession}
+              assembly={currentAssembly._id || ''}
+              refName={refName}
+            />
+          </AccordionDetails>
+        </Accordion>
+        <Accordion style={{ marginTop: 10 }}>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
+            aria-controls="panel1-content"
+            id="panel1-header"
+          >
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <Typography component="span">Attributes </Typography>
+              <Tooltip title="Separate multiple values for the attribute with commas">
+                <InfoIcon
+                  style={{ color: 'white', fontSize: 15, marginLeft: 10 }}
+                />
+              </Tooltip>
+            </div>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Attributes
+              feature={feature}
+              session={apolloSession}
+              assembly={currentAssembly._id || ''}
+              editable={editable}
+            />
+          </AccordionDetails>
+        </Accordion>
+        <Accordion style={{ marginTop: 10 }}>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
+            aria-controls="panel1-content"
+            id="panel1-header"
+          >
+            <Typography component="span">Sequence</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <TranscriptSequence
+              feature={feature}
+              session={apolloSession}
+              assembly={currentAssembly._id || ''}
+              refName={refName}
+            />
+          </AccordionDetails>
+        </Accordion>
       </div>
     )
   },

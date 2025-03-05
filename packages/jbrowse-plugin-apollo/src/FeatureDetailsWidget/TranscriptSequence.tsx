@@ -179,7 +179,7 @@ export const TranscriptSequence = observer(function TranscriptSequence({
 }) {
   const currentAssembly = session.apolloDataStore.assemblies.get(assembly)
   const refData = currentAssembly?.getByRefName(refName)
-  const [showSequence, setShowSequence] = useState(false)
+  const [showSequence] = useState(true)
   const [selectedOption, setSelectedOption] = useState<SegmentListType>('CDS')
   const theme = useTheme()
   const seqRef = useRef<HTMLDivElement>(null)
@@ -193,10 +193,6 @@ export const TranscriptSequence = observer(function TranscriptSequence({
   }
   if (feature.type !== 'mRNA') {
     return null
-  }
-
-  const handleSeqButtonClick = () => {
-    setShowSequence(!showSequence)
   }
 
   function handleChangeSeqOption(e: SelectChangeEvent) {
@@ -244,24 +240,27 @@ export const TranscriptSequence = observer(function TranscriptSequence({
 
   return (
     <>
-      <Typography variant="h5">Sequence</Typography>
-      <div>
-        <Button variant="contained" onClick={handleSeqButtonClick}>
-          {showSequence ? 'Hide sequence' : 'Show sequence'}
-        </Button>
-      </div>
       {showSequence && (
         <>
           <Select
             defaultValue="CDS"
             value={selectedOption}
             onChange={handleChangeSeqOption}
+            size="small"
           >
             <MenuItem value="CDS">CDS</MenuItem>
             <MenuItem value="cDNA">cDNA</MenuItem>
             <MenuItem value="genomic">Genomic</MenuItem>
             <MenuItem value="protein">Protein</MenuItem>
           </Select>
+          <Button
+            variant="contained"
+            onClick={copyToClipboard}
+            style={{ marginLeft: 10 }}
+            size="medium"
+          >
+            Copy sequence
+          </Button>
           <Paper
             style={{
               fontFamily: 'monospace',
@@ -302,9 +301,6 @@ export const TranscriptSequence = observer(function TranscriptSequence({
               </span>
             ))}
           </Paper>
-          <Button variant="contained" onClick={copyToClipboard}>
-            Copy sequence
-          </Button>
         </>
       )}
     </>

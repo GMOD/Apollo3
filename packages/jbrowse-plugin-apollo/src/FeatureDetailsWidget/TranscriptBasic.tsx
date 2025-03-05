@@ -138,7 +138,6 @@ export const TranscriptBasicInformation = observer(
 
     return (
       <>
-        <Typography variant="h5">Structure</Typography>
         <Typography variant="h6">
           {strand === 1 ? 'Forward' : 'Reverse'} strand
         </Typography>

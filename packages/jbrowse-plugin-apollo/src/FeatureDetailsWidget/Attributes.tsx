@@ -3,7 +3,6 @@ import { AnnotationFeature } from '@apollo-annotation/mst'
 import { FeatureAttributeChange } from '@apollo-annotation/shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
-import InfoIcon from '@mui/icons-material/Info'
 import {
   Button,
   DialogActions,
@@ -16,7 +15,6 @@ import {
   Radio,
   RadioGroup,
   TextField,
-  Tooltip,
   Typography,
 } from '@mui/material'
 import { observer } from 'mobx-react'
@@ -286,14 +284,6 @@ export const Attributes = observer(function Attributes({
 
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <Typography variant="h5">Attributes </Typography>
-        <Tooltip title="Separate multiple values for the attribute with commas">
-          <InfoIcon
-            style={{ color: '#1976d2', fontSize: 15, marginLeft: 10 }}
-          />
-        </Tooltip>
-      </div>
       <Grid2 container direction="column" spacing={1}>
         {Object.entries(attributes).map(([key, value]) => {
           if (key === '') {
