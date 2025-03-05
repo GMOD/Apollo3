@@ -262,7 +262,8 @@ function draw(
                 Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
               ),
             ]
-            ctx.strokeStyle = selectColor(counter)
+            // ctx.strokeStyle = selectColor(displayedRegionIndex)
+            ctx.strokeStyle = 'rgb(0, 128, 128)'
             ctx.beginPath()
             ctx.moveTo(prevCDSEndPx, prevCDSTop)
             ctx.lineTo(...midPoint)
