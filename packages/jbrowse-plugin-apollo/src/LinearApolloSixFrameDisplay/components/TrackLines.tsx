@@ -8,13 +8,13 @@ export const TrackLines = observer(function TrackLines({
 }: {
   model: LinearApolloSixFrameDisplay
 }) {
-  const { featuresHeight } = model
+  const { apolloRowHeight } = model
   return (
     <div
       style={{
         position: 'absolute',
         left: 0,
-        top: featuresHeight / 2,
+        top: (apolloRowHeight * 6) / 2,
         width: '100%',
       }}
     >
