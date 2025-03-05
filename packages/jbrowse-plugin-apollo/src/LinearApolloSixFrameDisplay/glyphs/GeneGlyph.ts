@@ -227,7 +227,7 @@ function draw(
         const cdsStartPx = reversed ? minX - cdsWidthPx : minX
         ctx.fillStyle = theme?.palette.text.primary ?? 'black'
         const frame = getFrame(cds.min, cds.max, child.strand ?? 1, cds.phase)
-        const cdsTop = (row + frame) * rowHeight + (rowHeight - cdsHeight) / 2
+        const cdsTop = (frame - 1) * rowHeight + (rowHeight - cdsHeight) / 2
         ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
         if (cdsWidthPx > 2) {
           ctx.clearRect(
