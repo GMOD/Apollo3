@@ -7,12 +7,7 @@ import {
 } from '@jbrowse/core/util'
 
 import { ChangeManager } from '../../ChangeManager'
-import {
-  AddChildFeature,
-  CopyFeature,
-  DeleteFeature,
-  ModifyFeatureAttribute,
-} from '../../components'
+import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
 import { ApolloSessionModel } from '../../session'
 import { getApolloInternetAccount } from '../../util'
 
@@ -111,26 +106,6 @@ export function featureContextMenuItems(
                 sourceAssemblyId: currentAssemblyId,
                 selectedFeature,
                 setSelectedFeature,
-              },
-            ],
-          )
-        },
-      },
-      {
-        label: 'Edit attributes',
-        disabled: readOnly,
-        onClick: () => {
-          ;(session as unknown as AbstractSessionModel).queueDialog(
-            (doneCallback) => [
-              ModifyFeatureAttribute,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                },
-                changeManager,
-                sourceFeature: feature,
-                sourceAssemblyId: currentAssemblyId,
               },
             ],
           )

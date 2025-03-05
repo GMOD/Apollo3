@@ -8,12 +8,7 @@ import {
   SessionWithWidgets,
 } from '@jbrowse/core/util'
 
-import {
-  AddChildFeature,
-  CopyFeature,
-  DeleteFeature,
-  ModifyFeatureAttribute,
-} from '../../components'
+import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
 
 import { LinearApolloDisplay } from '../stateModel'
 import {
@@ -344,26 +339,6 @@ function getContextMenuItems(
               setSelectedFeature: (feature?: AnnotationFeature) => {
                 display.setSelectedFeature(feature)
               },
-            },
-          ],
-        )
-      },
-    },
-    {
-      label: 'Modify feature attribute',
-      disabled: readOnly,
-      onClick: () => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            ModifyFeatureAttribute,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager,
-              sourceFeature,
-              sourceAssemblyId: currentAssemblyId,
             },
           ],
         )
