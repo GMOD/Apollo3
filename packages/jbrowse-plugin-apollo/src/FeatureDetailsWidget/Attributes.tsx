@@ -19,7 +19,7 @@ import {
 } from '@mui/material'
 import { observer } from 'mobx-react'
 import { getSnapshot } from 'mobx-state-tree'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { OntologyTermMultiSelect } from '../components/OntologyTermMultiSelect'
@@ -105,6 +105,22 @@ function CustomAttributeValueEditor(props: {
   )
 }
 
+function transformAttributes(feature: AnnotationFeature) {
+  return Object.fromEntries(
+    [...feature.attributes.entries()].map(([key, value]) => {
+      if (key.startsWith('gff_')) {
+        const newKey = key.slice(4)
+        const capitalizedKey = newKey.charAt(0).toUpperCase() + newKey.slice(1)
+        return [capitalizedKey, getSnapshot(value)]
+      }
+      if (key === '_id') {
+        return ['ID', getSnapshot(value)]
+      }
+      return [key, getSnapshot(value)]
+    }),
+  )
+}
+
 export const Attributes = observer(function Attributes({
   assembly,
   editable,
@@ -120,22 +136,14 @@ export const Attributes = observer(function Attributes({
   const [showAddNewForm, setShowAddNewForm] = useState(false)
   const { classes } = useStyles()
   const [newAttributeKey, setNewAttributeKey] = useState('')
-  const [attributes, setAttributes] = useState(
-    Object.fromEntries(
-      [...feature.attributes.entries()].map(([key, value]) => {
-        if (key.startsWith('gff_')) {
-          const newKey = key.slice(4)
-          const capitalizedKey =
-            newKey.charAt(0).toUpperCase() + newKey.slice(1)
-          return [capitalizedKey, getSnapshot(value)]
-        }
-        if (key === '_id') {
-          return ['ID', getSnapshot(value)]
-        }
-        return [key, getSnapshot(value)]
-      }),
-    ),
+  const [attributes, setAttributes] = useState(() =>
+    transformAttributes(feature),
   )
+
+  useEffect(() => {
+    setAttributes(transformAttributes(feature))
+  }, [feature])
+
   const { notify } = session as unknown as AbstractSessionModel
 
   const { changeManager } = session.apolloDataStore

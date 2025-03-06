@@ -1,7 +1,7 @@
 import { AbstractSessionModel, getSession } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
-import { getRoot } from 'mobx-state-tree'
-import React from 'react'
+import { getRoot, getSnapshot } from 'mobx-state-tree'
+import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 import {
   Accordion,
@@ -33,8 +33,16 @@ export const ApolloTranscriptDetailsWidget = observer(
     model: ApolloTranscriptDetailsWidgetState
   }) {
     const { classes } = useStyles()
+
+    const [panelState, setPanelState] = useState<string[]>(['transcript'])
+
     const { model } = props
     const { assembly, feature, refName } = model
+
+    useEffect(() => {
+      setPanelState(['transcript'])
+    }, [feature])
+
     const session = getSession(model) as unknown as AbstractSessionModel
     const apolloSession = getSession(model) as unknown as ApolloSessionModel
     const currentAssembly =
@@ -63,9 +71,22 @@ export const ApolloTranscriptDetailsWidget = observer(
       ])
     }
 
+    function handlePanelChange(expanded: boolean, panel: string) {
+      if (expanded) {
+        setPanelState([...panelState, panel])
+      } else {
+        setPanelState(panelState.filter((p) => p !== panel))
+      }
+    }
+
     return (
       <div className={classes.root}>
-        <Accordion defaultExpanded>
+        <Accordion
+          expanded={panelState.includes('transcript')}
+          onChange={(e, expanded) => {
+            handlePanelChange(expanded, 'transcript')
+          }}
+        >
           <AccordionSummary
             expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
             aria-controls="panel1-content"
@@ -82,7 +103,13 @@ export const ApolloTranscriptDetailsWidget = observer(
             />
           </AccordionDetails>
         </Accordion>
-        <Accordion style={{ marginTop: 10 }}>
+        <Accordion
+          style={{ marginTop: 10 }}
+          expanded={panelState.includes('attrs')}
+          onChange={(e, expanded) => {
+            handlePanelChange(expanded, 'attrs')
+          }}
+        >
           <AccordionSummary
             expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
             aria-controls="panel1-content"
@@ -106,7 +133,13 @@ export const ApolloTranscriptDetailsWidget = observer(
             />
           </AccordionDetails>
         </Accordion>
-        <Accordion style={{ marginTop: 10 }}>
+        <Accordion
+          style={{ marginTop: 10 }}
+          expanded={panelState.includes('sequence')}
+          onChange={(e, expanded) => {
+            handlePanelChange(expanded, 'sequence')
+          }}
+        >
           <AccordionSummary
             expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
             aria-controls="panel1-content"
