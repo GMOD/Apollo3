@@ -52,7 +52,6 @@ import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked'
 
 import InfoIcon from '@mui/icons-material/Info'
 import LinkIcon from '@mui/icons-material/Link'
-import { ConstructionOutlined } from '@mui/icons-material'
 
 interface AddAssemblyProps {
   session: ApolloSessionModel
@@ -187,11 +186,7 @@ export function AddAssembly({
     }
   }
 
-  async function uploadFile(
-    file: File,
-    fileType: FileType,
-    isGzip: boolean,
-  ): Promise<string> {
+  async function uploadFile(file: File, fileType: FileType): Promise<string> {
     const { jobsManager } = session
     const controller = new AbortController()
 
@@ -201,8 +196,16 @@ export function AddAssembly({
     url.searchParams.set('type', fileType)
     const uri = url.href
     const formData = new FormData()
-    formData.append('file', file)
-    formData.append('fileName', file.name)
+    let filename = file.name
+
+    if (fileType === FileType.FAI || fileType === FileType.GZI) {
+      filename = `${filename}.txt`
+    } else if (isGzip && !file.name.toLocaleLowerCase().endsWith('.gz')) {
+      filename = `${filename}.gz`
+    } else if (!isGzip && file.name.toLocaleLowerCase().endsWith('.gz')) {
+      filename = `${filename}.txt`
+    }
+    formData.append('file', file, filename)
     formData.append('type', fileType)
     const apolloFetchFile = getFetcher({
       locationType: 'UriLocation',
@@ -225,15 +228,10 @@ export function AddAssembly({
       )
       const { signal } = controller
 
-      const headers = new Headers()
-      if (isGzip) {
-        headers.append('Content-Encoding', 'gzip')
-      }
       const response = await apolloFetchFile(uri, {
         method: 'POST',
         body: formData,
         signal,
-        headers,
       })
       if (!response.ok) {
         const newErrorMessage = await createFetchErrorMessage(
@@ -283,7 +281,7 @@ export function AddAssembly({
         throw new Error('Missing fasta file')
       }
       if (fileType === FileType.GFF3 && importFeatures) {
-        const faId = await uploadFile(fastaFile, FileType.GFF3, isGzip)
+        const faId = await uploadFile(fastaFile, FileType.GFF3)
         change = new AddAssemblyAndFeaturesFromFileChange({
           typeName: 'AddAssemblyAndFeaturesFromFileChange',
           assembly: new ObjectID().toHexString(),
@@ -291,7 +289,7 @@ export function AddAssembly({
           fileIds: { fa: faId },
         })
       } else if (fileType === FileType.GFF3) {
-        const faId = await uploadFile(fastaFile, FileType.GFF3, isGzip)
+        const faId = await uploadFile(fastaFile, FileType.GFF3)
         change = new AddAssemblyFromFileChange({
           typeName: 'AddAssemblyFromFileChange',
           assembly: new ObjectID().toHexString(),
@@ -301,7 +299,7 @@ export function AddAssembly({
           },
         })
       } else if (sequenceIsEditable) {
-        const faId = await uploadFile(fastaFile, FileType.FASTA, isGzip)
+        const faId = await uploadFile(fastaFile, FileType.FASTA)
         change = new AddAssemblyFromFileChange({
           typeName: 'AddAssemblyFromFileChange',
           assembly: new ObjectID().toHexString(),
@@ -314,9 +312,9 @@ export function AddAssembly({
         if (!fastaIndexFile || !fastaGziIndexFile) {
           throw new Error('Missing fasta index files')
         }
-        const faId = await uploadFile(fastaFile, FileType.BGZIP_FASTA, isGzip)
-        const faiId = await uploadFile(fastaIndexFile, FileType.FAI, false)
-        const gziId = await uploadFile(fastaGziIndexFile, FileType.GZI, false)
+        const faId = await uploadFile(fastaFile, FileType.BGZIP_FASTA)
+        const faiId = await uploadFile(fastaIndexFile, FileType.FAI)
+        const gziId = await uploadFile(fastaGziIndexFile, FileType.GZI)
 
         change = new AddAssemblyFromFileChange({
           typeName: 'AddAssemblyFromFileChange',
@@ -370,10 +368,15 @@ export function AddAssembly({
 
   const [expanded, setExpanded] = React.useState<string>('panelFastaInput')
 
-  const handleChange =
+  const handleAccordionChange =
     (panel: string) => (event: React.SyntheticEvent, newExpanded: boolean) => {
       if (newExpanded) {
         setExpanded(panel)
+      }
+      if (panel === 'panelGffInput') {
+        setIsGzip(false)
+      } else {
+        setIsGzip(true)
       }
     }
 
@@ -409,7 +412,7 @@ export function AddAssembly({
             square
             className={classes.accordion}
             expanded={expanded === 'panelFastaInput'}
-            onChange={handleChange('panelFastaInput')}
+            onChange={handleAccordionChange('panelFastaInput')}
           >
             <AccordionSummary
               className={classes.accordionSummary}
@@ -482,6 +485,7 @@ export function AddAssembly({
                   }
                 />
                 <FormControlLabel
+                  data-testid="fasta-is-gzip-checkbox"
                   control={
                     <Checkbox
                       checked={isGzip}
@@ -672,7 +676,7 @@ export function AddAssembly({
             square
             className={classes.accordion}
             expanded={expanded === 'panelGffInput'}
-            onChange={handleChange('panelGffInput')}
+            onChange={handleAccordionChange('panelGffInput')}
           >
             <AccordionSummary
               className={classes.accordionSummary}
@@ -726,6 +730,7 @@ export function AddAssembly({
                     label="Also load features from GFF3 file"
                   />
                   <FormControlLabel
+                    data-testid="gff3-is-gzip-checkbox"
                     control={
                       <Checkbox
                         checked={isGzip}
