@@ -26,7 +26,7 @@ this:
 
 ```sh-session
 $ apollo --version
-@apollo-annotation/cli/0.3.1 linux-x64 node-v18.20.4
+@apollo-annotation/cli/0.3.4 linux-x64 node-v18.20.4
 $ jbrowse --version
 @jbrowse/cli/2.18.0 linux-x64 node-v18.20.4
 ```
@@ -68,7 +68,7 @@ output:
 
 ```sh-session
 $ apollo --version
-@apollo-annotation/cli/0.3.1 linux-x64 node-v18.20.4
+@apollo-annotation/cli/0.3.4 linux-x64 node-v18.20.4
 ```
 
 JBrowse does not provide a Docker image for its CLI, so we'll have to create

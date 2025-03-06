@@ -4,6 +4,7 @@ COPY ./httpd.conf /usr/local/apache2/conf/httpd.conf
 COPY ./jbrowse-plugin-apollo.umd.development.js /usr/local/apache2/htdocs/
 COPY ./jbrowse-plugin-apollo.umd.production.min.js /usr/local/apache2/htdocs/
 COPY ./jbrowse-plugin-apollo.umd.production.min.js /usr/local/apache2/htdocs/apollo.js
+ADD --chmod=644 https://github.com/The-Sequence-Ontology/SO-Ontologies/raw/refs/heads/master/Ontology_Files/so.json /usr/local/apache2/htdocs/sequence_ontology.json
 WORKDIR /usr/local/apache2/htdocs/
 RUN <<EOF
 set -o errexit
