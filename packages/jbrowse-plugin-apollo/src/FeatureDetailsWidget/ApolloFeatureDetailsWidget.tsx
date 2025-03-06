@@ -2,6 +2,13 @@ import { getSession } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Typography,
+} from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
 import { ApolloSessionModel } from '../session'
 import { Attributes } from './Attributes'
@@ -46,21 +53,40 @@ export const ApolloFeatureDetailsWidget = observer(
           session={session}
           assembly={currentAssembly._id}
         />
-        <hr />
-        <Attributes
-          feature={feature}
-          session={session}
-          assembly={currentAssembly._id}
-          editable={true}
-        />
-        <hr />
-        <Sequence
-          feature={feature}
-          session={session}
-          assembly={currentAssembly._id}
-          refName={refName}
-        />
-        <hr />
+        <Accordion style={{ marginTop: 10 }} defaultExpanded>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
+            aria-controls="panel1-content"
+            id="panel1-header"
+          >
+            <Typography component="span">Attributes</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Attributes
+              feature={feature}
+              session={session}
+              assembly={currentAssembly._id}
+              editable={true}
+            />
+          </AccordionDetails>
+        </Accordion>
+        <Accordion style={{ marginTop: 10 }}>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
+            aria-controls="panel1-content"
+            id="panel1-header"
+          >
+            <Typography component="span">Sequence</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Sequence
+              feature={feature}
+              session={session}
+              assembly={currentAssembly._id}
+              refName={refName}
+            />
+          </AccordionDetails>
+        </Accordion>
         <FeatureDetailsNavigation model={model} feature={feature} />
       </div>
     )

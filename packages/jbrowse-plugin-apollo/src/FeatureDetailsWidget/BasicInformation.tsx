@@ -112,7 +112,6 @@ export const BasicInformation = observer(function BasicInformation({
 
   return (
     <>
-      <Typography variant="h5">Basic information</Typography>
       <NumberTextField
         margin="dense"
         id="start"

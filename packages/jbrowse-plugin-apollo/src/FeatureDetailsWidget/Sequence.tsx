@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { AnnotationFeature } from '@apollo-annotation/mst'
 import { splitStringIntoChunks } from '@apollo-annotation/shared'
-import { Button, Typography } from '@mui/material'
 import { observer } from 'mobx-react'
-import React, { useState } from 'react'
+import React from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { ApolloSessionModel } from '../session'
@@ -40,12 +39,7 @@ export const Sequence = observer(function Sequence({
   session: ApolloSessionModel
 }) {
   const currentAssembly = session.apolloDataStore.assemblies.get(assembly)
-  const [showSequence, setShowSequence] = useState(false)
   const { classes } = useStyles()
-
-  const onButtonClick = () => {
-    setShowSequence(!showSequence)
-  }
 
   if (!(feature && currentAssembly)) {
     return null
@@ -55,35 +49,24 @@ export const Sequence = observer(function Sequence({
     return null
   }
   const { max, min } = feature
-  let sequence = ''
-  if (showSequence) {
-    sequence = refSeq.getSequence(min, max)
-    if (sequence) {
-      sequence = formatSequence(sequence, refName, min, max)
-    } else {
-      void session.apolloDataStore.loadRefSeq([
-        { assemblyName: assembly, refName, start: min, end: max },
-      ])
-    }
+  let sequence = refSeq.getSequence(min, max)
+  if (sequence) {
+    sequence = formatSequence(sequence, refName, min, max)
+  } else {
+    void session.apolloDataStore.loadRefSeq([
+      { assemblyName: assembly, refName, start: min, end: max },
+    ])
   }
 
   return (
-    <>
-      <Typography variant="h5">Sequence</Typography>
-      <Button variant="contained" onClick={onButtonClick}>
-        {showSequence ? 'Hide sequence' : 'Show sequence'}
-      </Button>
-      <div>
-        {showSequence && (
-          <textarea
-            readOnly
-            rows={20}
-            className={classes.sequence}
-            value={sequence}
-          />
-        )}
-      </div>
-    </>
+    <div>
+      <textarea
+        readOnly
+        rows={20}
+        className={classes.sequence}
+        value={sequence}
+      />
+    </div>
   )
 })
 export default Sequence

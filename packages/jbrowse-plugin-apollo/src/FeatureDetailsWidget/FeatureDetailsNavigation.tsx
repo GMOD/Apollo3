@@ -25,8 +25,8 @@ export const FeatureDetailsNavigation = observer(
     }
 
     return (
-      <div>
-        <Typography variant="h5">Go to related feature</Typography>
+      <div style={{ marginTop: 10 }}>
+        <Typography variant="h6">Go to related feature</Typography>
         {parent && (
           <div>
             <Typography variant="h6">Parent:</Typography>
