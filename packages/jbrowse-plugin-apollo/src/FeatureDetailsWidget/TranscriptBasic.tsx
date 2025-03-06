@@ -124,7 +124,26 @@ export const TranscriptBasicInformation = observer(
               threePrimeSpliceSite = revcom(refData.getSequence(min - 2, min))
             }
           }
+        } else if (type === 'exon') {
+          const previousLoc = firstLocation.at(idx - 1)
+          const nextLoc = firstLocation.at(idx + 1)
+          if (strand === 1) {
+            if (previousLoc?.type === 'intron') {
+              fivePrimeSpliceSite = refData.getSequence(min - 2, min)
+            }
+            if (nextLoc?.type === 'intron') {
+              threePrimeSpliceSite = refData.getSequence(max, max + 2)
+            }
+          } else {
+            if (previousLoc?.type === 'intron') {
+              fivePrimeSpliceSite = revcom(refData.getSequence(max, max + 2))
+            }
+            if (nextLoc?.type === 'intron') {
+              threePrimeSpliceSite = revcom(refData.getSequence(min - 2, min))
+            }
+          }
         }
+
         return {
           min,
           max,

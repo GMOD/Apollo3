@@ -23,7 +23,7 @@ export interface TranscriptPartLocation {
 }
 
 export interface TranscriptPartNonCoding extends TranscriptPartLocation {
-  type: 'fivePrimeUTR' | 'threePrimeUTR' | 'intron'
+  type: 'fivePrimeUTR' | 'threePrimeUTR' | 'intron' | 'exon'
 }
 
 export interface TranscriptPartCoding extends TranscriptPartLocation {
@@ -147,10 +147,38 @@ export const AnnotationFeatureModel = types
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         (child) => featureTypeOntology.isTypeOf(child.type, 'CDS'),
       )
-      if (cdsChildren.length === 0) {
-        throw new Error('no CDS in transcript')
-      }
       const transcriptParts: TranscriptParts[] = []
+      if (cdsChildren.length === 0) {
+        const sortedChildren = [...children.values()].sort(
+          (a, b) => a.min - b.min,
+        )
+        let lastMax = self.min
+        const parts: TranscriptParts = []
+        for (const child of sortedChildren) {
+          if (child.min > lastMax) {
+            parts.push({
+              min: lastMax,
+              max: child.min,
+              type: 'intron',
+            })
+          }
+          parts.push({
+            min: child.min,
+            max: child.max,
+            type: 'exon',
+          })
+          lastMax = child.max
+        }
+        if (lastMax < self.max) {
+          parts.push({
+            min: lastMax,
+            max: self.max,
+            type: 'intron',
+          })
+        }
+        transcriptParts.push(parts)
+        return transcriptParts
+      }
       for (const cds of cdsChildren) {
         const { max: cdsMax, min: cdsMin } = cds
         const parts: TranscriptParts = []

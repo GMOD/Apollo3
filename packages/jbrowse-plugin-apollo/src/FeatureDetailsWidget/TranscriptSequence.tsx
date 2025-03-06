@@ -7,17 +7,22 @@ import {
   Paper,
   Select,
   SelectChangeEvent,
-  Typography,
   useTheme,
 } from '@mui/material'
 import { observer } from 'mobx-react'
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 import { ApolloSessionModel } from '../session'
 
 const SEQUENCE_WRAP_LENGTH = 60
 
-type SegmentType = 'upOrDownstream' | 'UTR' | 'CDS' | 'intron' | 'protein'
+type SegmentType =
+  | 'upOrDownstream'
+  | 'UTR'
+  | 'CDS'
+  | 'intron'
+  | 'protein'
+  | 'exon'
 type SegmentListType = 'CDS' | 'cDNA' | 'genomic' | 'protein'
 
 interface SequenceSegment {
@@ -151,6 +156,7 @@ function getSegmentColor(type: SegmentType) {
     case 'upOrDownstream': {
       return 'rgb(255,255,255)'
     }
+    case 'exon':
     case 'UTR': {
       return 'rgb(194,106,119)'
     }
@@ -166,6 +172,25 @@ function getSegmentColor(type: SegmentType) {
   }
 }
 
+function getLocationIntervals(seqSegments: SequenceSegment[]) {
+  const locIntervals: { min: number; max: number }[] = []
+  const allLocs = seqSegments.flatMap((segment) => segment.locs)
+  let [previous] = allLocs
+  for (let i = 1; i < allLocs.length; i++) {
+    if (previous.min === allLocs[i].max || previous.max === allLocs[i].min) {
+      previous = {
+        min: Math.min(previous.min, allLocs[i].min),
+        max: Math.max(previous.max, allLocs[i].max),
+      }
+    } else {
+      locIntervals.push(previous)
+      previous = allLocs[i]
+    }
+  }
+  locIntervals.push(previous)
+  return locIntervals
+}
+
 export const TranscriptSequence = observer(function TranscriptSequence({
   assembly,
   feature,
@@ -179,10 +204,45 @@ export const TranscriptSequence = observer(function TranscriptSequence({
 }) {
   const currentAssembly = session.apolloDataStore.assemblies.get(assembly)
   const refData = currentAssembly?.getByRefName(refName)
-  const [showSequence] = useState(true)
-  const [selectedOption, setSelectedOption] = useState<SegmentListType>('CDS')
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+
+  const defaultSelectedOption: SegmentListType = 'genomic'
+  const defaultSequenceOptions: SegmentListType[] = ['genomic', 'cDNA']
+  const [sequenceOptions, setSequenceOptions] = useState<SegmentListType[]>(
+    defaultSequenceOptions,
+  )
+  const [selectedOption, setSelectedOption] = useState<SegmentListType>(
+    defaultSelectedOption,
+  )
+  const [sequenceSegments, setSequenceSegments] = useState<SequenceSegment[]>(
+    () => {
+      return refData
+        ? getSequenceSegments(
+            defaultSelectedOption,
+            feature,
+            (min: number, max: number) => refData.getSequence(min, max),
+          )
+        : []
+    },
+  )
+  const [locationIntervals, setLocationIntervals] = useState<
+    { min: number; max: number }[]
+  >(() => {
+    return getLocationIntervals(sequenceSegments)
+  })
   const theme = useTheme()
   const seqRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const { cdsLocations } = feature
+    const [firstLocation] = cdsLocations
+    if (firstLocation.length > 0) {
+      setSequenceOptions([...defaultSequenceOptions, 'CDS', 'protein'])
+    } else {
+      setSequenceOptions(defaultSequenceOptions)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [feature])
 
   if (!(currentAssembly && refData)) {
     return null
@@ -191,13 +251,28 @@ export const TranscriptSequence = observer(function TranscriptSequence({
   if (!refSeq) {
     return null
   }
-  if (feature.type !== 'mRNA') {
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  if (!featureTypeOntology.isTypeOf(feature.type, 'transcript')) {
     return null
   }
 
   function handleChangeSeqOption(e: SelectChangeEvent) {
     const option = e.target.value
     setSelectedOption(option as SegmentListType)
+
+    const seqSegments = refData
+      ? getSequenceSegments(
+          option as SegmentListType,
+          feature,
+          (min: number, max: number) => refData.getSequence(min, max),
+        )
+      : []
+    const locIntervals: { min: number; max: number }[] =
+      getLocationIntervals(seqSegments)
+    setSequenceSegments(seqSegments)
+    setLocationIntervals(locIntervals)
   }
 
   // Function to copy text to clipboard
@@ -215,94 +290,68 @@ export const TranscriptSequence = observer(function TranscriptSequence({
     void navigator.clipboard.write([clipboardItem])
   }
 
-  const sequenceSegments = showSequence
-    ? getSequenceSegments(selectedOption, feature, (min: number, max: number) =>
-        refData.getSequence(min, max),
-      )
-    : []
-  const locationIntervals: { min: number; max: number }[] = []
-  if (showSequence) {
-    const allLocs = sequenceSegments.flatMap((segment) => segment.locs)
-    let [previous] = allLocs
-    for (let i = 1; i < allLocs.length; i++) {
-      if (previous.min === allLocs[i].max || previous.max === allLocs[i].min) {
-        previous = {
-          min: Math.min(previous.min, allLocs[i].min),
-          max: Math.max(previous.max, allLocs[i].max),
-        }
-      } else {
-        locationIntervals.push(previous)
-        previous = allLocs[i]
-      }
-    }
-    locationIntervals.push(previous)
-  }
-
   return (
     <>
-      {showSequence && (
-        <>
-          <Select
-            defaultValue="CDS"
-            value={selectedOption}
-            onChange={handleChangeSeqOption}
-            size="small"
-          >
-            <MenuItem value="CDS">CDS</MenuItem>
-            <MenuItem value="cDNA">cDNA</MenuItem>
-            <MenuItem value="genomic">Genomic</MenuItem>
-            <MenuItem value="protein">Protein</MenuItem>
-          </Select>
-          <Button
-            variant="contained"
-            onClick={copyToClipboard}
-            style={{ marginLeft: 10 }}
-            size="medium"
-          >
-            Copy sequence
-          </Button>
-          <Paper
+      <Select
+        defaultValue="genomic"
+        value={selectedOption}
+        onChange={handleChangeSeqOption}
+        size="small"
+      >
+        {sequenceOptions.map((option) => (
+          <MenuItem key={option} value={option}>
+            {option}
+          </MenuItem>
+        ))}
+      </Select>
+      <Button
+        variant="contained"
+        onClick={copyToClipboard}
+        style={{ marginLeft: 10 }}
+        size="medium"
+      >
+        Copy sequence
+      </Button>
+      <Paper
+        style={{
+          fontFamily: 'monospace',
+          padding: theme.spacing(),
+          overflowX: 'auto',
+        }}
+        ref={seqRef}
+      >
+        &gt;{refSeq.name}:
+        {locationIntervals
+          .map((interval) =>
+            feature.strand === 1
+              ? `${interval.min + 1}-${interval.max}`
+              : `${interval.max}-${interval.min + 1}`,
+          )
+          .join(';')}
+        ({feature.strand === 1 ? '+' : '-'})
+        <br />
+        {sequenceSegments.map((segment, index) => (
+          <span
+            key={`${segment.type}-${index}`}
             style={{
-              fontFamily: 'monospace',
-              padding: theme.spacing(),
-              overflowX: 'auto',
+              background: getSegmentColor(segment.type),
+              color: theme.palette.getContrastText(
+                getSegmentColor(segment.type),
+              ),
             }}
-            ref={seqRef}
           >
-            &gt;{refSeq.name}:
-            {locationIntervals
-              .map((interval) =>
-                feature.strand === 1
-                  ? `${interval.min + 1}-${interval.max}`
-                  : `${interval.max}-${interval.min + 1}`,
-              )
-              .join(';')}
-            ({feature.strand === 1 ? '+' : '-'})
-            <br />
-            {sequenceSegments.map((segment, index) => (
-              <span
-                key={`${segment.type}-${index}`}
-                style={{
-                  background: getSegmentColor(segment.type),
-                  color: theme.palette.getContrastText(
-                    getSegmentColor(segment.type),
-                  ),
-                }}
-              >
-                {segment.sequenceLines.map((sequenceLine, idx) => (
-                  <React.Fragment key={`${sequenceLine.slice(0, 5)}-${idx}`}>
-                    {sequenceLine}
-                    {idx === segment.sequenceLines.length - 1 &&
-                    sequenceLine.length !== SEQUENCE_WRAP_LENGTH ? null : (
-                      <br />
-                    )}
-                  </React.Fragment>
-                ))}
-              </span>
+            {segment.sequenceLines.map((sequenceLine, idx) => (
+              <React.Fragment key={`${sequenceLine.slice(0, 5)}-${idx}`}>
+                {sequenceLine}
+                {idx === segment.sequenceLines.length - 1 &&
+                sequenceLine.length !== SEQUENCE_WRAP_LENGTH ? null : (
+                  <br />
+                )}
+              </React.Fragment>
             ))}
-          </Paper>
-        </>
-      )}
+          </span>
+        ))}
+      </Paper>
     </>
   )
 })

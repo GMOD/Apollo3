@@ -1,6 +1,6 @@
 import { AbstractSessionModel, getSession } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
-import { getRoot, getSnapshot } from 'mobx-state-tree'
+import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 import {
