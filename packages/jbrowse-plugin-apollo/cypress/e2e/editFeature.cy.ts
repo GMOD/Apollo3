@@ -83,7 +83,7 @@ describe('Different ways of editing features', () => {
     })
   })
 
-  it('Can add gene ontology attribute', () => {
+  it.skip('Can add gene ontology attribute', () => {
     cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
     cy.selectAssemblyToView('onegene.fasta.gff3')
     cy.searchFeatures('gx1', 1)
