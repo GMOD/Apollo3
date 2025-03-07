@@ -472,9 +472,9 @@ export function AddAssembly({
                   disabled={fileType === FileType.EXTERNAL}
                   label={
                     <Box display="flex" alignItems="center">
-                      <span>Allow sequence to be edited</span>
+                      <span>Store sequence in database</span>
                       <Tooltip
-                        title="Use with care: If checked, users can edit the genomic sequence together with the annotation"
+                        title="This option enables users to edit the genomic sequence - use with care."
                         placement="top-start"
                       >
                         <IconButton size="small">
