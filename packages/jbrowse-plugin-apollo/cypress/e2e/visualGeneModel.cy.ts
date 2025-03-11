@@ -22,10 +22,10 @@ describe('Simple tests for visuals', () => {
     cy.wait(5000)
 
     // NB: The size of the image differs between headless and interactive execution of cypress.
-    // In headless mode (including github workflow) use this:
-    cy.get('canvas[data-testid="overlayCanvas"]').compareSnapshot('gene-model')
-
-    // For local testing use this (comment out when pushing to github):
-    // cy.get('canvas[data-testid="overlayCanvas"]').compareSnapshot('gene-model-local')
+    // Use *headless for pushing to gihub
+    cy.get('canvas[data-testid="overlayCanvas"]').compareSnapshot(
+      'gene-model-headless',
+    )
+    // cy.get('canvas[data-testid="overlayCanvas"]').compareSnapshot('gene-model-interactive')
   })
 })
