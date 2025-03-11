@@ -23,6 +23,7 @@ function simpleFeatureToGFF3Feature(
   feature: Feature,
   refSeqId: string,
 ): GFF3Feature {
+  // eslint-disable-next-line unicorn/prefer-structured-clone
   const xfeature = JSON.parse(JSON.stringify(feature))
   const children = xfeature.subfeatures
   const gff3Feature = [

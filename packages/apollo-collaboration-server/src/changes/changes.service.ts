@@ -157,6 +157,7 @@ export class ChangesService {
 
       // Add entry to change collection
       const [savedChangedLogDoc] = await this.changeModel.create([
+        // eslint-disable-next-line @typescript-eslint/no-misused-spread
         { ...change, user: user.email, sequence },
       ])
       changeDoc = savedChangedLogDoc
@@ -255,6 +256,7 @@ export class ChangesService {
   }
 
   async findAll(changeFilter: FindChangeDto) {
+    // eslint-disable-next-line @typescript-eslint/no-misused-spread
     const queryCond: FilterQuery<ChangeDocument> = { ...changeFilter }
     if (changeFilter.user) {
       queryCond.user = { $regex: changeFilter.user, $options: 'i' }

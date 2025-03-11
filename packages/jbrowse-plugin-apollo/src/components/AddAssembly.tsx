@@ -366,12 +366,14 @@ export function AddAssembly({
                   setFastaFile(e.target.value)
                 }}
                 disabled={submitted && !errorMessage}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LinkIcon />
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LinkIcon />
+                      </InputAdornment>
+                    ),
+                  },
                 }}
               />
               <TextField
@@ -387,12 +389,14 @@ export function AddAssembly({
                   setFastaIndexFile(e.target.value)
                 }}
                 disabled={submitted && !errorMessage}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LinkIcon />
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LinkIcon />
+                      </InputAdornment>
+                    ),
+                  },
                 }}
               />
               <TextField
@@ -408,12 +412,14 @@ export function AddAssembly({
                   setFastaGziIndexFile(e.target.value)
                 }}
                 disabled={submitted && !errorMessage}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LinkIcon />
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LinkIcon />
+                      </InputAdornment>
+                    ),
+                  },
                 }}
               />
             </Box>
