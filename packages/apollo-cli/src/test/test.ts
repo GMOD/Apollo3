@@ -151,7 +151,7 @@ void describe('Test CLI', () => {
     assert.ok(p.stdout.includes('vv3') == false)
 
     const out = JSON.parse(p.stdout)
-    const aid = out.filter((x: any) => x.name === 'vv1').at(0)._id
+    const aid = out.find((x: any) => x.name === 'vv1')._id
     p = new Shell(`${apollo} assembly get ${P} -a ${aid} vv2`)
     assert.ok(p.stdout.includes('vv1'))
     assert.ok(p.stdout.includes('vv2'))
@@ -274,7 +274,7 @@ void describe('Test CLI', () => {
     p = new Shell(`${apollo} refseq get ${P}`)
     const refseq = JSON.parse(p.stdout.trim())
     const vv1ref = refseq.filter((x: any) => x.assembly === asm_id)
-    const refseq_id = vv1ref.filter((x: any) => x.name === 'ctgA').at(0)._id
+    const refseq_id = vv1ref.find((x: any) => x.name === 'ctgA')._id
 
     p = new Shell(`${apollo} feature get ${P} -r ${refseq_id}`)
     const ff = JSON.parse(p.stdout)
@@ -323,7 +323,7 @@ void describe('Test CLI', () => {
     fs.unlinkSync('test_data/tmp.fa')
   })
 
-  void globalThis.itName('FIXME Checks are triggered and resolved', () => {
+  void globalThis.itName('Checks are triggered and resolved', () => {
     new Shell(`${apollo} assembly add-from-gff ${P} test_data/checks.gff -f`)
     let p = new Shell(`${apollo} feature get ${P} -a checks.gff`)
     const out = JSON.parse(p.stdout)
@@ -348,18 +348,61 @@ void describe('Test CLI', () => {
     )
     p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
     const checks = JSON.parse(p.stdout)
-    // FIXME: There should be 2 failing checks, not 3
-    assert.strictEqual(checks.length, 3)
-    assert.ok(p.stdout.includes('InternalStopCodonCheck'))
-    assert.ok(p.stdout.includes('MissingStopCodonCheck'))
+    assert.strictEqual(checks.length, 2)
+    assert.ok(p.stdout.includes('InternalStopCodon'))
+    assert.ok(p.stdout.includes('MissingStopCodon'))
 
     // Problems fixed
     new Shell(
       `${apollo} feature edit-coords ${P} -i ${cds_id} --start 16 --end 27`,
     )
     p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
-    // FIXME: After fixing, how many warnings do we expect?
-    assert.deepStrictEqual(JSON.parse(p.stdout).length, 4)
+    assert.deepStrictEqual(JSON.parse(p.stdout).length, 0)
+  })
+
+  void globalThis.itName('FIXME: Checks stay after invalid operation', () => {
+    new Shell(`${apollo} assembly add-from-gff ${P} test_data/checks.gff -f`)
+    let p = new Shell(`${apollo} feature get ${P} -a checks.gff`)
+    const out = JSON.parse(p.stdout)
+
+    p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
+    assert.deepStrictEqual(p.stdout.trim(), '[]') // No failing check
+
+    // Get the ID of the CDS. We need need it to modify the CDS coordinates
+    const gene = out.filter(
+      (x: any) =>
+        JSON.stringify(x.attributes.gff_id) === JSON.stringify(['gene01']),
+    )
+    const mrna = Object.values(gene.at(0).children).at(0) as any
+    const cds = Object.values(mrna.children).find(
+      (x: any) => x.attributes.gff_id.at(0) === 'cds01',
+    ) as any
+    const cds_id = cds._id
+
+    // Introduce problems
+    new Shell(
+      `${apollo} feature edit-coords ${P} -i ${cds_id} --start 4 --end 24`,
+    )
+    p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
+    let checks = JSON.parse(p.stdout)
+    assert.strictEqual(checks.length, 2)
+    assert.ok(p.stdout.includes('InternalStopCodon'))
+    assert.ok(p.stdout.includes('MissingStopCodon'))
+
+    // Do something invalid: extend CDS beyond parent
+    p = new Shell(
+      `${apollo} feature edit-coords ${P} -i ${cds_id} --end 30`,
+      false,
+    )
+    assert.ok(p.returncode != 0)
+    assert.ok(p.stderr.includes('exceeds the bounds of its parent'))
+
+    // FIXME: Checks should be the same as before the invalid edit
+    p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
+    checks = JSON.parse(p.stdout)
+    //assert.strictEqual(checks.length, 2)
+    //assert.ok(p.stdout.includes('InternalStopCodon'))
+    //assert.ok(p.stdout.includes('MissingStopCodon'))
   })
 
   void globalThis.itName('Add assembly from local fasta', () => {
@@ -571,11 +614,9 @@ void describe('Test CLI', () => {
     // Edit a feature by extending beyond the boundary of its parent and
     // check it throws a meaningful error message
     // let eden_gene = undefined
-    const eden_gene = features
-      .filter(
-        (x: any) => x.type === 'gene' && x.attributes.gff_name.at(0) === 'EDEN',
-      )
-      .at(0)
+    const eden_gene = features.find(
+      (x: any) => x.type === 'gene' && x.attributes.gff_name.at(0) === 'EDEN',
+    )
     assert.ok(eden_gene)
     const mrna_id = Object.keys(eden_gene.children).at(0)
     p = new Shell(
@@ -839,9 +880,9 @@ void describe('Test CLI', () => {
 
     // RefSeq id does not need assembly
     p = new Shell(`${apollo} refseq get ${P} -a dest2`)
-    const destRefSeq = JSON.parse(p.stdout)
-      .filter((x: any) => x.name === 'ctgA')
-      .at(0)._id
+    const destRefSeq = JSON.parse(p.stdout).find(
+      (x: any) => x.name === 'ctgA',
+    )._id
 
     p = new Shell(`${apollo} feature copy ${P} -i ${fid} -r ${destRefSeq} -s 2`)
     p = new Shell(`${apollo} feature search ${P} -a dest2 -t contig`)
@@ -984,7 +1025,7 @@ void describe('Test CLI', () => {
     let p = new Shell(`${apollo} assembly check ${P}`)
     let out = JSON.parse(p.stdout)
     assert.ok(p.stdout.includes('CDSCheck'))
-    const cdsCheckId = out.filter((x: any) => x.name === 'CDSCheck').at(0)._id
+    const cdsCheckId = out.find((x: any) => x.name === 'CDSCheck')._id
 
     // Test view checks set for assembly
     p = new Shell(`${apollo} assembly check ${P} -a v1`)
@@ -1034,7 +1075,7 @@ void describe('Test CLI', () => {
     let p = new Shell(`${apollo} feature check ${P} -a v1`)
     const out = JSON.parse(p.stdout)
     assert.ok(out.length > 1)
-    assert.ok(p.stdout.includes('InternalStopCodonCheck'))
+    assert.ok(p.stdout.includes('InternalStopCodon'))
 
     // Ids with checks
     const ids: string[] = out.map((x: any) => x.ids)
@@ -1043,7 +1084,7 @@ void describe('Test CLI', () => {
     // Retrieve by feature id
     const xid = [...ids].join(' ')
     p = new Shell(`${apollo} feature check ${P} -i ${xid}`)
-    assert.ok(p.stdout.includes('InternalStopCodonCheck'))
+    assert.ok(p.stdout.includes('InternalStopCodon'))
   })
 
   void globalThis.itName('Feature checks indexed', () => {
@@ -1057,7 +1098,7 @@ void describe('Test CLI', () => {
     let p = new Shell(`${apollo} feature check ${P} -a v1`)
     const out = JSON.parse(p.stdout)
     assert.ok(out.length > 1)
-    assert.ok(p.stdout.includes('InternalStopCodonCheck'))
+    assert.ok(p.stdout.includes('InternalStopCodon'))
 
     // Ids with checks
     const ids: string[] = out.map((x: any) => x.ids)
@@ -1066,7 +1107,7 @@ void describe('Test CLI', () => {
     // Retrieve by feature id
     const xid = [...ids].join(' ')
     p = new Shell(`${apollo} feature check ${P} -i ${xid}`)
-    assert.ok(p.stdout.includes('InternalStopCodonCheck'))
+    assert.ok(p.stdout.includes('InternalStopCodon'))
   })
 
   void globalThis.itName('User', () => {
@@ -1399,7 +1440,7 @@ void describe('Test CLI', () => {
     assert.ok(gff.startsWith('##gff-version 3'))
     assert.ok(gff.includes('multivalue=val1,val2,val3'))
     assert.ok(gff.includes('##FASTA\n'))
-    assert.deepStrictEqual(gff.slice(-6, gff.length), 'taccc\n')
+    assert.deepStrictEqual(gff.slice(-6), 'taccc\n')
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
     gff = p.stdout
@@ -1424,7 +1465,7 @@ void describe('Test CLI', () => {
     assert.ok(gff.includes('multivalue=val1,val2,val3'))
     assert.ok(gff.includes('##FASTA\n'))
     // We end with two newlines because the test data does have an extra newline at the end.
-    assert.deepStrictEqual(gff.slice(-7, gff.length), 'taccc\n\n')
+    assert.deepStrictEqual(gff.slice(-7), 'taccc\n\n')
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
     gff = p.stdout
@@ -1444,7 +1485,7 @@ void describe('Test CLI', () => {
     assert.ok(gff.includes('multivalue=val1,val2,val3'))
     assert.ok(gff.includes('##FASTA\n'))
     // We end with two newlines because the test data does have an extra newline at the end.
-    assert.deepStrictEqual(gff.slice(-7, gff.length), 'taccc\n\n')
+    assert.deepStrictEqual(gff.slice(-7), 'taccc\n\n')
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
     gff = p.stdout

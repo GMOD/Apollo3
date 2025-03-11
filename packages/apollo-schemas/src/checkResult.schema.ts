@@ -14,6 +14,9 @@ export class CheckResult
   @Prop()
   name: string
 
+  @Prop()
+  cause: string
+
   @Prop({ type: [MongooseSchema.Types.ObjectId], required: true, index: true })
   ids: Types.ObjectId[]
 

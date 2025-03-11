@@ -5,6 +5,7 @@ import { AnnotationFeatureModel } from './AnnotationFeatureModel'
 export const CheckResult = types.model('CheckResult', {
   _id: types.identifier,
   name: types.string,
+  cause: types.string,
   ids: types.array(types.safeReference(AnnotationFeatureModel)),
   refSeq: types.string,
   start: types.number,

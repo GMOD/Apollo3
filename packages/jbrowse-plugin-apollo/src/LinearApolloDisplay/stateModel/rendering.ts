@@ -155,6 +155,8 @@ function codonColorCode(letter: string) {
 }
 
 function reverseCodonSeq(seq: string): string {
+  // disable because sequence is all ascii
+  // eslint-disable-next-line @typescript-eslint/no-misused-spread
   return [...seq]
     .map((c) => revcom(c))
     .reverse()
@@ -272,6 +274,8 @@ export function sequenceRenderingModelFactory(
               if (!seq) {
                 return
               }
+              // disable because sequence is all ascii
+              // eslint-disable-next-line @typescript-eslint/no-misused-spread
               for (const [i, letter] of [...seq].entries()) {
                 const trnslXOffset =
                   (self.lgv.bpToPx({

@@ -24,8 +24,7 @@ export default [
     ],
   },
   js.configs.recommended,
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  pluginUnicorn.configs['flat/recommended'],
+  pluginUnicorn.configs.recommended,
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   pluginImport.flatConfigs.typescript,
   ...tseslint.configs.strictTypeChecked,

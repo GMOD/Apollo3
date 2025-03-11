@@ -13,6 +13,7 @@ export function annotationFeatureToGFF3(
   parentId?: string,
   refSeqNames?: Record<string, string | undefined>,
 ): GFF3Feature {
+  // eslint-disable-next-line unicorn/prefer-structured-clone
   const attributes: Record<string, string[] | undefined> = JSON.parse(
     JSON.stringify(feature.attributes ?? {}),
   )
@@ -126,6 +127,7 @@ function prepareChildFeatures(
       const gffChild = annotationFeatureToGFF3(child, parentID, refSeqNames)
       if (child.type === 'CDS') {
         for (const loc of cdsLocations[cds_idx]) {
+          // eslint-disable-next-line unicorn/prefer-structured-clone
           const gffCds = JSON.parse(JSON.stringify(gffChild)) as GFF3Feature
           if (gffCds.length != 1) {
             // Do we need this check?

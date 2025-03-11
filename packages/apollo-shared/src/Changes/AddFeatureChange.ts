@@ -143,6 +143,7 @@ export class AddFeatureChange extends FeatureChange {
             }
             attributes = {
               _id: [parentFeature._id.toString()],
+              // eslint-disable-next-line unicorn/prefer-structured-clone
               ...JSON.parse(JSON.stringify(attributes)),
             }
             parentFeature.attributes = attributes
