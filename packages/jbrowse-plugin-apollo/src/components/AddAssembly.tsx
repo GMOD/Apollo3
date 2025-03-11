@@ -456,7 +456,19 @@ export function AddAssembly({
                       }
                     />
                   }
-                  label="Files are on remote URL"
+                  label={
+                    <Box display="flex" alignItems="center">
+                      Use external URLs
+                      <Tooltip
+                        title="Use external URLs to provide FASTA and index files. Does not copy the files to the Apollo collaboration server, so ensure the URLs are stable."
+                        placement="top-start"
+                      >
+                        <IconButton size="small">
+                          <InfoIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  }
                 />
 
                 <FormControlLabel
@@ -472,9 +484,9 @@ export function AddAssembly({
                   disabled={fileType === FileType.EXTERNAL}
                   label={
                     <Box display="flex" alignItems="center">
-                      <span>Store sequence in database</span>
+                      Store sequence in database
                       <Tooltip
-                        title="This option enables users to edit the genomic sequence - use with care."
+                        title="Enables users to edit the genomic sequence, but comes with performance impacts. Use with care."
                         placement="top-start"
                       >
                         <IconButton size="small">
@@ -499,7 +511,7 @@ export function AddAssembly({
                       disabled={!sequenceIsEditable}
                     />
                   }
-                  label="Input is gzip compressed"
+                  label="FASTA is gzip compressed"
                 />
 
                 {fileType === FileType.BGZIP_FASTA ||
@@ -510,7 +522,7 @@ export function AddAssembly({
                       <TableCell style={{ borderBottomWidth: 0 }}>
                         <Box display="flex" alignItems="center">
                           <span>FASTA</span>
-                          <Tooltip title="Unless the editable option is enabled, FASTA input must be compressed with bgzip and indexed with samtools faidx (or equivalent). Compression and indexing are optional for editable input.">
+                          <Tooltip title='Unless "Store sequence in database" enabled, FASTA input must be compressed with bgzip and indexed with samtools faidx (or equivalent). Compression is optional for sequences stored in the database.'>
                             <IconButton size="small">
                               <InfoIcon sx={{ fontSize: 18 }} />
                             </IconButton>
@@ -697,7 +709,7 @@ export function AddAssembly({
             >
               <Typography component="span">
                 GFF3 input
-                <Tooltip title="Alternatively, upload assembly from a GFF3 file which includes FASTA sequences. File can be gzip compressed.">
+                <Tooltip title="GFF3 must includes FASTA sequences. File can be gzip compressed.">
                   <InfoIcon
                     className={classes.radioIcon}
                     sx={{ fontSize: 18 }}
@@ -727,7 +739,7 @@ export function AddAssembly({
                         disabled={submitted && !errorMessage}
                       />
                     }
-                    label="Also load features from GFF3 file"
+                    label="Load features from GFF3 file"
                   />
                   <FormControlLabel
                     data-testid="gff3-is-gzip-checkbox"
@@ -740,7 +752,7 @@ export function AddAssembly({
                         disabled={submitted && !errorMessage}
                       />
                     }
-                    label="Input is gzip compressed"
+                    label="GFF3 is gzip compressed"
                   />
                 </FormGroup>
               </Box>

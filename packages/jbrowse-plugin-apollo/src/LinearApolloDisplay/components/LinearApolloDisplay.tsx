@@ -60,6 +60,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const theme = useTheme()
   const { model } = props
   const {
+    apolloDragging,
     loading,
     apolloRowHeight,
     contextMenuItems: getContextMenuItems,
