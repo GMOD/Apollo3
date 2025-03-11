@@ -12,6 +12,14 @@ enum STOP_CODONS {
   'TGA',
 }
 
+const CHECK_NAME = 'CDSCheck'
+
+enum CAUSES {
+  'MissingStopCodon',
+  'MultipleOfThree',
+  'InternalStopCodon',
+}
+
 const iupacComplements: Record<string, string | undefined> = {
   G: 'C',
   A: 'T',
@@ -119,7 +127,8 @@ async function checkMRNA(
       if (lastCodon && !(lastCodon.toUpperCase() in STOP_CODONS)) {
         checkResults.push({
           _id: new ObjectID().toHexString(),
-          name: 'MissingStopCodonCheck',
+          name: CHECK_NAME,
+          cause: CAUSES[CAUSES.MissingStopCodon],
           ids,
           refSeq: refSeq.toString(),
           start: max,
@@ -130,7 +139,8 @@ async function checkMRNA(
     } else {
       checkResults.push({
         _id: new ObjectID().toHexString(),
-        name: 'MultipleOfThreeCheck',
+        name: CHECK_NAME,
+        cause: CAUSES[CAUSES.MultipleOfThree],
         ids,
         refSeq: refSeq.toString(),
         start: min,
@@ -144,7 +154,8 @@ async function checkMRNA(
         const [codonStart, codonEnd] = location
         checkResults.push({
           _id: new ObjectID().toHexString(),
-          name: 'InternalStopCodonCheck',
+          name: CHECK_NAME,
+          cause: CAUSES[CAUSES.InternalStopCodon],
           ids,
           refSeq: refSeq.toString(),
           start: codonStart,
@@ -201,8 +212,14 @@ function getCDSLocations(
   return cdsLocations
 }
 
+function getCauses(): string[] {
+  return Object.values(CAUSES).filter((x) =>
+    Number.isNaN(Number(x)),
+  ) as string[]
+}
 export class CDSCheck extends Check {
-  name = 'CDSCheck'
+  name = CHECK_NAME
+  causes = getCauses()
   version = 1
   default = true
 

@@ -323,7 +323,7 @@ void describe('Test CLI', () => {
     fs.unlinkSync('test_data/tmp.fa')
   })
 
-  void globalThis.itName('FIXME Checks are triggered and resolved', () => {
+  void globalThis.itName('Checks are triggered and resolved', () => {
     new Shell(`${apollo} assembly add-from-gff ${P} test_data/checks.gff -f`)
     let p = new Shell(`${apollo} feature get ${P} -a checks.gff`)
     const out = JSON.parse(p.stdout)
@@ -348,18 +348,61 @@ void describe('Test CLI', () => {
     )
     p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
     const checks = JSON.parse(p.stdout)
-    // FIXME: There should be 2 failing checks, not 3
-    assert.strictEqual(checks.length, 3)
-    assert.ok(p.stdout.includes('InternalStopCodonCheck'))
-    assert.ok(p.stdout.includes('MissingStopCodonCheck'))
+    assert.strictEqual(checks.length, 2)
+    assert.ok(p.stdout.includes('InternalStopCodon'))
+    assert.ok(p.stdout.includes('MissingStopCodon'))
 
     // Problems fixed
     new Shell(
       `${apollo} feature edit-coords ${P} -i ${cds_id} --start 16 --end 27`,
     )
     p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
-    // FIXME: After fixing, how many warnings do we expect?
-    assert.deepStrictEqual(JSON.parse(p.stdout).length, 4)
+    assert.deepStrictEqual(JSON.parse(p.stdout).length, 0)
+  })
+
+  void globalThis.itName('FIXME: Checks stay after invalid operation', () => {
+    new Shell(`${apollo} assembly add-from-gff ${P} test_data/checks.gff -f`)
+    let p = new Shell(`${apollo} feature get ${P} -a checks.gff`)
+    const out = JSON.parse(p.stdout)
+
+    p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
+    assert.deepStrictEqual(p.stdout.trim(), '[]') // No failing check
+
+    // Get the ID of the CDS. We need need it to modify the CDS coordinates
+    const gene = out.filter(
+      (x: any) =>
+        JSON.stringify(x.attributes.gff_id) === JSON.stringify(['gene01']),
+    )
+    const mrna = Object.values(gene.at(0).children).at(0) as any
+    const cds = Object.values(mrna.children).find(
+      (x: any) => x.attributes.gff_id.at(0) === 'cds01',
+    ) as any
+    const cds_id = cds._id
+
+    // Introduce problems
+    new Shell(
+      `${apollo} feature edit-coords ${P} -i ${cds_id} --start 4 --end 24`,
+    )
+    p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
+    let checks = JSON.parse(p.stdout)
+    assert.strictEqual(checks.length, 2)
+    assert.ok(p.stdout.includes('InternalStopCodon'))
+    assert.ok(p.stdout.includes('MissingStopCodon'))
+
+    // Do something invalid: extend CDS beyond parent
+    p = new Shell(
+      `${apollo} feature edit-coords ${P} -i ${cds_id} --end 30`,
+      false,
+    )
+    assert.ok(p.returncode != 0)
+    assert.ok(p.stderr.includes('exceeds the bounds of its parent'))
+
+    // FIXME: Checks should be the same as before the invalid edit
+    p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
+    checks = JSON.parse(p.stdout)
+    //assert.strictEqual(checks.length, 2)
+    //assert.ok(p.stdout.includes('InternalStopCodon'))
+    //assert.ok(p.stdout.includes('MissingStopCodon'))
   })
 
   void globalThis.itName('Add assembly from local fasta', () => {
@@ -1032,7 +1075,7 @@ void describe('Test CLI', () => {
     let p = new Shell(`${apollo} feature check ${P} -a v1`)
     const out = JSON.parse(p.stdout)
     assert.ok(out.length > 1)
-    assert.ok(p.stdout.includes('InternalStopCodonCheck'))
+    assert.ok(p.stdout.includes('InternalStopCodon'))
 
     // Ids with checks
     const ids: string[] = out.map((x: any) => x.ids)
@@ -1041,7 +1084,7 @@ void describe('Test CLI', () => {
     // Retrieve by feature id
     const xid = [...ids].join(' ')
     p = new Shell(`${apollo} feature check ${P} -i ${xid}`)
-    assert.ok(p.stdout.includes('InternalStopCodonCheck'))
+    assert.ok(p.stdout.includes('InternalStopCodon'))
   })
 
   void globalThis.itName('Feature checks indexed', () => {
@@ -1055,7 +1098,7 @@ void describe('Test CLI', () => {
     let p = new Shell(`${apollo} feature check ${P} -a v1`)
     const out = JSON.parse(p.stdout)
     assert.ok(out.length > 1)
-    assert.ok(p.stdout.includes('InternalStopCodonCheck'))
+    assert.ok(p.stdout.includes('InternalStopCodon'))
 
     // Ids with checks
     const ids: string[] = out.map((x: any) => x.ids)
@@ -1064,7 +1107,7 @@ void describe('Test CLI', () => {
     // Retrieve by feature id
     const xid = [...ids].join(' ')
     p = new Shell(`${apollo} feature check ${P} -i ${xid}`)
-    assert.ok(p.stdout.includes('InternalStopCodonCheck'))
+    assert.ok(p.stdout.includes('InternalStopCodon'))
   })
 
   void globalThis.itName('User', () => {
