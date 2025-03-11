@@ -176,7 +176,7 @@ describe('Add Assembly', () => {
       cy.get('input[data-testid="gff3-input-file"]').selectFile(
         'test_data/volvox.fasta.gff3',
       )
-      cy.contains('Also load features').within(() => {
+      cy.contains('Load features from GFF3').within(() => {
         cy.get('input[type="checkbox"]').click()
       })
       cy.get('Button[data-testid="submit-button"]').click()

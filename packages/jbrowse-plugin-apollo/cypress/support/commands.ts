@@ -127,7 +127,7 @@ Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
         cy.get('button').click()
       })
     cy.get('input[data-testid="gff3-input-file"]').selectFile(fin)
-    cy.contains('Also load features')
+    cy.contains('Load features from GFF3')
       .parent()
       .within(() => {
         cy.get('input[type="checkbox"]').should('be.checked')
