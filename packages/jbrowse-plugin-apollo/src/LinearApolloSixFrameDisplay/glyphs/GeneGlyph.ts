@@ -362,32 +362,47 @@ function drawHover(
     return
   }
   const { feature } = apolloHover
-  const position = stateModel.getFeatureLayoutPosition(feature)
+  if (feature.type !== 'CDS') {
+    return
+  }
+  const { parent } = feature
+  if (!parent) {
+    return
+  }
+  const position = stateModel.getFeatureLayoutPosition(parent)
   if (!position) {
     return
   }
   const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const { featureRow, layoutIndex, layoutRow } = position
+  const { layoutIndex } = position
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
-  const { length, max, min } = feature
-  const startPx =
-    (lgv.bpToPx({
-      refName,
-      coord: reversed ? max : min,
-      regionNumber: layoutIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const row = layoutRow + featureRow
-  const top = row * apolloRowHeight
-  const widthPx = length / bpPerPx
-  ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,04)'
-  ctx.fillRect(startPx, top, widthPx, apolloRowHeight * getRowCount(feature))
+  const rowHeight = apolloRowHeight
+  const cdsHeight = Math.round(0.9 * rowHeight)
+  for (const cdsRow of parent.cdsLocations) {
+    for (const cds of cdsRow) {
+      const cdsWidthPx = (cds.max - cds.min) / bpPerPx
+      const minX =
+        (lgv.bpToPx({
+          refName,
+          coord: cds.min,
+          regionNumber: layoutIndex,
+        })?.offsetPx ?? 0) - offsetPx
+      const cdsStartPx = reversed ? minX - cdsWidthPx : minX
+      const frame = getFrame(cds.min, cds.max, parent.strand ?? 1, cds.phase)
+      const cdsTop = (frame - 1) * rowHeight + (rowHeight - cdsHeight) / 2
+      // ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,04)'
+      ctx.fillStyle = 'rgba(255,0,0,0.6)'
+      ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
+    }
+  }
 }
 
 function getFeatureFromLayout(
   feature: AnnotationFeature,
   bp: number,
   row: number,
+  _featureTypeOntology?: OntologyRecord,
 ): AnnotationFeature | undefined {
   const featureInThisRow: AnnotationFeature[] =
     featuresForRow(feature)[row] || []
