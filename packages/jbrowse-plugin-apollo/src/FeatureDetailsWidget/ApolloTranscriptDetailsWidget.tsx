@@ -112,8 +112,8 @@ export const ApolloTranscriptDetailsWidget = observer(
         >
           <AccordionSummary
             expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
-            aria-controls="panel1-content"
-            id="panel1-header"
+            aria-controls="panel2-content"
+            id="panel2-header"
           >
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <Typography component="span">Attributes </Typography>
@@ -142,18 +142,20 @@ export const ApolloTranscriptDetailsWidget = observer(
         >
           <AccordionSummary
             expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
-            aria-controls="panel1-content"
-            id="panel1-header"
+            aria-controls="panel3-content"
+            id="panel3-header"
           >
             <Typography component="span">Sequence</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <TranscriptSequence
-              feature={feature}
-              session={apolloSession}
-              assembly={currentAssembly._id || ''}
-              refName={refName}
-            />
+            {panelState.includes('sequence') && (
+              <TranscriptSequence
+                feature={feature}
+                session={apolloSession}
+                assembly={currentAssembly._id || ''}
+                refName={refName}
+              />
+            )}
           </AccordionDetails>
         </Accordion>
       </div>
