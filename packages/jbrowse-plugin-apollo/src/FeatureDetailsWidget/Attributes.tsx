@@ -291,7 +291,7 @@ export const Attributes = observer(function Attributes({
   }
 
   return (
-    <>
+    <div data-testid="attributes_test">
       <Grid2 container direction="column" spacing={1}>
         {Object.entries(attributes).map(([key, value]) => {
           if (key === '') {
@@ -425,6 +425,6 @@ export const Attributes = observer(function Attributes({
       {errorMessage ? (
         <Typography color="error">{errorMessage}</Typography>
       ) : null}
-    </>
+    </div>
   )
 })
