@@ -73,6 +73,26 @@ function selectColor(number: number) {
   return `hsl(${hue},100%,50%)`
 }
 
+function getRowCount(feature: AnnotationFeature, _bpPerPx?: number): number {
+  const { children, type } = feature
+  if (!children) {
+    return 1
+  }
+  let rowCount = 0
+  if (type === 'mRNA') {
+    for (const [, child] of children) {
+      if (child.type === 'CDS') {
+        rowCount += 1
+      }
+    }
+    return rowCount
+  }
+  for (const [, child] of children) {
+    rowCount += getRowCount(child)
+  }
+  return rowCount
+}
+
 function draw(
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
@@ -400,26 +420,6 @@ function getFeatureFromLayout(
     return featureObj
   }
   return feature
-}
-
-function getRowCount(feature: AnnotationFeature, _bpPerPx?: number): number {
-  const { children, type } = feature
-  if (!children) {
-    return 1
-  }
-  let rowCount = 0
-  if (type === 'mRNA') {
-    for (const [, child] of children) {
-      if (child.type === 'CDS') {
-        rowCount += 1
-      }
-    }
-    return rowCount
-  }
-  for (const [, child] of children) {
-    rowCount += getRowCount(child)
-  }
-  return rowCount
 }
 
 /**
