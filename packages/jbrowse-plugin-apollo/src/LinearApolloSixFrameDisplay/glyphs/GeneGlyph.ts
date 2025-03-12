@@ -136,38 +136,38 @@ function draw(
   )
 
   // Draw lines on different rows for each mRNA
-  let currentRow = -1
-  for (const [, mrna] of children) {
-    if (mrna.type !== 'mRNA') {
-      currentRow += 1
-      continue
-    }
-    const { children: childrenOfmRNA } = mrna
-    if (!childrenOfmRNA) {
-      continue
-    }
-    for (const [, cds] of childrenOfmRNA) {
-      if (cds.type !== 'CDS') {
-        continue
-      }
-      const minX =
-        (lgv.bpToPx({
-          refName,
-          coord: min,
-          regionNumber: displayedRegionIndex,
-        })?.offsetPx ?? 0) - offsetPx
-      const widthPx = mrna.length / bpPerPx
-      const startPx = reversed ? minX - widthPx : minX
-      const height =
-        Math.round((currentRow + 1 / 2) * rowHeight) + row * rowHeight
-      // ctx.strokeStyle = theme?.palette.text.primary ?? 'black'
-      ctx.beginPath()
-      ctx.moveTo(startPx, height)
-      ctx.lineTo(startPx + widthPx, height)
-      // ctx.stroke()
-      currentRow += 1
-    }
-  }
+  // let currentRow = -1
+  // for (const [, mrna] of children) {
+  //   if (mrna.type !== 'mRNA') {
+  //     currentRow += 1
+  //     continue
+  //   }
+  //   const { children: childrenOfmRNA } = mrna
+  //   if (!childrenOfmRNA) {
+  //     continue
+  //   }
+  //   for (const [, cds] of childrenOfmRNA) {
+  //     if (cds.type !== 'CDS') {
+  //       continue
+  //     }
+  //     const minX =
+  //       (lgv.bpToPx({
+  //         refName,
+  //         coord: min,
+  //         regionNumber: displayedRegionIndex,
+  //       })?.offsetPx ?? 0) - offsetPx
+  //     const widthPx = mrna.length / bpPerPx
+  //     const startPx = reversed ? minX - widthPx : minX
+  //     const height =
+  //       Math.round((currentRow + 1 / 2) * rowHeight) + row * rowHeight
+  //     // ctx.strokeStyle = theme?.palette.text.primary ?? 'black'
+  //     ctx.beginPath()
+  //     ctx.moveTo(startPx, height)
+  //     ctx.lineTo(startPx + widthPx, height)
+  //     // ctx.stroke()
+  //     currentRow += 1
+  //   }
+  // }
 
   const forwardFill =
     theme?.palette.mode === 'dark' ? forwardFillDark : forwardFillLight
