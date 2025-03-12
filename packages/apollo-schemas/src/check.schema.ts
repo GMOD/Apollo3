@@ -15,6 +15,9 @@ export class Check {
   name: string
 
   @Prop()
+  causes: string[]
+
+  @Prop()
   default: boolean
 
   @Prop()

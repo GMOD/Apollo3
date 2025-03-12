@@ -123,6 +123,7 @@ export async function getAssembly(
   const assemblies = (await res.json()) as ApolloAssemblySnapshot[]
   for (const x of assemblies) {
     if (x._id === assemblyId[0]) {
+      // eslint-disable-next-line unicorn/prefer-structured-clone
       return JSON.parse(JSON.stringify(x)) as ApolloAssemblySnapshot
     }
   }

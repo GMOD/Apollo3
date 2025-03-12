@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { AnnotationFeature } from '@apollo-annotation/mst'
 import {

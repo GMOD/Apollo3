@@ -115,6 +115,7 @@ export class UsersService {
     const userSessionId = makeUserSessionId(user)
     const msg: UserLocationMessage = {
       locations: userLocations.map((location) => ({
+        // eslint-disable-next-line @typescript-eslint/no-misused-spread
         ...location,
         start: Number(location.start),
         end: Number(location.end),
