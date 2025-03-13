@@ -11,6 +11,8 @@ import {
   Typography,
 } from '@mui/material'
 
+import styled from '@emotion/styled'
+
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import InfoIcon from '@mui/icons-material/Info'
 
@@ -21,10 +23,21 @@ import { Attributes } from './Attributes'
 import { TranscriptBasicInformation } from './TranscriptBasic'
 import { TranscriptSequence } from './TranscriptSequence'
 import { ApolloTranscriptDetailsWidget as ApolloTranscriptDetailsWidgetState } from './model'
+import { TranscriptWidgetSummary } from './TranscriptWidgetSummary'
+import { TranscriptWidgetEditLocation } from './TranscriptWidgetEditLocation'
 
 const useStyles = makeStyles()((theme) => ({
   root: {
     padding: theme.spacing(2),
+  },
+}))
+
+export const StyledAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
+  minHeight: 30,
+  maxHeight: 30,
+  '&.Mui-expanded': {
+    minHeight: 30,
+    maxHeight: 30,
   },
 }))
 
@@ -33,14 +46,14 @@ export const ApolloTranscriptDetailsWidget = observer(
     model: ApolloTranscriptDetailsWidgetState
   }) {
     const { classes } = useStyles()
-
-    const [panelState, setPanelState] = useState<string[]>(['transcript'])
+    const DEFAULT_PANELS = ['summary', 'location', 'attrs']
+    const [panelState, setPanelState] = useState<string[]>(DEFAULT_PANELS)
 
     const { model } = props
     const { assembly, feature, refName } = model
 
     useEffect(() => {
-      setPanelState(['transcript'])
+      setPanelState(DEFAULT_PANELS)
     }, [feature])
 
     const session = getSession(model) as unknown as AbstractSessionModel
@@ -82,48 +95,67 @@ export const ApolloTranscriptDetailsWidget = observer(
     return (
       <div className={classes.root}>
         <Accordion
-          expanded={panelState.includes('transcript')}
+          expanded={panelState.includes('summary')}
           onChange={(e, expanded) => {
-            handlePanelChange(expanded, 'transcript')
+            handlePanelChange(expanded, 'summary')
           }}
         >
-          <AccordionSummary
+          <StyledAccordionSummary
             expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
             aria-controls="panel1-content"
             id="panel1-header"
           >
-            <Typography component="span">Transcript</Typography>
-          </AccordionSummary>
+            <Typography component="span" fontWeight={'bold'}>
+              Summary
+            </Typography>
+          </StyledAccordionSummary>
           <AccordionDetails>
-            <TranscriptBasicInformation
-              feature={feature}
-              session={apolloSession}
-              assembly={currentAssembly._id || ''}
-              refName={refName}
-            />
+            <TranscriptWidgetSummary feature={feature} refName={refName} />
           </AccordionDetails>
         </Accordion>
         <Accordion
-          style={{ marginTop: 10 }}
+          style={{ marginTop: 5 }}
+          expanded={panelState.includes('location')}
+          onChange={(e, expanded) => {
+            handlePanelChange(expanded, 'location')
+          }}
+        >
+          <StyledAccordionSummary
+            expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
+            aria-controls="panel2-content"
+            id="panel2-header"
+          >
+            <Typography component="span" fontWeight={'bold'}>
+              Location
+            </Typography>
+          </StyledAccordionSummary>
+          <AccordionDetails>
+            <TranscriptWidgetEditLocation feature={feature} refName={refName} />
+          </AccordionDetails>
+        </Accordion>
+        <Accordion
+          style={{ marginTop: 5 }}
           expanded={panelState.includes('attrs')}
           onChange={(e, expanded) => {
             handlePanelChange(expanded, 'attrs')
           }}
         >
-          <AccordionSummary
+          <StyledAccordionSummary
             expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
-            aria-controls="panel2-content"
-            id="panel2-header"
+            aria-controls="panel3-content"
+            id="panel3-header"
           >
             <div style={{ display: 'flex', alignItems: 'center' }}>
-              <Typography component="span">Attributes </Typography>
+              <Typography component="span" fontWeight={'bold'}>
+                Attributes{' '}
+              </Typography>
               <Tooltip title="Separate multiple values for the attribute with commas">
                 <InfoIcon
                   style={{ color: 'white', fontSize: 15, marginLeft: 10 }}
                 />
               </Tooltip>
             </div>
-          </AccordionSummary>
+          </StyledAccordionSummary>
           <AccordionDetails>
             <Attributes
               feature={feature}
@@ -134,19 +166,21 @@ export const ApolloTranscriptDetailsWidget = observer(
           </AccordionDetails>
         </Accordion>
         <Accordion
-          style={{ marginTop: 10 }}
+          style={{ marginTop: 5 }}
           expanded={panelState.includes('sequence')}
           onChange={(e, expanded) => {
             handlePanelChange(expanded, 'sequence')
           }}
         >
-          <AccordionSummary
+          <StyledAccordionSummary
             expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
-            aria-controls="panel3-content"
-            id="panel3-header"
+            aria-controls="panel4-content"
+            id="panel4-header"
           >
-            <Typography component="span">Sequence</Typography>
-          </AccordionSummary>
+            <Typography component="span" fontWeight={'bold'}>
+              Sequence
+            </Typography>
+          </StyledAccordionSummary>
           <AccordionDetails>
             {panelState.includes('sequence') && (
               <TranscriptSequence

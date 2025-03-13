@@ -157,9 +157,6 @@ export const TranscriptBasicInformation = observer(
 
     return (
       <>
-        <Typography variant="h6">
-          {strand === 1 ? 'Forward' : 'Reverse'} strand
-        </Typography>
         <TableContainer component={Paper}>
           <Table size="small">
             <TableBody>

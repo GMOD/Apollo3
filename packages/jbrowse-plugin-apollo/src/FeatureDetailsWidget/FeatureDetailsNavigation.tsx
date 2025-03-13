@@ -5,27 +5,7 @@ import { observer } from 'mobx-react'
 
 import { AnnotationFeature } from '@apollo-annotation/mst'
 import { ApolloFeatureDetailsWidget as ApolloFeatureDetails } from './model'
-
-function getFeatureNameOrId(feature: AnnotationFeature) {
-  const { attributes } = feature
-  const name = attributes.get('gff_name')
-  const id = attributes.get('gff_id')
-  const exon_id = attributes.get('exon_id')
-  const protein_id = attributes.get('protein_id')
-  if (name) {
-    return `: ${name[0]}`
-  }
-  if (id) {
-    return `: ${id[0]}`
-  }
-  if (exon_id) {
-    return `: ${exon_id[0]}`
-  }
-  if (protein_id) {
-    return `: ${protein_id[0]}`
-  }
-  return ''
-}
+import { getFeatureNameOrId } from '../util'
 
 export const FeatureDetailsNavigation = observer(
   function FeatureDetailsNavigation(props: {
