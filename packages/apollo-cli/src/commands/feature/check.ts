@@ -72,7 +72,7 @@ Use `apollo assembly check` for managing which checks should be applied to an as
       access.address,
       access.accessToken,
     )
-    const results: object[] = []
+    const results: CheckResultSnapshot[] = []
     for (const chk of checks) {
       let keep = false
       if (flags['feature-id'] === undefined) {
@@ -89,6 +89,7 @@ Use `apollo assembly check` for managing which checks should be applied to an as
         results.push(chk)
       }
     }
+    results.sort((a, b) => (a.start < b.start ? -1 : 1))
     this.log(JSON.stringify(results, null, 2))
   }
 }

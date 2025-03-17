@@ -1493,4 +1493,42 @@ void describe('Test CLI', () => {
     assert.ok(gff.includes('multivalue=val1,val2,val3'))
     assert.ok(!gff.includes('##FASTA\n'))
   })
+
+  void globalThis.itName(
+    'Position of internal stop codon warning in forward',
+    () => {
+      new Shell(
+        `${apollo} assembly add-from-gff ${P} test_data/warningPositionForward.gff -a vv1 -f`,
+      )
+      const p = new Shell(`${apollo} feature check ${P} -a vv1`)
+      const out = JSON.parse(p.stdout)
+      assert.deepStrictEqual(out.length, 2)
+      assert.deepStrictEqual(out.at(0).cause, 'InternalStopCodon')
+      assert.deepStrictEqual(out.at(0).start, 9)
+      assert.deepStrictEqual(out.at(0).end, 15)
+
+      assert.deepStrictEqual(out.at(1).cause, 'InternalStopCodon')
+      assert.deepStrictEqual(out.at(1).start, 21)
+      assert.deepStrictEqual(out.at(1).end, 24)
+    },
+  )
+
+  void globalThis.itName(
+    'Position of internal stop codon warning in reverse',
+    () => {
+      new Shell(
+        `${apollo} assembly add-from-gff ${P} test_data/warningPositionReverse.gff -a vv1 -f`,
+      )
+      const p = new Shell(`${apollo} feature check ${P} -a vv1`)
+      const out = JSON.parse(p.stdout)
+      assert.deepStrictEqual(out.length, 2)
+      assert.deepStrictEqual(out.at(0).cause, 'InternalStopCodon')
+      assert.deepStrictEqual(out.at(0).start, 3)
+      assert.deepStrictEqual(out.at(0).end, 18)
+
+      assert.deepStrictEqual(out.at(1).cause, 'InternalStopCodon')
+      assert.deepStrictEqual(out.at(1).start, 18)
+      assert.deepStrictEqual(out.at(1).end, 21)
+    },
+  )
 })
