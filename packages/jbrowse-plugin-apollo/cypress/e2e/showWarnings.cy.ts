@@ -93,8 +93,8 @@ describe('Warning signs', () => {
       })
 
     /** From https://developer.mozilla.org/en-US/docs/Web/API/DOMRect/y:
-     * > The y property of the DOMRect interface represents the y-coordinate of the rectangle,
-     * > which is the vertical distance between the viewport's top edge and the rectangle's origin.
+     * The y property of the DOMRect interface represents the y-coordinate of the rectangle,
+     * which is the vertical distance between the viewport's top edge and the rectangle's origin.
      * This means that icons in the bottom rows have *higher* y coord than icons in the top rows.
      */
     cy.get('body').should(() => {
