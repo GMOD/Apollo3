@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-nested-ternary */
 /* eslint-disable unicorn/prefer-at */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
