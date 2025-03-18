@@ -70,9 +70,9 @@ describe('Warning signs', () => {
     )
 
     // Hopefully the order of icons is stable
-    let iconPos1: DOMRect // Leftmost icon, below 2 but above 3
-    let iconPos2: DOMRect // Right-top icon
-    let iconPos3: DOMRect // Right-bottom icon
+    let iconPos1: DOMRect
+    let iconPos2: DOMRect
+    let iconPos3: DOMRect
     cy.get('[data-testid="ErrorIcon"]')
       .eq(0)
       .parent()
@@ -92,11 +92,18 @@ describe('Warning signs', () => {
         iconPos3 = $icon[0].getBoundingClientRect()
       })
 
+    /** From https://developer.mozilla.org/en-US/docs/Web/API/DOMRect/y:
+     * > The y property of the DOMRect interface represents the y-coordinate of the rectangle,
+     * > which is the vertical distance between the viewport's top edge and the rectangle's origin.
+     * This means that icons in the bottom rows have *higher* y coord than icons in the top rows.
+     */
     cy.get('body').should(() => {
       expect(iconPos1.x).to.be.lessThan(iconPos2.x)
-      expect(iconPos2.x).to.be.equal(iconPos3.x)
+      expect(iconPos1.x).to.be.lessThan(iconPos3.x)
       expect(iconPos1.y).to.be.lessThan(iconPos3.y)
       expect(iconPos1.y).to.be.greaterThan(iconPos2.y)
+      expect(iconPos3.x).to.be.greaterThan(iconPos2.x)
+      expect(iconPos3.y).to.be.greaterThan(iconPos2.y)
     })
   })
 })

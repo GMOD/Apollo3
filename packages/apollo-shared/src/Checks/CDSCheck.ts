@@ -147,6 +147,7 @@ async function checkMRNA(
   const { _id, max, min, refSeq, strand } = feature
 
   const cdsLocations = getCDSLocations(feature)
+
   if (!cdsLocations) {
     return checkResults
   }
@@ -157,14 +158,18 @@ async function checkMRNA(
     if (sequence.length % 3 === 0) {
       const lastCodon = codons.at(-1) // Last codon is supposed to be a stop
       if (lastCodon && !(lastCodon.toUpperCase() in STOP_CODONS)) {
+        const cdsEnd =
+          strand === -1
+            ? cdsLocation.at(0)?.min ?? min
+            : cdsLocation.at(-1)?.max ?? max
         checkResults.push({
           _id: new ObjectID().toHexString(),
           name: CHECK_NAME,
           cause: CAUSES[CAUSES.MissingStopCodon],
           ids,
           refSeq: refSeq.toString(),
-          start: min,
-          end: max,
+          start: cdsEnd,
+          end: cdsEnd,
           message: `Missing stop codon for feature "${_id}"`,
         })
       }
