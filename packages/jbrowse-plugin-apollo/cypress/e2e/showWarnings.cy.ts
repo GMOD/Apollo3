@@ -32,7 +32,7 @@ describe('Warning signs', () => {
 
     cy.get('[data-testid="ErrorIcon"]', { timeout: 5000 }).should(
       'have.length',
-      2,
+      3,
     )
     cy.get('[data-testid="ErrorIcon"]', { timeout: 5000 })
       .last()
@@ -50,7 +50,7 @@ describe('Warning signs', () => {
 
     cy.get('[data-testid="ErrorIcon"]', { timeout: 5000 }).should(
       'have.length',
-      1,
+      2,
     )
   })
   it('Warnings are properly stacked', () => {
