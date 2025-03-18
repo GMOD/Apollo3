@@ -144,6 +144,7 @@ export const AnnotationFeatureModel = types
         throw new Error('No exons in transcript')
       }
       const sortedChildren = [...children.values()]
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         .filter((child) => featureTypeOntology.isTypeOf(child.type, 'exon'))
         .sort((a, b) => a.min - b.min)
       let lastMax = self.min
@@ -169,6 +170,9 @@ export const AnnotationFeatureModel = types
           max: self.max,
           type: 'intron',
         })
+      }
+      if (self.strand === -1) {
+        parts.reverse()
       }
       return parts
     },

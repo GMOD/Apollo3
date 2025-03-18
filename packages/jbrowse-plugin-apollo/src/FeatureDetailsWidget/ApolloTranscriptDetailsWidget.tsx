@@ -20,7 +20,6 @@ import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloSessionModel } from '../session'
 import { ApolloRootModel } from '../types'
 import { Attributes } from './Attributes'
-import { TranscriptBasicInformation } from './TranscriptBasic'
 import { TranscriptSequence } from './TranscriptSequence'
 import { ApolloTranscriptDetailsWidget as ApolloTranscriptDetailsWidgetState } from './model'
 import { TranscriptWidgetSummary } from './TranscriptWidgetSummary'
@@ -32,7 +31,7 @@ const useStyles = makeStyles()((theme) => ({
   },
 }))
 
-export const StyledAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
+export const StyledAccordionSummary = styled(AccordionSummary)(() => ({
   minHeight: 30,
   maxHeight: 30,
   '&.Mui-expanded': {
@@ -54,6 +53,7 @@ export const ApolloTranscriptDetailsWidget = observer(
 
     useEffect(() => {
       setPanelState(DEFAULT_PANELS)
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [feature])
 
     const session = getSession(model) as unknown as AbstractSessionModel
@@ -130,7 +130,12 @@ export const ApolloTranscriptDetailsWidget = observer(
             </Typography>
           </StyledAccordionSummary>
           <AccordionDetails>
-            <TranscriptWidgetEditLocation feature={feature} refName={refName} />
+            <TranscriptWidgetEditLocation
+              feature={feature}
+              refName={refName}
+              session={apolloSession}
+              assembly={currentAssembly._id || ''}
+            />
           </AccordionDetails>
         </Accordion>
         <Accordion
