@@ -12,12 +12,17 @@ enum STOP_CODONS {
   'TGA',
 }
 
+enum START_CODONS {
+  'ATG',
+}
+
 const CHECK_NAME = 'CDSCheck'
 
 enum CAUSES {
+  'InternalStopCodon',
+  'MissingStartCodon',
   'MissingStopCodon',
   'MultipleOfThree',
-  'InternalStopCodon',
 }
 
 const iupacComplements: Record<string, string | undefined> = {
@@ -65,10 +70,11 @@ async function getCDSSequence(
   const sequences = await Promise.all(
     cdsLocation.map(({ max, min }) => getSequence(min, max)),
   )
+  let seq = sequences.join('')
   if (strand === -1) {
-    return sequences.map((seq) => reverseComplement(seq)).join('')
+    seq = reverseComplement(seq)
   }
-  return sequences.join('')
+  return seq
 }
 
 function splitSequenceInCodons(cds: string): string[] {
@@ -79,33 +85,59 @@ function splitSequenceInCodons(cds: string): string[] {
   return codons
 }
 
+function cmp(pos: number, max: number, strand: -1 | 1 | undefined): boolean {
+  if (strand === -1) {
+    return pos > max
+  }
+  return pos < max
+}
+
 function getOriginalCodonLocation(
   cdsLocation: CDSLocation,
   strand: 1 | -1 | undefined,
   index: number,
 ): [number, number] | undefined {
-  let lengthToStart = index * 3
-  let lengthToEnd = lengthToStart + 3
-
-  let startLocation: number | undefined = undefined,
-    endLocation: number | undefined = undefined
-  for (const loc of cdsLocation) {
-    const locLength = loc.max - loc.min
-    if (startLocation === undefined && locLength > lengthToStart) {
-      startLocation = loc.min + lengthToStart
-    } else {
-      lengthToStart -= locLength
-    }
-    if (endLocation === undefined && locLength > lengthToEnd) {
-      endLocation = loc.min + lengthToEnd
-    } else {
-      lengthToEnd -= locLength
-    }
-    if (startLocation !== undefined && endLocation !== undefined) {
-      return [startLocation, endLocation]
+  // Index 0 is the start codon, so reverse the CDS locations if strand is -1
+  const sortedLocation: CDSLocation = structuredClone(cdsLocation)
+  if (strand === -1) {
+    sortedLocation.sort((a, b) => (a.min < b.min ? 1 : -1))
+  } else {
+    sortedLocation.sort((a, b) => (a.min < b.min ? -1 : 1))
+  }
+  let i = 0
+  let currentStart: number | undefined = undefined
+  let currentEnd: number | undefined = undefined
+  for (let iloc = 0; iloc < sortedLocation.length; iloc++) {
+    const loc = sortedLocation[iloc]
+    const { phase } = loc
+    // On the reverse strand start iterating from the right and end on the left
+    const startAt = strand === -1 ? loc.max - phase : loc.min + phase
+    const endAt = strand === -1 ? loc.min : loc.max
+    for (
+      let pos = startAt;
+      cmp(pos, endAt, strand);
+      pos = strand === -1 ? pos - 3 : pos + 3
+    ) {
+      currentStart = pos
+      currentEnd = strand === -1 ? currentStart - 3 : currentStart + 3
+      // These if conditions occur if a codon is split between two exons
+      if (strand === -1 && currentEnd < loc.min) {
+        currentEnd =
+          sortedLocation[iloc + 1].max - sortedLocation[iloc + 1].phase
+      } else if (currentEnd > loc.max) {
+        currentEnd =
+          sortedLocation[iloc + 1].min + sortedLocation[iloc + 1].phase
+      }
+      if (i === index) {
+        return [currentStart, currentEnd].sort((a, b) => a - b) as [
+          number,
+          number,
+        ]
+      }
+      i++
     }
   }
-  return
+  return undefined
 }
 
 async function checkMRNA(
@@ -114,7 +146,9 @@ async function checkMRNA(
 ): Promise<CheckResultSnapshot[]> {
   const checkResults: CheckResultSnapshot[] = []
   const { _id, max, min, refSeq, strand } = feature
+
   const cdsLocations = getCDSLocations(feature)
+
   if (!cdsLocations) {
     return checkResults
   }
@@ -123,17 +157,39 @@ async function checkMRNA(
     const sequence = await getCDSSequence(cdsLocation, strand, getSequence)
     const codons = splitSequenceInCodons(sequence)
     if (sequence.length % 3 === 0) {
-      const lastCodon = codons.pop() // Last codon is supposed to be a stop
+      const start_codon = codons.at(0)
+      if (start_codon && !(start_codon.toUpperCase() in START_CODONS)) {
+        let cdsStart =
+          strand === -1
+            ? cdsLocation.at(-1)?.max ?? max
+            : cdsLocation.at(0)?.min ?? min
+        cdsStart = strand === -1 ? cdsStart - 3 : cdsStart
+        checkResults.push({
+          _id: new ObjectID().toHexString(),
+          name: CHECK_NAME,
+          cause: CAUSES[CAUSES.MissingStartCodon],
+          ids,
+          refSeq: refSeq.toString(),
+          start: cdsStart,
+          end: cdsStart,
+          message: `Unexpected start codon in feature "${_id}": ${start_codon}`,
+        })
+      }
+      const lastCodon = codons.at(-1) // Last codon is supposed to be a stop
       if (lastCodon && !(lastCodon.toUpperCase() in STOP_CODONS)) {
+        const cdsEnd =
+          strand === -1
+            ? cdsLocation.at(0)?.min ?? min
+            : cdsLocation.at(-1)?.max ?? max
         checkResults.push({
           _id: new ObjectID().toHexString(),
           name: CHECK_NAME,
           cause: CAUSES[CAUSES.MissingStopCodon],
           ids,
           refSeq: refSeq.toString(),
-          start: max,
-          end: max,
-          message: `Missing stop codon`,
+          start: cdsEnd,
+          end: cdsEnd,
+          message: `Missing stop codon for feature "${_id}"`,
         })
       }
     } else {
@@ -149,6 +205,10 @@ async function checkMRNA(
       })
     }
     for (const [idx, codon] of codons.entries()) {
+      if (idx === codons.length - 1) {
+        // Don't test last codon as it is supposed to be a stop
+        break
+      }
       const location = getOriginalCodonLocation(cdsLocation, strand, idx)
       if (location && codon.toUpperCase() in STOP_CODONS) {
         const [codonStart, codonEnd] = location
@@ -207,7 +267,11 @@ function getCDSLocations(
       nextPhase = ((3 - ((loc.max - loc.min - phase + 3) % 3)) % 3) as 0 | 1 | 2
       return { ...loc, phase }
     })
+    phasedLocs.sort((a, b) => (a.min < b.min ? -1 : 1))
     cdsLocations.push(phasedLocs)
+  }
+  if (cdsLocations.length > 1) {
+    cdsLocations.sort((a, b) => (a[0].min < b[0].min ? -1 : 1))
   }
   return cdsLocations
 }
