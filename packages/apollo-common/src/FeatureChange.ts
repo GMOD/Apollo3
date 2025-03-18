@@ -109,6 +109,7 @@ export abstract class FeatureChange extends AssemblySpecificChange {
         : (feature.refSeq as unknown as Types.ObjectId).toHexString()
 
     return {
+      // eslint-disable-next-line @typescript-eslint/no-misused-spread
       ...feature,
       refSeq,
       children: feature.children && children,

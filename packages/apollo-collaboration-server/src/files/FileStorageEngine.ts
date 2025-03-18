@@ -11,14 +11,20 @@ export interface UploadedFile extends Express.Multer.File {
   checksum: string
 }
 
+export interface FileUpload extends Express.Multer.File {
+  contentEncoding?: string
+}
+
 @Injectable()
 export class FileStorageEngine implements StorageEngine {
   private readonly logger = new Logger(FileStorageEngine.name)
 
+  private contentEncoding?: string
+
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   async _handleFile(
     req: Express.Request,
-    file: Express.Multer.File,
+    file: FileUpload,
     cb: (error?: unknown, info?: UploadedFile) => void,
   ) {
     const { FILE_UPLOAD_FOLDER } = process.env
@@ -29,6 +35,9 @@ export class FileStorageEngine implements StorageEngine {
         ),
       )
       return
+    }
+    if (file.originalname.toLocaleLowerCase().endsWith('.gz')) {
+      file.contentEncoding = 'gzip'
     }
 
     const checksum = await writeFileAndCalculateHash(

@@ -23,6 +23,7 @@ function simpleFeatureToGFF3Feature(
   feature: Feature,
   refSeqId: string,
 ): GFF3Feature {
+  // eslint-disable-next-line unicorn/prefer-structured-clone
   const xfeature = JSON.parse(JSON.stringify(feature))
   const children = xfeature.subfeatures
   const gff3Feature = [
@@ -130,11 +131,11 @@ export function annotationFromJBrowseFeature(
     }))
     .views((self) => {
       const superContextMenuItems = self.contextMenuItems
-      const session = getSession(self)
-      const assembly = self.getAssembly()
 
       return {
         contextMenuItems() {
+          const session = getSession(self)
+          const assembly = self.getAssembly()
           const feature = self.contextMenuFeature
           if (!feature) {
             return superContextMenuItems()

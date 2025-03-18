@@ -47,18 +47,20 @@ export const ToolBar = observer(function ToolBar({
         onChange={(event) => {
           model.setFilterText(event.target.value)
         }}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton
-                onClick={() => {
-                  model.clearFilterText()
-                }}
-              >
-                <ClearIcon />
-              </IconButton>
-            </InputAdornment>
-          ),
+        slotProps={{
+          input: {
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={() => {
+                    model.clearFilterText()
+                  }}
+                >
+                  <ClearIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
+          },
         }}
       />
     </div>
