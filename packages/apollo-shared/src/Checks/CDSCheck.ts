@@ -12,12 +12,17 @@ enum STOP_CODONS {
   'TGA',
 }
 
+enum START_CODONS {
+  'ATG',
+}
+
 const CHECK_NAME = 'CDSCheck'
 
 enum CAUSES {
+  'InternalStopCodon',
+  'MissingStartCodon',
   'MissingStopCodon',
   'MultipleOfThree',
-  'InternalStopCodon',
 }
 
 const iupacComplements: Record<string, string | undefined> = {
@@ -70,10 +75,6 @@ async function getCDSSequence(
     seq = reverseComplement(seq)
   }
   return seq
-  // if (strand === -1) {
-  //   return sequences.map((seq) => reverseComplement(seq)).join('')
-  // }
-  // return sequences.join('')
 }
 
 function splitSequenceInCodons(cds: string): string[] {
@@ -156,6 +157,24 @@ async function checkMRNA(
     const sequence = await getCDSSequence(cdsLocation, strand, getSequence)
     const codons = splitSequenceInCodons(sequence)
     if (sequence.length % 3 === 0) {
+      const start_codon = codons.at(0)
+      if (start_codon && !(start_codon.toUpperCase() in START_CODONS)) {
+        let cdsStart =
+          strand === -1
+            ? cdsLocation.at(-1)?.max ?? max
+            : cdsLocation.at(0)?.min ?? min
+        cdsStart = strand === -1 ? cdsStart - 3 : cdsStart
+        checkResults.push({
+          _id: new ObjectID().toHexString(),
+          name: CHECK_NAME,
+          cause: CAUSES[CAUSES.MissingStartCodon],
+          ids,
+          refSeq: refSeq.toString(),
+          start: cdsStart,
+          end: cdsStart,
+          message: `Unexpected start codon in feature "${_id}": ${start_codon}`,
+        })
+      }
       const lastCodon = codons.at(-1) // Last codon is supposed to be a stop
       if (lastCodon && !(lastCodon.toUpperCase() in STOP_CODONS)) {
         const cdsEnd =

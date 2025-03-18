@@ -1531,4 +1531,30 @@ void describe('Test CLI', () => {
       assert.deepStrictEqual(out.at(1).end, 21)
     },
   )
+
+  void globalThis.itName('Detect missing start codon forward', () => {
+    new Shell(
+      `${apollo} assembly add-from-gff ${P} test_data/missingStartCodonForward.gff3 -a m1 -f`,
+    )
+    const p = new Shell(`${apollo} feature check ${P} -a m1`)
+    const out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.deepStrictEqual(out.at(0).cause, 'MissingStartCodon')
+    assert.deepStrictEqual(out.at(0).start, 3)
+    assert.deepStrictEqual(out.at(0).end, 3)
+    assert.ok(out.at(0).message.includes('TTG'))
+  })
+
+  void globalThis.itName('Detect missing start codon reverse', () => {
+    new Shell(
+      `${apollo} assembly add-from-gff ${P} test_data/missingStartCodonReverse.gff3 -a m1 -f`,
+    )
+    const p = new Shell(`${apollo} feature check ${P} -a m1`)
+    const out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.deepStrictEqual(out.at(0).cause, 'MissingStartCodon')
+    assert.deepStrictEqual(out.at(0).start, 23)
+    assert.deepStrictEqual(out.at(0).end, 23)
+    assert.ok(out.at(0).message.includes('agC'))
+  })
 })
