@@ -66,6 +66,7 @@ const SequenceContainer = styled('div')({
 
 const Strand = (props: { strand: 1 | -1 | undefined }) => {
   const { strand } = props
+
   return (
     <div>
       {strand === 1 ? (
