@@ -45,9 +45,9 @@ export function getFeatureNameOrId(feature: AnnotationFeature) {
 export function getStrand(strand: number | undefined) {
   if (strand === 1) {
     return 'Forward'
-  } else if (strand === -1) {
-    return 'Reverse'
-  } else {
-    return ''
   }
+  if (strand === -1) {
+    return 'Reverse'
+  }
+  return ''
 }

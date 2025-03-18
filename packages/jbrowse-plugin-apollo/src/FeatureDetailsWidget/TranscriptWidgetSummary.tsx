@@ -6,7 +6,7 @@ import { getFeatureId, getFeatureName, getStrand } from '../util'
 import { Table, TableBody, TableCell, TableRow } from '@mui/material'
 import styled from '@emotion/styled'
 
-const HeaderTableCell = styled(TableCell)(({ theme }) => ({
+const HeaderTableCell = styled(TableCell)(() => ({
   fontWeight: 'bold',
 }))
 
