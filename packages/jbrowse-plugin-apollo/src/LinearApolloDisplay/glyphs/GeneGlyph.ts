@@ -483,7 +483,7 @@ function getCDSCount(
   if (!children) {
     return 0
   }
-  const isMrna = featureTypeOntology.isTypeOf(type, 'mRNA')
+  const isMrna = featureTypeOntology.isTypeOf(type, 'transcript')
   let cdsCount = 0
   if (isMrna) {
     for (const [, child] of children) {
