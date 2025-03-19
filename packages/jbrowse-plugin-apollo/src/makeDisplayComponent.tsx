@@ -171,7 +171,6 @@ export const DisplayComponent = observer(function DisplayComponent({
   const { classes } = useStyles()
 
   const {
-    detailsHeight,
     graphical,
     height: overallHeight,
     isShown,
@@ -187,7 +186,7 @@ export const DisplayComponent = observer(function DisplayComponent({
   }, [model, selectedFeature])
 
   const onDetailsResize = (delta: number) => {
-    model.setDetailsHeight(detailsHeight - delta)
+    model.setDetailsHeight(model.detailsHeight - delta)
   }
 
   if (!ontologyStore) {
@@ -199,9 +198,9 @@ export const DisplayComponent = observer(function DisplayComponent({
   }
 
   if (graphical && table) {
-    const tabularHeight = tabularEditor.isShown ? detailsHeight : 0
+    const tabularHeight = tabularEditor.isShown ? model.detailsHeight : 0
     const featureAreaHeight = isShown
-      ? overallHeight - detailsHeight - accordionControlHeight * 2
+      ? overallHeight - model.detailsHeight - accordionControlHeight * 2
       : 0
     return (
       <div style={{ height: overallHeight }}>
