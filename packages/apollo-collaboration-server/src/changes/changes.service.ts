@@ -49,7 +49,6 @@ const STATUS_ZERO_CHANGE_TYPES = new Set([
   'AddAssemblyFromExternalChange',
   'AddAssemblyFromFileChange',
   'AddFeaturesFromFileChange',
-  'AddFeatureChange',
 ])
 
 export class ChangesService {
@@ -172,6 +171,10 @@ export class ChangesService {
         )
       }
     })
+
+    if (change.typeName === 'AddFeatureChange') {
+      //pass
+    }
 
     if (STATUS_ZERO_CHANGE_TYPES.has(change.typeName)) {
       this.logger.debug?.('*** TEMPORARY DATA INSERTTED ***')

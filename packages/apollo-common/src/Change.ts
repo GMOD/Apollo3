@@ -82,4 +82,6 @@ export abstract class Change extends Operation {
   abstract executeOnClient(backend: ClientDataStore): Promise<void>
 
   abstract getInverse(): Change
+
+  abstract getChanges(): Change[]
 }
