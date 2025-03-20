@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   AssemblySpecificChange,
+  Change,
   ClientDataStore,
   LocalGFF3DataStore,
   SerializedAssemblySpecificChange,
@@ -25,6 +26,10 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
   toJSON(): SerializedDeleteAssemblyChange {
     const { assembly, typeName } = this
     return { typeName, assembly }
+  }
+
+  getChanges(): Change[] {
+    throw new Error('Method not implemented.')
   }
 
   /**

@@ -62,6 +62,10 @@ export class AddRefSeqAliasesChange extends AssemblySpecificChange {
     return { assembly, typeName, refSeqAliases }
   }
 
+  getChanges(): Change[] {
+    throw new Error('Method not implemented.')
+  }
+
   async executeOnServer(backend: ServerDataStore) {
     const { refSeqModel, session } = backend
     const { assembly, logger, refSeqAliases } = this
