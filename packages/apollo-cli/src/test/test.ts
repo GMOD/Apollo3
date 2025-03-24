@@ -1500,7 +1500,7 @@ void describe('Test CLI', () => {
       `${apollo} assembly add-from-gff ${P} test_data/cdsWithoutExon.gff3 -f`,
     )
     let p = new Shell(
-      `${apollo} feature search -t mrna01 -a cdsWithoutExon.gff3`,
+      `${apollo} feature search ${P} -t mrna01 -a cdsWithoutExon.gff3`,
     )
     let out = JSON.parse(p.stdout)
     const gene: any = out.at(0)
@@ -1511,13 +1511,13 @@ void describe('Test CLI', () => {
     const exon_id = exon[0]._id
 
     // Before edit
-    p = new Shell(`${apollo} feature get-id -i ${exon_id}`)
+    p = new Shell(`${apollo} feature get-id ${P} -i ${exon_id}`)
     out = JSON.parse(p.stdout) as AnnotationFeature[]
     assert.deepStrictEqual(out.at(0)?.max, 20)
 
     // After edit
-    new Shell(`${apollo} feature edit-coords -i ${exon_id} -e 30`)
-    p = new Shell(`${apollo} feature get-id -i ${exon_id}`)
+    new Shell(`${apollo} feature edit-coords ${P} -i ${exon_id} -e 30`)
+    p = new Shell(`${apollo} feature get-id ${P} -i ${exon_id}`)
     out = JSON.parse(p.stdout) as AnnotationFeature[]
     assert.deepStrictEqual(out.at(0)?.max, 30)
   })
