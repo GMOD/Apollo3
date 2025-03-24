@@ -1502,7 +1502,7 @@ void describe('Test CLI', () => {
     let p = new Shell(
       `${apollo} feature search -t mrna01 -a cdsWithoutExon.gff3`,
     )
-    const out = JSON.parse(p.stdout)
+    let out = JSON.parse(p.stdout)
     const gene: any = out.at(0)
     const mrna: any = Object.values(gene.children).at(0)
     const cdsExon: AnnotationFeature[] = Object.values(mrna.children)
@@ -1510,6 +1510,15 @@ void describe('Test CLI', () => {
     assert.deepStrictEqual(exon.length, 1)
     const exon_id = exon[0]._id
 
-    p = new Shell(`${apollo} feature edit-coords -i ${exon_id} -e 30`)
+    // Before edit
+    p = new Shell(`${apollo} feature get-id -i ${exon_id}`)
+    out = JSON.parse(p.stdout) as AnnotationFeature[]
+    assert.deepStrictEqual(out.at(0)?.max, 20)
+
+    // After edit
+    new Shell(`${apollo} feature edit-coords -i ${exon_id} -e 30`)
+    p = new Shell(`${apollo} feature get-id -i ${exon_id}`)
+    out = JSON.parse(p.stdout) as AnnotationFeature[]
+    assert.deepStrictEqual(out.at(0)?.max, 30)
   })
 })
