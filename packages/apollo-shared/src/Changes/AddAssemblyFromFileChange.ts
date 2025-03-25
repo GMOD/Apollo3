@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/require-await */
 import {
-  Change,
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
@@ -58,10 +57,6 @@ export class AddAssemblyFromFileChange extends FromFileBaseChange {
       return { typeName, assembly, assemblyName, fileIds }
     }
     return { typeName, assembly, changes }
-  }
-
-  getChanges(): Change[] {
-    throw new Error('Method not implemented.')
   }
 
   /**

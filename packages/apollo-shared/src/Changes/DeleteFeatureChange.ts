@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
-  Change,
   ChangeOptions,
   ClientDataStore,
   FeatureChange,
@@ -53,10 +52,6 @@ export class DeleteFeatureChange extends FeatureChange {
       return { typeName, changedIds, assembly, deletedFeature, parentFeatureId }
     }
     return { typeName, changedIds, assembly, changes }
-  }
-
-  getChanges(): Change[] {
-    throw new Error('Method not implemented.')
   }
 
   /**

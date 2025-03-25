@@ -4,7 +4,6 @@
 /* eslint-disable @typescript-eslint/require-await */
 import {
   AssemblySpecificChange,
-  Change,
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
@@ -60,10 +59,6 @@ export class AddAssemblyFromExternalChange extends AssemblySpecificChange {
       return { typeName, assembly, assemblyName, externalLocation }
     }
     return { typeName, assembly, changes }
-  }
-
-  getChanges(): Change[] {
-    throw new Error('Method not implemented.')
   }
 
   /**

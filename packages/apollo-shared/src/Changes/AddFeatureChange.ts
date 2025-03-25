@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
-  Change,
   ChangeOptions,
   ClientDataStore,
   FeatureChange,
@@ -63,18 +62,6 @@ export class AddFeatureChange extends FeatureChange {
       }
     }
     return { typeName, changedIds, assembly, changes }
-  }
-
-  getChanges(): Change[] {
-    return this.changes.map(
-      (change) =>
-        new AddFeatureChange({
-          typeName: 'AddFeatureChange',
-          assembly: this.assembly,
-          changedIds: this.changedIds,
-          changes: [change],
-        }),
-    )
   }
 
   /**
