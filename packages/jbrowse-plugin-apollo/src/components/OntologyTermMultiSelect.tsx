@@ -114,6 +114,7 @@ export function OntologyTermMultiSelect({
   ontologyVersion,
   session,
   value: initialValue,
+  label,
 }: {
   session: ApolloSessionModel
   value: string[]
@@ -122,6 +123,7 @@ export function OntologyTermMultiSelect({
   /** if true, include deprecated/obsolete terms */
   includeDeprecated?: boolean
   onChange(newValue: string[]): void
+  label?: string
 }) {
   const { ontologyManager } = session.apolloDataStore
   const ontology = ontologyManager.findOntology(ontologyName, ontologyVersion)
@@ -256,6 +258,7 @@ export function OntologyTermMultiSelect({
           {...params}
           {...extraTextFieldParams}
           variant="outlined"
+          label={label}
           fullWidth
         />
       )}
