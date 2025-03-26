@@ -22,6 +22,7 @@ import { Shell } from './utils.js'
 import fs from 'node:fs'
 import * as crypto from 'node:crypto'
 import path from 'node:path'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 
 const apollo = 'yarn dev'
 const P = '--profile testAdmin'
@@ -1492,5 +1493,32 @@ void describe('Test CLI', () => {
     assert.ok(gff.startsWith('##gff-version 3'))
     assert.ok(gff.includes('multivalue=val1,val2,val3'))
     assert.ok(!gff.includes('##FASTA\n'))
+  })
+
+  void globalThis.itName('Edit exon inferred from CDS', () => {
+    new Shell(
+      `${apollo} assembly add-from-gff ${P} test_data/cdsWithoutExon.gff3 -f`,
+    )
+    let p = new Shell(
+      `${apollo} feature search ${P} -t mrna01 -a cdsWithoutExon.gff3`,
+    )
+    let out = JSON.parse(p.stdout)
+    const gene: any = out.at(0)
+    const mrna: any = Object.values(gene.children).at(0)
+    const cdsExon: AnnotationFeature[] = Object.values(mrna.children)
+    const exon = cdsExon.filter((x: any) => x.type === 'exon')
+    assert.deepStrictEqual(exon.length, 1)
+    const exon_id = exon[0]._id
+
+    // Before edit
+    p = new Shell(`${apollo} feature get-id ${P} -i ${exon_id}`)
+    out = JSON.parse(p.stdout) as AnnotationFeature[]
+    assert.deepStrictEqual(out.at(0)?.max, 20)
+
+    // After edit
+    new Shell(`${apollo} feature edit-coords ${P} -i ${exon_id} -e 30`)
+    p = new Shell(`${apollo} feature get-id ${P} -i ${exon_id}`)
+    out = JSON.parse(p.stdout) as AnnotationFeature[]
+    assert.deepStrictEqual(out.at(0)?.max, 30)
   })
 })

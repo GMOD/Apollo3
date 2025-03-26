@@ -199,6 +199,7 @@ function convertChildren(
       exonFeatures,
       utrFeatures,
       processedCDS[0].refSeq,
+      featureIds,
     )
     for (const exon of missingExons) {
       convertedChildren[exon._id] = exon
@@ -216,6 +217,7 @@ function inferMissingExons(
   existingExons: GFF3Feature[],
   utrFeatures: GFF3Feature[],
   refSeq: string,
+  featureIds?: string[],
 ): AnnotationFeatureSnapshot[] {
   // Convert utrFeatures from GFF3Feature to AnnotationFeatureSnapshot
   const utrExons: AnnotationFeatureSnapshot[] = []
@@ -326,6 +328,13 @@ function inferMissingExons(
     }
   }
   const mergedExons = mergeAnnotationFeatures(missingExons)
+  if (featureIds) {
+    for (const exon of mergedExons) {
+      if (!featureIds.includes(exon._id)) {
+        featureIds.push(exon._id)
+      }
+    }
+  }
   return mergedExons
 }
 
