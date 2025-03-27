@@ -110,6 +110,7 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
    * @returns Observable of Feature objects in the region
    */
   public getFeatures(region: Region) {
+    console.log(`ApolloSequenceAdapter region: ${JSON.stringify(region)}`)
     const { end, refName, start } = region
     const assemblyId = readConfObject(this.config, 'assemblyId')
     const regionWithAssemblyName = { ...region, assemblyName: assemblyId }
