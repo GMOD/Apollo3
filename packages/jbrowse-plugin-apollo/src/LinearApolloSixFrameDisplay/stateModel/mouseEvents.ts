@@ -91,15 +91,10 @@ export function mouseEventsModelIntermediateFactory(
         if (!foundFeature) {
           return mousePosition
         }
-        const [featureRow, topLevelFeature] = foundFeature
-        const glyph = self.getGlyph(topLevelFeature)
-        const feature = glyph.getFeatureFromLayout(
-          topLevelFeature,
-          bp,
-          featureRow,
-        )
-        if (!feature) {
-          return mousePosition
+        const { featureTypeOntology } =
+          self.session.apolloDataStore.ontologyManager
+        if (!featureTypeOntology) {
+          throw new Error('featureTypeOntology is undefined')
         }
         return {
           ...mousePosition,

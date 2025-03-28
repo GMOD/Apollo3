@@ -12,6 +12,7 @@ import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 import { boxGlyph } from './BoxGlyph'
 import { LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
+import { OntologyRecord } from '../../OntologyManager'
 
 let forwardFillLight: CanvasPattern | null = null
 let backwardFillLight: CanvasPattern | null = null
@@ -402,10 +403,10 @@ function getFeatureFromLayout(
   feature: AnnotationFeature,
   bp: number,
   row: number,
-  _featureTypeOntology?: OntologyRecord,
+  featureTypeOntology: OntologyRecord,
 ): AnnotationFeature | undefined {
   const featureInThisRow: AnnotationFeature[] =
-    featuresForRow(feature)[row] || []
+    featuresForRow(feature, featureTypeOntology)[row] || []
   for (const f of featureInThisRow) {
     let featureObj
     if (bp >= f.min && bp <= f.max && f.parent) {
@@ -415,9 +416,9 @@ function getFeatureFromLayout(
       continue
     }
     if (
-      featureObj.type === 'CDS' &&
+      featureTypeOntology.isTypeOf(featureObj.type, 'CDS') &&
       featureObj.parent &&
-      featureObj.parent.type === 'mRNA'
+      featureTypeOntology.isTypeOf(featureObj.parent.type, 'transcript')
     ) {
       const { cdsLocations } = featureObj.parent
       for (const cdsLoc of cdsLocations) {
@@ -443,7 +444,10 @@ function getFeatureFromLayout(
  * If the row contains an mRNA, the order is CDS -\> exon -\> mRNA -\> gene
  * If the row does not contain an mRNA, the order is subfeature -\> gene
  */
-function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
+function featuresForRow(
+  feature: AnnotationFeature,
+  featureTypeOntology: OntologyRecord,
+): AnnotationFeature[][] {
   if (feature.type !== 'gene') {
     throw new Error('Top level feature for GeneGlyph must have type "gene"')
   }
@@ -453,7 +457,7 @@ function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
   }
   const features: AnnotationFeature[][] = []
   for (const [, child] of children) {
-    if (child.type !== 'mRNA') {
+    if (!featureTypeOntology.isTypeOf(child.type, 'transcript')) {
       features.push([child, feature])
       continue
     }
@@ -463,9 +467,9 @@ function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
     const cdss: AnnotationFeature[] = []
     const exons: AnnotationFeature[] = []
     for (const [, grandchild] of child.children) {
-      if (grandchild.type === 'CDS') {
+      if (featureTypeOntology.isTypeOf(grandchild.type, 'CDS')) {
         cdss.push(grandchild)
-      } else if (grandchild.type === 'exon') {
+      } else if (featureTypeOntology.isTypeOf(grandchild.type, 'exon')) {
         exons.push(grandchild)
       }
     }

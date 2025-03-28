@@ -7,6 +7,7 @@ import {
 } from '../stateModel/mouseEvents'
 import { LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
 import { CanvasMouseEvent } from '../types'
+import { OntologyRecord } from '../../OntologyManager'
 
 export interface Glyph {
   /** @returns number of layout rows used by this glyph with this feature and zoom level */
@@ -24,6 +25,7 @@ export interface Glyph {
     feature: AnnotationFeature,
     bp: number,
     row: number,
+    featureTypeOntology: OntologyRecord,
   ): AnnotationFeature | undefined
   getRowForFeature(
     feature: AnnotationFeature,
