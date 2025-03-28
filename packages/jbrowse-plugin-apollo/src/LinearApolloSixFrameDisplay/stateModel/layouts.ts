@@ -1,9 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 
-import { AnnotationFeature } from '@apollo-annotation/mst'
+import { AnnotationFeature, TranscriptPartCoding } from '@apollo-annotation/mst'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  doesIntersect2,
+  getFrame,
+} from '@jbrowse/core/util'
 import { autorun, observable } from 'mobx'
 import { addDisposer, isAlive } from 'mobx-state-tree'
 
@@ -66,10 +70,11 @@ export function layoutsModelFactory(
         })
       },
       getGlyph(feature: AnnotationFeature) {
-        if (this.looksLikeGene(feature)) {
-          return geneGlyph
-        }
-        return boxGlyph
+        return geneGlyph
+        // if (feature.children?.size) {
+        //   return genericChildGlyph
+        // }
+        // return boxGlyph
       },
       looksLikeGene(feature: AnnotationFeature): boolean {
         const { featureTypeOntology } =
@@ -119,7 +124,15 @@ export function layoutsModelFactory(
           self.session as unknown as AbstractSessionModel
         return self.lgv.displayedRegions.map((region, idx) => {
           const assembly = assemblyManager.get(region.assemblyName)
-          const featureLayout = new Map<number, [number, AnnotationFeature][]>()
+          const featureLayout = new Map<
+            number,
+            [
+              number,
+              AnnotationFeature,
+              AnnotationFeature,
+              TranscriptPartCoding,
+            ][]
+          >()
           const minMax = self.featuresMinMax[idx]
           if (!minMax) {
             return featureLayout
@@ -132,75 +145,107 @@ export function layoutsModelFactory(
               self.deleteSeenFeature(id)
               continue
             }
+            if (!self.looksLikeGene(feature)) {
+              continue
+            }
             if (
               refName !== assembly?.getCanonicalRefName(feature.refSeq) ||
               !doesIntersect2(start, end, feature.min, feature.max)
             ) {
               continue
             }
-            const rowCount = self
-              .getGlyph(feature)
-              .getRowCount(feature, self.lgv.bpPerPx)
-            let startingRow = 0
-            let placed = false
-            while (!placed) {
-              let rowsForFeature = rows.slice(
-                startingRow,
-                startingRow + rowCount,
-              )
-              if (rowsForFeature.length < rowCount) {
-                for (let i = 0; i < rowCount - rowsForFeature.length; i++) {
-                  const newRowNumber = rows.length
-                  rows[newRowNumber] = Array.from({ length: max - min })
-                  featureLayout.set(newRowNumber, [])
-                }
-                rowsForFeature = rows.slice(startingRow, startingRow + rowCount)
-              }
-              if (
-                rowsForFeature
-                  .map((rowForFeature) => {
-                    // zero-length features are allowed in the spec
-                    const featureMax =
-                      feature.max - feature.min === 0
-                        ? feature.min + 1
-                        : feature.max
-                    let start = feature.min - min,
-                      end = featureMax - min
-                    if (feature.min - min < 0) {
-                      start = 0
-                      end = featureMax - feature.min
+            const { featureTypeOntology } =
+              self.session.apolloDataStore.ontologyManager
+            if (!featureTypeOntology) {
+              throw new Error('featureTypeOntology is undefined')
+            }
+            const { children } = feature
+            if (!children) {
+              continue
+            }
+            for (const [, child] of children) {
+              if (featureTypeOntology.isTypeOf(child.type, 'transcript')) {
+                const { cdsLocations, strand } = child
+                for (const cdsRow of cdsLocations) {
+                  for (const cds of cdsRow) {
+                    const rowNum = getFrame(
+                      cds.min,
+                      cds.max,
+                      strand ?? 1,
+                      cds.phase,
+                    )
+                    if (!featureLayout.get(rowNum)) {
+                      featureLayout.set(rowNum, [])
                     }
-                    return rowForFeature.slice(start, end).some(Boolean)
-                  })
-                  .some(Boolean)
-              ) {
-                startingRow += 1
-                continue
-              }
-              for (
-                let rowNum = startingRow;
-                rowNum < startingRow + rowCount;
-                rowNum++
-              ) {
-                const row = rows[rowNum]
-                let start = feature.min - min,
-                  end = feature.max - min
-                if (feature.min - min < 0) {
-                  start = 0
-                  end = feature.max - feature.min
+                    const layoutRow = featureLayout.get(rowNum)
+                    layoutRow?.push([rowNum, feature, child, cds])
+                  }
                 }
-                row.fill(true, start, end)
-                const layoutRow = featureLayout.get(rowNum)
-                layoutRow?.push([rowNum - startingRow, feature])
               }
-              placed = true
             }
           }
+          // let startingRow = 0
+          // let placed = false
+          // while (!placed) {
+          //   let rowsForFeature = rows.slice(
+          //     startingRow,
+          //     startingRow + rowCount,
+          //   )
+          //   if (rowsForFeature.length < rowCount) {
+          //     for (let i = 0; i < rowCount - rowsForFeature.length; i++) {
+          //       const newRowNumber = rows.length
+          //       rows[newRowNumber] = Array.from({ length: max - min })
+          //       featureLayout.set(newRowNumber, [])
+          //     }
+          //     rowsForFeature = rows.slice(startingRow, startingRow + rowCount)
+          //   }
+          //   if (
+          //     rowsForFeature
+          //       .map((rowForFeature) => {
+          //         // zero-length features are allowed in the spec
+          //         const featureMax =
+          //           feature.max - feature.min === 0
+          //             ? feature.min + 1
+          //             : feature.max
+          //         let start = feature.min - min,
+          //           end = featureMax - min
+          //         if (feature.min - min < 0) {
+          //           start = 0
+          //           end = featureMax - feature.min
+          //         }
+          //         return rowForFeature.slice(start, end).some(Boolean)
+          //       })
+          //       .some(Boolean)
+          //   ) {
+          //     startingRow += 1
+          //     continue
+          //   }
+          //   for (
+          //     let rowNum = startingRow;
+          //     rowNum < startingRow + rowCount;
+          //     rowNum++
+          //   ) {
+          //     const row = rows[rowNum]
+          //     let start = feature.min - min,
+          //       end = feature.max - min
+          //     if (feature.min - min < 0) {
+          //       start = 0
+          //       end = feature.max - feature.min
+          //     }
+          //     row.fill(true, start, end)
+          //     const layoutRow = featureLayout.get(rowNum)
+          //     layoutRow?.push([rowNum - startingRow, feature])
+          //   }
+          //   placed = true
+          // }
           return featureLayout
         })
       },
+      // TODO: Fix this
       getFeatureLayoutPosition(feature: AnnotationFeature) {
         const { featureLayouts } = this
+        const { featureTypeOntology } =
+          self.session.apolloDataStore.ontologyManager
         for (const [idx, layout] of featureLayouts.entries()) {
           for (const [layoutRowNum, layoutRow] of layout) {
             for (const [featureRowNum, layoutFeature] of layoutRow) {
@@ -209,25 +254,25 @@ export function layoutsModelFactory(
                 // check the first one
                 continue
               }
-              if (feature._id === layoutFeature._id) {
-                return {
-                  layoutIndex: idx,
-                  layoutRow: layoutRowNum,
-                  featureRow: featureRowNum,
-                }
+              // if (feature._id === layoutFeature._id) {
+              return {
+                layoutIndex: idx,
+                layoutRow: layoutRowNum,
+                featureRow: featureRowNum,
               }
-              if (layoutFeature.hasDescendant(feature._id)) {
-                const row = self
-                  .getGlyph(layoutFeature)
-                  .getRowForFeature(layoutFeature, feature)
-                if (row !== undefined) {
-                  return {
-                    layoutIndex: idx,
-                    layoutRow: layoutRowNum,
-                    featureRow: row,
-                  }
-                }
-              }
+              // }
+              // if (layoutFeature.hasDescendant(feature._id)) {
+              //   const row = self
+              //     .getGlyph(layoutFeature)
+              //     .getRowForFeature(layoutFeature, feature)
+              //   if (row !== undefined) {
+              //     return {
+              //       layoutIndex: idx,
+              //       layoutRow: layoutRowNum,
+              //       featureRow: row,
+              //     }
+              //   }
+              // }
             }
           }
         }

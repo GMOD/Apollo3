@@ -11,7 +11,7 @@ import { OntologyRecord } from '../../OntologyManager'
 
 export interface Glyph {
   /** @returns number of layout rows used by this glyph with this feature and zoom level */
-  getRowCount(feature: AnnotationFeature, bpPerPx: number): number
+  // getRowCount(feature: AnnotationFeature, bpPerPx: number): number
   /** draw the feature's primary rendering on the canvas */
   draw(
     ctx: CanvasRenderingContext2D,
@@ -27,10 +27,11 @@ export interface Glyph {
     row: number,
     featureTypeOntology: OntologyRecord,
   ): AnnotationFeature | undefined
-  getRowForFeature(
-    feature: AnnotationFeature,
-    childFeature: AnnotationFeature,
-  ): number | undefined
+  // getRowForFeature(
+  //   feature: AnnotationFeature,
+  //   childFeature: AnnotationFeature,
+  //   featureTypeOntology: OntologyRecord,
+  // ): number | undefined
 
   drawHover(
     display: LinearApolloSixFrameDisplayMouseEvents,

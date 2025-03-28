@@ -74,25 +74,25 @@ function selectColor(number: number) {
   return `hsl(${hue},100%,50%)`
 }
 
-function getRowCount(feature: AnnotationFeature, _bpPerPx?: number): number {
-  const { children, type } = feature
-  if (!children) {
-    return 1
-  }
-  let rowCount = 0
-  if (type === 'mRNA') {
-    for (const [, child] of children) {
-      if (child.type === 'CDS') {
-        rowCount += 1
-      }
-    }
-    return rowCount
-  }
-  for (const [, child] of children) {
-    rowCount += getRowCount(child)
-  }
-  return rowCount
-}
+// function getRowCount(feature: AnnotationFeature, _bpPerPx?: number): number {
+//   const { children, type } = feature
+//   if (!children) {
+//     return 1
+//   }
+//   let rowCount = 0
+//   if (type === 'mRNA') {
+//     for (const [, child] of children) {
+//       if (child.type === 'CDS') {
+//         rowCount += 1
+//       }
+//     }
+//     return rowCount
+//   }
+//   for (const [, child] of children) {
+//     rowCount += getRowCount(child)
+//   }
+//   return rowCount
+// }
 
 function draw(
   ctx: CanvasRenderingContext2D,
@@ -108,33 +108,33 @@ function draw(
   const rowHeight = apolloRowHeight
   // const exonHeight = Math.round(0.6 * rowHeight)
   const cdsHeight = Math.round(0.9 * rowHeight)
-  const { children, min, strand } = feature
+  const { children, strand } = feature
   if (!children) {
     return
   }
   const { apolloSelectedFeature } = session
 
   // Draw background for gene
-  const topLevelFeatureMinX =
-    (lgv.bpToPx({
-      refName,
-      coord: min,
-      regionNumber: displayedRegionIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const topLevelFeatureWidthPx = feature.length / bpPerPx
-  const topLevelFeatureStartPx = reversed
-    ? topLevelFeatureMinX - topLevelFeatureWidthPx
-    : topLevelFeatureMinX
-  const topLevelFeatureTop = row * rowHeight
-  const topLevelFeatureHeight = getRowCount(feature) * rowHeight
-
-  ctx.fillStyle = alpha(theme?.palette.background.paper ?? '#ffffff', 0.6)
-  ctx.fillRect(
-    topLevelFeatureStartPx,
-    topLevelFeatureTop,
-    topLevelFeatureWidthPx,
-    topLevelFeatureHeight,
-  )
+  // const topLevelFeatureMinX =
+  //   (lgv.bpToPx({
+  //     refName,
+  //     coord: min,
+  //     regionNumber: displayedRegionIndex,
+  //   })?.offsetPx ?? 0) - offsetPx
+  // const topLevelFeatureWidthPx = feature.length / bpPerPx
+  // const topLevelFeatureStartPx = reversed
+  //   ? topLevelFeatureMinX - topLevelFeatureWidthPx
+  //   : topLevelFeatureMinX
+  // const topLevelFeatureTop = row * rowHeight
+  // const topLevelFeatureHeight = getRowCount(feature) * rowHeight
+  //
+  // ctx.fillStyle = alpha(theme?.palette.background.paper ?? '#ffffff', 0.6)
+  // ctx.fillRect(
+  //   topLevelFeatureStartPx,
+  //   topLevelFeatureTop,
+  //   topLevelFeatureWidthPx,
+  //   topLevelFeatureHeight,
+  // )
 
   // Draw lines on different rows for each mRNA
   // let currentRow = -1
@@ -363,24 +363,23 @@ function drawHover(
     return
   }
   const { feature } = apolloHover
-  if (feature.type !== 'CDS') {
-    return
-  }
-  const { parent } = feature
-  if (!parent) {
-    return
-  }
-  const position = stateModel.getFeatureLayoutPosition(parent)
-  if (!position) {
-    return
-  }
+  // const { parent } = feature
+  // if (!parent) {
+  //   return
+  // }
+  // const position = stateModel.getFeatureLayoutPosition(feature)
+  // if (!position) {
+  //   return
+  // }
   const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const { layoutIndex } = position
+  // const { layoutIndex } = position
+  // TODO: work out a robust way of determining layoutIndex
+  const layoutIndex = 0
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
   const rowHeight = apolloRowHeight
   const cdsHeight = Math.round(0.9 * rowHeight)
-  for (const cdsRow of parent.cdsLocations) {
+  for (const cdsRow of feature.cdsLocations) {
     for (const cds of cdsRow) {
       const cdsWidthPx = (cds.max - cds.min) / bpPerPx
       const minX =
@@ -390,7 +389,7 @@ function drawHover(
           regionNumber: layoutIndex,
         })?.offsetPx ?? 0) - offsetPx
       const cdsStartPx = reversed ? minX - cdsWidthPx : minX
-      const frame = getFrame(cds.min, cds.max, parent.strand ?? 1, cds.phase)
+      const frame = getFrame(cds.min, cds.max, feature.strand ?? 1, cds.phase)
       const cdsTop = (frame - 1) * rowHeight + (rowHeight - cdsHeight) / 2
       // ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,04)'
       ctx.fillStyle = 'rgba(255,0,0,0.6)'
@@ -480,18 +479,18 @@ function featuresForRow(
   return features
 }
 
-function getRowForFeature(
-  feature: AnnotationFeature,
-  childFeature: AnnotationFeature,
-) {
-  const rows = featuresForRow(feature)
-  for (const [idx, row] of rows.entries()) {
-    if (row.some((feature) => feature._id === childFeature._id)) {
-      return idx
-    }
-  }
-  return
-}
+// function getRowForFeature(
+//   feature: AnnotationFeature,
+//   childFeature: AnnotationFeature,
+// ) {
+//   const rows = featuresForRow(feature)
+//   for (const [idx, row] of rows.entries()) {
+//     if (row.some((feature) => feature._id === childFeature._id)) {
+//       return idx
+//     }
+//   }
+//   return
+// }
 
 function onMouseDown(
   stateModel: LinearApolloSixFrameDisplay,
@@ -634,8 +633,8 @@ export const geneGlyph: Glyph = {
   drawTooltip,
   getContextMenuItems,
   getFeatureFromLayout,
-  getRowCount,
-  getRowForFeature,
+  // getRowCount,
+  // getRowForFeature,
   onMouseDown,
   onMouseLeave,
   onMouseMove,

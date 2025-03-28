@@ -79,23 +79,34 @@ export function mouseEventsModelIntermediateFactory(
       getMousePosition(event: CanvasMouseEvent): MousePosition {
         const mousePosition = getMousePosition(event, self.lgv)
         const { bp, regionNumber, y } = mousePosition
-        const row = Math.floor(y / self.apolloRowHeight)
+        const row = Math.floor(y / self.apolloRowHeight) + 1
         const featureLayout = self.featureLayouts[regionNumber]
         const layoutRow = featureLayout.get(row)
         if (!layoutRow) {
           return mousePosition
         }
         const foundFeature = layoutRow.find(
-          (f) => bp >= f[1].min && bp <= f[1].max,
+          (f) => bp >= f[3].min && bp <= f[3].max,
         )
         if (!foundFeature) {
           return mousePosition
         }
+        const [, topLevelFeature, feature] = foundFeature
+        const glyph = self.getGlyph(feature)
         const { featureTypeOntology } =
           self.session.apolloDataStore.ontologyManager
         if (!featureTypeOntology) {
           throw new Error('featureTypeOntology is undefined')
         }
+        // const feature = glyph.getFeatureFromLayout(
+        //   topLevelFeature,
+        //   bp,
+        //   featureRow,
+        //   featureTypeOntology,
+        // )
+        // if (!feature) {
+        //   return mousePosition
+        // }
         return {
           ...mousePosition,
           featureAndGlyphUnderMouse: { feature, topLevelFeature, glyph },

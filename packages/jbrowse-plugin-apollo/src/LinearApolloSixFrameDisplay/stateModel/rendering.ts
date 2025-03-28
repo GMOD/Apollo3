@@ -166,10 +166,7 @@ export function renderingModelFactory(
             for (const [idx, featureLayout] of featureLayouts.entries()) {
               const displayedRegion = displayedRegions[idx]
               for (const [row, featureLayoutRow] of featureLayout.entries()) {
-                for (const [featureRow, feature] of featureLayoutRow) {
-                  if (featureRow > 0) {
-                    continue
-                  }
+                for (const [, feature, ,] of featureLayoutRow) {
                   if (
                     !doesIntersect2(
                       displayedRegion.start,
@@ -180,7 +177,10 @@ export function renderingModelFactory(
                   ) {
                     continue
                   }
-                  self.getGlyph(feature).draw(ctx, feature, row, self, idx)
+                  const glyph = self.getGlyph(feature)
+                  if (glyph !== undefined) {
+                    glyph.draw(ctx, feature, row, self, idx)
+                  }
                 }
               }
             }
