@@ -45,7 +45,12 @@ const isGeneOrTranscript = (
   }
   return (
     featureTypeOntology.isTypeOf(annotationFeature.type, 'gene') ||
-    featureTypeOntology.isTypeOf(annotationFeature.type, 'transcript')
+    featureTypeOntology.isTypeOf(annotationFeature.type, 'transcript') ||
+    featureTypeOntology.isTypeOf(annotationFeature.type, 'pseudogene') ||
+    featureTypeOntology.isTypeOf(
+      annotationFeature.type,
+      'pseudogenic_transcript',
+    )
   )
 }
 
@@ -58,7 +63,10 @@ const isGene = (
   if (!featureTypeOntology) {
     throw new Error('featureTypeOntology is undefined')
   }
-  return featureTypeOntology.isTypeOf(annotationFeature.type, 'gene')
+  return (
+    featureTypeOntology.isTypeOf(annotationFeature.type, 'gene') ||
+    featureTypeOntology.isTypeOf(annotationFeature.type, 'pseudogene')
+  )
 }
 
 const isTranscript = (
@@ -70,7 +78,13 @@ const isTranscript = (
   if (!featureTypeOntology) {
     throw new Error('featureTypeOntology is undefined')
   }
-  return featureTypeOntology.isTypeOf(annotationFeature.type, 'transcript')
+  return (
+    featureTypeOntology.isTypeOf(annotationFeature.type, 'transcript') ||
+    featureTypeOntology.isTypeOf(
+      annotationFeature.type,
+      'pseudogenic_transcript',
+    )
+  )
 }
 
 const getFeatureId = (feature: AnnotationFeatureSnapshot) => {

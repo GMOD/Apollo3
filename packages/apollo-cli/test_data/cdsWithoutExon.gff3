@@ -1,0 +1,7 @@
+##gff-version 3
+chr1	.	gene	1	30	.	+	.	ID=gene01
+chr1	.	mRNA	1	30	.	+	.	ID=mrna01;Parent=gene01
+chr1	.	CDS	1	20	.	+	0	ID=cds01;Parent=mrna01
+##FASTA
+>chr1
+ATGGTGCCGCAAAGTACTGGTGGGGGTTAAnnnnnnnnnnnnnnnnnnnnn

@@ -22,6 +22,7 @@ import { Shell } from './utils.js'
 import fs from 'node:fs'
 import * as crypto from 'node:crypto'
 import path from 'node:path'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 
 const apollo = 'yarn dev'
 const P = '--profile testAdmin'
@@ -1492,5 +1493,96 @@ void describe('Test CLI', () => {
     assert.ok(gff.startsWith('##gff-version 3'))
     assert.ok(gff.includes('multivalue=val1,val2,val3'))
     assert.ok(!gff.includes('##FASTA\n'))
+  })
+
+  void globalThis.itName(
+    'Position of internal stop codon warning in forward',
+    () => {
+      new Shell(
+        `${apollo} assembly add-from-gff ${P} test_data/warningPositionForward.gff -a vv1 -f`,
+      )
+      const p = new Shell(`${apollo} feature check ${P} -a vv1`)
+      const out = JSON.parse(p.stdout)
+      assert.deepStrictEqual(out.length, 2)
+      assert.deepStrictEqual(out.at(0).cause, 'InternalStopCodon')
+      assert.deepStrictEqual(out.at(0).start, 9)
+      assert.deepStrictEqual(out.at(0).end, 15)
+
+      assert.deepStrictEqual(out.at(1).cause, 'InternalStopCodon')
+      assert.deepStrictEqual(out.at(1).start, 21)
+      assert.deepStrictEqual(out.at(1).end, 24)
+    },
+  )
+
+  void globalThis.itName(
+    'Position of internal stop codon warning in reverse',
+    () => {
+      new Shell(
+        `${apollo} assembly add-from-gff ${P} test_data/warningPositionReverse.gff -a vv1 -f`,
+      )
+      const p = new Shell(`${apollo} feature check ${P} -a vv1`)
+      const out = JSON.parse(p.stdout)
+      assert.deepStrictEqual(out.length, 2)
+      assert.deepStrictEqual(out.at(0).cause, 'InternalStopCodon')
+      assert.deepStrictEqual(out.at(0).start, 3)
+      assert.deepStrictEqual(out.at(0).end, 18)
+
+      assert.deepStrictEqual(out.at(1).cause, 'InternalStopCodon')
+      assert.deepStrictEqual(out.at(1).start, 18)
+      assert.deepStrictEqual(out.at(1).end, 21)
+    },
+  )
+
+  void globalThis.itName('Detect missing start codon forward', () => {
+    new Shell(
+      `${apollo} assembly add-from-gff ${P} test_data/missingStartCodonForward.gff3 -a m1 -f`,
+    )
+    const p = new Shell(`${apollo} feature check ${P} -a m1`)
+    const out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.deepStrictEqual(out.at(0).cause, 'MissingStartCodon')
+    assert.deepStrictEqual(out.at(0).start, 3)
+    assert.deepStrictEqual(out.at(0).end, 3)
+    assert.ok(out.at(0).message.includes('TTG'))
+  })
+
+  void globalThis.itName('Detect missing start codon reverse', () => {
+    new Shell(
+      `${apollo} assembly add-from-gff ${P} test_data/missingStartCodonReverse.gff3 -a m1 -f`,
+    )
+    const p = new Shell(`${apollo} feature check ${P} -a m1`)
+    const out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.deepStrictEqual(out.at(0).cause, 'MissingStartCodon')
+    assert.deepStrictEqual(out.at(0).start, 23)
+    assert.deepStrictEqual(out.at(0).end, 23)
+    assert.ok(out.at(0).message.includes('agC'))
+  })
+
+  void globalThis.itName('Edit exon inferred from CDS', () => {
+    new Shell(
+      `${apollo} assembly add-from-gff ${P} test_data/cdsWithoutExon.gff3 -f`,
+    )
+    let p = new Shell(
+      `${apollo} feature search ${P} -t mrna01 -a cdsWithoutExon.gff3`,
+    )
+    let out = JSON.parse(p.stdout)
+    const gene: any = out.at(0)
+    const mrna: any = Object.values(gene.children).at(0)
+    const cdsExon: AnnotationFeature[] = Object.values(mrna.children)
+    const exon = cdsExon.filter((x: any) => x.type === 'exon')
+    assert.deepStrictEqual(exon.length, 1)
+    const exon_id = exon[0]._id
+
+    // Before edit
+    p = new Shell(`${apollo} feature get-id ${P} -i ${exon_id}`)
+    out = JSON.parse(p.stdout) as AnnotationFeature[]
+    assert.deepStrictEqual(out.at(0)?.max, 20)
+
+    // After edit
+    new Shell(`${apollo} feature edit-coords ${P} -i ${exon_id} -e 30`)
+    p = new Shell(`${apollo} feature get-id ${P} -i ${exon_id}`)
+    out = JSON.parse(p.stdout) as AnnotationFeature[]
+    assert.deepStrictEqual(out.at(0)?.max, 30)
   })
 })
