@@ -138,7 +138,7 @@ export function CreateApolloAnnotation({
 
   const [parentFeatureChecked, setParentFeatureChecked] = useState(true)
   const [checkedChildrens, setCheckedChildrens] = useState<string[]>(childIds)
-  const [errorMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
   const [destinationFeatures, setDestinationFeatures] = useState<
     AnnotationFeatureSnapshot[]
   >([])
@@ -162,6 +162,7 @@ export function CreateApolloAnnotation({
   }
 
   useEffect(() => {
+    setErrorMessage('')
     let mins: number[] = []
     let maxes: number[] = []
     if (annotationFeature.children) {
@@ -249,17 +250,19 @@ export function CreateApolloAnnotation({
         }
       }
 
-      if (
-        isTranscript(annotationFeature, apolloSessionModel) &&
-        selectedDestinationFeature
-      ) {
-        change = new AddFeatureChange({
-          parentFeatureId: selectedDestinationFeature._id,
-          changedIds: [selectedDestinationFeature._id],
-          typeName: 'AddFeatureChange',
-          assembly: assembly.name,
-          addedFeature: annotationFeature,
-        })
+      if (isTranscript(annotationFeature, apolloSessionModel)) {
+        if (selectedDestinationFeature) {
+          change = new AddFeatureChange({
+            parentFeatureId: selectedDestinationFeature._id,
+            changedIds: [selectedDestinationFeature._id],
+            typeName: 'AddFeatureChange',
+            assembly: assembly.name,
+            addedFeature: annotationFeature,
+          })
+        } else {
+          setErrorMessage('There is no destination gene for this transcript')
+          return
+        }
       }
 
       if (!change) {
@@ -374,9 +377,6 @@ export function CreateApolloAnnotation({
             checkedChildrens.length === 0 ||
             (!parentFeatureChecked &&
               checkedChildrens.length > 0 &&
-              !selectedDestinationFeature) ||
-            (parentFeatureChecked &&
-              isTranscript(annotationFeature, apolloSessionModel) &&
               !selectedDestinationFeature)
           }
           onClick={handleCreateApolloAnnotation}
