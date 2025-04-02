@@ -72,39 +72,6 @@ export function layoutsModelFactory(
       getGlyph(_feature: AnnotationFeature) {
         return geneGlyph
       },
-      looksLikeGene(feature: AnnotationFeature): boolean {
-        const { featureTypeOntology } =
-          self.session.apolloDataStore.ontologyManager
-        if (!featureTypeOntology) {
-          return false
-        }
-        const { children } = feature
-        if (!children?.size) {
-          return false
-        }
-        const isGene = featureTypeOntology.isTypeOf(feature.type, 'gene')
-        if (!isGene) {
-          return false
-        }
-        for (const [, child] of children) {
-          if (featureTypeOntology.isTypeOf(child.type, 'transcript')) {
-            const { children: grandChildren } = child
-            if (!grandChildren?.size) {
-              return false
-            }
-            const hasCDS = [...grandChildren.values()].some((grandchild) =>
-              featureTypeOntology.isTypeOf(grandchild.type, 'CDS'),
-            )
-            const hasExon = [...grandChildren.values()].some((grandchild) =>
-              featureTypeOntology.isTypeOf(grandchild.type, 'exon'),
-            )
-            if (hasCDS && hasExon) {
-              return true
-            }
-          }
-        }
-        return false
-      },
     }))
     .actions((self) => ({
       addSeenFeature(feature: AnnotationFeature) {
@@ -139,7 +106,7 @@ export function layoutsModelFactory(
               self.deleteSeenFeature(id)
               continue
             }
-            if (!self.looksLikeGene(feature)) {
+            if (!feature.looksLikeGene) {
               continue
             }
             if (

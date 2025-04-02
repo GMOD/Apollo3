@@ -240,6 +240,46 @@ export const AnnotationFeatureModel = types
         transcript.filter((transcriptPart) => transcriptPart.type === 'CDS'),
       )
     },
+    get looksLikeGene(): boolean {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+      const session = getSession(self) as any
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const { apolloDataStore } = session
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      const { featureTypeOntology } = apolloDataStore.ontologyManager
+      if (!featureTypeOntology) {
+        return false
+      }
+      const children = self.children as Children
+      if (!children?.size) {
+        return false
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      if (!featureTypeOntology.isTypeOf(self.type, 'gene')) {
+        return false
+      }
+      for (const [, child] of children) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        if (featureTypeOntology.isTypeOf(child.type, 'transcript')) {
+          const { children: grandChildren } = child
+          if (!grandChildren?.size) {
+            return false
+          }
+          const hasCDS = [...grandChildren.values()].some((grandchild) =>
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+            featureTypeOntology.isTypeOf(grandchild.type, 'CDS'),
+          )
+          const hasExon = [...grandChildren.values()].some((grandchild) =>
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+            featureTypeOntology.isTypeOf(grandchild.type, 'exon'),
+          )
+          if (hasCDS && hasExon) {
+            return true
+          }
+        }
+      }
+      return false
+    },
   }))
   .actions((self) => ({
     setAttributes(attributes: Map<string, string[]>) {
