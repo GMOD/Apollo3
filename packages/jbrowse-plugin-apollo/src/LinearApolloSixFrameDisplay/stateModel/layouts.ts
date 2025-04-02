@@ -181,38 +181,17 @@ export function layoutsModelFactory(
           return featureLayout
         })
       },
-      // TODO: Fix this
-      getFeatureLayoutPosition(_feature: AnnotationFeature) {
+      getFeatureLayoutPosition(feature: AnnotationFeature) {
         const { featureLayouts } = this
-        const { featureTypeOntology } =
-          self.session.apolloDataStore.ontologyManager
         for (const [idx, layout] of featureLayouts.entries()) {
-          for (const [layoutRowNum, layoutRow] of layout) {
-            for (const [featureRowNum, layoutFeature] of layoutRow) {
-              if (featureRowNum !== 0) {
-                // Same top-level feature in all feature rows, so only need to
-                // check the first one
-                continue
+          for (const [, layoutRow] of layout) {
+            // eslint-disable-next-line unicorn/no-unreadable-array-destructuring
+            for (const [, , layoutFeature] of layoutRow) {
+              if (feature._id === layoutFeature._id) {
+                return {
+                  layoutIndex: idx,
+                }
               }
-              // if (feature._id === layoutFeature._id) {
-              return {
-                layoutIndex: idx,
-                layoutRow: layoutRowNum,
-                featureRow: featureRowNum,
-              }
-              // }
-              // if (layoutFeature.hasDescendant(feature._id)) {
-              //   const row = self
-              //     .getGlyph(layoutFeature)
-              //     .getRowForFeature(layoutFeature, feature)
-              //   if (row !== undefined) {
-              //     return {
-              //       layoutIndex: idx,
-              //       layoutRow: layoutRowNum,
-              //       featureRow: row,
-              //     }
-              //   }
-              // }
             }
           }
         }

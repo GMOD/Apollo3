@@ -226,14 +226,12 @@ function drawHover(
     return
   }
   const { feature } = apolloHover
-  // const position = stateModel.getFeatureLayoutPosition(feature)
-  // if (!position) {
-  //   return
-  // }
+  const position = stateModel.getFeatureLayoutPosition(feature)
+  if (!position) {
+    return
+  }
   const { bpPerPx, displayedRegions, offsetPx } = lgv
-  // TODO: work out a robust way of determining layoutIndex
-  // const { layoutIndex } = position
-  const layoutIndex = 0
+  const { layoutIndex } = position
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
   const rowHeight = apolloRowHeight
@@ -422,13 +420,11 @@ function drawTooltip(
     return
   }
   const { cds, feature } = apolloHover
-  // const position = display.getFeatureLayoutPosition(feature)
-  // if (!position) {
-  //   return
-  // }
-  // TODO: work out a robust way of determining layoutIndex
-  // const { layoutIndex } = position
-  const layoutIndex = 0
+  const position = display.getFeatureLayoutPosition(feature)
+  if (!position) {
+    return
+  }
+  const { layoutIndex } = position
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion

@@ -202,12 +202,7 @@ export const LinearApolloSixFrameDisplay = observer(
                     if (!feature) {
                       return null
                     }
-                    const { topLevelFeature } = feature
-                    const row = parent
-                      ? model.getFeatureLayoutPosition(topLevelFeature)
-                          ?.layoutRow ?? 0
-                      : 0
-                    const top = row * apolloRowHeight
+                    const top = 0
                     const height = apolloRowHeight
                     return (
                       <Tooltip
