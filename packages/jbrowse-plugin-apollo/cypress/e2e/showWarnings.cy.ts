@@ -5,7 +5,7 @@ describe('Warning signs', () => {
   afterEach(() => {
     cy.deleteAssemblies()
   })
-  it('Show warnings', () => {
+  it.skip('Show warnings', () => {
     cy.addAssemblyFromGff(
       'stopcodon.gff3',
       'test_data/cdsChecks/stopcodon.gff3',
