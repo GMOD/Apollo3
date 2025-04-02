@@ -87,7 +87,9 @@ export const OntologyRecordType = types
           return
         }
         void self.loadEquivalentTypes('gene')
+        void self.loadEquivalentTypes('pseudogene')
         void self.loadEquivalentTypes('transcript')
+        void self.loadEquivalentTypes('pseudogenic_transcript')
         void self.loadEquivalentTypes('CDS')
         void self.loadEquivalentTypes('mRNA')
         reaction.dispose()

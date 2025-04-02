@@ -80,12 +80,17 @@ export function layoutsModelFactory(
         if (!children?.size) {
           return false
         }
-        const isGene = featureTypeOntology.isTypeOf(feature.type, 'gene')
+        const isGene =
+          featureTypeOntology.isTypeOf(feature.type, 'gene') ||
+          featureTypeOntology.isTypeOf(feature.type, 'pseudogene')
         if (!isGene) {
           return false
         }
         for (const [, child] of children) {
-          if (featureTypeOntology.isTypeOf(child.type, 'transcript')) {
+          if (
+            featureTypeOntology.isTypeOf(child.type, 'transcript') ||
+            featureTypeOntology.isTypeOf(child.type, 'pseudogenic_transcript')
+          ) {
             const { children: grandChildren } = child
             if (!grandChildren?.size) {
               return false
