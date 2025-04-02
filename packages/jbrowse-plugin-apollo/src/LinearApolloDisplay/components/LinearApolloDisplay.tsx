@@ -61,6 +61,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const { model } = props
   const {
     loading,
+    apolloDragging,
     apolloRowHeight,
     contextMenuItems: getContextMenuItems,
     cursor,
@@ -218,18 +219,24 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
                   if (!feature) {
                     return null
                   }
-                  const { topLevelFeature } = feature
-                  const row = parent
-                    ? model.getFeatureLayoutPosition(topLevelFeature)
-                        ?.layoutRow ?? 0
-                    : 0
+                  let row = 0
+                  const featureLayout = model.getFeatureLayoutPosition(feature)
+                  if (featureLayout) {
+                    row = featureLayout.layoutRow + featureLayout.featureRow
+                  }
                   const top = row * apolloRowHeight
                   const height = apolloRowHeight
                   return (
                     <Tooltip key={checkResult._id} title={checkResult.message}>
                       <Avatar
                         className={classes.avatar}
-                        style={{ top, left, height, width: height }}
+                        style={{
+                          top,
+                          left,
+                          height,
+                          width: height,
+                          pointerEvents: apolloDragging ? 'none' : 'auto',
+                        }}
                       >
                         <ErrorIcon />
                       </Avatar>

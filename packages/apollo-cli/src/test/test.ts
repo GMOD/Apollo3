@@ -1495,6 +1495,70 @@ void describe('Test CLI', () => {
     assert.ok(!gff.includes('##FASTA\n'))
   })
 
+  void globalThis.itName(
+    'Position of internal stop codon warning in forward',
+    () => {
+      new Shell(
+        `${apollo} assembly add-from-gff ${P} test_data/warningPositionForward.gff -a vv1 -f`,
+      )
+      const p = new Shell(`${apollo} feature check ${P} -a vv1`)
+      const out = JSON.parse(p.stdout)
+      assert.deepStrictEqual(out.length, 2)
+      assert.deepStrictEqual(out.at(0).cause, 'InternalStopCodon')
+      assert.deepStrictEqual(out.at(0).start, 9)
+      assert.deepStrictEqual(out.at(0).end, 15)
+
+      assert.deepStrictEqual(out.at(1).cause, 'InternalStopCodon')
+      assert.deepStrictEqual(out.at(1).start, 21)
+      assert.deepStrictEqual(out.at(1).end, 24)
+    },
+  )
+
+  void globalThis.itName(
+    'Position of internal stop codon warning in reverse',
+    () => {
+      new Shell(
+        `${apollo} assembly add-from-gff ${P} test_data/warningPositionReverse.gff -a vv1 -f`,
+      )
+      const p = new Shell(`${apollo} feature check ${P} -a vv1`)
+      const out = JSON.parse(p.stdout)
+      assert.deepStrictEqual(out.length, 2)
+      assert.deepStrictEqual(out.at(0).cause, 'InternalStopCodon')
+      assert.deepStrictEqual(out.at(0).start, 3)
+      assert.deepStrictEqual(out.at(0).end, 18)
+
+      assert.deepStrictEqual(out.at(1).cause, 'InternalStopCodon')
+      assert.deepStrictEqual(out.at(1).start, 18)
+      assert.deepStrictEqual(out.at(1).end, 21)
+    },
+  )
+
+  void globalThis.itName('Detect missing start codon forward', () => {
+    new Shell(
+      `${apollo} assembly add-from-gff ${P} test_data/missingStartCodonForward.gff3 -a m1 -f`,
+    )
+    const p = new Shell(`${apollo} feature check ${P} -a m1`)
+    const out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.deepStrictEqual(out.at(0).cause, 'MissingStartCodon')
+    assert.deepStrictEqual(out.at(0).start, 3)
+    assert.deepStrictEqual(out.at(0).end, 3)
+    assert.ok(out.at(0).message.includes('TTG'))
+  })
+
+  void globalThis.itName('Detect missing start codon reverse', () => {
+    new Shell(
+      `${apollo} assembly add-from-gff ${P} test_data/missingStartCodonReverse.gff3 -a m1 -f`,
+    )
+    const p = new Shell(`${apollo} feature check ${P} -a m1`)
+    const out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.deepStrictEqual(out.at(0).cause, 'MissingStartCodon')
+    assert.deepStrictEqual(out.at(0).start, 23)
+    assert.deepStrictEqual(out.at(0).end, 23)
+    assert.ok(out.at(0).message.includes('agC'))
+  })
+
   void globalThis.itName('Edit exon inferred from CDS', () => {
     new Shell(
       `${apollo} assembly add-from-gff ${P} test_data/cdsWithoutExon.gff3 -f`,

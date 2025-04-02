@@ -34,6 +34,17 @@ chr8	.	exon	1	12	.	+	0	ID=exon08.1;Parent=mrna08
 chr8	.	exon	16	32	.	+	0	ID=exon08.2;Parent=mrna08
 chr8	.	CDS	4	12	.	+	0	ID=cds08;Parent=mrna08
 chr8	.	CDS	16	27	.	+	0	ID=cds08;Parent=mrna08
+#
+chr9	.	gene	2	30	.	-	.	ID=gene09
+chr9	.	mRNA	2	30	.	-	.	ID=mrna09.1;Parent=gene09
+chr9	.	CDS	7	24	.	-	0	ID=cds09.1;Parent=mrna09.1
+chr9	.	mRNA	2	30	.	-	.	ID=mrna09.2;Parent=gene09
+chr9	.	CDS	4	24	.	-	0	ID=cds09.2;Parent=mrna09.2
+chr9	.	gene	4	30	.	+	.	ID=gene10
+chr9	.	mRNA	4	30	.	+	.	ID=mrna10.1;Parent=gene10
+chr9	.	CDS	8	30	.	+	0	ID=cds10.1;Parent=mrna10.1
+chr9	.	mRNA	10	30	.	+	.	ID=mrna10.2;Parent=gene10
+chr9	.	CDS	10	30	.	+	0	ID=cds10.2;Parent=mrna10.2
 ##FASTA
 >chr1
 ATGGTGCCGCAAAGTACTGGTGGGGGTTAAnnnnnnnnnnnnnnnnnnnnn
@@ -51,3 +62,5 @@ ATGGTGtagCAAAGTACTGTTAGGGGTTAAnnnnnnnnnnnnnnnnnnnnn
 ATGGTGtagCAAAGTATGGTTAGGtagTAAnnnnnnnnnnnnnnnnnnnnn
 >chr8
 ATGATGTATCAAAGTATGGTTAGGTAGTAACTGCTCAGCAATCTATCTTTA
+>chr9
+TTActaCCCATGTGTACTTTGCATtcaCATnnnnnnnnnnnnnnnnnnnnn

@@ -32,7 +32,7 @@ describe('Warning signs', () => {
 
     cy.get('[data-testid="ErrorIcon"]', { timeout: 5000 }).should(
       'have.length',
-      2,
+      3,
     )
     cy.get('[data-testid="ErrorIcon"]', { timeout: 5000 })
       .last()
@@ -50,7 +50,60 @@ describe('Warning signs', () => {
 
     cy.get('[data-testid="ErrorIcon"]', { timeout: 5000 }).should(
       'have.length',
-      1,
+      2,
     )
+  })
+  it.skip('Warnings are properly stacked', () => {
+    cy.addAssemblyFromGff(
+      'stopcodon.gff3',
+      'test_data/cdsChecks/stopcodon.gff3',
+    )
+    cy.selectAssemblyToView('stopcodon.gff3')
+    cy.searchFeatures('gene09', 1)
+
+    cy.get('button[data-testid="zoom_out"]').click()
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(5000)
+    cy.get('[data-testid="ErrorIcon"]', { timeout: 5000 }).should(
+      'have.length',
+      3,
+    )
+
+    // Hopefully the order of icons is stable
+    let iconPos1: DOMRect
+    let iconPos2: DOMRect
+    let iconPos3: DOMRect
+    cy.get('[data-testid="ErrorIcon"]')
+      .eq(0)
+      .parent()
+      .then(($icon) => {
+        iconPos1 = $icon[0].getBoundingClientRect()
+      })
+    cy.get('[data-testid="ErrorIcon"]')
+      .eq(1)
+      .parent()
+      .then(($icon) => {
+        iconPos2 = $icon[0].getBoundingClientRect()
+      })
+    cy.get('[data-testid="ErrorIcon"]')
+      .eq(2)
+      .parent()
+      .then(($icon) => {
+        iconPos3 = $icon[0].getBoundingClientRect()
+      })
+
+    /** From https://developer.mozilla.org/en-US/docs/Web/API/DOMRect/y:
+     * The y property of the DOMRect interface represents the y-coordinate of the rectangle,
+     * which is the vertical distance between the viewport's top edge and the rectangle's origin.
+     * This means that icons in the bottom rows have *higher* y coord than icons in the top rows.
+     */
+    cy.get('body').should(() => {
+      expect(iconPos1.x).to.be.lessThan(iconPos2.x)
+      expect(iconPos1.x).to.be.lessThan(iconPos3.x)
+      expect(iconPos1.y).to.be.lessThan(iconPos3.y)
+      expect(iconPos1.y).to.be.greaterThan(iconPos2.y)
+      expect(iconPos3.x).to.be.greaterThan(iconPos2.x)
+      expect(iconPos3.y).to.be.greaterThan(iconPos2.y)
+    })
   })
 })
