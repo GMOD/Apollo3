@@ -421,19 +421,23 @@ function drawTooltip(
   if (!apolloHover) {
     return
   }
-  const { feature } = apolloHover
-  const position = display.getFeatureLayoutPosition(feature)
-  if (!position) {
-    return
-  }
-  const { featureRow, layoutIndex, layoutRow } = position
+  const { cds, feature } = apolloHover
+  // const position = display.getFeatureLayoutPosition(feature)
+  // if (!position) {
+  //   return
+  // }
+  // TODO: work out a robust way of determining layoutIndex
+  // const { layoutIndex } = position
+  const layoutIndex = 0
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
-
+  const rowHeight = apolloRowHeight
+  const cdsHeight = Math.round(0.9 * rowHeight)
   let location = 'Loc: '
 
-  const { length, max, min } = feature
+  const { strand } = feature
+  const { max, min, phase } = cds
   location += `${min + 1}–${max}`
 
   let startPx =
@@ -442,10 +446,11 @@ function drawTooltip(
       coord: reversed ? max : min,
       regionNumber: layoutIndex,
     })?.offsetPx ?? 0) - offsetPx
-  const top = (layoutRow + featureRow) * apolloRowHeight
-  const widthPx = length / bpPerPx
+  const frame = getFrame(min, max, strand ?? 1, phase)
+  const cdsTop = (frame - 1) * rowHeight + (rowHeight - cdsHeight) / 2
+  const cdsWidthPx = (max - min) / bpPerPx
 
-  const featureType = `Type: ${feature.type}`
+  const featureType = `Type: ${cds.type}`
   const { attributes } = feature
   const featureName = attributes.get('gff_name')?.find((name) => name !== '')
   const textWidth = [
@@ -453,24 +458,34 @@ function drawTooltip(
     context.measureText(location).width,
   ]
   if (featureName) {
-    textWidth.push(context.measureText(`Name: ${featureName}`).width)
+    textWidth.push(
+      context.measureText(`Parent Type: ${feature.type}`).width,
+      context.measureText(`Parent Name: ${featureName}`).width,
+    )
   }
   const maxWidth = Math.max(...textWidth)
 
-  startPx = startPx + widthPx + 5
+  startPx = startPx + cdsWidthPx + 5
   context.fillStyle = alpha(theme?.palette.text.primary ?? 'rgb(1, 1, 1)', 0.7)
-  context.fillRect(startPx, top, maxWidth + 4, textWidth.length === 3 ? 45 : 35)
+  context.fillRect(
+    startPx,
+    cdsTop,
+    maxWidth + 4,
+    textWidth.length === 4 ? 55 : 35,
+  )
   context.beginPath()
-  context.moveTo(startPx, top)
-  context.lineTo(startPx - 5, top + 5)
-  context.lineTo(startPx, top + 10)
+  context.moveTo(startPx, cdsTop)
+  context.lineTo(startPx - 5, cdsTop + 5)
+  context.lineTo(startPx, cdsTop + 10)
   context.fill()
   context.fillStyle = theme?.palette.background.default ?? 'rgba(255, 255, 255)'
-  let textTop = top + 12
+  let textTop = cdsTop + 12
   context.fillText(featureType, startPx + 2, textTop)
   if (featureName) {
     textTop = textTop + 12
-    context.fillText(`Name: ${featureName}`, startPx + 2, textTop)
+    context.fillText(`Parent Type: ${feature.type}`, startPx + 2, textTop)
+    textTop = textTop + 12
+    context.fillText(`Parent Name: ${featureName}`, startPx + 2, textTop)
   }
   textTop = textTop + 12
   context.fillText(location, startPx + 2, textTop)

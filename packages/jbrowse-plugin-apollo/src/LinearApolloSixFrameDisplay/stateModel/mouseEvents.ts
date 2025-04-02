@@ -1,4 +1,4 @@
-import { AnnotationFeature } from '@apollo-annotation/mst'
+import { AnnotationFeature, TranscriptPartCoding } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
@@ -17,6 +17,7 @@ import { CanvasMouseEvent } from '../types'
 import { renderingModelFactory } from './rendering'
 
 export interface FeatureAndGlyphUnderMouse {
+  cds: TranscriptPartCoding
   feature: AnnotationFeature
   topLevelFeature: AnnotationFeature
   glyph: Glyph
@@ -91,7 +92,7 @@ export function mouseEventsModelIntermediateFactory(
         if (!foundFeature) {
           return mousePosition
         }
-        const [, topLevelFeature, feature] = foundFeature
+        const [, topLevelFeature, feature, cds] = foundFeature
         const glyph = self.getGlyph(feature)
         const { featureTypeOntology } =
           self.session.apolloDataStore.ontologyManager
@@ -100,7 +101,7 @@ export function mouseEventsModelIntermediateFactory(
         }
         return {
           ...mousePosition,
-          featureAndGlyphUnderMouse: { feature, topLevelFeature, glyph },
+          featureAndGlyphUnderMouse: { cds, feature, topLevelFeature, glyph },
         }
       },
     }))
