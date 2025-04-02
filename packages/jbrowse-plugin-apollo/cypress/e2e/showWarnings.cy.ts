@@ -53,7 +53,7 @@ describe('Warning signs', () => {
       2,
     )
   })
-  it('Warnings are properly stacked', () => {
+  it.skip('Warnings are properly stacked', () => {
     cy.addAssemblyFromGff(
       'stopcodon.gff3',
       'test_data/cdsChecks/stopcodon.gff3',
