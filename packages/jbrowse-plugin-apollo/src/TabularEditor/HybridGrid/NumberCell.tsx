@@ -36,6 +36,14 @@ export const NumberCell = observer(function NumberCell({
   const [blur, setBlur] = useState(false)
   const [inputNode, setInputNode] = useState<HTMLInputElement | null>(null)
   const { classes } = useStyles()
+
+  useEffect(() => {
+    if (initialValue !== value) {
+      setValue(initialValue)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValue])
+
   useEffect(() => {
     if (blur) {
       inputNode?.blur()
