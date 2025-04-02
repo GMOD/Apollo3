@@ -45,13 +45,27 @@ const isGeneOrTranscript = (
   }
   return (
     featureTypeOntology.isTypeOf(annotationFeature.type, 'gene') ||
-    featureTypeOntology.isTypeOf(annotationFeature.type, 'pseudogene') ||
-    featureTypeOntology.isTypeOf(annotationFeature.type, 'mRNA') ||
     featureTypeOntology.isTypeOf(annotationFeature.type, 'transcript') ||
+    featureTypeOntology.isTypeOf(annotationFeature.type, 'pseudogene') ||
     featureTypeOntology.isTypeOf(
       annotationFeature.type,
       'pseudogenic_transcript',
     )
+  )
+}
+
+const isGene = (
+  annotationFeature: AnnotationFeatureSnapshot,
+  apolloSessionModel: ApolloSessionModel,
+) => {
+  const { featureTypeOntology } =
+    apolloSessionModel.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  return (
+    featureTypeOntology.isTypeOf(annotationFeature.type, 'gene') ||
+    featureTypeOntology.isTypeOf(annotationFeature.type, 'pseudogene')
   )
 }
 
@@ -71,6 +85,43 @@ const isTranscript = (
       'pseudogenic_transcript',
     )
   )
+}
+
+const getFeatureId = (feature: AnnotationFeatureSnapshot) => {
+  const { attributes } = feature
+  const id = attributes?.id
+  if (id) {
+    return id[0]
+  }
+  return feature.type
+}
+
+const getFeatureNameOrId = (
+  feature: AnnotationFeatureSnapshot,
+  apolloSessionModel: ApolloSessionModel,
+) => {
+  const { featureTypeOntology } =
+    apolloSessionModel.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    return getFeatureId(feature)
+  }
+
+  let attrName = ''
+
+  if (featureTypeOntology.isTypeOf(feature.type, 'gene')) {
+    attrName = 'gene_name'
+  }
+
+  if (featureTypeOntology.isTypeOf(feature.type, 'transcript')) {
+    attrName = 'transcript_name'
+  }
+
+  const { attributes } = feature
+  const name = attributes?.[attrName]
+  if (name) {
+    return name[0]
+  }
+  return getFeatureId(feature)
 }
 
 export function CreateApolloAnnotation({
@@ -112,6 +163,9 @@ export function CreateApolloAnnotation({
     const filteredFeatures: AnnotationFeatureSnapshot[] = []
 
     for (const [, f] of features) {
+      if (f.type === 'chromosome') {
+        continue
+      }
       const featureSnapshot = getSnapshot(f)
       if (min >= featureSnapshot.min && max <= featureSnapshot.max) {
         filteredFeatures.push(featureSnapshot)
@@ -123,33 +177,34 @@ export function CreateApolloAnnotation({
 
   useEffect(() => {
     setErrorMessage('')
-    if (checkedChildrens.length === 0) {
-      setParentFeatureChecked(false)
-      return
-    }
-
+    let mins: number[] = []
+    let maxes: number[] = []
     if (annotationFeature.children) {
       const checkedAnnotationFeatureChildren = Object.values(
         annotationFeature.children,
       )
         .filter((child) => isTranscript(child, apolloSessionModel))
         .filter((child) => checkedChildrens.includes(child._id))
-      const mins = checkedAnnotationFeatureChildren.map((f) => f.min)
-      const maxes = checkedAnnotationFeatureChildren.map((f) => f.max)
-      const min = Math.min(...mins)
-      const max = Math.max(...maxes)
-      const filteredFeatures = getFeatures(min, max)
-      setDestinationFeatures(filteredFeatures)
-
-      if (
-        filteredFeatures.length === 0 &&
-        checkedChildrens.length > 0 &&
-        !parentFeatureChecked
-      ) {
-        setErrorMessage('No destination features found')
-      }
+      mins = checkedAnnotationFeatureChildren.map((f) => f.min)
+      maxes = checkedAnnotationFeatureChildren.map((f) => f.max)
     }
-  }, [checkedChildrens])
+
+    const { featureTypeOntology } =
+      apolloSessionModel.apolloDataStore.ontologyManager
+    if (
+      featureTypeOntology &&
+      featureTypeOntology.isTypeOf(annotationFeature.type, 'transcript')
+    ) {
+      mins = [annotationFeature.min, ...mins]
+      maxes = [annotationFeature.max, ...maxes]
+    }
+
+    const min = Math.min(...mins)
+    const max = Math.max(...maxes)
+    const filteredFeatures = getFeatures(min, max)
+    setDestinationFeatures(filteredFeatures)
+    setSelectedDestinationFeature(filteredFeatures[0])
+  }, [checkedChildrens, parentFeatureChecked])
 
   const handleParentFeatureCheck = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -179,12 +234,55 @@ export function CreateApolloAnnotation({
 
   const handleCreateApolloAnnotation = async () => {
     if (parentFeatureChecked) {
-      const change = new AddFeatureChange({
-        changedIds: [annotationFeature._id],
-        typeName: 'AddFeatureChange',
-        assembly: assembly.name,
-        addedFeature: annotationFeature,
-      })
+      let change
+      if (isGene(annotationFeature, apolloSessionModel)) {
+        if (
+          annotationFeature.children &&
+          checkedChildrens.length !==
+            Object.values(annotationFeature.children).length
+        ) {
+          const childrens: Record<string, AnnotationFeatureSnapshot> = {}
+          for (const childId of checkedChildrens) {
+            childrens[childId] = annotationFeature.children[childId]
+          }
+          change = new AddFeatureChange({
+            changedIds: [annotationFeature._id],
+            typeName: 'AddFeatureChange',
+            assembly: assembly.name,
+            addedFeature: {
+              ...annotationFeature,
+              children: childrens,
+            },
+          })
+        } else {
+          change = new AddFeatureChange({
+            changedIds: [annotationFeature._id],
+            typeName: 'AddFeatureChange',
+            assembly: assembly.name,
+            addedFeature: annotationFeature,
+          })
+        }
+      }
+
+      if (isTranscript(annotationFeature, apolloSessionModel)) {
+        if (selectedDestinationFeature) {
+          change = new AddFeatureChange({
+            parentFeatureId: selectedDestinationFeature._id,
+            changedIds: [selectedDestinationFeature._id],
+            typeName: 'AddFeatureChange',
+            assembly: assembly.name,
+            addedFeature: annotationFeature,
+          })
+        } else {
+          setErrorMessage('There is no destination gene for this transcript')
+          return
+        }
+      }
+
+      if (!change) {
+        return
+      }
+
       await apolloSessionModel.apolloDataStore.changeManager.submit(change)
       session.notify('Annotation added successfully', 'success')
       handleClose()
@@ -206,9 +304,9 @@ export function CreateApolloAnnotation({
           addedFeature: child,
         })
         await apolloSessionModel.apolloDataStore.changeManager.submit(change)
-        session.notify('Annotation added successfully', 'success')
-        handleClose()
       }
+      session.notify('Annotation added successfully', 'success')
+      handleClose()
     }
   }
 
@@ -234,7 +332,7 @@ export function CreateApolloAnnotation({
                   onChange={handleParentFeatureCheck}
                 />
               }
-              label={`${annotationFeature.type}:${annotationFeature.min}..${annotationFeature.max}`}
+              label={`${getFeatureNameOrId(annotationFeature, apolloSessionModel)} (${annotationFeature.min + 1}..${annotationFeature.max})`}
             />
           )}
           {annotationFeature.children && (
@@ -253,15 +351,16 @@ export function CreateApolloAnnotation({
                         }}
                       />
                     }
-                    label={`${child.type}:${child.min}..${child.max}`}
+                    label={`${getFeatureNameOrId(child, apolloSessionModel)} (${child.min + 1}..${child.max})`}
                   />
                 ))}
             </Box>
           )}
         </Box>
-        {!parentFeatureChecked &&
-          checkedChildrens.length > 0 &&
-          destinationFeatures.length > 0 && (
+        {destinationFeatures.length > 0 &&
+          ((!parentFeatureChecked && checkedChildrens.length > 0) ||
+            (parentFeatureChecked &&
+              isTranscript(annotationFeature, apolloSessionModel))) && (
             <Box sx={{ ml: 3 }}>
               <Typography variant="caption" fontSize={12}>
                 Select the destination feature to copy the selected features
@@ -276,7 +375,7 @@ export function CreateApolloAnnotation({
                 >
                   {destinationFeatures.map((f) => (
                     <MenuItem key={f._id} value={f._id}>
-                      {`${f.type}:${f.min}..${f.max}`}
+                      {`${getFeatureNameOrId(f, apolloSessionModel)} (${f.min}..${f.max})`}
                     </MenuItem>
                   ))}
                 </Select>
