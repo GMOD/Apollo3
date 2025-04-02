@@ -1,16 +1,30 @@
 import { AnnotationFeature } from '@apollo-annotation/mst'
-import { getFrame, intersection2 } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  getFrame,
+  intersection2,
+  isSessionModelWithWidgets,
+  SessionWithWidgets,
+} from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
+import { MenuItem } from '@jbrowse/core/ui'
+
+import {
+  AddChildFeature,
+  CopyFeature,
+  DeleteFeature,
+  ModifyFeatureAttribute,
+} from '../../components'
 
 import { LinearApolloSixFrameDisplay } from '../stateModel'
 import {
   isMousePositionWithFeatureAndGlyph,
+  LinearApolloSixFrameDisplayMouseEvents,
   MousePosition,
   MousePositionWithFeatureAndGlyph,
 } from '../stateModel/mouseEvents'
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
-import { boxGlyph } from './BoxGlyph'
 import { LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
 import { OntologyRecord } from '../../OntologyManager'
 
@@ -621,10 +635,228 @@ function getDraggableFeatureInfo(
   return
 }
 
-// False positive here, none of these functions use "this"
-/* eslint-disable @typescript-eslint/unbound-method */
-const { drawTooltip, getContextMenuItems, onMouseLeave } = boxGlyph
-/* eslint-enable @typescript-eslint/unbound-method */
+function drawTooltip(
+  display: LinearApolloSixFrameDisplayMouseEvents,
+  context: CanvasRenderingContext2D,
+): void {
+  const { apolloHover, apolloRowHeight, lgv, theme } = display
+  if (!apolloHover) {
+    return
+  }
+  const { feature } = apolloHover
+  const position = display.getFeatureLayoutPosition(feature)
+  if (!position) {
+    return
+  }
+  const { featureRow, layoutIndex, layoutRow } = position
+  const { bpPerPx, displayedRegions, offsetPx } = lgv
+  const displayedRegion = displayedRegions[layoutIndex]
+  const { refName, reversed } = displayedRegion
+
+  let location = 'Loc: '
+
+  const { length, max, min } = feature
+  location += `${min + 1}–${max}`
+
+  let startPx =
+    (lgv.bpToPx({
+      refName,
+      coord: reversed ? max : min,
+      regionNumber: layoutIndex,
+    })?.offsetPx ?? 0) - offsetPx
+  const top = (layoutRow + featureRow) * apolloRowHeight
+  const widthPx = length / bpPerPx
+
+  const featureType = `Type: ${feature.type}`
+  const { attributes } = feature
+  const featureName = attributes.get('gff_name')?.find((name) => name !== '')
+  const textWidth = [
+    context.measureText(featureType).width,
+    context.measureText(location).width,
+  ]
+  if (featureName) {
+    textWidth.push(context.measureText(`Name: ${featureName}`).width)
+  }
+  const maxWidth = Math.max(...textWidth)
+
+  startPx = startPx + widthPx + 5
+  context.fillStyle = alpha(theme?.palette.text.primary ?? 'rgb(1, 1, 1)', 0.7)
+  context.fillRect(startPx, top, maxWidth + 4, textWidth.length === 3 ? 45 : 35)
+  context.beginPath()
+  context.moveTo(startPx, top)
+  context.lineTo(startPx - 5, top + 5)
+  context.lineTo(startPx, top + 10)
+  context.fill()
+  context.fillStyle = theme?.palette.background.default ?? 'rgba(255, 255, 255)'
+  let textTop = top + 12
+  context.fillText(featureType, startPx + 2, textTop)
+  if (featureName) {
+    textTop = textTop + 12
+    context.fillText(`Name: ${featureName}`, startPx + 2, textTop)
+  }
+  textTop = textTop + 12
+  context.fillText(location, startPx + 2, textTop)
+}
+
+function getContextMenuItems(
+  display: LinearApolloSixFrameDisplayMouseEvents,
+): MenuItem[] {
+  const {
+    apolloHover,
+    apolloInternetAccount: internetAccount,
+    changeManager,
+    regions,
+    selectedFeature,
+    session,
+  } = display
+  const menuItems: MenuItem[] = []
+  if (!apolloHover) {
+    return menuItems
+  }
+  const { feature: sourceFeature } = apolloHover
+  const role = internetAccount ? internetAccount.role : 'admin'
+  const admin = role === 'admin'
+  const readOnly = !(role && ['admin', 'user'].includes(role))
+  const [region] = regions
+  const sourceAssemblyId = display.getAssemblyId(region.assemblyName)
+  const currentAssemblyId = display.getAssemblyId(region.assemblyName)
+  menuItems.push(
+    {
+      label: 'Add child feature',
+      disabled: readOnly,
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            AddChildFeature,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature,
+              sourceAssemblyId,
+              internetAccount,
+            },
+          ],
+        )
+      },
+    },
+    {
+      label: 'Copy features and annotations',
+      disabled: readOnly,
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            CopyFeature,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature,
+              sourceAssemblyId: currentAssemblyId,
+            },
+          ],
+        )
+      },
+    },
+    {
+      label: 'Delete feature',
+      disabled: !admin,
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            DeleteFeature,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature,
+              sourceAssemblyId: currentAssemblyId,
+              selectedFeature,
+              setSelectedFeature: (feature?: AnnotationFeature) => {
+                display.setSelectedFeature(feature)
+              },
+            },
+          ],
+        )
+      },
+    },
+    {
+      label: 'Modify feature attribute',
+      disabled: readOnly,
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            ModifyFeatureAttribute,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature,
+              sourceAssemblyId: currentAssemblyId,
+            },
+          ],
+        )
+      },
+    },
+    {
+      label: 'Edit feature details',
+      onClick: () => {
+        const apolloFeatureWidget = (
+          session as unknown as SessionWithWidgets
+        ).addWidget(
+          'ApolloFeatureDetailsWidget',
+          'apolloFeatureDetailsWidget',
+          {
+            feature: sourceFeature,
+            assembly: currentAssemblyId,
+            refName: region.refName,
+          },
+        )
+        ;(session as unknown as SessionWithWidgets).showWidget(
+          apolloFeatureWidget,
+        )
+      },
+    },
+  )
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  if (
+    featureTypeOntology.isTypeOf(sourceFeature.type, 'transcript') &&
+    isSessionModelWithWidgets(session)
+  ) {
+    menuItems.push({
+      label: 'Edit transcript details',
+      onClick: () => {
+        const apolloTranscriptWidget = session.addWidget(
+          'ApolloTranscriptDetails',
+          'apolloTranscriptDetails',
+          {
+            feature: sourceFeature,
+            assembly: currentAssemblyId,
+            changeManager,
+            refName: region.refName,
+          },
+        )
+        session.showWidget(apolloTranscriptWidget)
+      },
+    })
+  }
+  return menuItems
+}
+
+function onMouseLeave(): void {
+  return
+}
 
 export const geneGlyph: Glyph = {
   draw,

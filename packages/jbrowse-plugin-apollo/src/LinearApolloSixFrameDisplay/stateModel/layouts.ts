@@ -13,7 +13,7 @@ import { addDisposer, isAlive } from 'mobx-state-tree'
 
 import { ApolloSessionModel } from '../../session'
 import { baseModelFactory } from './base'
-import { boxGlyph, geneGlyph, genericChildGlyph } from '../glyphs'
+import { geneGlyph } from '../glyphs'
 
 export function layoutsModelFactory(
   pluginManager: PluginManager,
