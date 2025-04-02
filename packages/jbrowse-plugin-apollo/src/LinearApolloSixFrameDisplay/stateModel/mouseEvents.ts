@@ -98,15 +98,6 @@ export function mouseEventsModelIntermediateFactory(
         if (!featureTypeOntology) {
           throw new Error('featureTypeOntology is undefined')
         }
-        // const feature = glyph.getFeatureFromLayout(
-        //   topLevelFeature,
-        //   bp,
-        //   featureRow,
-        //   featureTypeOntology,
-        // )
-        // if (!feature) {
-        //   return mousePosition
-        // }
         return {
           ...mousePosition,
           featureAndGlyphUnderMouse: { feature, topLevelFeature, glyph },

@@ -7,11 +7,8 @@ import {
 } from '../stateModel/mouseEvents'
 import { LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
 import { CanvasMouseEvent } from '../types'
-import { OntologyRecord } from '../../OntologyManager'
 
 export interface Glyph {
-  /** @returns number of layout rows used by this glyph with this feature and zoom level */
-  // getRowCount(feature: AnnotationFeature, bpPerPx: number): number
   /** draw the feature's primary rendering on the canvas */
   draw(
     ctx: CanvasRenderingContext2D,
@@ -20,18 +17,6 @@ export interface Glyph {
     stateModel: LinearApolloSixFrameDisplayRendering,
     displayedRegionIndex: number,
   ): void
-  /** @returns the feature or subfeature at the given bp and row number in this glyph's layout */
-  getFeatureFromLayout(
-    feature: AnnotationFeature,
-    bp: number,
-    row: number,
-    featureTypeOntology: OntologyRecord,
-  ): AnnotationFeature | undefined
-  // getRowForFeature(
-  //   feature: AnnotationFeature,
-  //   childFeature: AnnotationFeature,
-  //   featureTypeOntology: OntologyRecord,
-  // ): number | undefined
 
   drawHover(
     display: LinearApolloSixFrameDisplayMouseEvents,

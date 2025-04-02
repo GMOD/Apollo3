@@ -69,12 +69,8 @@ export function layoutsModelFactory(
           return
         })
       },
-      getGlyph(feature: AnnotationFeature) {
+      getGlyph(_feature: AnnotationFeature) {
         return geneGlyph
-        // if (feature.children?.size) {
-        //   return genericChildGlyph
-        // }
-        // return boxGlyph
       },
       looksLikeGene(feature: AnnotationFeature): boolean {
         const { featureTypeOntology } =
@@ -137,8 +133,6 @@ export function layoutsModelFactory(
           if (!minMax) {
             return featureLayout
           }
-          const [min, max] = minMax
-          const rows: boolean[][] = []
           const { end, refName, start } = region
           for (const [id, feature] of self.seenFeatures.entries()) {
             if (!isAlive(feature)) {
@@ -184,65 +178,11 @@ export function layoutsModelFactory(
               }
             }
           }
-          // let startingRow = 0
-          // let placed = false
-          // while (!placed) {
-          //   let rowsForFeature = rows.slice(
-          //     startingRow,
-          //     startingRow + rowCount,
-          //   )
-          //   if (rowsForFeature.length < rowCount) {
-          //     for (let i = 0; i < rowCount - rowsForFeature.length; i++) {
-          //       const newRowNumber = rows.length
-          //       rows[newRowNumber] = Array.from({ length: max - min })
-          //       featureLayout.set(newRowNumber, [])
-          //     }
-          //     rowsForFeature = rows.slice(startingRow, startingRow + rowCount)
-          //   }
-          //   if (
-          //     rowsForFeature
-          //       .map((rowForFeature) => {
-          //         // zero-length features are allowed in the spec
-          //         const featureMax =
-          //           feature.max - feature.min === 0
-          //             ? feature.min + 1
-          //             : feature.max
-          //         let start = feature.min - min,
-          //           end = featureMax - min
-          //         if (feature.min - min < 0) {
-          //           start = 0
-          //           end = featureMax - feature.min
-          //         }
-          //         return rowForFeature.slice(start, end).some(Boolean)
-          //       })
-          //       .some(Boolean)
-          //   ) {
-          //     startingRow += 1
-          //     continue
-          //   }
-          //   for (
-          //     let rowNum = startingRow;
-          //     rowNum < startingRow + rowCount;
-          //     rowNum++
-          //   ) {
-          //     const row = rows[rowNum]
-          //     let start = feature.min - min,
-          //       end = feature.max - min
-          //     if (feature.min - min < 0) {
-          //       start = 0
-          //       end = feature.max - feature.min
-          //     }
-          //     row.fill(true, start, end)
-          //     const layoutRow = featureLayout.get(rowNum)
-          //     layoutRow?.push([rowNum - startingRow, feature])
-          //   }
-          //   placed = true
-          // }
           return featureLayout
         })
       },
       // TODO: Fix this
-      getFeatureLayoutPosition(feature: AnnotationFeature) {
+      getFeatureLayoutPosition(_feature: AnnotationFeature) {
         const { featureLayouts } = this
         const { featureTypeOntology } =
           self.session.apolloDataStore.ontologyManager
