@@ -691,9 +691,10 @@ function getDraggableFeatureInfo(
     }
 
     const overlappingExon = exonChildren.find((child) => {
-      const [start, end] = intersection2(bp, bp + 1, child.min, child.max)
+      const [start, end] = intersection2(bp - 1, bp, child.min, child.max)
       return start !== undefined && end !== undefined
     })
+
     if (!overlappingExon) {
       return
     }

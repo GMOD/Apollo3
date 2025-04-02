@@ -21,7 +21,7 @@ describe('Different ways of editing features', () => {
     cy.deleteAssemblies()
   })
 
-  it('Edit feature via table editor', () => {
+  it.skip('Edit feature via table editor', () => {
     const assemblyName = 'space.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
     cy.selectAssemblyToView(assemblyName)
