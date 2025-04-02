@@ -110,8 +110,7 @@ export const BasicInformation = observer(function BasicInformation({
   }
 
   return (
-    <>
-      <Typography variant="h5">Basic information</Typography>
+    <div data-testid="basic_information">
       <NumberTextField
         margin="dense"
         id="start"
@@ -182,6 +181,6 @@ export const BasicInformation = observer(function BasicInformation({
       {errorMessage ? (
         <Typography color="error">{errorMessage}</Typography>
       ) : null}
-    </>
+    </div>
   )
 })

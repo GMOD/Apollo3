@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/no-misused-promises */
 import { AnnotationFeature } from '@apollo-annotation/mst'
 import { FeatureAttributeChange } from '@apollo-annotation/shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
@@ -21,10 +19,9 @@ import {
 } from '@mui/material'
 import { observer } from 'mobx-react'
 import { getSnapshot } from 'mobx-state-tree'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
-import { AttributeValueEditorProps } from '../components'
 import { OntologyTermMultiSelect } from '../components/OntologyTermMultiSelect'
 import { ApolloSessionModel } from '../session'
 import { StringTextField } from './StringTextField'
@@ -32,15 +29,33 @@ import { StringTextField } from './StringTextField'
 const reservedKeys = new Map([
   [
     'Gene Ontology',
-    (props: AttributeValueEditorProps) => {
-      return <OntologyTermMultiSelect {...props} ontologyName="Gene Ontology" />
+    (props: {
+      session: ApolloSessionModel
+      value: string[]
+      onChange: (newValue: string[]) => void
+    }) => {
+      return (
+        <OntologyTermMultiSelect
+          {...props}
+          ontologyName="Gene Ontology"
+          label={'Gene Ontology'}
+        />
+      )
     },
   ],
   [
     'Sequence Ontology',
-    (props: AttributeValueEditorProps) => {
+    (props: {
+      session: ApolloSessionModel
+      value: string[]
+      onChange: (newValue: string[]) => void
+    }) => {
       return (
-        <OntologyTermMultiSelect {...props} ontologyName="Sequence Ontology" />
+        <OntologyTermMultiSelect
+          {...props}
+          ontologyName="Sequence Ontology"
+          label={'Sequence Ontology'}
+        />
       )
     },
   ],
@@ -70,8 +85,12 @@ const useStyles = makeStyles()((theme) => ({
   },
 }))
 
-function CustomAttributeValueEditor(props: AttributeValueEditorProps) {
-  const { onChange, value } = props
+function CustomAttributeValueEditor(props: {
+  value: unknown
+  onChange: (newValue: string[]) => void
+  label: string
+}) {
+  const { onChange, value, label } = props
   return (
     <StringTextField
       value={value}
@@ -80,8 +99,25 @@ function CustomAttributeValueEditor(props: AttributeValueEditorProps) {
       }}
       variant="outlined"
       fullWidth
-      helperText="Separate multiple values for the attribute with commas"
+      label={label}
+      style={{ width: '100%' }}
     />
+  )
+}
+
+function transformAttributes(feature: AnnotationFeature) {
+  return Object.fromEntries(
+    [...feature.attributes.entries()].map(([key, value]) => {
+      if (key.startsWith('gff_')) {
+        const newKey = key.slice(4)
+        const capitalizedKey = newKey.charAt(0).toUpperCase() + newKey.slice(1)
+        return [capitalizedKey, getSnapshot(value)]
+      }
+      if (key === '_id') {
+        return ['ID', getSnapshot(value)]
+      }
+      return [key, getSnapshot(value)]
+    }),
   )
 }
 
@@ -100,33 +136,24 @@ export const Attributes = observer(function Attributes({
   const [showAddNewForm, setShowAddNewForm] = useState(false)
   const { classes } = useStyles()
   const [newAttributeKey, setNewAttributeKey] = useState('')
-  const attributes = Object.fromEntries(
-    [...feature.attributes.entries()].map(([key, value]) => {
-      if (key.startsWith('gff_')) {
-        const newKey = key.slice(4)
-        const capitalizedKey = newKey.charAt(0).toUpperCase() + newKey.slice(1)
-        return [capitalizedKey, getSnapshot(value)]
-      }
-      if (key === '_id') {
-        return ['ID', getSnapshot(value)]
-      }
-      return [key, getSnapshot(value)]
-    }),
+  const [attributes, setAttributes] = useState(() =>
+    transformAttributes(feature),
   )
+
+  useEffect(() => {
+    setAttributes(transformAttributes(feature))
+  }, [feature])
+
   const { notify } = session as unknown as AbstractSessionModel
 
   const { changeManager } = session.apolloDataStore
 
-  async function onChangeCommitted(newKey: string, newValue?: string[]) {
+  async function onChangeCommitted(attributes: Record<string, string[]>) {
     setErrorMessage('')
 
     const attrs: Record<string, string[]> = {}
     if (attributes) {
-      const modifiedAttrs = Object.entries({
-        ...attributes,
-        [newKey]: newValue,
-      })
-      for (const [key, val] of modifiedAttrs) {
+      for (const [key, val] of Object.entries(attributes)) {
         if (!val) {
           continue
         }
@@ -196,6 +223,7 @@ export const Attributes = observer(function Attributes({
     await changeManager.submit(change)
     notify('Feature attributes modified successfully', 'success')
   }
+
   function handleAddNewAttributeChange() {
     setErrorMessage('')
     if (newAttributeKey.trim().length === 0) {
@@ -224,7 +252,29 @@ export const Attributes = observer(function Attributes({
       )
       return
     }
-    void onChangeCommitted(newAttributeKey, [])
+
+    setAttributes({
+      ...attributes,
+      [newAttributeKey]: [],
+    })
+
+    setShowAddNewForm(false)
+    setNewAttributeKey('')
+  }
+
+  function deleteAttribute(key: string) {
+    const newAttributes = { ...attributes }
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete newAttributes[key]
+    setAttributes(newAttributes)
+    void onChangeCommitted(newAttributes)
+  }
+
+  function updateAttribute(key: string, newValue: string[]) {
+    const newAttributes = { ...attributes }
+    newAttributes[key] = newValue
+    setAttributes(newAttributes)
+    void onChangeCommitted(newAttributes)
   }
 
   function handleRadioButtonChange(
@@ -241,8 +291,7 @@ export const Attributes = observer(function Attributes({
   }
 
   return (
-    <>
-      <Typography variant="h5">Attributes</Typography>
+    <div data-testid="attributes_test">
       <Grid2 container direction="column" spacing={1}>
         {Object.entries(attributes).map(([key, value]) => {
           if (key === '') {
@@ -251,25 +300,26 @@ export const Attributes = observer(function Attributes({
           const EditorComponent =
             reservedKeys.get(key) ?? CustomAttributeValueEditor
           return (
-            <Grid2 container spacing={3} alignItems="center" key={key}>
-              <Grid2>
-                <Paper variant="outlined" className={classes.attributeName}>
-                  <Typography>{key}</Typography>
-                </Paper>
-              </Grid2>
-              <Grid2 flexGrow={1}>
+            <Grid2 container key={key}>
+              <Grid2 size={11}>
                 <EditorComponent
                   session={session}
                   value={value}
-                  onChange={(newValue) => onChangeCommitted(key, newValue)}
+                  onChange={(newValue: string[]) => {
+                    updateAttribute(key, newValue)
+                  }}
+                  label={key}
                 />
               </Grid2>
-              <Grid2>
+              <Grid2 size={1}>
                 <IconButton
                   aria-label="delete"
                   size="medium"
                   disabled={!editable}
-                  onClick={() => onChangeCommitted(key)}
+                  onClick={() => {
+                    deleteAttribute(key)
+                  }}
+                  style={{ marginTop: '10px' }}
                 >
                   <DeleteIcon fontSize="medium" key={key} />
                 </IconButton>
@@ -375,6 +425,6 @@ export const Attributes = observer(function Attributes({
       {errorMessage ? (
         <Typography color="error">{errorMessage}</Typography>
       ) : null}
-    </>
+    </div>
   )
 })

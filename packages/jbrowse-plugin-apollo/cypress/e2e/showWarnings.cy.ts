@@ -22,7 +22,7 @@ describe('Warning signs', () => {
     cy.contains('Show both graphical and table display').click()
     cy.contains('cds07').rightclick()
     cy.contains('Edit feature details').click()
-    cy.contains('Basic information')
+    cy.get('div[data-testid="basic_information"]')
       .parent()
       .within(() => {
         cy.get('input[value="16"]').type('{selectall}{backspace}4{enter}')
@@ -40,7 +40,7 @@ describe('Warning signs', () => {
     cy.contains(/(internal stop codon)|(missing stop codon)/)
 
     // Fix the missing stop codon. Internal stop still expected
-    cy.contains('Basic information')
+    cy.get('div[data-testid="basic_information"]')
       .parent()
       .within(() => {
         cy.get('input[value="24"]').type('{selectall}{backspace}27{enter}')

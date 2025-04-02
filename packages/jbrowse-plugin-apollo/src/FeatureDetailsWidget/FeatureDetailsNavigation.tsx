@@ -5,6 +5,7 @@ import { observer } from 'mobx-react'
 
 import { AnnotationFeature } from '@apollo-annotation/mst'
 import { ApolloFeatureDetailsWidget as ApolloFeatureDetails } from './model'
+import { getFeatureNameOrId } from '../util'
 
 export const FeatureDetailsNavigation = observer(
   function FeatureDetailsNavigation(props: {
@@ -25,8 +26,7 @@ export const FeatureDetailsNavigation = observer(
     }
 
     return (
-      <div>
-        <Typography variant="h5">Go to related feature</Typography>
+      <div style={{ marginTop: 10 }}>
         {parent && (
           <div>
             <Typography variant="h6">Parent:</Typography>
@@ -36,7 +36,8 @@ export const FeatureDetailsNavigation = observer(
                 model.setFeature(parent)
               }}
             >
-              {parent.type} ({parent.min}..{parent.max})
+              {parent.type}
+              {getFeatureNameOrId(parent)} ({parent.min}..{parent.max})
             </Button>
           </div>
         )}
@@ -53,7 +54,8 @@ export const FeatureDetailsNavigation = observer(
                     model.setFeature(child)
                   }}
                 >
-                  {child.type} ({child.min}..{child.max})
+                  {child.type}
+                  {getFeatureNameOrId(child)} ({child.min}..{child.max})
                 </Button>
               </div>
             ))}
