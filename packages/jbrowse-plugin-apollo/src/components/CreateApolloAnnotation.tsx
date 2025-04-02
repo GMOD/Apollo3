@@ -315,7 +315,7 @@ export function CreateApolloAnnotation({
                   onChange={handleParentFeatureCheck}
                 />
               }
-              label={`${getFeatureNameOrId(annotationFeature, apolloSessionModel)} (${annotationFeature.min}..${annotationFeature.max})`}
+              label={`${getFeatureNameOrId(annotationFeature, apolloSessionModel)} (${annotationFeature.min + 1}..${annotationFeature.max})`}
             />
           )}
           {annotationFeature.children && (
@@ -334,7 +334,7 @@ export function CreateApolloAnnotation({
                         }}
                       />
                     }
-                    label={`${getFeatureNameOrId(child, apolloSessionModel)} (${child.min}..${child.max})`}
+                    label={`${getFeatureNameOrId(child, apolloSessionModel)} (${child.min + 1}..${child.max})`}
                   />
                 ))}
             </Box>
@@ -374,6 +374,9 @@ export function CreateApolloAnnotation({
             checkedChildrens.length === 0 ||
             (!parentFeatureChecked &&
               checkedChildrens.length > 0 &&
+              !selectedDestinationFeature) ||
+            (parentFeatureChecked &&
+              isTranscript(annotationFeature, apolloSessionModel) &&
               !selectedDestinationFeature)
           }
           onClick={handleCreateApolloAnnotation}
