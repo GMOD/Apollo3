@@ -98,6 +98,7 @@ export const BasicInformation = observer(function BasicInformation({
     const terms = await fetchValidDescendantTerms(
       parentFeature,
       ontologyStore,
+      session,
       _signal,
     )
     if (!terms) {

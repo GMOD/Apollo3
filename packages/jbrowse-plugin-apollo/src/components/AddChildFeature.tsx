@@ -51,6 +51,7 @@ export function AddChildFeature({
     const terms = await fetchValidDescendantTerms(
       parentFeature,
       ontologyStore,
+      session,
       _signal,
     )
     if (!terms) {

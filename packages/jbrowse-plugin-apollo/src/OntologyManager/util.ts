@@ -1,33 +1,52 @@
 import { AnnotationFeature } from '@apollo-annotation/mst'
 
 import OntologyStore from './OntologyStore'
-import { isOntologyClass } from '.'
+import { ApolloSessionModel } from '../session'
 
 export async function fetchValidDescendantTerms(
   parentFeature: AnnotationFeature | undefined,
   ontologyStore: OntologyStore,
+  session: ApolloSessionModel,
   _signal: AbortSignal,
 ) {
   if (!parentFeature) {
     return
   }
-  // since this is a child of an existing feature, restrict the autocomplete choices to valid
-  // parts of that feature
-  const parentTypeTerms = await ontologyStore.getTermsWithLabelOrSynonym(
+
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+
+  const isGene = featureTypeOntology.isTypeOf(parentFeature.type, 'gene')
+  const isTranscript = featureTypeOntology.isTypeOf(
     parentFeature.type,
-    { includeSubclasses: false },
+    'transcript',
   )
-  // eslint-disable-next-line unicorn/no-array-callback-reference
-  const parentTypeClassTerms = parentTypeTerms.filter(isOntologyClass)
-  if (parentTypeTerms.length === 0) {
-    return
+  const isCDS = featureTypeOntology.isTypeOf(parentFeature.type, 'CDS')
+  const isExon = featureTypeOntology.isTypeOf(parentFeature.type, 'exon')
+
+  let terms
+  if (isGene) {
+    terms = await ontologyStore.getTermsWithLabelOrSynonym('gene', {
+      includeSubclasses: true,
+    })
   }
-  const subpartTerms = await ontologyStore.getClassesThat(
-    'part_of',
-    parentTypeClassTerms,
-  )
-  if (subpartTerms.length === 0) {
-    return
+  if (isTranscript) {
+    terms = await ontologyStore.getTermsWithLabelOrSynonym('transcript', {
+      includeSubclasses: true,
+    })
   }
-  return subpartTerms
+  if (isExon) {
+    terms = await ontologyStore.getTermsWithLabelOrSynonym('exon', {
+      includeSubclasses: true,
+    })
+  }
+  if (isCDS) {
+    terms = await ontologyStore.getTermsWithLabelOrSynonym('CDS', {
+      includeSubclasses: true,
+    })
+  }
+
+  return terms
 }
