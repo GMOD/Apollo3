@@ -216,17 +216,21 @@ export function AddFeature({
                 value={NewFeature.TRANSCRIPT_AND_SUBFEATURES}
                 control={<Radio />}
                 label="Add transcript and sub-features"
-                //disabled={submitted && !errorMessage}
+                // disabled={submitted && !errorMessage}
               />
               <FormControlLabel
-                value=""
+                value={NewFeature.CUSTOM.toString()}
+                checked={
+                  type !== NewFeature.GENE_AND_SUBFEATURES.toString() &&
+                  type !== NewFeature.TRANSCRIPT_AND_SUBFEATURES.toString()
+                }
                 control={<Radio />}
                 label="Add custom type"
                 // disabled={submitted && !errorMessage}
               />
             </RadioGroup>
           </FormControl>
-          {type === '' ? (
+          {type === NewFeature.CUSTOM.toString() ? (
             <OntologyTermAutocomplete
               session={session}
               ontologyName="Sequence Ontology"
@@ -245,6 +249,19 @@ export function AddFeature({
                 if (newValue) {
                   handleChangeOntologyType(newValue)
                 }
+              }}
+            />
+          ) : null}
+          {type !== NewFeature.GENE_AND_SUBFEATURES.toString() &&
+          type !== NewFeature.TRANSCRIPT_AND_SUBFEATURES.toString() &&
+          type !== NewFeature.CUSTOM.toString() ? (
+            <TextField
+              label=""
+              defaultValue={type}
+              slotProps={{
+                input: {
+                  readOnly: true,
+                },
               }}
             />
           ) : null}
