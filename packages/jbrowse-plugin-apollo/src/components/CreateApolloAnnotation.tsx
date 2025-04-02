@@ -45,8 +45,13 @@ const isGeneOrTranscript = (
   }
   return (
     featureTypeOntology.isTypeOf(annotationFeature.type, 'gene') ||
+    featureTypeOntology.isTypeOf(annotationFeature.type, 'pseudogene') ||
     featureTypeOntology.isTypeOf(annotationFeature.type, 'mRNA') ||
-    featureTypeOntology.isTypeOf(annotationFeature.type, 'transcript')
+    featureTypeOntology.isTypeOf(annotationFeature.type, 'transcript') ||
+    featureTypeOntology.isTypeOf(
+      annotationFeature.type,
+      'pseudogenic_transcript',
+    )
   )
 }
 
@@ -60,8 +65,11 @@ const isTranscript = (
     throw new Error('featureTypeOntology is undefined')
   }
   return (
-    featureTypeOntology.isTypeOf(annotationFeature.type, 'mRNA') ||
-    featureTypeOntology.isTypeOf(annotationFeature.type, 'transcript')
+    featureTypeOntology.isTypeOf(annotationFeature.type, 'transcript') ||
+    featureTypeOntology.isTypeOf(
+      annotationFeature.type,
+      'pseudogenic_transcript',
+    )
   )
 }
 
