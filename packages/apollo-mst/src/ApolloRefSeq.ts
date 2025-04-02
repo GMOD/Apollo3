@@ -42,9 +42,6 @@ export const ApolloRefSeq = types
       self.description = description
     },
     addSequence(seq: SnapshotOrInstance<typeof Sequence>) {
-      if (seq.sequence.length < seq.stop - seq.start) {
-        seq.stop = seq.start + seq.sequence.length
-      }
       if (seq.sequence.length !== seq.stop - seq.start) {
         throw new Error(
           `sequence does not match declared length: ${JSON.stringify(seq)}`,

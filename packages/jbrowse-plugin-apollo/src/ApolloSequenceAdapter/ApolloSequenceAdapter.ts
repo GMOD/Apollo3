@@ -110,7 +110,6 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
    * @returns Observable of Feature objects in the region
    */
   public getFeatures(region: Region) {
-    console.log(`ApolloSequenceAdapter region: ${JSON.stringify(region)}`)
     const { end, refName, start } = region
     const assemblyId = readConfObject(this.config, 'assemblyId')
     const regionWithAssemblyName = { ...region, assemblyName: assemblyId }
@@ -128,6 +127,19 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
         const backendDriver = dataStore.getBackendDriver(
           assemblyId,
         ) as BackendDriver
+        const regions = await backendDriver.getRegions(
+          regionWithAssemblyName.assemblyName,
+        )
+        const region = regions.find(
+          (region) => region.refName === regionWithAssemblyName.refName,
+        )
+        if (!region) {
+          observer.error('Cannot get region')
+          return
+        }
+        if (regionWithAssemblyName.end > region.end) {
+          regionWithAssemblyName.end = region.end
+        }
         const { seq } = await backendDriver.getSequence(regionWithAssemblyName)
         observer.next(
           new SimpleFeature({
