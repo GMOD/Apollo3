@@ -69,14 +69,14 @@ import {
   configSchema as linearApolloDisplayConfigSchema,
 } from './LinearApolloDisplay'
 import {
-  DisplayComponent,
-  makeSixFrameDisplayComponent,
+  stateModelFactory as LinearApolloSixFrameDisplayStateModelFactory,
+  configSchema as linearApolloSixFrameDisplayConfigSchema,
+} from './LinearApolloSixFrameDisplay'
+import {
+  LinearApolloDisplayComponent,
+  LinearApolloSixFrameDisplayComponent,
 } from './makeDisplayComponent'
 import { ApolloSessionModel, extendSession } from './session'
-import {
-  stateModelFactory as SixFrameFeatureDisplayStateModelFactory,
-  configSchemaFactory as sixFrameFeatureDisplayConfigSchemaFactory,
-} from './SixFrameFeatureDisplay'
 import { installApolloRefNameAliasAdapter } from './ApolloRefNameAliasAdapter'
 
 interface RpcHandle {
@@ -176,6 +176,21 @@ export default class ApolloPlugin extends Plugin {
     })
 
     pluginManager.addDisplayType(() => {
+      const configSchema = linearApolloSixFrameDisplayConfigSchema
+      return new DisplayType({
+        name: 'LinearApolloSixFrameDisplay',
+        configSchema,
+        stateModel: LinearApolloSixFrameDisplayStateModelFactory(
+          pluginManager,
+          configSchema,
+        ),
+        trackType: 'ApolloTrack',
+        viewType: 'LinearGenomeView',
+        ReactComponent: LinearApolloSixFrameDisplayComponent,
+      })
+    })
+
+    pluginManager.addDisplayType(() => {
       const configSchema = linearApolloDisplayConfigSchema
       return new DisplayType({
         name: 'LinearApolloDisplay',
@@ -186,25 +201,7 @@ export default class ApolloPlugin extends Plugin {
         ),
         trackType: 'ApolloTrack',
         viewType: 'LinearGenomeView',
-        ReactComponent: DisplayComponent,
-      })
-    })
-
-    pluginManager.addDisplayType(() => {
-      const configSchema =
-        sixFrameFeatureDisplayConfigSchemaFactory(pluginManager)
-      const SixFrameDisplayComponent =
-        makeSixFrameDisplayComponent(pluginManager)
-      return new DisplayType({
-        name: 'SixFrameFeatureDisplay',
-        configSchema,
-        stateModel: SixFrameFeatureDisplayStateModelFactory(
-          pluginManager,
-          configSchema,
-        ),
-        trackType: 'ApolloTrack',
-        viewType: 'LinearGenomeView',
-        ReactComponent: SixFrameDisplayComponent,
+        ReactComponent: LinearApolloDisplayComponent,
       })
     })
 
