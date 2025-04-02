@@ -275,10 +275,10 @@ function draw(
           // const frameColor = theme?.palette.framesCDS.at(frame)?.main
           // const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
           const cdsColorCode = 'rgb(171,71,188)'
-          ctx.fillStyle =
-            apolloSelectedFeature && _id === apolloSelectedFeature._id
-              ? 'rgb(0,0,0)'
-              : cdsColorCode
+          // ctx.fillStyle =
+          //   apolloSelectedFeature && _id === apolloSelectedFeature._id
+          //     ? 'rgb(0,0,0)'
+          //     : cdsColorCode
           ctx.fillStyle = cdsColorCode
           ctx.fillRect(
             cdsStartPx + 1,
@@ -394,20 +394,48 @@ function drawHover(
   const rowHeight = apolloRowHeight
   const cdsHeight = Math.round(0.9 * rowHeight)
   for (const cdsRow of feature.cdsLocations) {
-    for (const cds of cdsRow) {
+    let prevCDSTop = 0
+    let prevCDSEndPx = 0
+    let counter = 1
+    for (const cds of cdsRow) {      
       const cdsWidthPx = (cds.max - cds.min) / bpPerPx
-      const minX =
-        (lgv.bpToPx({
-          refName,
-          coord: cds.min,
-          regionNumber: layoutIndex,
-        })?.offsetPx ?? 0) - offsetPx
-      const cdsStartPx = reversed ? minX - cdsWidthPx : minX
-      const frame = getFrame(cds.min, cds.max, feature.strand ?? 1, cds.phase)
-      const cdsTop = (frame - 1) * rowHeight + (rowHeight - cdsHeight) / 2
-      // ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,04)'
-      ctx.fillStyle = 'rgba(255,0,0,0.6)'
-      ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
+      if (cdsWidthPx > 2) {
+        const minX =
+          (lgv.bpToPx({
+            refName,
+            coord: cds.min,
+            regionNumber: layoutIndex,
+          })?.offsetPx ?? 0) - offsetPx
+        const cdsStartPx = reversed ? minX - cdsWidthPx : minX
+        const frame = getFrame(cds.min, cds.max, feature.strand ?? 1, cds.phase)
+        const cdsTop = (frame - 1) * rowHeight + (rowHeight - cdsHeight) / 2
+        // ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,04)'
+        ctx.fillStyle = 'rgba(255,0,0,0.6)'
+        ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
+
+        if (counter > 1) {
+          // Mid-point for intron line "hat"
+          const midPoint: [number, number] = [
+            (cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx,
+            Math.max(
+              1, // Avoid render ceiling
+              Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
+            ),
+          ]
+          ctx.strokeStyle = 'rgb(0, 0, 0)'
+          ctx.lineWidth = 2
+          ctx.beginPath()
+          ctx.moveTo(prevCDSEndPx, prevCDSTop)
+          ctx.lineTo(...midPoint)
+          ctx.stroke()
+          ctx.moveTo(...midPoint)
+          ctx.lineTo(cdsStartPx, cdsTop + rowHeight / 2)
+          ctx.stroke()
+        }
+        prevCDSEndPx = cdsStartPx + cdsWidthPx
+        prevCDSTop = cdsTop + rowHeight / 2
+        counter += 1
+      }
     }
   }
 }
