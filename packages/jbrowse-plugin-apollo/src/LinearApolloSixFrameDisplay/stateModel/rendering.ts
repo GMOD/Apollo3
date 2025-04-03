@@ -166,7 +166,7 @@ export function renderingModelFactory(
             for (const [idx, featureLayout] of featureLayouts.entries()) {
               const displayedRegion = displayedRegions[idx]
               for (const [row, featureLayoutRow] of featureLayout.entries()) {
-                for (const [, feature, ,] of featureLayoutRow) {
+                for (const { feature } of featureLayoutRow) {
                   if (
                     !doesIntersect2(
                       displayedRegion.start,

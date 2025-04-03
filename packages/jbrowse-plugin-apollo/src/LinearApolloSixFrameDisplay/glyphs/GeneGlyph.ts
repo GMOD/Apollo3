@@ -420,6 +420,9 @@ function drawTooltip(
     return
   }
   const { cds, feature } = apolloHover
+  if (!cds) {
+    return
+  }
   const position = display.getFeatureLayoutPosition(feature)
   if (!position) {
     return

@@ -17,7 +17,7 @@ import { CanvasMouseEvent } from '../types'
 import { renderingModelFactory } from './rendering'
 
 export interface FeatureAndGlyphUnderMouse {
-  cds: TranscriptPartCoding
+  cds: TranscriptPartCoding | null
   feature: AnnotationFeature
   topLevelFeature: AnnotationFeature
   glyph: Glyph
@@ -87,18 +87,14 @@ export function mouseEventsModelIntermediateFactory(
           return mousePosition
         }
         const foundFeature = layoutRow.find(
-          (f) => bp >= f[3].min && bp <= f[3].max,
+          (f) => f.cds != null && bp >= f.cds.min && bp <= f.cds.max,
         )
         if (!foundFeature) {
           return mousePosition
         }
-        const [, topLevelFeature, feature, cds] = foundFeature
+        const { feature, cds } = foundFeature
+        const { topLevelFeature } = feature
         const glyph = self.getGlyph(feature)
-        const { featureTypeOntology } =
-          self.session.apolloDataStore.ontologyManager
-        if (!featureTypeOntology) {
-          throw new Error('featureTypeOntology is undefined')
-        }
         return {
           ...mousePosition,
           featureAndGlyphUnderMouse: { cds, feature, topLevelFeature, glyph },

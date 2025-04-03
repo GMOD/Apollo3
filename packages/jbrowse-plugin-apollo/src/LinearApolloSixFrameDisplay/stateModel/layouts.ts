@@ -15,6 +15,12 @@ import { ApolloSessionModel } from '../../session'
 import { baseModelFactory } from './base'
 import { geneGlyph } from '../glyphs'
 
+export interface LayoutRow {
+  rowNum: number
+  feature: AnnotationFeature
+  cds: TranscriptPartCoding | null
+}
+
 export function layoutsModelFactory(
   pluginManager: PluginManager,
   configSchema: AnyConfigurationSchemaType,
@@ -87,15 +93,7 @@ export function layoutsModelFactory(
           self.session as unknown as AbstractSessionModel
         return self.lgv.displayedRegions.map((region, idx) => {
           const assembly = assemblyManager.get(region.assemblyName)
-          const featureLayout = new Map<
-            number,
-            [
-              number,
-              AnnotationFeature,
-              AnnotationFeature,
-              TranscriptPartCoding,
-            ][]
-          >()
+          const featureLayout = new Map<number, LayoutRow[]>()
           const minMax = self.featuresMinMax[idx]
           if (!minMax) {
             return featureLayout
@@ -104,9 +102,6 @@ export function layoutsModelFactory(
           for (const [id, feature] of self.seenFeatures.entries()) {
             if (!isAlive(feature)) {
               self.deleteSeenFeature(id)
-              continue
-            }
-            if (!feature.looksLikeGene) {
               continue
             }
             if (
@@ -120,29 +115,33 @@ export function layoutsModelFactory(
             if (!featureTypeOntology) {
               throw new Error('featureTypeOntology is undefined')
             }
-            const { children } = feature
-            if (!children) {
-              continue
-            }
-            for (const [, child] of children) {
-              if (featureTypeOntology.isTypeOf(child.type, 'transcript')) {
-                const { cdsLocations, strand } = child
-                for (const cdsRow of cdsLocations) {
-                  for (const cds of cdsRow) {
-                    const rowNum = getFrame(
-                      cds.min,
-                      cds.max,
-                      strand ?? 1,
-                      cds.phase,
-                    )
-                    if (!featureLayout.get(rowNum)) {
-                      featureLayout.set(rowNum, [])
+            if (feature.looksLikeGene) {
+              const { children } = feature
+              if (!children) {
+                continue
+              }
+              for (const [, child] of children) {
+                if (featureTypeOntology.isTypeOf(child.type, 'transcript')) {
+                  const { cdsLocations, strand } = child
+                  for (const cdsRow of cdsLocations) {
+                    for (const cds of cdsRow) {
+                      const rowNum = getFrame(
+                        cds.min,
+                        cds.max,
+                        strand ?? 1,
+                        cds.phase,
+                      )
+                      if (!featureLayout.get(rowNum)) {
+                        featureLayout.set(rowNum, [])
+                      }
+                      const layoutRow = featureLayout.get(rowNum)
+                      layoutRow?.push({ rowNum, feature: child, cds })
                     }
-                    const layoutRow = featureLayout.get(rowNum)
-                    layoutRow?.push([rowNum, feature, child, cds])
                   }
                 }
               }
+            } else {
+              continue
             }
           }
           return featureLayout
@@ -152,8 +151,7 @@ export function layoutsModelFactory(
         const { featureLayouts } = this
         for (const [idx, layout] of featureLayouts.entries()) {
           for (const [, layoutRow] of layout) {
-            // eslint-disable-next-line unicorn/no-unreadable-array-destructuring
-            for (const [, , layoutFeature] of layoutRow) {
+            for (const { feature: layoutFeature } of layoutRow) {
               if (feature._id === layoutFeature._id) {
                 return {
                   layoutIndex: idx,
