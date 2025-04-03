@@ -87,7 +87,7 @@ function draw(
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const { refName, reversed } = displayedRegion
   const rowHeight = apolloRowHeight
-  const cdsHeight = Math.round(0.9 * rowHeight)
+  const cdsHeight = Math.round(0.7 * rowHeight)
   const { children, strand } = feature
   if (!children) {
     return
@@ -235,7 +235,7 @@ function drawHover(
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
   const rowHeight = apolloRowHeight
-  const cdsHeight = Math.round(0.9 * rowHeight)
+  const cdsHeight = Math.round(0.7 * rowHeight)
   for (const cdsRow of feature.cdsLocations) {
     let prevCDSTop = 0
     let prevCDSEndPx = 0
@@ -432,7 +432,7 @@ function drawTooltip(
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
   const rowHeight = apolloRowHeight
-  const cdsHeight = Math.round(0.9 * rowHeight)
+  const cdsHeight = Math.round(0.7 * rowHeight)
   let location = 'Loc: '
 
   const { strand } = feature
