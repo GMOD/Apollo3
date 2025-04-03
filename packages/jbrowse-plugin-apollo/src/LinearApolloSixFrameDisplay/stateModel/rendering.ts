@@ -177,9 +177,10 @@ export function renderingModelFactory(
                   ) {
                     continue
                   }
-                  const glyph = self.getGlyph(feature)
+                  const { topLevelFeature } = feature
+                  const glyph = self.getGlyph(topLevelFeature)
                   if (glyph !== undefined) {
-                    glyph.draw(ctx, feature, row, self, idx)
+                    glyph.draw(ctx, topLevelFeature, row, self, idx)
                   }
                 }
               }
