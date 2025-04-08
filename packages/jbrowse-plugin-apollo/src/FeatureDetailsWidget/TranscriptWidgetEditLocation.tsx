@@ -115,6 +115,11 @@ export const TranscriptWidgetEditLocation = observer(
           continue
         }
         if (isMin && oldLocation === child.min) {
+          newLocation = newLocation - 1
+          if (newLocation < 0) {
+            notify('Start location should be greater than 0', 'error')
+            return
+          }
           const change = new LocationStartChange({
             typeName: 'LocationStartChange',
             changedIds: [child._id],
@@ -161,6 +166,11 @@ export const TranscriptWidgetEditLocation = observer(
           continue
         }
         if (isMin && oldLocation === child.min) {
+          newLocation = newLocation - 1
+          if (newLocation < 0) {
+            notify('Start location should be greater than 0', 'error')
+            return
+          }
           if (index > 0) {
             for (let i = index - 1; i >= 0; i--) {
               const prevLoc = transcriptExonParts[i]
@@ -609,7 +619,7 @@ export const TranscriptWidgetEditLocation = observer(
                 <StyledTextField
                   margin="dense"
                   variant="outlined"
-                  value={cdsMin}
+                  value={cdsMin + 1}
                   onChangeCommitted={(newLocation: number) => {
                     handleCDSLocationChange(cdsMin, newLocation, feature, true)
                   }}
@@ -659,7 +669,7 @@ export const TranscriptWidgetEditLocation = observer(
                       <StyledTextField
                         margin="dense"
                         variant="outlined"
-                        value={loc.min}
+                        value={loc.min + 1}
                         onChangeCommitted={(newLocation: number) => {
                           void handleExonLocationChange(
                             loc.min,

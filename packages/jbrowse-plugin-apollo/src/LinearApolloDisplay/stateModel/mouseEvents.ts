@@ -16,7 +16,7 @@ import { Coord } from '../components'
 import { Glyph } from '../glyphs/Glyph'
 import { CanvasMouseEvent } from '../types'
 import { renderingModelFactory } from './rendering'
-import { Frame, getFrame } from '@jbrowse/core/util'
+import { AbstractSessionModel, Frame, getFrame } from '@jbrowse/core/util'
 
 export interface FeatureAndGlyphUnderMouse {
   feature: AnnotationFeature
@@ -364,7 +364,7 @@ export function mouseEventsModelFactory(
           edge,
         }
       },
-      endDrag() {
+      async endDrag() {
         if (!self.apolloDragging) {
           throw new Error('endDrag() called with no current drag in progress')
         }
@@ -379,33 +379,214 @@ export function mouseEventsModelFactory(
         const region = displayedRegions[start.regionNumber]
         const assembly = self.getAssemblyId(region.assemblyName)
 
-        let change: LocationEndChange | LocationStartChange
+        const { notify } = self.session as unknown as AbstractSessionModel
+        const { featureTypeOntology } =
+          self.session.apolloDataStore.ontologyManager
+        if (!featureTypeOntology) {
+          throw new Error('featureTypeOntology is undefined')
+        }
+
+        if (
+          !featureTypeOntology.isTypeOf(feature.type, 'exon') &&
+          !featureTypeOntology.isTypeOf(feature.type, 'CDS')
+        ) {
+          notify(`Cannot drag feature type ${feature.type}`, 'error')
+          return
+        }
+
+        const { parent } = feature
+
+        if (!parent) {
+          throw new Error('parent is undefined')
+        }
+
+        const { transcriptExonParts } = parent
+        const exonParts = transcriptExonParts
+          .filter((part) => part.type === 'exon')
+          .sort(({ min: a }, { min: b }) => a - b)
+        if (featureTypeOntology.isTypeOf(feature.type, 'exon')) {
+          let prevExon, nextExon
+          for (let i = 0; i < exonParts.length; i++) {
+            if (
+              exonParts[i].min === feature.min &&
+              exonParts[i].max === feature.max
+            ) {
+              prevExon = i === 0 ? undefined : exonParts[i - 1]
+              nextExon =
+                i === exonParts.length - 1 ? undefined : exonParts[i + 1]
+              break
+            }
+          }
+
+          if (!prevExon && !nextExon) {
+            return
+          }
+
+          if (edge === 'min' && prevExon) {
+            const newStart = current.bp
+            if (newStart < prevExon.max) {
+              notify(
+                'Cannot move start of exon because it overlaps with previous exon',
+                'error',
+              )
+              return
+            }
+          }
+
+          if (edge === 'max' && nextExon) {
+            const newEnd = current.bp
+            if (newEnd > nextExon.min) {
+              notify(
+                'Cannot move end of exon because it overlaps with next exon',
+                'error',
+              )
+              return
+            }
+          }
+        }
+
+        const locationStartChanges: LocationStartChange[] = []
+        const locationEndChanges: LocationEndChange[] = []
         if (edge === 'max') {
+          // PROCESS END
           const featureId = feature._id
           const oldEnd = feature.max
           const newEnd = current.bp
-          change = new LocationEndChange({
-            typeName: 'LocationEndChange',
-            changedIds: [featureId],
-            featureId,
-            oldEnd,
-            newEnd,
-            assembly,
-          })
+          if (newEnd > parent.max) {
+            const gene = parent.parent
+            if (gene && newEnd > gene.max) {
+              locationEndChanges.push(
+                new LocationEndChange({
+                  typeName: 'LocationEndChange',
+                  changedIds: [gene._id],
+                  featureId: gene._id,
+                  oldEnd: gene.max,
+                  newEnd,
+                  assembly,
+                }),
+              )
+            }
+            locationEndChanges.push(
+              new LocationEndChange({
+                typeName: 'LocationEndChange',
+                changedIds: [parent._id],
+                featureId: parent._id,
+                oldEnd: parent.max,
+                newEnd,
+                assembly,
+              }),
+            )
+          }
+          if (featureTypeOntology.isTypeOf(feature.type, 'CDS')) {
+            // get overlapping exon feature
+            const overlappingExonPart = exonParts.find((part) => {
+              return feature.max >= part.min && feature.max <= part.max
+            })
+            if (overlappingExonPart && newEnd > overlappingExonPart.max) {
+              for (const child of parent.children?.values() ?? []) {
+                if (
+                  featureTypeOntology.isTypeOf(child.type, 'exon') &&
+                  child.min === overlappingExonPart.min &&
+                  child.max === overlappingExonPart.max
+                ) {
+                  locationEndChanges.push(
+                    new LocationEndChange({
+                      typeName: 'LocationEndChange',
+                      changedIds: [child._id],
+                      featureId: child._id,
+                      oldEnd: child.max,
+                      newEnd,
+                      assembly,
+                    }),
+                  )
+                }
+              }
+            }
+          }
+          locationEndChanges.push(
+            new LocationEndChange({
+              typeName: 'LocationEndChange',
+              changedIds: [featureId],
+              featureId,
+              oldEnd,
+              newEnd,
+              assembly,
+            }),
+          )
         } else {
+          // PROCESS START
           const featureId = feature._id
           const oldStart = feature.min
           const newStart = current.bp
-          change = new LocationStartChange({
-            typeName: 'LocationStartChange',
-            changedIds: [featureId],
-            featureId,
-            oldStart,
-            newStart,
-            assembly,
-          })
+
+          if (newStart < parent.min) {
+            const gene = parent.parent
+            if (gene && newStart < gene.min) {
+              locationStartChanges.push(
+                new LocationStartChange({
+                  typeName: 'LocationStartChange',
+                  changedIds: [gene._id],
+                  featureId: gene._id,
+                  oldStart: gene.min,
+                  newStart,
+                  assembly,
+                }),
+              )
+            }
+            locationStartChanges.push(
+              new LocationStartChange({
+                typeName: 'LocationStartChange',
+                changedIds: [parent._id],
+                featureId: parent._id,
+                oldStart: parent.min,
+                newStart,
+                assembly,
+              }),
+            )
+          }
+          if (featureTypeOntology.isTypeOf(feature.type, 'CDS')) {
+            // get overlapping exon feature
+            const overlappingExonPart = exonParts.find((part) => {
+              return feature.min >= part.min && feature.min <= part.max
+            })
+            if (overlappingExonPart && newStart < overlappingExonPart.min) {
+              for (const child of parent.children?.values() ?? []) {
+                if (
+                  featureTypeOntology.isTypeOf(child.type, 'exon') &&
+                  child.min === overlappingExonPart.min &&
+                  child.max === overlappingExonPart.max
+                ) {
+                  locationStartChanges.push(
+                    new LocationStartChange({
+                      typeName: 'LocationStartChange',
+                      changedIds: [child._id],
+                      featureId: child._id,
+                      oldStart: child.min,
+                      newStart,
+                      assembly,
+                    }),
+                  )
+                }
+              }
+            }
+          }
+          locationStartChanges.push(
+            new LocationStartChange({
+              typeName: 'LocationStartChange',
+              changedIds: [featureId],
+              featureId,
+              oldStart,
+              newStart,
+              assembly,
+            }),
+          )
         }
-        void self.changeManager.submit(change)
+        for (const change of locationStartChanges) {
+          await self.changeManager.submit(change)
+        }
+        for (const change of locationEndChanges) {
+          await self.changeManager.submit(change)
+        }
         self.setDragging()
         self.setCursor()
       },
@@ -463,7 +644,7 @@ export function mouseEventsModelFactory(
         }
 
         if (self.apolloDragging) {
-          self.endDrag()
+          void self.endDrag()
         }
       },
     }))
