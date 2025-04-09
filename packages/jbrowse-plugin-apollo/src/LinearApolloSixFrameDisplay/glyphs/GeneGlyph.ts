@@ -1,4 +1,4 @@
-import { AnnotationFeature } from '@apollo-annotation/mst'
+import { AnnotationFeature, TranscriptPartCoding } from '@apollo-annotation/mst'
 import {
   AbstractSessionModel,
   getFrame,
@@ -290,9 +290,10 @@ function onMouseDown(
   const { featureAndGlyphUnderMouse } = currentMousePosition
   // swallow the mouseDown if we are on the edge of the feature so that we
   // don't start dragging the view if we try to drag the feature edge
-  const { feature } = featureAndGlyphUnderMouse
+  const { cds, feature } = featureAndGlyphUnderMouse
   const draggableFeature = getDraggableFeatureInfo(
     currentMousePosition,
+    cds,
     feature,
     stateModel,
   )
@@ -313,9 +314,10 @@ function onMouseMove(
   if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
     const { featureAndGlyphUnderMouse } = mousePosition
     stateModel.setApolloHover(featureAndGlyphUnderMouse)
-    const { feature } = featureAndGlyphUnderMouse
+    const { cds, feature } = featureAndGlyphUnderMouse
     const draggableFeature = getDraggableFeatureInfo(
       mousePosition,
+      cds,
       feature,
       stateModel,
     )
@@ -342,18 +344,26 @@ function onMouseUp(
 
 function getDraggableFeatureInfo(
   mousePosition: MousePosition,
+  cds: TranscriptPartCoding | null,
   feature: AnnotationFeature,
   stateModel: LinearApolloSixFrameDisplay,
 ): { feature: AnnotationFeature; edge: 'min' | 'max' } | undefined {
-  if (feature.type === 'gene' || feature.type === 'mRNA') {
+  const { session } = stateModel
+  const { apolloDataStore } = session
+  const { featureTypeOntology } = apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  const isTranscript = featureTypeOntology.isTypeOf(feature.type, 'transcript')
+  if (cds === null) {
     return
   }
   const { bp, refName, regionNumber, x } = mousePosition
   const { lgv } = stateModel
   const { offsetPx } = lgv
 
-  const minPxInfo = lgv.bpToPx({ refName, coord: feature.min, regionNumber })
-  const maxPxInfo = lgv.bpToPx({ refName, coord: feature.max, regionNumber })
+  const minPxInfo = lgv.bpToPx({ refName, coord: cds.min, regionNumber })
+  const maxPxInfo = lgv.bpToPx({ refName, coord: cds.max, regionNumber })
   if (minPxInfo === undefined || maxPxInfo === undefined) {
     return
   }
@@ -362,20 +372,19 @@ function getDraggableFeatureInfo(
   if (Math.abs(maxPx - minPx) < 8) {
     return
   }
-  if (Math.abs(minPx - x) < 4) {
-    return { feature, edge: 'min' }
-  }
-  if (Math.abs(maxPx - x) < 4) {
-    return { feature, edge: 'max' }
-  }
-  if (feature.type === 'CDS') {
-    const mRNA = feature.parent
-    if (!mRNA?.children) {
+  if (isTranscript) {
+    const transcript = feature
+    if (!transcript.children) {
       return
     }
-    const exonChildren = [...mRNA.children.values()].filter(
-      (child) => child.type === 'exon',
-    )
+    const exonChildren: AnnotationFeature[] = []
+    for (const child of transcript.children.values()) {
+      const childIsExon = featureTypeOntology.isTypeOf(child.type, 'exon')
+      if (childIsExon) {
+        exonChildren.push(child)
+      }
+    }
+
     const overlappingExon = exonChildren.find((child) => {
       const [start, end] = intersection2(bp, bp + 1, child.min, child.max)
       return start !== undefined && end !== undefined
