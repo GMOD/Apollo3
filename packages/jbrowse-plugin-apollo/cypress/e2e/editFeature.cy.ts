@@ -21,37 +21,18 @@ describe('Different ways of editing features', () => {
     cy.deleteAssemblies()
   })
 
-  it.skip('Edit feature via table editor', () => {
+  it('Edit feature via table editor', () => {
     const assemblyName = 'space.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
     cy.selectAssemblyToView(assemblyName)
 
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
-    cy.get('[data-testid="MinimizeIcon"]').eq(1).click()
-    cy.contains('Drawer minimized')
-      .parent()
-      .within(() => {
-        cy.get('[data-testid="CloseIcon"]').click()
-      })
+    cy.get('button[aria-label="Minimize drawer"]').click()
+
     cy.get('[data-testid="track_menu_icon"]').click()
     cy.contains('Appearance').trigger('mouseover')
     cy.contains('Show both graphical and table display').click()
-
-    cy.contains('Table')
-      .parent()
-      .within(() => {
-        cy.get('[data-testid]').then((el) => {
-          const expandIcon: string = el.attr('data-testid') ?? ''
-          if (expandIcon == 'ExpandLessIcon') {
-            cy.log('Expanded')
-          } else if (expandIcon == 'ExpandMoreIcon') {
-            cy.contains('Table').click()
-          } else {
-            cy.log(`Unexpected value for expand icon: ${expandIcon}`)
-          }
-        })
-      })
 
     cy.get('input[placeholder="Search for location"]').type(
       'ctgA:9400..9600{enter}',

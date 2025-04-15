@@ -238,7 +238,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
                           pointerEvents: apolloDragging ? 'none' : 'auto',
                         }}
                       >
-                        <ErrorIcon />
+                        <ErrorIcon data-testid="ErrorIcon" />
                       </Avatar>
                     </Tooltip>
                   )
