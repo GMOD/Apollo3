@@ -4,12 +4,14 @@
 import { AddFeatureChange } from '@apollo-annotation/shared'
 import { AbstractSessionModel, Region } from '@jbrowse/core/util/types'
 import {
+  Box,
   Button,
   DialogActions,
   DialogContent,
   DialogContentText,
   FormControl,
   FormControlLabel,
+  IconButton,
   InputLabel,
   MenuItem,
   Radio,
@@ -17,7 +19,10 @@ import {
   Select,
   SelectChangeEvent,
   TextField,
+  Tooltip,
 } from '@mui/material'
+
+import InfoIcon from '@mui/icons-material/Info'
 
 import ObjectID from 'bson-objectid'
 import React, { useState } from 'react'
@@ -209,13 +214,32 @@ export function AddFeature({
               <FormControlLabel
                 value={NewFeature.GENE_AND_SUBFEATURES}
                 control={<Radio />}
-                label="Add gene and sub-features"
+                label={
+                  <Box display="flex" alignItems="center">
+                    Add gene and sub-features
+                    <Tooltip title="This is a shortcut to create a gene with a single mRNA, exon, and CDS">
+                      <IconButton size="small">
+                        <InfoIcon sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                }
                 // disabled={submitted && !errorMessage}
               />
+
               <FormControlLabel
                 value={NewFeature.TRANSCRIPT_AND_SUBFEATURES}
                 control={<Radio />}
-                label="Add transcript and sub-features"
+                label={
+                  <Box display="flex" alignItems="center">
+                    Add transcript and sub-features
+                    <Tooltip title="This is a shortcut to create single mRNA with exon and CDS, but without a parent gene">
+                      <IconButton size="small">
+                        <InfoIcon sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                }
                 // disabled={submitted && !errorMessage}
               />
               <FormControlLabel
