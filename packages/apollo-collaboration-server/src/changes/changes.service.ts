@@ -25,6 +25,8 @@ import {
   UserDocument,
 } from '@apollo-annotation/schemas'
 import {
+  AddFeatureChange,
+  AddFeatureChangeDetails,
   ChangeMessage,
   DecodedJWT,
   makeUserSessionId,
@@ -49,7 +51,6 @@ const STATUS_ZERO_CHANGE_TYPES = new Set([
   'AddAssemblyFromExternalChange',
   'AddAssemblyFromFileChange',
   'AddFeaturesFromFileChange',
-  'AddFeatureChange',
 ])
 
 export class ChangesService {
@@ -172,6 +173,35 @@ export class ChangesService {
         )
       }
     })
+
+    // TODO: temporary solution to set status of add feature change to 0
+    if (change.typeName === 'AddFeatureChange') {
+      const addFeatureChange = change as AddFeatureChange
+      const addFeatureChangeDetails: AddFeatureChangeDetails[] =
+        addFeatureChange.changes
+      for (const addFeatureChangeDetail of addFeatureChangeDetails) {
+        const { addedFeature } = addFeatureChangeDetail
+
+        await this.featureModel.db.transaction(async () => {
+          try {
+            await this.featureModel.updateMany(
+              {
+                $and: [{ status: -1, user: uniqUserId, _id: addedFeature._id }],
+              },
+              { $set: { status: 0 } },
+            )
+          } catch (error) {
+            const err = error as Error
+            this.logger.error(
+              `Error setting status of add feature change to 0: ${err.message}`,
+            )
+            await this.featureModel.deleteMany({
+              $and: [{ status: -1, user: uniqUserId, _id: addedFeature._id }],
+            })
+          }
+        })
+      }
+    }
 
     if (STATUS_ZERO_CHANGE_TYPES.has(change.typeName)) {
       this.logger.debug?.('*** TEMPORARY DATA INSERTTED ***')

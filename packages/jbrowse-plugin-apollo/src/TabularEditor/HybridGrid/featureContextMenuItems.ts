@@ -7,12 +7,7 @@ import {
 } from '@jbrowse/core/util'
 
 import { ChangeManager } from '../../ChangeManager'
-import {
-  AddChildFeature,
-  CopyFeature,
-  DeleteFeature,
-  ModifyFeatureAttribute,
-} from '../../components'
+import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
 import { ApolloSessionModel } from '../../session'
 import { getApolloInternetAccount } from '../../util'
 
@@ -116,33 +111,14 @@ export function featureContextMenuItems(
           )
         },
       },
-      {
-        label: 'Edit attributes',
-        disabled: readOnly,
-        onClick: () => {
-          ;(session as unknown as AbstractSessionModel).queueDialog(
-            (doneCallback) => [
-              ModifyFeatureAttribute,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                },
-                changeManager,
-                sourceFeature: feature,
-                sourceAssemblyId: currentAssemblyId,
-              },
-            ],
-          )
-        },
-      },
     )
     const { featureTypeOntology } = session.apolloDataStore.ontologyManager
     if (!featureTypeOntology) {
       throw new Error('featureTypeOntology is undefined')
     }
     if (
-      featureTypeOntology.isTypeOf(feature.type, 'transcript') &&
+      (featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
+        featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')) &&
       isSessionModelWithWidgets(session)
     ) {
       menuItems.push({

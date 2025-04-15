@@ -112,10 +112,9 @@ function draw(
   // Draw lines on different rows for each transcript
   let currentRow = 0
   for (const [, transcript] of children) {
-    const isTranscript = featureTypeOntology.isTypeOf(
-      transcript.type,
-      'transcript',
-    )
+    const isTranscript =
+      featureTypeOntology.isTypeOf(transcript.type, 'transcript') ||
+      featureTypeOntology.isTypeOf(transcript.type, 'pseudogenic_transcript')
     if (!isTranscript) {
       currentRow += 1
       continue
@@ -161,7 +160,12 @@ function draw(
   // Draw exon and CDS for each transcript
   currentRow = 0
   for (const [, child] of children) {
-    if (!featureTypeOntology.isTypeOf(child.type, 'transcript')) {
+    if (
+      !(
+        featureTypeOntology.isTypeOf(child.type, 'transcript') ||
+        featureTypeOntology.isTypeOf(child.type, 'pseudogenic_transcript')
+      )
+    ) {
       boxGlyph.draw(ctx, child, row, stateModel, displayedRegionIndex)
       currentRow += 1
       continue
@@ -455,7 +459,11 @@ function getFeatureFromLayout(
     if (
       featureTypeOntology.isTypeOf(featureObj.type, 'CDS') &&
       featureObj.parent &&
-      featureTypeOntology.isTypeOf(featureObj.parent.type, 'transcript')
+      (featureTypeOntology.isTypeOf(featureObj.parent.type, 'transcript') ||
+        featureTypeOntology.isTypeOf(
+          featureObj.parent.type,
+          'pseudogenic_transcript',
+        ))
     ) {
       const { cdsLocations } = featureObj.parent
       for (const cdsLoc of cdsLocations) {
@@ -483,7 +491,7 @@ function getCDSCount(
   if (!children) {
     return 0
   }
-  const isMrna = featureTypeOntology.isTypeOf(type, 'mRNA')
+  const isMrna = featureTypeOntology.isTypeOf(type, 'transcript')
   let cdsCount = 0
   if (isMrna) {
     for (const [, child] of children) {
@@ -504,7 +512,9 @@ function getRowCount(
   if (!children) {
     return 1
   }
-  const isTranscript = featureTypeOntology.isTypeOf(type, 'transcript')
+  const isTranscript =
+    featureTypeOntology.isTypeOf(type, 'transcript') ||
+    featureTypeOntology.isTypeOf(type, 'pseudogenic_transcript')
   let rowCount = 0
   if (isTranscript) {
     for (const [, child] of children) {
@@ -532,7 +542,9 @@ function featuresForRow(
   feature: AnnotationFeature,
   featureTypeOntology: OntologyRecord,
 ): AnnotationFeature[][] {
-  const isGene = featureTypeOntology.isTypeOf(feature.type, 'gene')
+  const isGene =
+    featureTypeOntology.isTypeOf(feature.type, 'gene') ||
+    featureTypeOntology.isTypeOf(feature.type, 'pseudogene')
   if (!isGene) {
     throw new Error('Top level feature for GeneGlyph must have type "gene"')
   }
@@ -542,7 +554,12 @@ function featuresForRow(
   }
   const features: AnnotationFeature[][] = []
   for (const [, child] of children) {
-    if (!featureTypeOntology.isTypeOf(child.type, 'transcript')) {
+    if (
+      !(
+        featureTypeOntology.isTypeOf(child.type, 'transcript') ||
+        featureTypeOntology.isTypeOf(child.type, 'pseudogenic_transcript')
+      )
+    ) {
       features.push([child, feature])
       continue
     }
@@ -651,8 +668,12 @@ function getDraggableFeatureInfo(
   if (!featureTypeOntology) {
     throw new Error('featureTypeOntology is undefined')
   }
-  const isGene = featureTypeOntology.isTypeOf(feature.type, 'gene')
-  const isTranscript = featureTypeOntology.isTypeOf(feature.type, 'transcript')
+  const isGene =
+    featureTypeOntology.isTypeOf(feature.type, 'gene') ||
+    featureTypeOntology.isTypeOf(feature.type, 'pseudogene')
+  const isTranscript =
+    featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
+    featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')
   const isCds = featureTypeOntology.isTypeOf(feature.type, 'CDS')
   if (isGene || isTranscript) {
     return

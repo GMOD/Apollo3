@@ -301,7 +301,11 @@ export function stateModelFactory(
           )) {
             for (const [, childFeature] of feature.children ?? new Map()) {
               if (
-                featureTypeOntology.isTypeOf(childFeature.type, 'transcript')
+                featureTypeOntology.isTypeOf(childFeature.type, 'transcript') ||
+                featureTypeOntology.isTypeOf(
+                  feature.type,
+                  'pseudogenic_transcript',
+                )
               ) {
                 for (const [, grandChildFeature] of childFeature.children ||
                   new Map()) {

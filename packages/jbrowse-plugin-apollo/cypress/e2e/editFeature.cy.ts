@@ -91,24 +91,20 @@ describe('Different ways of editing features', () => {
     cy.contains('Appearance').trigger('mouseover')
     cy.contains('Show both graphical and table display').click()
     cy.contains('td', 'CDS1').rightclick()
-    cy.contains('Edit attributes').click()
-    cy.contains('Feature attributes')
-      .parent()
-      .within(() => {
-        cy.contains('button', 'Add new').click()
-        cy.get('input[value="Gene Ontology"]').click()
-        cy.contains('button', /^Add$/).click()
-        cy.contains('Gene Ontology')
-          .parent()
-          .parent()
-          .parent()
-          .within(() => {
-            cy.get('input').type('quiescence')
-          })
-      })
-    // This seems to take ~6 minutes in headless mode!
-    cy.contains('li', 'GO:0044838', { timeout: 600_000 }).click()
-    cy.contains('button', 'Submit changes').click()
+    cy.contains('Edit feature details').click()
+
+    cy.get('div[data-testid="attributes_test"]').within(() => {
+      cy.contains('button', 'Add new').click()
+      cy.get('input[value="Gene Ontology"]').click()
+      cy.contains('button', /^Add$/).click()
+
+      cy.contains('label', 'Gene Ontology')
+        .parent()
+        .within(() => {
+          cy.get('input').type('quiescence')
+        })
+    })
+    cy.get('.MuiAutocomplete-popper').contains('li', 'GO:0044838').click()
     cy.contains('td', 'Gene Ontology=GO:0044838')
   })
 

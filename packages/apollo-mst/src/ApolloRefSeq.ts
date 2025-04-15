@@ -43,7 +43,9 @@ export const ApolloRefSeq = types
     },
     addSequence(seq: SnapshotOrInstance<typeof Sequence>) {
       if (seq.sequence.length !== seq.stop - seq.start) {
-        throw new Error('sequence does not match declared length')
+        throw new Error(
+          `sequence does not match declared length: ${JSON.stringify(seq)}`,
+        )
       }
       if (self.sequence.length === 0) {
         self.sequence.push(seq)
@@ -59,7 +61,13 @@ export const ApolloRefSeq = types
         stop: seq.stop,
         sequence: seq.sequence,
       })
-      newSequences.sort((s1, s2) => s1.start - s2.start)
+      newSequences.sort((s1, s2) => {
+        if (s1.start === s2.start) {
+          return s1.stop - s2.stop
+        }
+        return s1.start - s2.start
+      })
+
       // eslint-disable-next-line unicorn/no-array-reduce
       const consolidatedSequences = newSequences.reduce<SequenceSnapshot[]>(
         (result, current) => {
@@ -69,10 +77,9 @@ export const ApolloRefSeq = types
           }
           if (lastRange.stop >= current.start) {
             if (current.stop > lastRange.stop) {
+              const overlapLength = lastRange.stop - current.start
               lastRange.stop = current.stop
-              lastRange.sequence += current.sequence.slice(
-                current.stop - lastRange.stop,
-              )
+              lastRange.sequence += current.sequence.slice(overlapLength)
             }
           } else {
             result.push(current)
@@ -81,6 +88,13 @@ export const ApolloRefSeq = types
         },
         [],
       )
+      for (const seq of consolidatedSequences) {
+        if (seq.sequence.length !== seq.stop - seq.start) {
+          throw new Error(
+            'Consolidated sequence does not match declared length',
+          )
+        }
+      }
       if (
         self.sequence.length === consolidatedSequences.length &&
         self.sequence.every(
