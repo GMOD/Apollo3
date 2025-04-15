@@ -32,11 +32,7 @@ import { isOntologyClass } from '../OntologyManager'
 import { ApolloSessionModel } from '../session'
 import { Dialog } from './Dialog'
 import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
-import {
-  AnnotationFeature,
-  AnnotationFeatureModel,
-  AnnotationFeatureSnapshot,
-} from '@apollo-annotation/mst'
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 interface AddFeatureProps {
   session: ApolloSessionModel
@@ -125,6 +121,7 @@ export function AddFeature({
       return
     }
 
+    let change
     if (type === NewFeature.GENE_AND_SUBFEATURES.toString()) {
       const mRNA = makeCodingMrna(
         refSeqId,
@@ -136,7 +133,7 @@ export function AddFeature({
       children[mRNA._id] = mRNA
 
       const id = new ObjectID().toHexString()
-      const change = new AddFeatureChange({
+      change = new AddFeatureChange({
         changedIds: [id],
         typeName: 'AddFeatureChange',
         assembly: region.assemblyName,
@@ -150,57 +147,40 @@ export function AddFeature({
           children,
         },
       })
-      await changeManager.submit(change)
-      notify('Feature added successfully', 'success')
-      handleClose()
-      return
-    }
-    if (type === NewFeature.TRANSCRIPT_AND_SUBFEATURES.toString()) {
+    } else if (type === NewFeature.TRANSCRIPT_AND_SUBFEATURES.toString()) {
       const mRNA = makeCodingMrna(
         refSeqId,
         strand,
         Number(start) - 1,
         Number(end),
       )
-      const change = new AddFeatureChange({
+      change = new AddFeatureChange({
         changedIds: [mRNA._id],
         typeName: 'AddFeatureChange',
         assembly: region.assemblyName,
         addedFeature: mRNA,
       })
-      await changeManager.submit(change)
-      notify('Feature added successfully', 'success')
-      handleClose()
-      return
+    } else {
+      const id = new ObjectID().toHexString()
+      change = new AddFeatureChange({
+        changedIds: [id],
+        typeName: 'AddFeatureChange',
+        assembly: region.assemblyName,
+        addedFeature: {
+          _id: id,
+          refSeq: refSeqId,
+          min: Number(start) - 1,
+          max: Number(end),
+          type,
+          strand,
+        },
+      })
     }
-    event.preventDefault()
+    await changeManager.submit(change)
+    notify('Feature added successfully', 'success')
+    handleClose()
+    return
   }
-
-  // async function submit(
-  //   refSeqId: string,
-  //   type: string,
-  //   parentFeatureId?: string,
-  // ): Promise<string> {
-  //   const id = new ObjectID().toHexString()
-  //   const change = new AddFeatureChange({
-  //     changedIds: [id],
-  //     typeName: 'AddFeatureChange',
-  //     assembly: region.assemblyName,
-  //     addedFeature: {
-  //       _id: id,
-  //       refSeq: refSeqId,
-  //       min: Number(start) - 1,
-  //       max: Number(end),
-  //       type,
-  //       strand,
-  //     },
-  //     parentFeatureId,
-  //   })
-  //   await changeManager.submit(change)
-  //   notify('Feature added successfully', 'success')
-  //   handleClose()
-  //   return id
-  // }
 
   function handleChangeStrand(e: SelectChangeEvent) {
     setErrorMessage('')
@@ -304,7 +284,6 @@ export function AddFeature({
                     </Tooltip>
                   </Box>
                 }
-                // disabled={submitted && !errorMessage}
               />
 
               <FormControlLabel
@@ -313,14 +292,13 @@ export function AddFeature({
                 label={
                   <Box display="flex" alignItems="center">
                     Add transcript and sub-features
-                    <Tooltip title="This is a shortcut to create single mRNA with exon and CDS, but without a parent gene">
+                    <Tooltip title="This is a shortcut to create a single mRNA with exon and CDS, but without a parent gene">
                       <IconButton size="small">
                         <InfoIcon sx={{ fontSize: 18 }} />
                       </IconButton>
                     </Tooltip>
                   </Box>
                 }
-                // disabled={submitted && !errorMessage}
               />
               <FormControlLabel
                 value={NewFeature.CUSTOM.toString()}
@@ -329,8 +307,7 @@ export function AddFeature({
                   type !== NewFeature.TRANSCRIPT_AND_SUBFEATURES.toString()
                 }
                 control={<Radio />}
-                label="Add custom type"
-                // disabled={submitted && !errorMessage}
+                label="Add feature with with a sequence ontology type"
               />
             </RadioGroup>
           </FormControl>
