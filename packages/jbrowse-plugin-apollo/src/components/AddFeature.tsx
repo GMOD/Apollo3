@@ -32,6 +32,11 @@ import { isOntologyClass } from '../OntologyManager'
 import { ApolloSessionModel } from '../session'
 import { Dialog } from './Dialog'
 import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
+import {
+  AnnotationFeature,
+  AnnotationFeatureModel,
+  AnnotationFeatureSnapshot,
+} from '@apollo-annotation/mst'
 
 interface AddFeatureProps {
   session: ApolloSessionModel
@@ -44,6 +49,47 @@ enum NewFeature {
   GENE_AND_SUBFEATURES = 'GENE_AND_SUBFEATURES',
   TRANSCRIPT_AND_SUBFEATURES = 'TRANSCRIPT_AND_SUBFEATURES',
   CUSTOM = '',
+}
+
+function makeCodingMrna(
+  refSeqId: string,
+  strand: 1 | -1 | undefined,
+  min: number,
+  max: number,
+): AnnotationFeatureSnapshot {
+  const cds = {
+    _id: new ObjectID().toHexString(),
+    refSeq: refSeqId,
+    type: 'CDS',
+    min,
+    max,
+    strand,
+  } as AnnotationFeatureSnapshot
+
+  const exon = {
+    _id: new ObjectID().toHexString(),
+    refSeq: refSeqId,
+    type: 'exon',
+    min,
+    max,
+    strand,
+  } as AnnotationFeatureSnapshot
+
+  const children: Record<string, AnnotationFeatureSnapshot> = {}
+  children[cds._id] = cds
+  children[exon._id] = exon
+
+  const mRNA = {
+    _id: new ObjectID().toHexString(),
+    refSeq: refSeqId,
+    type: 'mRNA',
+    min,
+    max,
+    strand,
+    children,
+  } as AnnotationFeatureSnapshot
+
+  return mRNA
 }
 
 export function AddFeature({
@@ -80,47 +126,81 @@ export function AddFeature({
     }
 
     if (type === NewFeature.GENE_AND_SUBFEATURES.toString()) {
-      const geneId = await submit(refSeqId, 'gene')
-      const mrnaId = await submit(refSeqId, 'mRNA', geneId)
-      await submit(refSeqId, 'exon', mrnaId)
-      await submit(refSeqId, 'CDS', mrnaId)
+      const mRNA = makeCodingMrna(
+        refSeqId,
+        strand,
+        Number(start) - 1,
+        Number(end),
+      )
+      const children: Record<string, AnnotationFeatureSnapshot> = {}
+      children[mRNA._id] = mRNA
+
+      const id = new ObjectID().toHexString()
+      const change = new AddFeatureChange({
+        changedIds: [id],
+        typeName: 'AddFeatureChange',
+        assembly: region.assemblyName,
+        addedFeature: {
+          _id: id,
+          refSeq: refSeqId,
+          min: Number(start) - 1,
+          max: Number(end),
+          type: 'gene',
+          strand,
+          children,
+        },
+      })
+      await changeManager.submit(change)
+      notify('Feature added successfully', 'success')
+      handleClose()
       return
     }
     if (type === NewFeature.TRANSCRIPT_AND_SUBFEATURES.toString()) {
-      const mrnaId = await submit(refSeqId, 'mRNA')
-      await submit(refSeqId, 'exon', mrnaId)
-      await submit(refSeqId, 'CDS', mrnaId)
+      const mRNA = makeCodingMrna(
+        refSeqId,
+        strand,
+        Number(start) - 1,
+        Number(end),
+      )
+      const change = new AddFeatureChange({
+        changedIds: [mRNA._id],
+        typeName: 'AddFeatureChange',
+        assembly: region.assemblyName,
+        addedFeature: mRNA,
+      })
+      await changeManager.submit(change)
+      notify('Feature added successfully', 'success')
+      handleClose()
       return
     }
-    await submit(refSeqId, type)
     event.preventDefault()
   }
 
-  async function submit(
-    refSeqId: string,
-    type: string,
-    parentFeatureId?: string,
-  ): Promise<string> {
-    const id = new ObjectID().toHexString()
-    const change = new AddFeatureChange({
-      changedIds: [id],
-      typeName: 'AddFeatureChange',
-      assembly: region.assemblyName,
-      addedFeature: {
-        _id: id,
-        refSeq: refSeqId,
-        min: Number(start) - 1,
-        max: Number(end),
-        type,
-        strand,
-      },
-      parentFeatureId,
-    })
-    await changeManager.submit(change)
-    notify('Feature added successfully', 'success')
-    handleClose()
-    return id
-  }
+  // async function submit(
+  //   refSeqId: string,
+  //   type: string,
+  //   parentFeatureId?: string,
+  // ): Promise<string> {
+  //   const id = new ObjectID().toHexString()
+  //   const change = new AddFeatureChange({
+  //     changedIds: [id],
+  //     typeName: 'AddFeatureChange',
+  //     assembly: region.assemblyName,
+  //     addedFeature: {
+  //       _id: id,
+  //       refSeq: refSeqId,
+  //       min: Number(start) - 1,
+  //       max: Number(end),
+  //       type,
+  //       strand,
+  //     },
+  //     parentFeatureId,
+  //   })
+  //   await changeManager.submit(change)
+  //   notify('Feature added successfully', 'success')
+  //   handleClose()
+  //   return id
+  // }
 
   function handleChangeStrand(e: SelectChangeEvent) {
     setErrorMessage('')
