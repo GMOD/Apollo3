@@ -44,7 +44,7 @@ interface AddFeatureProps {
 enum NewFeature {
   GENE_AND_SUBFEATURES = 'GENE_AND_SUBFEATURES',
   TRANSCRIPT_AND_SUBFEATURES = 'TRANSCRIPT_AND_SUBFEATURES',
-  CUSTOM = '',
+  CUSTOM = 'CUSTOM',
 }
 
 function makeCodingMrna(
@@ -97,7 +97,8 @@ export function AddFeature({
   const { notify } = session as unknown as AbstractSessionModel
   const [end, setEnd] = useState(String(region.end))
   const [start, setStart] = useState(String(region.start + 1))
-  const [type, setType] = useState(NewFeature.GENE_AND_SUBFEATURES.toString())
+  const [type, setType] = useState<NewFeature>(NewFeature.GENE_AND_SUBFEATURES)
+  const [customType, setCustomType] = useState<string>()
   const [strand, setStrand] = useState<1 | -1 | undefined>()
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -122,7 +123,7 @@ export function AddFeature({
     }
 
     let change
-    if (type === NewFeature.GENE_AND_SUBFEATURES.toString()) {
+    if (type === NewFeature.GENE_AND_SUBFEATURES) {
       const mRNA = makeCodingMrna(
         refSeqId,
         strand,
@@ -147,7 +148,7 @@ export function AddFeature({
           children,
         },
       })
-    } else if (type === NewFeature.TRANSCRIPT_AND_SUBFEATURES.toString()) {
+    } else if (type === NewFeature.TRANSCRIPT_AND_SUBFEATURES) {
       const mRNA = makeCodingMrna(
         refSeqId,
         strand,
@@ -160,22 +161,26 @@ export function AddFeature({
         assembly: region.assemblyName,
         addedFeature: mRNA,
       })
-    } else {
-      const id = new ObjectID().toHexString()
-      change = new AddFeatureChange({
-        changedIds: [id],
-        typeName: 'AddFeatureChange',
-        assembly: region.assemblyName,
-        addedFeature: {
-          _id: id,
-          refSeq: refSeqId,
-          min: Number(start) - 1,
-          max: Number(end),
-          type,
-          strand,
-        },
-      })
     }
+
+    if (!customType) {
+      setErrorMessage('No type selected')
+      return
+    }
+    const id = new ObjectID().toHexString()
+    change = new AddFeatureChange({
+      changedIds: [id],
+      typeName: 'AddFeatureChange',
+      assembly: region.assemblyName,
+      addedFeature: {
+        _id: id,
+        refSeq: refSeqId,
+        min: Number(start) - 1,
+        max: Number(end),
+        type: customType,
+        strand,
+      },
+    })
     await changeManager.submit(change)
     notify('Feature added successfully', 'success')
     handleClose()
@@ -204,12 +209,20 @@ export function AddFeature({
 
   function handleChangeOntologyType(newType: string) {
     setErrorMessage('')
-    setType(newType)
+    setCustomType(newType)
   }
 
   const handleTypeChange = (e: SelectChangeEvent) => {
     setErrorMessage('')
-    setType(e.target.value)
+    const { value } = e.target
+    if (Object.keys(NewFeature).includes(value)) {
+      setType(NewFeature[value as NewFeature])
+    }
+  }
+
+  let submitDisabled: boolean = Boolean(error) || !(start && end && type)
+  if (type === NewFeature.CUSTOM && !customType) {
+    submitDisabled = true
   }
 
   return (
@@ -301,17 +314,17 @@ export function AddFeature({
                 }
               />
               <FormControlLabel
-                value={NewFeature.CUSTOM.toString()}
+                value={NewFeature.CUSTOM}
                 checked={
-                  type !== NewFeature.GENE_AND_SUBFEATURES.toString() &&
-                  type !== NewFeature.TRANSCRIPT_AND_SUBFEATURES.toString()
+                  type !== NewFeature.GENE_AND_SUBFEATURES &&
+                  type !== NewFeature.TRANSCRIPT_AND_SUBFEATURES
                 }
                 control={<Radio />}
                 label="Add feature with with a sequence ontology type"
               />
             </RadioGroup>
           </FormControl>
-          {type === NewFeature.CUSTOM.toString() ? (
+          {type === NewFeature.CUSTOM ? (
             <OntologyTermAutocomplete
               session={session}
               ontologyName="Sequence Ontology"
@@ -333,26 +346,9 @@ export function AddFeature({
               }}
             />
           ) : null}
-          {type !== NewFeature.GENE_AND_SUBFEATURES.toString() &&
-          type !== NewFeature.TRANSCRIPT_AND_SUBFEATURES.toString() &&
-          type !== NewFeature.CUSTOM.toString() ? (
-            <TextField
-              label=""
-              defaultValue={type}
-              slotProps={{
-                input: {
-                  readOnly: true,
-                },
-              }}
-            />
-          ) : null}
         </DialogContent>
         <DialogActions>
-          <Button
-            variant="contained"
-            type="submit"
-            disabled={error || !(start && end && type)}
-          >
+          <Button variant="contained" type="submit" disabled={submitDisabled}>
             Submit
           </Button>
           <Button variant="outlined" type="submit" onClick={handleClose}>
