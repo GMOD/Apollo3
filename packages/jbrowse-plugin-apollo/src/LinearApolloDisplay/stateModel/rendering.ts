@@ -26,6 +26,7 @@ export function renderingModelIntermediateFactory(
       detailsHeight: 200,
       lastRowTooltipBufferHeight: 40,
       isShown: true,
+      sequenceAppearThreshold: 5,
     })
     .volatile(() => ({
       canvas: null as HTMLCanvasElement | null,
@@ -239,7 +240,7 @@ export function sequenceRenderingModelFactory(
             if (!self.lgv.initialized || self.regionCannotBeRendered()) {
               return
             }
-            if (self.lgv.bpPerPx > 5) {
+            if (self.lgv.bpPerPx > self.sequenceAppearThreshold) {
               return
             }
             const seqTrackctx = self.seqTrackCanvas?.getContext('2d')

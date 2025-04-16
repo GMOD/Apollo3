@@ -72,6 +72,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
     onMouseMove,
     onMouseUp,
     regionCannotBeRendered,
+    sequenceAppearThreshold,
     session,
     setCanvas,
     setCollaboratorCanvas,
@@ -95,7 +96,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const { assemblyManager } = session as unknown as AbstractSessionModel
   return (
     <>
-      {lgv.bpPerPx <= 5 ? (
+      {lgv.bpPerPx <= sequenceAppearThreshold ? (
         <div
           className={classes.canvasContainer}
           style={{
