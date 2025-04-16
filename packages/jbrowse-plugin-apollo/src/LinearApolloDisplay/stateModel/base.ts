@@ -36,6 +36,8 @@ export function baseModelFactory(
       configuration: ConfigurationReference(configSchema),
       graphical: true,
       table: false,
+      showStartCodons: false,
+      showStopCodons: true,
       heightPreConfig: types.maybe(
         types.refinement(
           'displayHeight',
@@ -168,6 +170,12 @@ export function baseModelFactory(
         self.graphical = true
         self.table = true
       },
+      toggleShowStartCodons() {
+        self.showStartCodons = !self.showStartCodons
+      },
+      toggleShowStopCodons() {
+        self.showStopCodons = !self.showStopCodons
+      },
       updateFilteredFeatureTypes(types: string[]) {
         self.filteredFeatureTypes = cast(types)
       },
@@ -179,7 +187,7 @@ export function baseModelFactory(
       const { filteredFeatureTypes, trackMenuItems: superTrackMenuItems } = self
       return {
         trackMenuItems() {
-          const { graphical, table } = self
+          const { graphical, table, showStartCodons, showStopCodons } = self
           return [
             ...superTrackMenuItems(),
             {
@@ -208,6 +216,22 @@ export function baseModelFactory(
                   checked: table && graphical,
                   onClick: () => {
                     self.showGraphicalAndTable()
+                  },
+                },
+                {
+                  label: 'Show start codons',
+                  type: 'checkbox',
+                  checked: showStartCodons,
+                  onClick: () => {
+                    self.toggleShowStartCodons()
+                  },
+                },
+                {
+                  label: 'Show stop codons',
+                  type: 'checkbox',
+                  checked: showStopCodons,
+                  onClick: () => {
+                    self.toggleShowStopCodons()
                   },
                 },
               ],

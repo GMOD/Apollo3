@@ -188,6 +188,8 @@ function drawTranslation(
   seq: string,
   i: number,
   reverse: boolean,
+  showStartCodons: boolean,
+  showStopCodons: boolean,
 ) {
   let codonSeq: string = seq.slice(i, i + 3).toUpperCase()
   if (reverse) {
@@ -196,6 +198,12 @@ function drawTranslation(
   const codonLetter =
     defaultCodonTable[codonSeq as keyof typeof defaultCodonTable]
   if (!codonLetter) {
+    return
+  }
+  if (!showStopCodons && codonLetter == '*') {
+    return
+  }
+  if (!showStartCodons && codonLetter != '*') {
     return
   }
   const fillColor = codonColorCode(codonLetter)
@@ -225,6 +233,9 @@ export function sequenceRenderingModelFactory(
         self,
         autorun(
           async () => {
+            // TODO: Find better way of forcing autorun to trigger than console.warn
+            console.warn(self.showStartCodons)
+            console.warn(self.showStopCodons)
             if (!self.lgv.initialized || self.regionCannotBeRendered()) {
               return
             }
@@ -301,6 +312,8 @@ export function sequenceRenderingModelFactory(
                       seq,
                       i,
                       false,
+                      self.showStartCodons,
+                      self.showStopCodons,
                     )
                   }
                 }
@@ -375,6 +388,8 @@ export function sequenceRenderingModelFactory(
                       seq,
                       i,
                       true,
+                      self.showStartCodons,
+                      self.showStopCodons,
                     )
                   }
                 }
