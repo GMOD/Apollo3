@@ -239,7 +239,7 @@ export function sequenceRenderingModelFactory(
             if (!self.lgv.initialized || self.regionCannotBeRendered()) {
               return
             }
-            if (self.lgv.bpPerPx > 3) {
+            if (self.lgv.bpPerPx > 5) {
               return
             }
             const seqTrackctx = self.seqTrackCanvas?.getContext('2d')
