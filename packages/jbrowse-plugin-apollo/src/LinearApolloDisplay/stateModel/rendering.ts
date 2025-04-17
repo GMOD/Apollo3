@@ -26,7 +26,6 @@ export function renderingModelIntermediateFactory(
       detailsHeight: 200,
       lastRowTooltipBufferHeight: 40,
       isShown: true,
-      sequenceAppearThreshold: 5,
     })
     .volatile(() => ({
       canvas: null as HTMLCanvasElement | null,
@@ -240,7 +239,8 @@ export function sequenceRenderingModelFactory(
             if (!self.lgv.initialized || self.regionCannotBeRendered()) {
               return
             }
-            if (self.lgv.bpPerPx > self.sequenceAppearThreshold) {
+            const trnslWidthPx = 3 / self.lgv.bpPerPx
+            if (trnslWidthPx < 1) {
               return
             }
             const seqTrackctx = self.seqTrackCanvas?.getContext('2d')
@@ -295,7 +295,6 @@ export function sequenceRenderingModelFactory(
                     coord: region.start + i,
                     regionNumber: idx,
                   })?.offsetPx ?? 0) - self.lgv.offsetPx
-                const trnslWidthPx = 3 / self.lgv.bpPerPx
                 const trnslStartPx = self.lgv.displayedRegions[idx].reversed
                   ? trnslXOffset - trnslWidthPx
                   : trnslXOffset
