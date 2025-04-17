@@ -201,14 +201,12 @@ function drawTranslation(
   if (!codonLetter) {
     return
   }
-  if (!showStopCodons && codonLetter == '*') {
-    return
-  }
-  if (!showStartCodons && codonLetter != '*') {
-    return
-  }
   const fillColor = codonColorCode(codonLetter, highContrast)
-  if (fillColor) {
+  if (
+    fillColor &&
+    ((showStopCodons && codonLetter == '*') ||
+      (showStartCodons && codonLetter != '*'))
+  ) {
     seqTrackctx.fillStyle = fillColor
     seqTrackctx.fillRect(trnslStartPx, trnslY, trnslWidthPx, sequenceRowHeight)
   }
