@@ -122,7 +122,6 @@ export function AddFeature({
       return
     }
 
-    let change
     if (type === NewFeature.GENE_AND_SUBFEATURES) {
       const mRNA = makeCodingMrna(
         refSeqId,
@@ -134,7 +133,7 @@ export function AddFeature({
       children[mRNA._id] = mRNA
 
       const id = new ObjectID().toHexString()
-      change = new AddFeatureChange({
+      const change = new AddFeatureChange({
         changedIds: [id],
         typeName: 'AddFeatureChange',
         assembly: region.assemblyName,
@@ -148,19 +147,28 @@ export function AddFeature({
           children,
         },
       })
-    } else if (type === NewFeature.TRANSCRIPT_AND_SUBFEATURES) {
+      await changeManager.submit(change)
+      notify('Feature added successfully', 'success')
+      handleClose()
+      return
+    }
+    if (type === NewFeature.TRANSCRIPT_AND_SUBFEATURES) {
       const mRNA = makeCodingMrna(
         refSeqId,
         strand,
         Number(start) - 1,
         Number(end),
       )
-      change = new AddFeatureChange({
+      const change = new AddFeatureChange({
         changedIds: [mRNA._id],
         typeName: 'AddFeatureChange',
         assembly: region.assemblyName,
         addedFeature: mRNA,
       })
+      await changeManager.submit(change)
+      notify('Feature added successfully', 'success')
+      handleClose()
+      return
     }
 
     if (!customType) {
@@ -168,7 +176,7 @@ export function AddFeature({
       return
     }
     const id = new ObjectID().toHexString()
-    change = new AddFeatureChange({
+    const change = new AddFeatureChange({
       changedIds: [id],
       typeName: 'AddFeatureChange',
       assembly: region.assemblyName,
@@ -320,7 +328,7 @@ export function AddFeature({
                   type !== NewFeature.TRANSCRIPT_AND_SUBFEATURES
                 }
                 control={<Radio />}
-                label="Add feature with with a sequence ontology type"
+                label="Add feature with a sequence ontology type"
               />
             </RadioGroup>
           </FormControl>
