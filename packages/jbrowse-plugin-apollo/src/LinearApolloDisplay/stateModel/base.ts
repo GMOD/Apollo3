@@ -38,6 +38,7 @@ export function baseModelFactory(
       table: false,
       showStartCodons: false,
       showStopCodons: true,
+      highContrast: false,
       heightPreConfig: types.maybe(
         types.refinement(
           'displayHeight',
@@ -176,6 +177,9 @@ export function baseModelFactory(
       toggleShowStopCodons() {
         self.showStopCodons = !self.showStopCodons
       },
+      toggleHighContrast() {
+        self.highContrast = !self.highContrast
+      },
       updateFilteredFeatureTypes(types: string[]) {
         self.filteredFeatureTypes = cast(types)
       },
@@ -187,7 +191,13 @@ export function baseModelFactory(
       const { filteredFeatureTypes, trackMenuItems: superTrackMenuItems } = self
       return {
         trackMenuItems() {
-          const { graphical, table, showStartCodons, showStopCodons } = self
+          const {
+            graphical,
+            table,
+            showStartCodons,
+            showStopCodons,
+            highContrast,
+          } = self
           return [
             ...superTrackMenuItems(),
             {
@@ -232,6 +242,14 @@ export function baseModelFactory(
                   checked: showStopCodons,
                   onClick: () => {
                     self.toggleShowStopCodons()
+                  },
+                },
+                {
+                  label: 'Use high contrast colors',
+                  type: 'checkbox',
+                  checked: highContrast,
+                  onClick: () => {
+                    self.toggleHighContrast()
                   },
                 },
               ],

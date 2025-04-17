@@ -145,10 +145,10 @@ function colorCode(letter: string, theme?: Theme) {
   )
 }
 
-function codonColorCode(letter: string) {
+function codonColorCode(letter: string, highContrast?: boolean) {
   const colorMap: Record<string, string | undefined> = {
     M: '#33ee33',
-    '*': '#f44336',
+    '*': highContrast ? '#000000' : '#f44336',
   }
 
   return colorMap[letter.toUpperCase()]
@@ -190,6 +190,7 @@ function drawTranslation(
   reverse: boolean,
   showStartCodons: boolean,
   showStopCodons: boolean,
+  highContrast: boolean,
 ) {
   let codonSeq: string = seq.slice(i, i + 3).toUpperCase()
   if (reverse) {
@@ -206,7 +207,7 @@ function drawTranslation(
   if (!showStartCodons && codonLetter != '*') {
     return
   }
-  const fillColor = codonColorCode(codonLetter)
+  const fillColor = codonColorCode(codonLetter, highContrast)
   if (fillColor) {
     seqTrackctx.fillStyle = fillColor
     seqTrackctx.fillRect(trnslStartPx, trnslY, trnslWidthPx, sequenceRowHeight)
@@ -236,6 +237,7 @@ export function sequenceRenderingModelFactory(
             // TODO: Find better way of forcing autorun to trigger than console.warn
             console.warn(self.showStartCodons)
             console.warn(self.showStopCodons)
+            const { theme } = self
             if (!self.lgv.initialized || self.regionCannotBeRendered()) {
               return
             }
@@ -259,18 +261,33 @@ export function sequenceRenderingModelFactory(
                 ? [3, 2, 1, 0, 0, -1, -2, -3]
                 : [3, 2, 1, -1, -2, -3]
             let height = 0
-            for (const frame of frames) {
-              const frameColor = self.theme?.palette.framesCDS.at(frame)?.main
-              if (frameColor) {
-                seqTrackctx.fillStyle = frameColor
-                seqTrackctx.fillRect(
-                  0,
-                  height,
-                  self.lgv.dynamicBlocks.totalWidthPx,
-                  self.sequenceRowHeight,
-                )
+            if (theme) {
+              for (const frame of frames) {
+                let frameColor = theme.palette.framesCDS.at(frame)?.main
+                if (frameColor) {
+                  let offsetPx = 0
+                  if (self.highContrast) {
+                    frameColor = 'white'
+                    offsetPx = 1
+                    // eslint-disable-next-line prefer-destructuring
+                    seqTrackctx.fillStyle = theme.palette.grey[200]
+                    seqTrackctx.fillRect(
+                      0,
+                      height,
+                      self.lgv.dynamicBlocks.totalWidthPx,
+                      self.sequenceRowHeight,
+                    )
+                  }
+                  seqTrackctx.fillStyle = frameColor
+                  seqTrackctx.fillRect(
+                    0 + offsetPx,
+                    height + offsetPx,
+                    self.lgv.dynamicBlocks.totalWidthPx - 2 * offsetPx,
+                    self.sequenceRowHeight - 2 * offsetPx,
+                  )
+                }
+                height += self.sequenceRowHeight
               }
-              height += self.sequenceRowHeight
             }
 
             for (const [idx, region] of self.regions.entries()) {
@@ -314,6 +331,7 @@ export function sequenceRenderingModelFactory(
                       false,
                       self.showStartCodons,
                       self.showStopCodons,
+                      self.highContrast,
                     )
                   }
                 }
@@ -390,6 +408,7 @@ export function sequenceRenderingModelFactory(
                       true,
                       self.showStartCodons,
                       self.showStopCodons,
+                      self.highContrast,
                     )
                   }
                 }
