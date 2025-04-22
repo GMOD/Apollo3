@@ -125,12 +125,13 @@ export function layoutsModelFactory(
                   const { cdsLocations, strand } = child
                   for (const cdsRow of cdsLocations) {
                     for (const cds of cdsRow) {
-                      const rowNum = getFrame(
+                      let rowNum: number = getFrame(
                         cds.min,
                         cds.max,
                         strand ?? 1,
                         cds.phase,
                       )
+                      rowNum = rowNum < 0 ? -1 * rowNum + 3 : rowNum
                       if (!featureLayout.get(rowNum)) {
                         featureLayout.set(rowNum, [])
                       }

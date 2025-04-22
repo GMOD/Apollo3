@@ -107,7 +107,7 @@ function draw(
       let prevCDSTop = 0
       let prevCDSEndPx = 0
       let counter = 1
-      for (const cds of cdsRow) {
+      for (const cds of cdsRow.sort((a, b) => a.max - b.max)) {
         const cdsWidthPx = (cds.max - cds.min) / bpPerPx
         const minX =
           (lgv.bpToPx({
@@ -118,8 +118,9 @@ function draw(
         const cdsStartPx = reversed ? minX - cdsWidthPx : minX
         ctx.fillStyle = theme?.palette.text.primary ?? 'black'
         const frame = getFrame(cds.min, cds.max, child.strand ?? 1, cds.phase)
-        const mirror = frame < 0 ? frame + 7 : frame
-        const cdsTop = (mirror - 1) * rowHeight + (rowHeight - cdsHeight) / 2
+        const frameAdjust = frame < 0 ? -1 * frame + 3 : frame
+        const cdsTop =
+          (frameAdjust - 1) * rowHeight + (rowHeight - cdsHeight) / 2
         ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
         if (cdsWidthPx > 2) {
           ctx.clearRect(
@@ -145,7 +146,7 @@ function draw(
             const midPoint: [number, number] = [
               (cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx,
               Math.max(
-                1, // Avoid render ceiling
+                frame < 0 ? 61 : 1, // Avoid render ceiling
                 Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
               ),
             ]
@@ -241,7 +242,7 @@ function drawHover(
     let prevCDSTop = 0
     let prevCDSEndPx = 0
     let counter = 1
-    for (const cds of cdsRow) {
+    for (const cds of cdsRow.sort((a, b) => a.max - b.max)) {
       const cdsWidthPx = (cds.max - cds.min) / bpPerPx
       if (cdsWidthPx > 2) {
         const minX =
@@ -252,7 +253,9 @@ function drawHover(
           })?.offsetPx ?? 0) - offsetPx
         const cdsStartPx = reversed ? minX - cdsWidthPx : minX
         const frame = getFrame(cds.min, cds.max, feature.strand ?? 1, cds.phase)
-        const cdsTop = (frame - 1) * rowHeight + (rowHeight - cdsHeight) / 2
+        const frameAdjust = frame < 0 ? -1 * frame + 3 : frame
+        const cdsTop =
+          (frameAdjust - 1) * rowHeight + (rowHeight - cdsHeight) / 2
         ctx.fillStyle = 'rgba(255,0,0,0.6)'
         ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
 
@@ -261,7 +264,7 @@ function drawHover(
           const midPoint: [number, number] = [
             (cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx,
             Math.max(
-              1, // Avoid render ceiling
+              frame < 0 ? 61 : 1, // Avoid render ceiling
               Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
             ),
           ]
@@ -456,7 +459,8 @@ function drawTooltip(
       regionNumber: layoutIndex,
     })?.offsetPx ?? 0) - offsetPx
   const frame = getFrame(min, max, strand ?? 1, phase)
-  const cdsTop = (frame - 1) * rowHeight + (rowHeight - cdsHeight) / 2
+  const frameAdjust = frame < 0 ? -1 * frame + 3 : frame
+  const cdsTop = (frameAdjust - 1) * rowHeight + (rowHeight - cdsHeight) / 2
   const cdsWidthPx = (max - min) / bpPerPx
 
   const featureType = `Type: ${cds.type}`
