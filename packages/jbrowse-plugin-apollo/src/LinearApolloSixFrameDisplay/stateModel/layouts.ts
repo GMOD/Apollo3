@@ -165,12 +165,9 @@ export function layoutsModelFactory(
         return
       },
     }))
-    .views((self) => ({
+    .views((_self) => ({
       get highestRow() {
-        return Math.max(
-          0,
-          ...self.featureLayouts.map((layout) => Math.max(...layout.keys())),
-        )
+        return 5
       },
     }))
     .actions((self) => ({
