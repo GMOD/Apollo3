@@ -33,8 +33,6 @@ export function renderingModelIntermediateFactory(
       canvas: null as HTMLCanvasElement | null,
       overlayCanvas: null as HTMLCanvasElement | null,
       collaboratorCanvas: null as HTMLCanvasElement | null,
-      seqTrackCanvas: null as HTMLCanvasElement | null,
-      seqTrackOverlayCanvas: null as HTMLCanvasElement | null,
       theme: undefined as Theme | undefined,
     }))
     .views((self) => ({
@@ -65,12 +63,6 @@ export function renderingModelIntermediateFactory(
       },
       setCollaboratorCanvas(canvas: HTMLCanvasElement | null) {
         self.collaboratorCanvas = canvas
-      },
-      setSeqTrackCanvas(canvas: HTMLCanvasElement | null) {
-        self.seqTrackCanvas = canvas
-      },
-      setSeqTrackOverlayCanvas(canvas: HTMLCanvasElement | null) {
-        self.seqTrackOverlayCanvas = canvas
       },
       setTheme(theme: Theme) {
         self.theme = theme

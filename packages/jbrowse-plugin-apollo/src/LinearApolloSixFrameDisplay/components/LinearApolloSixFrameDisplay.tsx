@@ -63,8 +63,6 @@ export const LinearApolloSixFrameDisplay = observer(
       setCanvas,
       setCollaboratorCanvas,
       setOverlayCanvas,
-      setSeqTrackCanvas,
-      setSeqTrackOverlayCanvas,
       setTheme,
     } = model
     const { classes } = useStyles()
@@ -82,36 +80,6 @@ export const LinearApolloSixFrameDisplay = observer(
     const { assemblyManager } = session as unknown as AbstractSessionModel
     return (
       <>
-        {lgv.bpPerPx <= 3 ? (
-          <div
-            className={classes.canvasContainer}
-            style={{
-              width: lgv.dynamicBlocks.totalWidthPx,
-              height: lgv.bpPerPx <= 1 ? 125 : 95,
-            }}
-          >
-            <canvas
-              ref={async (node: HTMLCanvasElement) => {
-                await Promise.resolve()
-                setSeqTrackCanvas(node)
-              }}
-              width={lgv.dynamicBlocks.totalWidthPx}
-              height={lgv.bpPerPx <= 1 ? 125 : 95}
-              className={classes.canvas}
-              data-testid="seqTrackCanvas"
-            />
-            <canvas
-              ref={async (node: HTMLCanvasElement) => {
-                await Promise.resolve()
-                setSeqTrackOverlayCanvas(node)
-              }}
-              width={lgv.dynamicBlocks.totalWidthPx}
-              height={lgv.bpPerPx <= 1 ? 125 : 95}
-              className={classes.canvas}
-              data-testid="seqTrackOverlayCanvas"
-            />
-          </div>
-        ) : null}
         <div
           className={classes.canvasContainer}
           style={{
