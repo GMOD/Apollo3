@@ -74,14 +74,6 @@ Cypress.Commands.add('addOntologies', () => {
         ApolloPlugin: {
           ontologies: [
             {
-              name: 'Gene Ontology',
-              version: 'full',
-              source: {
-                uri: 'https://release.geneontology.org/2023-06-11/ontology/go.json',
-                locationType: 'UriLocation',
-              },
-            },
-            {
               name: 'Sequence Ontology',
               version: 'unversioned',
               source: {
@@ -95,12 +87,6 @@ Cypress.Commands.add('addOntologies', () => {
     },
     { collection: 'jbrowseconfigs' },
   )
-  cy.readFile('cypress/data/go.json.gz', null).then((goGZip: Buffer) => {
-    cy.wrap<Promise<void>>(
-      loadOntology(goGZip, 'Apollo Ontology "Gene Ontology" "full"', 2),
-      { timeout: 120_000 },
-    )
-  })
   cy.readFile('cypress/data/so.json.gz', null).then((soGZip: Buffer) => {
     cy.wrap<Promise<void>>(
       loadOntology(
