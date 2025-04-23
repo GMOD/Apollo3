@@ -82,28 +82,132 @@ function draw(
   stateModel: LinearApolloSixFrameDisplayRendering,
   displayedRegionIndex: number,
 ): void {
-  const { apolloRowHeight, lgv, theme } = stateModel
+  const { apolloRowHeight, lgv, session, theme, highestRow } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const { refName, reversed } = displayedRegion
   const rowHeight = apolloRowHeight
+  const exonHeight = Math.round(0.6 * rowHeight)
   const cdsHeight = Math.round(0.7 * rowHeight)
-  const { children, strand } = feature
+  const { children, min, strand } = feature
   if (!children) {
     return
   }
+  const { apolloDataStore } = session
+  const { featureTypeOntology } = apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+
+  // Draw background for gene
+  const topLevelFeatureMinX =
+    (lgv.bpToPx({
+      refName,
+      coord: min,
+      regionNumber: displayedRegionIndex,
+    })?.offsetPx ?? 0) - offsetPx
+  const topLevelFeatureWidthPx = feature.length / bpPerPx
+  const topLevelFeatureStartPx = reversed
+    ? topLevelFeatureMinX - topLevelFeatureWidthPx
+    : topLevelFeatureMinX
+  const topLevelRow = strand == 1 ? 3 : 4
+  const topLevelFeatureTop = topLevelRow * rowHeight
+  const topLevelFeatureHeight = Math.round(0.7 * rowHeight)
+
+  ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+  ctx.fillRect(
+    topLevelFeatureStartPx,
+    topLevelFeatureTop,
+    topLevelFeatureWidthPx,
+    topLevelFeatureHeight,
+  )
+
+  ctx.fillStyle = alpha(theme?.palette.background.paper ?? '#ffffff', 0.7)
+  ctx.fillRect(
+    topLevelFeatureStartPx + 1,
+    topLevelFeatureTop + 1,
+    topLevelFeatureWidthPx - 2,
+    topLevelFeatureHeight - 2,
+  )
+
   const forwardFill =
     theme?.palette.mode === 'dark' ? forwardFillDark : forwardFillLight
   const backwardFill =
     theme?.palette.mode === 'dark' ? backwardFillDark : backwardFillLight
+  const reversal = reversed ? -1 : 1
+  let topFill: CanvasPattern | null = null,
+    bottomFill: CanvasPattern | null = null
+  if (strand) {
+    ;[topFill, bottomFill] =
+      strand * reversal === 1
+        ? [forwardFill, backwardFill]
+        : [backwardFill, forwardFill]
+  }
 
-  // Draw CDS for each mRNA
+  if (topFill && bottomFill) {
+    ctx.fillStyle = topFill
+    ctx.fillRect(
+      topLevelFeatureStartPx + 1,
+      topLevelFeatureTop + 1,
+      topLevelFeatureWidthPx - 2,
+      (topLevelFeatureHeight - 2) / 2,
+    )
+    ctx.fillStyle = bottomFill
+    ctx.fillRect(
+      topLevelFeatureStartPx + 1,
+      topLevelFeatureTop + (topLevelFeatureHeight - 2) / 2,
+      topLevelFeatureWidthPx - 2,
+      (topLevelFeatureHeight - 2) / 2,
+    )
+  }
+
+  // Draw exon and CDS for each mRNA
   for (const [, child] of children) {
     for (const cdsRow of child.cdsLocations) {
       const { children: childrenOfmRNA } = child
       if (!childrenOfmRNA) {
         continue
       }
+      for (const [, exon] of childrenOfmRNA) {
+        if (!featureTypeOntology.isTypeOf(exon.type, 'exon')) {
+          continue
+        }
+        const minX =
+          (lgv.bpToPx({
+            refName,
+            coord: exon.min,
+            regionNumber: displayedRegionIndex,
+          })?.offsetPx ?? 0) - offsetPx
+        const widthPx = exon.length / bpPerPx
+        const startPx = reversed ? minX - widthPx : minX
+
+        const exonTop =
+          topLevelFeatureTop + (topLevelFeatureHeight - exonHeight) / 2
+        ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+        ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
+        if (widthPx > 2) {
+          ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
+          ctx.fillStyle = '#f5f500'
+          ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
+          if (topFill && bottomFill) {
+            ctx.fillStyle = topFill
+            ctx.fillRect(
+              startPx + 1,
+              exonTop + 1,
+              widthPx - 2,
+              (exonHeight - 2) / 2,
+            )
+            ctx.fillStyle = bottomFill
+            ctx.fillRect(
+              startPx + 1,
+              exonTop + 1 + (exonHeight - 2) / 2,
+              widthPx - 2,
+              (exonHeight - 2) / 2,
+            )
+          }
+        }
+      }
+
       let prevCDSTop = 0
       let prevCDSEndPx = 0
       let counter = 1
@@ -118,7 +222,7 @@ function draw(
         const cdsStartPx = reversed ? minX - cdsWidthPx : minX
         ctx.fillStyle = theme?.palette.text.primary ?? 'black'
         const frame = getFrame(cds.min, cds.max, child.strand ?? 1, cds.phase)
-        const frameAdjust = frame < 0 ? -1 * frame + 3 : frame
+        const frameAdjust = frame < 0 ? -1 * frame + 5 : frame
         const cdsTop =
           (frameAdjust - 1) * rowHeight + (rowHeight - cdsHeight) / 2
         ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
@@ -146,7 +250,7 @@ function draw(
             const midPoint: [number, number] = [
               (cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx,
               Math.max(
-                frame < 0 ? 61 : 1, // Avoid render ceiling
+                frame < 0 ? rowHeight * highestRow + 1 : 1, // Avoid render ceiling
                 Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
               ),
             ]
@@ -163,12 +267,7 @@ function draw(
           prevCDSTop = cdsTop + rowHeight / 2
           counter += 1
 
-          if (forwardFill && backwardFill && strand) {
-            const reversal = reversed ? -1 : 1
-            const [topFill, bottomFill] =
-              strand * reversal === 1
-                ? [forwardFill, backwardFill]
-                : [backwardFill, forwardFill]
+          if (topFill && bottomFill) {
             ctx.fillStyle = topFill
             ctx.fillRect(
               cdsStartPx + 1,
@@ -223,7 +322,7 @@ function drawHover(
   stateModel: LinearApolloSixFrameDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
-  const { apolloHover, apolloRowHeight, lgv } = stateModel
+  const { apolloHover, apolloRowHeight, lgv, highestRow } = stateModel
   if (!apolloHover) {
     return
   }
@@ -253,7 +352,7 @@ function drawHover(
           })?.offsetPx ?? 0) - offsetPx
         const cdsStartPx = reversed ? minX - cdsWidthPx : minX
         const frame = getFrame(cds.min, cds.max, feature.strand ?? 1, cds.phase)
-        const frameAdjust = frame < 0 ? -1 * frame + 3 : frame
+        const frameAdjust = frame < 0 ? -1 * frame + 5 : frame
         const cdsTop =
           (frameAdjust - 1) * rowHeight + (rowHeight - cdsHeight) / 2
         ctx.fillStyle = 'rgba(255,0,0,0.6)'
@@ -264,7 +363,7 @@ function drawHover(
           const midPoint: [number, number] = [
             (cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx,
             Math.max(
-              frame < 0 ? 61 : 1, // Avoid render ceiling
+              frame < 0 ? rowHeight * highestRow + 1 : 1, // Avoid render ceiling
               Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
             ),
           ]
@@ -459,7 +558,7 @@ function drawTooltip(
       regionNumber: layoutIndex,
     })?.offsetPx ?? 0) - offsetPx
   const frame = getFrame(min, max, strand ?? 1, phase)
-  const frameAdjust = frame < 0 ? -1 * frame + 3 : frame
+  const frameAdjust = frame < 0 ? -1 * frame + 5 : frame
   const cdsTop = (frameAdjust - 1) * rowHeight + (rowHeight - cdsHeight) / 2
   const cdsWidthPx = (max - min) / bpPerPx
 

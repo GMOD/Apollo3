@@ -116,6 +116,12 @@ export function layoutsModelFactory(
               throw new Error('featureTypeOntology is undefined')
             }
             if (feature.looksLikeGene) {
+              const rowNum = feature.strand == 1 ? 4 : 5
+              if (!featureLayout.get(rowNum)) {
+                featureLayout.set(rowNum, [])
+              }
+              const layoutRow = featureLayout.get(rowNum)
+              layoutRow?.push({ rowNum, feature, cds: null })
               const { children } = feature
               if (!children) {
                 continue
@@ -131,7 +137,7 @@ export function layoutsModelFactory(
                         strand ?? 1,
                         cds.phase,
                       )
-                      rowNum = rowNum < 0 ? -1 * rowNum + 3 : rowNum
+                      rowNum = rowNum < 0 ? -1 * rowNum + 5 : rowNum
                       if (!featureLayout.get(rowNum)) {
                         featureLayout.set(rowNum, [])
                       }
