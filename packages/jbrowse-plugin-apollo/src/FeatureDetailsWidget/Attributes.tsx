@@ -23,7 +23,7 @@ import React, { useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { ApolloSessionModel } from '../session'
-import { AddNewAttribute } from './AddNewAttributeForm'
+import { AttributeKeySelector } from './AttributeKeySelector'
 import { AttributeKey } from './AttributeKey'
 import { DefaultAttributeEditor } from './DefaultAttributeEditor'
 
@@ -223,8 +223,8 @@ export const Attributes = observer(function Attributes({
         </Button>
       ) : null}
       {showAddNewForm ? (
-        <Paper style={{ marginTop: 8 }}>
-          <AddNewAttribute
+        <Paper variant="outlined" style={{ marginTop: 8 }}>
+          <AttributeKeySelector
             setKey={(newKey) => {
               setNewKey(newKey)
               setShowAddNewForm(false)

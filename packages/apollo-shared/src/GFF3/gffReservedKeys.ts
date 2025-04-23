@@ -72,6 +72,9 @@ export const gffColumnToInternal: Record<GFFColumn, GFFColumnInternal> = {
   score: 'gff_score',
   source: 'gff_source',
 }
+export function isGFFColumn(attribute: string): attribute is GFFColumn {
+  return attribute in gffColumnToInternal
+}
 export const gffInternalToColumn: Record<GFFColumnInternal, GFFColumn> = {
   gff_score: 'score',
   gff_source: 'source',
