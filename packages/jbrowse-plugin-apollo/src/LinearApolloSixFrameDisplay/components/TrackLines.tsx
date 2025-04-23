@@ -10,7 +10,7 @@ export const TrackLines = observer(function TrackLines({
   model: LinearApolloSixFrameDisplay
   strand: number
 }) {
-  const { apolloRowHeight, highestRow } = model
+  const { apolloRowHeight, highestRow, lastRowTooltipBufferHeight } = model
   return strand == 1 ? (
     <div
       style={{
@@ -27,7 +27,10 @@ export const TrackLines = observer(function TrackLines({
       style={{
         position: 'absolute',
         left: 0,
-        bottom: (apolloRowHeight * (highestRow + 1)) / 2 + 3,
+        bottom:
+          (apolloRowHeight * (highestRow + 1) + lastRowTooltipBufferHeight) /
+            2 +
+          3,
         width: '100%',
       }}
     >

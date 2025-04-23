@@ -26,7 +26,7 @@ export function renderingModelIntermediateFactory(
       apolloRowHeight: 20,
       detailsMinHeight: 200,
       detailsHeight: 200,
-      lastRowTooltipBufferHeight: 40,
+      lastRowTooltipBufferHeight: 80,
       isShown: true,
     })
     .volatile(() => ({
