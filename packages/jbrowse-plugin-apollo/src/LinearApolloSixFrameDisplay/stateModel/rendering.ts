@@ -159,6 +159,9 @@ export function renderingModelFactory(
               const displayedRegion = displayedRegions[idx]
               for (const [row, featureLayoutRow] of featureLayout.entries()) {
                 for (const { feature } of featureLayoutRow) {
+                  if (!feature.looksLikeGene) {
+                    continue
+                  }
                   if (
                     !doesIntersect2(
                       displayedRegion.start,
