@@ -1,10 +1,5 @@
-import {
-  GFFColumn,
-  gffColumnToInternal,
-  GFFReservedAttribute,
-  gffToInternal,
-  isGFFReservedAttribute,
-} from '@apollo-annotation/shared'
+import { gffColumnToInternal, gffToInternal } from '@apollo-annotation/shared'
+import { getEnv } from '@jbrowse/core/util'
 import {
   Button,
   DialogActions,
@@ -16,41 +11,44 @@ import {
 } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
+import { ApolloSessionModel } from '../session'
 
-const customAttributeKeySelectValue = 'Custom'
-type AttributeKey =
-  | GFFReservedAttribute
-  | GFFColumn
-  | typeof customAttributeKeySelectValue
+const customKeyName = 'Custom'
+const gffKeys: Record<string, string | undefined> = {
+  [customKeyName]: 'custom',
+}
 
-const selectValues: AttributeKey[] = [
-  customAttributeKeySelectValue,
-  ...(Object.keys(gffToInternal) as GFFReservedAttribute[]),
-  ...(Object.keys(gffColumnToInternal) as GFFColumn[]),
-]
+for (const [value, key] of Object.entries(gffToInternal)) {
+  gffKeys[`GFF ${key}`] = value
+}
+for (const [value, key] of Object.entries(gffColumnToInternal)) {
+  gffKeys[`GFF ${key}`] = value
+}
 
 export const AttributeKeySelector = observer(function AttributeKeySelector({
   setKey,
+  session,
 }: {
   setKey: (newKey?: string) => void
+  session: ApolloSessionModel
 }) {
-  const [selectedKey, setSelectedKey] = useState<AttributeKey>(
-    customAttributeKeySelectValue,
-  )
+  const { pluginManager } = getEnv(session)
+  const reservedKeys = pluginManager.evaluateExtensionPoint(
+    'Apollo-ReservedAttributeKeys',
+    gffKeys,
+  ) as Record<string, string | undefined>
+  const firstKey = Object.keys(reservedKeys).at(0) ?? customKeyName
+  const [selectedKey, setSelectedKey] = useState<string>(firstKey)
   const [customKey, setCustomKey] = useState<string>()
-  const isCustom = selectedKey === customAttributeKeySelectValue
+  const isCustom = selectedKey === customKeyName
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (isCustom) {
       setKey(customKey)
-    } else {
-      if (isGFFReservedAttribute(selectedKey)) {
-        setKey(gffToInternal[selectedKey])
-      } else {
-        setKey(gffColumnToInternal[selectedKey])
-      }
+      return
     }
+    setKey(reservedKeys[selectedKey])
   }
   function handleCancel() {
     setKey()
@@ -64,14 +62,13 @@ export const AttributeKeySelector = observer(function AttributeKeySelector({
           <Select
             labelId="attribute-key-select-label"
             value={selectedKey}
-            label="key"
+            label="Key"
             onChange={(event) => {
-              setSelectedKey(event.target.value as AttributeKey)
+              setSelectedKey(event.target.value)
             }}
           >
-            {selectValues.map((val) => (
+            {Object.keys(reservedKeys).map((val) => (
               <MenuItem key={val} value={val}>
-                {val === customAttributeKeySelectValue ? '' : 'GFF '}
                 {val}
               </MenuItem>
             ))}

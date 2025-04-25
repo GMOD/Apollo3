@@ -1,6 +1,6 @@
 import { AnnotationFeature } from '@apollo-annotation/mst'
 import { FeatureAttributeChange } from '@apollo-annotation/shared'
-import { AbstractSessionModel } from '@jbrowse/core/util'
+import { AbstractSessionModel, getEnv } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
@@ -25,7 +25,15 @@ import { makeStyles } from 'tss-react/mui'
 import { ApolloSessionModel } from '../session'
 import { AttributeKeySelector } from './AttributeKeySelector'
 import { AttributeKey } from './AttributeKey'
-import { DefaultAttributeEditor } from './DefaultAttributeEditor'
+import {
+  AttributeEditorProps,
+  DefaultAttributeEditor,
+} from './DefaultAttributeEditor'
+
+import {
+  AttributeViewerProps,
+  DefaultAttributeViewer,
+} from './DefaultAttributeViewer'
 
 const useStyles = makeStyles()((theme) => ({
   list: {
@@ -49,6 +57,7 @@ export const Attributes = observer(function Attributes({
   assembly: string
   editable: boolean
 }) {
+  const { pluginManager } = getEnv(session)
   const { classes } = useStyles()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [selectedKey, setSelectedKey] = useState<null | string>(null)
@@ -141,61 +150,73 @@ export const Attributes = observer(function Attributes({
     void changeManager.submit(change)
   }
 
+  const NewKeyAttributeEditor = pluginManager.evaluateExtensionPoint(
+    'Apollo-AttributeEditorComponent',
+    DefaultAttributeEditor,
+    { key: newKey },
+  ) as React.ElementType<AttributeEditorProps>
+
   return (
     <>
       <List className={classes.list}>
-        {entries(attributes).map(([key, values]) => (
-          <ListItem
-            key={key}
-            secondaryAction={
-              editable && !editingKey ? (
-                <IconButton
-                  edge="end"
-                  onClick={(event) => {
-                    handleListMenuClick(event, key)
-                  }}
-                >
-                  <MoreHorizIcon />
-                </IconButton>
-              ) : null
-            }
-          >
-            <ListItemText
-              disableTypography
-              primary={<AttributeKey attributeKey={key} />}
-              secondary={
-                editingKey === key ? (
-                  <DefaultAttributeEditor
-                    attributeValues={values as string[] | undefined}
-                    setAttribute={(newValues) => {
-                      setEditingKey(null)
-                      if (newValues) {
-                        modifyFeatureAttribute(key, newValues)
-                      }
+        {entries(attributes).map(([key, values]) => {
+          const AttributeEditor = pluginManager.evaluateExtensionPoint(
+            'Apollo-AttributeEditorComponent',
+            DefaultAttributeEditor,
+            { key },
+          ) as React.ElementType<AttributeEditorProps>
+          const AttributeViewer = pluginManager.evaluateExtensionPoint(
+            'Apollo-AttributeViewerComponent',
+            DefaultAttributeViewer,
+            { key },
+          ) as React.ElementType<AttributeViewerProps>
+          return (
+            <ListItem
+              key={key}
+              secondaryAction={
+                editable && !editingKey ? (
+                  <IconButton
+                    edge="end"
+                    onClick={(event) => {
+                      handleListMenuClick(event, key)
                     }}
-                  />
-                ) : (
-                  (values as string[]).map((value) => (
-                    <Typography
-                      key={`${key}.${value}`}
-                      variant="body2"
-                      color="textSecondary"
-                    >
-                      {value}
-                    </Typography>
-                  ))
-                )
+                  >
+                    <MoreHorizIcon />
+                  </IconButton>
+                ) : null
               }
-            />
-          </ListItem>
-        ))}
+            >
+              <ListItemText
+                disableTypography
+                primary={<AttributeKey attributeKey={key} />}
+                secondary={
+                  editingKey === key ? (
+                    <AttributeEditor
+                      session={session}
+                      attributeValues={values as string[] | undefined}
+                      setAttribute={(newValues) => {
+                        setEditingKey(null)
+                        if (newValues) {
+                          modifyFeatureAttribute(key, newValues)
+                        }
+                      }}
+                    />
+                  ) : (
+                    <AttributeViewer values={values as string[] | undefined} />
+                  )
+                }
+              />
+            </ListItem>
+          )
+        })}
         {newKey ? (
           <ListItem>
             <ListItemText
               disableTypography
               primary={<AttributeKey attributeKey={newKey} />}
               secondary={
-                <DefaultAttributeEditor
+                <NewKeyAttributeEditor
+                  session={session}
                   attributeValues={[]}
                   setAttribute={(newValues) => {
                     if (newValues) {
@@ -214,7 +235,7 @@ export const Attributes = observer(function Attributes({
         <Button
           color="primary"
           variant="contained"
-          disabled={showAddNewForm}
+          disabled={showAddNewForm || Boolean(newKey)}
           onClick={() => {
             setShowAddNewForm(true)
           }}
@@ -225,6 +246,7 @@ export const Attributes = observer(function Attributes({
       {showAddNewForm ? (
         <Paper variant="outlined" style={{ marginTop: 8 }}>
           <AttributeKeySelector
+            session={session}
             setKey={(newKey) => {
               setNewKey(newKey)
               setShowAddNewForm(false)

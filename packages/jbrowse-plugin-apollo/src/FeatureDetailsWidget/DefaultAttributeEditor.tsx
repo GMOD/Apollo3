@@ -4,17 +4,21 @@ import { Button, DialogActions, IconButton } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 
+import { ApolloSessionModel } from '../session'
 import { StringTextField } from './StringTextField'
+
+export interface AttributeEditorProps {
+  session: ApolloSessionModel
+  attributeValues?: string[]
+  setAttribute: (newAttribute?: string[]) => void
+  isNew?: boolean
+}
 
 export const DefaultAttributeEditor = observer(function DefaultAttributeEditor({
   attributeValues,
   setAttribute,
   isNew = false,
-}: {
-  attributeValues?: string[]
-  setAttribute: (newAttribute?: string[]) => void
-  isNew?: boolean
-}) {
+}: AttributeEditorProps) {
   const [newValues, setNewValues] = useState<string[]>(
     attributeValues && attributeValues.length > 0 ? attributeValues : [''],
   )
