@@ -77,7 +77,7 @@ if ('document' in globalThis) {
 
 function draw(
   ctx: CanvasRenderingContext2D,
-  feature: AnnotationFeature,
+  topLevelFeature: AnnotationFeature,
   _row: number,
   stateModel: LinearApolloSixFrameDisplayRendering,
   displayedRegionIndex: number,
@@ -89,10 +89,11 @@ function draw(
   const rowHeight = apolloRowHeight
   const exonHeight = Math.round(0.6 * rowHeight)
   const cdsHeight = Math.round(0.7 * rowHeight)
-  const { children, min, strand } = feature
+  const { children, min, strand, _id } = topLevelFeature
   if (!children) {
     return
   }
+  const { apolloSelectedFeature } = session
   const { apolloDataStore } = session
   const { featureTypeOntology } = apolloDataStore.ontologyManager
   if (!featureTypeOntology) {
@@ -106,7 +107,7 @@ function draw(
       coord: min,
       regionNumber: displayedRegionIndex,
     })?.offsetPx ?? 0) - offsetPx
-  const topLevelFeatureWidthPx = feature.length / bpPerPx
+  const topLevelFeatureWidthPx = topLevelFeature.length / bpPerPx
   const topLevelFeatureStartPx = reversed
     ? topLevelFeatureMinX - topLevelFeatureWidthPx
     : topLevelFeatureMinX
@@ -122,7 +123,10 @@ function draw(
     topLevelFeatureHeight,
   )
 
-  ctx.fillStyle = alpha(theme?.palette.background.paper ?? '#ffffff', 0.7)
+  ctx.fillStyle =
+    apolloSelectedFeature && _id === apolloSelectedFeature._id
+      ? alpha('rgb(0,0,0)', 0.7)
+      : alpha(theme?.palette.background.paper ?? '#ffffff', 0.7)
   ctx.fillRect(
     topLevelFeatureStartPx + 1,
     topLevelFeatureTop + 1,
