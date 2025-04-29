@@ -254,28 +254,30 @@ export const AnnotationFeatureModel = types
       if (!children?.size) {
         return false
       }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      if (!featureTypeOntology.isTypeOf(self.type, 'gene')) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const isGene =
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        featureTypeOntology.isTypeOf(self.type, 'gene') ||
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        featureTypeOntology.isTypeOf(self.type, 'pseudogene')
+      if (!isGene) {
         return false
       }
       for (const [, child] of children) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-        if (featureTypeOntology.isTypeOf(child.type, 'transcript')) {
+        if (
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+          featureTypeOntology.isTypeOf(child.type, 'transcript') ||
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+          featureTypeOntology.isTypeOf(child.type, 'pseudogenic_transcript')
+        ) {
           const { children: grandChildren } = child
           if (!grandChildren?.size) {
             return false
           }
-          const hasCDS = [...grandChildren.values()].some((grandchild) =>
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-            featureTypeOntology.isTypeOf(grandchild.type, 'CDS'),
-          )
-          const hasExon = [...grandChildren.values()].some((grandchild) =>
+          return [...grandChildren.values()].some((grandchild) =>
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             featureTypeOntology.isTypeOf(grandchild.type, 'exon'),
           )
-          if (hasCDS && hasExon) {
-            return true
-          }
         }
       }
       return false
