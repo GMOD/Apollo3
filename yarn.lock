@@ -349,6 +349,7 @@ __metadata:
     prettier: "npm:^3.3.2"
     react-dom: "npm:^18.2.0"
     rxjs: "npm:^7.4.0"
+    serve: "npm:^14.0.1"
     shx: "npm:^0.3.3"
     ts-node: "npm:^10.3.0"
     tslib: "npm:^2.3.1"
