@@ -8,7 +8,12 @@ import {
   SessionWithWidgets,
 } from '@jbrowse/core/util'
 
-import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
+import {
+  AddChildFeature,
+  CopyFeature,
+  DeleteFeature,
+  SplitExon,
+} from '../../components'
 
 import { LinearApolloDisplay } from '../stateModel'
 import {
@@ -278,6 +283,10 @@ function getContextMenuItems(
   const [region] = regions
   const sourceAssemblyId = display.getAssemblyId(region.assemblyName)
   const currentAssemblyId = display.getAssemblyId(region.assemblyName)
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
   menuItems.push(
     {
       label: 'Add child feature',
@@ -363,11 +372,32 @@ function getContextMenuItems(
         )
       },
     },
+    {
+      label: 'Split exon',
+      disabled:
+        !admin || !featureTypeOntology.isTypeOf(sourceFeature.type, 'exon'),
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            SplitExon,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature,
+              sourceAssemblyId: currentAssemblyId,
+              selectedFeature,
+              setSelectedFeature: (feature?: AnnotationFeature) => {
+                display.setSelectedFeature(feature)
+              },
+            },
+          ],
+        )
+      },
+    },
   )
-  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
   if (
     (featureTypeOntology.isTypeOf(sourceFeature.type, 'transcript') ||
       featureTypeOntology.isTypeOf(
