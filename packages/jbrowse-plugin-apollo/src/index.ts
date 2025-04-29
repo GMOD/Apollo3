@@ -37,11 +37,6 @@ import {
   modelFactory as apolloInternetAccountModelFactory,
 } from './ApolloInternetAccount'
 import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
-import {
-  ApolloSixFrameRenderer,
-  ReactComponent as ApolloSixFrameRendererReactComponent,
-  configSchema as apolloSixFrameRendererConfigSchema,
-} from './ApolloSixFrameRenderer'
 import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
 import { BackendDriver } from './BackendDrivers'
 import {
@@ -204,16 +199,6 @@ export default class ApolloPlugin extends Plugin {
         ReactComponent: LinearApolloDisplayComponent,
       })
     })
-
-    pluginManager.addRendererType(
-      () =>
-        new ApolloSixFrameRenderer({
-          name: 'ApolloSixFrameRenderer',
-          ReactComponent: ApolloSixFrameRendererReactComponent,
-          configSchema: apolloSixFrameRendererConfigSchema,
-          pluginManager,
-        }),
-    )
 
     pluginManager.addToExtensionPoint(
       'Core-extendSession',
