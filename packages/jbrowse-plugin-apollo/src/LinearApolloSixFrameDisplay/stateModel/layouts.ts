@@ -128,7 +128,21 @@ export function layoutsModelFactory(
               }
               for (const [, child] of children) {
                 if (featureTypeOntology.isTypeOf(child.type, 'transcript')) {
-                  const { cdsLocations, strand } = child
+                  const {
+                    cdsLocations,
+                    strand,
+                    children: childrenOfmRNA,
+                  } = child
+                  if (childrenOfmRNA) {
+                    for (const [, exon] of childrenOfmRNA) {
+                      if (!featureTypeOntology.isTypeOf(exon.type, 'exon')) {
+                        continue
+                      }
+                      const rowNum = exon.strand == 1 ? 4 : 5
+                      const layoutRow = featureLayout.get(rowNum)
+                      layoutRow?.push({ rowNum, feature: exon, cds: null })
+                    }
+                  }
                   for (const cdsRow of cdsLocations) {
                     for (const cds of cdsRow) {
                       let rowNum: number = getFrame(

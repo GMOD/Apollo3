@@ -86,9 +86,24 @@ export function mouseEventsModelIntermediateFactory(
         if (!layoutRow) {
           return mousePosition
         }
-        const foundFeature = layoutRow.find(
-          (f) => f.cds != null && bp >= f.cds.min && bp <= f.cds.max,
-        )
+        let foundFeature
+        if ([4, 5].includes(row)) {
+          foundFeature = layoutRow.find(
+            (f) =>
+              f.feature.type == 'exon' &&
+              bp >= f.feature.min &&
+              bp <= f.feature.max,
+          )
+          if (!foundFeature) {
+            foundFeature = layoutRow.find(
+              (f) => bp >= f.feature.min && bp <= f.feature.max,
+            )
+          }
+        } else {
+          foundFeature = layoutRow.find(
+            (f) => f.cds != null && bp >= f.cds.min && bp <= f.cds.max,
+          )
+        }
         if (!foundFeature) {
           return mousePosition
         }

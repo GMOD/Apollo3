@@ -187,7 +187,10 @@ function draw(
         ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
         if (widthPx > 2) {
           ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
-          ctx.fillStyle = '#f5f500'
+          ctx.fillStyle =
+            apolloSelectedFeature && exon._id === apolloSelectedFeature._id
+              ? 'rgb(0,0,0)'
+              : alpha('#f5f500', 0.6)
           ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
           if (topFill && bottomFill) {
             ctx.fillStyle = topFill
