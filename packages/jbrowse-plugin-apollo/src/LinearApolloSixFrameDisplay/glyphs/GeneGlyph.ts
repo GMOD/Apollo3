@@ -8,6 +8,7 @@ import {
 } from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
 import { MenuItem } from '@jbrowse/core/ui'
+import equal from 'fast-deep-equal/es6'
 
 import {
   AddChildFeature,
@@ -73,6 +74,15 @@ if ('document' in globalThis) {
       }
     }
   }
+}
+
+function deepSetHas<T>(set: Set<T>, item: T): boolean {
+  for (const elem of set) {
+    if (equal(elem, item)) {
+      return true
+    }
+  }
+  return false
 }
 
 function draw(
@@ -165,131 +175,146 @@ function draw(
     )
   }
 
+  const renderedCDS = new Set<TranscriptPartCoding>()
   // Draw exon and CDS for each mRNA
   for (const [, child] of children) {
-    for (const cdsRow of child.cdsLocations) {
-      const { children: childrenOfmRNA } = child
-      if (!childrenOfmRNA) {
+    const { children: childrenOfmRNA, cdsLocations, _id } = child
+    if (!childrenOfmRNA) {
+      continue
+    }
+    for (const [, exon] of childrenOfmRNA) {
+      if (!featureTypeOntology.isTypeOf(exon.type, 'exon')) {
         continue
       }
-      for (const [, exon] of childrenOfmRNA) {
-        if (!featureTypeOntology.isTypeOf(exon.type, 'exon')) {
-          continue
-        }
-        const minX =
-          (lgv.bpToPx({
-            refName,
-            coord: exon.min,
-            regionNumber: displayedRegionIndex,
-          })?.offsetPx ?? 0) - offsetPx
-        const widthPx = exon.length / bpPerPx
-        const startPx = reversed ? minX - widthPx : minX
+      const minX =
+        (lgv.bpToPx({
+          refName,
+          coord: exon.min,
+          regionNumber: displayedRegionIndex,
+        })?.offsetPx ?? 0) - offsetPx
+      const widthPx = exon.length / bpPerPx
+      const startPx = reversed ? minX - widthPx : minX
 
-        const exonTop =
-          topLevelFeatureTop + (topLevelFeatureHeight - exonHeight) / 2
-        ctx.fillStyle = theme?.palette.text.primary ?? 'black'
-        ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
-        if (widthPx > 2) {
-          ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
-          ctx.fillStyle =
-            apolloSelectedFeature && exon._id === apolloSelectedFeature._id
-              ? 'rgb(0,0,0)'
-              : alpha('#f5f500', 0.6)
-          ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
-          if (topFill && bottomFill) {
-            ctx.fillStyle = topFill
-            ctx.fillRect(
-              startPx + 1,
-              exonTop + 1,
-              widthPx - 2,
-              (exonHeight - 2) / 2,
-            )
-            ctx.fillStyle = bottomFill
-            ctx.fillRect(
-              startPx + 1,
-              exonTop + 1 + (exonHeight - 2) / 2,
-              widthPx - 2,
-              (exonHeight - 2) / 2,
-            )
-          }
+      const exonTop =
+        topLevelFeatureTop + (topLevelFeatureHeight - exonHeight) / 2
+      ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+      ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
+      if (widthPx > 2) {
+        ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
+        ctx.fillStyle =
+          apolloSelectedFeature && exon._id === apolloSelectedFeature._id
+            ? 'rgb(0,0,0)'
+            : alpha('#f5f500', 0.6)
+        ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
+        if (topFill && bottomFill) {
+          ctx.fillStyle = topFill
+          ctx.fillRect(
+            startPx + 1,
+            exonTop + 1,
+            widthPx - 2,
+            (exonHeight - 2) / 2,
+          )
+          ctx.fillStyle = bottomFill
+          ctx.fillRect(
+            startPx + 1,
+            exonTop + 1 + (exonHeight - 2) / 2,
+            widthPx - 2,
+            (exonHeight - 2) / 2,
+          )
         }
       }
+    }
 
+    for (const cdsRow of cdsLocations) {
       let prevCDSTop = 0
       let prevCDSEndPx = 0
       let counter = 1
       for (const cds of cdsRow.sort((a, b) => a.max - b.max)) {
-        const cdsWidthPx = (cds.max - cds.min) / bpPerPx
-        const minX =
-          (lgv.bpToPx({
-            refName,
-            coord: cds.min,
-            regionNumber: displayedRegionIndex,
-          })?.offsetPx ?? 0) - offsetPx
-        const cdsStartPx = reversed ? minX - cdsWidthPx : minX
-        ctx.fillStyle = theme?.palette.text.primary ?? 'black'
-        const frame = getFrame(cds.min, cds.max, child.strand ?? 1, cds.phase)
-        const frameAdjust = frame < 0 ? -1 * frame + 5 : frame
-        const cdsTop =
-          (frameAdjust - 1) * rowHeight + (rowHeight - cdsHeight) / 2
-        ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
-        if (cdsWidthPx > 2) {
-          ctx.clearRect(
-            cdsStartPx + 1,
-            cdsTop + 1,
-            cdsWidthPx - 2,
-            cdsHeight - 2,
-          )
+        if (
+          (apolloSelectedFeature &&
+            featureTypeOntology.isTypeOf(apolloSelectedFeature.type, 'CDS') &&
+            _id === apolloSelectedFeature.parent?._id) ||
+          !deepSetHas(renderedCDS, cds)
+        ) {
+          const cdsWidthPx = (cds.max - cds.min) / bpPerPx
+          const minX =
+            (lgv.bpToPx({
+              refName,
+              coord: cds.min,
+              regionNumber: displayedRegionIndex,
+            })?.offsetPx ?? 0) - offsetPx
+          const cdsStartPx = reversed ? minX - cdsWidthPx : minX
+          ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+          const frame = getFrame(cds.min, cds.max, child.strand ?? 1, cds.phase)
+          const frameAdjust = frame < 0 ? -1 * frame + 5 : frame
+          const cdsTop =
+            (frameAdjust - 1) * rowHeight + (rowHeight - cdsHeight) / 2
+          ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
+          if (cdsWidthPx > 2) {
+            ctx.clearRect(
+              cdsStartPx + 1,
+              cdsTop + 1,
+              cdsWidthPx - 2,
+              cdsHeight - 2,
+            )
 
-          const frameColor = theme?.palette.framesCDS.at(frame)?.main
-          const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
-          ctx.fillStyle = cdsColorCode
-          ctx.fillRect(
-            cdsStartPx + 1,
-            cdsTop + 1,
-            cdsWidthPx - 2,
-            cdsHeight - 2,
-          )
-
-          // Draw lines to connect CDS features with shared mRNA parent
-          if (counter > 1) {
-            // Mid-point for intron line "hat"
-            const midPoint: [number, number] = [
-              (cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx,
-              Math.max(
-                frame < 0 ? rowHeight * highestRow + 1 : 1, // Avoid render ceiling
-                Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
-              ),
-            ]
-            ctx.strokeStyle = 'rgb(0, 128, 128)'
-            ctx.beginPath()
-            ctx.moveTo(prevCDSEndPx, prevCDSTop)
-            ctx.lineTo(...midPoint)
-            ctx.stroke()
-            ctx.moveTo(...midPoint)
-            ctx.lineTo(cdsStartPx, cdsTop + rowHeight / 2)
-            ctx.stroke()
-          }
-          prevCDSEndPx = cdsStartPx + cdsWidthPx
-          prevCDSTop = cdsTop + rowHeight / 2
-          counter += 1
-
-          if (topFill && bottomFill) {
-            ctx.fillStyle = topFill
+            const frameColor = theme?.palette.framesCDS.at(frame)?.main
+            const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
+            ctx.fillStyle = cdsColorCode
+            ctx.fillStyle =
+              apolloSelectedFeature &&
+              featureTypeOntology.isTypeOf(apolloSelectedFeature.type, 'CDS') &&
+              _id === apolloSelectedFeature.parent?._id
+                ? 'rgb(0,0,0)'
+                : cdsColorCode
             ctx.fillRect(
               cdsStartPx + 1,
               cdsTop + 1,
               cdsWidthPx - 2,
-              (cdsHeight - 2) / 2,
+              cdsHeight - 2,
             )
-            ctx.fillStyle = bottomFill
-            ctx.fillRect(
-              cdsStartPx + 1,
-              cdsTop + (cdsHeight - 2) / 2,
-              cdsWidthPx - 2,
-              (cdsHeight - 2) / 2,
-            )
+
+            // Draw lines to connect CDS features with shared mRNA parent
+            if (counter > 1) {
+              // Mid-point for intron line "hat"
+              const midPoint: [number, number] = [
+                (cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx,
+                Math.max(
+                  frame < 0 ? rowHeight * highestRow + 1 : 1, // Avoid render ceiling
+                  Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
+                ),
+              ]
+              ctx.strokeStyle = 'rgb(0, 128, 128)'
+              ctx.beginPath()
+              ctx.moveTo(prevCDSEndPx, prevCDSTop)
+              ctx.lineTo(...midPoint)
+              ctx.stroke()
+              ctx.moveTo(...midPoint)
+              ctx.lineTo(cdsStartPx, cdsTop + rowHeight / 2)
+              ctx.stroke()
+            }
+            prevCDSEndPx = cdsStartPx + cdsWidthPx
+            prevCDSTop = cdsTop + rowHeight / 2
+            counter += 1
+
+            if (topFill && bottomFill) {
+              ctx.fillStyle = topFill
+              ctx.fillRect(
+                cdsStartPx + 1,
+                cdsTop + 1,
+                cdsWidthPx - 2,
+                (cdsHeight - 2) / 2,
+              )
+              ctx.fillStyle = bottomFill
+              ctx.fillRect(
+                cdsStartPx + 1,
+                cdsTop + (cdsHeight - 2) / 2,
+                cdsWidthPx - 2,
+                (cdsHeight - 2) / 2,
+              )
+            }
           }
+          renderedCDS.add(cds)
         }
       }
     }
@@ -329,11 +354,19 @@ function drawHover(
   stateModel: LinearApolloSixFrameDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
-  const { apolloHover, apolloRowHeight, lgv, highestRow } = stateModel
+  const { apolloHover, apolloRowHeight, lgv, highestRow, session } = stateModel
   if (!apolloHover) {
     return
   }
+  const { apolloDataStore } = session
+  const { featureTypeOntology } = apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
   const { feature } = apolloHover
+  if (!featureTypeOntology.isTypeOf(feature.type, 'transcript')) {
+    return
+  }
   const position = stateModel.getFeatureLayoutPosition(feature)
   if (!position) {
     return
@@ -344,7 +377,8 @@ function drawHover(
   const { refName, reversed } = displayedRegion
   const rowHeight = apolloRowHeight
   const cdsHeight = Math.round(0.7 * rowHeight)
-  for (const cdsRow of feature.cdsLocations) {
+  const { cdsLocations, strand } = feature
+  for (const cdsRow of cdsLocations) {
     let prevCDSTop = 0
     let prevCDSEndPx = 0
     let counter = 1
@@ -358,7 +392,7 @@ function drawHover(
             regionNumber: layoutIndex,
           })?.offsetPx ?? 0) - offsetPx
         const cdsStartPx = reversed ? minX - cdsWidthPx : minX
-        const frame = getFrame(cds.min, cds.max, feature.strand ?? 1, cds.phase)
+        const frame = getFrame(cds.min, cds.max, strand ?? 1, cds.phase)
         const frameAdjust = frame < 0 ? -1 * frame + 5 : frame
         const cdsTop =
           (frameAdjust - 1) * rowHeight + (rowHeight - cdsHeight) / 2
@@ -447,7 +481,25 @@ function onMouseUp(
     return
   }
   const { featureAndGlyphUnderMouse } = mousePosition
-  if (featureAndGlyphUnderMouse?.feature) {
+  const { session } = stateModel
+  const { apolloDataStore } = session
+  const { featureTypeOntology } = apolloDataStore.ontologyManager
+  if (featureAndGlyphUnderMouse?.cds) {
+    const { cds, feature } = featureAndGlyphUnderMouse
+    if (!featureTypeOntology) {
+      throw new Error('featureTypeOntology is undefined')
+    }
+    if (!feature.children) {
+      return
+    }
+    for (const child of feature.children.values()) {
+      const childIsCDS = featureTypeOntology.isTypeOf(child.type, 'CDS')
+      if (childIsCDS && cds.max <= child.max && cds.min >= child.min) {
+        stateModel.setSelectedFeature(child)
+        break
+      }
+    }
+  } else if (featureAndGlyphUnderMouse?.feature) {
     stateModel.setSelectedFeature(featureAndGlyphUnderMouse.feature)
   }
 }
