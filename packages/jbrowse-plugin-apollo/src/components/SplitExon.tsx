@@ -35,9 +35,9 @@ interface splittableExon {
 }
 
 function exonIsSplittable(
-  splitExon: AnnotationFeatureSnapshot,
+  exonToBeSplit: AnnotationFeatureSnapshot,
 ): splittableExon {
-  if (splitExon.max - splitExon.min < 2) {
+  if (exonToBeSplit.max - exonToBeSplit.min < 2) {
     return {
       isSplittable: false,
       comment: 'This exon is too short to be split',
@@ -74,12 +74,20 @@ export function SplitExon({
     if (selectedFeature?._id === sourceFeature._id) {
       setSelectedFeature()
     }
+
+    const midpoint =
+      exonToBeSplit.min + (exonToBeSplit.max - exonToBeSplit.min) / 2
+    const upstreamCut = Math.floor(midpoint)
+    const downstreamCut = Math.ceil(midpoint)
+
     const change = new SplitExonChange({
       changedIds: [sourceFeature._id],
       typeName: 'SplitExonChange',
       assembly: sourceAssemblyId,
       exonToBeSplit,
       parentFeatureId: sourceFeature.parent?._id,
+      upstreamCut,
+      downstreamCut,
     })
     await changeManager.submit(change)
     notify('Exon successfully split', 'success')

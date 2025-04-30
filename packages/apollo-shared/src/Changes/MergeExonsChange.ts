@@ -10,8 +10,8 @@ import {
   ServerDataStore,
 } from '@apollo-annotation/common'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { AddFeatureChange } from './AddFeatureChange'
 import { findAndDeleteChildFeature } from './DeleteFeatureChange'
+import { SplitExonChange } from './SplitExonChange'
 
 interface SerializedMergeExonsChangeBase extends SerializedFeatureChange {
   typeName: 'MergeExonsChange'
@@ -20,6 +20,8 @@ interface SerializedMergeExonsChangeBase extends SerializedFeatureChange {
 export interface MergeExonsChangeDetails {
   firstExon: AnnotationFeatureSnapshot
   secondExon: AnnotationFeatureSnapshot
+  parentFeatureId?: string
+  mergedExon: AnnotationFeatureSnapshot
 }
 
 interface SerializedMergeExonsChangeSingle
@@ -46,7 +48,9 @@ export class MergeExonsChange extends FeatureChange {
   toJSON(): SerializedMergeExonsChange {
     const { assembly, changedIds, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ firstExon, secondExon }] = changes
+      const [
+        { firstExon, secondExon, parentFeatureId, AnnotationFeatureSnapshot },
+      ] = changes
 
       return {
         typeName,
@@ -54,6 +58,7 @@ export class MergeExonsChange extends FeatureChange {
         assembly,
         firstExon,
         secondExon,
+        parentFeatureId,
       }
     }
     return { typeName, changedIds, assembly, changes }
@@ -107,48 +112,63 @@ export class MergeExonsChange extends FeatureChange {
 
     for (const [idx, changedId] of this.changedIds.entries()) {
       const { firstExon, secondExon } = this.changes[idx]
-      const feature = dataStore.getFeature(firstExon._id)
-      if (!feature) {
+      const mergedExon = dataStore.getFeature(firstExon._id)
+      if (!mergedExon) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
-      feature.setMin(Math.min(firstExon.min, secondExon.min))
-      feature.setMax(Math.max(firstExon.max, secondExon.max))
+      mergedExon.setMin(Math.min(firstExon.min, secondExon.min))
+      mergedExon.setMax(Math.max(firstExon.max, secondExon.max))
       const mergedAttrs = this.mergeAttributes(firstExon, secondExon)
-      feature.setAttributes(new Map())
+      mergedExon.setAttributes(new Map())
       for (const key of Object.keys(mergedAttrs)) {
-        feature.setAttribute(key, mergedAttrs[key])
+        mergedExon.setAttribute(key, mergedAttrs[key])
       }
-      feature.parent?.deleteChild(secondExon._id)
+      mergedExon.parent?.deleteChild(secondExon._id)
     }
   }
 
   getInverse() {
-    // To be implemented once we know how to reverse changes
-    const { assembly, changedIds } = this
+    const { assembly, changedIds, changes, logger } = this
     const inverseChangedIds = [...changedIds].reverse()
-    // const inverseChanges = [...changes]
+    const inverseChanges = [...changes]
+      .reverse()
+      .map((mergeExonChange) => this.invertChange(mergeExonChange))
 
-    return new AddFeatureChange({
-      changedIds: inverseChangedIds,
-      typeName: 'AddFeatureChange',
-      changes: [],
-      assembly,
-    })
-    //   .reverse()
-    //   .map((deleteFeatuerChange) => ({
-    //     addedFeature: deleteFeatuerChange.deletedFeature,
-    //     parentFeatureId: deleteFeatuerChange.parentFeatureId,
-    //   }))
-    // logger.debug?.(`INVERSE CHANGE '${JSON.stringify(inverseChanges)}'`)
-    // return new AddFeatureChange(
-    //   {
-    //     changedIds: inverseChangedIds,
-    //     typeName: 'AddFeatureChange',
-    //     changes: inverseChanges,
-    //     assembly,
-    //   },
-    //   { logger },
-    // )
+    return new SplitExonChange(
+      {
+        changedIds: inverseChangedIds,
+        typeName: 'SplitExonChange',
+        changes: inverseChanges,
+        assembly,
+      },
+      { logger },
+    )
+  }
+
+  invertChange(mergeExonChange: MergeExonsChangeDetails): {
+    exonToBeSplit: AnnotationFeatureSnapshot
+    parentFeatureId: string | undefined
+    upstreamCut: number
+    downstreamCut: number
+  } {
+    let upstreamCut
+    let downstreamCut
+    if (mergeExonChange.firstExon.max < mergeExonChange.secondExon.min) {
+      upstreamCut = mergeExonChange.firstExon.max
+      downstreamCut = mergeExonChange.secondExon.min
+    } else {
+      upstreamCut = mergeExonChange.secondExon.min
+      downstreamCut = mergeExonChange.firstExon.max
+    }
+
+    const inverseChange = {
+      exonToBeSplit: mergeExonChange.mergedExon,
+      parentFeatureId: mergeExonChange.parentFeatureId,
+      upstreamCut,
+      downstreamCut,
+    }
+    console.log('inverseChanges:' + JSON.stringify(inverseChange, null, 2))
+    return inverseChange
   }
 
   mergeAttributes(

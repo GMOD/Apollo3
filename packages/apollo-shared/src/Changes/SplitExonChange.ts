@@ -21,6 +21,8 @@ interface SerializedSplitExonChangeBase extends SerializedFeatureChange {
 export interface SplitExonChangeDetails {
   exonToBeSplit: AnnotationFeatureSnapshot
   parentFeatureId?: string
+  upstreamCut: number
+  downstreamCut: number
 }
 
 interface SerializedSplitExonChangeSingle
@@ -47,7 +49,8 @@ export class SplitExonChange extends FeatureChange {
   toJSON(): SerializedSplitExonChange {
     const { assembly, changedIds, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ exonToBeSplit, parentFeatureId }] = changes
+      const [{ exonToBeSplit, parentFeatureId, upstreamCut, downstreamCut }] =
+        changes
 
       return {
         typeName,
@@ -55,6 +58,8 @@ export class SplitExonChange extends FeatureChange {
         assembly,
         exonToBeSplit,
         parentFeatureId,
+        upstreamCut,
+        downstreamCut,
       }
     }
     return { typeName, changedIds, assembly, changes }
@@ -64,7 +69,8 @@ export class SplitExonChange extends FeatureChange {
     const { featureModel, session } = backend
     const { changes, logger } = this
     for (const change of changes) {
-      const { exonToBeSplit, parentFeatureId } = change
+      const { exonToBeSplit, parentFeatureId, upstreamCut, downstreamCut } =
+        change
       const topLevelFeature = await featureModel
         .findOne({ allIds: exonToBeSplit._id })
         .session(session)
@@ -87,7 +93,11 @@ export class SplitExonChange extends FeatureChange {
         )
       }
 
-      const [leftExon, rightExon] = this.makeSplitExons(exonToBeSplit)
+      const [leftExon, rightExon] = this.makeSplitExons(
+        exonToBeSplit,
+        upstreamCut,
+        downstreamCut,
+      )
 
       tx.children.set(leftExon._id, {
         allIds: [],
@@ -132,19 +142,18 @@ export class SplitExonChange extends FeatureChange {
       throw new Error('No data store')
     }
 
-    for (const [idx, changedId] of this.changedIds.entries()) {
-      const { exonToBeSplit, parentFeatureId } = this.changes[idx]
+    for (const [idx] of this.changedIds.entries()) {
+      const { exonToBeSplit, parentFeatureId, upstreamCut, downstreamCut } =
+        this.changes[idx]
       if (!parentFeatureId) {
         throw new Error('TODO: Split exon without parent')
       }
 
-      const feature = dataStore.getFeature(exonToBeSplit._id)
-      if (!feature) {
-        throw new Error(
-          `Could not find feature with identifier: "${changedId}"`,
-        )
-      }
-      const [leftExon, rightExon] = this.makeSplitExons(exonToBeSplit)
+      const [leftExon, rightExon] = this.makeSplitExons(
+        exonToBeSplit,
+        upstreamCut,
+        downstreamCut,
+      )
 
       const parentFeature = dataStore.getFeature(parentFeatureId)
       if (!parentFeature) {
@@ -153,7 +162,9 @@ export class SplitExonChange extends FeatureChange {
 
       parentFeature.addChild(leftExon)
       parentFeature.addChild(rightExon)
-      parentFeature.deleteChild(exonToBeSplit._id)
+      if (dataStore.getFeature(exonToBeSplit._id)) {
+        dataStore.deleteFeature(exonToBeSplit._id)
+      }
     }
   }
 
@@ -188,6 +199,8 @@ export class SplitExonChange extends FeatureChange {
 
   makeSplitExons(
     exonToBeSplit: AnnotationFeatureSnapshot,
+    upstreamCut: number,
+    downstreamCut: number,
   ): AnnotationFeatureSnapshot[] {
     // eslint-disable-next-line unicorn/prefer-structured-clone
     const exon = JSON.parse(JSON.stringify(exonToBeSplit))
@@ -196,20 +209,21 @@ export class SplitExonChange extends FeatureChange {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     delete exon.attributes.gff_id
 
-    const midpoint =
-      exonToBeSplit.min + (exonToBeSplit.max - exonToBeSplit.min) / 2
-
     const leftExon = structuredClone(
       exon,
     ) as unknown as AnnotationFeatureSnapshot
     leftExon._id = new ObjectID().toHexString()
-    leftExon.max = Math.floor(midpoint)
+    leftExon.max = upstreamCut
 
     const rightExon = structuredClone(
       exon,
     ) as unknown as AnnotationFeatureSnapshot
-    rightExon.min = Math.ceil(midpoint)
+    rightExon.min = downstreamCut
     rightExon._id = new ObjectID().toHexString()
+
+    console.log('EXON:' + JSON.stringify(exon, null, 2))
+    console.log('LEFT:' + JSON.stringify(leftExon, null, 2))
+    console.log('RIGHT:' + JSON.stringify(rightExon, null, 2))
 
     return [leftExon, rightExon]
   }

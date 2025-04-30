@@ -117,6 +117,7 @@ export function MergeExons({
       assembly: sourceAssemblyId,
       firstExon: getSnapshot(sourceFeature),
       secondExon: getSnapshot(selectedExon),
+      parentFeatureId: sourceFeature.parent?._id,
     })
     await changeManager.submit(change)
     notify('Exons successfully merged', 'success')
@@ -142,7 +143,9 @@ export function MergeExons({
     >
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-          Merge {sourceFeature.attributes.get('gff_id')} with exon on:
+          {Object.keys(neighboringExons).length === 0
+            ? 'There are no neighbouring exons to merge with'
+            : 'Merge with exon on:'}
           <FormControl style={{ marginTop: 5 }}>
             <RadioGroup
               aria-labelledby="demo-radio-buttons-group-label"
@@ -170,7 +173,10 @@ export function MergeExons({
           <Button
             variant="contained"
             type="submit"
-            disabled={Object.keys(neighboringExons).length === 0}
+            disabled={
+              Object.keys(neighboringExons).length === 0 ||
+              selectedExon === undefined
+            }
           >
             Submit
           </Button>
