@@ -115,8 +115,8 @@ export const TranscriptWidgetEditLocation = observer(
           continue
         }
         if (isMin && oldLocation === child.min) {
-          newLocation = newLocation - 1
-          if (newLocation < 0) {
+          const newLoc = newLocation - 1
+          if (newLoc < 0) {
             notify('Start location should be greater than 0', 'error')
             return
           }
@@ -125,7 +125,7 @@ export const TranscriptWidgetEditLocation = observer(
             changedIds: [child._id],
             featureId: feature._id,
             oldStart: child.min,
-            newStart: newLocation,
+            newStart: newLoc,
             assembly,
           })
           changeManager.submit(change).catch(() => {
@@ -150,7 +150,7 @@ export const TranscriptWidgetEditLocation = observer(
       }
     }
 
-    async function handleExonLocationChange(
+    function handleExonLocationChange(
       oldLocation: number,
       newLocation: number,
       feature: AnnotationFeature,
@@ -187,57 +187,48 @@ export const TranscriptWidgetEditLocation = observer(
             }
           }
 
-          const changes = []
+          const change: LocationStartChange = new LocationStartChange({
+            typeName: 'LocationStartChange',
+            changedIds: [],
+            changes: [],
+            assembly,
+          })
           if (index === 0) {
             const transcriptStart = feature.min
             const geneStart = feature.parent?.min
             if (newLocation < transcriptStart) {
               if (geneStart && newLocation < geneStart) {
                 // gene start
-                changes.push(
-                  new LocationStartChange({
-                    typeName: 'LocationStartChange',
-                    changedIds: [feature.parent._id],
-                    featureId: feature.parent._id,
-                    oldStart: feature.parent.min,
-                    newStart: newLocation,
-                    assembly,
-                  }),
-                )
+                change.changedIds.push(feature.parent._id)
+                change.changes.push({
+                  featureId: feature.parent._id,
+                  oldStart: feature.parent.min,
+                  newStart: newLocation,
+                })
               }
 
               // transcript start
-              changes.push(
-                new LocationStartChange({
-                  typeName: 'LocationStartChange',
-                  changedIds: [feature._id],
-                  featureId: feature._id,
-                  oldStart: feature.min,
-                  newStart: newLocation,
-                  assembly,
-                }),
-              )
+              change.changedIds.push(feature._id)
+              change.changes.push({
+                featureId: feature._id,
+                oldStart: feature.min,
+                newStart: newLocation,
+              })
             }
           }
 
           // exon start
-          changes.push(
-            new LocationStartChange({
-              typeName: 'LocationStartChange',
-              changedIds: [child._id],
-              featureId: feature._id,
-              oldStart: child.min,
-              newStart: newLocation,
-              assembly,
-            }),
-          )
+          change.changedIds.push(child._id)
+          change.changes.push({
+            featureId: child._id,
+            oldStart: child.min,
+            newStart: newLocation,
+          })
 
           // Submit all changes sequentially. gene -> transcript -> exon
-          for (const change of changes) {
-            await changeManager.submit(change).catch(() => {
-              notify('Error updating feature start position', 'error')
-            })
-          }
+          void changeManager.submit(change).catch(() => {
+            notify('Error updating feature start position', 'error')
+          })
           return
         }
         if (!isMin && oldLocation === child.max) {
@@ -257,55 +248,46 @@ export const TranscriptWidgetEditLocation = observer(
             }
           }
 
-          const changes = []
+          const change: LocationEndChange = new LocationEndChange({
+            typeName: 'LocationEndChange',
+            changedIds: [],
+            changes: [],
+            assembly,
+          })
           if (index === transcriptExonParts.length - 1) {
             const transcriptEnd = feature.max
             const geneEnd = feature.parent?.max
             if (newLocation > transcriptEnd) {
               if (geneEnd && newLocation > geneEnd) {
                 // gene end
-                changes.push(
-                  new LocationEndChange({
-                    typeName: 'LocationEndChange',
-                    changedIds: [feature.parent._id],
-                    featureId: feature.parent._id,
-                    oldEnd: feature.parent.max,
-                    newEnd: newLocation,
-                    assembly,
-                  }),
-                )
+                change.changedIds.push(feature.parent._id)
+                change.changes.push({
+                  featureId: feature.parent._id,
+                  oldEnd: feature.parent.max,
+                  newEnd: newLocation,
+                })
               }
 
               // transcript end
-              changes.push(
-                new LocationEndChange({
-                  typeName: 'LocationEndChange',
-                  changedIds: [feature._id],
-                  featureId: feature._id,
-                  oldEnd: feature.max,
-                  newEnd: newLocation,
-                  assembly,
-                }),
-              )
+              change.changedIds.push(feature._id)
+              change.changes.push({
+                featureId: feature._id,
+                oldEnd: feature.max,
+                newEnd: newLocation,
+              })
             }
           }
           // exon end
-          changes.push(
-            new LocationEndChange({
-              typeName: 'LocationEndChange',
-              changedIds: [child._id],
-              featureId: feature._id,
-              oldEnd: child.max,
-              newEnd: newLocation,
-              assembly,
-            }),
-          )
+          change.changedIds.push(child._id)
+          change.changes.push({
+            featureId: child._id,
+            oldEnd: child.max,
+            newEnd: newLocation,
+          })
           // Submit all changes sequentially. gene -> transcript -> exon
-          for (const change of changes) {
-            await changeManager.submit(change).catch(() => {
-              notify('Error updating feature start position', 'error')
-            })
-          }
+          void changeManager.submit(change).catch(() => {
+            notify('Error updating feature end position', 'error')
+          })
           return
         }
       }
@@ -330,8 +312,11 @@ export const TranscriptWidgetEditLocation = observer(
     const cdsPresent = firstCDSLocation.length > 0
 
     if (cdsPresent) {
-      cdsMin = firstCDSLocation[0].min
-      cdsMax = firstCDSLocation[firstCDSLocation.length - 1].max
+      const sortedCDSLocations = firstCDSLocation.sort(
+        ({ min: a }, { min: b }) => a - b,
+      )
+      cdsMin = sortedCDSLocations[0].min
+      cdsMax = sortedCDSLocations[sortedCDSLocations.length - 1].max
     }
 
     const getFivePrimeSpliceSite = (
@@ -420,8 +405,9 @@ export const TranscriptWidgetEditLocation = observer(
                 // NOTE: codonGenomicPos is important here for calculating the genomic location
                 // of the start codon. We are using the codonGenomicPos as the key in the typography
                 // elements to maintain the genomic postion of the codon start
+                // Add 1 for 1-based genomic location
                 const startCodonGenomicLocation =
-                  getStartCodonGenomicLocation(codonGenomicPos)
+                  getStartCodonGenomicLocation(codonGenomicPos) + 1
                 if (startCodonGenomicLocation !== cdsMin) {
                   handleCDSLocationChange(
                     cdsMin,
@@ -530,9 +516,9 @@ export const TranscriptWidgetEditLocation = observer(
         return
       }
 
-      const startCodonGenomicLoc = getStartCodonGenomicLocation(
-        startCodonPos as unknown as number,
-      )
+      // Add 1 for 1-based genomic location
+      const startCodonGenomicLoc =
+        getStartCodonGenomicLocation(startCodonPos as unknown as number) + 1
       const stopCodonGenomicLoc = getStopCodonGenomicLocation(
         stopCodonPos as unknown as number,
       )
@@ -671,7 +657,7 @@ export const TranscriptWidgetEditLocation = observer(
                         variant="outlined"
                         value={loc.min + 1}
                         onChangeCommitted={(newLocation: number) => {
-                          void handleExonLocationChange(
+                          handleExonLocationChange(
                             loc.min,
                             newLocation,
                             feature,
@@ -691,7 +677,7 @@ export const TranscriptWidgetEditLocation = observer(
                         variant="outlined"
                         value={loc.max}
                         onChangeCommitted={(newLocation: number) => {
-                          void handleExonLocationChange(
+                          handleExonLocationChange(
                             loc.max,
                             newLocation,
                             feature,

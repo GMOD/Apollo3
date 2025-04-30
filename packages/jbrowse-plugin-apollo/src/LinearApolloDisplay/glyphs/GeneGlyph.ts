@@ -450,6 +450,7 @@ function getFeatureFromLayout(
     featuresForRow(feature, featureTypeOntology)[row] || []
   for (const f of featureInThisRow) {
     let featureObj
+    // f.min + 1 because the apollo track location is 1-based
     if (bp >= f.min + 1 && bp <= f.max && f.parent) {
       featureObj = f
     }
@@ -468,6 +469,7 @@ function getFeatureFromLayout(
       const { cdsLocations } = featureObj.parent
       for (const cdsLoc of cdsLocations) {
         for (const loc of cdsLoc) {
+          // loc.min + 1 because the apollo track location is 1-based
           if (bp >= loc.min + 1 && bp <= loc.max) {
             return featureObj
           }
