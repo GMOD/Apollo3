@@ -12,6 +12,7 @@ import {
   CopyFeature,
   DeleteFeature,
   MergeExons,
+  SplitExon,
 } from '../../components'
 import { ApolloSessionModel } from '../../session'
 import { getApolloInternetAccount } from '../../util'
@@ -123,6 +124,28 @@ export function featureContextMenuItems(
           ;(session as unknown as AbstractSessionModel).queueDialog(
             (doneCallback) => [
               MergeExons,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                changeManager,
+                sourceFeature: feature,
+                sourceAssemblyId: currentAssemblyId,
+                selectedFeature,
+                setSelectedFeature,
+              },
+            ],
+          )
+        },
+      },
+      {
+        label: 'Split exon',
+        disabled: !admin,
+        onClick: () => {
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              SplitExon,
               {
                 session,
                 handleClose: () => {

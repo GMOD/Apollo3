@@ -13,6 +13,7 @@ import {
   CopyFeature,
   DeleteFeature,
   MergeExons,
+  SplitExon,
 } from '../../components'
 
 import { LinearApolloDisplay } from '../stateModel'
@@ -381,6 +382,31 @@ function getContextMenuItems(
         ;(session as unknown as AbstractSessionModel).queueDialog(
           (doneCallback) => [
             MergeExons,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature,
+              sourceAssemblyId: currentAssemblyId,
+              selectedFeature,
+              setSelectedFeature: (feature?: AnnotationFeature) => {
+                display.setSelectedFeature(feature)
+              },
+            },
+          ],
+        )
+      },
+    },
+    {
+      label: 'Split exon',
+      disabled:
+        !admin || !featureTypeOntology.isTypeOf(sourceFeature.type, 'exon'),
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            SplitExon,
             {
               session,
               handleClose: () => {

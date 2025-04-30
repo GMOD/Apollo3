@@ -12,6 +12,7 @@ import { ImportJBrowseConfigChange } from './ImportJBrowseConfigChange'
 import { LocationEndChange } from './LocationEndChange'
 import { LocationStartChange } from './LocationStartChange'
 import { MergeExonsChange } from './MergeExonsChange'
+import { SplitExonChange } from './SplitExonChange'
 import { StrandChange } from './StrandChange'
 import { TypeChange } from './TypeChange'
 import { UserChange } from './UserChange'
@@ -30,6 +31,7 @@ export const changes = {
   LocationEndChange,
   LocationStartChange,
   MergeExonsChange,
+  SplitExonChange,
   StrandChange,
   TypeChange,
   UserChange,
@@ -49,6 +51,7 @@ export * from './ImportJBrowseConfigChange'
 export * from './LocationEndChange'
 export * from './LocationStartChange'
 export * from './MergeExonsChange'
+export * from './SplitExonChange'
 export * from './StrandChange'
 export * from './TypeChange'
 export * from './UserChange'
