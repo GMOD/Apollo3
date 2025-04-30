@@ -220,11 +220,6 @@ export class SplitExonChange extends FeatureChange {
     ) as unknown as AnnotationFeatureSnapshot
     rightExon.min = downstreamCut
     rightExon._id = new ObjectID().toHexString()
-
-    console.log('EXON:' + JSON.stringify(exon, null, 2))
-    console.log('LEFT:' + JSON.stringify(leftExon, null, 2))
-    console.log('RIGHT:' + JSON.stringify(rightExon, null, 2))
-
     return [leftExon, rightExon]
   }
 }
