@@ -12,6 +12,7 @@ import {
   AbstractSessionModel,
   getContainingView,
   getSession,
+  SessionWithWidgets,
 } from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
@@ -242,6 +243,59 @@ export function baseModelFactory(
         ;(
           self.session as unknown as ApolloSessionModel
         ).apolloSetSelectedFeature(feature)
+      },
+      showFeatureDetailsWidget(feature: AnnotationFeature) {
+        const { session } = self
+        const { changeManager } = session.apolloDataStore
+        const [region] = self.regions
+        const { assemblyName, refName } = region
+        const assembly = self.getAssemblyId(assemblyName)
+        if (!assembly) {
+          return
+        }
+        const { apolloDataStore } = session
+        const { featureTypeOntology } = apolloDataStore.ontologyManager
+        if (!featureTypeOntology) {
+          throw new Error('featureTypeOntology is undefined')
+        }
+
+        if (
+          featureTypeOntology.isTypeOf(feature.type, 'CDS') ||
+          featureTypeOntology.isTypeOf(feature.type, 'exon')
+        ) {
+          const apolloFeatureWidget = (
+            session as unknown as SessionWithWidgets
+          ).addWidget(
+            'ApolloFeatureDetailsWidget',
+            'apolloFeatureDetailsWidget',
+            {
+              feature,
+              assembly,
+              refName,
+              changeManager,
+            },
+          )
+          ;(session as unknown as SessionWithWidgets).showWidget(
+            apolloFeatureWidget,
+          )
+        }
+
+        if (
+          featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
+          featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')
+        ) {
+          const apolloTranscriptWidget = (
+            session as unknown as SessionWithWidgets
+          ).addWidget('ApolloTranscriptDetails', 'apolloTranscriptDetails', {
+            feature,
+            assembly,
+            refName,
+            changeManager,
+          })
+          ;(session as unknown as SessionWithWidgets).showWidget(
+            apolloTranscriptWidget,
+          )
+        }
       },
       afterAttach() {
         addDisposer(

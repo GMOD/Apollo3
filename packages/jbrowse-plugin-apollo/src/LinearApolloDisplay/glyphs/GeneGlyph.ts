@@ -652,9 +652,12 @@ function onMouseUp(
     return
   }
   const { featureAndGlyphUnderMouse } = mousePosition
-  if (featureAndGlyphUnderMouse?.feature) {
-    stateModel.setSelectedFeature(featureAndGlyphUnderMouse.feature)
+  if (!featureAndGlyphUnderMouse) {
+    return
   }
+  const { feature } = featureAndGlyphUnderMouse
+  stateModel.setSelectedFeature(feature)
+  stateModel.showFeatureDetailsWidget(feature)
 }
 
 function getDraggableFeatureInfo(
