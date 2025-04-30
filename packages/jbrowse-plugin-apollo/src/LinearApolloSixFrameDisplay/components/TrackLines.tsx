@@ -5,36 +5,28 @@ import { LinearApolloSixFrameDisplay } from '../stateModel'
 
 export const TrackLines = observer(function TrackLines({
   model,
-  strand,
+  hrStyle = { margin: 0, top: 0, color: 'black' },
+  idx = 0,
 }: {
   model: LinearApolloSixFrameDisplay
-  strand: number
+  hrStyle?: React.CSSProperties
+  idx: number
 }) {
-  const { apolloRowHeight, highestRow, lastRowTooltipBufferHeight } = model
-  return strand == 1 ? (
+  const { apolloRowHeight, highestRow, showFeatureLabels } = model
+  const featureLabelSpacer = showFeatureLabels ? 2 : 1
+
+  return (
     <div
       style={{
         position: 'absolute',
         left: 0,
-        top: (apolloRowHeight * (highestRow + 1)) / 2 - 2,
+        top:
+          (apolloRowHeight * featureLabelSpacer * (highestRow + 1)) / 2 +
+          idx * featureLabelSpacer * apolloRowHeight,
         width: '100%',
       }}
     >
-      <hr style={{ margin: 0, top: 0, color: 'black' }} />
-    </div>
-  ) : (
-    <div
-      style={{
-        position: 'absolute',
-        left: 0,
-        bottom:
-          (apolloRowHeight * (highestRow + 1) + lastRowTooltipBufferHeight) /
-            2 +
-          3,
-        width: '100%',
-      }}
-    >
-      <hr style={{ margin: 0, top: 0, color: 'black' }} />
+      <hr style={hrStyle} />
     </div>
   )
 })

@@ -92,13 +92,22 @@ function draw(
   stateModel: LinearApolloSixFrameDisplayRendering,
   displayedRegionIndex: number,
 ): void {
-  const { apolloRowHeight, lgv, session, theme, highestRow } = stateModel
+  const {
+    apolloRowHeight,
+    lgv,
+    session,
+    theme,
+    highestRow,
+    showFeatureLabels,
+  } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const { refName, reversed } = displayedRegion
   const rowHeight = apolloRowHeight
-  const exonHeight = Math.round(0.6 * rowHeight)
-  const cdsHeight = Math.round(0.7 * rowHeight)
+  const exonHeight = rowHeight
+  const cdsHeight = rowHeight
+  const topLevelFeatureHeight = rowHeight
+  const featureLabelSpacer = showFeatureLabels ? 2 : 1
   const { children, min, strand, _id } = topLevelFeature
   if (!children) {
     return
@@ -121,9 +130,8 @@ function draw(
   const topLevelFeatureStartPx = reversed
     ? topLevelFeatureMinX - topLevelFeatureWidthPx
     : topLevelFeatureMinX
-  const topLevelRow = strand == 1 ? 3 : 4
+  const topLevelRow = (strand == 1 ? 3 : 4) * featureLabelSpacer
   const topLevelFeatureTop = topLevelRow * rowHeight
-  const topLevelFeatureHeight = Math.round(0.7 * rowHeight)
 
   ctx.fillStyle = theme?.palette.text.primary ?? 'black'
   ctx.fillRect(
@@ -246,9 +254,9 @@ function draw(
           const cdsStartPx = reversed ? minX - cdsWidthPx : minX
           ctx.fillStyle = theme?.palette.text.primary ?? 'black'
           const frame = getFrame(cds.min, cds.max, child.strand ?? 1, cds.phase)
-          const frameAdjust = frame < 0 ? -1 * frame + 5 : frame
-          const cdsTop =
-            (frameAdjust - 1) * rowHeight + (rowHeight - cdsHeight) / 2
+          const frameAdjust =
+            (frame < 0 ? -1 * frame + 5 : frame) * featureLabelSpacer
+          const cdsTop = (frameAdjust - featureLabelSpacer) * rowHeight
           ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
           if (cdsWidthPx > 2) {
             ctx.clearRect(
@@ -280,7 +288,9 @@ function draw(
               const midPoint: [number, number] = [
                 (cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx,
                 Math.max(
-                  frame < 0 ? rowHeight * highestRow + 1 : 1, // Avoid render ceiling
+                  frame < 0
+                    ? rowHeight * featureLabelSpacer * highestRow + 1
+                    : 1, // Avoid render ceiling
                   Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
                 ),
               ]

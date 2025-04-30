@@ -108,8 +108,13 @@ export const LinearApolloSixFrameDisplay = observer(
             // Promise.resolve() in these 3 callbacks is to avoid infinite rendering loop
             // https://github.com/mobxjs/mobx/issues/3728#issuecomment-1715400931
             <>
-              <TrackLines model={model} strand={1} />
-              <TrackLines model={model} strand={-1} />
+              <TrackLines model={model} idx={0} />
+              <TrackLines
+                model={model}
+                hrStyle={{ margin: 0, top: 0, color: 'grey', opacity: 0.4 }}
+                idx={1}
+              />
+              <TrackLines model={model} idx={2} />
               <canvas
                 ref={async (node: HTMLCanvasElement) => {
                   await Promise.resolve()
