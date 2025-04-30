@@ -18,6 +18,7 @@ import React, { useState } from 'react'
 import { ChangeManager } from '../ChangeManager'
 import { ApolloSessionModel } from '../session'
 import { Dialog } from './Dialog'
+import ObjectID from 'bson-objectid'
 
 interface SplitExonProps {
   session: ApolloSessionModel
@@ -88,6 +89,8 @@ export function SplitExon({
       parentFeatureId: sourceFeature.parent?._id,
       upstreamCut,
       downstreamCut,
+      leftExonId: new ObjectID().toHexString(),
+      rightExonId: new ObjectID().toHexString(),
     })
     await changeManager.submit(change)
     notify('Exon successfully split', 'success')

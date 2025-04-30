@@ -18,6 +18,7 @@ interface SerializedUndoMergeExonsChangeBase extends SerializedFeatureChange {
 export interface UndoMergeExonsChangeDetails {
   exonsToRestore: AnnotationFeatureSnapshot[]
   parentFeatureId?: string
+  idsToDelete?: string[]
 }
 
 interface SerializedUndoMergeExonsChangeSingle
@@ -44,7 +45,7 @@ export class UndoMergeExonsChange extends FeatureChange {
   toJSON(): SerializedUndoMergeExonsChange {
     const { assembly, changedIds, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ exonsToRestore, parentFeatureId }] = changes
+      const [{ exonsToRestore, parentFeatureId, idsToDelete }] = changes
 
       return {
         typeName,
@@ -52,6 +53,7 @@ export class UndoMergeExonsChange extends FeatureChange {
         assembly,
         exonsToRestore,
         parentFeatureId,
+        idsToDelete,
       }
     }
     return { typeName, changedIds, assembly, changes }
@@ -61,7 +63,7 @@ export class UndoMergeExonsChange extends FeatureChange {
     const { featureModel, session } = backend
     const { changes } = this
     for (const change of changes) {
-      const { exonsToRestore, parentFeatureId } = change
+      const { exonsToRestore, parentFeatureId, idsToDelete } = change
       if (!parentFeatureId) {
         throw new Error('Missing parent ID')
       }
@@ -78,7 +80,7 @@ export class UndoMergeExonsChange extends FeatureChange {
       )
       if (!parentFeature) {
         throw new Error(
-          `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature._id}"`,
+          `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature._id.toString()}"`,
         )
       }
       if (!parentFeature.children) {
@@ -114,6 +116,11 @@ export class UndoMergeExonsChange extends FeatureChange {
         const childIds = this.getChildFeatureIds(exon)
         topLevelFeature.allIds.push(_id, ...childIds)
       }
+      if (idsToDelete) {
+        topLevelFeature.allIds = topLevelFeature.allIds.filter(
+          (id) => !idsToDelete.includes(id),
+        )
+      }
       await topLevelFeature.save()
     }
   }
@@ -129,7 +136,7 @@ export class UndoMergeExonsChange extends FeatureChange {
     }
     const { changes } = this
     for (const change of changes) {
-      const { exonsToRestore, parentFeatureId } = change
+      const { exonsToRestore, parentFeatureId, idsToDelete } = change
       if (!parentFeatureId) {
         throw new Error('Parent ID is missing')
       }
@@ -143,6 +150,11 @@ export class UndoMergeExonsChange extends FeatureChange {
       }
       for (const exon of exonsToRestore) {
         parentFeature.addChild(exon)
+      }
+      if (idsToDelete) {
+        idsToDelete.map((id) => {
+          parentFeature.deleteChild(id)
+        })
       }
     }
   }

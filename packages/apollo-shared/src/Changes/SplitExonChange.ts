@@ -11,7 +11,6 @@ import {
 } from '@apollo-annotation/common'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { findAndDeleteChildFeature } from './DeleteFeatureChange'
-import ObjectID from 'bson-objectid'
 import { UndoMergeExonsChange } from './UndoMergeExonsChange'
 
 interface SerializedSplitExonChangeBase extends SerializedFeatureChange {
@@ -23,6 +22,8 @@ export interface SplitExonChangeDetails {
   parentFeatureId?: string
   upstreamCut: number
   downstreamCut: number
+  leftExonId: string
+  rightExonId: string
 }
 
 interface SerializedSplitExonChangeSingle
@@ -49,8 +50,16 @@ export class SplitExonChange extends FeatureChange {
   toJSON(): SerializedSplitExonChange {
     const { assembly, changedIds, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ exonToBeSplit, parentFeatureId, upstreamCut, downstreamCut }] =
-        changes
+      const [
+        {
+          exonToBeSplit,
+          parentFeatureId,
+          upstreamCut,
+          downstreamCut,
+          leftExonId,
+          rightExonId,
+        },
+      ] = changes
 
       return {
         typeName,
@@ -60,6 +69,8 @@ export class SplitExonChange extends FeatureChange {
         parentFeatureId,
         upstreamCut,
         downstreamCut,
+        leftExonId,
+        rightExonId,
       }
     }
     return { typeName, changedIds, assembly, changes }
@@ -69,8 +80,14 @@ export class SplitExonChange extends FeatureChange {
     const { featureModel, session } = backend
     const { changes, logger } = this
     for (const change of changes) {
-      const { exonToBeSplit, parentFeatureId, upstreamCut, downstreamCut } =
-        change
+      const {
+        exonToBeSplit,
+        parentFeatureId,
+        upstreamCut,
+        downstreamCut,
+        leftExonId,
+        rightExonId,
+      } = change
       const topLevelFeature = await featureModel
         .findOne({ allIds: exonToBeSplit._id })
         .session(session)
@@ -97,6 +114,8 @@ export class SplitExonChange extends FeatureChange {
         exonToBeSplit,
         upstreamCut,
         downstreamCut,
+        leftExonId,
+        rightExonId,
       )
 
       tx.children.set(leftExon._id, {
@@ -143,8 +162,14 @@ export class SplitExonChange extends FeatureChange {
     }
 
     for (const [idx] of this.changedIds.entries()) {
-      const { exonToBeSplit, parentFeatureId, upstreamCut, downstreamCut } =
-        this.changes[idx]
+      const {
+        exonToBeSplit,
+        parentFeatureId,
+        upstreamCut,
+        downstreamCut,
+        leftExonId,
+        rightExonId,
+      } = this.changes[idx]
       if (!parentFeatureId) {
         throw new Error('TODO: Split exon without parent')
       }
@@ -153,6 +178,8 @@ export class SplitExonChange extends FeatureChange {
         exonToBeSplit,
         upstreamCut,
         downstreamCut,
+        leftExonId,
+        rightExonId,
       )
 
       const parentFeature = dataStore.getFeature(parentFeatureId)
@@ -174,6 +201,7 @@ export class SplitExonChange extends FeatureChange {
     const inverseChanges = [...changes].reverse().map((splitExonChange) => ({
       exonsToRestore: [splitExonChange.exonToBeSplit],
       parentFeatureId: splitExonChange.parentFeatureId,
+      idsToDelete: [splitExonChange.leftExonId, splitExonChange.rightExonId],
     }))
     logger.debug?.(`INVERSE CHANGE '${JSON.stringify(inverseChanges)}'`)
     return new UndoMergeExonsChange(
@@ -191,6 +219,8 @@ export class SplitExonChange extends FeatureChange {
     exonToBeSplit: AnnotationFeatureSnapshot,
     upstreamCut: number,
     downstreamCut: number,
+    leftExonId: string,
+    rightExonId: string,
   ): AnnotationFeatureSnapshot[] {
     // eslint-disable-next-line unicorn/prefer-structured-clone
     const exon = JSON.parse(JSON.stringify(exonToBeSplit))
@@ -202,14 +232,14 @@ export class SplitExonChange extends FeatureChange {
     const leftExon = structuredClone(
       exon,
     ) as unknown as AnnotationFeatureSnapshot
-    leftExon._id = new ObjectID().toHexString()
+    leftExon._id = leftExonId
     leftExon.max = upstreamCut
 
     const rightExon = structuredClone(
       exon,
     ) as unknown as AnnotationFeatureSnapshot
     rightExon.min = downstreamCut
-    rightExon._id = new ObjectID().toHexString()
+    rightExon._id = rightExonId
 
     return [leftExon, rightExon]
   }
