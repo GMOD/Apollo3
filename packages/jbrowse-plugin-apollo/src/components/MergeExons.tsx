@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import {
-  AnnotationFeature,
-  AnnotationFeatureSnapshot,
-} from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import { MergeExonsChange } from '@apollo-annotation/shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
@@ -92,49 +89,6 @@ function makeRadioButtonName(
   return name
 }
 
-function mergeExons(
-  firstExon: AnnotationFeatureSnapshot,
-  secondExon: AnnotationFeatureSnapshot,
-): AnnotationFeatureSnapshot {
-  const mergedExon = structuredClone(firstExon)
-  mergedExon.min = Math.min(firstExon.min, secondExon.min)
-  mergedExon.max = Math.max(firstExon.max, secondExon.max)
-  mergedExon.attributes = mergeAttributes(firstExon, secondExon)
-  return mergedExon
-}
-
-function mergeAttributes(
-  firstExon: AnnotationFeatureSnapshot,
-  secondExon: AnnotationFeatureSnapshot,
-): Record<string, string[]> {
-  let mergedAttrs: Record<string, string[]> = {}
-  if (firstExon.attributes) {
-    // eslint-disable-next-line unicorn/prefer-structured-clone, @typescript-eslint/no-unsafe-assignment
-    mergedAttrs = JSON.parse(JSON.stringify(firstExon.attributes))
-  }
-
-  if (secondExon.attributes) {
-    // eslint-disable-next-line unicorn/prefer-structured-clone, @typescript-eslint/no-unsafe-assignment
-    const attrs: Record<string, string[]> = JSON.parse(
-      JSON.stringify(secondExon.attributes),
-    )
-    for (const key of Object.keys(attrs)) {
-      if (key === '_id' || key === 'gff_id') {
-        continue
-      }
-      if (!Object.keys(mergedAttrs).includes(key)) {
-        mergedAttrs[key] = []
-      }
-      attrs[key].map((x) => {
-        if (!mergedAttrs[key].includes(x)) {
-          mergedAttrs[key].push(x)
-        }
-      })
-    }
-  }
-  return mergedAttrs
-}
-
 export function MergeExons({
   changeManager,
   handleClose,
@@ -157,16 +111,13 @@ export function MergeExons({
     if (selectedFeature?._id === sourceFeature._id) {
       setSelectedFeature()
     }
-    const firstExon = getSnapshot(sourceFeature)
-    const secondExon = getSnapshot(selectedExon)
     const change = new MergeExonsChange({
       changedIds: [sourceFeature._id],
       typeName: 'MergeExonsChange',
       assembly: sourceAssemblyId,
-      firstExon,
-      secondExon,
+      firstExon: getSnapshot(sourceFeature),
+      secondExon: getSnapshot(selectedExon),
       parentFeatureId: sourceFeature.parent?._id,
-      mergedExon: mergeExons(firstExon, secondExon),
     })
     await changeManager.submit(change)
     notify('Exons successfully merged', 'success')
