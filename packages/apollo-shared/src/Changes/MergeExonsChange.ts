@@ -11,7 +11,7 @@ import {
 } from '@apollo-annotation/common'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { findAndDeleteChildFeature } from './DeleteFeatureChange'
-import { SplitExonChange } from './SplitExonChange'
+import { UndoMergeExonsChange } from './UndoMergeExonsChange'
 
 interface SerializedMergeExonsChangeBase extends SerializedFeatureChange {
   typeName: 'MergeExonsChange'
@@ -21,7 +21,6 @@ export interface MergeExonsChangeDetails {
   firstExon: AnnotationFeatureSnapshot
   secondExon: AnnotationFeatureSnapshot
   parentFeatureId?: string
-  mergedExon: AnnotationFeatureSnapshot
 }
 
 interface SerializedMergeExonsChangeSingle
@@ -48,9 +47,7 @@ export class MergeExonsChange extends FeatureChange {
   toJSON(): SerializedMergeExonsChange {
     const { assembly, changedIds, changes, typeName } = this
     if (changes.length === 1) {
-      const [
-        { firstExon, secondExon, parentFeatureId, AnnotationFeatureSnapshot },
-      ] = changes
+      const [{ firstExon, secondExon, parentFeatureId }] = changes
 
       return {
         typeName,
@@ -130,45 +127,20 @@ export class MergeExonsChange extends FeatureChange {
   getInverse() {
     const { assembly, changedIds, changes, logger } = this
     const inverseChangedIds = [...changedIds].reverse()
-    const inverseChanges = [...changes]
-      .reverse()
-      .map((mergeExonChange) => this.invertChange(mergeExonChange))
-
-    return new SplitExonChange(
+    const inverseChanges = [...changes].reverse().map((mergeExonChange) => ({
+      exonsToRestore: [mergeExonChange.firstExon, mergeExonChange.secondExon],
+      parentFeatureId: mergeExonChange.parentFeatureId,
+    }))
+    logger.debug?.(`INVERSE CHANGE '${JSON.stringify(inverseChanges)}'`)
+    return new UndoMergeExonsChange(
       {
         changedIds: inverseChangedIds,
-        typeName: 'SplitExonChange',
+        typeName: 'UndoMergeExonsChange',
         changes: inverseChanges,
         assembly,
       },
       { logger },
     )
-  }
-
-  invertChange(mergeExonChange: MergeExonsChangeDetails): {
-    exonToBeSplit: AnnotationFeatureSnapshot
-    parentFeatureId: string | undefined
-    upstreamCut: number
-    downstreamCut: number
-  } {
-    let upstreamCut
-    let downstreamCut
-    if (mergeExonChange.firstExon.max < mergeExonChange.secondExon.min) {
-      upstreamCut = mergeExonChange.firstExon.max
-      downstreamCut = mergeExonChange.secondExon.min
-    } else {
-      upstreamCut = mergeExonChange.secondExon.min
-      downstreamCut = mergeExonChange.firstExon.max
-    }
-
-    const inverseChange = {
-      exonToBeSplit: mergeExonChange.mergedExon,
-      parentFeatureId: mergeExonChange.parentFeatureId,
-      upstreamCut,
-      downstreamCut,
-    }
-    console.log('inverseChanges:' + JSON.stringify(inverseChange, null, 2))
-    return inverseChange
   }
 
   mergeAttributes(

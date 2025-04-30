@@ -145,9 +145,9 @@ export class DeleteFeatureChange extends FeatureChange {
     const inverseChangedIds = [...changedIds].reverse()
     const inverseChanges = [...changes]
       .reverse()
-      .map((deleteFeatuerChange) => ({
-        addedFeature: deleteFeatuerChange.deletedFeature,
-        parentFeatureId: deleteFeatuerChange.parentFeatureId,
+      .map((deleteFeatureChange) => ({
+        addedFeature: deleteFeatureChange.deletedFeature,
+        parentFeatureId: deleteFeatureChange.parentFeatureId,
       }))
     logger.debug?.(`INVERSE CHANGE '${JSON.stringify(inverseChanges)}'`)
     return new AddFeatureChange(

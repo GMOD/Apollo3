@@ -10,9 +10,9 @@ import {
   ServerDataStore,
 } from '@apollo-annotation/common'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { AddFeatureChange } from './AddFeatureChange'
 import { findAndDeleteChildFeature } from './DeleteFeatureChange'
 import ObjectID from 'bson-objectid'
+import { UndoMergeExonsChange } from './UndoMergeExonsChange'
 
 interface SerializedSplitExonChangeBase extends SerializedFeatureChange {
   typeName: 'SplitExonChange'
@@ -169,32 +169,22 @@ export class SplitExonChange extends FeatureChange {
   }
 
   getInverse() {
-    // To be implemented once we know how to reverse changes
-    const { assembly, changedIds } = this
+    const { assembly, changedIds, changes, logger } = this
     const inverseChangedIds = [...changedIds].reverse()
-    // const inverseChanges = [...changes]
-
-    return new AddFeatureChange({
-      changedIds: inverseChangedIds,
-      typeName: 'AddFeatureChange',
-      changes: [],
-      assembly,
-    })
-    //   .reverse()
-    //   .map((deleteFeatuerChange) => ({
-    //     addedFeature: deleteFeatuerChange.deletedFeature,
-    //     parentFeatureId: deleteFeatuerChange.parentFeatureId,
-    //   }))
-    // logger.debug?.(`INVERSE CHANGE '${JSON.stringify(inverseChanges)}'`)
-    // return new AddFeatureChange(
-    //   {
-    //     changedIds: inverseChangedIds,
-    //     typeName: 'AddFeatureChange',
-    //     changes: inverseChanges,
-    //     assembly,
-    //   },
-    //   { logger },
-    // )
+    const inverseChanges = [...changes].reverse().map((splitExonChange) => ({
+      exonsToRestore: [splitExonChange.exonToBeSplit],
+      parentFeatureId: splitExonChange.parentFeatureId,
+    }))
+    logger.debug?.(`INVERSE CHANGE '${JSON.stringify(inverseChanges)}'`)
+    return new UndoMergeExonsChange(
+      {
+        changedIds: inverseChangedIds,
+        typeName: 'UndoMergeExonsChange',
+        changes: inverseChanges,
+        assembly,
+      },
+      { logger },
+    )
   }
 
   makeSplitExons(
@@ -220,10 +210,6 @@ export class SplitExonChange extends FeatureChange {
     ) as unknown as AnnotationFeatureSnapshot
     rightExon.min = downstreamCut
     rightExon._id = new ObjectID().toHexString()
-
-    console.log('EXON:' + JSON.stringify(exon, null, 2))
-    console.log('LEFT:' + JSON.stringify(leftExon, null, 2))
-    console.log('RIGHT:' + JSON.stringify(rightExon, null, 2))
 
     return [leftExon, rightExon]
   }
