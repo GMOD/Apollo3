@@ -20,7 +20,7 @@ interface SerializedMergeExonsChangeBase extends SerializedFeatureChange {
 export interface MergeExonsChangeDetails {
   firstExon: AnnotationFeatureSnapshot
   secondExon: AnnotationFeatureSnapshot
-  parentFeatureId?: string
+  parentFeatureId: string
 }
 
 interface SerializedMergeExonsChangeSingle

@@ -14,6 +14,7 @@ import { LocationStartChange } from './LocationStartChange'
 import { MergeExonsChange } from './MergeExonsChange'
 import { SplitExonChange } from './SplitExonChange'
 import { UndoMergeExonsChange } from './UndoMergeExonsChange'
+import { UndoSplitExonChange } from './UndoSplitExonChange'
 import { StrandChange } from './StrandChange'
 import { TypeChange } from './TypeChange'
 import { UserChange } from './UserChange'
@@ -34,6 +35,7 @@ export const changes = {
   MergeExonsChange,
   SplitExonChange,
   UndoMergeExonsChange,
+  UndoSplitExonChange,
   StrandChange,
   TypeChange,
   UserChange,
@@ -55,6 +57,7 @@ export * from './LocationStartChange'
 export * from './MergeExonsChange'
 export * from './SplitExonChange'
 export * from './UndoMergeExonsChange'
+export * from './UndoSplitExonChange'
 export * from './StrandChange'
 export * from './TypeChange'
 export * from './UserChange'

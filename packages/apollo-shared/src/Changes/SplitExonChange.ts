@@ -11,7 +11,7 @@ import {
 } from '@apollo-annotation/common'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { findAndDeleteChildFeature } from './DeleteFeatureChange'
-import { UndoMergeExonsChange } from './UndoMergeExonsChange'
+import { UndoSplitExonChange } from './UndoSplitExonChange'
 
 interface SerializedSplitExonChangeBase extends SerializedFeatureChange {
   typeName: 'SplitExonChange'
@@ -19,7 +19,7 @@ interface SerializedSplitExonChangeBase extends SerializedFeatureChange {
 
 export interface SplitExonChangeDetails {
   exonToBeSplit: AnnotationFeatureSnapshot
-  parentFeatureId?: string
+  parentFeatureId: string
   upstreamCut: number
   downstreamCut: number
   leftExonId: string
@@ -97,13 +97,7 @@ export class SplitExonChange extends FeatureChange {
         logger.error(errMsg)
         throw new Error(errMsg)
       }
-      if (!parentFeatureId) {
-        throw new Error('TODO: Split exon without parent')
-      }
       const tx = this.getFeatureFromId(topLevelFeature, parentFeatureId)
-      if (!parentFeatureId) {
-        throw new Error('TODO: Split exon without parent')
-      }
       if (!tx?.children) {
         throw new Error(
           'ERROR: There should be at least one child (i.e. the exon to be split)',
@@ -199,15 +193,19 @@ export class SplitExonChange extends FeatureChange {
     const { assembly, changedIds, changes, logger } = this
     const inverseChangedIds = [...changedIds].reverse()
     const inverseChanges = [...changes].reverse().map((splitExonChange) => ({
-      exonsToRestore: [splitExonChange.exonToBeSplit],
+      exonToRestore: splitExonChange.exonToBeSplit,
       parentFeatureId: splitExonChange.parentFeatureId,
       idsToDelete: [splitExonChange.leftExonId, splitExonChange.rightExonId],
+      upstreamCut: splitExonChange.upstreamCut,
+      downstreamCut: splitExonChange.downstreamCut,
+      leftExonId: splitExonChange.leftExonId,
+      rightExonId: splitExonChange.rightExonId,
     }))
     logger.debug?.(`INVERSE CHANGE '${JSON.stringify(inverseChanges)}'`)
-    return new UndoMergeExonsChange(
+    return new UndoSplitExonChange(
       {
         changedIds: inverseChangedIds,
-        typeName: 'UndoMergeExonsChange',
+        typeName: 'UndoSplitExonChange',
         changes: inverseChanges,
         assembly,
       },

@@ -81,12 +81,16 @@ export function SplitExon({
     const upstreamCut = Math.floor(midpoint)
     const downstreamCut = Math.ceil(midpoint)
 
+    if (!sourceFeature.parent?._id) {
+      throw new Error('Splitting an exon without parent is not possible yet')
+    }
+
     const change = new SplitExonChange({
       changedIds: [sourceFeature._id],
       typeName: 'SplitExonChange',
       assembly: sourceAssemblyId,
       exonToBeSplit,
-      parentFeatureId: sourceFeature.parent?._id,
+      parentFeatureId: sourceFeature.parent._id,
       upstreamCut,
       downstreamCut,
       leftExonId: new ObjectID().toHexString(),

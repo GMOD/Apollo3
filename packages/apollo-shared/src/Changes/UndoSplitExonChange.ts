@@ -9,50 +9,69 @@ import {
   ServerDataStore,
 } from '@apollo-annotation/common'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { MergeExonsChange } from './MergeExonsChange'
+import { SplitExonChange } from './SplitExonChange'
 
-interface SerializedUndoMergeExonsChangeBase extends SerializedFeatureChange {
-  typeName: 'UndoMergeExonsChange'
+interface SerializedUndoSplitExonChangeBase extends SerializedFeatureChange {
+  typeName: 'UndoSplitExonChange'
 }
 
-export interface UndoMergeExonsChangeDetails {
-  exonsToRestore: AnnotationFeatureSnapshot[]
+export interface UndoSplitExonChangeDetails {
+  exonToRestore: AnnotationFeatureSnapshot
   parentFeatureId: string
-  // idToDelete: string
+  idsToDelete: string[]
+  upstreamCut: number
+  downstreamCut: number
+  leftExonId: string
+  rightExonId: string
 }
 
-interface SerializedUndoMergeExonsChangeSingle
-  extends SerializedUndoMergeExonsChangeBase,
-    UndoMergeExonsChangeDetails {}
+interface SerializedUndoSplitExonChangeSingle
+  extends SerializedUndoSplitExonChangeBase,
+    UndoSplitExonChangeDetails {}
 
-interface SerializedUndoMergeExonsChangeMultiple
-  extends SerializedUndoMergeExonsChangeBase {
-  changes: UndoMergeExonsChangeDetails[]
+interface SerializedUndoSplitExonChangeMultiple
+  extends SerializedUndoSplitExonChangeBase {
+  changes: UndoSplitExonChangeDetails[]
 }
 
-export type SerializedUndoMergeExonsChange =
-  | SerializedUndoMergeExonsChangeSingle
-  | SerializedUndoMergeExonsChangeMultiple
-export class UndoMergeExonsChange extends FeatureChange {
-  typeName = 'UndoMergeExonsChange' as const
-  changes: UndoMergeExonsChangeDetails[]
+export type SerializedUndoSplitExonChange =
+  | SerializedUndoSplitExonChangeSingle
+  | SerializedUndoSplitExonChangeMultiple
+export class UndoSplitExonChange extends FeatureChange {
+  typeName = 'UndoSplitExonChange' as const
+  changes: UndoSplitExonChangeDetails[]
 
-  constructor(json: SerializedUndoMergeExonsChange, options?: ChangeOptions) {
+  constructor(json: SerializedUndoSplitExonChange, options?: ChangeOptions) {
     super(json, options)
     this.changes = 'changes' in json ? json.changes : [json]
   }
 
-  toJSON(): SerializedUndoMergeExonsChange {
+  toJSON(): SerializedUndoSplitExonChange {
     const { assembly, changedIds, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ exonsToRestore, parentFeatureId }] = changes
+      const [
+        {
+          exonToRestore,
+          parentFeatureId,
+          idsToDelete,
+          upstreamCut,
+          downstreamCut,
+          leftExonId,
+          rightExonId,
+        },
+      ] = changes
 
       return {
         typeName,
         changedIds,
         assembly,
-        exonsToRestore,
+        exonToRestore,
         parentFeatureId,
+        idsToDelete,
+        upstreamCut,
+        downstreamCut,
+        leftExonId,
+        rightExonId,
       }
     }
     return { typeName, changedIds, assembly, changes }
@@ -62,12 +81,7 @@ export class UndoMergeExonsChange extends FeatureChange {
     const { featureModel, session } = backend
     const { changes } = this
     for (const change of changes) {
-      const { exonsToRestore, parentFeatureId } = change
-      if (exonsToRestore.length !== 2) {
-        throw new Error(
-          `Expected exactly two exons to restore. Got :${exonsToRestore.length}`,
-        )
-      }
+      const { exonToRestore, parentFeatureId, idsToDelete } = change
       const topLevelFeature = await featureModel
         .findOne({ allIds: parentFeatureId })
         .session(session)
@@ -87,16 +101,12 @@ export class UndoMergeExonsChange extends FeatureChange {
       if (!parentFeature.children) {
         parentFeature.children = new Map()
       }
-      for (const exon of exonsToRestore) {
-        this.addChild(parentFeature, exon)
-        const childIds = this.getChildFeatureIds(exon)
-        topLevelFeature.allIds.push(exon._id, ...childIds)
-      }
-      // if (idToDelete) {
-      //   topLevelFeature.allIds = topLevelFeature.allIds.filter(
-      //     (id) => !idToDelete.includes(id),
-      //   )
-      // }
+      this.addChild(parentFeature, exonToRestore)
+      const childIds = this.getChildFeatureIds(exonToRestore)
+      topLevelFeature.allIds.push(exonToRestore._id, ...childIds)
+      topLevelFeature.allIds = topLevelFeature.allIds.filter(
+        (id) => !idsToDelete.includes(id),
+      )
       await topLevelFeature.save()
     }
   }
@@ -112,7 +122,7 @@ export class UndoMergeExonsChange extends FeatureChange {
     }
     const { changes } = this
     for (const change of changes) {
-      const { exonsToRestore, parentFeatureId } = change
+      const { exonToRestore, parentFeatureId, idsToDelete } = change
       if (!parentFeatureId) {
         throw new Error('Parent ID is missing')
       }
@@ -124,10 +134,10 @@ export class UndoMergeExonsChange extends FeatureChange {
       if (!parentFeature.attributes.get('_id')) {
         parentFeature.setAttribute('_id', [parentFeature._id])
       }
-      for (const exon of exonsToRestore) {
-        parentFeature.addChild(exon)
-      }
-      // parentFeature.deleteChild(idToDelete)
+      parentFeature.addChild(exonToRestore)
+      idsToDelete.map((id) => {
+        parentFeature.deleteChild(id)
+      })
     }
   }
 
@@ -136,16 +146,19 @@ export class UndoMergeExonsChange extends FeatureChange {
     const inverseChangedIds = [...changedIds].reverse()
     const inverseChanges = [...changes]
       .reverse()
-      .map((undoMergeExonsChange) => ({
-        firstExon: undoMergeExonsChange.exonsToRestore[0],
-        secondExon: undoMergeExonsChange.exonsToRestore[1],
-        parentFeatureId: undoMergeExonsChange.parentFeatureId,
+      .map((undoSplitExonChange) => ({
+        parentFeatureId: undoSplitExonChange.parentFeatureId,
+        exonToBeSplit: undoSplitExonChange.exonToRestore,
+        upstreamCut: undoSplitExonChange.upstreamCut,
+        downstreamCut: undoSplitExonChange.downstreamCut,
+        leftExonId: undoSplitExonChange.leftExonId,
+        rightExonId: undoSplitExonChange.rightExonId,
       }))
 
-    return new MergeExonsChange(
+    return new SplitExonChange(
       {
         changedIds: inverseChangedIds,
-        typeName: 'MergeExonsChange',
+        typeName: 'SplitExonChange',
         changes: inverseChanges,
         assembly,
       },
