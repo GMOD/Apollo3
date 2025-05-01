@@ -155,6 +155,8 @@ function codonColorCode(letter: string) {
 }
 
 function reverseCodonSeq(seq: string): string {
+  // disable because sequence is all ascii
+  // eslint-disable-next-line @typescript-eslint/no-misused-spread
   return [...seq]
     .map((c) => revcom(c))
     .reverse()
@@ -272,6 +274,8 @@ export function sequenceRenderingModelFactory(
               if (!seq) {
                 return
               }
+              // disable because sequence is all ascii
+              // eslint-disable-next-line @typescript-eslint/no-misused-spread
               for (const [i, letter] of [...seq].entries()) {
                 const trnslXOffset =
                   (self.lgv.bpToPx({
@@ -413,8 +417,9 @@ export function renderingModelFactory(
             for (const [idx, featureLayout] of featureLayouts.entries()) {
               const displayedRegion = displayedRegions[idx]
               for (const [row, featureLayoutRow] of featureLayout.entries()) {
-                for (const [featureRow, feature] of featureLayoutRow) {
-                  if (featureRow > 0) {
+                for (const [featureRow, featureId] of featureLayoutRow) {
+                  const feature = self.getAnnotationFeatureById(featureId)
+                  if (featureRow > 0 || !feature) {
                     continue
                   }
                   if (

@@ -5,6 +5,8 @@
 const { defineConfig } = require('cypress')
 
 const { configurePlugin } = require('cypress-mongodb')
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const getCompareSnapshotsPlugin = require('cypress-image-diff-js/plugin')
 
 const fs = require('node:fs')
 
@@ -27,6 +29,8 @@ module.exports = defineConfig({
   e2e: {
     baseUrl: 'http://localhost:8999',
     setupNodeEvents(on, config) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      getCompareSnapshotsPlugin(on, config)
       configurePlugin(on)
       on('task', {
         readdirSync(path) {

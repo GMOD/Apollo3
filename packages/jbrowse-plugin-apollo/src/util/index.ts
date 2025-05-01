@@ -29,3 +29,4 @@ export function getApolloInternetAccount(session: ApolloSessionModel) {
 }
 
 export * from './loadAssemblyIntoClient'
+export * from './annotationFeatureUtils'

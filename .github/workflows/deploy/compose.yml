@@ -29,7 +29,7 @@ services:
   client:
     build:
       args:
-        JBROWSE_VERSION: 2.18.0
+        JBROWSE_VERSION: 3.0.3
       context: .
     depends_on:
       - apollo-collaboration-server

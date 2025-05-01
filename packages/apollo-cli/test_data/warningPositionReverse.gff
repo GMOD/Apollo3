@@ -1,0 +1,10 @@
+##gff-version 3
+chr2	.	gene	1	30	.	-	.	ID=gene02
+chr2	.	mRNA	1	30	.	-	.	ID=mrna02;Parent=gene02
+chr2	.	exon	1	5	.	-	0	ID=exon02.1;Parent=mrna02
+chr2	.	exon	18	30	.	-	0	ID=exon02.2;Parent=mrna02
+chr2	.	CDS	1	5	.	-	0	ID=cds02.1;Parent=mrna02
+chr2	.	CDS	18	30	.	-	0	ID=cds02.2;Parent=mrna02
+##FASTA
+>chr2
+TCATCgtagCAAAGaTCATCAAGGGGTCATnnnnnnnnnnnnnnnnnnnnn

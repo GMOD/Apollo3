@@ -21,6 +21,7 @@ import {
 import { LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import connectMongoDBSession from 'connect-mongodb-session'
+import { urlencoded, json } from 'express'
 import session from 'express-session'
 import mongoose from 'mongoose'
 
@@ -92,6 +93,9 @@ async function bootstrap() {
 
   const { httpAdapter } = app.get(HttpAdapterHost)
   app.useGlobalFilters(new GlobalExceptionsFilter(httpAdapter))
+
+  app.use(json({ limit: '50mb' }))
+  app.use(urlencoded({ extended: true, limit: '50mb' }))
 
   app.use(
     session({
