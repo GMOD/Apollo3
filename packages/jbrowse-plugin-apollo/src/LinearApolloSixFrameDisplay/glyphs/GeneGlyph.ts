@@ -364,7 +364,14 @@ function drawHover(
   stateModel: LinearApolloSixFrameDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
-  const { apolloHover, apolloRowHeight, lgv, highestRow, session } = stateModel
+  const {
+    apolloHover,
+    apolloRowHeight,
+    lgv,
+    highestRow,
+    session,
+    showFeatureLabels,
+  } = stateModel
   if (!apolloHover) {
     return
   }
@@ -386,7 +393,8 @@ function drawHover(
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
   const rowHeight = apolloRowHeight
-  const cdsHeight = Math.round(0.7 * rowHeight)
+  const cdsHeight = rowHeight
+  const featureLabelSpacer = showFeatureLabels ? 2 : 1
   const { cdsLocations, strand } = feature
   for (const cdsRow of cdsLocations) {
     let prevCDSTop = 0
@@ -403,9 +411,9 @@ function drawHover(
           })?.offsetPx ?? 0) - offsetPx
         const cdsStartPx = reversed ? minX - cdsWidthPx : minX
         const frame = getFrame(cds.min, cds.max, strand ?? 1, cds.phase)
-        const frameAdjust = frame < 0 ? -1 * frame + 5 : frame
-        const cdsTop =
-          (frameAdjust - 1) * rowHeight + (rowHeight - cdsHeight) / 2
+        const frameAdjust =
+          (frame < 0 ? -1 * frame + 5 : frame) * featureLabelSpacer
+        const cdsTop = (frameAdjust - featureLabelSpacer) * rowHeight
         ctx.fillStyle = 'rgba(255,0,0,0.6)'
         ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
 
@@ -414,7 +422,7 @@ function drawHover(
           const midPoint: [number, number] = [
             (cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx,
             Math.max(
-              frame < 0 ? rowHeight * highestRow + 1 : 1, // Avoid render ceiling
+              frame < 0 ? rowHeight * featureLabelSpacer * highestRow + 1 : 1, // Avoid render ceiling
               Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
             ),
           ]
