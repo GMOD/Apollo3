@@ -171,21 +171,6 @@ export default class ApolloPlugin extends Plugin {
     })
 
     pluginManager.addDisplayType(() => {
-      const configSchema = linearApolloSixFrameDisplayConfigSchema
-      return new DisplayType({
-        name: 'LinearApolloSixFrameDisplay',
-        configSchema,
-        stateModel: LinearApolloSixFrameDisplayStateModelFactory(
-          pluginManager,
-          configSchema,
-        ),
-        trackType: 'ApolloTrack',
-        viewType: 'LinearGenomeView',
-        ReactComponent: LinearApolloSixFrameDisplayComponent,
-      })
-    })
-
-    pluginManager.addDisplayType(() => {
       const configSchema = linearApolloDisplayConfigSchema
       return new DisplayType({
         name: 'LinearApolloDisplay',
@@ -197,6 +182,21 @@ export default class ApolloPlugin extends Plugin {
         trackType: 'ApolloTrack',
         viewType: 'LinearGenomeView',
         ReactComponent: LinearApolloDisplayComponent,
+      })
+    })
+
+    pluginManager.addDisplayType(() => {
+      const configSchema = linearApolloSixFrameDisplayConfigSchema
+      return new DisplayType({
+        name: 'LinearApolloSixFrameDisplay',
+        configSchema,
+        stateModel: LinearApolloSixFrameDisplayStateModelFactory(
+          pluginManager,
+          configSchema,
+        ),
+        trackType: 'ApolloTrack',
+        viewType: 'LinearGenomeView',
+        ReactComponent: LinearApolloSixFrameDisplayComponent,
       })
     })
 

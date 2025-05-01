@@ -10,12 +10,7 @@ import { alpha } from '@mui/material'
 import { MenuItem } from '@jbrowse/core/ui'
 import equal from 'fast-deep-equal/es6'
 
-import {
-  AddChildFeature,
-  CopyFeature,
-  DeleteFeature,
-  ModifyFeatureAttribute,
-} from '../../components'
+import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
 
 import { LinearApolloSixFrameDisplay } from '../stateModel'
 import {
@@ -745,26 +740,6 @@ function getContextMenuItems(
               setSelectedFeature: (feature?: AnnotationFeature) => {
                 display.setSelectedFeature(feature)
               },
-            },
-          ],
-        )
-      },
-    },
-    {
-      label: 'Modify feature attribute',
-      disabled: readOnly,
-      onClick: () => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            ModifyFeatureAttribute,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager,
-              sourceFeature,
-              sourceAssemblyId: currentAssemblyId,
             },
           ],
         )
