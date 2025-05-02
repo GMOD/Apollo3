@@ -231,10 +231,7 @@ export function sequenceRenderingModelFactory(
       addDisposer(
         self,
         autorun(
-          async () => {
-            // TODO: Find better way of forcing autorun to trigger than console.warn
-            console.warn(self.showStartCodons)
-            console.warn(self.showStopCodons)
+          () => {
             const { theme } = self
             if (!self.lgv.initialized || self.regionCannotBeRendered()) {
               return
@@ -289,15 +286,13 @@ export function sequenceRenderingModelFactory(
             }
 
             for (const [idx, region] of self.regions.entries()) {
-              const driver = (
+              const { apolloDataStore } =
                 self.session as unknown as ApolloSessionModel
-              ).apolloDataStore.getBackendDriver(region.assemblyName)
-
-              if (!driver) {
-                throw new Error('Failed to get the backend driver')
-              }
-              const { seq } = await driver.getSequence(region)
-
+              const assembly = apolloDataStore.assemblies.get(
+                region.assemblyName,
+              )
+              const ref = assembly?.getByRefName(region.refName)
+              const seq = ref?.getSequence(region.start, region.end)
               if (!seq) {
                 return
               }
