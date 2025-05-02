@@ -95,7 +95,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const { assemblyManager } = session as unknown as AbstractSessionModel
   return (
     <>
-      {lgv.bpPerPx <= 3 ? (
+      {3 / lgv.bpPerPx >= 1 ? (
         <div
           className={classes.canvasContainer}
           style={{
