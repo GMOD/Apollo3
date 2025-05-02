@@ -18,7 +18,6 @@ interface SerializedUndoMergeExonsChangeBase extends SerializedFeatureChange {
 export interface UndoMergeExonsChangeDetails {
   exonsToRestore: AnnotationFeatureSnapshot[]
   parentFeatureId: string
-  // idToDelete: string
 }
 
 interface SerializedUndoMergeExonsChangeSingle
@@ -92,11 +91,6 @@ export class UndoMergeExonsChange extends FeatureChange {
         const childIds = this.getChildFeatureIds(exon)
         topLevelFeature.allIds.push(exon._id, ...childIds)
       }
-      // if (idToDelete) {
-      //   topLevelFeature.allIds = topLevelFeature.allIds.filter(
-      //     (id) => !idToDelete.includes(id),
-      //   )
-      // }
       await topLevelFeature.save()
     }
   }
@@ -127,7 +121,6 @@ export class UndoMergeExonsChange extends FeatureChange {
       for (const exon of exonsToRestore) {
         parentFeature.addChild(exon)
       }
-      // parentFeature.deleteChild(idToDelete)
     }
   }
 
