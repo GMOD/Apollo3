@@ -21,7 +21,6 @@ import { before, beforeEach, afterEach, describe } from 'node:test'
 import { Shell } from './utils.js'
 import fs from 'node:fs'
 import * as crypto from 'node:crypto'
-import path from 'node:path'
 import { AnnotationFeature } from '@apollo-annotation/mst'
 
 const apollo = 'yarn dev'
@@ -32,7 +31,7 @@ let configFileBak = ''
 void describe('Test CLI', () => {
   before(() => {
     configFile = new Shell(`${apollo} config --get-config-file`).stdout.trim()
-    configFileBak = `${path.basename(configFile)}.bak`
+    configFileBak = `${configFile}.bak`
     if (fs.existsSync(configFileBak)) {
       throw new Error(
         `Backup config file ${configFileBak} already exists. If safe to do so, delete it before testing`,
@@ -460,7 +459,7 @@ void describe('Test CLI', () => {
 
   void globalThis.itName('Detect missing external index', () => {
     const p = new Shell(
-      `${apollo} assembly add-from-fasta ${P} -a vv1 -f https://raw.githubusercontent.com/GMOD/Apollo3/refs/heads/main/packages/apollo-cli/test_data/tiny.fasta`,
+      `${apollo} assembly add-from-fasta ${P} -a vv1 -f http://localhost:3131/tiny.fasta`,
       false,
     )
     assert.ok(p.returncode != 0)
@@ -472,7 +471,7 @@ void describe('Test CLI', () => {
   void globalThis.itName(
     'Editable sequence not allowed with external source',
     () => {
-      const cmd = `${apollo} assembly add-from-fasta ${P} -a vv1 -f https://raw.githubusercontent.com/GMOD/Apollo3/refs/heads/main/packages/apollo-cli/test_data/tiny.fasta.gz`
+      const cmd = `${apollo} assembly add-from-fasta ${P} -a vv1 -f http://localhost:3131/tiny.fasta.gz`
       new Shell(cmd)
 
       const p = new Shell(`${cmd} -e`, false)
@@ -1477,7 +1476,7 @@ void describe('Test CLI', () => {
 
   void globalThis.itName('Export gff3 from external assembly', () => {
     new Shell(
-      `${apollo} assembly add-from-fasta ${P} https://raw.githubusercontent.com/GMOD/Apollo3/refs/heads/main/packages/apollo-cli/test_data/tiny.fasta.gz -a vv1 -f`,
+      `${apollo} assembly add-from-fasta ${P} http://localhost:3131/tiny.fasta.gz -a vv1 -f`,
     )
     new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
     let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
