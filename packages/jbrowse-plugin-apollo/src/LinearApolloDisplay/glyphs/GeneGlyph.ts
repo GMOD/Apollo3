@@ -225,7 +225,6 @@ function draw(
               apolloSelectedFeature && _id === apolloSelectedFeature._id
                 ? 'rgb(0,0,0)'
                 : cdsColorCode
-            ctx.fillStyle = cdsColorCode
             ctx.fillRect(
               cdsStartPx + 1,
               cdsTop + 1,

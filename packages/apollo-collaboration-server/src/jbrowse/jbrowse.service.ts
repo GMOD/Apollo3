@@ -194,16 +194,6 @@ export class JBrowseService {
             },
           },
         },
-        displays: [
-          {
-            type: 'LinearApolloDisplay',
-            displayId: `${trackId}-LinearApolloDisplay`,
-          },
-          {
-            type: 'SixFrameFeatureDisplay',
-            displayId: `${trackId}-SixFrameFeatureDisplay`,
-          },
-        ],
       }
     })
   }

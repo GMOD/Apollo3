@@ -132,6 +132,7 @@ export const Feature = observer(function Feature({
           displayState.setApolloHover({
             feature,
             topLevelFeature: getTopLevelFeature(feature),
+            // @ts-expect-error TODO fix in future when moving hover logic to session.
             glyph: displayState.getGlyph(getTopLevelFeature(feature)),
           })
         }}
