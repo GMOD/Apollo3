@@ -39,7 +39,7 @@ JBrowse files there.
 sudo chown -R $(whoami) /var/www/html/
 cd /var/www/html/
 rm index.html
-curl -fsSL https://github.com/GMOD/jbrowse-components/releases/download/v3.2.0/jbrowse-web-v3.2.0.zip > jbrowse-web.zip
+curl -fsSL https://s3.amazonaws.com/jbrowse.org/code/jb2/latest/jbrowse-web-latest.zip > jbrowse-web.zip
 unzip jbrowse-web.zip
 rm jbrowse-web.zip
 sudo systemctl restart apache2.service
@@ -56,19 +56,27 @@ To add the Apollo plugin, we'll first fetch the plugin source file and place it
 in a file called `apollo.js` in the directory with the other JBrowse files.
 
 ```sh
-curl -fsSL https://registry.npmjs.org/@apollo-annotation/jbrowse-plugin-apollo/-/jbrowse-plugin-apollo-0.3.5.tgz | \
+curl -fsSL https://registry.npmjs.org/@apollo-annotation/jbrowse-plugin-apollo/ > jpa.json
+LATEST_VERSION=$(jq -r '."dist-tags".latest' jpa.json)
+TARBALL_URL=$(jq -r ".versions.\"${LATEST_VERSION}\".dist.tarball" jpa.json)
+curl -fsSL ${TARBALL_URL} | \
   tar --extract --gzip --file=- --strip=2 package/dist/jbrowse-plugin-apollo.umd.production.min.js
 mv jbrowse-plugin-apollo.umd.production.min.js apollo.js
+rm jpa.json
 ```
 
 In order to test that this worked, we'll need to create a temporary JBrowse
-config file. Open the file with
+config file. We'll use the text editor `nano` in this tutorial, but feel free to
+use whatever text editor you like.
+
+First install `nano` and use it to open a file
 
 ```sh
-nano /var/www/html/config.json
+sudo apt install -y nano
+nano config.json
 ```
 
-Then paste or type the following into the file:
+That will open the `nano` editor. Paste or type the following into the file:
 
 ```json
 {
@@ -81,8 +89,11 @@ Then paste or type the following into the file:
 }
 ```
 
-Make sure to save the file, then open the same link as before (or refresh the
-page). You should now see the JBrowse start screen. Choose an "Empty" session.
+To save the file, press <kbd>Ctrl</kbd> + <kbd>O</kbd> and then
+<kbd>Enter</kbd>, and to exit `nano`, press <kbd>Ctrl</kbd> + <kbd>X</kbd>.
+
+Now open the same link as before (or refresh the page). You should now see the
+JBrowse start screen. Choose an "Empty" session.
 
 ![JBrowse start screen](img/jbrowse_start_screen.png)
 
@@ -225,10 +236,12 @@ Now we'll fetch the Apollo installation files.
 
 ```sh
 cd ~
-curl -fsSL https://github.com/GMOD/Apollo3/archive/refs/tags/v0.3.5.tar.gz > apollo.tar.gz
+curl -fsSL https://api.github.com/repos/GMOD/Apollo3/releases/latest > apollo.json
+TARBALL_URL=$(jq -r '.tarball_url' apollo.json)
+curl -fsSL ${TARBALL_URL} > apollo.tar.gz
 tar xvf apollo.tar.gz
-rm apollo.tar.gz
-mv Apollo3-*/ Apollo/
+rm apollo.tar.gz apollo.json
+mv GMOD-Apollo3-*/ Apollo/
 ```
 
 To install Apollo, we'll need the tool `yarn`, which can be enabled through
@@ -242,16 +255,16 @@ Then install and build Apollo by running
 
 ```sh
 cd Apollo/
-yes | yarn
+yarn # Need to answer "Y" to allow Corepack to download yarn
 cd packages/apollo-collaboration-server/
 yarn build
 ```
 
 Now that Apollo is installed, we need to configure it before starting it. We can
 do that by adding a file called `.env` in the
-`packages/apollo-collaboration-server/` directory (e.g. `code .env`) and adding
-these contents to that file. Note that for "URL", you should put the URL for
-your server, followed by `/apollo/`.
+`packages/apollo-collaboration-server/` directory (e.g. by using `nano`) and
+adding these contents to that file. Note that for "URL", you should put the URL
+for your server, followed by `/apollo/`.
 
 ```env
 URL=<forwarded address>/apollo/
