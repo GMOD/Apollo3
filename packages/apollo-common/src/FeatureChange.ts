@@ -116,4 +116,35 @@ export abstract class FeatureChange extends AssemblySpecificChange {
       _id: newId,
     }
   }
+
+  addChild(parentFeature: Feature, child: AnnotationFeatureSnapshot) {
+    if (!parentFeature.attributes?._id) {
+      let { attributes } = parentFeature
+      if (!attributes) {
+        attributes = {}
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      attributes = {
+        _id: [parentFeature._id.toString()],
+        // eslint-disable-next-line unicorn/prefer-structured-clone
+        ...JSON.parse(JSON.stringify(attributes)),
+      }
+      parentFeature.attributes = attributes
+    }
+    const { _id } = child
+    if (!parentFeature.children) {
+      parentFeature.children = new Map()
+    }
+    parentFeature.children.set(_id, {
+      allIds: [],
+      ...child,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      _id,
+    })
+    // Child features should be sorted for click and drag of gene glyphs to work properly
+    parentFeature.children = new Map(
+      [...parentFeature.children.entries()].sort((a, b) => a[1].min - b[1].min),
+    )
+  }
 }
