@@ -1,10 +1,10 @@
-import { AnnotationFeature } from '@apollo-annotation/mst'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
 
-import { LinearApolloDisplay } from '../stateModel'
-import { LinearApolloDisplayRendering } from '../stateModel/rendering'
+import { type LinearApolloDisplay } from '../stateModel'
+import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
 
 import { boxGlyph, drawBox, isSelectedFeature } from './BoxGlyph'
-import { Glyph } from './Glyph'
+import { type Glyph } from './Glyph'
 
 function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
   const features = [[feature]]

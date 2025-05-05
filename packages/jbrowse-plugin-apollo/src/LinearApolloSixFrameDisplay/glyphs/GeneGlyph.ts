@@ -1,8 +1,11 @@
-import { AnnotationFeature, TranscriptPartCoding } from '@apollo-annotation/mst'
-import { MenuItem } from '@jbrowse/core/ui'
 import {
-  AbstractSessionModel,
-  SessionWithWidgets,
+  type AnnotationFeature,
+  type TranscriptPartCoding,
+} from '@apollo-annotation/mst'
+import { type MenuItem } from '@jbrowse/core/ui'
+import {
+  type AbstractSessionModel,
+  type SessionWithWidgets,
   getFrame,
   intersection2,
   isSessionModelWithWidgets,
@@ -11,17 +14,17 @@ import { alpha } from '@mui/material'
 import equal from 'fast-deep-equal/es6'
 
 import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
-import { LinearApolloSixFrameDisplay } from '../stateModel'
+import { type LinearApolloSixFrameDisplay } from '../stateModel'
 import {
-  LinearApolloSixFrameDisplayMouseEvents,
-  MousePosition,
-  MousePositionWithFeatureAndGlyph,
+  type LinearApolloSixFrameDisplayMouseEvents,
+  type MousePosition,
+  type MousePositionWithFeatureAndGlyph,
   isMousePositionWithFeatureAndGlyph,
 } from '../stateModel/mouseEvents'
-import { LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
-import { CanvasMouseEvent } from '../types'
+import { type LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
+import { type CanvasMouseEvent } from '../types'
 
-import { Glyph } from './Glyph'
+import { type Glyph } from './Glyph'
 
 let forwardFillLight: CanvasPattern | null = null
 let backwardFillLight: CanvasPattern | null = null

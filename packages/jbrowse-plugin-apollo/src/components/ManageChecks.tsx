@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
-import { AbstractSessionModel } from '@jbrowse/core/util'
+import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import { type AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
   Checkbox,
@@ -12,7 +12,7 @@ import {
   MenuItem,
   Paper,
   Select,
-  SelectChangeEvent,
+  type SelectChangeEvent,
   Table,
   TableBody,
   TableCell,
@@ -23,13 +23,13 @@ import {
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
-import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import {
-  ApolloInternetAccount,
-  CollaborationServerDriver,
+  type ApolloInternetAccount,
+  type CollaborationServerDriver,
 } from '../BackendDrivers'
-import { ApolloSessionModel } from '../session'
-import { ApolloRootModel } from '../types'
+import { type ApolloSessionModel } from '../session'
+import { type ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import { Dialog } from './Dialog'

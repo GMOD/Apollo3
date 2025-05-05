@@ -1,12 +1,12 @@
-import { AnnotationFeature } from '@apollo-annotation/mst'
-import { MenuItem } from '@jbrowse/core/ui'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
+import { type MenuItem } from '@jbrowse/core/ui'
 
 import {
-  LinearApolloSixFrameDisplayMouseEvents,
-  MousePositionWithFeatureAndGlyph,
+  type LinearApolloSixFrameDisplayMouseEvents,
+  type MousePositionWithFeatureAndGlyph,
 } from '../stateModel/mouseEvents'
-import { LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
-import { CanvasMouseEvent } from '../types'
+import { type LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
+import { type CanvasMouseEvent } from '../types'
 
 export interface Glyph {
   /** draw the feature's primary rendering on the canvas */

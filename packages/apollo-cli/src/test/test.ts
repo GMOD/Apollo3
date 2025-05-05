@@ -21,7 +21,7 @@ import * as crypto from 'node:crypto'
 import fs from 'node:fs'
 import { afterEach, before, beforeEach, describe } from 'node:test'
 
-import { AnnotationFeature } from '@apollo-annotation/mst'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
 
 import { Shell } from './utils.js'
 

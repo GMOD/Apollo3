@@ -1,17 +1,20 @@
 /* eslint-disable @typescript-eslint/require-await */
-import { AssemblySpecificChange, Change } from '@apollo-annotation/common'
 import {
-  AnnotationFeatureSnapshot,
-  CheckResultSnapshot,
+  type AssemblySpecificChange,
+  type Change,
+} from '@apollo-annotation/common'
+import {
+  type AnnotationFeatureSnapshot,
+  type CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 import { ValidationResultSet } from '@apollo-annotation/shared'
 import { getConf } from '@jbrowse/core/configuration'
-import { Region, getSession } from '@jbrowse/core/util'
+import { type Region, getSession } from '@jbrowse/core/util'
 
-import { SubmitOpts } from '../ChangeManager'
+import { type SubmitOpts } from '../ChangeManager'
 import { checkFeatures } from '../util'
 
-import { BackendDriver, RefNameAliases } from './BackendDriver'
+import { BackendDriver, type RefNameAliases } from './BackendDriver'
 
 export class InMemoryFileDriver extends BackendDriver {
   async getFeatures(): Promise<

@@ -3,10 +3,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { ApolloAssembly } from '@apollo-annotation/mst'
+import { type ApolloAssembly } from '@apollo-annotation/mst'
 import { annotationFeatureToGFF3 } from '@apollo-annotation/shared'
-import gff, { GFF3Item } from '@gmod/gff'
-import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import gff, { type GFF3Item } from '@gmod/gff'
+import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import {
   Button,
@@ -15,18 +15,18 @@ import {
   DialogContentText,
   MenuItem,
   Select,
-  SelectChangeEvent,
+  type SelectChangeEvent,
 } from '@mui/material'
 import { saveAs } from 'file-saver'
-import { IMSTMap, getSnapshot } from 'mobx-state-tree'
+import { type IMSTMap, getSnapshot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
 import {
-  ApolloInternetAccount,
-  CollaborationServerDriver,
-  InMemoryFileDriver,
+  type ApolloInternetAccount,
+  type CollaborationServerDriver,
+  type InMemoryFileDriver,
 } from '../BackendDrivers'
-import { ApolloSessionModel } from '../session'
+import { type ApolloSessionModel } from '../session'
 import { createFetchErrorMessage } from '../util'
 
 import { Dialog } from './Dialog'

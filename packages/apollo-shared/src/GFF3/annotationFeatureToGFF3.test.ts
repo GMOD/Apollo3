@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { describe, it } from 'node:test'
 
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { assert } from 'chai'
 
 import { annotationFeatureToGFF3 } from './annotationFeatureToGFF3'

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import {
   AddRefSeqAliasesChange,
-  SerializedRefSeqAliases,
+  type SerializedRefSeqAliases,
 } from '@apollo-annotation/shared'
-import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import {
   Button,
   DialogActions,
@@ -14,17 +14,17 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  SelectChangeEvent,
+  type SelectChangeEvent,
 } from '@mui/material'
-import { DataGrid, GridColDef, GridRowModel } from '@mui/x-data-grid'
+import { DataGrid, type GridColDef, type GridRowModel } from '@mui/x-data-grid'
 import React, { useEffect, useRef, useState } from 'react'
 
 import {
-  ApolloInternetAccount,
-  CollaborationServerDriver,
+  type ApolloInternetAccount,
+  type CollaborationServerDriver,
 } from '../BackendDrivers'
-import { ChangeManager } from '../ChangeManager'
-import { ApolloSessionModel } from '../session'
+import { type ChangeManager } from '../ChangeManager'
+import { type ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
 

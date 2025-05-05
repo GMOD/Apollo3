@@ -12,7 +12,7 @@ import {
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 
-import { ApolloSessionModel } from '../session'
+import { type ApolloSessionModel } from '../session'
 
 const customKeyName = 'Custom'
 const gffKeys: Record<string, string | undefined> = {

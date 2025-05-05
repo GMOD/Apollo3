@@ -1,4 +1,4 @@
-import PluginManager from '@jbrowse/core/PluginManager'
+import type PluginManager from '@jbrowse/core/PluginManager'
 import AdapterType from '@jbrowse/core/pluggableElementTypes/AdapterType'
 
 import ApolloRefNameAliasAdapter from './ApolloRefNameAliasAdapter'

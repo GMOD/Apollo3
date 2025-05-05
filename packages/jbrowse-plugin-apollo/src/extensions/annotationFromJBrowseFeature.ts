@@ -3,19 +3,19 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { gff3ToAnnotationFeature } from '@apollo-annotation/shared'
-import { GFF3Feature } from '@gmod/gff'
-import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
-import DisplayType from '@jbrowse/core/pluggableElementTypes/DisplayType'
-import PluggableElementBase from '@jbrowse/core/pluggableElementTypes/PluggableElementBase'
+import { type GFF3Feature } from '@gmod/gff'
+import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import type DisplayType from '@jbrowse/core/pluggableElementTypes/DisplayType'
+import type PluggableElementBase from '@jbrowse/core/pluggableElementTypes/PluggableElementBase'
 import {
-  AbstractSessionModel,
+  type AbstractSessionModel,
   getContainingView,
   getSession,
 } from '@jbrowse/core/util'
-import { Feature } from '@jbrowse/core/util/simpleFeature'
-import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import { type Feature } from '@jbrowse/core/util/simpleFeature'
+import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
 
 import { CreateApolloAnnotation } from '../components/CreateApolloAnnotation'

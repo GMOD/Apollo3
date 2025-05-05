@@ -7,32 +7,32 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { Change } from '@apollo-annotation/common'
 import {
-  ChangeMessage,
-  CheckResultUpdate,
-  RequestUserInformationMessage,
-  UserLocation,
-  UserLocationMessage,
+  type ChangeMessage,
+  type CheckResultUpdate,
+  type RequestUserInformationMessage,
+  type UserLocation,
+  type UserLocationMessage,
   getDecodedToken,
   makeUserSessionId,
 } from '@apollo-annotation/shared'
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
 import {
-  AbstractSessionModel,
+  type AbstractSessionModel,
   isAbstractMenuManager,
   isElectron,
 } from '@jbrowse/core/util'
 import { autorun } from 'mobx'
-import { Instance, flow, getRoot, types } from 'mobx-state-tree'
+import { type Instance, flow, getRoot, types } from 'mobx-state-tree'
 import { io } from 'socket.io-client'
 
-import { Collaborator } from '../session'
-import { ApolloRootModel } from '../types'
+import { type Collaborator } from '../session'
+import { type ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import { addMenuItems } from './addMenuItems'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
-import { ApolloInternetAccountConfigModel } from './configSchema'
+import { type ApolloInternetAccountConfigModel } from './configSchema'
 
 type AuthType = 'google' | 'microsoft' | 'guest'
 

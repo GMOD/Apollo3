@@ -74,6 +74,10 @@ export default [
       'prefer-template': 'warn',
       radix: 'error',
       // @typescript-eslint/eslint-plugin rules (override recommended)
+      '@typescript-eslint/consistent-type-imports': [
+        'warn',
+        { fixStyle: 'inline-type-imports' },
+      ],
       '@typescript-eslint/no-extraneous-class': [
         'error',
         { allowWithDecorator: true },
@@ -88,8 +92,9 @@ export default [
       ],
       '@typescript-eslint/return-await': 'error',
       // eslint-plugin-import rules
+      'import/consistent-type-specifier-style': ['warn', 'prefer-inline'],
       'import/export': 'error',
-      'import/no-duplicates': 'warn',
+      'import/no-duplicates': ['warn', { 'prefer-inline': true }],
       'import/no-extraneous-dependencies': 'error',
       'import/no-named-as-default': 'warn',
       'import/order': [

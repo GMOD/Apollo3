@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
-import { AbstractSessionModel, Region } from '@jbrowse/core/util/types'
+import {
+  type AbstractSessionModel,
+  type Region,
+} from '@jbrowse/core/util/types'
 import InfoIcon from '@mui/icons-material/Info'
 import {
   Box,
@@ -19,16 +22,16 @@ import {
   Radio,
   RadioGroup,
   Select,
-  SelectChangeEvent,
+  type SelectChangeEvent,
   TextField,
   Tooltip,
 } from '@mui/material'
 import ObjectID from 'bson-objectid'
 import React, { useState } from 'react'
 
-import { ChangeManager } from '../ChangeManager'
+import { type ChangeManager } from '../ChangeManager'
 import { isOntologyClass } from '../OntologyManager'
-import { ApolloSessionModel } from '../session'
+import { type ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
 import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'

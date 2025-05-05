@@ -3,12 +3,12 @@ import * as fs from 'node:fs'
 import path from 'node:path'
 
 import {
-  SerializedAddAssemblyFromExternalChange,
-  SerializedAddAssemblyFromFileChange,
+  type SerializedAddAssemblyFromExternalChange,
+  type SerializedAddAssemblyFromFileChange,
 } from '@apollo-annotation/shared'
 import { Args, Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
-import { Response } from 'undici'
+import { type Response } from 'undici'
 
 import { FileCommand } from '../../fileCommand.js'
 import { queryApollo, submitAssembly } from '../../utils.js'

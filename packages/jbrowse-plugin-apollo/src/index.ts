@@ -10,25 +10,25 @@ import {
   validationRegistry,
 } from '@apollo-annotation/shared'
 import Plugin from '@jbrowse/core/Plugin'
-import PluginManager from '@jbrowse/core/PluginManager'
+import type PluginManager from '@jbrowse/core/PluginManager'
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import {
   DisplayType,
   InternetAccountType,
-  PluggableElementType,
+  type PluggableElementType,
   TrackType,
-  ViewType,
+  type ViewType,
   WidgetType,
   createBaseTrackConfig,
   createBaseTrackModel,
 } from '@jbrowse/core/pluggableElementTypes'
 import {
-  AbstractSessionModel,
-  Region,
+  type AbstractSessionModel,
+  type Region,
   getSession,
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
-import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
+import { type LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
 
 import { version } from '../package.json'
@@ -40,7 +40,7 @@ import {
 import { installApolloRefNameAliasAdapter } from './ApolloRefNameAliasAdapter'
 import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
 import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
-import { BackendDriver } from './BackendDrivers'
+import { type BackendDriver } from './BackendDrivers'
 import {
   ApolloFeatureDetailsWidget,
   ApolloFeatureDetailsWidgetModel,
@@ -73,7 +73,7 @@ import {
   LinearApolloDisplayComponent,
   LinearApolloSixFrameDisplayComponent,
 } from './makeDisplayComponent'
-import { ApolloSessionModel, extendSession } from './session'
+import { type ApolloSessionModel, extendSession } from './session'
 
 interface RpcHandle {
   on(event: string, listener: (event: MessageEvent) => void): this

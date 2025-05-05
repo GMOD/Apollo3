@@ -1,16 +1,16 @@
 /* eslint-disable unicorn/no-nested-ternary */
 /* eslint-disable @typescript-eslint/unbound-method */
 
-import { AnnotationFeature } from '@apollo-annotation/mst'
-import { AbstractSessionModel } from '@jbrowse/core/util'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
+import { type AbstractSessionModel } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { isOntologyClass } from '../../OntologyManager'
-import OntologyStore from '../../OntologyManager/OntologyStore'
+import type OntologyStore from '../../OntologyManager/OntologyStore'
 import { OntologyTermAutocomplete } from '../../components/OntologyTermAutocomplete'
-import { DisplayStateModel } from '../types'
+import { type DisplayStateModel } from '../types'
 
 import {
   handleFeatureEndChange,
@@ -18,7 +18,7 @@ import {
   handleFeatureTypeChange,
 } from './ChangeHandling'
 import { FeatureAttributes } from './FeatureAttributes'
-import type { ContextMenuState } from './HybridGrid'
+import { type ContextMenuState } from './HybridGrid'
 import { NumberCell } from './NumberCell'
 import { featureContextMenuItems } from './featureContextMenuItems'
 

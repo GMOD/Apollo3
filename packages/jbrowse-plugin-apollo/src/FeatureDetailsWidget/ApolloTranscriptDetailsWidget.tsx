@@ -1,6 +1,10 @@
-import { AnnotationFeature } from '@apollo-annotation/mst'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
 import styled from '@emotion/styled'
-import { AbstractSessionModel, getEnv, getSession } from '@jbrowse/core/util'
+import {
+  type AbstractSessionModel,
+  getEnv,
+  getSession,
+} from '@jbrowse/core/util'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import InfoIcon from '@mui/icons-material/Info'
 import {
@@ -15,15 +19,15 @@ import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
-import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { ApolloSessionModel } from '../session'
-import { ApolloRootModel } from '../types'
+import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { type ApolloSessionModel } from '../session'
+import { type ApolloRootModel } from '../types'
 
 import { Attributes } from './Attributes'
 import { TranscriptSequence } from './TranscriptSequence'
 import { TranscriptWidgetEditLocation } from './TranscriptWidgetEditLocation'
 import { TranscriptWidgetSummary } from './TranscriptWidgetSummary'
-import { ApolloTranscriptDetailsWidget as ApolloTranscriptDetailsWidgetState } from './model'
+import { type ApolloTranscriptDetailsWidget as ApolloTranscriptDetailsWidgetState } from './model'
 
 interface CustomComponentProps {
   session: AbstractSessionModel

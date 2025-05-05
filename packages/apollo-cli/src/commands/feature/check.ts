@@ -1,6 +1,6 @@
 import {
-  ApolloAssemblySnapshot,
-  CheckResultSnapshot,
+  type ApolloAssemblySnapshot,
+  type CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 import { Flags } from '@oclif/core'
 import { fetch } from 'undici'

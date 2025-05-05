@@ -5,13 +5,16 @@
 import { checkAbortSignal } from '@jbrowse/core/util/aborting'
 import jsonpath from 'jsonpath'
 
-import { TextIndexFieldDefinition } from '..'
+import { type TextIndexFieldDefinition } from '..'
 
 import { stopwords } from './fulltext-stopwords'
-import { OntologyDBNode } from './indexeddb-schema'
+import { type OntologyDBNode } from './indexeddb-schema'
 import { applyPrefixes } from './prefixes'
 
-import OntologyStore, { Transaction } from '.'
+// eslint-disable-next-line import/no-duplicates
+import type OntologyStore from '.'
+// eslint-disable-next-line import/no-duplicates
+import { type Transaction } from '.'
 
 /** special value of jsonPath that gets the IRI (that is, ID) of the node with the configured prefixes applied */
 export const PREFIXED_ID_PATH = '$PREFIXED_ID'

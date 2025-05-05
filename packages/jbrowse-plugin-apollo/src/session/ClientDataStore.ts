@@ -2,24 +2,27 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
+import { type ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
 import {
-  AnnotationFeatureModel,
-  AnnotationFeatureSnapshot,
+  type AnnotationFeatureModel,
+  type AnnotationFeatureSnapshot,
   ApolloAssembly,
-  ApolloAssemblySnapshot,
+  type ApolloAssemblySnapshot,
   ApolloRefSeq,
-  BackendDriverType,
+  type BackendDriverType,
   CheckResult,
-  CheckResultSnapshot,
+  type CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 import { getConf, readConfObject } from '@jbrowse/core/configuration'
-import { ConfigurationModel } from '@jbrowse/core/configuration/types'
-import { Region, getSession, isElectron } from '@jbrowse/core/util'
-import { LocalPathLocation, UriLocation } from '@jbrowse/core/util/types/mst'
+import { type ConfigurationModel } from '@jbrowse/core/configuration/types'
+import { type Region, getSession, isElectron } from '@jbrowse/core/util'
+import {
+  type LocalPathLocation,
+  type UriLocation,
+} from '@jbrowse/core/util/types/mst'
 import { autorun } from 'mobx'
 import {
-  Instance,
+  type Instance,
   addDisposer,
   flow,
   getParentOfType,
@@ -29,7 +32,7 @@ import {
 } from 'mobx-state-tree'
 
 import {
-  ApolloInternetAccount,
+  type ApolloInternetAccount,
   CollaborationServerDriver,
   DesktopFileDriver,
   InMemoryFileDriver,
@@ -37,13 +40,13 @@ import {
 import { ChangeManager } from '../ChangeManager'
 import {
   OntologyManagerType,
-  OntologyRecordConfiguration,
-  TextIndexFieldDefinition,
+  type OntologyRecordConfiguration,
+  type TextIndexFieldDefinition,
 } from '../OntologyManager'
-import ApolloPluginConfigurationSchema from '../config'
-import { ApolloRootModel } from '../types'
+import type ApolloPluginConfigurationSchema from '../config'
+import { type ApolloRootModel } from '../types'
 
-import { ApolloSessionModel } from './session'
+import { type ApolloSessionModel } from './session'
 
 export function clientDataStoreFactory(
   AnnotationFeatureExtended: typeof AnnotationFeatureModel,

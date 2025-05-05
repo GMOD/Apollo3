@@ -1,21 +1,21 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
-  AnnotationFeature,
-  AnnotationFeatureSnapshot,
-  ApolloAssemblyI,
-  BackendDriverType,
-  CheckResultI,
-  CheckResultSnapshot,
+  type AnnotationFeature,
+  type AnnotationFeatureSnapshot,
+  type ApolloAssemblyI,
+  type BackendDriverType,
+  type CheckResultI,
+  type CheckResultSnapshot,
 } from '@apollo-annotation/mst'
-import { AppRootModel, Region } from '@jbrowse/core/util'
+import { type AppRootModel, type Region } from '@jbrowse/core/util'
 
 import { changeRegistry } from './ChangeTypeRegistry'
 import {
-  BackendDataStore,
+  type BackendDataStore,
   Operation,
-  OperationOptions,
-  SerializedOperation,
+  type OperationOptions,
+  type SerializedOperation,
 } from './Operation'
 
 export interface ClientDataStore {

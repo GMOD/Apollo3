@@ -1,17 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 
-import { AnnotationFeature, TranscriptPartCoding } from '@apollo-annotation/mst'
-import PluginManager from '@jbrowse/core/PluginManager'
-import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import {
-  AbstractSessionModel,
+  type AnnotationFeature,
+  type TranscriptPartCoding,
+} from '@apollo-annotation/mst'
+import type PluginManager from '@jbrowse/core/PluginManager'
+import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
+import {
+  type AbstractSessionModel,
   doesIntersect2,
   getFrame,
 } from '@jbrowse/core/util'
 import { autorun, observable } from 'mobx'
 import { addDisposer, isAlive } from 'mobx-state-tree'
 
-import { ApolloSessionModel } from '../../session'
+import { type ApolloSessionModel } from '../../session'
 import { geneGlyph } from '../glyphs'
 
 import { baseModelFactory } from './base'

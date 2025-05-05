@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/require-await */
 import {
   Change,
-  ChangeOptions,
-  ClientDataStore,
-  LocalGFF3DataStore,
-  ServerDataStore,
+  type ChangeOptions,
+  type ClientDataStore,
+  type LocalGFF3DataStore,
+  type ServerDataStore,
 } from '@apollo-annotation/common'
 
 interface JBrowseAssembly {

@@ -2,7 +2,7 @@ import * as fs from 'node:fs'
 
 import { type SerializedRefSeqAliasesChange } from '@apollo-annotation/shared'
 import { Args, Flags } from '@oclif/core'
-import { Agent, RequestInit, Response, fetch } from 'undici'
+import { Agent, type RequestInit, type Response, fetch } from 'undici'
 
 import { ConfigError } from '../../ApolloConf.js'
 import { BaseCommand } from '../../baseCommand.js'

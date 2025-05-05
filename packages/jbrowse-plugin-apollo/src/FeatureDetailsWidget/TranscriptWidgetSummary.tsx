@@ -1,4 +1,4 @@
-import { AnnotationFeature } from '@apollo-annotation/mst'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
 import styled from '@emotion/styled'
 import { Table, TableBody, TableCell, TableRow } from '@mui/material'
 import { observer } from 'mobx-react'

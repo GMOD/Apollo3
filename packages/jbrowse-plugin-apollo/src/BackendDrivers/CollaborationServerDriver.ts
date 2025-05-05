@@ -4,22 +4,25 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { AssemblySpecificChange, Change } from '@apollo-annotation/common'
+import { type AssemblySpecificChange, Change } from '@apollo-annotation/common'
 import {
-  AnnotationFeatureSnapshot,
-  ApolloRefSeqI,
-  CheckResultSnapshot,
+  type AnnotationFeatureSnapshot,
+  type ApolloRefSeqI,
+  type CheckResultSnapshot,
 } from '@apollo-annotation/mst'
-import { ChangeMessage, ValidationResultSet } from '@apollo-annotation/shared'
+import {
+  type ChangeMessage,
+  ValidationResultSet,
+} from '@apollo-annotation/shared'
 import { getConf } from '@jbrowse/core/configuration'
-import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
-import { Region, getSession } from '@jbrowse/core/util'
-import { Socket } from 'socket.io-client'
+import { type BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
+import { type Region, getSession } from '@jbrowse/core/util'
+import { type Socket } from 'socket.io-client'
 
-import { ChangeManager, SubmitOpts } from '../ChangeManager'
+import { ChangeManager, type SubmitOpts } from '../ChangeManager'
 import { createFetchErrorMessage } from '../util'
 
-import { BackendDriver, RefNameAliases } from './BackendDriver'
+import { BackendDriver, type RefNameAliases } from './BackendDriver'
 
 export interface ApolloRefSeqResponse {
   _id: string

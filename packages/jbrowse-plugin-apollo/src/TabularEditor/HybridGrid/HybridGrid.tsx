@@ -1,10 +1,10 @@
-import { Menu, MenuItem } from '@jbrowse/core/ui'
+import { Menu, type MenuItem } from '@jbrowse/core/ui'
 import { useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
-import { DisplayStateModel } from '../types'
+import { type DisplayStateModel } from '../types'
 
 import { Feature } from './Feature'
 

@@ -1,10 +1,10 @@
 import * as fs from 'node:fs'
 import path from 'node:path'
 
-import type {
-  SerializedAddAssemblyAndFeaturesFromFileChange,
-  SerializedAddAssemblyFromExternalChange,
-  SerializedAddAssemblyFromFileChange,
+import {
+  type SerializedAddAssemblyAndFeaturesFromFileChange,
+  type SerializedAddAssemblyFromExternalChange,
+  type SerializedAddAssemblyFromFileChange,
 } from '@apollo-annotation/shared'
 import { Args, Flags } from '@oclif/core'
 import { ObjectId } from 'bson'

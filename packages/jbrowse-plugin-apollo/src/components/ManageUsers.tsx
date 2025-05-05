@@ -6,7 +6,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { DeleteUserChange, UserChange } from '@apollo-annotation/shared'
-import { AbstractRootModel } from '@jbrowse/core/util'
+import { type AbstractRootModel } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Button,
@@ -15,24 +15,24 @@ import {
   DialogContentText,
   MenuItem,
   Select,
-  SelectChangeEvent,
+  type SelectChangeEvent,
 } from '@mui/material'
 import {
   DataGrid,
   GridActionsCellItem,
-  GridCellParams,
-  GridColDef,
-  GridRowId,
-  GridRowModel,
-  GridRowParams,
+  type GridCellParams,
+  type GridColDef,
+  type GridRowId,
+  type GridRowModel,
+  type GridRowParams,
   GridToolbar,
 } from '@mui/x-data-grid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useCallback, useEffect, useState } from 'react'
 
-import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { ChangeManager } from '../ChangeManager'
-import { ApolloSessionModel } from '../session'
+import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { type ChangeManager } from '../ChangeManager'
+import { type ApolloSessionModel } from '../session'
 import { createFetchErrorMessage } from '../util'
 
 import { Dialog } from './Dialog'

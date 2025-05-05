@@ -5,7 +5,7 @@ import {
   type SerializedImportJBrowseConfigChange,
 } from '@apollo-annotation/shared'
 import { Args } from '@oclif/core'
-import { Agent, RequestInit, fetch } from 'undici'
+import { Agent, type RequestInit, fetch } from 'undici'
 
 import { ConfigError } from '../../ApolloConf.js'
 import { BaseCommand } from '../../baseCommand.js'

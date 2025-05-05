@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { DeleteAssemblyChange } from '@apollo-annotation/shared'
-import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import {
   Button,
   Checkbox,
@@ -12,19 +12,19 @@ import {
   FormGroup,
   MenuItem,
   Select,
-  SelectChangeEvent,
+  type SelectChangeEvent,
 } from '@mui/material'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
-import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import {
-  ApolloInternetAccount,
-  CollaborationServerDriver,
+  type ApolloInternetAccount,
+  type CollaborationServerDriver,
 } from '../BackendDrivers'
-import { ChangeManager } from '../ChangeManager'
-import { ApolloSessionModel } from '../session'
-import { ApolloRootModel } from '../types'
+import { type ChangeManager } from '../ChangeManager'
+import { type ApolloSessionModel } from '../session'
+import { type ApolloRootModel } from '../types'
 
 import { Dialog } from './Dialog'
 

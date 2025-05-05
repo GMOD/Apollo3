@@ -1,15 +1,15 @@
 import { readConfObject } from '@jbrowse/core/configuration'
 import {
   BaseAdapter,
-  BaseRefNameAliasAdapter,
+  type BaseRefNameAliasAdapter,
 } from '@jbrowse/core/data_adapters/BaseAdapter'
-import RpcServer from 'librpc-web-mod/dist/server'
+import type RpcServer from 'librpc-web-mod/dist/server'
 import { nanoid } from 'nanoid'
 
-import { BackendDriver } from '../BackendDrivers'
-import { ApolloSessionModel } from '../session'
+import { type BackendDriver } from '../BackendDrivers'
+import { type ApolloSessionModel } from '../session'
 
-import { RefNameAliases } from './../BackendDrivers/BackendDriver'
+import { type RefNameAliases } from './../BackendDrivers/BackendDriver'
 
 declare global {
   const rpcServer: RpcServer

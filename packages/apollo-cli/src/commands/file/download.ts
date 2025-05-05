@@ -2,7 +2,7 @@ import { createWriteStream } from 'node:fs'
 import { Writable } from 'node:stream'
 
 import { Flags } from '@oclif/core'
-import { Response } from 'undici'
+import { type Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import { filterJsonList, idReader, queryApollo } from '../../utils.js'

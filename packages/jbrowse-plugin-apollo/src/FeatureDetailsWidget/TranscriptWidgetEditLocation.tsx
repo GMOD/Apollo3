@@ -3,14 +3,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { AnnotationFeature, TranscriptPart } from '@apollo-annotation/mst'
+import {
+  type AnnotationFeature,
+  type TranscriptPart,
+} from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
 } from '@apollo-annotation/shared'
 import styled from '@emotion/styled'
 import {
-  AbstractSessionModel,
+  type AbstractSessionModel,
   defaultCodonTable,
   revcom,
 } from '@jbrowse/core/util'
@@ -29,7 +32,7 @@ import {
 import { observer } from 'mobx-react'
 import React, { useRef } from 'react'
 
-import { ApolloSessionModel } from '../session'
+import { type ApolloSessionModel } from '../session'
 
 import { StyledAccordionSummary } from './ApolloTranscriptDetailsWidget'
 import { NumberTextField } from './NumberTextField'

@@ -13,21 +13,21 @@ import {
   DialogContentText,
   MenuItem,
   Select,
-  SelectChangeEvent,
+  type SelectChangeEvent,
 } from '@mui/material'
 import {
   DataGrid,
-  GridColDef,
-  GridRowsProp,
+  type GridColDef,
+  type GridRowsProp,
   GridToolbar,
 } from '@mui/x-data-grid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
-import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { ApolloSessionModel } from '../session'
-import { ApolloRootModel } from '../types'
+import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { type ApolloSessionModel } from '../session'
+import { type ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import { Dialog } from './Dialog'

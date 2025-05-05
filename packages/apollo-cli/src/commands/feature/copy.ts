@@ -1,8 +1,8 @@
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { SerializedAddFeatureChange } from '@apollo-annotation/shared'
+import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import { type SerializedAddFeatureChange } from '@apollo-annotation/shared'
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
-import { Response, fetch } from 'undici'
+import { type Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {

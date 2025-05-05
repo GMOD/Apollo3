@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { ApolloAssemblySnapshot } from '@apollo-annotation/mst'
+import { type ApolloAssemblySnapshot } from '@apollo-annotation/mst'
 import { Flags } from '@oclif/core'
-import { Response, fetch } from 'undici'
+import { type Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {

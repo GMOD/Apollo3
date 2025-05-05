@@ -6,7 +6,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { AddFeaturesFromFileChange } from '@apollo-annotation/shared'
-import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import {
   Button,
@@ -15,7 +15,7 @@ import {
   DialogContentText,
   MenuItem,
   Select,
-  SelectChangeEvent,
+  type SelectChangeEvent,
 } from '@mui/material'
 import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
@@ -23,11 +23,11 @@ import LinearProgress from '@mui/material/LinearProgress'
 import React, { useEffect, useState } from 'react'
 
 import {
-  ApolloInternetAccount,
-  CollaborationServerDriver,
+  type ApolloInternetAccount,
+  type CollaborationServerDriver,
 } from '../BackendDrivers'
-import { ChangeManager } from '../ChangeManager'
-import { ApolloSessionModel } from '../session'
+import { type ChangeManager } from '../ChangeManager'
+import { type ApolloSessionModel } from '../session'
 import { createFetchErrorMessage } from '../util'
 
 import { Dialog } from './Dialog'

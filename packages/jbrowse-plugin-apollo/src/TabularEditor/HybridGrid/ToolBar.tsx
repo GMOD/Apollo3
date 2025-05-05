@@ -6,7 +6,7 @@ import { observer } from 'mobx-react'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'
 
-import { DisplayStateModel } from '../types'
+import { type DisplayStateModel } from '../types'
 
 const useStyles = makeStyles()({
   toolbar: {

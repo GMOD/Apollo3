@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { type SerializedAddFeatureChange } from '@apollo-annotation/shared'
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
-import { Response, fetch } from 'undici'
+import { type Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {

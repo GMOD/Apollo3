@@ -2,29 +2,33 @@
 
 /* eslint-disable unicorn/no-await-expression-member */
 import {
-  BlobLocation,
-  LocalPathLocation,
-  UriLocation,
+  type BlobLocation,
+  type LocalPathLocation,
+  type UriLocation,
   isLocalPathLocation,
   isUriLocation,
 } from '@jbrowse/core/util'
 import {
-  IDBPTransaction,
-  IndexNames,
-  StoreNames,
+  type IDBPTransaction,
+  type IndexNames,
+  type StoreNames,
   deleteDB,
 } from 'idb/with-async-ittr'
 
 import {
-  OntologyClass,
-  OntologyProperty,
-  OntologyTerm,
+  type OntologyClass,
+  type OntologyProperty,
+  type OntologyTerm,
   isOntologyClass,
   isOntologyProperty,
 } from '..'
 
 import { textSearch } from './fulltext'
-import { OntologyDB, OntologyDBEdge, isDeprecated } from './indexeddb-schema'
+import {
+  type OntologyDB,
+  type OntologyDBEdge,
+  isDeprecated,
+} from './indexeddb-schema'
 import {
   getTextIndexFields,
   isDatabaseCurrent,
