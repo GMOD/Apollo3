@@ -1,4 +1,4 @@
-import { UserDocument, User as UserSchema } from '@apollo-annotation/schemas'
+import { User as UserSchema, UserDocument } from '@apollo-annotation/schemas'
 import {
   DecodedJWT,
   RequestUserInformationMessage,
@@ -13,6 +13,7 @@ import { Model } from 'mongoose'
 import { MessagesGateway } from '../messages/messages.gateway'
 import { GUEST_USER_EMAIL, GUEST_USER_NAME } from '../utils/constants'
 import { Role } from '../utils/role/role.enum'
+
 import { CreateUserDto, UserLocationDto } from './dto/create-user.dto'
 
 export interface User {

@@ -13,7 +13,7 @@ import { fetch } from 'undici'
 import { ApolloConf, KEYS } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
 import {
-  UserCredentials,
+  type UserCredentials,
   basicCheckConfig,
   createFetchErrorMessage,
   localhostToAddress,

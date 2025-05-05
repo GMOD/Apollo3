@@ -1,7 +1,14 @@
-import { ClientDataStore, checkRegistry } from '@apollo-annotation/common'
-import { ApolloAssemblyI, CheckResultSnapshot } from '@apollo-annotation/mst'
+import { type ClientDataStore, checkRegistry } from '@apollo-annotation/common'
+import {
+  type ApolloAssemblyI,
+  type CheckResultSnapshot,
+} from '@apollo-annotation/mst'
 import { gff3ToAnnotationFeature } from '@apollo-annotation/shared'
-import gff, { GFF3Comment, GFF3Feature, GFF3Sequence } from '@gmod/gff'
+import gff, {
+  type GFF3Comment,
+  type GFF3Feature,
+  type GFF3Sequence,
+} from '@gmod/gff'
 import { getSnapshot } from 'mobx-state-tree'
 
 export async function loadAssemblyIntoClient(

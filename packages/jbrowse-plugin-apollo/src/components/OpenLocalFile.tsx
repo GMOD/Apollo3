@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AbstractSessionModel, isElectron } from '@jbrowse/core/util'
+import { type AbstractSessionModel, isElectron } from '@jbrowse/core/util'
 import {
   Button,
   DialogActions,
@@ -16,9 +16,10 @@ import {
 import { nanoid } from 'nanoid'
 import React, { useState } from 'react'
 
-import { InMemoryFileDriver } from '../BackendDrivers'
-import { ApolloSessionModel } from '../session'
+import { type InMemoryFileDriver } from '../BackendDrivers'
+import { type ApolloSessionModel } from '../session'
 import { loadAssemblyIntoClient } from '../util'
+
 import { Dialog } from './Dialog'
 
 interface OpenLocalFileProps {

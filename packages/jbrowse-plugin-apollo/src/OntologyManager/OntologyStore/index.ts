@@ -2,34 +2,39 @@
 
 /* eslint-disable unicorn/no-await-expression-member */
 import {
-  BlobLocation,
-  LocalPathLocation,
-  UriLocation,
+  type BlobLocation,
+  type LocalPathLocation,
+  type UriLocation,
   isLocalPathLocation,
   isUriLocation,
 } from '@jbrowse/core/util'
 import {
+  type IDBPTransaction,
+  type IndexNames,
+  type StoreNames,
   deleteDB,
-  IDBPTransaction,
-  IndexNames,
-  StoreNames,
 } from 'idb/with-async-ittr'
 
+import {
+  type OntologyClass,
+  type OntologyProperty,
+  type OntologyTerm,
+  isOntologyClass,
+  isOntologyProperty,
+} from '..'
+
 import { textSearch } from './fulltext'
-import { OntologyDB, OntologyDBEdge, isDeprecated } from './indexeddb-schema'
+import {
+  type OntologyDB,
+  type OntologyDBEdge,
+  isDeprecated,
+} from './indexeddb-schema'
 import {
   getTextIndexFields,
   isDatabaseCurrent,
   loadOboGraphJson,
   openDatabase,
 } from './indexeddb-storage'
-import {
-  OntologyClass,
-  OntologyProperty,
-  OntologyTerm,
-  isOntologyClass,
-  isOntologyProperty,
-} from '..'
 
 export type SourceLocation = UriLocation | LocalPathLocation | BlobLocation
 

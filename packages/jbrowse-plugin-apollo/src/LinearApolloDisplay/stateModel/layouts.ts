@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 
-import { AnnotationFeature } from '@apollo-annotation/mst'
-import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
-import PluginManager from '@jbrowse/core/PluginManager'
-import { AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type PluginManager from '@jbrowse/core/PluginManager'
+import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
+import { type AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
 import { autorun, observable } from 'mobx'
 import { addDisposer, isAlive } from 'mobx-state-tree'
 
-import { ApolloSessionModel } from '../../session'
-import { baseModelFactory } from './base'
+import { type ApolloSessionModel } from '../../session'
 import { boxGlyph, geneGlyph, genericChildGlyph } from '../glyphs'
+
+import { baseModelFactory } from './base'
 
 function getRowsForFeature(
   startingRow: number,

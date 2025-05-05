@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { createWriteStream } from 'node:fs'
 import {
-  FileHandle,
+  type FileHandle,
   mkdir,
   mkdtemp,
   open,
@@ -9,14 +9,18 @@ import {
   rmdir,
 } from 'node:fs/promises'
 import path from 'node:path'
-import { Readable } from 'node:stream'
+import { type Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { promisify } from 'node:util'
 import { createGzip, gunzip } from 'node:zlib'
 
-import { Logger } from '@nestjs/common'
-import { Request } from 'express'
-import { GenericFilehandle, FilehandleOptions, Stats } from 'generic-filehandle'
+import { type Logger } from '@nestjs/common'
+import { type Request } from 'express'
+import {
+  type FilehandleOptions,
+  type GenericFilehandle,
+  type Stats,
+} from 'generic-filehandle'
 
 interface FileUpload {
   originalname: string
