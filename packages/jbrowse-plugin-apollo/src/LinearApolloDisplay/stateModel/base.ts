@@ -4,10 +4,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { AnnotationFeature } from '@apollo-annotation/mst'
+import PluginManager from '@jbrowse/core/PluginManager'
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
-import PluginManager from '@jbrowse/core/PluginManager'
 import {
   AbstractSessionModel,
   getContainingView,
@@ -17,12 +17,12 @@ import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { autorun } from 'mobx'
-import { addDisposer, cast, getRoot, types, getSnapshot } from 'mobx-state-tree'
+import { addDisposer, cast, getRoot, getSnapshot, types } from 'mobx-state-tree'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
+import { FilterFeatures } from '../../components/FilterFeatures'
 import { ApolloSessionModel } from '../../session'
 import { ApolloRootModel } from '../../types'
-import { FilterFeatures } from '../../components/FilterFeatures'
 
 const minDisplayHeight = 20
 

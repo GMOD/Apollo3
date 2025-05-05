@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+import { getSession } from '@jbrowse/core/util'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Alert, Typography, alpha } from '@mui/material'
@@ -11,8 +12,6 @@ import { LinearApolloDisplay as LinearApolloDisplayI } from './LinearApolloDispl
 import { LinearApolloSixFrameDisplay } from './LinearApolloSixFrameDisplay/components'
 import { LinearApolloSixFrameDisplay as LinearApolloSixFrameDisplayI } from './LinearApolloSixFrameDisplay/stateModel'
 import { TabularEditorPane } from './TabularEditor'
-
-import { getSession } from '@jbrowse/core/util'
 import { ApolloSessionModel } from './session'
 
 const accordionControlHeight = 12

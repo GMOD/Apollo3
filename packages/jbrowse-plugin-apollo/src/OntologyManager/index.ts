@@ -17,11 +17,13 @@ import {
   getSnapshot,
   types,
 } from 'mobx-state-tree'
+
+import ApolloPluginConfigurationSchema from '../config'
+import { ApolloRootModel } from '../types'
+
 import OntologyStore, { OntologyStoreOptions } from './OntologyStore'
 import { OntologyDBNode } from './OntologyStore/indexeddb-schema'
 import { applyPrefixes, expandPrefixes } from './OntologyStore/prefixes'
-import ApolloPluginConfigurationSchema from '../config'
-import { ApolloRootModel } from '../types'
 
 export { isDeprecated } from './OntologyStore/indexeddb-schema'
 

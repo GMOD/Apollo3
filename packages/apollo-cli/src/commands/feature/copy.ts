@@ -1,3 +1,5 @@
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import { SerializedAddFeatureChange } from '@apollo-annotation/shared'
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 import { Response, fetch } from 'undici'
@@ -10,8 +12,6 @@ import {
   getRefseqId,
   localhostToAddress,
 } from '../../utils.js'
-import { SerializedAddFeatureChange } from '@apollo-annotation/shared'
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 export default class Copy extends BaseCommand<typeof Copy> {
   static summary = 'Copy a feature to another location'

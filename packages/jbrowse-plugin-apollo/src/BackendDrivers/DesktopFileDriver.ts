@@ -9,8 +9,8 @@ import {
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 import {
-  annotationFeatureToGFF3,
   ValidationResultSet,
+  annotationFeatureToGFF3,
   splitStringIntoChunks,
 } from '@apollo-annotation/shared'
 import gff, { GFF3Item } from '@gmod/gff'
@@ -19,6 +19,7 @@ import { Region, getSession } from '@jbrowse/core/util'
 import { getSnapshot } from 'mobx-state-tree'
 
 import { checkFeatures, loadAssemblyIntoClient } from '../util'
+
 import { BackendDriver, RefNameAliases } from './BackendDriver'
 
 export class DesktopFileDriver extends BackendDriver {

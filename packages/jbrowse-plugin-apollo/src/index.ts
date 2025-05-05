@@ -9,6 +9,8 @@ import {
   changes,
   validationRegistry,
 } from '@apollo-annotation/shared'
+import Plugin from '@jbrowse/core/Plugin'
+import PluginManager from '@jbrowse/core/PluginManager'
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import {
   DisplayType,
@@ -20,8 +22,6 @@ import {
   createBaseTrackConfig,
   createBaseTrackModel,
 } from '@jbrowse/core/pluggableElementTypes'
-import Plugin from '@jbrowse/core/Plugin'
-import PluginManager from '@jbrowse/core/PluginManager'
 import {
   AbstractSessionModel,
   Region,
@@ -32,13 +32,29 @@ import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
 
 import { version } from '../package.json'
+
 import {
   configSchema as apolloInternetAccountConfigSchema,
   modelFactory as apolloInternetAccountModelFactory,
 } from './ApolloInternetAccount'
+import { installApolloRefNameAliasAdapter } from './ApolloRefNameAliasAdapter'
 import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
 import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
 import { BackendDriver } from './BackendDrivers'
+import {
+  ApolloFeatureDetailsWidget,
+  ApolloFeatureDetailsWidgetModel,
+  ApolloTranscriptDetailsModel,
+  ApolloTranscriptDetailsWidget,
+} from './FeatureDetailsWidget'
+import {
+  configSchema as linearApolloDisplayConfigSchema,
+  stateModelFactory as LinearApolloDisplayStateModelFactory,
+} from './LinearApolloDisplay'
+import {
+  configSchema as linearApolloSixFrameDisplayConfigSchema,
+  stateModelFactory as LinearApolloSixFrameDisplayStateModelFactory,
+} from './LinearApolloSixFrameDisplay'
 import {
   AddFeature,
   DownloadGFF3,
@@ -50,29 +66,14 @@ import {
 } from './components'
 import ApolloPluginConfigurationSchema from './config'
 import {
-  annotationFromPileup,
   annotationFromJBrowseFeature,
+  annotationFromPileup,
 } from './extensions'
-import {
-  ApolloFeatureDetailsWidget,
-  ApolloFeatureDetailsWidgetModel,
-  ApolloTranscriptDetailsModel,
-  ApolloTranscriptDetailsWidget,
-} from './FeatureDetailsWidget'
-import {
-  stateModelFactory as LinearApolloDisplayStateModelFactory,
-  configSchema as linearApolloDisplayConfigSchema,
-} from './LinearApolloDisplay'
-import {
-  stateModelFactory as LinearApolloSixFrameDisplayStateModelFactory,
-  configSchema as linearApolloSixFrameDisplayConfigSchema,
-} from './LinearApolloSixFrameDisplay'
 import {
   LinearApolloDisplayComponent,
   LinearApolloSixFrameDisplayComponent,
 } from './makeDisplayComponent'
 import { ApolloSessionModel, extendSession } from './session'
-import { installApolloRefNameAliasAdapter } from './ApolloRefNameAliasAdapter'
 
 interface RpcHandle {
   on(event: string, listener: (event: MessageEvent) => void): this

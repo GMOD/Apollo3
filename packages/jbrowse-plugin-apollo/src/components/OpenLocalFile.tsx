@@ -19,6 +19,7 @@ import React, { useState } from 'react'
 import { InMemoryFileDriver } from '../BackendDrivers'
 import { ApolloSessionModel } from '../session'
 import { loadAssemblyIntoClient } from '../util'
+
 import { Dialog } from './Dialog'
 
 interface OpenLocalFileProps {

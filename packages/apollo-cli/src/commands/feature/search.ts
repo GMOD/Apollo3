@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { ApolloAssemblySnapshot } from '@apollo-annotation/mst'
 import { Flags } from '@oclif/core'
 import { Response, fetch } from 'undici'
 
@@ -10,7 +11,6 @@ import {
   localhostToAddress,
   queryApollo,
 } from '../../utils.js'
-import { ApolloAssemblySnapshot } from '@apollo-annotation/mst'
 
 async function searchFeatures(
   address: string,

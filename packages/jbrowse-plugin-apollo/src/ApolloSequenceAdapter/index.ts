@@ -1,5 +1,5 @@
-import AdapterType from '@jbrowse/core/pluggableElementTypes/AdapterType'
 import PluginManager from '@jbrowse/core/PluginManager'
+import AdapterType from '@jbrowse/core/pluggableElementTypes/AdapterType'
 
 import { ApolloSequenceAdapter } from './ApolloSequenceAdapter'
 import configSchema from './configSchema'

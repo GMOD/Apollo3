@@ -15,6 +15,7 @@ import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { LinearApolloSixFrameDisplay as LinearApolloSixFrameDisplayI } from '../stateModel'
+
 import { TrackLines } from './TrackLines'
 
 interface LinearApolloSixFrameDisplayProps {

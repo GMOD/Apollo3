@@ -1,25 +1,24 @@
 import { AnnotationFeature } from '@apollo-annotation/mst'
-import { Theme, alpha } from '@mui/material'
 import { MenuItem } from '@jbrowse/core/ui'
-
 import {
   AbstractSessionModel,
-  isSessionModelWithWidgets,
   SessionWithWidgets,
+  isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
+import { Theme, alpha } from '@mui/material'
 
 import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
-
 import { LinearApolloDisplay } from '../stateModel'
 import {
-  isMousePositionWithFeatureAndGlyph,
   LinearApolloDisplayMouseEvents,
   MousePosition,
   MousePositionWithFeatureAndGlyph,
+  isMousePositionWithFeatureAndGlyph,
 } from '../stateModel/mouseEvents'
-import { CanvasMouseEvent } from '../types'
-import { Glyph } from './Glyph'
 import { LinearApolloDisplayRendering } from '../stateModel/rendering'
+import { CanvasMouseEvent } from '../types'
+
+import { Glyph } from './Glyph'
 
 function drawBoxOutline(
   ctx: CanvasRenderingContext2D,

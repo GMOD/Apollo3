@@ -6,6 +6,7 @@ import {
   Meta as OboGraphMeta,
   Node as OboGraphNode,
 } from './obo-graph-json-schema'
+
 import { OntologyStoreOptions, SourceLocation } from '.'
 
 /** metadata about this IndexedDB ontology database */

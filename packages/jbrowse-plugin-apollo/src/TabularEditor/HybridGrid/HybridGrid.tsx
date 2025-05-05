@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { DisplayStateModel } from '../types'
+
 import { Feature } from './Feature'
 
 const useStyles = makeStyles()((theme) => ({

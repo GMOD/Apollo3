@@ -10,6 +10,7 @@ import {
   isLocationEndChange,
   isLocationStartChange,
 } from '../Changes'
+
 import { Validation, ValidationResult } from './Validation'
 
 export class ParentChildValidation extends Validation {

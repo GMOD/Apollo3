@@ -18,6 +18,7 @@ import { isOntologyClass } from '../OntologyManager'
 import OntologyStore from '../OntologyManager/OntologyStore'
 import { fetchValidDescendantTerms } from '../OntologyManager/util'
 import { ApolloSessionModel } from '../session'
+
 import { Dialog } from './Dialog'
 import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
 

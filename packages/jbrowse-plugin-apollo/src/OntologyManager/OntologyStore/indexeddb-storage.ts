@@ -3,6 +3,8 @@ import { openLocation } from '@jbrowse/core/util/io'
 import equal from 'fast-deep-equal/es6'
 import { IDBPDatabase, IDBPTransaction, openDB } from 'idb/with-async-ittr'
 
+import { defaultTextIndexFields } from '..'
+
 import { PREFIXED_ID_PATH, getWords } from './fulltext'
 import {
   OntologyDB,
@@ -10,8 +12,8 @@ import {
   isOntologyDBNode,
 } from './indexeddb-schema'
 import { GraphDocument } from './obo-graph-json-schema'
+
 import OntologyStore from '.'
-import { defaultTextIndexFields } from '..'
 
 /** schema version we are currently on, used for the IndexedDB schema open call */
 const schemaVersion = 2

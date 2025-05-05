@@ -18,6 +18,7 @@ import { Socket } from 'socket.io-client'
 
 import { ChangeManager, SubmitOpts } from '../ChangeManager'
 import { createFetchErrorMessage } from '../util'
+
 import { BackendDriver, RefNameAliases } from './BackendDriver'
 
 export interface ApolloRefSeqResponse {

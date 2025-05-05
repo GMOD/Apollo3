@@ -16,7 +16,7 @@ import { createGzip, gunzip } from 'node:zlib'
 
 import { Logger } from '@nestjs/common'
 import { Request } from 'express'
-import { GenericFilehandle, FilehandleOptions, Stats } from 'generic-filehandle'
+import { FilehandleOptions, GenericFilehandle, Stats } from 'generic-filehandle'
 
 interface FileUpload {
   originalname: string

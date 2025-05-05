@@ -17,6 +17,7 @@ import { getConf, readConfObject } from '@jbrowse/core/configuration'
 import { ConfigurationModel } from '@jbrowse/core/configuration/types'
 import { Region, getSession, isElectron } from '@jbrowse/core/util'
 import { LocalPathLocation, UriLocation } from '@jbrowse/core/util/types/mst'
+import { autorun } from 'mobx'
 import {
   Instance,
   addDisposer,
@@ -34,14 +35,14 @@ import {
   InMemoryFileDriver,
 } from '../BackendDrivers'
 import { ChangeManager } from '../ChangeManager'
-import ApolloPluginConfigurationSchema from '../config'
 import {
   OntologyManagerType,
   OntologyRecordConfiguration,
   TextIndexFieldDefinition,
 } from '../OntologyManager'
+import ApolloPluginConfigurationSchema from '../config'
 import { ApolloRootModel } from '../types'
-import { autorun } from 'mobx'
+
 import { ApolloSessionModel } from './session'
 
 export function clientDataStoreFactory(

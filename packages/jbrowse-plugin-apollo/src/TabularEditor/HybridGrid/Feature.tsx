@@ -7,19 +7,20 @@ import { observer } from 'mobx-react'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'
 
-import { OntologyTermAutocomplete } from '../../components/OntologyTermAutocomplete'
 import { isOntologyClass } from '../../OntologyManager'
 import OntologyStore from '../../OntologyManager/OntologyStore'
+import { OntologyTermAutocomplete } from '../../components/OntologyTermAutocomplete'
 import { DisplayStateModel } from '../types'
+
 import {
   handleFeatureEndChange,
   handleFeatureStartChange,
   handleFeatureTypeChange,
 } from './ChangeHandling'
 import { FeatureAttributes } from './FeatureAttributes'
-import { featureContextMenuItems } from './featureContextMenuItems'
 import type { ContextMenuState } from './HybridGrid'
 import { NumberCell } from './NumberCell'
+import { featureContextMenuItems } from './featureContextMenuItems'
 
 const useStyles = makeStyles()((theme) => ({
   typeContent: {

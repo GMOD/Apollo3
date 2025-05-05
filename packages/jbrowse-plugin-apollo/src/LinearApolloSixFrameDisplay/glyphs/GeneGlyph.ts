@@ -1,27 +1,27 @@
 import { AnnotationFeature, TranscriptPartCoding } from '@apollo-annotation/mst'
+import { MenuItem } from '@jbrowse/core/ui'
 import {
   AbstractSessionModel,
+  SessionWithWidgets,
   getFrame,
   intersection2,
   isSessionModelWithWidgets,
-  SessionWithWidgets,
 } from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
-import { MenuItem } from '@jbrowse/core/ui'
 import equal from 'fast-deep-equal/es6'
 
 import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
-
 import { LinearApolloSixFrameDisplay } from '../stateModel'
 import {
-  isMousePositionWithFeatureAndGlyph,
   LinearApolloSixFrameDisplayMouseEvents,
   MousePosition,
   MousePositionWithFeatureAndGlyph,
+  isMousePositionWithFeatureAndGlyph,
 } from '../stateModel/mouseEvents'
-import { CanvasMouseEvent } from '../types'
-import { Glyph } from './Glyph'
 import { LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
+import { CanvasMouseEvent } from '../types'
+
+import { Glyph } from './Glyph'
 
 let forwardFillLight: CanvasPattern | null = null
 let backwardFillLight: CanvasPattern | null = null

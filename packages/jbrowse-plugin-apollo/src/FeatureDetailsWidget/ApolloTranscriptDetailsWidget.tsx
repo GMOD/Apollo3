@@ -1,9 +1,8 @@
 import { AnnotationFeature } from '@apollo-annotation/mst'
+import styled from '@emotion/styled'
 import { AbstractSessionModel, getEnv, getSession } from '@jbrowse/core/util'
-import { observer } from 'mobx-react'
-import { getRoot } from 'mobx-state-tree'
-import React, { useEffect, useState } from 'react'
-import { makeStyles } from 'tss-react/mui'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import InfoIcon from '@mui/icons-material/Info'
 import {
   Accordion,
   AccordionDetails,
@@ -11,20 +10,20 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-
-import styled from '@emotion/styled'
-
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import InfoIcon from '@mui/icons-material/Info'
+import { observer } from 'mobx-react'
+import { getRoot } from 'mobx-state-tree'
+import React, { useEffect, useState } from 'react'
+import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloSessionModel } from '../session'
 import { ApolloRootModel } from '../types'
+
 import { Attributes } from './Attributes'
 import { TranscriptSequence } from './TranscriptSequence'
-import { ApolloTranscriptDetailsWidget as ApolloTranscriptDetailsWidgetState } from './model'
-import { TranscriptWidgetSummary } from './TranscriptWidgetSummary'
 import { TranscriptWidgetEditLocation } from './TranscriptWidgetEditLocation'
+import { TranscriptWidgetSummary } from './TranscriptWidgetSummary'
+import { ApolloTranscriptDetailsWidget as ApolloTranscriptDetailsWidgetState } from './model'
 
 interface CustomComponentProps {
   session: AbstractSessionModel

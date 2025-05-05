@@ -14,6 +14,7 @@ import React, { useState } from 'react'
 
 import { ChangeManager } from '../ChangeManager'
 import { ApolloSessionModel } from '../session'
+
 import { Dialog } from './Dialog'
 
 interface DeleteFeatureProps {

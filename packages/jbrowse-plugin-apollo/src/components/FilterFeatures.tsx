@@ -1,6 +1,3 @@
-import React, { useState } from 'react'
-import { ApolloSessionModel } from '../session'
-import { Dialog } from './Dialog'
 import {
   Box,
   Button,
@@ -10,9 +7,14 @@ import {
   Grid2,
   TextField,
 } from '@mui/material'
-import { isOntologyClass } from '../OntologyManager'
-import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
 import { observer } from 'mobx-react'
+import React, { useState } from 'react'
+
+import { isOntologyClass } from '../OntologyManager'
+import { ApolloSessionModel } from '../session'
+
+import { Dialog } from './Dialog'
+import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
 
 interface FilterFeaturesProps {
   onUpdate: (types: string[]) => void

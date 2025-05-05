@@ -1,5 +1,7 @@
-import js from '@eslint/js'
 import pluginCypress from 'eslint-plugin-cypress/flat'
+import tseslint from 'typescript-eslint'
+
+import js from '@eslint/js'
 import pluginImport from 'eslint-plugin-import'
 import pluginJSXA11y from 'eslint-plugin-jsx-a11y'
 import pluginReact from 'eslint-plugin-react'
@@ -7,7 +9,6 @@ import pluginReactHooks from 'eslint-plugin-react-hooks'
 import pluginTSDoc from 'eslint-plugin-tsdoc'
 import pluginUnicorn from 'eslint-plugin-unicorn'
 import globals from 'globals'
-import tseslint from 'typescript-eslint'
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -91,6 +92,15 @@ export default [
       'import/no-duplicates': 'warn',
       'import/no-extraneous-dependencies': 'error',
       'import/no-named-as-default': 'warn',
+      'import/order': [
+        'warn',
+        {
+          named: true,
+          'newlines-between': 'always',
+          alphabetize: { order: 'asc' },
+          groups: ['builtin', 'external', 'parent', 'sibling'],
+        },
+      ],
       // eslint-plugin-tsdoc rules
       'tsdoc/syntax': 'warn',
       // eslint-plugin-unicorn rules (override recommended)

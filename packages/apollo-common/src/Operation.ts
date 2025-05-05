@@ -6,17 +6,17 @@ import type { FileHandle } from 'node:fs/promises'
 
 import {
   AssemblyDocument,
+  CheckDocument,
   FeatureDocument,
   FileDocument,
+  JBrowseConfigDocument,
   RefSeqChunkDocument,
   RefSeqDocument,
-  JBrowseConfigDocument,
   UserDocument,
-  CheckDocument,
 } from '@apollo-annotation/schemas'
 import type { LoggerService } from '@nestjs/common'
-import type { ClientSession, Model } from 'mongoose'
 import { GenericFilehandle } from 'generic-filehandle'
+import type { ClientSession, Model } from 'mongoose'
 
 export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'

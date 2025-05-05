@@ -9,11 +9,19 @@ import {
   isUriLocation,
 } from '@jbrowse/core/util'
 import {
-  deleteDB,
   IDBPTransaction,
   IndexNames,
   StoreNames,
+  deleteDB,
 } from 'idb/with-async-ittr'
+
+import {
+  OntologyClass,
+  OntologyProperty,
+  OntologyTerm,
+  isOntologyClass,
+  isOntologyProperty,
+} from '..'
 
 import { textSearch } from './fulltext'
 import { OntologyDB, OntologyDBEdge, isDeprecated } from './indexeddb-schema'
@@ -23,13 +31,6 @@ import {
   loadOboGraphJson,
   openDatabase,
 } from './indexeddb-storage'
-import {
-  OntologyClass,
-  OntologyProperty,
-  OntologyTerm,
-  isOntologyClass,
-  isOntologyProperty,
-} from '..'
 
 export type SourceLocation = UriLocation | LocalPathLocation | BlobLocation
 

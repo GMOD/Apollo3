@@ -17,11 +17,13 @@
  */
 
 import assert from 'node:assert'
-import { before, beforeEach, afterEach, describe } from 'node:test'
-import { Shell } from './utils.js'
-import fs from 'node:fs'
 import * as crypto from 'node:crypto'
+import fs from 'node:fs'
+import { afterEach, before, beforeEach, describe } from 'node:test'
+
 import { AnnotationFeature } from '@apollo-annotation/mst'
+
+import { Shell } from './utils.js'
 
 const apollo = 'yarn dev'
 const P = '--profile testAdmin'

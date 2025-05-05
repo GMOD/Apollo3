@@ -5,6 +5,7 @@ import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 
 import { ApolloSessionModel } from '../session'
+
 import { StringTextField } from './StringTextField'
 
 export interface AttributeEditorProps {

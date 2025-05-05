@@ -1,8 +1,8 @@
-import AdapterType from '@jbrowse/core/pluggableElementTypes/AdapterType'
 import PluginManager from '@jbrowse/core/PluginManager'
+import AdapterType from '@jbrowse/core/pluggableElementTypes/AdapterType'
 
-import configSchema from './configSchema'
 import ApolloRefNameAliasAdapter from './ApolloRefNameAliasAdapter'
+import configSchema from './configSchema'
 
 export function installApolloRefNameAliasAdapter(pluginManager: PluginManager) {
   pluginManager.addAdapterType(

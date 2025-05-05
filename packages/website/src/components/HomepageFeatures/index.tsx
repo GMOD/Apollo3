@@ -1,9 +1,10 @@
+import Link from '@docusaurus/Link'
+import ApolloLogo from '@site/static/img/apollo_logo.svg'
+import JBrowseLogo from '@site/static/img/jbrowse_logo.svg'
 import Heading from '@theme/Heading'
 import React from 'react'
+
 import styles from './styles.module.css'
-import Link from '@docusaurus/Link'
-import JBrowseLogo from '@site/static/img/jbrowse_logo.svg'
-import ApolloLogo from '@site/static/img/apollo_logo.svg'
 
 interface FeatureItem {
   title: string

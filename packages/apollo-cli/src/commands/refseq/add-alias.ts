@@ -1,15 +1,16 @@
 import * as fs from 'node:fs'
-import { Agent, RequestInit, Response, fetch } from 'undici'
+
+import { type SerializedRefSeqAliasesChange } from '@apollo-annotation/shared'
 import { Args, Flags } from '@oclif/core'
+import { Agent, RequestInit, Response, fetch } from 'undici'
+
+import { ConfigError } from '../../ApolloConf.js'
 import { BaseCommand } from '../../baseCommand.js'
 import {
   createFetchErrorMessage,
   localhostToAddress,
   queryApollo,
 } from '../../utils.js'
-import { ConfigError } from '../../ApolloConf.js'
-
-import { type SerializedRefSeqAliasesChange } from '@apollo-annotation/shared'
 
 export default class AddRefNameAlias extends BaseCommand<
   typeof AddRefNameAlias

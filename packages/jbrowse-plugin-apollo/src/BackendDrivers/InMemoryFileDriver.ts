@@ -9,8 +9,9 @@ import { getConf } from '@jbrowse/core/configuration'
 import { Region, getSession } from '@jbrowse/core/util'
 
 import { SubmitOpts } from '../ChangeManager'
-import { BackendDriver, RefNameAliases } from './BackendDriver'
 import { checkFeatures } from '../util'
+
+import { BackendDriver, RefNameAliases } from './BackendDriver'
 
 export class InMemoryFileDriver extends BackendDriver {
   async getFeatures(): Promise<

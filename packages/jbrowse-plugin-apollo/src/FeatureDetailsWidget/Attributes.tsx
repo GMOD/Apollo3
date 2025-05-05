@@ -23,13 +23,13 @@ import React, { useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { ApolloSessionModel } from '../session'
-import { AttributeKeySelector } from './AttributeKeySelector'
+
 import { AttributeKey } from './AttributeKey'
+import { AttributeKeySelector } from './AttributeKeySelector'
 import {
   AttributeEditorProps,
   DefaultAttributeEditor,
 } from './DefaultAttributeEditor'
-
 import {
   AttributeViewerProps,
   DefaultAttributeViewer,

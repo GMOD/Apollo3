@@ -1,16 +1,16 @@
 import * as fs from 'node:fs'
 import path from 'node:path'
 
-import { Args, Flags } from '@oclif/core'
-import { ObjectId } from 'bson'
-
-import { FileCommand } from '../../fileCommand.js'
-import { submitAssembly } from '../../utils.js'
 import type {
   SerializedAddAssemblyAndFeaturesFromFileChange,
   SerializedAddAssemblyFromExternalChange,
   SerializedAddAssemblyFromFileChange,
 } from '@apollo-annotation/shared'
+import { Args, Flags } from '@oclif/core'
+import { ObjectId } from 'bson'
+
+import { FileCommand } from '../../fileCommand.js'
+import { submitAssembly } from '../../utils.js'
 
 export default class AddGff extends FileCommand {
   static summary = 'Add new assembly from gff or gft file'

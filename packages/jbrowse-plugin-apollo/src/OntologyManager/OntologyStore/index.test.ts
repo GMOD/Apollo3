@@ -4,8 +4,9 @@ import path from 'node:path'
 
 import { beforeAll, describe, expect, it, jest } from '@jest/globals'
 
-import OntologyStore from '.'
 import { OntologyClass, isOntologyClass } from '..'
+
+import OntologyStore from '.'
 
 jest.setTimeout(1_000_000_000)
 

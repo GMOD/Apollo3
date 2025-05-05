@@ -1,6 +1,7 @@
 import { AnnotationFeature } from '@apollo-annotation/mst'
 
 import OntologyStore from './OntologyStore'
+
 import { isOntologyClass } from '.'
 
 export async function fetchValidDescendantTerms(

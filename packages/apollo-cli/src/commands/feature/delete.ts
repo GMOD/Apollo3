@@ -1,3 +1,5 @@
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import { SerializedDeleteFeatureChange } from '@apollo-annotation/shared'
 import { Flags } from '@oclif/core'
 import { Response, fetch } from 'undici'
 
@@ -8,8 +10,6 @@ import {
   idReader,
   localhostToAddress,
 } from '../../utils.js'
-import { SerializedDeleteFeatureChange } from '@apollo-annotation/shared'
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 async function deleteFeature(
   address: string,

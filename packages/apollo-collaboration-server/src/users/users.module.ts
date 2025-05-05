@@ -3,6 +3,7 @@ import { Module, OnApplicationBootstrap } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 
 import { MessagesModule } from '../messages/messages.module'
+
 import { UsersController } from './users.controller'
 import { UsersService } from './users.service'
 

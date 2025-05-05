@@ -11,11 +11,12 @@ import { TextField, Typography } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 
-import { OntologyTermAutocomplete } from '../components/OntologyTermAutocomplete'
 import { isOntologyClass } from '../OntologyManager'
 import OntologyStore from '../OntologyManager/OntologyStore'
 import { fetchValidDescendantTerms } from '../OntologyManager/util'
+import { OntologyTermAutocomplete } from '../components/OntologyTermAutocomplete'
 import { ApolloSessionModel } from '../session'
+
 import { NumberTextField } from './NumberTextField'
 
 export const BasicInformation = observer(function BasicInformation({

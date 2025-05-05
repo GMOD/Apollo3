@@ -10,48 +10,45 @@ import {
 } from '@apollo-annotation/shared'
 import { readConfObject } from '@jbrowse/core/configuration'
 import { AbstractSessionModel } from '@jbrowse/core/util'
+import InfoIcon from '@mui/icons-material/Info'
+import LinkIcon from '@mui/icons-material/Link'
+import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked'
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
   Button,
+  Checkbox,
   DialogActions,
   DialogContent,
   DialogContentText,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Typography,
-  Box,
-  FormGroup,
   FormControlLabel,
-  Checkbox,
+  FormGroup,
+  IconButton,
+  InputAdornment,
   LinearProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
   TextField,
   Tooltip,
-  IconButton,
-  Table,
-  TableCell,
-  TableBody,
-  InputAdornment,
-  TableRow,
+  Typography,
 } from '@mui/material'
-
-import { makeStyles } from 'tss-react/mui'
-
 import ObjectID from 'bson-objectid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
+import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
 import { ApolloSessionModel } from '../session'
 import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
+
 import { Dialog } from './Dialog'
-
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
-import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked'
-
-import InfoIcon from '@mui/icons-material/Info'
-import LinkIcon from '@mui/icons-material/Link'
 
 interface AddAssemblyProps {
   session: ApolloSessionModel

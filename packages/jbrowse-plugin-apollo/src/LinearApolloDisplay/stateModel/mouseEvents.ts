@@ -3,9 +3,10 @@ import {
   LocationEndChange,
   LocationStartChange,
 } from '@apollo-annotation/shared'
-import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
+import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import { MenuItem } from '@jbrowse/core/ui'
+import { Frame, getFrame } from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { Theme } from '@mui/material'
 import { autorun } from 'mobx'
@@ -15,8 +16,8 @@ import type { CSSProperties } from 'react'
 import { Coord } from '../components'
 import { Glyph } from '../glyphs/Glyph'
 import { CanvasMouseEvent } from '../types'
+
 import { renderingModelFactory } from './rendering'
-import { Frame, getFrame } from '@jbrowse/core/util'
 
 export interface FeatureAndGlyphUnderMouse {
   feature: AnnotationFeature

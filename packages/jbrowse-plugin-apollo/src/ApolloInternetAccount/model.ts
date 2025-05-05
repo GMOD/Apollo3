@@ -29,6 +29,7 @@ import { io } from 'socket.io-client'
 import { Collaborator } from '../session'
 import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
+
 import { addMenuItems } from './addMenuItems'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { ApolloInternetAccountConfigModel } from './configSchema'

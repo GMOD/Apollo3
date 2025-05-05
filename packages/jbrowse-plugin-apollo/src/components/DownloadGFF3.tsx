@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { ApolloAssembly } from '@apollo-annotation/mst'
+import { annotationFeatureToGFF3 } from '@apollo-annotation/shared'
 import gff, { GFF3Item } from '@gmod/gff'
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
@@ -27,8 +28,8 @@ import {
 } from '../BackendDrivers'
 import { ApolloSessionModel } from '../session'
 import { createFetchErrorMessage } from '../util'
+
 import { Dialog } from './Dialog'
-import { annotationFeatureToGFF3 } from '@apollo-annotation/shared'
 
 interface DownloadGFF3Props {
   session: ApolloSessionModel

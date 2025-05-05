@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 
 import { AnnotationFeature, TranscriptPartCoding } from '@apollo-annotation/mst'
-import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
+import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import {
   AbstractSessionModel,
   doesIntersect2,
@@ -12,8 +12,9 @@ import { autorun, observable } from 'mobx'
 import { addDisposer, isAlive } from 'mobx-state-tree'
 
 import { ApolloSessionModel } from '../../session'
-import { baseModelFactory } from './base'
 import { geneGlyph } from '../glyphs'
+
+import { baseModelFactory } from './base'
 
 export interface LayoutRow {
   rowNum: number

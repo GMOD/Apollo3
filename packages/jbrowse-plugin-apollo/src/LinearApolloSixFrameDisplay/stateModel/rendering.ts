@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
+import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import { doesIntersect2 } from '@jbrowse/core/util'
 import { Theme } from '@mui/material'
 import { autorun } from 'mobx'
 import { Instance, addDisposer } from 'mobx-state-tree'
 
 import { ApolloSessionModel } from '../../session'
+
 import { layoutsModelFactory } from './layouts'
 
 export function renderingModelIntermediateFactory(

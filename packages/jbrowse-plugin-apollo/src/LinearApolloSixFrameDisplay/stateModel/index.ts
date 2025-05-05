@@ -1,8 +1,9 @@
-import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
+import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import { Instance, types } from 'mobx-state-tree'
 
 import { TabularEditorStateModelType } from '../../TabularEditor'
+
 import { mouseEventsModelFactory } from './mouseEvents'
 
 export function stateModelFactory(

@@ -3,11 +3,22 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import React, { useRef } from 'react'
-
-import { observer } from 'mobx-react'
-
+import { AnnotationFeature, TranscriptPart } from '@apollo-annotation/mst'
+import {
+  LocationEndChange,
+  LocationStartChange,
+} from '@apollo-annotation/shared'
 import styled from '@emotion/styled'
+import {
+  AbstractSessionModel,
+  defaultCodonTable,
+  revcom,
+} from '@jbrowse/core/util'
+import AddIcon from '@mui/icons-material/Add'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import ContentCutIcon from '@mui/icons-material/ContentCut'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import RemoveIcon from '@mui/icons-material/Remove'
 import {
   Accordion,
   AccordionDetails,
@@ -15,27 +26,13 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
+import { observer } from 'mobx-react'
+import React, { useRef } from 'react'
 
-import AddIcon from '@mui/icons-material/Add'
-import RemoveIcon from '@mui/icons-material/Remove'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import ContentCopyIcon from '@mui/icons-material/ContentCopy'
-import ContentCutIcon from '@mui/icons-material/ContentCut'
-
-import { AnnotationFeature, TranscriptPart } from '@apollo-annotation/mst'
+import { ApolloSessionModel } from '../session'
 
 import { StyledAccordionSummary } from './ApolloTranscriptDetailsWidget'
 import { NumberTextField } from './NumberTextField'
-import { ApolloSessionModel } from '../session'
-import {
-  AbstractSessionModel,
-  defaultCodonTable,
-  revcom,
-} from '@jbrowse/core/util'
-import {
-  LocationEndChange,
-  LocationStartChange,
-} from '@apollo-annotation/shared'
 
 const StyledTextField = styled(NumberTextField)(() => ({
   '&.MuiFormControl-root': {

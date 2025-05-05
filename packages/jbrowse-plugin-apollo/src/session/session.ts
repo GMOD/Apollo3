@@ -7,14 +7,15 @@ import {
   AnnotationFeatureModel,
 } from '@apollo-annotation/mst'
 import {
-  filterJBrowseConfig,
   ImportJBrowseConfigChange,
   JBrowseConfig,
   UserLocation,
+  filterJBrowseConfig,
 } from '@apollo-annotation/shared'
-import { readConfObject, getConf } from '@jbrowse/core/configuration'
-import { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
+import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
+import { getConf, readConfObject } from '@jbrowse/core/configuration'
+import { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
 import { AbstractSessionModel, SessionWithAddTracks } from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import SaveIcon from '@mui/icons-material/Save'
@@ -34,8 +35,8 @@ import { ApolloJobModel } from '../ApolloJobModel'
 import { ChangeManager } from '../ChangeManager'
 import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
+
 import { clientDataStoreFactory } from './ClientDataStore'
-import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreType & { changeManager: ChangeManager }

@@ -15,14 +15,13 @@
 
 // For Cypress v12.17.3 and older:
 import compareSnapshotCommand from 'cypress-image-diff-js'
-compareSnapshotCommand()
-
-// Import commands.js using ES2015 syntax:
-import './commands'
-
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
 import { addCommands } from 'cypress-mongodb/dist/index-browser'
+// Import commands.js using ES2015 syntax:
+import './commands'
+
+compareSnapshotCommand()
 
 addCommands()
 
