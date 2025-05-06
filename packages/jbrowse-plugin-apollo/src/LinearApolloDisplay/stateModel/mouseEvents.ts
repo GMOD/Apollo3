@@ -139,13 +139,18 @@ export function mouseEventsModelIntermediateFactory(
         if (!layoutRow) {
           return mousePosition
         }
-        const foundFeature = layoutRow.find(
-          (f) => bp >= f[1].min && bp <= f[1].max,
-        )
+        const foundFeature = layoutRow.find((f) => {
+          const feature = self.getAnnotationFeatureById(f[1])
+          return feature && bp >= feature.min && bp <= feature.max
+        })
         if (!foundFeature) {
           return mousePosition
         }
-        const [featureRow, topLevelFeature] = foundFeature
+        const [featureRow, topLevelFeatureId] = foundFeature
+        const topLevelFeature = self.getAnnotationFeatureById(topLevelFeatureId)
+        if (!topLevelFeature) {
+          return mousePosition
+        }
         const glyph = self.getGlyph(topLevelFeature)
         const { featureTypeOntology } =
           self.session.apolloDataStore.ontologyManager

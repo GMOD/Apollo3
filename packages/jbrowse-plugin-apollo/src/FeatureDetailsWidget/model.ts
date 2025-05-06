@@ -9,7 +9,6 @@ import { ElementId } from '@jbrowse/core/util/types/mst'
 import { autorun } from 'mobx'
 import { Instance, SnapshotIn, addDisposer, types } from 'mobx-state-tree'
 
-import { ChangeManager } from '../ChangeManager'
 import { ApolloSessionModel } from '../session'
 
 export const ApolloFeatureDetailsWidgetModel = types
@@ -86,7 +85,6 @@ export const ApolloTranscriptDetailsModel = types
     ),
     assembly: types.string,
     refName: types.string,
-    changeManager: types.frozen<ChangeManager>(),
   })
   .volatile(() => ({
     tryReload: undefined as string | undefined,

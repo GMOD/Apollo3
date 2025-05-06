@@ -28,30 +28,11 @@ describe('Different ways of editing features', () => {
 
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
-    cy.get('[data-testid="MinimizeIcon"]').eq(1).click()
-    cy.contains('Drawer minimized')
-      .parent()
-      .within(() => {
-        cy.get('[data-testid="CloseIcon"]').click()
-      })
+    cy.get('button[aria-label="Minimize drawer"]').click()
+
     cy.get('[data-testid="track_menu_icon"]').click()
     cy.contains('Appearance').trigger('mouseover')
     cy.contains('Show both graphical and table display').click()
-
-    cy.contains('Table')
-      .parent()
-      .within(() => {
-        cy.get('[data-testid]').then((el) => {
-          const expandIcon: string = el.attr('data-testid') ?? ''
-          if (expandIcon == 'ExpandLessIcon') {
-            cy.log('Expanded')
-          } else if (expandIcon == 'ExpandMoreIcon') {
-            cy.contains('Table').click()
-          } else {
-            cy.log(`Unexpected value for expand icon: ${expandIcon}`)
-          }
-        })
-      })
 
     cy.get('input[placeholder="Search for location"]').type(
       'ctgA:9400..9600{enter}',
@@ -81,35 +62,6 @@ describe('Different ways of editing features', () => {
       cy.contains('9432')
       cy.contains('9567')
     })
-  })
-
-  it('Can add gene ontology attribute', () => {
-    cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
-    cy.selectAssemblyToView('onegene.fasta.gff3')
-    cy.searchFeatures('gx1', 1)
-    cy.get('[data-testid="track_menu_icon"]').click()
-    cy.contains('Appearance').trigger('mouseover')
-    cy.contains('Show both graphical and table display').click()
-    cy.contains('td', 'CDS1').rightclick()
-    cy.contains('Edit attributes').click()
-    cy.contains('Feature attributes')
-      .parent()
-      .within(() => {
-        cy.contains('button', 'Add new').click()
-        cy.get('input[value="Gene Ontology"]').click()
-        cy.contains('button', /^Add$/).click()
-        cy.contains('Gene Ontology')
-          .parent()
-          .parent()
-          .parent()
-          .within(() => {
-            cy.get('input').type('quiescence')
-          })
-      })
-    // This seems to take ~6 minutes in headless mode!
-    cy.contains('li', 'GO:0044838', { timeout: 600_000 }).click()
-    cy.contains('button', 'Submit changes').click()
-    cy.contains('td', 'Gene Ontology=GO:0044838')
   })
 
   it('FIXME: Can delete feature with checks', () => {

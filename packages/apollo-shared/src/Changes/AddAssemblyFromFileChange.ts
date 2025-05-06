@@ -100,19 +100,19 @@ export class AddAssemblyFromFileChange extends FromFileBaseChange {
     const faDoc = await fileModel.findById(faId)
     const faChecksum = faDoc?.checksum
     if (!faChecksum) {
-      throw new Error(`No checksum for file document ${faDoc}`)
+      throw new Error(`No checksum for file document ${faDoc?.id}`)
     }
 
     const faiDoc = await fileModel.findById(faiId)
     const faiChecksum = faiDoc?.checksum
     if (!faiChecksum) {
-      throw new Error(`No checksum for file document ${faiDoc}`)
+      throw new Error(`No checksum for file document ${faiDoc?.id}`)
     }
 
     const gziDoc = await fileModel.findById(gziId)
     const gziChecksum = gziDoc?.checksum
     if (!gziChecksum) {
-      throw new Error(`No checksum for file document ${gziDoc}`)
+      throw new Error(`No checksum for file document ${gziDoc?.id}`)
     }
 
     const fasta = filesService.getFileHandle(faDoc)

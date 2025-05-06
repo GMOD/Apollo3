@@ -145,16 +145,18 @@ function colorCode(letter: string, theme?: Theme) {
   )
 }
 
-function codonColorCode(letter: string) {
+function codonColorCode(letter: string, highContrast?: boolean) {
   const colorMap: Record<string, string | undefined> = {
     M: '#33ee33',
-    '*': '#f44336',
+    '*': highContrast ? '#000000' : '#f44336',
   }
 
   return colorMap[letter.toUpperCase()]
 }
 
 function reverseCodonSeq(seq: string): string {
+  // disable because sequence is all ascii
+  // eslint-disable-next-line @typescript-eslint/no-misused-spread
   return [...seq]
     .map((c) => revcom(c))
     .reverse()
@@ -186,6 +188,9 @@ function drawTranslation(
   seq: string,
   i: number,
   reverse: boolean,
+  showStartCodons: boolean,
+  showStopCodons: boolean,
+  highContrast: boolean,
 ) {
   let codonSeq: string = seq.slice(i, i + 3).toUpperCase()
   if (reverse) {
@@ -196,8 +201,12 @@ function drawTranslation(
   if (!codonLetter) {
     return
   }
-  const fillColor = codonColorCode(codonLetter)
-  if (fillColor) {
+  const fillColor = codonColorCode(codonLetter, highContrast)
+  if (
+    fillColor &&
+    ((showStopCodons && codonLetter == '*') ||
+      (showStartCodons && codonLetter != '*'))
+  ) {
     seqTrackctx.fillStyle = fillColor
     seqTrackctx.fillRect(trnslStartPx, trnslY, trnslWidthPx, sequenceRowHeight)
   }
@@ -222,11 +231,13 @@ export function sequenceRenderingModelFactory(
       addDisposer(
         self,
         autorun(
-          async () => {
+          () => {
+            const { theme } = self
             if (!self.lgv.initialized || self.regionCannotBeRendered()) {
               return
             }
-            if (self.lgv.bpPerPx > 3) {
+            const trnslWidthPx = 3 / self.lgv.bpPerPx
+            if (trnslWidthPx < 1) {
               return
             }
             const seqTrackctx = self.seqTrackCanvas?.getContext('2d')
@@ -245,33 +256,48 @@ export function sequenceRenderingModelFactory(
                 ? [3, 2, 1, 0, 0, -1, -2, -3]
                 : [3, 2, 1, -1, -2, -3]
             let height = 0
-            for (const frame of frames) {
-              const frameColor = self.theme?.palette.framesCDS.at(frame)?.main
-              if (frameColor) {
-                seqTrackctx.fillStyle = frameColor
-                seqTrackctx.fillRect(
-                  0,
-                  height,
-                  self.lgv.dynamicBlocks.totalWidthPx,
-                  self.sequenceRowHeight,
-                )
+            if (theme) {
+              for (const frame of frames) {
+                let frameColor = theme.palette.framesCDS.at(frame)?.main
+                if (frameColor) {
+                  let offsetPx = 0
+                  if (self.highContrast) {
+                    frameColor = 'white'
+                    offsetPx = 1
+                    // eslint-disable-next-line prefer-destructuring
+                    seqTrackctx.fillStyle = theme.palette.grey[200]
+                    seqTrackctx.fillRect(
+                      0,
+                      height,
+                      self.lgv.dynamicBlocks.totalWidthPx,
+                      self.sequenceRowHeight,
+                    )
+                  }
+                  seqTrackctx.fillStyle = frameColor
+                  seqTrackctx.fillRect(
+                    0 + offsetPx,
+                    height + offsetPx,
+                    self.lgv.dynamicBlocks.totalWidthPx - 2 * offsetPx,
+                    self.sequenceRowHeight - 2 * offsetPx,
+                  )
+                }
+                height += self.sequenceRowHeight
               }
-              height += self.sequenceRowHeight
             }
 
             for (const [idx, region] of self.regions.entries()) {
-              const driver = (
+              const { apolloDataStore } =
                 self.session as unknown as ApolloSessionModel
-              ).apolloDataStore.getBackendDriver(region.assemblyName)
-
-              if (!driver) {
-                throw new Error('Failed to get the backend driver')
-              }
-              const { seq } = await driver.getSequence(region)
-
+              const assembly = apolloDataStore.assemblies.get(
+                region.assemblyName,
+              )
+              const ref = assembly?.getByRefName(region.refName)
+              const seq = ref?.getSequence(region.start, region.end)
               if (!seq) {
                 return
               }
+              // disable because sequence is all ascii
+              // eslint-disable-next-line @typescript-eslint/no-misused-spread
               for (const [i, letter] of [...seq].entries()) {
                 const trnslXOffset =
                   (self.lgv.bpToPx({
@@ -279,7 +305,6 @@ export function sequenceRenderingModelFactory(
                     coord: region.start + i,
                     regionNumber: idx,
                   })?.offsetPx ?? 0) - self.lgv.offsetPx
-                const trnslWidthPx = 3 / self.lgv.bpPerPx
                 const trnslStartPx = self.lgv.displayedRegions[idx].reversed
                   ? trnslXOffset - trnslWidthPx
                   : trnslXOffset
@@ -297,6 +322,9 @@ export function sequenceRenderingModelFactory(
                       seq,
                       i,
                       false,
+                      self.showStartCodons,
+                      self.showStopCodons,
+                      self.highContrast,
                     )
                   }
                 }
@@ -371,6 +399,9 @@ export function sequenceRenderingModelFactory(
                       seq,
                       i,
                       true,
+                      self.showStartCodons,
+                      self.showStopCodons,
+                      self.highContrast,
                     )
                   }
                 }
@@ -413,8 +444,9 @@ export function renderingModelFactory(
             for (const [idx, featureLayout] of featureLayouts.entries()) {
               const displayedRegion = displayedRegions[idx]
               for (const [row, featureLayoutRow] of featureLayout.entries()) {
-                for (const [featureRow, feature] of featureLayoutRow) {
-                  if (featureRow > 0) {
+                for (const [featureRow, featureId] of featureLayoutRow) {
+                  const feature = self.getAnnotationFeatureById(featureId)
+                  if (featureRow > 0 || !feature) {
                     continue
                   }
                   if (

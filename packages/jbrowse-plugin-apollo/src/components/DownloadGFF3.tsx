@@ -111,7 +111,11 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
     const { exportID } = (await response.json()) as { exportID: string }
 
     const exportURL = new URL('export', internetAccount.baseURL)
-    const exportSearchParams = new URLSearchParams({ exportID })
+    const params: Record<string, string> = {
+      exportID,
+      includeFASTA: 'true',
+    }
+    const exportSearchParams = new URLSearchParams(params)
     exportURL.search = exportSearchParams.toString()
     const exportUri = exportURL.toString()
 

@@ -8,12 +8,7 @@ import {
   SessionWithWidgets,
 } from '@jbrowse/core/util'
 
-import {
-  AddChildFeature,
-  CopyFeature,
-  DeleteFeature,
-  ModifyFeatureAttribute,
-} from '../../components'
+import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
 
 import { LinearApolloDisplay } from '../stateModel'
 import {
@@ -350,26 +345,6 @@ function getContextMenuItems(
       },
     },
     {
-      label: 'Modify feature attribute',
-      disabled: readOnly,
-      onClick: () => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            ModifyFeatureAttribute,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager,
-              sourceFeature,
-              sourceAssemblyId: currentAssemblyId,
-            },
-          ],
-        )
-      },
-    },
-    {
       label: 'Edit feature details',
       onClick: () => {
         const apolloFeatureWidget = (
@@ -394,7 +369,11 @@ function getContextMenuItems(
     throw new Error('featureTypeOntology is undefined')
   }
   if (
-    featureTypeOntology.isTypeOf(sourceFeature.type, 'transcript') &&
+    (featureTypeOntology.isTypeOf(sourceFeature.type, 'transcript') ||
+      featureTypeOntology.isTypeOf(
+        sourceFeature.type,
+        'pseudogenic_transcript',
+      )) &&
     isSessionModelWithWidgets(session)
   ) {
     menuItems.push({

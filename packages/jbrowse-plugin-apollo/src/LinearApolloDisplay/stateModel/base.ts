@@ -36,6 +36,9 @@ export function baseModelFactory(
       configuration: ConfigurationReference(configSchema),
       graphical: true,
       table: false,
+      showStartCodons: false,
+      showStopCodons: true,
+      highContrast: false,
       heightPreConfig: types.maybe(
         types.refinement(
           'displayHeight',
@@ -44,6 +47,7 @@ export function baseModelFactory(
         ),
       ),
       filteredFeatureTypes: types.array(types.string),
+      loadingState: false,
     })
     .views((self) => {
       const { configuration, renderProps: superRenderProps } = self
@@ -75,6 +79,9 @@ export function baseModelFactory(
           return 200
         }
         return 300
+      },
+      get loading() {
+        return self.loadingState
       },
     }))
     .views((self) => ({
@@ -164,15 +171,33 @@ export function baseModelFactory(
         self.graphical = true
         self.table = true
       },
+      toggleShowStartCodons() {
+        self.showStartCodons = !self.showStartCodons
+      },
+      toggleShowStopCodons() {
+        self.showStopCodons = !self.showStopCodons
+      },
+      toggleHighContrast() {
+        self.highContrast = !self.highContrast
+      },
       updateFilteredFeatureTypes(types: string[]) {
         self.filteredFeatureTypes = cast(types)
+      },
+      setLoading(loading: boolean) {
+        self.loadingState = loading
       },
     }))
     .views((self) => {
       const { filteredFeatureTypes, trackMenuItems: superTrackMenuItems } = self
       return {
         trackMenuItems() {
-          const { graphical, table } = self
+          const {
+            graphical,
+            table,
+            showStartCodons,
+            showStopCodons,
+            highContrast,
+          } = self
           return [
             ...superTrackMenuItems(),
             {
@@ -201,6 +226,30 @@ export function baseModelFactory(
                   checked: table && graphical,
                   onClick: () => {
                     self.showGraphicalAndTable()
+                  },
+                },
+                {
+                  label: 'Show start codons',
+                  type: 'checkbox',
+                  checked: showStartCodons,
+                  onClick: () => {
+                    self.toggleShowStartCodons()
+                  },
+                },
+                {
+                  label: 'Show stop codons',
+                  type: 'checkbox',
+                  checked: showStopCodons,
+                  onClick: () => {
+                    self.toggleShowStopCodons()
+                  },
+                },
+                {
+                  label: 'Use high contrast colors',
+                  type: 'checkbox',
+                  checked: highContrast,
+                  onClick: () => {
+                    self.toggleHighContrast()
                   },
                 },
               ],
@@ -244,9 +293,16 @@ export function baseModelFactory(
               if (!self.lgv.initialized || self.regionCannotBeRendered()) {
                 return
               }
+              self.setLoading(true)
               void (
                 self.session as unknown as ApolloSessionModel
-              ).apolloDataStore.loadFeatures(self.regions)
+              ).apolloDataStore
+                .loadFeatures(self.regions)
+                .then(() => {
+                  setTimeout(() => {
+                    self.setLoading(false)
+                  }, 1000)
+                })
               if (self.lgv.bpPerPx <= 3) {
                 void (
                   self.session as unknown as ApolloSessionModel

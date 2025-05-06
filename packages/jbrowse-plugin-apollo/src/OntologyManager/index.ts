@@ -35,6 +35,7 @@ export const OntologyRecordType = types
   })
   .volatile((_self) => ({
     dataStore: undefined as undefined | OntologyStore,
+    startedEquivalentTypeRequests: new Set<string>(),
   }))
   .actions((self) => ({
     /** does nothing, just used to access the model to force its lifecycle hooks to run */
@@ -66,6 +67,10 @@ export const OntologyRecordType = types
       if (!self.dataStore) {
         return
       }
+      if (self.startedEquivalentTypeRequests.has(type)) {
+        return
+      }
+      self.startedEquivalentTypeRequests.add(type)
       const terms = (yield self.dataStore.getTermsWithLabelOrSynonym(
         type,
       )) as unknown as OntologyTerm[]
@@ -74,6 +79,25 @@ export const OntologyRecordType = types
         .filter((term) => term != undefined)
       self.setEquivalentTypes(type, equivalents)
     }),
+  }))
+  .actions((self) => ({
+    afterCreate() {
+      autorun((reaction) => {
+        if (!self.dataStore) {
+          return
+        }
+        void self.loadEquivalentTypes('gene')
+        void self.loadEquivalentTypes('pseudogene')
+        void self.loadEquivalentTypes('transcript')
+        void self.loadEquivalentTypes('pseudogenic_transcript')
+        void self.loadEquivalentTypes('CDS')
+        void self.loadEquivalentTypes('mRNA')
+        reaction.dispose()
+      })
+    },
+    setEquivalentTypes(type: string, equivalentTypes: string[]) {
+      self.equivalentTypes.set(type, equivalentTypes)
+    },
   }))
   .views((self) => ({
     isTypeOf(queryType: string, typeOf: string): boolean {

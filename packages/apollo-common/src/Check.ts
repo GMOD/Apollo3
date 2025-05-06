@@ -6,6 +6,7 @@ import {
 export abstract class Check {
   abstract name: string
   abstract version: number
+  abstract causes: string[]
 
   abstract checkFeature(
     feature: AnnotationFeatureSnapshot,

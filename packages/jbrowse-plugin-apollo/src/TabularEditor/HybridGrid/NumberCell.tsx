@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
@@ -37,6 +36,14 @@ export const NumberCell = observer(function NumberCell({
   const [blur, setBlur] = useState(false)
   const [inputNode, setInputNode] = useState<HTMLInputElement | null>(null)
   const { classes } = useStyles()
+
+  useEffect(() => {
+    if (initialValue !== value) {
+      setValue(initialValue)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValue])
+
   useEffect(() => {
     if (blur) {
       inputNode?.blur()

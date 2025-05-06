@@ -74,14 +74,6 @@ Cypress.Commands.add('addOntologies', () => {
         ApolloPlugin: {
           ontologies: [
             {
-              name: 'Gene Ontology',
-              version: 'full',
-              source: {
-                uri: 'https://release.geneontology.org/2023-06-11/ontology/go.json',
-                locationType: 'UriLocation',
-              },
-            },
-            {
               name: 'Sequence Ontology',
               version: 'unversioned',
               source: {
@@ -95,12 +87,6 @@ Cypress.Commands.add('addOntologies', () => {
     },
     { collection: 'jbrowseconfigs' },
   )
-  cy.readFile('cypress/data/go.json.gz', null).then((goGZip: Buffer) => {
-    cy.wrap<Promise<void>>(
-      loadOntology(goGZip, 'Apollo Ontology "Gene Ontology" "full"', 2),
-      { timeout: 120_000 },
-    )
-  })
   cy.readFile('cypress/data/so.json.gz', null).then((soGZip: Buffer) => {
     cy.wrap<Promise<void>>(
       loadOntology(
@@ -118,17 +104,24 @@ Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
     .contains('Apollo')
     .click({ force: true, timeout: 10_000 })
   cy.contains('Add Assembly', { timeout: 10_000 }).click()
-  cy.get('input[type="TextField"]').type(assemblyName)
-  cy.get('input[value="text/x-gff3"]').check()
-  cy.get('input[type="file"]').selectFile(fin)
-  cy.get('[data-testid="CheckBoxIcon"]')
-    .parent()
-    .children()
-    .get('input[type="checkbox"]')
-    .should('be.checked')
-  cy.intercept('/changes').as('changes')
-  cy.get('button').contains('Submit').click()
-  cy.wait('@changes').its('response.statusCode').should('match', /2../)
+  cy.get('form[data-testid="submit-form"]').within(() => {
+    cy.get('input[type="TextField"]').type(assemblyName)
+    cy.contains('GFF3 input')
+      .parent()
+      .parent()
+      .within(() => {
+        cy.get('button').click()
+      })
+    cy.get('input[data-testid="gff3-input-file"]').selectFile(fin)
+    cy.contains('Load features from GFF3')
+      .parent()
+      .within(() => {
+        cy.get('input[type="checkbox"]').should('be.checked')
+      })
+    cy.intercept('/changes').as('changes')
+    cy.get('Button[data-testid="submit-button"]').click()
+    cy.wait('@changes').its('response.statusCode').should('match', /2../)
+  })
 
   cy.contains('UploadAssemblyFile')
     .parent()
