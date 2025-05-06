@@ -460,9 +460,12 @@ function onMouseUp(
     return
   }
   const { featureAndGlyphUnderMouse } = mousePosition
-  if (featureAndGlyphUnderMouse?.feature) {
-    stateModel.setSelectedFeature(featureAndGlyphUnderMouse.feature)
+  if (!featureAndGlyphUnderMouse) {
+    return
   }
+  const { feature } = featureAndGlyphUnderMouse
+  stateModel.setSelectedFeature(feature)
+  stateModel.showFeatureDetailsWidget(feature)
 }
 
 /** @returns undefined if mouse not on the edge of this feature, otherwise 'start' or 'end' depending on which edge */
