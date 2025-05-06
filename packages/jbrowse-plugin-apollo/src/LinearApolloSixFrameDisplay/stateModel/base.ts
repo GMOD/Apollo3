@@ -36,6 +36,7 @@ export function baseModelFactory(
       configuration: ConfigurationReference(configSchema),
       graphical: true,
       table: false,
+      showFeatureLabels: true,
       heightPreConfig: types.maybe(
         types.refinement(
           'displayHeight',
@@ -164,6 +165,9 @@ export function baseModelFactory(
         self.graphical = true
         self.table = true
       },
+      toggleShowFeatureLabels() {
+        self.showFeatureLabels = !self.showFeatureLabels
+      },
       updateFilteredFeatureTypes(types: string[]) {
         self.filteredFeatureTypes = cast(types)
       },
@@ -172,7 +176,7 @@ export function baseModelFactory(
       const { filteredFeatureTypes, trackMenuItems: superTrackMenuItems } = self
       return {
         trackMenuItems() {
-          const { graphical, table } = self
+          const { graphical, table, showFeatureLabels } = self
           return [
             ...superTrackMenuItems(),
             {
@@ -201,6 +205,14 @@ export function baseModelFactory(
                   checked: table && graphical,
                   onClick: () => {
                     self.showGraphicalAndTable()
+                  },
+                },
+                {
+                  label: 'Feature Labels',
+                  type: 'checkbox',
+                  checked: showFeatureLabels,
+                  onClick: () => {
+                    self.toggleShowFeatureLabels()
                   },
                 },
               ],

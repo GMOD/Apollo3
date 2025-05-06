@@ -37,8 +37,9 @@ export function renderingModelIntermediateFactory(
     }))
     .views((self) => ({
       get featuresHeight() {
+        const featureLabelSpacer = self.showFeatureLabels ? 2 : 1
         return (
-          (self.highestRow + 1) * self.apolloRowHeight +
+          featureLabelSpacer * ((self.highestRow + 1) * self.apolloRowHeight) +
           self.lastRowTooltipBufferHeight
         )
       },
