@@ -96,20 +96,15 @@ jobs:
               jq --raw-output '.[] | select(.name=="Trichuris trichiura")._id'
           )
 
-          ls -la /
-          ls -la /data
-          ls ~/
-          pwd
-          apollo jbrowse get-config > /home/ec2-user/data/config.json
-
-          npm install -g @jbrowse/cli
+          apollo jbrowse get-config > tmp.config.json
+          scp tmp.config.json ec2-user@${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }}:/home/ec2-user/data/
 
           jbrowse add-track \
             /data/trichuris_muris.PRJEB126.WBPS19_vs_trichuris_trichiura.PRJEB535.WBPS19.paf \
             --load inPlace \
             --name "T. muris vs T. trichiura tblastx" \
             --assemblyNames "${MURIS_ID},${TRICHIURA_ID}" \
-            --target /home/ec2-user/data/config.json \
+            --target /home/ec2-user/data/tmp.config.json \
             --force
 
           apollo jbrowse set-config /data/config.json
