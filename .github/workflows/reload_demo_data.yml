@@ -80,29 +80,54 @@ jobs:
 
           apollo jbrowse set-config /data/config.json
 
-          apollo assembly get | apollo assembly delete --verbose --assembly -
-          apollo file get | apollo file delete
+          apollo assembly add-from-fasta -a "Trichuris muris" -f /data/trichuris_muris.PRJEB126.WBPS19.genomic_softmasked.fa.gz
+          apollo assembly add-from-fasta -a "Trichuris trichiura" -f /data/trichuris_trichiura.PRJEB535.WBPS19.genomic_softmasked.fa.gz
 
-          apollo assembly \
-            add-from-fasta \
-            /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz \
-            --fai /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz.fai \
-            --gzi /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz.gzi \
-            --assembly 'Schistosoma haematobium'
+          apollo feature import -a "Trichuris muris" -d /data/trichuris_muris.PRJEB126.WBPS19.annotations.gff3
+          apollo feature import -a "Trichuris trichiura" -d /data/trichuris_trichiura.PRJEB535.WBPS19.annotations.gff3
 
-          apollo assembly \
-            add-from-fasta \
-            /data/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz \
-            --fai /data/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz.fai \
-            --gzi /data/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz.gzi \
-            --assembly 'Schistosoma mansoni'
+          MURIS_ID=$(
+            yarn dev assembly get |
+              jq --raw-output '.[] | select(.name=="Trichuris muris")._id'
+          )
 
-          apollo feature \
-            import \
-            /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.genes.gff3 \
-            --assembly 'Schistosoma haematobium'
+          TRICHIURA_ID=$(
+            yarn dev assembly get |
+              jq --raw-output '.[] | select(.name=="Trichuris trichiura")._id'
+          )
 
-          apollo feature \
-            import \
-            /data/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.genes.gff3 \
-            --assembly 'Schistosoma mansoni'
+          apollo jbrowse get-config > /data/config.json
+
+          jbrowse add-track \
+            http://localhost:3001/trichuris_muris.PRJEB126.WBPS19_vs_trichuris_trichiura.PRJEB535.WBPS19.paf \
+            --name "T. muris vs T. trichiura tblastx" \
+            --assemblyNames "${MURIS_ID},${TRICHIURA_ID}" \
+            --force
+          apollo jbrowse set-config /data/config.json
+
+          # apollo assembly get | apollo assembly delete --verbose --assembly -
+          # apollo file get | apollo file delete
+
+          # apollo assembly \
+          #   add-from-fasta \
+          #   /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz \
+          #   --fai /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz.fai \
+          #   --gzi /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz.gzi \
+          #   --assembly 'Schistosoma haematobium'
+
+          # apollo assembly \
+          #   add-from-fasta \
+          #   /data/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz \
+          #   --fai /data/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz.fai \
+          #   --gzi /data/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz.gzi \
+          #   --assembly 'Schistosoma mansoni'
+
+          # apollo feature \
+          #   import \
+          #   /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.genes.gff3 \
+          #   --assembly 'Schistosoma haematobium'
+
+          # apollo feature \
+          #   import \
+          #   /data/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.genes.gff3 \
+          #   --assembly 'Schistosoma mansoni'
