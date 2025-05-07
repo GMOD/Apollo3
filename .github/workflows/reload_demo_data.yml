@@ -80,26 +80,27 @@ jobs:
 
           apollo jbrowse set-config /data/config.json
 
-          apollo assembly add-from-fasta -a "Trichuris muris" -f /data/trichuris_muris.PRJEB126.WBPS19.genomic_softmasked.fa.gz
-          apollo assembly add-from-fasta -a "Trichuris trichiura" -f /data/trichuris_trichiura.PRJEB535.WBPS19.genomic_softmasked.fa.gz
+          # apollo assembly add-from-fasta -a "Trichuris muris" -f /data/trichuris_muris.PRJEB126.WBPS19.genomic_softmasked.fa.gz
+          # apollo assembly add-from-fasta -a "Trichuris trichiura" -f /data/trichuris_trichiura.PRJEB535.WBPS19.genomic_softmasked.fa.gz
 
-          apollo feature import -a "Trichuris muris" -d /data/trichuris_muris.PRJEB126.WBPS19.annotations.gff3
-          apollo feature import -a "Trichuris trichiura" -d /data/trichuris_trichiura.PRJEB535.WBPS19.annotations.gff3
+          # apollo feature import -a "Trichuris muris" -d /data/trichuris_muris.PRJEB126.WBPS19.annotations.gff3
+          # apollo feature import -a "Trichuris trichiura" -d /data/trichuris_trichiura.PRJEB535.WBPS19.annotations.gff3
 
           MURIS_ID=$(
-            yarn dev assembly get |
+            apollo assembly get |
               jq --raw-output '.[] | select(.name=="Trichuris muris")._id'
           )
 
           TRICHIURA_ID=$(
-            yarn dev assembly get |
+            apollo assembly get |
               jq --raw-output '.[] | select(.name=="Trichuris trichiura")._id'
           )
 
           apollo jbrowse get-config > /data/config.json
 
           jbrowse add-track \
-            http://localhost:3001/trichuris_muris.PRJEB126.WBPS19_vs_trichuris_trichiura.PRJEB535.WBPS19.paf \
+            /data/trichuris_muris.PRJEB126.WBPS19_vs_trichuris_trichiura.PRJEB535.WBPS19.paf \
+            --load inPlace \
             --name "T. muris vs T. trichiura tblastx" \
             --assemblyNames "${MURIS_ID},${TRICHIURA_ID}" \
             --force
