@@ -96,9 +96,9 @@ jobs:
               jq --raw-output '.[] | select(.name=="Trichuris trichiura")._id'
           )
 
-          ls ~/
+          ls /
           pwd
-          apollo jbrowse get-config > ~/data/config.json
+          apollo jbrowse get-config > /home/ec2-user/data/config.json
 
           npm install -g @jbrowse/cli
 
@@ -107,7 +107,7 @@ jobs:
             --load inPlace \
             --name "T. muris vs T. trichiura tblastx" \
             --assemblyNames "${MURIS_ID},${TRICHIURA_ID}" \
-            --target ~/data/config.json \
+            --target /home/ec2-user/data/config.json \
             --force
 
           apollo jbrowse set-config /data/config.json
