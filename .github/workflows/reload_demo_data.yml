@@ -98,6 +98,8 @@ jobs:
 
           apollo jbrowse get-config > tmp.config.json
 
+          npm install -g @jbrowse/cli
+
           jbrowse add-track \
             /data/trichuris_muris.PRJEB126.WBPS19_vs_trichuris_trichiura.PRJEB535.WBPS19.paf \
             --load inPlace \
