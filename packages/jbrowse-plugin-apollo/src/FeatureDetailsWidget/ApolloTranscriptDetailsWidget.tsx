@@ -1,5 +1,5 @@
 // import { AnnotationFeature } from '@apollo-annotation/mst'
-import { AbstractSessionModel, getEnv, getSession } from '@jbrowse/core/util'
+import { AbstractSessionModel, getSession } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
