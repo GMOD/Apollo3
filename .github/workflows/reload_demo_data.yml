@@ -96,7 +96,9 @@ jobs:
               jq --raw-output '.[] | select(.name=="Trichuris trichiura")._id'
           )
 
-          ls /
+          ls -la /
+          ls -la /data
+          ls ~/
           pwd
           apollo jbrowse get-config > /home/ec2-user/data/config.json
 
