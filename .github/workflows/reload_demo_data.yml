@@ -107,8 +107,7 @@ jobs:
                     --assemblyNames '${MURIS_ID},${TRICHIURA_ID}' \
                     --target /home/ec2-user/data/tmp.config.json \
                     --force"
-          rsync -av staging:data/tmp.config.json ./
-          apollo jbrowse set-config tmp.config.json
+          apollo jbrowse set-config /data/tmp.config.json
 
           # apollo assembly get | apollo assembly delete --verbose --assembly -
           # apollo file get | apollo file delete
