@@ -101,7 +101,7 @@ jobs:
           rsync -av tmp.config.json staging:data/
           ssh staging -f "
                     jbrowse add-track \
-                    /data/trichuris_muris.PRJEB126.WBPS19_vs_trichuris_trichiura.PRJEB535.WBPS19.paf \
+                    /home/ec2-user/data/trichuris_muris.PRJEB126.WBPS19_vs_trichuris_trichiura.PRJEB535.WBPS19.paf \
                     --load inPlace \
                     --name 'T. muris vs T. trichiura tblastx' \
                     --assemblyNames '${MURIS_ID},${TRICHIURA_ID}' \
