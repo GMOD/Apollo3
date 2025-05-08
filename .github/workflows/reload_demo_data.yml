@@ -98,17 +98,17 @@ jobs:
           )
 
           apollo jbrowse get-config > tmp.config.json
-          scp tmp.config.json ec2-user@${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }}:/home/ec2-user/data/
-
-          jbrowse add-track \
-            /data/trichuris_muris.PRJEB126.WBPS19_vs_trichuris_trichiura.PRJEB535.WBPS19.paf \
-            --load inPlace \
-            --name "T. muris vs T. trichiura tblastx" \
-            --assemblyNames "${MURIS_ID},${TRICHIURA_ID}" \
-            --target /home/ec2-user/data/tmp.config.json \
-            --force
-
-          apollo jbrowse set-config /data/config.json
+          rsync -av tmp.config.json staging:data/
+          ssh staging -f "
+                    jbrowse add-track \
+                    /data/trichuris_muris.PRJEB126.WBPS19_vs_trichuris_trichiura.PRJEB535.WBPS19.paf \
+                    --load inPlace \
+                    --name 'T. muris vs T. trichiura tblastx' \
+                    --assemblyNames '${MURIS_ID},${TRICHIURA_ID}' \
+                    --target /home/ec2-user/data/tmp.config.json \
+                    --force"
+          rsync -av staging:data/tmp.config.json ./
+          apollo jbrowse set-config tmp.config.json
 
           # apollo assembly get | apollo assembly delete --verbose --assembly -
           # apollo file get | apollo file delete
