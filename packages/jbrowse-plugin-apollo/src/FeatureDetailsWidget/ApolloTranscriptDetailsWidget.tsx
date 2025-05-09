@@ -1,4 +1,3 @@
-import { AnnotationFeature } from '@apollo-annotation/mst'
 import { AbstractSessionModel, getEnv, getSession } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
 import { getRoot } from 'mobx-state-tree'
@@ -25,11 +24,12 @@ import { TranscriptSequence } from './TranscriptSequence'
 import { ApolloTranscriptDetailsWidget as ApolloTranscriptDetailsWidgetState } from './model'
 import { TranscriptWidgetSummary } from './TranscriptWidgetSummary'
 import { TranscriptWidgetEditLocation } from './TranscriptWidgetEditLocation'
-
-interface CustomComponentProps {
-  session: AbstractSessionModel
-  feature: AnnotationFeature
-}
+import {
+  AddFeatureChange,
+  DeleteFeatureChange,
+  FeatureAttributeChange,
+  TypeChange,
+} from '@apollo-annotation/shared'
 
 const useStyles = makeStyles()((theme) => ({
   root: {
@@ -99,11 +99,31 @@ export const ApolloTranscriptDetailsWidget = observer(
       }
     }
 
-    const CustomComponent = pluginManager.evaluateExtensionPoint(
-      'Apollo-TranscriptDetailsCustomComponent',
-      undefined,
-      props,
-    ) as React.ElementType<CustomComponentProps>
+    const BiotypesComponent = pluginManager.evaluateExtensionPoint(
+      'Apollo-BiotypesComponent',
+      () => null,
+      {
+        key: 'status',
+        feature,
+        session,
+        assembly,
+        TypeChange,
+        DeleteFeatureChange,
+        AddFeatureChange,
+        FeatureAttributeChange,
+      },
+    ) as React.ElementType
+
+    const SaveComponent = pluginManager.evaluateExtensionPoint(
+      'Apollo-HavanaSaveComponent',
+      () => null,
+      {
+        key: 'status',
+        feature,
+        session,
+        assembly,
+      },
+    ) as React.ElementType
 
     return (
       <div className={classes.root}>
@@ -126,7 +146,6 @@ export const ApolloTranscriptDetailsWidget = observer(
             <TranscriptWidgetSummary feature={feature} refName={refName} />
           </AccordionDetails>
         </Accordion>
-        <CustomComponent session={session} feature={feature} />
         <Accordion
           style={{ marginTop: 5 }}
           expanded={panelState.includes('location')}
@@ -149,6 +168,15 @@ export const ApolloTranscriptDetailsWidget = observer(
               refName={refName}
               session={apolloSession}
               assembly={currentAssembly._id || ''}
+            />
+            <BiotypesComponent
+              feature={feature}
+              session={session}
+              assembly={assembly}
+              TypeChange={TypeChange}
+              DeleteFeatureChange={DeleteFeatureChange}
+              AddFeatureChange={AddFeatureChange}
+              FeatureAttributeChange={FeatureAttributeChange}
             />
           </AccordionDetails>
         </Accordion>
@@ -211,6 +239,11 @@ export const ApolloTranscriptDetailsWidget = observer(
             )}
           </AccordionDetails>
         </Accordion>
+        <SaveComponent
+          feature={feature}
+          session={session}
+          assembly={assembly}
+        />
       </div>
     )
   },
