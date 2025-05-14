@@ -6,7 +6,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@jbrowse/core": "^3.0.1",
+    "@jbrowse/core": "3.3.0",
     "mobx": "^6.6.1",
     "mobx-state-tree": "^5.4.0",
     "react-dom": "^18.2.0",

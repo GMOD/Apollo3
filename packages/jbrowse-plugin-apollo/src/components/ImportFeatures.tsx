@@ -270,7 +270,7 @@ export function ImportFeatures({
                 <Checkbox
                   checked={deleteFeatures}
                   onChange={handleDeleteFeatures}
-                  inputProps={{ 'aria-label': 'controlled' }}
+                  slotProps={{ input: { 'aria-label': 'controlled' } }}
                   color="warning"
                 />
               }

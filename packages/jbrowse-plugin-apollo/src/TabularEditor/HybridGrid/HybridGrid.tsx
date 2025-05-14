@@ -120,9 +120,11 @@ const HybridGrid = observer(function HybridGrid({
         onClose={() => {
           setContextMenu(null)
         }}
-        TransitionProps={{
-          onExit: () => {
-            setContextMenu(null)
+        slotProps={{
+          transition: {
+            onExit: () => {
+              setContextMenu(null)
+            },
           },
         }}
         style={{ zIndex: theme.zIndex.tooltip }}

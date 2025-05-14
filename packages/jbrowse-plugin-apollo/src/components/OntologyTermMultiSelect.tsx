@@ -4,9 +4,9 @@
 import { isAbortException } from '@jbrowse/core/util/aborting'
 import {
   Autocomplete,
-  AutocompleteRenderGetTagProps,
+  AutocompleteRenderValueGetItemProps,
   Chip,
-  Grid2,
+  Grid,
   TextField,
   Tooltip,
   Typography,
@@ -49,14 +49,14 @@ interface TermValue {
 // const hiliteRegex = /(?<=<em class="hilite">)(.*?)(?=<\/em>)/g
 
 function TermTagWithTooltip({
-  getTagProps,
+  getItemProps,
   index,
   ontology,
   termId,
 }: {
   termId: string
   index: number
-  getTagProps: AutocompleteRenderGetTagProps
+  getItemProps: AutocompleteRenderValueGetItemProps<true>
   ontology: OntologyRecord
 }) {
   const manager = getParent<OntologyManager>(ontology, 2)
@@ -100,7 +100,7 @@ function TermTagWithTooltip({
           label={errorMessage || manager.applyPrefixes(termId)}
           color={errorMessage ? 'error' : 'default'}
           size="small"
-          {...getTagProps({ index })}
+          {...getItemProps({ index })}
         />
       </div>
     </Tooltip>
@@ -270,13 +270,13 @@ export function OntologyTermMultiSelect({
           inputValue={inputValue}
         />
       )}
-      renderTags={(v, getTagProps) =>
+      renderValue={(v, getItemProps) =>
         v.map((option, index) => (
           <TermTagWithTooltip
             termId={option.term.id}
             index={index}
             ontology={ontology}
-            getTagProps={getTagProps}
+            getItemProps={getItemProps}
             key={option.term.id}
           />
         ))
@@ -336,8 +336,8 @@ function Option(props: {
   //   .join(', ')
   return (
     <li {...other}>
-      <Grid2 container>
-        <Grid2>
+      <Grid container>
+        <Grid>
           <Typography component="span">
             {ontologyManager.applyPrefixes(option.term.id)}
           </Typography>{' '}
@@ -347,8 +347,8 @@ function Option(props: {
           />{' '}
           {/* ({lblScore}) */}
           <dl>{fields}</dl>
-        </Grid2>
-      </Grid2>
+        </Grid>
+      </Grid>
     </li>
   )
 }
