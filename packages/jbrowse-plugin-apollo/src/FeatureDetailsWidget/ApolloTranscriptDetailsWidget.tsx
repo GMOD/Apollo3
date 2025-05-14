@@ -49,6 +49,10 @@ export const StyledAccordionSummary = styled(AccordionSummary)(() => ({
   },
 }))
 
+function NoOpCustomComponent(_props: CustomComponentProps) {
+  return null
+}
+
 export const ApolloTranscriptDetailsWidget = observer(
   function ApolloTranscriptDetails(props: {
     model: ApolloTranscriptDetailsWidgetState
@@ -104,7 +108,7 @@ export const ApolloTranscriptDetailsWidget = observer(
 
     const CustomComponent = pluginManager.evaluateExtensionPoint(
       'Apollo-TranscriptDetailsCustomComponent',
-      undefined,
+      NoOpCustomComponent,
       props,
     ) as React.ElementType<CustomComponentProps>
 
