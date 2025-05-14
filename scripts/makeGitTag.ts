@@ -1,9 +1,9 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import { sync } from 'cross-spawn'
 import { inc } from 'semver'
 import yargs from 'yargs/yargs'
-
-import fs from 'node:fs'
-import path from 'node:path'
 
 function getCurrentVersion() {
   const packageJSONRaw = fs.readFileSync(

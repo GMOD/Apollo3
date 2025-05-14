@@ -1,18 +1,19 @@
-import { AnnotationFeature } from '@apollo-annotation/mst'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { getFrame, intersection2 } from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
 
-import { LinearApolloDisplay } from '../stateModel'
+import { type OntologyRecord } from '../../OntologyManager'
+import { type LinearApolloDisplay } from '../stateModel'
 import {
+  type MousePosition,
+  type MousePositionWithFeatureAndGlyph,
   isMousePositionWithFeatureAndGlyph,
-  MousePosition,
-  MousePositionWithFeatureAndGlyph,
 } from '../stateModel/mouseEvents'
-import { CanvasMouseEvent } from '../types'
-import { Glyph } from './Glyph'
+import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
+import { type CanvasMouseEvent } from '../types'
+
 import { boxGlyph } from './BoxGlyph'
-import { LinearApolloDisplayRendering } from '../stateModel/rendering'
-import { OntologyRecord } from '../../OntologyManager'
+import { type Glyph } from './Glyph'
 
 let forwardFillLight: CanvasPattern | null = null
 let backwardFillLight: CanvasPattern | null = null

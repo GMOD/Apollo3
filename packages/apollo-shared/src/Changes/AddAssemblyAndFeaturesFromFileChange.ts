@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/require-await */
 
 import {
-  ChangeOptions,
-  ClientDataStore,
-  LocalGFF3DataStore,
-  SerializedAssemblySpecificChange,
-  ServerDataStore,
+  type ChangeOptions,
+  type ClientDataStore,
+  type LocalGFF3DataStore,
+  type SerializedAssemblySpecificChange,
+  type ServerDataStore,
 } from '@apollo-annotation/common'
-import { GFF3Feature } from '@gmod/gff'
+import { type GFF3Feature } from '@gmod/gff'
 
 import { FromFileBaseChange } from './FromFileBaseChange'
 

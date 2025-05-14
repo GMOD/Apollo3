@@ -1,4 +1,4 @@
-import { IDBPDatabase, openDB } from 'idb'
+import { type IDBPDatabase, openDB } from 'idb'
 
 Cypress.Commands.add('loginAsGuest', () => {
   cy.visit('/?config=http://localhost:3999/jbrowse/config.json')

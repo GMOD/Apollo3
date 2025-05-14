@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import { type SerializedAddFeatureChange } from '@apollo-annotation/shared'
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
-import { Response, fetch } from 'undici'
-
-import { type SerializedAddFeatureChange } from '@apollo-annotation/shared'
+import { type Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
@@ -14,7 +14,6 @@ import {
   localhostToAddress,
   queryApollo,
 } from '../../utils.js'
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Add a child feature (e.g. add an exon to an mRNA)'
