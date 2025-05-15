@@ -605,7 +605,7 @@ export const TranscriptWidgetEditLocation = observer(
       <div>
         {cdsPresent && (
           <div>
-            <Accordion defaultExpanded>
+            <Accordion>
               <StyledAccordionSummary
                 expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
                 aria-controls="panel1-content"
