@@ -51,7 +51,7 @@ export const ApolloTranscriptDetailsWidget = observer(
     model: ApolloTranscriptDetailsWidgetState
   }) {
     const { classes } = useStyles()
-    const DEFAULT_PANELS = ['summary', 'location', 'attrs']
+    const DEFAULT_PANELS = ['summary', 'location']
     const [panelState, setPanelState] = useState<string[]>(DEFAULT_PANELS)
 
     const { model } = props
@@ -125,6 +125,18 @@ export const ApolloTranscriptDetailsWidget = observer(
       },
     ) as React.ElementType
 
+    const HavanaAttributesComponent = pluginManager.evaluateExtensionPoint(
+      'Apollo-HavanaAttributes',
+      () => null,
+      {
+        key: 'status',
+        feature,
+        session,
+        assembly,
+        FeatureAttributeChange,
+      },
+    ) as React.ElementType
+
     return (
       <div className={classes.root}>
         <Accordion
@@ -176,6 +188,12 @@ export const ApolloTranscriptDetailsWidget = observer(
               TypeChange={TypeChange}
               DeleteFeatureChange={DeleteFeatureChange}
               AddFeatureChange={AddFeatureChange}
+              FeatureAttributeChange={FeatureAttributeChange}
+            />
+            <HavanaAttributesComponent
+              feature={feature}
+              session={session}
+              assembly={assembly}
               FeatureAttributeChange={FeatureAttributeChange}
             />
           </AccordionDetails>
