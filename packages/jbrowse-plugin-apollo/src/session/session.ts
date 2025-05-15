@@ -123,16 +123,6 @@ export function extendSession(
                   : {}),
               },
             },
-            displays: [
-              {
-                type: 'LinearApolloDisplay',
-                displayId: `${trackId}-LinearApolloDisplay`,
-              },
-              {
-                type: 'SixFrameFeatureDisplay',
-                displayId: `${trackId}-SixFrameFeatureDisplay`,
-              },
-            ],
           })
         }
       },
