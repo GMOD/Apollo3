@@ -1,10 +1,10 @@
 import { getSession, intersection2 } from '@jbrowse/core/util'
 import {
-  IAnyModelType,
-  IMSTMap,
-  Instance,
-  SnapshotIn,
-  SnapshotOrInstance,
+  type IAnyModelType,
+  type IMSTMap,
+  type Instance,
+  type SnapshotIn,
+  type SnapshotOrInstance,
   cast,
   getParentOfType,
   getSnapshot,

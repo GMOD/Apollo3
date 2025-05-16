@@ -1,21 +1,22 @@
 import { getSession } from '@jbrowse/core/util'
-import { observer } from 'mobx-react'
-import React, { useEffect, useState } from 'react'
-import { makeStyles } from 'tss-react/mui'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
   Typography,
 } from '@mui/material'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { observer } from 'mobx-react'
+import React, { useEffect, useState } from 'react'
+import { makeStyles } from 'tss-react/mui'
 
-import { ApolloSessionModel } from '../session'
+import { type ApolloSessionModel } from '../session'
+
 import { Attributes } from './Attributes'
 import { BasicInformation } from './BasicInformation'
-import { ApolloFeatureDetailsWidget as ApolloFeatureDetails } from './model'
-import { Sequence } from './Sequence'
 import { FeatureDetailsNavigation } from './FeatureDetailsNavigation'
+import { Sequence } from './Sequence'
+import { type ApolloFeatureDetailsWidget as ApolloFeatureDetails } from './model'
 
 const useStyles = makeStyles()((theme) => ({
   root: {

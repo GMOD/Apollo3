@@ -1,22 +1,21 @@
 import * as crypto from 'node:crypto'
-import EventEmitter from 'node:events'
+import type EventEmitter from 'node:events'
 import * as fs from 'node:fs'
-import { stdin, stderr } from 'node:process'
+import { stderr, stdin } from 'node:process'
 
-import type {
-  SerializedAddAssemblyAndFeaturesFromFileChange,
-  SerializedAddAssemblyFromExternalChange,
-  SerializedAddAssemblyFromFileChange,
-  SerializedDeleteAssemblyChange,
+import {
+  type ApolloAssemblySnapshot,
+  type CheckResultSnapshot,
+} from '@apollo-annotation/mst'
+import {
+  type SerializedAddAssemblyAndFeaturesFromFileChange,
+  type SerializedAddAssemblyFromExternalChange,
+  type SerializedAddAssemblyFromFileChange,
+  type SerializedDeleteAssemblyChange,
 } from '@apollo-annotation/shared'
-
-import { Agent, RequestInit, Response, fetch } from 'undici'
+import { Agent, type RequestInit, type Response, fetch } from 'undici'
 
 import { ApolloConf, ConfigError } from './ApolloConf.js'
-import {
-  ApolloAssemblySnapshot,
-  CheckResultSnapshot,
-} from '@apollo-annotation/mst'
 
 export const CLI_SERVER_ADDRESS = 'http://127.0.0.1:5657'
 export const CLI_SERVER_ADDRESS_CALLBACK = `${CLI_SERVER_ADDRESS}/auth/callback`

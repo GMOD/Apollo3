@@ -1,4 +1,4 @@
-import { Operation } from './Operation'
+import { type Operation } from './Operation'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type OperationType = new (...args: any[]) => Operation

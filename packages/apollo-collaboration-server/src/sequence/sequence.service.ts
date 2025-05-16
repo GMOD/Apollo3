@@ -16,6 +16,7 @@ import { Model } from 'mongoose'
 
 import { AssembliesService } from '../assemblies/assemblies.service'
 import { FilesService } from '../files/files.service'
+
 import { GetSequenceDto } from './dto/get-sequence.dto'
 
 @Injectable()

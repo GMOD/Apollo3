@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { Change, ChangeOptions, SerializedChange, isChange } from './Change'
+import {
+  Change,
+  type ChangeOptions,
+  type SerializedChange,
+  isChange,
+} from './Change'
 
 export interface SerializedAssemblySpecificChange extends SerializedChange {
   assembly: string

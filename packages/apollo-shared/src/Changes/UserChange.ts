@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/require-await */
 import {
   Change,
-  ChangeOptions,
-  ClientDataStore,
-  LocalGFF3DataStore,
-  SerializedChange,
-  ServerDataStore,
+  type ChangeOptions,
+  type ClientDataStore,
+  type LocalGFF3DataStore,
+  type SerializedChange,
+  type ServerDataStore,
 } from '@apollo-annotation/common'
 
 export interface SerializedUserChangeBase extends SerializedChange {

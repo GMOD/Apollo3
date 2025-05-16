@@ -1,4 +1,4 @@
-import { Test, TestingModule } from '@nestjs/testing'
+import { Test, type TestingModule } from '@nestjs/testing'
 
 import { MessagesGateway } from './messages.gateway'
 import { MessagesService } from './messages.service'

@@ -2,13 +2,13 @@ import * as fs from 'node:fs'
 import path from 'node:path'
 import {
   Transform,
-  TransformCallback,
-  TransformOptions,
+  type TransformCallback,
+  type TransformOptions,
   pipeline,
 } from 'node:stream'
 
 import { SingleBar } from 'cli-progress'
-import { Agent, RequestInit, fetch } from 'undici'
+import { Agent, type RequestInit, fetch } from 'undici'
 
 import { ConfigError } from './ApolloConf.js'
 import { BaseCommand } from './baseCommand.js'

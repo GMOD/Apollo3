@@ -6,12 +6,12 @@
 import { readConfObject } from '@jbrowse/core/configuration'
 import { BaseSequenceAdapter } from '@jbrowse/core/data_adapters/BaseAdapter'
 import { ObservableCreate } from '@jbrowse/core/util/rxjs'
-import SimpleFeature, { Feature } from '@jbrowse/core/util/simpleFeature'
-import { NoAssemblyRegion, Region } from '@jbrowse/core/util/types'
+import SimpleFeature, { type Feature } from '@jbrowse/core/util/simpleFeature'
+import { type NoAssemblyRegion, type Region } from '@jbrowse/core/util/types'
 import { nanoid } from 'nanoid'
 
-import { BackendDriver } from '../BackendDrivers'
-import { ApolloSessionModel } from '../session'
+import { type BackendDriver } from '../BackendDrivers'
+import { type ApolloSessionModel } from '../session'
 
 // declare global {
 //   var rpcServer: import('librpc-web-mod').RpcServer

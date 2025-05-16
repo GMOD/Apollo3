@@ -1,4 +1,4 @@
-import { AnnotationFeature } from '@apollo-annotation/mst'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
 
 export function getFeatureName(feature: AnnotationFeature) {
   const { attributes } = feature

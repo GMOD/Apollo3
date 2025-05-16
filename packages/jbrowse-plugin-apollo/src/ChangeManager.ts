@@ -2,18 +2,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
-  Change,
-  ClientDataStore,
+  type Change,
+  type ClientDataStore,
   isAssemblySpecificChange,
 } from '@apollo-annotation/common'
 import {
-  ValidationResultSet,
+  type ValidationResultSet,
   validationRegistry,
 } from '@apollo-annotation/shared'
 import { getSession } from '@jbrowse/core/util'
-import { IAnyStateTreeNode } from 'mobx-state-tree'
+import { type IAnyStateTreeNode } from 'mobx-state-tree'
 
-import { ApolloSessionModel } from './session'
+import { type ApolloSessionModel } from './session'
 
 export interface SubmitOpts {
   /** defaults to true */

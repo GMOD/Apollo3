@@ -3,14 +3,14 @@
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
-  ChangeOptions,
-  ClientDataStore,
+  type ChangeOptions,
+  type ClientDataStore,
   FeatureChange,
-  LocalGFF3DataStore,
-  SerializedFeatureChange,
-  ServerDataStore,
+  type LocalGFF3DataStore,
+  type SerializedFeatureChange,
+  type ServerDataStore,
 } from '@apollo-annotation/common'
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 import { DeleteFeatureChange } from './DeleteFeatureChange'
 

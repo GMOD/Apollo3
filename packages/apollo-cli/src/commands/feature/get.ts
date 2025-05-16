@@ -1,5 +1,5 @@
 import { Flags } from '@oclif/core'
-import { Response, fetch } from 'undici'
+import { type Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {

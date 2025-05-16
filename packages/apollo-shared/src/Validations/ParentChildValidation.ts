@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { Change } from '@apollo-annotation/common'
-import { Feature, FeatureDocument } from '@apollo-annotation/schemas'
-import { ClientSession, Model } from 'mongoose'
+import { type Change } from '@apollo-annotation/common'
+import { type Feature, type FeatureDocument } from '@apollo-annotation/schemas'
+import { type ClientSession, type Model } from 'mongoose'
 
 import {
-  LocationEndChange,
-  LocationStartChange,
+  type LocationEndChange,
+  type LocationStartChange,
   isLocationEndChange,
   isLocationStartChange,
 } from '../Changes'
-import { Validation, ValidationResult } from './Validation'
+
+import { Validation, type ValidationResult } from './Validation'
 
 export class ParentChildValidation extends Validation {
   name = 'ParentChildValidation' as const

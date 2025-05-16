@@ -4,7 +4,7 @@
 import fs from 'node:fs'
 
 import {
-  Check,
+  type Check,
   changeRegistry,
   checkRegistry,
   operationRegistry,
@@ -18,10 +18,10 @@ import {
   operations,
   validationRegistry,
 } from '@apollo-annotation/shared'
-import { LogLevel } from '@nestjs/common'
+import { type LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import connectMongoDBSession from 'connect-mongodb-session'
-import { urlencoded, json } from 'express'
+import { json, urlencoded } from 'express'
 import session from 'express-session'
 import mongoose from 'mongoose'
 

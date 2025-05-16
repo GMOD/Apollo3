@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
+import { type ApolloRefSeqSnapshot } from '@apollo-annotation/mst'
 import { Flags } from '@oclif/core'
-import { Agent, RequestInit, Response, fetch } from 'undici'
+import { Agent, type RequestInit, type Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
@@ -11,7 +12,6 @@ import {
   localhostToAddress,
   queryApollo,
 } from '../../utils.js'
-import { ApolloRefSeqSnapshot } from '@apollo-annotation/mst'
 
 async function getSequence(
   address: string,

@@ -5,8 +5,8 @@ import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import idValidator from 'mongoose-id-validator'
 
 import { AssembliesModule } from '../assemblies/assemblies.module'
-import { CountersModule } from '../counters/counters.module'
 import { ChecksModule } from '../checks/checks.module'
+import { CountersModule } from '../counters/counters.module'
 import { FeaturesModule } from '../features/features.module'
 import { FilesModule } from '../files/files.module'
 import { JBrowseModule } from '../jbrowse/jbrowse.module'
@@ -14,6 +14,7 @@ import { MessagesModule } from '../messages/messages.module'
 import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
 import { UsersModule } from '../users/users.module'
+
 import { ChangesController } from './changes.controller'
 import { ChangesService } from './changes.service'
 

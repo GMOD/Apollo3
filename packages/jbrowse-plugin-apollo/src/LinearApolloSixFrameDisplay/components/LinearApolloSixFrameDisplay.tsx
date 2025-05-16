@@ -1,20 +1,21 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { Menu, MenuItem } from '@jbrowse/core/ui'
+import { Menu, type MenuItem } from '@jbrowse/core/ui'
 import {
-  AbstractSessionModel,
+  type AbstractSessionModel,
   doesIntersect2,
   getContainingView,
 } from '@jbrowse/core/util'
-import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import ErrorIcon from '@mui/icons-material/Error'
 import { Alert, Avatar, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
-import { LinearApolloSixFrameDisplay as LinearApolloSixFrameDisplayI } from '../stateModel'
+import { type LinearApolloSixFrameDisplay as LinearApolloSixFrameDisplayI } from '../stateModel'
+
 import { TrackLines } from './TrackLines'
 
 interface LinearApolloSixFrameDisplayProps {

@@ -15,12 +15,12 @@ import {
   FeatureDocument,
   File,
   FileDocument,
+  JBrowseConfig,
+  JBrowseConfigDocument,
   RefSeq,
   RefSeqChunk,
   RefSeqChunkDocument,
   RefSeqDocument,
-  JBrowseConfig,
-  JBrowseConfigDocument,
   User,
   UserDocument,
 } from '@apollo-annotation/schemas'
@@ -44,6 +44,7 @@ import { CountersService } from '../counters/counters.service'
 import { FilesService } from '../files/files.service'
 import { MessagesGateway } from '../messages/messages.gateway'
 import { PluginsService } from '../plugins/plugins.service'
+
 import { FindChangeDto } from './dto/find-change.dto'
 
 const STATUS_ZERO_CHANGE_TYPES = new Set([

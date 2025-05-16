@@ -1,5 +1,5 @@
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
-import { Button, ButtonProps } from '@mui/material'
+import { Button, type ButtonProps } from '@mui/material'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'
 

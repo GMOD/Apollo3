@@ -1,3 +1,7 @@
+import {
+  type ApolloAssemblySnapshot,
+  type CheckResultSnapshot,
+} from '@apollo-annotation/mst'
 import { Flags } from '@oclif/core'
 import { fetch } from 'undici'
 
@@ -9,10 +13,6 @@ import {
   localhostToAddress,
   queryApollo,
 } from '../../utils.js'
-import {
-  ApolloAssemblySnapshot,
-  CheckResultSnapshot,
-} from '@apollo-annotation/mst'
 
 export default class Check extends BaseCommand<typeof Check> {
   static summary = 'Get check results'

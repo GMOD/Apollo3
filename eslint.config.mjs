@@ -1,5 +1,7 @@
-import js from '@eslint/js'
 import pluginCypress from 'eslint-plugin-cypress/flat'
+import tseslint from 'typescript-eslint'
+
+import js from '@eslint/js'
 import pluginImport from 'eslint-plugin-import'
 import pluginJSXA11y from 'eslint-plugin-jsx-a11y'
 import pluginReact from 'eslint-plugin-react'
@@ -7,7 +9,6 @@ import pluginReactHooks from 'eslint-plugin-react-hooks'
 import pluginTSDoc from 'eslint-plugin-tsdoc'
 import pluginUnicorn from 'eslint-plugin-unicorn'
 import globals from 'globals'
-import tseslint from 'typescript-eslint'
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -73,6 +74,10 @@ export default [
       'prefer-template': 'warn',
       radix: 'error',
       // @typescript-eslint/eslint-plugin rules (override recommended)
+      '@typescript-eslint/consistent-type-imports': [
+        'warn',
+        { fixStyle: 'inline-type-imports' },
+      ],
       '@typescript-eslint/no-extraneous-class': [
         'error',
         { allowWithDecorator: true },
@@ -87,10 +92,20 @@ export default [
       ],
       '@typescript-eslint/return-await': 'error',
       // eslint-plugin-import rules
+      'import/consistent-type-specifier-style': ['warn', 'prefer-inline'],
       'import/export': 'error',
-      'import/no-duplicates': 'warn',
+      'import/no-duplicates': ['warn', { 'prefer-inline': true }],
       'import/no-extraneous-dependencies': 'error',
       'import/no-named-as-default': 'warn',
+      'import/order': [
+        'warn',
+        {
+          named: true,
+          'newlines-between': 'always',
+          alphabetize: { order: 'asc' },
+          groups: ['builtin', 'external', 'parent', 'sibling'],
+        },
+      ],
       // eslint-plugin-tsdoc rules
       'tsdoc/syntax': 'warn',
       // eslint-plugin-unicorn rules (override recommended)

@@ -4,7 +4,8 @@ import { Button, DialogActions, IconButton } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 
-import { ApolloSessionModel } from '../session'
+import { type ApolloSessionModel } from '../session'
+
 import { StringTextField } from './StringTextField'
 
 export interface AttributeEditorProps {

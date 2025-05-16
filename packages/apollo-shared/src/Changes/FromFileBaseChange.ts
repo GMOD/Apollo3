@@ -5,10 +5,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
   AssemblySpecificChange,
-  ServerDataStore,
+  type ServerDataStore,
 } from '@apollo-annotation/common'
-import { FileDocument, RefSeqDocument } from '@apollo-annotation/schemas'
-import { GFF3Feature } from '@gmod/gff'
+import {
+  type FileDocument,
+  type RefSeqDocument,
+} from '@apollo-annotation/schemas'
+import { type GFF3Feature } from '@gmod/gff'
 
 import { gff3ToAnnotationFeature } from '../GFF3'
 

@@ -1,5 +1,5 @@
 import { Args, Flags } from '@oclif/core'
-import { Response } from 'undici'
+import { type Response } from 'undici'
 
 import { FileCommand } from '../../fileCommand.js'
 import { filterJsonList, queryApollo } from '../../utils.js'

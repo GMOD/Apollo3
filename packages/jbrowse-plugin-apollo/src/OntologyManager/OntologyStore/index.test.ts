@@ -4,8 +4,9 @@ import path from 'node:path'
 
 import { beforeAll, describe, expect, it, jest } from '@jest/globals'
 
+import { type OntologyClass, isOntologyClass } from '..'
+
 import OntologyStore from '.'
-import { OntologyClass, isOntologyClass } from '..'
 
 jest.setTimeout(1_000_000_000)
 
@@ -19,6 +20,7 @@ const prefixes = new Map([
 // different "Object". This intercepts calls to "query" in this test and makes
 // sure the main scope "Object" is used.
 jest.mock('jsonpath', () => {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   const original = jest.requireActual<typeof import('jsonpath')>('jsonpath')
   return {
     ...original,

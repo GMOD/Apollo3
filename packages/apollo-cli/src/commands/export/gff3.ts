@@ -1,3 +1,5 @@
+import { Readable } from 'node:stream'
+
 import { Args, Flags } from '@oclif/core'
 import { fetch } from 'undici'
 
@@ -8,8 +10,6 @@ import {
   idReader,
   localhostToAddress,
 } from '../../utils.js'
-
-import { Readable } from 'node:stream'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description =

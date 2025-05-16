@@ -1,25 +1,26 @@
 /* eslint-disable @typescript-eslint/require-await */
 import {
-  AssemblySpecificChange,
-  Change,
+  type AssemblySpecificChange,
+  type Change,
   isAssemblySpecificChange,
 } from '@apollo-annotation/common'
 import {
-  AnnotationFeatureSnapshot,
-  CheckResultSnapshot,
+  type AnnotationFeatureSnapshot,
+  type CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 import {
-  annotationFeatureToGFF3,
   ValidationResultSet,
+  annotationFeatureToGFF3,
   splitStringIntoChunks,
 } from '@apollo-annotation/shared'
-import gff, { GFF3Item } from '@gmod/gff'
+import gff, { type GFF3Item } from '@gmod/gff'
 import { getConf } from '@jbrowse/core/configuration'
-import { Region, getSession } from '@jbrowse/core/util'
+import { type Region, getSession } from '@jbrowse/core/util'
 import { getSnapshot } from 'mobx-state-tree'
 
 import { checkFeatures, loadAssemblyIntoClient } from '../util'
-import { BackendDriver, RefNameAliases } from './BackendDriver'
+
+import { BackendDriver, type RefNameAliases } from './BackendDriver'
 
 export class DesktopFileDriver extends BackendDriver {
   async loadAssembly(assemblyName: string) {
@@ -32,7 +33,7 @@ export class DesktopFileDriver extends BackendDriver {
       file: string
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/consistent-type-imports
     const fs = require('node:fs') as typeof import('fs')
     const fileContents = await fs.promises.readFile(file, 'utf8')
     return loadAssemblyIntoClient(assemblyName, fileContents, this.clientStore)
@@ -166,7 +167,7 @@ export class DesktopFileDriver extends BackendDriver {
 
     const gff3Contents = gff.formatSync(gff3Items)
 
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/consistent-type-imports
     const fs = require('node:fs') as typeof import('fs')
     await fs.promises.writeFile(file, gff3Contents, 'utf8')
 

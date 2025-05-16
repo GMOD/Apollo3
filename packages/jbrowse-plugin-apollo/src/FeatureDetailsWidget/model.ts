@@ -1,15 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
-  AnnotationFeature,
+  type AnnotationFeature,
   AnnotationFeatureModel,
 } from '@apollo-annotation/mst'
 import { getSession } from '@jbrowse/core/util'
 import { ElementId } from '@jbrowse/core/util/types/mst'
 import { autorun } from 'mobx'
-import { Instance, SnapshotIn, addDisposer, types } from 'mobx-state-tree'
+import {
+  type Instance,
+  type SnapshotIn,
+  addDisposer,
+  types,
+} from 'mobx-state-tree'
 
-import { ApolloSessionModel } from '../session'
+import { type ApolloSessionModel } from '../session'
 
 export const ApolloFeatureDetailsWidgetModel = types
   .model('ApolloFeatureDetailsWidget', {

@@ -1,5 +1,5 @@
 import {
-  AnyConfigurationModel,
+  type AnyConfigurationModel,
   ConfigurationSchema,
   readConfObject,
 } from '@jbrowse/core/configuration'
@@ -10,18 +10,20 @@ import {
 } from '@jbrowse/core/util/types/mst'
 import { autorun } from 'mobx'
 import {
-  Instance,
+  type Instance,
   addDisposer,
   flow,
   getRoot,
   getSnapshot,
   types,
 } from 'mobx-state-tree'
-import OntologyStore, { OntologyStoreOptions } from './OntologyStore'
-import { OntologyDBNode } from './OntologyStore/indexeddb-schema'
+
+import type ApolloPluginConfigurationSchema from '../config'
+import { type ApolloRootModel } from '../types'
+
+import OntologyStore, { type OntologyStoreOptions } from './OntologyStore'
+import { type OntologyDBNode } from './OntologyStore/indexeddb-schema'
 import { applyPrefixes, expandPrefixes } from './OntologyStore/prefixes'
-import ApolloPluginConfigurationSchema from '../config'
-import { ApolloRootModel } from '../types'
 
 export { isDeprecated } from './OntologyStore/indexeddb-schema'
 
