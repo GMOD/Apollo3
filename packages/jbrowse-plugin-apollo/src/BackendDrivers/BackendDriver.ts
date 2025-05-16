@@ -1,13 +1,13 @@
-import { Change, ClientDataStore } from '@apollo-annotation/common'
+import { type Change, type ClientDataStore } from '@apollo-annotation/common'
 import {
-  AnnotationFeatureSnapshot,
-  CheckResultSnapshot,
+  type AnnotationFeatureSnapshot,
+  type CheckResultSnapshot,
 } from '@apollo-annotation/mst'
-import { ValidationResultSet } from '@apollo-annotation/shared'
-import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
-import { Region } from '@jbrowse/core/util'
+import { type ValidationResultSet } from '@apollo-annotation/shared'
+import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import { type Region } from '@jbrowse/core/util'
 
-import { SubmitOpts } from '../ChangeManager'
+import { type SubmitOpts } from '../ChangeManager'
 
 export interface RefNameAliases {
   refName: string

@@ -3,6 +3,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
+import { createReadStream } from 'node:fs'
+import path from 'node:path'
 import {
   Readable,
   Transform,
@@ -10,8 +12,8 @@ import {
   TransformOptions,
   pipeline,
 } from 'node:stream'
-
 import { ReadableStream } from 'node:stream/web'
+import { createGunzip } from 'node:zlib'
 
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import {
@@ -34,13 +36,10 @@ import {
 } from '@apollo-annotation/shared'
 import gff from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
 import { FilterQuery, Model } from 'mongoose'
 import StreamConcat from 'stream-concat'
-import { createReadStream } from 'node:fs'
-import { ConfigService } from '@nestjs/config'
-import path from 'node:path'
-import { createGunzip } from 'node:zlib'
 
 interface FastaTransformOptions extends TransformOptions {
   fastaWidth?: number

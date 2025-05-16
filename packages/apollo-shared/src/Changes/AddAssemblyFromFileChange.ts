@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/require-await */
 import {
-  ChangeOptions,
-  ClientDataStore,
-  LocalGFF3DataStore,
-  SerializedAssemblySpecificChange,
-  ServerDataStore,
+  type ChangeOptions,
+  type ClientDataStore,
+  type LocalGFF3DataStore,
+  type SerializedAssemblySpecificChange,
+  type ServerDataStore,
 } from '@apollo-annotation/common'
 import { BgzipIndexedFasta } from '@gmod/indexedfasta'
 

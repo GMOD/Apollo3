@@ -1,4 +1,4 @@
-import { SvgIcon, SvgIconProps } from '@mui/material'
+import { SvgIcon, type SvgIconProps } from '@mui/material'
 import React from 'react'
 
 // Icon source: https://developers.google.com/identity/branding-guidelines

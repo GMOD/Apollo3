@@ -9,49 +9,46 @@ import {
   AddAssemblyFromFileChange,
 } from '@apollo-annotation/shared'
 import { readConfObject } from '@jbrowse/core/configuration'
-import { AbstractSessionModel } from '@jbrowse/core/util'
+import { type AbstractSessionModel } from '@jbrowse/core/util'
+import InfoIcon from '@mui/icons-material/Info'
+import LinkIcon from '@mui/icons-material/Link'
+import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked'
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
   Button,
+  Checkbox,
   DialogActions,
   DialogContent,
   DialogContentText,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Typography,
-  Box,
-  FormGroup,
   FormControlLabel,
-  Checkbox,
+  FormGroup,
+  IconButton,
+  InputAdornment,
   LinearProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
   TextField,
   Tooltip,
-  IconButton,
-  Table,
-  TableCell,
-  TableBody,
-  InputAdornment,
-  TableRow,
+  Typography,
 } from '@mui/material'
-
-import { makeStyles } from 'tss-react/mui'
-
 import ObjectID from 'bson-objectid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
+import { makeStyles } from 'tss-react/mui'
 
-import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { ChangeManager } from '../ChangeManager'
-import { ApolloSessionModel } from '../session'
-import { ApolloRootModel } from '../types'
+import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { type ChangeManager } from '../ChangeManager'
+import { type ApolloSessionModel } from '../session'
+import { type ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
+
 import { Dialog } from './Dialog'
-
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
-import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked'
-
-import InfoIcon from '@mui/icons-material/Info'
-import LinkIcon from '@mui/icons-material/Link'
 
 interface AddAssemblyProps {
   session: ApolloSessionModel
@@ -518,164 +515,170 @@ export function AddAssembly({
                 fileType === FileType.GFF3 ? (
                   <Table size="small" sx={{ mt: 2 }}>
                     <TableBody>
-                      <TableRow />
-                      <TableCell style={{ borderBottomWidth: 0 }}>
-                        <Box display="flex" alignItems="center">
-                          <span>FASTA</span>
-                          <Tooltip title='Unless "Store sequence in database" enabled, FASTA input must be compressed with bgzip and indexed with samtools faidx (or equivalent). Compression is optional for sequences stored in the database.'>
-                            <IconButton size="small">
-                              <InfoIcon sx={{ fontSize: 18 }} />
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      </TableCell>
-                      <TableCell style={{ borderBottomWidth: 0 }}>
-                        <input
-                          data-testid="fasta-input-file"
-                          type="file"
-                          onChange={(
-                            e: React.ChangeEvent<HTMLInputElement>,
-                          ) => {
-                            setFastaFile(e.target.files?.item(0) ?? null)
-                          }}
-                          disabled={submitted && !errorMessage}
-                        />
-                      </TableCell>
+                      <TableRow>
+                        <TableCell style={{ borderBottomWidth: 0 }}>
+                          <Box display="flex" alignItems="center">
+                            <span>FASTA</span>
+                            <Tooltip title='Unless "Store sequence in database" enabled, FASTA input must be compressed with bgzip and indexed with samtools faidx (or equivalent). Compression is optional for sequences stored in the database.'>
+                              <IconButton size="small">
+                                <InfoIcon sx={{ fontSize: 18 }} />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        </TableCell>
+                        <TableCell style={{ borderBottomWidth: 0 }}>
+                          <input
+                            data-testid="fasta-input-file"
+                            type="file"
+                            onChange={(
+                              e: React.ChangeEvent<HTMLInputElement>,
+                            ) => {
+                              setFastaFile(e.target.files?.item(0) ?? null)
+                            }}
+                            disabled={submitted && !errorMessage}
+                          />
+                        </TableCell>
+                      </TableRow>
 
-                      <TableRow />
-                      <TableCell style={{ borderBottomWidth: 0 }}>
-                        FASTA index (.fai)
-                      </TableCell>
-                      <TableCell style={{ borderBottomWidth: 0 }}>
-                        <input
-                          data-testid="fai-input-file"
-                          type="file"
-                          onChange={(
-                            e: React.ChangeEvent<HTMLInputElement>,
-                          ) => {
-                            setFastaIndexFile(e.target.files?.item(0) ?? null)
-                          }}
-                          disabled={
-                            (submitted && !errorMessage) || sequenceIsEditable
-                          }
-                        />
-                      </TableCell>
+                      <TableRow>
+                        <TableCell style={{ borderBottomWidth: 0 }}>
+                          FASTA index (.fai)
+                        </TableCell>
+                        <TableCell style={{ borderBottomWidth: 0 }}>
+                          <input
+                            data-testid="fai-input-file"
+                            type="file"
+                            onChange={(
+                              e: React.ChangeEvent<HTMLInputElement>,
+                            ) => {
+                              setFastaIndexFile(e.target.files?.item(0) ?? null)
+                            }}
+                            disabled={
+                              (submitted && !errorMessage) || sequenceIsEditable
+                            }
+                          />
+                        </TableCell>
+                      </TableRow>
 
-                      <TableRow />
-                      <TableCell style={{ borderBottomWidth: 0 }}>
-                        FASTA binary index (.gzi)
-                      </TableCell>
-                      <TableCell style={{ borderBottomWidth: 0 }}>
-                        <input
-                          data-testid="gzi-input-file"
-                          type="file"
-                          onChange={(
-                            e: React.ChangeEvent<HTMLInputElement>,
-                          ) => {
-                            setFastaGziIndexFile(
-                              e.target.files?.item(0) ?? null,
-                            )
-                          }}
-                          disabled={
-                            (submitted && !errorMessage) || sequenceIsEditable
-                          }
-                        />
-                      </TableCell>
+                      <TableRow>
+                        <TableCell style={{ borderBottomWidth: 0 }}>
+                          FASTA binary index (.gzi)
+                        </TableCell>
+                        <TableCell style={{ borderBottomWidth: 0 }}>
+                          <input
+                            data-testid="gzi-input-file"
+                            type="file"
+                            onChange={(
+                              e: React.ChangeEvent<HTMLInputElement>,
+                            ) => {
+                              setFastaGziIndexFile(
+                                e.target.files?.item(0) ?? null,
+                              )
+                            }}
+                            disabled={
+                              (submitted && !errorMessage) || sequenceIsEditable
+                            }
+                          />
+                        </TableCell>
+                      </TableRow>
                     </TableBody>
                   </Table>
                 ) : (
                   <Table size="small" sx={{ mt: 2 }}>
                     <TableBody>
-                      <TableRow />
-                      <TableCell style={{ borderBottomWidth: 0 }}>
-                        <Box display="flex" alignItems="center">
-                          <span>FASTA</span>
-                          <Tooltip title="Remote FASTA input must be compressed with bgzip and indexed with samtools faidx (or equivalent)">
-                            <IconButton size="small">
-                              <InfoIcon sx={{ fontSize: 18 }} />
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      </TableCell>
-                      <TableCell style={{ borderBottomWidth: 0 }}>
-                        <TextField
-                          data-testid="fasta-input-url"
-                          variant="outlined"
-                          value={fastaUrl}
-                          error={!validFastaUrl}
-                          onChange={(
-                            e: React.ChangeEvent<HTMLInputElement>,
-                          ) => {
-                            setFastaUrl(e.target.value)
-                          }}
-                          disabled={submitted && !errorMessage}
-                          slotProps={{
-                            input: {
-                              startAdornment: (
-                                <InputAdornment position="start">
-                                  <LinkIcon />
-                                </InputAdornment>
-                              ),
-                            },
-                          }}
-                        />
-                      </TableCell>
+                      <TableRow>
+                        <TableCell style={{ borderBottomWidth: 0 }}>
+                          <Box display="flex" alignItems="center">
+                            <span>FASTA</span>
+                            <Tooltip title="Remote FASTA input must be compressed with bgzip and indexed with samtools faidx (or equivalent)">
+                              <IconButton size="small">
+                                <InfoIcon sx={{ fontSize: 18 }} />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        </TableCell>
+                        <TableCell style={{ borderBottomWidth: 0 }}>
+                          <TextField
+                            data-testid="fasta-input-url"
+                            variant="outlined"
+                            value={fastaUrl}
+                            error={!validFastaUrl}
+                            onChange={(
+                              e: React.ChangeEvent<HTMLInputElement>,
+                            ) => {
+                              setFastaUrl(e.target.value)
+                            }}
+                            disabled={submitted && !errorMessage}
+                            slotProps={{
+                              input: {
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    <LinkIcon />
+                                  </InputAdornment>
+                                ),
+                              },
+                            }}
+                          />
+                        </TableCell>
+                      </TableRow>
 
-                      <TableRow />
-                      <TableCell style={{ borderBottomWidth: 0 }}>
-                        FASTA index (.fai)
-                      </TableCell>
-                      <TableCell style={{ borderBottomWidth: 0 }}>
-                        <TextField
-                          data-testid="fai-input-url"
-                          variant="outlined"
-                          value={fastaIndexUrl}
-                          error={!validFastaIndexUrl}
-                          onChange={(
-                            e: React.ChangeEvent<HTMLInputElement>,
-                          ) => {
-                            setFastaIndexUrl(e.target.value)
-                          }}
-                          disabled={submitted && !errorMessage}
-                          slotProps={{
-                            input: {
-                              startAdornment: (
-                                <InputAdornment position="start">
-                                  <LinkIcon />
-                                </InputAdornment>
-                              ),
-                            },
-                          }}
-                        />
-                      </TableCell>
+                      <TableRow>
+                        <TableCell style={{ borderBottomWidth: 0 }}>
+                          FASTA index (.fai)
+                        </TableCell>
+                        <TableCell style={{ borderBottomWidth: 0 }}>
+                          <TextField
+                            data-testid="fai-input-url"
+                            variant="outlined"
+                            value={fastaIndexUrl}
+                            error={!validFastaIndexUrl}
+                            onChange={(
+                              e: React.ChangeEvent<HTMLInputElement>,
+                            ) => {
+                              setFastaIndexUrl(e.target.value)
+                            }}
+                            disabled={submitted && !errorMessage}
+                            slotProps={{
+                              input: {
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    <LinkIcon />
+                                  </InputAdornment>
+                                ),
+                              },
+                            }}
+                          />
+                        </TableCell>
+                      </TableRow>
 
-                      <TableRow />
-                      <TableCell style={{ borderBottomWidth: 0 }}>
-                        FASTA binary index (.gzi)
-                      </TableCell>
-                      <TableCell style={{ borderBottomWidth: 0 }}>
-                        <TextField
-                          data-testid="gzi-input-url"
-                          variant="outlined"
-                          value={fastaGziIndexUrl}
-                          error={!validFastaGziIndexUrl}
-                          onChange={(
-                            e: React.ChangeEvent<HTMLInputElement>,
-                          ) => {
-                            setFastaGziIndexUrl(e.target.value)
-                          }}
-                          disabled={submitted && !errorMessage}
-                          slotProps={{
-                            input: {
-                              startAdornment: (
-                                <InputAdornment position="start">
-                                  <LinkIcon />
-                                </InputAdornment>
-                              ),
-                            },
-                          }}
-                        />
-                      </TableCell>
+                      <TableRow>
+                        <TableCell style={{ borderBottomWidth: 0 }}>
+                          FASTA binary index (.gzi)
+                        </TableCell>
+                        <TableCell style={{ borderBottomWidth: 0 }}>
+                          <TextField
+                            data-testid="gzi-input-url"
+                            variant="outlined"
+                            value={fastaGziIndexUrl}
+                            error={!validFastaGziIndexUrl}
+                            onChange={(
+                              e: React.ChangeEvent<HTMLInputElement>,
+                            ) => {
+                              setFastaGziIndexUrl(e.target.value)
+                            }}
+                            disabled={submitted && !errorMessage}
+                            slotProps={{
+                              input: {
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    <LinkIcon />
+                                  </InputAdornment>
+                                ),
+                              },
+                            }}
+                          />
+                        </TableCell>
+                      </TableRow>
                     </TableBody>
                   </Table>
                 )}

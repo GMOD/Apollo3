@@ -1,14 +1,14 @@
 import { isContainedWithin } from '@jbrowse/core/util'
 import {
-  Instance,
-  SnapshotIn,
-  SnapshotOrInstance,
+  type Instance,
+  type SnapshotIn,
+  type SnapshotOrInstance,
   types,
 } from 'mobx-state-tree'
 
 import {
   AnnotationFeatureModel,
-  AnnotationFeatureSnapshot,
+  type AnnotationFeatureSnapshot,
 } from './AnnotationFeatureModel'
 
 export const Sequence = types.model({

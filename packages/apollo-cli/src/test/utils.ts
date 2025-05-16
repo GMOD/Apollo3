@@ -1,4 +1,5 @@
 import { it } from 'node:test'
+
 import spawn from 'cross-spawn'
 
 declare global {

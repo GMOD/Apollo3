@@ -1,6 +1,6 @@
 import {
-  AnnotationFeatureSnapshot,
-  CheckResultSnapshot,
+  type AnnotationFeatureSnapshot,
+  type CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 
 export abstract class Check {

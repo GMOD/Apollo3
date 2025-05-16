@@ -1,6 +1,6 @@
-import { Instance, getParent, types } from 'mobx-state-tree'
+import { type Instance, getParent, types } from 'mobx-state-tree'
 
-import { DisplayStateModel } from './types'
+import { type DisplayStateModel } from './types'
 
 export const TabularEditorStateModelType = types
   .model('TabularEditor', {

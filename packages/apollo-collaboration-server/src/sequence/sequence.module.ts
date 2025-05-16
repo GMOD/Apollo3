@@ -4,6 +4,7 @@ import { AssembliesModule } from '../assemblies/assemblies.module'
 import { FilesModule } from '../files/files.module'
 import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
+
 import { SequenceController } from './sequence.controller'
 import { SequenceService } from './sequence.service'
 

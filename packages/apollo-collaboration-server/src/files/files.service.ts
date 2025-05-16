@@ -13,15 +13,15 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
+import { GenericFilehandle, LocalFile } from 'generic-filehandle'
 import { Model } from 'mongoose'
 
 import { CreateFileDto } from './dto/create-file.dto'
 import {
-  writeFileAndCalculateHash,
   FileRequest,
   LocalFileGzip,
+  writeFileAndCalculateHash,
 } from './filesUtil'
-import { GenericFilehandle, LocalFile } from 'generic-filehandle'
 
 @Injectable()
 export class FilesService {

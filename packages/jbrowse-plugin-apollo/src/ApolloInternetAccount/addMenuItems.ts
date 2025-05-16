@@ -1,4 +1,7 @@
-import { AbstractMenuManager, AbstractSessionModel } from '@jbrowse/core/util'
+import {
+  type AbstractMenuManager,
+  type AbstractSessionModel,
+} from '@jbrowse/core/util'
 
 import {
   AddAssembly,
@@ -7,7 +10,7 @@ import {
   ImportFeatures,
   ManageUsers,
 } from '../components'
-import { ApolloSessionModel } from '../session'
+import { type ApolloSessionModel } from '../session'
 
 export function addMenuItems(rootModel: AbstractMenuManager) {
   rootModel.appendToMenu('Apollo', {

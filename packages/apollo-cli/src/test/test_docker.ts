@@ -1,8 +1,9 @@
 import assert from 'node:assert'
-import { after, before, describe } from 'node:test'
-import { Shell } from './utils.js'
 import fs from 'node:fs'
 import path from 'node:path'
+import { after, before, describe } from 'node:test'
+
+import { Shell } from './utils.js'
 
 const hostTmpDir = path.resolve('tmpTestDocker')
 const hostDataDir = path.resolve('test_data')

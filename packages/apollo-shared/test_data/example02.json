@@ -19,7 +19,7 @@
           "refSeq": "chr1",
           "type": "exon",
           "min": 11049,
-          "max": 11500,
+          "max": 11499,
           "strand": 1,
           "attributes": {
             "gff_id": ["exon20001"]
@@ -89,7 +89,7 @@
           "refSeq": "chr1",
           "type": "exon",
           "min": 11049,
-          "max": 11500,
+          "max": 11499,
           "strand": 1,
           "attributes": {
             "gff_id": ["exon20002"]
@@ -148,7 +148,7 @@
           "refSeq": "chr1",
           "type": "exon",
           "min": 11299,
-          "max": 11500,
+          "max": 11499,
           "strand": 1,
           "attributes": {
             "gff_id": ["exon20003"]

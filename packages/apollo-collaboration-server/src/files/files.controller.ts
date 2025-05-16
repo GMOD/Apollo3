@@ -20,10 +20,11 @@ import { Request, Response } from 'express'
 
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
-import { FilesService } from './files.service'
-import { UploadedFile as UploadedApolloFile } from './filesUtil'
+
 import { FileStorageEngine } from './FileStorageEngine'
 import { FilesInterceptor as StreamingFileInterceptor } from './files.interceptor'
+import { FilesService } from './files.service'
+import { UploadedFile as UploadedApolloFile } from './filesUtil'
 
 @Validations(Role.ReadOnly)
 @Controller('files')
