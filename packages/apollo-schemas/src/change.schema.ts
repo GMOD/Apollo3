@@ -25,6 +25,9 @@ export class Change {
 
   @Prop()
   sequence: number
+
+  @Prop()
+  processed?: boolean
 }
 
 export const ChangeSchema = SchemaFactory.createForClass(Change)

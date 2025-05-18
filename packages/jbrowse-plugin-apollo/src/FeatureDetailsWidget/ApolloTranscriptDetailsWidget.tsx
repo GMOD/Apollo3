@@ -16,6 +16,7 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Button,
   Tooltip,
   Typography,
 } from '@mui/material'
@@ -25,6 +26,7 @@ import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { ChangeHistory } from '../components/ChangeHistory'
 import { type ApolloSessionModel } from '../session'
 import { type ApolloRootModel } from '../types'
 
@@ -140,6 +142,22 @@ export const ApolloTranscriptDetailsWidget = observer(
       },
     ) as React.ElementType
 
+    const openChangeHistory = () => {
+      ;(session as unknown as AbstractSessionModel).queueDialog(
+        (doneCallback) => [
+          ChangeHistory,
+          {
+            session: apolloSession,
+            handleClose: () => {
+              doneCallback()
+            },
+            feature,
+            assembly,
+          },
+        ],
+      )
+    }
+
     return (
       <div className={classes.root}>
         <Accordion
@@ -199,6 +217,14 @@ export const ApolloTranscriptDetailsWidget = observer(
               assembly={assembly}
               FeatureAttributeChange={FeatureAttributeChange}
             />
+            <Button
+              variant="outlined"
+              color="primary"
+              style={{ width: '100%', marginTop: 5 }}
+              onClick={openChangeHistory}
+            >
+              View Change History
+            </Button>
           </AccordionDetails>
         </Accordion>
         <Accordion
