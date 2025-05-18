@@ -280,6 +280,24 @@ function getContextMenuItems(
   const currentAssemblyId = display.getAssemblyId(region.assemblyName)
   menuItems.push(
     {
+      label: 'View change history',
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            ChangeHistory,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              feature: sourceFeature,
+              assembly: currentAssemblyId,
+            },
+          ],
+        )
+      },
+    },
+    {
       label: 'Add child feature',
       disabled: readOnly,
       onClick: () => {
@@ -360,24 +378,6 @@ function getContextMenuItems(
         )
         ;(session as unknown as SessionWithWidgets).showWidget(
           apolloFeatureWidget,
-        )
-      },
-    },
-    {
-      label: 'View change history',
-      onClick: () => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            ChangeHistory,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              feature: sourceFeature,
-              assembly: currentAssemblyId,
-            },
-          ],
         )
       },
     },
