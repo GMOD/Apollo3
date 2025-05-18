@@ -106,6 +106,7 @@ export const Attributes = observer(function Attributes({
       assembly,
       featureId: _id,
       attributes: remainingAttributes,
+      attributeDeleted: { [key]: deletedAttribute },
     })
     void changeManager.submit(change)
   }
@@ -128,6 +129,14 @@ export const Attributes = observer(function Attributes({
       assembly,
       featureId: feature._id,
       attributes: serializedAttributes,
+      attributeEdited: {
+        old: {
+          [key]: oldAttribute,
+        },
+        new: {
+          [key]: attribute,
+        },
+      },
     })
     void changeManager.submit(change)
   }
@@ -146,6 +155,9 @@ export const Attributes = observer(function Attributes({
       assembly,
       featureId: feature._id,
       attributes: serializedAttributes,
+      attributeAdded: {
+        [key]: attribute,
+      },
     })
     void changeManager.submit(change)
   }

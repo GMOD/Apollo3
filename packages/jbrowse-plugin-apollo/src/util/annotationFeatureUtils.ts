@@ -2,30 +2,40 @@ import { type AnnotationFeature } from '@apollo-annotation/mst'
 
 export function getFeatureName(feature: AnnotationFeature) {
   const { attributes } = feature
-  const name = attributes.get('gff_name')
-  if (name) {
-    return name[0]
+  const keys = [
+    'name',
+    'gff_name',
+    'gene_name',
+    'transcript_name',
+    'exon_name',
+    'protein_name',
+  ]
+  for (const key of keys) {
+    const value = attributes.get(key)
+    if (value?.[0]) {
+      return value[0]
+    }
   }
   return ''
 }
 
 export function getFeatureId(feature: AnnotationFeature) {
   const { attributes } = feature
-  const id = attributes.get('gff_id')
-  const transcript_id = attributes.get('transcript_id')
-  const exon_id = attributes.get('exon_id')
-  const protein_id = attributes.get('protein_id')
-  if (id) {
-    return id[0]
-  }
-  if (transcript_id) {
-    return transcript_id[0]
-  }
-  if (exon_id) {
-    return exon_id[0]
-  }
-  if (protein_id) {
-    return protein_id[0]
+  const keys = [
+    'id',
+    'gff_id',
+    'gene_id',
+    'stable_id',
+    'gene_stable_id',
+    'transcript_id',
+    'exon_id',
+    'protein_id',
+  ]
+  for (const key of keys) {
+    const value = attributes.get(key)
+    if (value?.[0]) {
+      return value[0]
+    }
   }
   return ''
 }

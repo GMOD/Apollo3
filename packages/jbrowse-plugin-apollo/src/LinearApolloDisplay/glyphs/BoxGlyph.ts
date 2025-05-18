@@ -8,6 +8,7 @@ import {
 import { type Theme, alpha } from '@mui/material'
 
 import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
+import { ChangeHistory } from '../../components/ChangeHistory'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
   type LinearApolloDisplayMouseEvents,
@@ -359,6 +360,24 @@ function getContextMenuItems(
         )
         ;(session as unknown as SessionWithWidgets).showWidget(
           apolloFeatureWidget,
+        )
+      },
+    },
+    {
+      label: 'View change history',
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            ChangeHistory,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              feature: sourceFeature,
+              assembly: currentAssemblyId,
+            },
+          ],
         )
       },
     },

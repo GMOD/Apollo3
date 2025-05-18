@@ -18,6 +18,12 @@ interface SerializedFeatureAttributeChangeBase extends SerializedFeatureChange {
 export interface FeatureAttributeChangeDetails {
   featureId: string
   attributes: Record<string, string[]>
+  attributeDeleted?: Record<string, string[]>
+  attributeAdded?: Record<string, string[]>
+  attributeEdited?: {
+    old: Record<string, string[]>
+    new: Record<string, string[]>
+  }
 }
 
 interface SerializedFeatureAttributeChangeSingle
@@ -45,8 +51,25 @@ export class FeatureAttributeChange extends FeatureChange {
   toJSON(): SerializedFeatureAttributeChange {
     const { assembly, changedIds, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ attributes, featureId }] = changes
-      return { typeName, changedIds, assembly, featureId, attributes }
+      const [
+        {
+          attributes,
+          featureId,
+          attributeAdded,
+          attributeEdited,
+          attributeDeleted,
+        },
+      ] = changes
+      return {
+        typeName,
+        changedIds,
+        assembly,
+        featureId,
+        attributes,
+        attributeAdded,
+        attributeEdited,
+        attributeDeleted,
+      }
     }
     return { typeName, changedIds, assembly, changes }
   }
