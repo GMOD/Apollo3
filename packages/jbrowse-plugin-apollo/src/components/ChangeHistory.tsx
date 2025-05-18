@@ -110,8 +110,14 @@ const getChangeInfo = (c: any) => {
       return `ADDED: \n${response}`
     }
     if (c.attributeEdited) {
-      const oldAttribute = c.attributeEdited.old as Record<string, string[]>
-      const newAttribute = c.attributeEdited.new as Record<string, string[]>
+      const oldAttribute = (c.attributeEdited.old ?? {}) as Record<
+        string,
+        string[]
+      >
+      const newAttribute = (c.attributeEdited.new ?? {}) as Record<
+        string,
+        string[]
+      >
       const [old] = Object.keys(oldAttribute).map(
         (key) => `${key}: ${oldAttribute[key].join(',')}`,
       )
