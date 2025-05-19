@@ -137,6 +137,7 @@ export function annotationFromJBrowseFeature(
         contextMenuItems() {
           const session = getSession(self)
           const assembly = self.getAssembly()
+          const region = self.getFirstRegion()
           const feature = self.contextMenuFeature
           if (!feature) {
             return superContextMenuItems()
@@ -158,6 +159,7 @@ export function annotationFromJBrowseFeature(
                       annotationFeature: self.getAnnotationFeature(assembly),
                       assembly,
                       refSeqId: self.getRefSeqId(assembly),
+                      region,
                     },
                   ],
                 )
