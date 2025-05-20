@@ -178,19 +178,22 @@ function shrinkFeatures(
         ...shrinkFeatures(parent, newLocation, edge, shrinkParent, featureId),
       )
     } else {
+      const oldLocation = parent[edge]
       const boundedLocation = Math[edge](
         ...siblings.map((s) => s[edge]),
         newLocation,
       )
-      changes.push(
-        ...shrinkFeatures(
-          parent,
-          boundedLocation,
-          edge,
-          shrinkParent,
-          featureId,
-        ),
-      )
+      if (boundedLocation !== oldLocation) {
+        changes.push(
+          ...shrinkFeatures(
+            parent,
+            boundedLocation,
+            edge,
+            shrinkParent,
+            featureId,
+          ),
+        )
+      }
     }
   }
   return changes
