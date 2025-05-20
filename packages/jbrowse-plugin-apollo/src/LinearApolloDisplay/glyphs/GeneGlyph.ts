@@ -619,6 +619,7 @@ function onMouseDown(
       currentMousePosition,
       draggableFeature.feature,
       draggableFeature.edge,
+      true,
     )
   }
 }
@@ -674,7 +675,6 @@ function getDraggableFeatureInfo(
   const isTranscript =
     featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
     featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')
-  const isCds = featureTypeOntology.isTypeOf(feature.type, 'CDS')
   if (isGene || isTranscript) {
     return
   }
@@ -692,57 +692,55 @@ function getDraggableFeatureInfo(
   if (Math.abs(maxPx - minPx) < 8) {
     return
   }
+  const transcript = feature.parent
+  if (!transcript?.children) {
+    return
+  }
+  const exonChildren: AnnotationFeature[] = []
+  for (const child of transcript.children.values()) {
+    const childIsExon = featureTypeOntology.isTypeOf(child.type, 'exon')
+    if (childIsExon) {
+      exonChildren.push(child)
+    }
+  }
+
+  const overlappingExon = exonChildren.find((child) => {
+    const [start, end] = intersection2(bp - 1, bp, child.min, child.max)
+    return start !== undefined && end !== undefined
+  })
+
+  if (!overlappingExon) {
+    return
+  }
+  const minExonPxInfo = lgv.bpToPx({
+    refName,
+    coord: overlappingExon.min,
+    regionNumber,
+  })
+  const maxExonPxInfo = lgv.bpToPx({
+    refName,
+    coord: overlappingExon.max,
+    regionNumber,
+  })
+  if (minExonPxInfo === undefined || maxExonPxInfo === undefined) {
+    return
+  }
+  const minExonPx = minExonPxInfo.offsetPx - offsetPx
+  const maxExonPx = maxExonPxInfo.offsetPx - offsetPx
+  if (Math.abs(maxExonPx - minExonPx) < 8) {
+    return
+  }
+  if (Math.abs(minExonPx - x) < 4) {
+    return { feature: overlappingExon, edge: 'min' }
+  }
+  if (Math.abs(maxExonPx - x) < 4) {
+    return { feature: overlappingExon, edge: 'max' }
+  }
   if (Math.abs(minPx - x) < 4) {
     return { feature, edge: 'min' }
   }
   if (Math.abs(maxPx - x) < 4) {
     return { feature, edge: 'max' }
-  }
-  if (isCds) {
-    const transcript = feature.parent
-    if (!transcript?.children) {
-      return
-    }
-    const exonChildren: AnnotationFeature[] = []
-    for (const child of transcript.children.values()) {
-      const childIsExon = featureTypeOntology.isTypeOf(child.type, 'exon')
-      if (childIsExon) {
-        exonChildren.push(child)
-      }
-    }
-
-    const overlappingExon = exonChildren.find((child) => {
-      const [start, end] = intersection2(bp - 1, bp, child.min, child.max)
-      return start !== undefined && end !== undefined
-    })
-
-    if (!overlappingExon) {
-      return
-    }
-    const minPxInfo = lgv.bpToPx({
-      refName,
-      coord: overlappingExon.min,
-      regionNumber,
-    })
-    const maxPxInfo = lgv.bpToPx({
-      refName,
-      coord: overlappingExon.max,
-      regionNumber,
-    })
-    if (minPxInfo === undefined || maxPxInfo === undefined) {
-      return
-    }
-    const minPx = minPxInfo.offsetPx - offsetPx
-    const maxPx = maxPxInfo.offsetPx - offsetPx
-    if (Math.abs(maxPx - minPx) < 8) {
-      return
-    }
-    if (Math.abs(minPx - x) < 4) {
-      return { feature: overlappingExon, edge: 'min' }
-    }
-    if (Math.abs(maxPx - x) < 4) {
-      return { feature: overlappingExon, edge: 'max' }
-    }
   }
   return
 }
