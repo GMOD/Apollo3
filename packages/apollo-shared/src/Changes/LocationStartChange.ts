@@ -146,12 +146,13 @@ export class LocationStartChange extends FeatureChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
-    for (const [idx, changedId] of this.changedIds.entries()) {
-      const feature = dataStore.getFeature(changedId)
+    for (const change of this.changes) {
+      const { featureId, newStart } = change
+      const feature = dataStore.getFeature(featureId)
       if (!feature) {
-        throw new Error(`Could not find feature with identifier "${changedId}"`)
+        throw new Error(`Could not find feature with identifier "${featureId}"`)
       }
-      feature.setMin(this.changes[idx].newStart)
+      feature.setMin(newStart)
     }
   }
 

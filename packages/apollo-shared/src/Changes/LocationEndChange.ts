@@ -146,12 +146,13 @@ export class LocationEndChange extends FeatureChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
-    for (const [idx, changedId] of this.changedIds.entries()) {
-      const feature = dataStore.getFeature(changedId)
+    for (const change of this.changes) {
+      const { featureId, newEnd } = change
+      const feature = dataStore.getFeature(featureId)
       if (!feature) {
-        throw new Error(`Could not find feature with identifier "${changedId}"`)
+        throw new Error(`Could not find feature with identifier "${featureId}"`)
       }
-      feature.setMax(this.changes[idx].newEnd)
+      feature.setMax(newEnd)
     }
   }
 
