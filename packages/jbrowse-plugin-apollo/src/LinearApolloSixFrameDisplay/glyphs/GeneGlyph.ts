@@ -22,6 +22,8 @@ import {
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 import { LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
+import { FilterTranscripts } from '../../components/FilterTranscripts'
+import { getSnapshot } from 'mobx-state-tree'
 
 let forwardFillLight: CanvasPattern | null = null
 let backwardFillLight: CanvasPattern | null = null
@@ -87,7 +89,14 @@ function draw(
   stateModel: LinearApolloSixFrameDisplayRendering,
   displayedRegionIndex: number,
 ): void {
-  const { apolloRowHeight, lgv, session, theme, highestRow } = stateModel
+  const {
+    apolloRowHeight,
+    lgv,
+    session,
+    theme,
+    highestRow,
+    filteredTranscripts,
+  } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const { refName, reversed } = displayedRegion
@@ -175,6 +184,12 @@ function draw(
   for (const [, child] of children) {
     const { children: childrenOfmRNA, cdsLocations, _id } = child
     if (!childrenOfmRNA) {
+      continue
+    }
+    const childID: string | undefined = child.attributes
+      .get('gff_id')
+      ?.toString()
+    if (childID && filteredTranscripts.includes(childID)) {
       continue
     }
     for (const [, exon] of childrenOfmRNA) {
@@ -349,7 +364,14 @@ function drawHover(
   stateModel: LinearApolloSixFrameDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
-  const { apolloHover, apolloRowHeight, lgv, highestRow, session } = stateModel
+  const {
+    apolloHover,
+    apolloRowHeight,
+    filteredTranscripts,
+    lgv,
+    highestRow,
+    session,
+  } = stateModel
   if (!apolloHover) {
     return
   }
@@ -360,6 +382,12 @@ function drawHover(
   }
   const { feature } = apolloHover
   if (!featureTypeOntology.isTypeOf(feature.type, 'transcript')) {
+    return
+  }
+  const featureID: string | undefined = feature.attributes
+    .get('gff_id')
+    ?.toString()
+  if (featureID && filteredTranscripts.includes(featureID)) {
     return
   }
   const position = stateModel.getFeatureLayoutPosition(feature)
@@ -505,7 +533,7 @@ function getDraggableFeatureInfo(
   feature: AnnotationFeature,
   stateModel: LinearApolloSixFrameDisplay,
 ): { feature: AnnotationFeature; edge: 'min' | 'max' } | undefined {
-  const { session } = stateModel
+  const { filteredTranscripts, session } = stateModel
   const { apolloDataStore } = session
   const { featureTypeOntology } = apolloDataStore.ontologyManager
   if (!featureTypeOntology) {
@@ -513,6 +541,12 @@ function getDraggableFeatureInfo(
   }
   const isTranscript = featureTypeOntology.isTypeOf(feature.type, 'transcript')
   if (cds === null) {
+    return
+  }
+  const featureID: string | undefined = feature.attributes
+    .get('gff_id')
+    ?.toString()
+  if (featureID && filteredTranscripts.includes(featureID)) {
     return
   }
   const { bp, refName, regionNumber, x } = mousePosition
@@ -581,7 +615,8 @@ function drawTooltip(
   display: LinearApolloSixFrameDisplayMouseEvents,
   context: CanvasRenderingContext2D,
 ): void {
-  const { apolloHover, apolloRowHeight, lgv, theme } = display
+  const { apolloHover, apolloRowHeight, filteredTranscripts, lgv, theme } =
+    display
   if (!apolloHover) {
     return
   }
@@ -591,6 +626,12 @@ function drawTooltip(
   }
   const position = display.getFeatureLayoutPosition(feature)
   if (!position) {
+    return
+  }
+  const featureID: string | undefined = feature.attributes
+    .get('gff_id')
+    ?.toString()
+  if (featureID && filteredTranscripts.includes(featureID)) {
     return
   }
   const { layoutIndex } = position
@@ -664,6 +705,7 @@ function getContextMenuItems(
     apolloHover,
     apolloInternetAccount: internetAccount,
     changeManager,
+    filteredTranscripts,
     regions,
     selectedFeature,
     session,
@@ -787,6 +829,28 @@ function getContextMenuItems(
           },
         )
         session.showWidget(apolloTranscriptWidget)
+      },
+    })
+  }
+  if (featureTypeOntology.isTypeOf(sourceFeature.type, 'gene')) {
+    menuItems.push({
+      label: 'Filter alternate transcripts',
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            FilterTranscripts,
+            {
+              handleClose: () => {
+                doneCallback()
+              },
+              sourceFeature,
+              filteredTranscripts: getSnapshot(filteredTranscripts),
+              onUpdate: (forms: string[]) => {
+                display.updateFilteredTranscripts(forms)
+              },
+            },
+          ],
+        )
       },
     })
   }

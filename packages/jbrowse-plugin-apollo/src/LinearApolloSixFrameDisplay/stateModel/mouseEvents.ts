@@ -8,7 +8,7 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import { MenuItem } from '@jbrowse/core/ui'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { autorun } from 'mobx'
-import { Instance, addDisposer } from 'mobx-state-tree'
+import { Instance, addDisposer, cast } from 'mobx-state-tree'
 import type { CSSProperties } from 'react'
 
 import { Coord } from '../components'
@@ -100,9 +100,16 @@ export function mouseEventsModelIntermediateFactory(
             )
           }
         } else {
-          foundFeature = layoutRow.find(
-            (f) => f.cds != null && bp >= f.cds.min && bp <= f.cds.max,
-          )
+          foundFeature = layoutRow.find((f) => {
+            const featureID = f.feature.attributes.get('gff_id')?.toString()
+            return (
+              f.cds != null &&
+              bp >= f.cds.min &&
+              bp <= f.cds.max &&
+              (featureID === undefined ||
+                !self.filteredTranscripts.includes(featureID))
+            )
+          })
         }
         if (!foundFeature) {
           return mousePosition
@@ -138,6 +145,9 @@ export function mouseEventsModelIntermediateFactory(
         if (self.cursor !== cursor) {
           self.cursor = cursor
         }
+      },
+      updateFilteredTranscripts(forms: string[]): void {
+        self.filteredTranscripts = cast(forms)
       },
     }))
     .actions(() => ({
