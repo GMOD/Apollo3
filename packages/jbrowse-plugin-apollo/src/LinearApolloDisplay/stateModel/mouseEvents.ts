@@ -461,6 +461,8 @@ export function mouseEventsModelFactory(
             mousePosition,
             event,
           )
+        } else {
+          self.setSelectedFeature()
         }
 
         if (self.apolloDragging) {
