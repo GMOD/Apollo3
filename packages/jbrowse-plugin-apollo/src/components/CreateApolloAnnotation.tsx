@@ -3,7 +3,11 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { AddFeatureChange } from '@apollo-annotation/shared'
+import {
+  AddFeatureChange,
+  LocationEndChange,
+  LocationStartChange,
+} from '@apollo-annotation/shared'
 import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { type AbstractSessionModel } from '@jbrowse/core/util'
 import {
@@ -15,11 +19,13 @@ import {
   DialogContentText,
   DialogTitle,
   FormControlLabel,
+  FormGroup,
   MenuItem,
   Select,
   type SelectChangeEvent,
   Typography,
 } from '@mui/material'
+import ObjectID from 'bson-objectid'
 import { getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useMemo, useState } from 'react'
 
@@ -33,6 +39,10 @@ interface CreateApolloAnnotationProps {
   annotationFeature: AnnotationFeatureSnapshot
   assembly: Assembly
   refSeqId: string
+  region: {
+    start: number
+    end: number
+  }
 }
 
 const isGeneOrTranscript = (
@@ -88,41 +98,59 @@ const isTranscript = (
   )
 }
 
-const getFeatureId = (feature: AnnotationFeatureSnapshot) => {
+export function getFeatureName(feature: AnnotationFeatureSnapshot) {
   const { attributes } = feature
-  const id = attributes?.id
-  if (id) {
-    return id[0]
+  const keys = ['name', 'gff_name', 'transcript_name', 'gene_name']
+  for (const key of keys) {
+    const value = attributes?.[key]
+    if (value?.[0]) {
+      return value[0]
+    }
   }
-  return feature.type
+  return ''
 }
 
-const getFeatureNameOrId = (
-  feature: AnnotationFeatureSnapshot,
-  apolloSessionModel: ApolloSessionModel,
-) => {
-  const { featureTypeOntology } =
-    apolloSessionModel.apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    return getFeatureId(feature)
-  }
-
-  let attrName = ''
-
-  if (featureTypeOntology.isTypeOf(feature.type, 'gene')) {
-    attrName = 'gene_name'
-  }
-
-  if (featureTypeOntology.isTypeOf(feature.type, 'transcript')) {
-    attrName = 'transcript_name'
-  }
-
+export function getGeneNameOrId(feature: AnnotationFeatureSnapshot) {
   const { attributes } = feature
-  const name = attributes?.[attrName]
-  if (name) {
-    return name[0]
+  const keys = ['gene_name', 'gene_id', 'gene_stable_id']
+  for (const key of keys) {
+    const value = attributes?.[key]
+    if (value?.[0]) {
+      return value[0]
+    }
   }
-  return getFeatureId(feature)
+  return ''
+}
+
+export function getFeatureId(feature: AnnotationFeatureSnapshot) {
+  const { attributes } = feature
+  const keys = [
+    'id',
+    'gff_id',
+    'transcript_id',
+    'gene_id',
+    'gene_stable_id',
+    'stable_id',
+  ]
+  for (const key of keys) {
+    const value = attributes?.[key]
+    if (value?.[0]) {
+      return value[0]
+    }
+  }
+  return ''
+}
+
+const getFeatureNameOrId = (feature: AnnotationFeatureSnapshot) => {
+  const name = getFeatureName(feature)
+  const id = getFeatureId(feature)
+  if (name) {
+    return `${feature.type} - ${name}`
+  }
+  if (id) {
+    return `${feature.type} - ${id}`
+  }
+  return feature.type
 }
 
 export function CreateApolloAnnotation({
@@ -131,8 +159,11 @@ export function CreateApolloAnnotation({
   handleClose,
   refSeqId,
   session,
+  region,
 }: CreateApolloAnnotationProps) {
   const apolloSessionModel = session as unknown as ApolloSessionModel
+  const { featureTypeOntology } =
+    apolloSessionModel.apolloDataStore.ontologyManager
   const childIds = useMemo(
     () => Object.keys(annotationFeature.children ?? {}),
     [annotationFeature],
@@ -157,18 +188,20 @@ export function CreateApolloAnnotation({
   const [destinationFeatures, setDestinationFeatures] = useState<
     AnnotationFeatureSnapshot[]
   >([])
+  const [createNewGene, setCreateNewGene] = useState(false)
   const [selectedDestinationFeature, setSelectedDestinationFeature] =
     useState<AnnotationFeatureSnapshot>()
 
-  const getFeatures = (min: number, max: number) => {
+  const getDestinationFeatures = () => {
     const filteredFeatures: AnnotationFeatureSnapshot[] = []
 
     for (const [, f] of features) {
-      if (f.type === 'chromosome') {
+      if (f.min > region.end || f.max < region.start) {
         continue
       }
-      const featureSnapshot = getSnapshot(f)
-      if (min >= featureSnapshot.min && max <= featureSnapshot.max) {
+
+      if (featureTypeOntology?.isTypeOf(f.type, 'gene')) {
+        const featureSnapshot = getSnapshot(f)
         filteredFeatures.push(featureSnapshot)
       }
     }
@@ -178,34 +211,10 @@ export function CreateApolloAnnotation({
 
   useEffect(() => {
     setErrorMessage('')
-    let mins: number[] = []
-    let maxes: number[] = []
-    if (annotationFeature.children) {
-      const checkedAnnotationFeatureChildren = Object.values(
-        annotationFeature.children,
-      )
-        .filter((child) => isTranscript(child, apolloSessionModel))
-        .filter((child) => checkedChildrens.includes(child._id))
-      mins = checkedAnnotationFeatureChildren.map((f) => f.min)
-      maxes = checkedAnnotationFeatureChildren.map((f) => f.max)
-    }
-
-    const { featureTypeOntology } =
-      apolloSessionModel.apolloDataStore.ontologyManager
-    if (
-      featureTypeOntology &&
-      featureTypeOntology.isTypeOf(annotationFeature.type, 'transcript')
-    ) {
-      mins = [annotationFeature.min, ...mins]
-      maxes = [annotationFeature.max, ...maxes]
-    }
-
-    const min = Math.min(...mins)
-    const max = Math.max(...maxes)
-    const filteredFeatures = getFeatures(min, max)
-    setDestinationFeatures(filteredFeatures)
-    setSelectedDestinationFeature(filteredFeatures[0])
-  }, [checkedChildrens, parentFeatureChecked])
+    const features = getDestinationFeatures()
+    setDestinationFeatures(features)
+    setSelectedDestinationFeature(features[0])
+  }, [checkedChildrens, parentFeatureChecked, region])
 
   const handleParentFeatureCheck = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -235,80 +244,234 @@ export function CreateApolloAnnotation({
 
   const handleCreateApolloAnnotation = async () => {
     if (parentFeatureChecked) {
-      let change
+      // IF SOURCE FEATURE IS GENE
       if (isGene(annotationFeature, apolloSessionModel)) {
-        if (
-          annotationFeature.children &&
-          checkedChildrens.length !==
-            Object.values(annotationFeature.children).length
-        ) {
-          const childrens: Record<string, AnnotationFeatureSnapshot> = {}
-          for (const childId of checkedChildrens) {
-            childrens[childId] = annotationFeature.children[childId]
-          }
-          change = new AddFeatureChange({
-            changedIds: [annotationFeature._id],
-            typeName: 'AddFeatureChange',
-            assembly: assembly.name,
-            addedFeature: {
-              ...annotationFeature,
-              children: childrens,
-            },
-          })
-        } else {
-          change = new AddFeatureChange({
-            changedIds: [annotationFeature._id],
-            typeName: 'AddFeatureChange',
-            assembly: assembly.name,
-            addedFeature: annotationFeature,
-          })
-        }
+        await copyGeneFeature()
+        session.notify(
+          'Successfully copied selected gene and transcript(s)',
+          'success',
+        )
       }
-
       if (isTranscript(annotationFeature, apolloSessionModel)) {
-        if (selectedDestinationFeature) {
-          change = new AddFeatureChange({
-            parentFeatureId: selectedDestinationFeature._id,
-            changedIds: [selectedDestinationFeature._id],
-            typeName: 'AddFeatureChange',
-            assembly: assembly.name,
-            addedFeature: annotationFeature,
-          })
+        // IF THE SOURCE IS TRANSCRIPT AND THE DESTINATION IS SELECTED AND CREATE NEW GENE IS NOT CHECKED
+        if (selectedDestinationFeature && !createNewGene) {
+          const transcripts: Record<string, AnnotationFeatureSnapshot> = {}
+          transcripts[annotationFeature._id] = annotationFeature
+
+          // If source trancript doesn't overlap with destination gene
+          // If not overlapping, then extend the destination gene to include the transcript
+          if (
+            selectedDestinationFeature.max < annotationFeature.max ||
+            selectedDestinationFeature.min > annotationFeature.min
+          ) {
+            const newMin = Math.min(
+              selectedDestinationFeature.min,
+              annotationFeature.min,
+            )
+            const newMax = Math.max(
+              selectedDestinationFeature.max,
+              annotationFeature.max,
+            )
+            await extendSelectedDestinationFeatureLocation(newMin, newMax)
+            await copyTranscriptsToDestinationGene(transcripts)
+          } else {
+            await copyTranscriptsToDestinationGene(transcripts)
+          }
+          session.notify(
+            'Successfully copied selected transcripts to destination gene',
+            'success',
+          )
         } else {
-          setErrorMessage('There is no destination gene for this transcript')
-          return
+          // IF THERE IS NO DESTINATION GENE SELECTED AND CREATE NEW GENE IS CHECKED
+          const childrens: Record<string, AnnotationFeatureSnapshot> = {}
+          childrens[annotationFeature._id] = annotationFeature
+          await createNewGeneFeatureWithTranscripts(childrens)
+          session.notify(
+            'Successfully created a new gene with selected transcripts',
+            'success',
+          )
         }
       }
-
-      if (!change) {
-        return
-      }
-
-      await apolloSessionModel.apolloDataStore.changeManager.submit(change)
-      session.notify('Annotation added successfully', 'success')
-      handleClose()
     } else {
+      // IF PARENT (GENE) FEATURE IS NOT CHECKED AND WE ARE COPYING CHILDREN (TRANSCRIPTS)
       if (!annotationFeature.children) {
         return
       }
-      if (!selectedDestinationFeature) {
-        return
-      }
 
-      for (const childId of checkedChildrens) {
-        const child = annotationFeature.children[childId]
-        const change = new AddFeatureChange({
-          parentFeatureId: selectedDestinationFeature._id,
-          changedIds: [selectedDestinationFeature._id],
-          typeName: 'AddFeatureChange',
-          assembly: assembly.name,
-          addedFeature: child,
-        })
-        await apolloSessionModel.apolloDataStore.changeManager.submit(change)
+      // IF DESTINATION IS SELECTED AND CREATE NEW GENE IS NOT CHECKED
+      if (selectedDestinationFeature && !createNewGene) {
+        const childrens: Record<string, AnnotationFeatureSnapshot> = {}
+        for (const childId of checkedChildrens) {
+          childrens[childId] = annotationFeature.children[childId]
+        }
+        const min = Math.min(
+          ...Object.values(childrens).map((child) => child.min),
+        )
+        const max = Math.max(
+          ...Object.values(childrens).map((child) => child.max),
+        )
+
+        // If source trancript doesn't overlap with destination gene
+        // If not overlapping, then extend the destination gene to include the transcript
+        if (
+          selectedDestinationFeature.min > min ||
+          selectedDestinationFeature.max < max
+        ) {
+          const newMin = Math.min(selectedDestinationFeature.min, min)
+          const newMax = Math.max(selectedDestinationFeature.max, max)
+          await extendSelectedDestinationFeatureLocation(newMin, newMax)
+          await copyTranscriptsToDestinationGene(childrens)
+        } else {
+          await copyTranscriptsToDestinationGene(childrens)
+        }
+        session.notify(
+          'Successfully copied transcript to destination gene',
+          'success',
+        )
+      } else {
+        // IF THERE IS NO DESTINATION GENE SELECTED AND CREATE NEW GENE IS CHECKED
+        const childrens: Record<string, AnnotationFeatureSnapshot> = {}
+        for (const childId of checkedChildrens) {
+          childrens[childId] = annotationFeature.children[childId]
+        }
+        await createNewGeneFeatureWithTranscripts(childrens)
+        session.notify(
+          'Successfully created a new gene with selected transcript',
+          'success',
+        )
       }
-      session.notify('Annotation added successfully', 'success')
-      handleClose()
     }
+    handleClose()
+  }
+
+  // Copies gene feature along with its selected children
+  const copyGeneFeature = async () => {
+    let change
+    if (
+      annotationFeature.children &&
+      checkedChildrens.length !==
+        Object.values(annotationFeature.children).length
+    ) {
+      // IF SOME CHILDREN ARE CHECKED
+      const childrens: Record<string, AnnotationFeatureSnapshot> = {}
+      for (const childId of checkedChildrens) {
+        childrens[childId] = annotationFeature.children[childId]
+      }
+      change = new AddFeatureChange({
+        changedIds: [annotationFeature._id],
+        typeName: 'AddFeatureChange',
+        assembly: assembly.name,
+        addedFeature: {
+          ...annotationFeature,
+          children: childrens,
+        },
+      })
+    } else {
+      // IF PARENT AND ALL CHILDREN ARE CHECKED
+      change = new AddFeatureChange({
+        changedIds: [annotationFeature._id],
+        typeName: 'AddFeatureChange',
+        assembly: assembly.name,
+        addedFeature: annotationFeature,
+      })
+    }
+
+    await submitChange(change)
+  }
+
+  const copyTranscriptsToDestinationGene = async (
+    transcripts: Record<string, AnnotationFeatureSnapshot>,
+  ) => {
+    if (!selectedDestinationFeature) {
+      return
+    }
+    for (const transcriptId of Object.keys(transcripts)) {
+      const transcript = transcripts[transcriptId]
+      const change = new AddFeatureChange({
+        parentFeatureId: selectedDestinationFeature._id,
+        changedIds: [selectedDestinationFeature._id],
+        typeName: 'AddFeatureChange',
+        assembly: assembly.name,
+        addedFeature: transcript,
+      })
+      await submitChange(change)
+    }
+  }
+
+  const createNewGeneFeatureWithTranscripts = async (
+    childrens: Record<string, AnnotationFeatureSnapshot>,
+  ) => {
+    const newGeneId = new ObjectID().toHexString()
+    const min = Math.min(...Object.values(childrens).map((child) => child.min))
+    const max = Math.max(...Object.values(childrens).map((child) => child.max))
+    const change = new AddFeatureChange({
+      changedIds: [newGeneId],
+      typeName: 'AddFeatureChange',
+      assembly: assembly.name,
+      addedFeature: {
+        _id: newGeneId,
+        refSeq: refSeqId,
+        min,
+        max,
+        strand: annotationFeature.strand,
+        type: 'gene',
+        children: childrens,
+        attributes: {
+          name: [getGeneNameOrId(annotationFeature)],
+          gene_name: [getGeneNameOrId(annotationFeature)],
+        },
+      },
+    })
+    await submitChange(change)
+  }
+
+  const extendSelectedDestinationFeatureLocation = async (
+    newMin: number,
+    newMax: number,
+  ) => {
+    if (!selectedDestinationFeature) {
+      return
+    }
+    const changes = []
+    if (newMin !== selectedDestinationFeature.min) {
+      changes.push(
+        new LocationStartChange({
+          typeName: 'LocationStartChange',
+          changedIds: [selectedDestinationFeature._id],
+          featureId: selectedDestinationFeature._id,
+          assembly: assembly.name,
+          oldStart: selectedDestinationFeature.min,
+          newStart: newMin,
+        }),
+      )
+    }
+    if (newMax !== selectedDestinationFeature.max) {
+      changes.push(
+        new LocationEndChange({
+          typeName: 'LocationEndChange',
+          changedIds: [selectedDestinationFeature._id],
+          featureId: selectedDestinationFeature._id,
+          assembly: assembly.name,
+          oldEnd: selectedDestinationFeature.max,
+          newEnd: newMax,
+        }),
+      )
+    }
+    for (const change of changes) {
+      await submitChange(change)
+    }
+  }
+
+  const submitChange = async (
+    change: AddFeatureChange | LocationStartChange | LocationEndChange,
+  ) => {
+    await apolloSessionModel.apolloDataStore.changeManager.submit(change)
+  }
+
+  const handleCreateNewGeneChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setCreateNewGene(e.target.checked)
   }
 
   return (
@@ -333,7 +496,7 @@ export function CreateApolloAnnotation({
                   onChange={handleParentFeatureCheck}
                 />
               }
-              label={`${getFeatureNameOrId(annotationFeature, apolloSessionModel)} (${annotationFeature.min + 1}..${annotationFeature.max})`}
+              label={`${getFeatureNameOrId(annotationFeature)} (${annotationFeature.min + 1}..${annotationFeature.max})`}
             />
           )}
           {annotationFeature.children && (
@@ -352,7 +515,7 @@ export function CreateApolloAnnotation({
                         }}
                       />
                     }
-                    label={`${getFeatureNameOrId(child, apolloSessionModel)} (${child.min + 1}..${child.max})`}
+                    label={`${getFeatureNameOrId(child)} (${child.min + 1}..${child.max})`}
                   />
                 ))}
             </Box>
@@ -362,26 +525,49 @@ export function CreateApolloAnnotation({
           ((!parentFeatureChecked && checkedChildrens.length > 0) ||
             (parentFeatureChecked &&
               isTranscript(annotationFeature, apolloSessionModel))) && (
-            <Box sx={{ ml: 3 }}>
-              <Typography variant="caption" fontSize={12}>
-                Select the destination feature to copy the selected features
-              </Typography>
+            <div
+              style={{
+                border: '1px solid #ccc',
+                marginTop: 20,
+                padding: 10,
+                borderRadius: 5,
+              }}
+            >
+              <Box sx={{ ml: 3 }}>
+                <Typography variant="caption" fontSize={12}>
+                  Select the destination feature to copy the selected features
+                </Typography>
 
-              <Box sx={{ mt: 1 }}>
-                <Select
-                  labelId="label"
-                  style={{ width: '100%' }}
-                  value={selectedDestinationFeature?._id ?? ''}
-                  onChange={handleDestinationFeatureChange}
-                >
-                  {destinationFeatures.map((f) => (
-                    <MenuItem key={f._id} value={f._id}>
-                      {`${getFeatureNameOrId(f, apolloSessionModel)} (${f.min}..${f.max})`}
-                    </MenuItem>
-                  ))}
-                </Select>
+                <Box sx={{ mt: 1 }}>
+                  <Select
+                    labelId="label"
+                    style={{ width: '100%' }}
+                    value={selectedDestinationFeature?._id ?? ''}
+                    onChange={handleDestinationFeatureChange}
+                    disabled={createNewGene}
+                  >
+                    {destinationFeatures.map((f) => (
+                      <MenuItem key={f._id} value={f._id}>
+                        {`${getFeatureNameOrId(f)} (${f.min + 1}..${f.max})`}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Box>
               </Box>
-            </Box>
+              <Box sx={{ ml: 3 }}>
+                <FormGroup>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={createNewGene}
+                        onChange={handleCreateNewGeneChange}
+                      />
+                    }
+                    label="Create new gene"
+                  />
+                </FormGroup>
+              </Box>
+            </div>
           )}
       </DialogContent>
       <DialogActions>

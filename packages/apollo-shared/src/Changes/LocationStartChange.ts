@@ -114,9 +114,25 @@ export class LocationStartChange extends FeatureChange {
     }
 
     // Let's update objects.
-    for (const [idx, change] of changes.entries()) {
-      const { newStart } = change
-      const { feature, topLevelFeature } = featuresForChanges[idx]
+    for (const [, change] of changes.entries()) {
+      // const { newStart } = change
+      // const { feature, topLevelFeature } = featuresForChanges[idx]
+      const { newStart, featureId } = change
+      const topLevelFeature = await featureModel
+        .findOne({ allIds: featureId })
+        .session(session)
+        .exec()
+      if (!topLevelFeature) {
+        const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
+        logger.error(errMsg)
+        throw new Error(errMsg)
+      }
+      const feature = this.getFeatureFromId(topLevelFeature, featureId)
+      if (!feature) {
+        const errMsg = 'ERROR when searching feature by featureId'
+        logger.error(errMsg)
+        throw new Error(errMsg)
+      }
       feature.min = newStart
       if (topLevelFeature._id.equals(feature._id)) {
         topLevelFeature.markModified('start') // Mark as modified. Without this save() -method is not updating data in database
