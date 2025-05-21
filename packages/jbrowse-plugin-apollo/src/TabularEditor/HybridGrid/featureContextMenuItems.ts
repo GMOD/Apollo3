@@ -19,6 +19,8 @@ export function featureContextMenuItems(
   setSelectedFeature: (f: AnnotationFeature | undefined) => void,
   session: ApolloSessionModel,
   changeManager: ChangeManager,
+  filteredTranscripts: string[],
+  updateFilteredTranscripts: (forms: string[]) => void,
 ) {
   const internetAccount = getApolloInternetAccount(session)
   const role = internetAccount ? internetAccount.role : 'admin'
@@ -26,6 +28,7 @@ export function featureContextMenuItems(
   const readOnly = !(role && ['admin', 'user'].includes(role))
   const menuItems: MenuItem[] = []
   if (feature) {
+    const featureID = feature.attributes.get('gff_id')?.toString()
     const sourceAssemblyId = getAssemblyId(region.assemblyName)
     const currentAssemblyId = getAssemblyId(region.assemblyName)
     menuItems.push(
@@ -121,22 +124,38 @@ export function featureContextMenuItems(
         featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')) &&
       isSessionModelWithWidgets(session)
     ) {
-      menuItems.push({
-        label: 'Edit transcript details',
-        onClick: () => {
-          const apolloTranscriptWidget = session.addWidget(
-            'ApolloTranscriptDetails',
-            'apolloTranscriptDetails',
-            {
-              feature,
-              assembly: currentAssemblyId,
-              changeManager,
-              refName: region.refName,
-            },
-          )
-          session.showWidget(apolloTranscriptWidget)
+      menuItems.push(
+        {
+          label: 'Edit transcript details',
+          onClick: () => {
+            const apolloTranscriptWidget = session.addWidget(
+              'ApolloTranscriptDetails',
+              'apolloTranscriptDetails',
+              {
+                feature,
+                assembly: currentAssemblyId,
+                changeManager,
+                refName: region.refName,
+              },
+            )
+            session.showWidget(apolloTranscriptWidget)
+          },
         },
-      })
+        {
+          label: 'Visible',
+          type: 'checkbox',
+          checked:
+            featureID && filteredTranscripts.includes(featureID) ? false : true,
+          onClick: () => {
+            if (featureID) {
+              const newForms = filteredTranscripts.includes(featureID)
+                ? filteredTranscripts.filter((form) => form !== featureID)
+                : [...filteredTranscripts, featureID]
+              updateFilteredTranscripts(newForms)
+            }
+          },
+        },
+      )
     }
   }
   return menuItems

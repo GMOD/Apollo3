@@ -4,7 +4,7 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import { defaultCodonTable, doesIntersect2, revcom } from '@jbrowse/core/util'
 import { Theme } from '@mui/material'
 import { autorun } from 'mobx'
-import { Instance, addDisposer } from 'mobx-state-tree'
+import { Instance, addDisposer, types } from 'mobx-state-tree'
 
 import { ApolloSessionModel } from '../../session'
 import { layoutsModelFactory } from './layouts'
@@ -26,6 +26,7 @@ export function renderingModelIntermediateFactory(
       detailsHeight: 200,
       lastRowTooltipBufferHeight: 40,
       isShown: true,
+      filteredTranscripts: types.array(types.string),
     })
     .volatile(() => ({
       canvas: null as HTMLCanvasElement | null,
