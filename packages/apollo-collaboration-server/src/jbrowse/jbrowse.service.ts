@@ -1,15 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common'
-import { InjectModel } from '@nestjs/mongoose'
 import {
   JBrowseConfig,
   JBrowseConfigDocument,
 } from '@apollo-annotation/schemas'
-import { Model, Types } from 'mongoose'
+import { Injectable, Logger } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { InjectModel } from '@nestjs/mongoose'
 import merge from 'deepmerge'
+import { Model, Types } from 'mongoose'
 
 import { AssembliesService } from '../assemblies/assemblies.service'
 import { RefSeqsService } from '../refSeqs/refSeqs.service'
-import { ConfigService } from '@nestjs/config'
 import { Role } from '../utils/role/role.enum'
 
 @Injectable()

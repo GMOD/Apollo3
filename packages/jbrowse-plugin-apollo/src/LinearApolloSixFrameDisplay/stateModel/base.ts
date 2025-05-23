@@ -3,26 +3,26 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { AnnotationFeature } from '@apollo-annotation/mst'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type PluginManager from '@jbrowse/core/PluginManager'
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
-import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
+import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
-import PluginManager from '@jbrowse/core/PluginManager'
 import {
-  AbstractSessionModel,
+  type AbstractSessionModel,
   getContainingView,
   getSession,
 } from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
-import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { autorun } from 'mobx'
-import { addDisposer, cast, getRoot, types, getSnapshot } from 'mobx-state-tree'
+import { addDisposer, cast, getRoot, getSnapshot, types } from 'mobx-state-tree'
 
-import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
-import { ApolloSessionModel } from '../../session'
-import { ApolloRootModel } from '../../types'
+import { type ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { FilterFeatures } from '../../components/FilterFeatures'
+import { type ApolloSessionModel } from '../../session'
+import { type ApolloRootModel } from '../../types'
 
 const minDisplayHeight = 20
 

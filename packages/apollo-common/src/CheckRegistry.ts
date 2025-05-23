@@ -1,4 +1,4 @@
-import { Check } from './Check'
+import { type Check } from './Check'
 
 class CheckRegistry {
   checks = new Map<string, Check>()

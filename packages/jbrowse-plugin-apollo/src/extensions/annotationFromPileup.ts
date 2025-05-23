@@ -3,17 +3,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
-import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
-import { DisplayType } from '@jbrowse/core/pluggableElementTypes'
-import PluggableElementBase from '@jbrowse/core/pluggableElementTypes/PluggableElementBase'
+import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import { type DisplayType } from '@jbrowse/core/pluggableElementTypes'
+import type PluggableElementBase from '@jbrowse/core/pluggableElementTypes/PluggableElementBase'
 import { getContainingView, getSession } from '@jbrowse/core/util'
-import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
 import ObjectID from 'bson-objectid'
 
-import { ApolloSessionModel } from '../session'
+import { type ApolloSessionModel } from '../session'
 
 function parseCigar(cigar: string): [string | undefined, number][] {
   return (cigar.toUpperCase().match(/\d+\D/g) ?? []).map((op) => {

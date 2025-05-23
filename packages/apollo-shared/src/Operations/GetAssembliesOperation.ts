@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/require-await */
 import {
-  LocalGFF3DataStore,
+  type LocalGFF3DataStore,
   Operation,
-  SerializedOperation,
-  ServerDataStore,
+  type SerializedOperation,
+  type ServerDataStore,
 } from '@apollo-annotation/common'
 
 interface SerializedGetAssembliesOperation extends SerializedOperation {
