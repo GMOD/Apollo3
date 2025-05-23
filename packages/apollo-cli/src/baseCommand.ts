@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { Command, Flags, Interfaces } from '@oclif/core'
+import { Command, Flags, type Interfaces } from '@oclif/core'
 
 import { ApolloConf } from './ApolloConf.js'
 import { checkConfigfileExists } from './utils.js'

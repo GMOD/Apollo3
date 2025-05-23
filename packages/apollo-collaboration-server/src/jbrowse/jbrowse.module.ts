@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { JBrowseConfig, JBrowseConfigSchema } from '@apollo-annotation/schemas'
 import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
-import { JBrowseConfig, JBrowseConfigSchema } from '@apollo-annotation/schemas'
 import idValidator from 'mongoose-id-validator'
 
 import { AssembliesModule } from '../assemblies/assemblies.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
+
 import { JBrowseController } from './jbrowse.controller'
 import { JBrowseService } from './jbrowse.service'
 

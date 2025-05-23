@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { describe, it } from 'node:test'
 import { readFileSync } from 'node:fs'
+import { describe, it } from 'node:test'
 
-import gff, { GFF3Feature } from '@gmod/gff'
+import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import gff, { type GFF3Feature } from '@gmod/gff'
 import { assert, use } from 'chai'
 import chaiExclude from 'chai-exclude'
 
 import { gff3ToAnnotationFeature } from './gff3ToAnnotationFeature'
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 use(chaiExclude)
 

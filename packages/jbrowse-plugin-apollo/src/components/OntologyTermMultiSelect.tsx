@@ -4,7 +4,7 @@
 import { isAbortException } from '@jbrowse/core/util/aborting'
 import {
   Autocomplete,
-  AutocompleteRenderGetTagProps,
+  type AutocompleteRenderGetTagProps,
   Chip,
   Grid2,
   TextField,
@@ -18,14 +18,14 @@ import { getParent } from 'mobx-state-tree'
 import * as React from 'react'
 
 import {
-  OntologyManager,
-  OntologyRecord,
-  OntologyTerm,
+  type OntologyManager,
+  type OntologyRecord,
+  type OntologyTerm,
   isOntologyClass,
 } from '../OntologyManager'
-import { Match } from '../OntologyManager/OntologyStore/fulltext'
+import { type Match } from '../OntologyManager/OntologyStore/fulltext'
 import { isDeprecated } from '../OntologyManager/OntologyStore/indexeddb-schema'
-import { ApolloSessionModel } from '../session'
+import { type ApolloSessionModel } from '../session'
 
 interface TermValue {
   term: OntologyTerm

@@ -1,25 +1,26 @@
 /* eslint-disable unicorn/no-nested-ternary */
 /* eslint-disable @typescript-eslint/unbound-method */
 
-import { AnnotationFeature } from '@apollo-annotation/mst'
-import { AbstractSessionModel } from '@jbrowse/core/util'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
+import { type AbstractSessionModel } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'
 
-import { OntologyTermAutocomplete } from '../../components/OntologyTermAutocomplete'
 import { isOntologyClass } from '../../OntologyManager'
-import OntologyStore from '../../OntologyManager/OntologyStore'
-import { DisplayStateModel } from '../types'
+import type OntologyStore from '../../OntologyManager/OntologyStore'
+import { OntologyTermAutocomplete } from '../../components/OntologyTermAutocomplete'
+import { type DisplayStateModel } from '../types'
+
 import {
   handleFeatureEndChange,
   handleFeatureStartChange,
   handleFeatureTypeChange,
 } from './ChangeHandling'
 import { FeatureAttributes } from './FeatureAttributes'
-import { featureContextMenuItems } from './featureContextMenuItems'
-import type { ContextMenuState } from './HybridGrid'
+import { type ContextMenuState } from './HybridGrid'
 import { NumberCell } from './NumberCell'
+import { featureContextMenuItems } from './featureContextMenuItems'
 
 const useStyles = makeStyles()((theme) => ({
   typeContent: {
@@ -132,6 +133,7 @@ export const Feature = observer(function Feature({
           displayState.setApolloHover({
             feature,
             topLevelFeature: getTopLevelFeature(feature),
+            // @ts-expect-error TODO fix in future when moving hover logic to session.
             glyph: displayState.getGlyph(getTopLevelFeature(feature)),
           })
         }}

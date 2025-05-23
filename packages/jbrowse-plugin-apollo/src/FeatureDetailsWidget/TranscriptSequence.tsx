@@ -1,4 +1,4 @@
-import { AnnotationFeature } from '@apollo-annotation/mst'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { splitStringIntoChunks } from '@apollo-annotation/shared'
 import { defaultCodonTable, revcom } from '@jbrowse/core/util'
 import {
@@ -6,13 +6,13 @@ import {
   MenuItem,
   Paper,
   Select,
-  SelectChangeEvent,
+  type SelectChangeEvent,
   useTheme,
 } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useRef, useState } from 'react'
 
-import { ApolloSessionModel } from '../session'
+import { type ApolloSessionModel } from '../session'
 
 const SEQUENCE_WRAP_LENGTH = 60
 

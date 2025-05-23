@@ -107,21 +107,15 @@ describe('Add Assembly', () => {
         cy.get('input[type="checkbox"]').should('not.be.enabled')
       })
       cy.get('[data-testid="fasta-input-url"]').within(() => {
-        cy.get('input').type(
-          'https://raw.githubusercontent.com/GMOD/Apollo3/refs/heads/main/packages/apollo-cli/test_data/tiny.fasta.gz',
-        )
+        cy.get('input').type('http://localhost:3131/tiny.fasta.gz')
       })
       cy.get('[data-testid="fai-input-url"]').within(() => {
         cy.get('input').clear()
-        cy.get('input').type(
-          'https://raw.githubusercontent.com/GMOD/Apollo3/refs/heads/main/packages/apollo-cli/test_data/tiny.fasta.gz.fai',
-        )
+        cy.get('input').type('http://localhost:3131/tiny.fasta.gz.fai')
       })
       cy.get('[data-testid="gzi-input-url"]').within(() => {
         cy.get('input').clear()
-        cy.get('input').type(
-          'https://raw.githubusercontent.com/GMOD/Apollo3/refs/heads/main/packages/apollo-cli/test_data/tiny.fasta.gz.gzi',
-        )
+        cy.get('input').type('http://localhost:3131/tiny.fasta.gz.gzi')
       })
       cy.get('Button[data-testid="submit-button"]').click()
     })

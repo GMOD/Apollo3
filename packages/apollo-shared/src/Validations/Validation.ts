@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/require-await */
-import { Change, ClientDataStore } from '@apollo-annotation/common'
-import { FeatureDocument } from '@apollo-annotation/schemas'
-import type { ExecutionContext } from '@nestjs/common'
-import type { Reflector } from '@nestjs/core'
-import { ClientSession, Model } from 'mongoose'
+import { type Change, type ClientDataStore } from '@apollo-annotation/common'
+import { type FeatureDocument } from '@apollo-annotation/schemas'
+import { type ExecutionContext } from '@nestjs/common'
+import { type Reflector } from '@nestjs/core'
+import { type ClientSession, type Model } from 'mongoose'
 
 export interface Context {
   context: ExecutionContext

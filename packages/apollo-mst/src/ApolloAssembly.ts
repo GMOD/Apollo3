@@ -1,4 +1,4 @@
-import { Instance, SnapshotIn, types } from 'mobx-state-tree'
+import { type Instance, type SnapshotIn, types } from 'mobx-state-tree'
 
 import { ApolloRefSeq } from './ApolloRefSeq'
 

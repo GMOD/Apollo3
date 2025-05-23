@@ -1,6 +1,6 @@
 {
   "name": "@apollo-annotation/cli",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "Command line interface for the Apollo annotation server",
   "repository": {
     "type": "git",
@@ -107,6 +107,7 @@
     "prettier": "^3.3.2",
     "react-dom": "^18.2.0",
     "rxjs": "^7.4.0",
+    "serve": "^14.0.1",
     "shx": "^0.3.3",
     "ts-node": "^10.3.0",
     "tsx": "^4.6.2",

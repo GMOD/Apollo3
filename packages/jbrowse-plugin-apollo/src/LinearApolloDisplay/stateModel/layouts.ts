@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 
-import { AnnotationFeature } from '@apollo-annotation/mst'
-import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
-import PluginManager from '@jbrowse/core/PluginManager'
-import { AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type PluginManager from '@jbrowse/core/PluginManager'
+import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
+import { type AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
 import { autorun, observable } from 'mobx'
 import { addDisposer, isAlive } from 'mobx-state-tree'
 
-import { ApolloSessionModel } from '../../session'
-import { baseModelFactory } from './base'
+import { type ApolloSessionModel } from '../../session'
 import { boxGlyph, geneGlyph, genericChildGlyph } from '../glyphs'
+
+import { baseModelFactory } from './base'
 
 function getRowsForFeature(
   startingRow: number,
@@ -62,45 +63,13 @@ export function layoutsModelFactory(
         return self.seenFeatures.get(id)
       },
       getGlyph(feature: AnnotationFeature) {
-        if (this.looksLikeGene(feature)) {
+        if (feature.looksLikeGene) {
           return geneGlyph
         }
         if (feature.children?.size) {
           return genericChildGlyph
         }
         return boxGlyph
-      },
-      looksLikeGene(feature: AnnotationFeature): boolean {
-        const { featureTypeOntology } =
-          self.session.apolloDataStore.ontologyManager
-        if (!featureTypeOntology) {
-          return false
-        }
-        const { children } = feature
-        if (!children?.size) {
-          return false
-        }
-        const isGene =
-          featureTypeOntology.isTypeOf(feature.type, 'gene') ||
-          featureTypeOntology.isTypeOf(feature.type, 'pseudogene')
-        if (!isGene) {
-          return false
-        }
-        for (const [, child] of children) {
-          if (
-            featureTypeOntology.isTypeOf(child.type, 'transcript') ||
-            featureTypeOntology.isTypeOf(child.type, 'pseudogenic_transcript')
-          ) {
-            const { children: grandChildren } = child
-            if (!grandChildren?.size) {
-              return false
-            }
-            return [...grandChildren.values()].some((grandchild) =>
-              featureTypeOntology.isTypeOf(grandchild.type, 'exon'),
-            )
-          }
-        }
-        return false
       },
     }))
     .actions((self) => ({
