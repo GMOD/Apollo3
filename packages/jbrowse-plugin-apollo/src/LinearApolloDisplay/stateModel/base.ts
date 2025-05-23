@@ -10,9 +10,9 @@ import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/con
 import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
 import {
   type AbstractSessionModel,
+  type SessionWithWidgets,
   getContainingView,
   getSession,
-  SessionWithWidgets,
 } from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'

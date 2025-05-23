@@ -1,10 +1,6 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
-import {
-  type AbstractSessionModel,
-  type SessionWithWidgets,
-  isSessionModelWithWidgets,
-} from '@jbrowse/core/util'
+import { type AbstractSessionModel } from '@jbrowse/core/util'
 import { type Theme, alpha } from '@mui/material'
 
 import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
