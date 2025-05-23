@@ -176,6 +176,14 @@ function draw(
   const renderedCDS = new Set<TranscriptPartCoding>()
   // Draw exon and CDS for each mRNA
   for (const [, child] of children) {
+    if (
+      !(
+        featureTypeOntology.isTypeOf(child.type, 'transcript') ||
+        featureTypeOntology.isTypeOf(child.type, 'pseudogenic_transcript')
+      )
+    ) {
+      continue
+    }
     const { children: childrenOfmRNA, cdsLocations, _id } = child
     if (!childrenOfmRNA) {
       continue
