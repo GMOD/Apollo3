@@ -1,5 +1,6 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { getFrame, intersection2 } from '@jbrowse/core/util'
+import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material'
 
 import { type OntologyRecord } from '../../OntologyManager'
@@ -619,6 +620,7 @@ function onMouseDown(
       currentMousePosition,
       draggableFeature.feature,
       draggableFeature.edge,
+      true,
     )
   }
 }
@@ -657,6 +659,50 @@ function onMouseUp(
   }
 }
 
+function getMinAndMaxPx(
+  feature: AnnotationFeature,
+  refName: string,
+  regionNumber: number,
+  lgv: LinearGenomeViewModel,
+): [number, number] | undefined {
+  const minPxInfo = lgv.bpToPx({
+    refName,
+    coord: feature.min,
+    regionNumber,
+  })
+  const maxPxInfo = lgv.bpToPx({
+    refName,
+    coord: feature.max,
+    regionNumber,
+  })
+  if (minPxInfo === undefined || maxPxInfo === undefined) {
+    return
+  }
+  const { offsetPx } = lgv
+  const minPx = minPxInfo.offsetPx - offsetPx
+  const maxPx = maxPxInfo.offsetPx - offsetPx
+  return [minPx, maxPx]
+}
+
+function getOverlappingEdge(
+  feature: AnnotationFeature,
+  x: number,
+  minMax: [number, number],
+): { feature: AnnotationFeature; edge: 'min' | 'max' } | undefined {
+  const [minPx, maxPx] = minMax
+  // Feature is too small to tell if we're overlapping an edge
+  if (Math.abs(maxPx - minPx) < 8) {
+    return
+  }
+  if (Math.abs(minPx - x) < 4) {
+    return { feature, edge: 'min' }
+  }
+  if (Math.abs(maxPx - x) < 4) {
+    return { feature, edge: 'max' }
+  }
+  return
+}
+
 function getDraggableFeatureInfo(
   mousePosition: MousePosition,
   feature: AnnotationFeature,
@@ -674,31 +720,18 @@ function getDraggableFeatureInfo(
   const isTranscript =
     featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
     featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')
-  const isCds = featureTypeOntology.isTypeOf(feature.type, 'CDS')
+  const isCDS = featureTypeOntology.isTypeOf(feature.type, 'CDS')
   if (isGene || isTranscript) {
+    // For gene glyphs, the sizes of genes and transcripts are determined by
+    // their child exons, so we don't make them draggable
     return
   }
+  // So now the type of feature is either CDS or exon. If an exon and CDS edge
+  // are in the same place, we want to prioritize dragging the exon. If the
+  // feature we're on is a CDS, let's find any exon it may overlap.
   const { bp, refName, regionNumber, x } = mousePosition
   const { lgv } = stateModel
-  const { offsetPx } = lgv
-
-  const minPxInfo = lgv.bpToPx({ refName, coord: feature.min, regionNumber })
-  const maxPxInfo = lgv.bpToPx({ refName, coord: feature.max, regionNumber })
-  if (minPxInfo === undefined || maxPxInfo === undefined) {
-    return
-  }
-  const minPx = minPxInfo.offsetPx - offsetPx
-  const maxPx = maxPxInfo.offsetPx - offsetPx
-  if (Math.abs(maxPx - minPx) < 8) {
-    return
-  }
-  if (Math.abs(minPx - x) < 4) {
-    return { feature, edge: 'min' }
-  }
-  if (Math.abs(maxPx - x) < 4) {
-    return { feature, edge: 'max' }
-  }
-  if (isCds) {
+  if (isCDS) {
     const transcript = feature.parent
     if (!transcript?.children) {
       return
@@ -710,38 +743,27 @@ function getDraggableFeatureInfo(
         exonChildren.push(child)
       }
     }
-
     const overlappingExon = exonChildren.find((child) => {
       const [start, end] = intersection2(bp - 1, bp, child.min, child.max)
       return start !== undefined && end !== undefined
     })
-
-    if (!overlappingExon) {
-      return
+    if (overlappingExon) {
+      // We are on an exon, are we on the edge of it?
+      const minMax = getMinAndMaxPx(overlappingExon, refName, regionNumber, lgv)
+      if (minMax) {
+        const overlappingEdge = getOverlappingEdge(feature, x, minMax)
+        if (overlappingEdge) {
+          return overlappingEdge
+        }
+      }
     }
-    const minPxInfo = lgv.bpToPx({
-      refName,
-      coord: overlappingExon.min,
-      regionNumber,
-    })
-    const maxPxInfo = lgv.bpToPx({
-      refName,
-      coord: overlappingExon.max,
-      regionNumber,
-    })
-    if (minPxInfo === undefined || maxPxInfo === undefined) {
-      return
-    }
-    const minPx = minPxInfo.offsetPx - offsetPx
-    const maxPx = maxPxInfo.offsetPx - offsetPx
-    if (Math.abs(maxPx - minPx) < 8) {
-      return
-    }
-    if (Math.abs(minPx - x) < 4) {
-      return { feature: overlappingExon, edge: 'min' }
-    }
-    if (Math.abs(maxPx - x) < 4) {
-      return { feature: overlappingExon, edge: 'max' }
+  }
+  // End of special cases, let's see if we're on the edge of this CDS or exon
+  const minMax = getMinAndMaxPx(feature, refName, regionNumber, lgv)
+  if (minMax) {
+    const overlappingEdge = getOverlappingEdge(feature, x, minMax)
+    if (overlappingEdge) {
+      return overlappingEdge
     }
   }
   return
