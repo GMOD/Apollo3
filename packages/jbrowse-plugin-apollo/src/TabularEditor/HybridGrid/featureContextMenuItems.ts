@@ -1,12 +1,12 @@
-import { AnnotationFeature } from '@apollo-annotation/mst'
-import { MenuItem } from '@jbrowse/core/ui'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
+import { type MenuItem } from '@jbrowse/core/ui'
 import {
-  AbstractSessionModel,
-  SessionWithWidgets,
+  type AbstractSessionModel,
+  type SessionWithWidgets,
   isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
 
-import { ChangeManager } from '../../ChangeManager'
+import { type ChangeManager } from '../../ChangeManager'
 import {
   AddChildFeature,
   CopyFeature,
@@ -14,7 +14,7 @@ import {
   MergeExons,
   SplitExon,
 } from '../../components'
-import { ApolloSessionModel } from '../../session'
+import { type ApolloSessionModel } from '../../session'
 import { getApolloInternetAccount } from '../../util'
 
 export function featureContextMenuItems(

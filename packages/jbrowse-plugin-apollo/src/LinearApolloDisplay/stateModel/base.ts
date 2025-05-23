@@ -3,26 +3,26 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { AnnotationFeature } from '@apollo-annotation/mst'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type PluginManager from '@jbrowse/core/PluginManager'
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
-import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
+import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
-import PluginManager from '@jbrowse/core/PluginManager'
 import {
-  AbstractSessionModel,
+  type AbstractSessionModel,
   getContainingView,
   getSession,
 } from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
-import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { autorun } from 'mobx'
-import { addDisposer, cast, getRoot, types, getSnapshot } from 'mobx-state-tree'
+import { addDisposer, cast, getRoot, getSnapshot, types } from 'mobx-state-tree'
 
-import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
-import { ApolloSessionModel } from '../../session'
-import { ApolloRootModel } from '../../types'
+import { type ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { FilterFeatures } from '../../components/FilterFeatures'
+import { type ApolloSessionModel } from '../../session'
+import { type ApolloRootModel } from '../../types'
 
 const minDisplayHeight = 20
 
@@ -36,6 +36,9 @@ export function baseModelFactory(
       configuration: ConfigurationReference(configSchema),
       graphical: true,
       table: false,
+      showStartCodons: false,
+      showStopCodons: true,
+      highContrast: false,
       heightPreConfig: types.maybe(
         types.refinement(
           'displayHeight',
@@ -168,6 +171,15 @@ export function baseModelFactory(
         self.graphical = true
         self.table = true
       },
+      toggleShowStartCodons() {
+        self.showStartCodons = !self.showStartCodons
+      },
+      toggleShowStopCodons() {
+        self.showStopCodons = !self.showStopCodons
+      },
+      toggleHighContrast() {
+        self.highContrast = !self.highContrast
+      },
       updateFilteredFeatureTypes(types: string[]) {
         self.filteredFeatureTypes = cast(types)
       },
@@ -179,7 +191,13 @@ export function baseModelFactory(
       const { filteredFeatureTypes, trackMenuItems: superTrackMenuItems } = self
       return {
         trackMenuItems() {
-          const { graphical, table } = self
+          const {
+            graphical,
+            table,
+            showStartCodons,
+            showStopCodons,
+            highContrast,
+          } = self
           return [
             ...superTrackMenuItems(),
             {
@@ -208,6 +226,30 @@ export function baseModelFactory(
                   checked: table && graphical,
                   onClick: () => {
                     self.showGraphicalAndTable()
+                  },
+                },
+                {
+                  label: 'Show start codons',
+                  type: 'checkbox',
+                  checked: showStartCodons,
+                  onClick: () => {
+                    self.toggleShowStartCodons()
+                  },
+                },
+                {
+                  label: 'Show stop codons',
+                  type: 'checkbox',
+                  checked: showStopCodons,
+                  onClick: () => {
+                    self.toggleShowStopCodons()
+                  },
+                },
+                {
+                  label: 'Use high contrast colors',
+                  type: 'checkbox',
+                  checked: highContrast,
+                  onClick: () => {
+                    self.toggleHighContrast()
                   },
                 },
               ],

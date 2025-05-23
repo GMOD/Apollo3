@@ -1,21 +1,22 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AnnotationFeature } from '@apollo-annotation/mst'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
   StrandChange,
   TypeChange,
 } from '@apollo-annotation/shared'
-import { AbstractSessionModel } from '@jbrowse/core/util'
+import { type AbstractSessionModel } from '@jbrowse/core/util'
 import { TextField, Typography } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 
-import { OntologyTermAutocomplete } from '../components/OntologyTermAutocomplete'
 import { isOntologyClass } from '../OntologyManager'
-import OntologyStore from '../OntologyManager/OntologyStore'
+import type OntologyStore from '../OntologyManager/OntologyStore'
 import { fetchValidDescendantTerms } from '../OntologyManager/util'
-import { ApolloSessionModel } from '../session'
+import { OntologyTermAutocomplete } from '../components/OntologyTermAutocomplete'
+import { type ApolloSessionModel } from '../session'
+
 import { NumberTextField } from './NumberTextField'
 
 export const BasicInformation = observer(function BasicInformation({

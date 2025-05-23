@@ -4,10 +4,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   AssemblySpecificChange,
-  ClientDataStore,
-  LocalGFF3DataStore,
-  SerializedAssemblySpecificChange,
-  ServerDataStore,
+  type ClientDataStore,
+  type LocalGFF3DataStore,
+  type SerializedAssemblySpecificChange,
+  type ServerDataStore,
 } from '@apollo-annotation/common'
 import { getSession } from '@jbrowse/core/util'
 

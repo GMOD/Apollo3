@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { Menu, MenuItem } from '@jbrowse/core/ui'
+import { Menu, type MenuItem } from '@jbrowse/core/ui'
 import {
-  AbstractSessionModel,
+  type AbstractSessionModel,
   doesIntersect2,
   getContainingView,
 } from '@jbrowse/core/util'
-import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import ErrorIcon from '@mui/icons-material/Error'
 import {
   Alert,
@@ -20,7 +20,7 @@ import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
-import { LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
+import { type LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
 
 interface LinearApolloDisplayProps {
   model: LinearApolloDisplayI
@@ -95,7 +95,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const { assemblyManager } = session as unknown as AbstractSessionModel
   return (
     <>
-      {lgv.bpPerPx <= 3 ? (
+      {3 / lgv.bpPerPx >= 1 ? (
         <div
           className={classes.canvasContainer}
           style={{

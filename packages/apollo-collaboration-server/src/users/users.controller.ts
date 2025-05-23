@@ -6,6 +6,7 @@ import { Request } from 'express'
 
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
+
 import { UserLocationDto } from './dto/create-user.dto'
 import { UsersService } from './users.service'
 

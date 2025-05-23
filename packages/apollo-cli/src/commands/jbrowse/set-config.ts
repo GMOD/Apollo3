@@ -1,13 +1,15 @@
 import * as fs from 'node:fs'
+
 import {
   type JBrowseConfig,
   type SerializedImportJBrowseConfigChange,
 } from '@apollo-annotation/shared'
 import { Args } from '@oclif/core'
-import { Agent, RequestInit, fetch } from 'undici'
+import { Agent, type RequestInit, fetch } from 'undici'
+
 import { ConfigError } from '../../ApolloConf.js'
 import { BaseCommand } from '../../baseCommand.js'
-import { localhostToAddress, createFetchErrorMessage } from '../../utils.js'
+import { createFetchErrorMessage, localhostToAddress } from '../../utils.js'
 
 export default class SetConfig extends BaseCommand<typeof SetConfig> {
   static summary = 'Set JBrowse configuration'

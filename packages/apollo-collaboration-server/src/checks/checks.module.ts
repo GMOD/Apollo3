@@ -16,9 +16,10 @@ import idValidator from 'mongoose-id-validator'
 import { MessagesGateway } from '../messages/messages.gateway'
 import { MessagesModule } from '../messages/messages.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
+import { SequenceModule } from '../sequence/sequence.module'
+
 import { ChecksController } from './checks.controller'
 import { ChecksService } from './checks.service'
-import { SequenceModule } from '../sequence/sequence.module'
 
 @Module({
   providers: [ChecksService],

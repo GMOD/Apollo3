@@ -14,12 +14,13 @@ import {
 
 import { GoogleAuthGuard } from '../utils/google.guard'
 import { MicrosoftAuthGuard } from '../utils/microsoft.guard'
+import { Role } from '../utils/role/role.enum'
+import { Validations } from '../utils/validation/validatation.decorator'
+
 import {
   AuthenticationService,
   RequestWithUserToken,
 } from './authentication.service'
-import { Validations } from '../utils/validation/validatation.decorator'
-import { Role } from '../utils/role/role.enum'
 
 @Validations(Role.None)
 @Controller('auth')

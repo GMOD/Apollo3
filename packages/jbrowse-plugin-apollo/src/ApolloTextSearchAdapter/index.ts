@@ -1,5 +1,5 @@
+import type PluginManager from '@jbrowse/core/PluginManager'
 import { TextSearchAdapterType } from '@jbrowse/core/pluggableElementTypes'
-import PluginManager from '@jbrowse/core/PluginManager'
 
 import { ApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
 import configSchema from './configSchema'

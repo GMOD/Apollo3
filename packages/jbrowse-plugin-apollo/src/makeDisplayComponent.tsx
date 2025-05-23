@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import PluginManager from '@jbrowse/core/PluginManager'
-import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
+import { getSession } from '@jbrowse/core/util'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Alert, Typography, alpha } from '@mui/material'
@@ -9,13 +8,11 @@ import React, { useCallback, useEffect, useRef } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { LinearApolloDisplay } from './LinearApolloDisplay/components'
-import { LinearApolloDisplay as LinearApolloDisplayI } from './LinearApolloDisplay/stateModel'
-import { TrackLines } from './SixFrameFeatureDisplay/components'
-import { SixFrameFeatureDisplay } from './SixFrameFeatureDisplay/stateModel'
+import { type LinearApolloDisplay as LinearApolloDisplayI } from './LinearApolloDisplay/stateModel'
+import { LinearApolloSixFrameDisplay } from './LinearApolloSixFrameDisplay/components'
+import { type LinearApolloSixFrameDisplay as LinearApolloSixFrameDisplayI } from './LinearApolloSixFrameDisplay/stateModel'
 import { TabularEditorPane } from './TabularEditor'
-
-import { getSession } from '@jbrowse/core/util'
-import { ApolloSessionModel } from './session'
+import { type ApolloSessionModel } from './session'
 
 const accordionControlHeight = 12
 
@@ -63,7 +60,7 @@ const useStyles = makeStyles()((theme) => ({
 }))
 
 function scrollSelectedFeatureIntoView(
-  model: LinearApolloDisplayI,
+  model: LinearApolloDisplayI | LinearApolloSixFrameDisplayI,
   scrollContainerRef: React.RefObject<HTMLDivElement>,
 ) {
   const { apolloRowHeight, selectedFeature } = model
@@ -157,7 +154,7 @@ const AccordionControl = observer(function AccordionControl({
   )
 })
 
-export const DisplayComponent = observer(function DisplayComponent({
+export const LinearApolloDisplayComponent = observer(function DisplayComponent({
   model,
   ...other
 }: {
@@ -248,40 +245,96 @@ export const DisplayComponent = observer(function DisplayComponent({
   )
 })
 
-export function makeSixFrameDisplayComponent(pluginManager: PluginManager) {
-  const LGVPlugin = pluginManager.getPlugin('LinearGenomeViewPlugin') as
-    | LinearGenomeViewPlugin
-    | undefined
-  if (!LGVPlugin) {
-    throw new Error('LinearGenomeView plugin not found')
-  }
-  const { BaseLinearDisplayComponent } = LGVPlugin.exports
-  function ApolloDisplayComponent({
+export const LinearApolloSixFrameDisplayComponent = observer(
+  function DisplayComponent({
     model,
     ...other
   }: {
-    model: SixFrameFeatureDisplay
+    model: LinearApolloSixFrameDisplayI
   }) {
+    const session = getSession(model) as unknown as ApolloSessionModel
+    const { ontologyManager } = session.apolloDataStore
+    const { featureTypeOntology } = ontologyManager
+    const ontologyStore = featureTypeOntology?.dataStore
+
     const { classes } = useStyles()
-    const { height, selectedFeature } = model
-    let { detailsHeight } = model
-    if (!selectedFeature) {
-      detailsHeight = 0
+
+    const {
+      detailsHeight,
+      graphical,
+      height: overallHeight,
+      isShown,
+      selectedFeature,
+      table,
+      tabularEditor,
+      toggleShown,
+    } = model
+
+    const canvasScrollContainerRef = useRef<HTMLDivElement>(null)
+    useEffect(() => {
+      scrollSelectedFeatureIntoView(model, canvasScrollContainerRef)
+    }, [model, selectedFeature])
+
+    const onDetailsResize = (delta: number) => {
+      model.setDetailsHeight(detailsHeight - delta)
     }
-    const featureAreaHeight = height - detailsHeight
+
+    if (!ontologyStore) {
+      return (
+        <div className={classes.alertContainer}>
+          <Alert severity="error">Could not load feature type ontology.</Alert>
+        </div>
+      )
+    }
+
+    if (graphical && table) {
+      const tabularHeight = tabularEditor.isShown ? detailsHeight : 0
+      const featureAreaHeight = isShown
+        ? overallHeight - detailsHeight - accordionControlHeight * 2
+        : 0
+      return (
+        <div style={{ height: overallHeight }}>
+          <AccordionControl
+            open={isShown}
+            title="Graphical"
+            onClick={toggleShown}
+          />
+          <div
+            className={classes.shading}
+            ref={canvasScrollContainerRef}
+            style={{ height: featureAreaHeight }}
+          >
+            <LinearApolloSixFrameDisplay model={model} {...other} />
+          </div>
+          <AccordionControl
+            title="Table"
+            open={tabularEditor.isShown}
+            onClick={tabularEditor.togglePane}
+            onResize={onDetailsResize}
+          />
+          <div className={classes.details} style={{ height: tabularHeight }}>
+            <TabularEditorPane model={model} />
+          </div>
+        </div>
+      )
+    }
+
+    if (graphical) {
+      return (
+        <div
+          className={classes.shading}
+          ref={canvasScrollContainerRef}
+          style={{ height: overallHeight }}
+        >
+          <LinearApolloSixFrameDisplay model={model} {...other} />
+        </div>
+      )
+    }
+
     return (
-      <div style={{ height: model.height }}>
-        <div className={classes.shading} style={{ height: featureAreaHeight }}>
-          <BaseLinearDisplayComponent model={model} {...other} />
-        </div>
-        {/* <div className={classes.details} style={{ height: detailsHeight }}>
-          <ApolloDetails model={model} />
-        </div> */}
-        <div className="testTrackLines">
-          <TrackLines model={model} />
-        </div>
+      <div className={classes.details} style={{ height: overallHeight }}>
+        <TabularEditorPane model={model} />
       </div>
     )
-  }
-  return observer(ApolloDisplayComponent)
-}
+  },
+)

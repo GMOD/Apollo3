@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/require-await */
 
 import {
-  ChangeOptions,
-  ClientDataStore,
+  type ChangeOptions,
+  type ClientDataStore,
   FeatureChange,
-  LocalGFF3DataStore,
-  SerializedFeatureChange,
-  ServerDataStore,
+  type LocalGFF3DataStore,
+  type SerializedFeatureChange,
+  type ServerDataStore,
 } from '@apollo-annotation/common'
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { SplitExonChange } from './SplitExonChange'
+import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+
 import { findAndDeleteChildFeature } from './DeleteFeatureChange'
+import { SplitExonChange } from './SplitExonChange'
 
 interface SerializedUndoSplitExonChangeBase extends SerializedFeatureChange {
   typeName: 'UndoSplitExonChange'
