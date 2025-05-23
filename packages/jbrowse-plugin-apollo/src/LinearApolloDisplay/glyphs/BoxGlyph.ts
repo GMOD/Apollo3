@@ -344,55 +344,7 @@ function getContextMenuItems(
         )
       },
     },
-    {
-      label: 'Edit feature details',
-      onClick: () => {
-        const apolloFeatureWidget = (
-          session as unknown as SessionWithWidgets
-        ).addWidget(
-          'ApolloFeatureDetailsWidget',
-          'apolloFeatureDetailsWidget',
-          {
-            feature: sourceFeature,
-            assembly: currentAssemblyId,
-            refName: region.refName,
-          },
-        )
-        ;(session as unknown as SessionWithWidgets).showWidget(
-          apolloFeatureWidget,
-        )
-      },
-    },
   )
-  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
-  if (
-    (featureTypeOntology.isTypeOf(sourceFeature.type, 'transcript') ||
-      featureTypeOntology.isTypeOf(
-        sourceFeature.type,
-        'pseudogenic_transcript',
-      )) &&
-    isSessionModelWithWidgets(session)
-  ) {
-    menuItems.push({
-      label: 'Edit transcript details',
-      onClick: () => {
-        const apolloTranscriptWidget = session.addWidget(
-          'ApolloTranscriptDetails',
-          'apolloTranscriptDetails',
-          {
-            feature: sourceFeature,
-            assembly: currentAssemblyId,
-            changeManager,
-            refName: region.refName,
-          },
-        )
-        session.showWidget(apolloTranscriptWidget)
-      },
-    })
-  }
   return menuItems
 }
 
