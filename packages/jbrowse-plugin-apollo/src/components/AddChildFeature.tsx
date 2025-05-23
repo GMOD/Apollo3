@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AnnotationFeature } from '@apollo-annotation/mst'
+import {
+  AnnotationFeature,
+  AnnotationFeatureSnapshot,
+} from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
@@ -20,6 +23,7 @@ import { fetchValidDescendantTerms } from '../OntologyManager/util'
 import { ApolloSessionModel } from '../session'
 import { Dialog } from './Dialog'
 import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
+import { ConnectingAirportsOutlined } from '@mui/icons-material'
 
 interface AddChildFeatureProps {
   session: ApolloSessionModel
@@ -62,6 +66,14 @@ export function AddChildFeature({
     return terms
   }
 
+  function printableFeatureName(feature: AnnotationFeature): string {
+    console.log(JSON.stringify(feature))
+    // if (feature?.attributes && feature.attributes.ID) {
+    //   return `ID=${feature.attributes.ID}`
+    // }
+    return feature._id
+  }
+
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
@@ -98,6 +110,10 @@ export function AddChildFeature({
     >
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
+          <DialogContentText>
+            You are adding a child to {printableFeatureName(sourceFeature)} (
+            {sourceFeature.type})
+          </DialogContentText>
           <TextField
             margin="dense"
             id="start"
