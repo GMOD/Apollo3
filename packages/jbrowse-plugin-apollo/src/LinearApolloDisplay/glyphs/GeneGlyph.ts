@@ -657,7 +657,35 @@ function onMouseUp(
   }
   const { feature } = featureAndGlyphUnderMouse
   stateModel.setSelectedFeature(feature)
-  stateModel.showFeatureDetailsWidget(feature)
+  const { session } = stateModel
+  const { apolloDataStore } = session
+  const { featureTypeOntology } = apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+
+  let containsCDSOrExon = false
+  for (const [, child] of feature.children ?? []) {
+    if (
+      featureTypeOntology.isTypeOf(child.type, 'CDS') ||
+      featureTypeOntology.isTypeOf(child.type, 'exon')
+    ) {
+      containsCDSOrExon = true
+      break
+    }
+  }
+  if (
+    (featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
+      featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')) &&
+    containsCDSOrExon
+  ) {
+    stateModel.showFeatureDetailsWidget(feature, [
+      'ApolloTranscriptDetails',
+      'apolloTranscriptDetails',
+    ])
+  } else {
+    stateModel.showFeatureDetailsWidget(feature)
+  }
 }
 
 function getDraggableFeatureInfo(
