@@ -261,19 +261,27 @@ export const ChangeHistory = observer(function ChangeHistory(props: {
       if (ch.changes && ch.changes.length > 0) {
         for (const c of ch.changes) {
           for (const f of features) {
-            const [id] = c.changedIds
-            if (id === f._id) {
-              const changeData = {
-                id: String(ch._id) + String(c.featureId),
-                type: f.type,
-                nameOrId: getFeatureName(f) || getFeatureId(f) || '',
-                status: ch.processed ? 'Processed' : 'Not processed',
-                changeType: ch.typeName,
-                change: getChangeInfo(c),
-                user: ch.user,
-                createdAt: ch.createdAt,
+            try {
+              const id =
+                c.changedIds && c.changedIds.length > 0
+                  ? c.changedIds[0]
+                  : c.featureId
+              if (id === f._id) {
+                const changeData = {
+                  id: String(ch._id) + String(id),
+                  type: f.type,
+                  nameOrId: getFeatureName(f) || getFeatureId(f) || '',
+                  status: ch.processed ? 'Processed' : 'Not processed',
+                  changeType: ch.typeName,
+                  change: getChangeInfo(c),
+                  user: ch.user,
+                  createdAt: ch.createdAt,
+                }
+                changeHistory.push(changeData)
               }
-              changeHistory.push(changeData)
+            } catch {
+              // pass
+              console.error('Error in change history data', c)
             }
           }
         }
