@@ -91,7 +91,7 @@ export function mouseEventsModelIntermediateFactory(
           return mousePosition
         }
         let foundFeature
-        if ([4, 5].includes(row)) {
+        if (self.geneTrackRowNums.includes(row)) {
           foundFeature = layoutRow.find(
             (f) =>
               f.feature.type == 'exon' &&

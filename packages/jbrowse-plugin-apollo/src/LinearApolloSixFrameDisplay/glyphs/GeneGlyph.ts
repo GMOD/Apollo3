@@ -9,6 +9,7 @@ import {
   getFrame,
   intersection2,
   isSessionModelWithWidgets,
+  measureText,
 } from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
 import equal from 'fast-deep-equal/es6'
@@ -85,6 +86,37 @@ function deepSetHas<T>(set: Set<T>, item: T): boolean {
   return false
 }
 
+interface Label {
+  x: number
+  y: number
+  h: number
+  text: string | undefined
+  color: string
+  isSelected: boolean
+}
+
+function drawTextLabels(
+  ctx: CanvasRenderingContext2D,
+  labelArray: Label[],
+  font = '10px sans-serif',
+) {
+  for (let i = labelArray.length - 1; i >= 0; --i) {
+    const label = labelArray[i]
+    ctx.fillStyle = label.color
+    const labelRowX = Math.max(label.x + 1, 0)
+    const labelRowY = label.y + label.h
+    const textWidth = measureText(label.text, 10)
+    if (label.isSelected) {
+      ctx.clearRect(labelRowX - 5, labelRowY, textWidth + 10, label.h)
+      ctx.font = 'bold '.concat(font)
+    }
+    if (label.text) {
+      ctx.fillText(label.text, labelRowX, labelRowY + 11, textWidth)
+      ctx.font = font
+    }
+  }
+}
+
 function draw(
   ctx: CanvasRenderingContext2D,
   topLevelFeature: AnnotationFeature,
@@ -99,14 +131,18 @@ function draw(
     theme,
     highestRow,
     filteredTranscripts,
+    showFeatureLabels,
   } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const { refName, reversed } = displayedRegion
   const rowHeight = apolloRowHeight
-  const exonHeight = Math.round(0.6 * rowHeight)
-  const cdsHeight = Math.round(0.7 * rowHeight)
-  const { children, min, strand, _id } = topLevelFeature
+  const exonHeight = rowHeight
+  const cdsHeight = rowHeight
+  const topLevelFeatureHeight = rowHeight
+  const featureLabelSpacer = showFeatureLabels ? 2 : 1
+  const textColor = theme?.palette.text.primary ?? 'black'
+  const { attributes, children, min, strand } = topLevelFeature
   if (!children) {
     return
   }
@@ -116,6 +152,7 @@ function draw(
   if (!featureTypeOntology) {
     throw new Error('featureTypeOntology is undefined')
   }
+  const labelArray: Label[] = []
 
   // Draw background for gene
   const topLevelFeatureMinX =
@@ -128,10 +165,8 @@ function draw(
   const topLevelFeatureStartPx = reversed
     ? topLevelFeatureMinX - topLevelFeatureWidthPx
     : topLevelFeatureMinX
-  const topLevelRow = strand == 1 ? 3 : 4
+  const topLevelRow = (strand == 1 ? 3 : 4) * featureLabelSpacer
   const topLevelFeatureTop = topLevelRow * rowHeight
-  const topLevelFeatureHeight = Math.round(0.7 * rowHeight)
-
   ctx.fillStyle = theme?.palette.text.primary ?? 'black'
   ctx.fillRect(
     topLevelFeatureStartPx,
@@ -140,16 +175,30 @@ function draw(
     topLevelFeatureHeight,
   )
 
-  ctx.fillStyle =
-    apolloSelectedFeature && _id === apolloSelectedFeature._id
-      ? alpha('rgb(0,0,0)', 0.7)
-      : alpha(theme?.palette.background.paper ?? '#ffffff', 0.7)
+  ctx.fillStyle = isSelectedFeature(topLevelFeature, apolloSelectedFeature)
+    ? alpha('rgb(0,0,0)', 0.7)
+    : alpha(theme?.palette.background.paper ?? '#ffffff', 0.7)
   ctx.fillRect(
     topLevelFeatureStartPx + 1,
     topLevelFeatureTop + 1,
     topLevelFeatureWidthPx - 2,
     topLevelFeatureHeight - 2,
   )
+
+  const isSelected = isSelectedFeature(topLevelFeature, apolloSelectedFeature)
+  const label: Label = {
+    x: topLevelFeatureStartPx,
+    y: topLevelFeatureTop,
+    h: topLevelFeatureHeight,
+    text: attributes.get('gff_id')?.toString(),
+    color: textColor,
+    isSelected,
+  }
+  if (isSelected) {
+    labelArray.unshift(label)
+  } else {
+    labelArray.push(label)
+  }
 
   const forwardFill =
     theme?.palette.mode === 'dark' ? forwardFillDark : forwardFillLight
@@ -193,7 +242,7 @@ function draw(
     ) {
       continue
     }
-    const { children: childrenOfmRNA, cdsLocations, _id } = child
+    const { children: childrenOfmRNA, cdsLocations } = child
     if (!childrenOfmRNA) {
       continue
     }
@@ -218,14 +267,12 @@ function draw(
 
       const exonTop =
         topLevelFeatureTop + (topLevelFeatureHeight - exonHeight) / 2
+      const isSelected = isSelectedFeature(exon, apolloSelectedFeature)
       ctx.fillStyle = theme?.palette.text.primary ?? 'black'
       ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
       if (widthPx > 2) {
         ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
-        ctx.fillStyle =
-          apolloSelectedFeature && exon._id === apolloSelectedFeature._id
-            ? 'rgb(0,0,0)'
-            : alpha('#f5f500', 0.6)
+        ctx.fillStyle = isSelected ? 'rgb(0,0,0)' : alpha('#f5f500', 0.6)
         ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
         if (topFill && bottomFill) {
           ctx.fillStyle = topFill
@@ -243,9 +290,26 @@ function draw(
             (exonHeight - 2) / 2,
           )
         }
+
+        const label: Label = {
+          x: startPx,
+          y: exonTop,
+          h: exonHeight,
+          text: exon.attributes.get('gff_id')?.toString(),
+          color: textColor,
+          isSelected,
+        }
+        if (isSelected) {
+          labelArray.unshift(label)
+        } else {
+          labelArray.push(label)
+        }
       }
     }
 
+    const isSelected = isSelectedFeature(child, apolloSelectedFeature?.parent)
+    let cdsStartPx = 0
+    let cdsTop = 0
     for (const cdsRow of cdsLocations) {
       let prevCDSTop = 0
       let prevCDSEndPx = 0
@@ -253,8 +317,8 @@ function draw(
       for (const cds of cdsRow.sort((a, b) => a.max - b.max)) {
         if (
           (apolloSelectedFeature &&
-            featureTypeOntology.isTypeOf(apolloSelectedFeature.type, 'CDS') &&
-            _id === apolloSelectedFeature.parent?._id) ||
+            isSelected &&
+            featureTypeOntology.isTypeOf(apolloSelectedFeature.type, 'CDS')) ||
           !deepSetHas(renderedCDS, cds)
         ) {
           const cdsWidthPx = (cds.max - cds.min) / bpPerPx
@@ -264,12 +328,12 @@ function draw(
               coord: cds.min,
               regionNumber: displayedRegionIndex,
             })?.offsetPx ?? 0) - offsetPx
-          const cdsStartPx = reversed ? minX - cdsWidthPx : minX
+          cdsStartPx = reversed ? minX - cdsWidthPx : minX
           ctx.fillStyle = theme?.palette.text.primary ?? 'black'
           const frame = getFrame(cds.min, cds.max, child.strand ?? 1, cds.phase)
-          const frameAdjust = frame < 0 ? -1 * frame + 5 : frame
-          const cdsTop =
-            (frameAdjust - 1) * rowHeight + (rowHeight - cdsHeight) / 2
+          const frameAdjust =
+            (frame < 0 ? -1 * frame + 5 : frame) * featureLabelSpacer
+          cdsTop = (frameAdjust - featureLabelSpacer) * rowHeight
           ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
           if (cdsWidthPx > 2) {
             ctx.clearRect(
@@ -284,8 +348,8 @@ function draw(
             ctx.fillStyle = cdsColorCode
             ctx.fillStyle =
               apolloSelectedFeature &&
-              featureTypeOntology.isTypeOf(apolloSelectedFeature.type, 'CDS') &&
-              _id === apolloSelectedFeature.parent?._id
+              isSelected &&
+              featureTypeOntology.isTypeOf(apolloSelectedFeature.type, 'CDS')
                 ? 'rgb(0,0,0)'
                 : cdsColorCode
             ctx.fillRect(
@@ -301,7 +365,9 @@ function draw(
               const midPoint: [number, number] = [
                 (cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx,
                 Math.max(
-                  frame < 0 ? rowHeight * highestRow + 1 : 1, // Avoid render ceiling
+                  frame < 0
+                    ? rowHeight * featureLabelSpacer * highestRow + 1
+                    : 1, // Avoid render ceiling
                   Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
                 ),
               ]
@@ -339,6 +405,22 @@ function draw(
         }
       }
     }
+    const label: Label = {
+      x: cdsStartPx,
+      y: cdsTop,
+      h: cdsHeight,
+      text: child.attributes.get('gff_id')?.toString(),
+      color: textColor,
+      isSelected,
+    }
+    if (isSelected) {
+      labelArray.unshift(label)
+    } else {
+      labelArray.push(label)
+    }
+  }
+  if (showFeatureLabels) {
+    drawTextLabels(ctx, labelArray)
   }
 }
 
@@ -382,6 +464,7 @@ function drawHover(
     lgv,
     highestRow,
     session,
+    showFeatureLabels,
   } = stateModel
   if (!apolloHover) {
     return
@@ -410,7 +493,8 @@ function drawHover(
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
   const rowHeight = apolloRowHeight
-  const cdsHeight = Math.round(0.7 * rowHeight)
+  const cdsHeight = rowHeight
+  const featureLabelSpacer = showFeatureLabels ? 2 : 1
   const { cdsLocations, strand } = feature
   for (const cdsRow of cdsLocations) {
     let prevCDSTop = 0
@@ -427,9 +511,9 @@ function drawHover(
           })?.offsetPx ?? 0) - offsetPx
         const cdsStartPx = reversed ? minX - cdsWidthPx : minX
         const frame = getFrame(cds.min, cds.max, strand ?? 1, cds.phase)
-        const frameAdjust = frame < 0 ? -1 * frame + 5 : frame
-        const cdsTop =
-          (frameAdjust - 1) * rowHeight + (rowHeight - cdsHeight) / 2
+        const frameAdjust =
+          (frame < 0 ? -1 * frame + 5 : frame) * featureLabelSpacer
+        const cdsTop = (frameAdjust - featureLabelSpacer) * rowHeight
         ctx.fillStyle = 'rgba(255,0,0,0.6)'
         ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
 
@@ -438,7 +522,7 @@ function drawHover(
           const midPoint: [number, number] = [
             (cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx,
             Math.max(
-              frame < 0 ? rowHeight * highestRow + 1 : 1, // Avoid render ceiling
+              frame < 0 ? rowHeight * featureLabelSpacer * highestRow + 1 : 1, // Avoid render ceiling
               Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
             ),
           ]
@@ -536,6 +620,13 @@ function onMouseUp(
   } else if (featureAndGlyphUnderMouse?.feature) {
     stateModel.setSelectedFeature(featureAndGlyphUnderMouse.feature)
   }
+}
+
+export function isSelectedFeature(
+  feature: AnnotationFeature,
+  selectedFeature: AnnotationFeature | undefined,
+) {
+  return Boolean(selectedFeature && feature._id === selectedFeature._id)
 }
 
 function getDraggableFeatureInfo(
