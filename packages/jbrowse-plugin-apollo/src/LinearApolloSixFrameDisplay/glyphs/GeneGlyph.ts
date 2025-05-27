@@ -5,10 +5,8 @@ import {
 import { type MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
-  type SessionWithWidgets,
   getFrame,
   intersection2,
-  isSessionModelWithWidgets,
   measureText,
 } from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
@@ -586,23 +584,36 @@ function onMouseUp(
   const { session } = stateModel
   const { apolloDataStore } = session
   const { featureTypeOntology } = apolloDataStore.ontologyManager
-  if (featureAndGlyphUnderMouse?.cds) {
-    const { cds, feature } = featureAndGlyphUnderMouse
-    if (!featureTypeOntology) {
-      throw new Error('featureTypeOntology is undefined')
+  if (!featureAndGlyphUnderMouse) {
+    return
+  }
+  const { feature } = featureAndGlyphUnderMouse
+  stateModel.setSelectedFeature(feature)
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+
+  let containsCDSOrExon = false
+  for (const [, child] of feature.children ?? []) {
+    if (
+      featureTypeOntology.isTypeOf(child.type, 'CDS') ||
+      featureTypeOntology.isTypeOf(child.type, 'exon')
+    ) {
+      containsCDSOrExon = true
+      break
     }
-    if (!feature.children) {
-      return
-    }
-    for (const child of feature.children.values()) {
-      const childIsCDS = featureTypeOntology.isTypeOf(child.type, 'CDS')
-      if (childIsCDS && cds.max <= child.max && cds.min >= child.min) {
-        stateModel.setSelectedFeature(child)
-        break
-      }
-    }
-  } else if (featureAndGlyphUnderMouse?.feature) {
-    stateModel.setSelectedFeature(featureAndGlyphUnderMouse.feature)
+  }
+  if (
+    (featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
+      featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')) &&
+    containsCDSOrExon
+  ) {
+    stateModel.showFeatureDetailsWidget(feature, [
+      'ApolloTranscriptDetails',
+      'apolloTranscriptDetails',
+    ])
+  } else {
+    stateModel.showFeatureDetailsWidget(feature)
   }
 }
 
@@ -859,51 +870,7 @@ function getContextMenuItems(
         )
       },
     },
-    {
-      label: 'Edit feature details',
-      onClick: () => {
-        const apolloFeatureWidget = (
-          session as unknown as SessionWithWidgets
-        ).addWidget(
-          'ApolloFeatureDetailsWidget',
-          'apolloFeatureDetailsWidget',
-          {
-            feature: sourceFeature,
-            assembly: currentAssemblyId,
-            refName: region.refName,
-          },
-        )
-        ;(session as unknown as SessionWithWidgets).showWidget(
-          apolloFeatureWidget,
-        )
-      },
-    },
   )
-  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
-  if (
-    featureTypeOntology.isTypeOf(sourceFeature.type, 'transcript') &&
-    isSessionModelWithWidgets(session)
-  ) {
-    menuItems.push({
-      label: 'Edit transcript details',
-      onClick: () => {
-        const apolloTranscriptWidget = session.addWidget(
-          'ApolloTranscriptDetails',
-          'apolloTranscriptDetails',
-          {
-            feature: sourceFeature,
-            assembly: currentAssemblyId,
-            changeManager,
-            refName: region.refName,
-          },
-        )
-        session.showWidget(apolloTranscriptWidget)
-      },
-    })
-  }
   return menuItems
 }
 
