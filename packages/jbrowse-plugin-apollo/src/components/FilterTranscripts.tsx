@@ -1,5 +1,4 @@
-import React, { useState } from 'react'
-import { Dialog } from './Dialog'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
 import {
   Checkbox,
   DialogContent,
@@ -9,7 +8,9 @@ import {
   Grid2,
 } from '@mui/material'
 import { observer } from 'mobx-react'
-import { AnnotationFeature } from '@apollo-annotation/mst'
+import React, { useState } from 'react'
+
+import { Dialog } from './Dialog'
 
 interface FilterTranscriptsProps {
   onUpdate: (forms: string[]) => void
