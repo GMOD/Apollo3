@@ -150,7 +150,6 @@ export const TranscriptWidgetEditLocation = observer(
       newLocation: number,
       feature: AnnotationFeature,
       isMin: boolean,
-      onComplete?: () => void,
     ) {
       if (!feature.children) {
         throw new Error('Transcript should have child features')
@@ -287,16 +286,9 @@ export const TranscriptWidgetEditLocation = observer(
           appendStartLocationChange(cdsFeature, startChange, newLocation)
         }
 
-        void changeManager
-          .submit(startChange)
-          .then(() => {
-            if (onComplete) {
-              onComplete()
-            }
-          })
-          .catch(() => {
-            notify('Error updating feature CDS start position', 'error')
-          })
+        void changeManager.submit(startChange).catch(() => {
+          notify('Error updating feature CDS start position', 'error')
+        })
       }
 
       if (!isMin && newLocation !== cdsFeature.max) {
@@ -342,16 +334,9 @@ export const TranscriptWidgetEditLocation = observer(
           appendEndLocationChange(cdsFeature, endChange, newLocation)
         }
 
-        void changeManager
-          .submit(endChange)
-          .then(() => {
-            if (onComplete) {
-              onComplete()
-            }
-          })
-          .catch(() => {
-            notify('Error updating feature CDS end position', 'error')
-          })
+        void changeManager.submit(endChange).catch(() => {
+          notify('Error updating feature CDS end position', 'error')
+        })
       }
     }
 
@@ -360,6 +345,7 @@ export const TranscriptWidgetEditLocation = observer(
       newLocation: number,
       feature: AnnotationFeature,
       isMin: boolean,
+      onComplete?: () => void,
     ) => {
       if (!feature.children) {
         throw new Error('Transcript should have child features')
@@ -397,9 +383,16 @@ export const TranscriptWidgetEditLocation = observer(
             assembly,
           })
 
-      void changeManager.submit(change).catch(() => {
-        notify('Error updating feature CDS position', 'error')
-      })
+      void changeManager
+        .submit(change)
+        .then(() => {
+          if (onComplete) {
+            onComplete()
+          }
+        })
+        .catch(() => {
+          notify('Error updating feature CDS position', 'error')
+        })
     }
 
     function handleExonLocationChange(
@@ -1028,7 +1021,7 @@ export const TranscriptWidgetEditLocation = observer(
         let promise
         if (startCodonGenomicLoc !== cdsMin) {
           promise = new Promise((resolve) => {
-            handleCDSLocationChange(
+            updateCDSLocation(
               cdsMin,
               startCodonGenomicLoc,
               feature,
@@ -1043,15 +1036,10 @@ export const TranscriptWidgetEditLocation = observer(
         if (stopCodonGenomicLoc !== cdsMax) {
           if (promise) {
             void promise.then(() => {
-              handleCDSLocationChange(
-                cdsMax,
-                stopCodonGenomicLoc,
-                feature,
-                false,
-              )
+              updateCDSLocation(cdsMax, stopCodonGenomicLoc, feature, false)
             })
           } else {
-            handleCDSLocationChange(cdsMax, stopCodonGenomicLoc, feature, false)
+            updateCDSLocation(cdsMax, stopCodonGenomicLoc, feature, false)
           }
         }
       }
@@ -1060,7 +1048,7 @@ export const TranscriptWidgetEditLocation = observer(
         let promise
         if (startCodonGenomicLoc !== cdsMax) {
           promise = new Promise((resolve) => {
-            handleCDSLocationChange(
+            updateCDSLocation(
               cdsMax,
               startCodonGenomicLoc,
               feature,
@@ -1075,15 +1063,10 @@ export const TranscriptWidgetEditLocation = observer(
         if (stopCodonGenomicLoc !== cdsMin) {
           if (promise) {
             void promise.then(() => {
-              handleCDSLocationChange(
-                cdsMin,
-                stopCodonGenomicLoc,
-                feature,
-                true,
-              )
+              updateCDSLocation(cdsMin, stopCodonGenomicLoc, feature, true)
             })
           } else {
-            handleCDSLocationChange(cdsMin, stopCodonGenomicLoc, feature, true)
+            updateCDSLocation(cdsMin, stopCodonGenomicLoc, feature, true)
           }
         }
       }
