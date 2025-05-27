@@ -1,8 +1,9 @@
+import Link from '@docusaurus/Link'
+import DocusaurusImageUrl from '@site/static/img/demo_screenshot.png'
 import React from 'react'
+
 import styles from './styles.module.css'
 // @ts-expect-error Need to figure out proper way to declare this
-import DocusaurusImageUrl from '@site/static/img/demo_screenshot.png'
-import Link from '@docusaurus/Link'
 
 export default function HomepageFeatures(): React.JSX.Element {
   return (

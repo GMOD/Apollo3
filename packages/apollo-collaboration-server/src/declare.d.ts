@@ -14,6 +14,7 @@ interface MongooseIdValidatorOptions {
    *
    * Defaults to built-in mongoose connection if not specified.
    */
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   connection?: import('mongoose').Connection | undefined
 
   /* Optional, applies to validation of arrays of ID references only. Set
@@ -28,8 +29,9 @@ interface MongooseIdValidatorOptions {
 }
 
 declare module 'mongoose-id-validator' {
+  import { type Schema } from 'mongoose'
   export default function mongooseIdValidator(
-    schema: import('mongoose').Schema,
+    schema: Schema,
     options?: MongooseIdValidatorOptions,
   ): void
 }
@@ -39,8 +41,8 @@ declare module 'mongoose-id-validator' {
 // https://github.com/DefinitelyTyped/DefinitelyTyped/blob/34aaceacc735148d775a4c09db89afeb1cff6536/types/connect-mongodb-session/index.d.ts
 
 declare module 'connect-mongodb-session' {
-  import { SessionData, Store } from 'express-session'
-  import { MongoClient, MongoClientOptions } from 'mongodb'
+  import { type SessionData, Store } from 'express-session'
+  import { type MongoClient, type MongoClientOptions } from 'mongodb'
 
   declare function connectMongoDBSession(
     fn: typeof session,

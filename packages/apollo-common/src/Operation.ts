@@ -1,22 +1,22 @@
 /* eslint-disable @typescript-eslint/no-confusing-void-expression */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import type { ReadStream } from 'node:fs'
-import type { FileHandle } from 'node:fs/promises'
+import { type ReadStream } from 'node:fs'
+import { type FileHandle } from 'node:fs/promises'
 
 import {
-  AssemblyDocument,
-  FeatureDocument,
-  FileDocument,
-  RefSeqChunkDocument,
-  RefSeqDocument,
-  JBrowseConfigDocument,
-  UserDocument,
-  CheckDocument,
+  type AssemblyDocument,
+  type CheckDocument,
+  type FeatureDocument,
+  type FileDocument,
+  type JBrowseConfigDocument,
+  type RefSeqChunkDocument,
+  type RefSeqDocument,
+  type UserDocument,
 } from '@apollo-annotation/schemas'
-import type { LoggerService } from '@nestjs/common'
-import type { ClientSession, Model } from 'mongoose'
-import { GenericFilehandle } from 'generic-filehandle'
+import { type LoggerService } from '@nestjs/common'
+import { type GenericFilehandle } from 'generic-filehandle'
+import { type ClientSession, type Model } from 'mongoose'
 
 export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'

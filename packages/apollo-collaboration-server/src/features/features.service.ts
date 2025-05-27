@@ -14,6 +14,7 @@ import { Model } from 'mongoose'
 import { ChecksService } from '../checks/checks.service'
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { OperationsService } from '../operations/operations.service'
+
 import { FeatureCountRequest } from './dto/feature.dto'
 
 @Injectable()

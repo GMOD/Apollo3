@@ -2,7 +2,7 @@ import * as fs from 'node:fs'
 
 import { type SerializedAddFeaturesFromFileChange } from '@apollo-annotation/shared'
 import { Args, Flags } from '@oclif/core'
-import { Agent, RequestInit, fetch } from 'undici'
+import { Agent, type RequestInit, fetch } from 'undici'
 
 import { FileCommand } from '../../fileCommand.js'
 import {

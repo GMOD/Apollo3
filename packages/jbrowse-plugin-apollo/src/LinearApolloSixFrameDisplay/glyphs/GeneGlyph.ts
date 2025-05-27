@@ -1,29 +1,32 @@
-import { AnnotationFeature, TranscriptPartCoding } from '@apollo-annotation/mst'
 import {
-  AbstractSessionModel,
+  type AnnotationFeature,
+  type TranscriptPartCoding,
+} from '@apollo-annotation/mst'
+import { type MenuItem } from '@jbrowse/core/ui'
+import {
+  type AbstractSessionModel,
+  type SessionWithWidgets,
   getFrame,
   intersection2,
   isSessionModelWithWidgets,
-  SessionWithWidgets,
 } from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
-import { MenuItem } from '@jbrowse/core/ui'
 import equal from 'fast-deep-equal/es6'
+import { getSnapshot } from 'mobx-state-tree'
 
 import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
-
-import { LinearApolloSixFrameDisplay } from '../stateModel'
-import {
-  isMousePositionWithFeatureAndGlyph,
-  LinearApolloSixFrameDisplayMouseEvents,
-  MousePosition,
-  MousePositionWithFeatureAndGlyph,
-} from '../stateModel/mouseEvents'
-import { CanvasMouseEvent } from '../types'
-import { Glyph } from './Glyph'
-import { LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
 import { FilterTranscripts } from '../../components/FilterTranscripts'
-import { getSnapshot } from 'mobx-state-tree'
+import { type LinearApolloSixFrameDisplay } from '../stateModel'
+import {
+  type LinearApolloSixFrameDisplayMouseEvents,
+  type MousePosition,
+  type MousePositionWithFeatureAndGlyph,
+  isMousePositionWithFeatureAndGlyph,
+} from '../stateModel/mouseEvents'
+import { type LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
+import { type CanvasMouseEvent } from '../types'
+
+import { type Glyph } from './Glyph'
 
 let forwardFillLight: CanvasPattern | null = null
 let backwardFillLight: CanvasPattern | null = null
@@ -182,6 +185,14 @@ function draw(
   const renderedCDS = new Set<TranscriptPartCoding>()
   // Draw exon and CDS for each mRNA
   for (const [, child] of children) {
+    if (
+      !(
+        featureTypeOntology.isTypeOf(child.type, 'transcript') ||
+        featureTypeOntology.isTypeOf(child.type, 'pseudogenic_transcript')
+      )
+    ) {
+      continue
+    }
     const { children: childrenOfmRNA, cdsLocations, _id } = child
     if (!childrenOfmRNA) {
       continue

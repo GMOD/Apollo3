@@ -1,8 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/unbound-method */
-import React, { useEffect, useMemo, useState } from 'react'
 
+import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import { AddFeatureChange } from '@apollo-annotation/shared'
+import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import { type AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Box,
   Button,
@@ -14,17 +17,15 @@ import {
   FormControlLabel,
   MenuItem,
   Select,
-  SelectChangeEvent,
+  type SelectChangeEvent,
   Typography,
 } from '@mui/material'
+import { getSnapshot } from 'mobx-state-tree'
+import React, { useEffect, useMemo, useState } from 'react'
+
+import { type ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
-import { ApolloSessionModel } from '../session'
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { getSnapshot } from 'mobx-state-tree'
-import { AddFeatureChange } from '@apollo-annotation/shared'
-import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
-import { AbstractSessionModel } from '@jbrowse/core/util'
 
 interface CreateApolloAnnotationProps {
   session: AbstractSessionModel

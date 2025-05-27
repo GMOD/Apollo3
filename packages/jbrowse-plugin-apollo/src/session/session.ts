@@ -1,27 +1,31 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
+import { type ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
 import {
-  AnnotationFeature,
+  type AnnotationFeature,
   AnnotationFeatureModel,
 } from '@apollo-annotation/mst'
 import {
-  filterJBrowseConfig,
   ImportJBrowseConfigChange,
-  JBrowseConfig,
-  UserLocation,
+  type JBrowseConfig,
+  type UserLocation,
+  filterJBrowseConfig,
 } from '@apollo-annotation/shared'
-import { readConfObject, getConf } from '@jbrowse/core/configuration'
-import { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
-import PluginManager from '@jbrowse/core/PluginManager'
-import { AbstractSessionModel, SessionWithAddTracks } from '@jbrowse/core/util'
-import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import type PluginManager from '@jbrowse/core/PluginManager'
+import { type AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
+import { getConf, readConfObject } from '@jbrowse/core/configuration'
+import { type BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
+import {
+  type AbstractSessionModel,
+  type SessionWithAddTracks,
+} from '@jbrowse/core/util'
+import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import SaveIcon from '@mui/icons-material/Save'
 import { autorun, observable } from 'mobx'
 import {
-  Instance,
-  SnapshotOut,
+  type Instance,
+  type SnapshotOut,
   applySnapshot,
   flow,
   getRoot,
@@ -29,13 +33,13 @@ import {
   types,
 } from 'mobx-state-tree'
 
-import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloJobModel } from '../ApolloJobModel'
-import { ChangeManager } from '../ChangeManager'
-import { ApolloRootModel } from '../types'
+import { type ChangeManager } from '../ChangeManager'
+import { type ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
+
 import { clientDataStoreFactory } from './ClientDataStore'
-import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreType & { changeManager: ChangeManager }
@@ -119,16 +123,6 @@ export function extendSession(
                   : {}),
               },
             },
-            displays: [
-              {
-                type: 'LinearApolloDisplay',
-                displayId: `${trackId}-LinearApolloDisplay`,
-              },
-              {
-                type: 'SixFrameFeatureDisplay',
-                displayId: `${trackId}-SixFrameFeatureDisplay`,
-              },
-            ],
           })
         }
       },

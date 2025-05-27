@@ -1,10 +1,12 @@
 /* eslint-disable prefer-destructuring */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { describe, it } from 'node:test'
+
+import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { assert } from 'chai'
-import { readAnnotationFeatureSnapshot } from './gff3ToAnnotationFeature.test'
+
 import { annotationFeatureToGFF3 } from './annotationFeatureToGFF3'
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import { readAnnotationFeatureSnapshot } from './gff3ToAnnotationFeature.test'
 
 describe('annotationFeatureToGFF3', () => {
   it('Test mandatory columns', () => {

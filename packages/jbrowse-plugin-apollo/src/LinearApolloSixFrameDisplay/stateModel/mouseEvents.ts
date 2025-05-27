@@ -1,19 +1,23 @@
-import { AnnotationFeature, TranscriptPartCoding } from '@apollo-annotation/mst'
+import {
+  type AnnotationFeature,
+  type TranscriptPartCoding,
+} from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
 } from '@apollo-annotation/shared'
-import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
-import PluginManager from '@jbrowse/core/PluginManager'
-import { MenuItem } from '@jbrowse/core/ui'
-import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import type PluginManager from '@jbrowse/core/PluginManager'
+import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
+import { type MenuItem } from '@jbrowse/core/ui'
+import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { autorun } from 'mobx'
-import { Instance, addDisposer, cast } from 'mobx-state-tree'
-import type { CSSProperties } from 'react'
+import { type Instance, addDisposer, cast } from 'mobx-state-tree'
+import { type CSSProperties } from 'react'
 
-import { Coord } from '../components'
-import { Glyph } from '../glyphs/Glyph'
-import { CanvasMouseEvent } from '../types'
+import { type Coord } from '../components'
+import { type Glyph } from '../glyphs/Glyph'
+import { type CanvasMouseEvent } from '../types'
+
 import { renderingModelFactory } from './rendering'
 
 export interface FeatureAndGlyphUnderMouse {

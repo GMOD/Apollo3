@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/require-await */
-import { Change } from '@apollo-annotation/common'
+import { type Change } from '@apollo-annotation/common'
 
-import { TypeChange } from '../Changes'
-import soSequenceTypes from './soSequenceTypes'
+import { type TypeChange } from '../Changes'
+
 import { Validation } from './Validation'
+import soSequenceTypes from './soSequenceTypes'
 
 export function isTypeChange(thing: Change): thing is TypeChange {
   return 'oldType' in thing && 'newType' in thing
