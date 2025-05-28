@@ -1,8 +1,12 @@
-import { AbstractSessionModel, getSession } from '@jbrowse/core/util'
-import { observer } from 'mobx-react'
-import { getRoot } from 'mobx-state-tree'
-import React, { useEffect, useState } from 'react'
-import { makeStyles } from 'tss-react/mui'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
+import styled from '@emotion/styled'
+import {
+  type AbstractSessionModel,
+  getEnv,
+  getSession,
+} from '@jbrowse/core/util'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import InfoIcon from '@mui/icons-material/Info'
 import {
   Accordion,
   AccordionDetails,
@@ -10,20 +14,25 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
+import { observer } from 'mobx-react'
+import { getRoot } from 'mobx-state-tree'
+import React, { useEffect, useState } from 'react'
+import { makeStyles } from 'tss-react/mui'
 
-import styled from '@emotion/styled'
+import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { type ApolloSessionModel } from '../session'
+import { type ApolloRootModel } from '../types'
 
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import InfoIcon from '@mui/icons-material/Info'
-
-import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { ApolloSessionModel } from '../session'
-import { ApolloRootModel } from '../types'
 import { Attributes } from './Attributes'
 import { TranscriptSequence } from './TranscriptSequence'
-import { ApolloTranscriptDetailsWidget as ApolloTranscriptDetailsWidgetState } from './model'
-import { TranscriptWidgetSummary } from './TranscriptWidgetSummary'
 import { TranscriptWidgetEditLocation } from './TranscriptWidgetEditLocation'
+import { TranscriptWidgetSummary } from './TranscriptWidgetSummary'
+import { type ApolloTranscriptDetailsWidget as ApolloTranscriptDetailsWidgetState } from './model'
+
+interface CustomComponentProps {
+  session: AbstractSessionModel
+  feature: AnnotationFeature
+}
 
 const useStyles = makeStyles()((theme) => ({
   root: {
@@ -39,6 +48,10 @@ export const StyledAccordionSummary = styled(AccordionSummary)(() => ({
     maxHeight: 30,
   },
 }))
+
+function NoOpCustomComponent(_props: CustomComponentProps) {
+  return null
+}
 
 export const ApolloTranscriptDetailsWidget = observer(
   function ApolloTranscriptDetails(props: {
@@ -57,6 +70,7 @@ export const ApolloTranscriptDetailsWidget = observer(
     }, [feature])
 
     const session = getSession(model) as unknown as AbstractSessionModel
+    const { pluginManager } = getEnv(session)
     const apolloSession = getSession(model) as unknown as ApolloSessionModel
     const currentAssembly =
       apolloSession.apolloDataStore.assemblies.get(assembly)
@@ -92,6 +106,12 @@ export const ApolloTranscriptDetailsWidget = observer(
       }
     }
 
+    const CustomComponent = pluginManager.evaluateExtensionPoint(
+      'Apollo-TranscriptDetailsCustomComponent',
+      NoOpCustomComponent,
+      props,
+    ) as React.ElementType<CustomComponentProps>
+
     return (
       <div className={classes.root}>
         <Accordion
@@ -113,6 +133,7 @@ export const ApolloTranscriptDetailsWidget = observer(
             <TranscriptWidgetSummary feature={feature} refName={refName} />
           </AccordionDetails>
         </Accordion>
+        <CustomComponent session={session} feature={feature} />
         <Accordion
           style={{ marginTop: 5 }}
           expanded={panelState.includes('location')}

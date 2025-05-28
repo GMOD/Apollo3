@@ -1,6 +1,6 @@
 {
   "name": "@apollo-annotation/shared",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "main": "./dist/index.js",
   "scripts": {
     "build": "yarn clean && tsc --build",

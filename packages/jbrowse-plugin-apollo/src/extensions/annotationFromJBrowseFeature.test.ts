@@ -1,5 +1,6 @@
 import SimpleFeature from '@jbrowse/core/util/simpleFeature'
 import { describe, expect, it } from '@jest/globals'
+
 import { jbrowseFeatureToAnnotationFeature } from './annotationFromJBrowseFeature'
 
 describe('Convert JBrowse feature to annotation feature', () => {

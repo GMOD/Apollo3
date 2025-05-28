@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as fs from 'node:fs'
 import path from 'node:path'
+
+import {
+  type SerializedAddAssemblyFromExternalChange,
+  type SerializedAddAssemblyFromFileChange,
+} from '@apollo-annotation/shared'
 import { Args, Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
+import { type Response } from 'undici'
 
 import { FileCommand } from '../../fileCommand.js'
 import { queryApollo, submitAssembly } from '../../utils.js'
-import { Response } from 'undici'
-import {
-  SerializedAddAssemblyFromExternalChange,
-  SerializedAddAssemblyFromFileChange,
-} from '@apollo-annotation/shared'
 
 export default class AddFasta extends FileCommand {
   static summary = 'Add a new assembly from fasta input'

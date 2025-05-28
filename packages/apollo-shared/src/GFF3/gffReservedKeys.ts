@@ -59,3 +59,28 @@ export const internalToGFF: Record<GFFInternalAttribute, GFFReservedAttribute> =
     gff_ontology_term: 'Ontology_term',
     gff_is_circular: 'Is_circular',
   }
+
+export function isGFFInternalAttribute(
+  attribute: string,
+): attribute is GFFInternalAttribute {
+  return attribute in internalToGFF
+}
+
+export type GFFColumn = 'score' | 'source'
+export type GFFColumnInternal = 'gff_score' | 'gff_source'
+export const gffColumnToInternal: Record<GFFColumn, GFFColumnInternal> = {
+  score: 'gff_score',
+  source: 'gff_source',
+}
+export function isGFFColumn(attribute: string): attribute is GFFColumn {
+  return attribute in gffColumnToInternal
+}
+export const gffInternalToColumn: Record<GFFColumnInternal, GFFColumn> = {
+  gff_score: 'score',
+  gff_source: 'source',
+}
+export function isGFFColumnInternal(
+  column: string,
+): column is GFFColumnInternal {
+  return column in gffInternalToColumn
+}

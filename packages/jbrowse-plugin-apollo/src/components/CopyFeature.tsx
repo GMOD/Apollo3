@@ -4,12 +4,12 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
-  AnnotationFeature,
-  AnnotationFeatureSnapshot,
+  type AnnotationFeature,
+  type AnnotationFeatureSnapshot,
 } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
 import { readConfObject } from '@jbrowse/core/configuration'
-import { AbstractSessionModel } from '@jbrowse/core/util'
+import { type AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
   DialogActions,
@@ -17,16 +17,17 @@ import {
   DialogContentText,
   MenuItem,
   Select,
-  SelectChangeEvent,
+  type SelectChangeEvent,
   TextField,
 } from '@mui/material'
 import ObjectID from 'bson-objectid'
-import { IKeyValueMap } from 'mobx'
+import { type IKeyValueMap } from 'mobx'
 import { getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
-import { ChangeManager } from '../ChangeManager'
-import { ApolloSessionModel } from '../session'
+import { type ChangeManager } from '../ChangeManager'
+import { type ApolloSessionModel } from '../session'
+
 import { Dialog } from './Dialog'
 
 interface CopyFeatureProps {

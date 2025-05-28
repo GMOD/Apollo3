@@ -1,10 +1,10 @@
+import { type AnnotationFeature } from '@apollo-annotation/mst'
+import styled from '@emotion/styled'
+import { Table, TableBody, TableCell, TableRow } from '@mui/material'
+import { observer } from 'mobx-react'
 import React from 'react'
 
-import { AnnotationFeature } from '@apollo-annotation/mst'
-import { observer } from 'mobx-react'
 import { getFeatureId, getFeatureName, getStrand } from '../util'
-import { Table, TableBody, TableCell, TableRow } from '@mui/material'
-import styled from '@emotion/styled'
 
 const HeaderTableCell = styled(TableCell)(() => ({
   fontWeight: 'bold',

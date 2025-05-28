@@ -9,41 +9,52 @@ import {
   changes,
   validationRegistry,
 } from '@apollo-annotation/shared'
+import Plugin from '@jbrowse/core/Plugin'
+import type PluginManager from '@jbrowse/core/PluginManager'
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import {
   DisplayType,
   InternetAccountType,
-  PluggableElementType,
+  type PluggableElementType,
   TrackType,
-  ViewType,
+  type ViewType,
   WidgetType,
   createBaseTrackConfig,
   createBaseTrackModel,
 } from '@jbrowse/core/pluggableElementTypes'
-import Plugin from '@jbrowse/core/Plugin'
-import PluginManager from '@jbrowse/core/PluginManager'
 import {
-  AbstractSessionModel,
-  Region,
+  type AbstractSessionModel,
+  type Region,
   getSession,
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
-import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
+import { type LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
 
 import { version } from '../package.json'
+
 import {
   configSchema as apolloInternetAccountConfigSchema,
   modelFactory as apolloInternetAccountModelFactory,
 } from './ApolloInternetAccount'
+import { installApolloRefNameAliasAdapter } from './ApolloRefNameAliasAdapter'
 import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
-import {
-  ApolloSixFrameRenderer,
-  ReactComponent as ApolloSixFrameRendererReactComponent,
-  configSchema as apolloSixFrameRendererConfigSchema,
-} from './ApolloSixFrameRenderer'
 import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
-import { BackendDriver } from './BackendDrivers'
+import { type BackendDriver } from './BackendDrivers'
+import {
+  ApolloFeatureDetailsWidget,
+  ApolloFeatureDetailsWidgetModel,
+  ApolloTranscriptDetailsModel,
+  ApolloTranscriptDetailsWidget,
+} from './FeatureDetailsWidget'
+import {
+  configSchema as linearApolloDisplayConfigSchema,
+  stateModelFactory as LinearApolloDisplayStateModelFactory,
+} from './LinearApolloDisplay'
+import {
+  configSchema as linearApolloSixFrameDisplayConfigSchema,
+  stateModelFactory as LinearApolloSixFrameDisplayStateModelFactory,
+} from './LinearApolloSixFrameDisplay'
 import {
   AddFeature,
   DownloadGFF3,
@@ -55,29 +66,14 @@ import {
 } from './components'
 import ApolloPluginConfigurationSchema from './config'
 import {
-  annotationFromPileup,
   annotationFromJBrowseFeature,
+  annotationFromPileup,
 } from './extensions'
 import {
-  ApolloFeatureDetailsWidget,
-  ApolloFeatureDetailsWidgetModel,
-  ApolloTranscriptDetailsModel,
-  ApolloTranscriptDetailsWidget,
-} from './FeatureDetailsWidget'
-import {
-  stateModelFactory as LinearApolloDisplayStateModelFactory,
-  configSchema as linearApolloDisplayConfigSchema,
-} from './LinearApolloDisplay'
-import {
-  DisplayComponent,
-  makeSixFrameDisplayComponent,
+  LinearApolloDisplayComponent,
+  LinearApolloSixFrameDisplayComponent,
 } from './makeDisplayComponent'
-import { ApolloSessionModel, extendSession } from './session'
-import {
-  stateModelFactory as SixFrameFeatureDisplayStateModelFactory,
-  configSchemaFactory as sixFrameFeatureDisplayConfigSchemaFactory,
-} from './SixFrameFeatureDisplay'
-import { installApolloRefNameAliasAdapter } from './ApolloRefNameAliasAdapter'
+import { type ApolloSessionModel, extendSession } from './session'
 
 interface RpcHandle {
   on(event: string, listener: (event: MessageEvent) => void): this
@@ -186,37 +182,39 @@ export default class ApolloPlugin extends Plugin {
         ),
         trackType: 'ApolloTrack',
         viewType: 'LinearGenomeView',
-        ReactComponent: DisplayComponent,
+        ReactComponent: LinearApolloDisplayComponent,
       })
     })
 
     pluginManager.addDisplayType(() => {
-      const configSchema =
-        sixFrameFeatureDisplayConfigSchemaFactory(pluginManager)
-      const SixFrameDisplayComponent =
-        makeSixFrameDisplayComponent(pluginManager)
+      const configSchema = linearApolloSixFrameDisplayConfigSchema
       return new DisplayType({
-        name: 'SixFrameFeatureDisplay',
+        name: 'LinearApolloSixFrameDisplay',
         configSchema,
-        stateModel: SixFrameFeatureDisplayStateModelFactory(
+        stateModel: LinearApolloSixFrameDisplayStateModelFactory(
           pluginManager,
           configSchema,
         ),
         trackType: 'ApolloTrack',
         viewType: 'LinearGenomeView',
-        ReactComponent: SixFrameDisplayComponent,
+        ReactComponent: LinearApolloSixFrameDisplayComponent,
       })
     })
 
-    pluginManager.addRendererType(
-      () =>
-        new ApolloSixFrameRenderer({
-          name: 'ApolloSixFrameRenderer',
-          ReactComponent: ApolloSixFrameRendererReactComponent,
-          configSchema: apolloSixFrameRendererConfigSchema,
+    pluginManager.addDisplayType(() => {
+      const configSchema = linearApolloSixFrameDisplayConfigSchema
+      return new DisplayType({
+        name: 'LinearApolloSixFrameDisplay',
+        configSchema,
+        stateModel: LinearApolloSixFrameDisplayStateModelFactory(
           pluginManager,
-        }),
-    )
+          configSchema,
+        ),
+        trackType: 'ApolloTrack',
+        viewType: 'LinearGenomeView',
+        ReactComponent: LinearApolloSixFrameDisplayComponent,
+      })
+    })
 
     pluginManager.addToExtensionPoint(
       'Core-extendSession',

@@ -6,7 +6,7 @@ import {
   extractWords,
   getWords,
 } from './fulltext'
-import { OntologyDBNode } from './indexeddb-schema'
+import { type OntologyDBNode } from './indexeddb-schema'
 
 const testNode: OntologyDBNode = {
   id: 'http://purl.obolibrary.org/obo/SO_0000001',

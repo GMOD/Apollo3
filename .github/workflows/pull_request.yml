@@ -26,19 +26,22 @@ jobs:
       - name: Run Jest tests
         run: yarn test
       - name: Get latest JBrowse
-        run: yarn run jbrowse create --nightly .jbrowse
+        run: yarn run jbrowse create --tag v3.3.0 .jbrowse
         working-directory: packages/jbrowse-plugin-apollo
       - name: Start MongoDB
         uses: supercharge/mongodb-github-action@1.10.0
         with:
           mongodb-version: 7
           mongodb-replica-set: test-rs
+      - name: Start local file server
+        run:
+          yarn --cwd packages/apollo-collaboration-server/test/data/ serve
+          --listen 3131 &
       - name: Run Cypress tests
         run: yarn run test:e2e
         working-directory: packages/jbrowse-plugin-apollo
       - name: Start apollo
         run: |
-          yarn --cwd packages/apollo-collaboration-server/test/data/ serve --listen 3131 &
           yarn --cwd packages/apollo-shared start &
           ALLOW_ROOT_USER=true ROOT_USER_PASSWORD=pass yarn --cwd packages/apollo-collaboration-server start &
       - name: Run CLI tests
