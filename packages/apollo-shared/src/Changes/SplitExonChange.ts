@@ -153,7 +153,7 @@ export class SplitExonChange extends FeatureChange {
       throw new Error('No data store')
     }
 
-    for (const [idx] of this.changedIds.entries()) {
+    for (const change of this.changes) {
       const {
         exonToBeSplit,
         parentFeatureId,
@@ -161,7 +161,7 @@ export class SplitExonChange extends FeatureChange {
         downstreamCut,
         leftExonId,
         rightExonId,
-      } = this.changes[idx]
+      } = change
       if (!parentFeatureId) {
         throw new Error('TODO: Split exon without parent')
       }
