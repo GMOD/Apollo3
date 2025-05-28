@@ -10,7 +10,6 @@ import {
   type ServerDataStore,
 } from '@apollo-annotation/common'
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { type Feature } from '@apollo-annotation/schemas'
 
 import { AddFeatureChange } from './AddFeatureChange'
 
@@ -92,10 +91,9 @@ export class DeleteFeatureChange extends FeatureChange {
         continue
       }
 
-      const deletedIds = findAndDeleteChildFeature(
+      const deletedIds = this.findAndDeleteChildFeature(
         featureDoc,
         deletedFeature._id,
-        this,
       )
       deletedIds.push(deletedFeature._id)
       featureDoc.allIds = featureDoc.allIds.filter(
@@ -160,39 +158,6 @@ export class DeleteFeatureChange extends FeatureChange {
       { logger },
     )
   }
-}
-
-/**
- * Delete feature's subfeatures that match an ID and return the IDs of any
- * sub-subfeatures that were deleted
- * @param feature -
- * @param featureIdToDelete -
- * @returns - list of deleted feature IDs
- */
-export function findAndDeleteChildFeature(
-  feature: Feature,
-  featureIdToDelete: string,
-  change: FeatureChange,
-): string[] {
-  if (!feature.children) {
-    throw new Error(`Feature ${feature._id} has no children`)
-  }
-  const { _id, children } = feature
-  const child = children.get(featureIdToDelete)
-  if (child) {
-    const deletedIds = change.getChildFeatureIds(child)
-    children.delete(featureIdToDelete)
-    return deletedIds
-  }
-  for (const [, childFeature] of children) {
-    try {
-      return findAndDeleteChildFeature(childFeature, featureIdToDelete, change)
-    } catch {
-      // pass
-    }
-  }
-
-  throw new Error(`Feature "${featureIdToDelete}" not found in ${_id}`)
 }
 
 export function isDeleteFeatureChange(

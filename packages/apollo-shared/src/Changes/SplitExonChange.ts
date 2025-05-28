@@ -10,7 +10,6 @@ import {
 } from '@apollo-annotation/common'
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
-import { findAndDeleteChildFeature } from './DeleteFeatureChange'
 import { UndoSplitExonChange } from './UndoSplitExonChange'
 
 interface SerializedSplitExonChangeBase extends SerializedFeatureChange {
@@ -131,10 +130,9 @@ export class SplitExonChange extends FeatureChange {
         [...tx.children.entries()].sort((a, b) => a[1].min - b[1].min),
       )
 
-      const deletedIds = findAndDeleteChildFeature(
+      const deletedIds = this.findAndDeleteChildFeature(
         topLevelFeature,
         exonToBeSplit._id,
-        this,
       )
       deletedIds.push(exonToBeSplit._id)
       topLevelFeature.allIds = topLevelFeature.allIds.filter(
