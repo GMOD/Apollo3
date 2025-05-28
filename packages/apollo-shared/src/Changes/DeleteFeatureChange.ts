@@ -10,7 +10,6 @@ import {
   type ServerDataStore,
 } from '@apollo-annotation/common'
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { type Feature } from '@apollo-annotation/schemas'
 
 import { AddFeatureChange } from './AddFeatureChange'
 
@@ -115,38 +114,6 @@ export class DeleteFeatureChange extends FeatureChange {
     }
   }
 
-  /**
-   * Delete feature's subfeatures that match an ID and return the IDs of any
-   * sub-subfeatures that were deleted
-   * @param feature -
-   * @param featureIdToDelete -
-   * @returns - list of deleted feature IDs
-   */
-  findAndDeleteChildFeature(
-    feature: Feature,
-    featureIdToDelete: string,
-  ): string[] {
-    if (!feature.children) {
-      throw new Error(`Feature ${feature._id} has no children`)
-    }
-    const { _id, children } = feature
-    const child = children.get(featureIdToDelete)
-    if (child) {
-      const deletedIds = this.getChildFeatureIds(child)
-      children.delete(featureIdToDelete)
-      return deletedIds
-    }
-    for (const [, childFeature] of children) {
-      try {
-        return this.findAndDeleteChildFeature(childFeature, featureIdToDelete)
-      } catch {
-        // pass
-      }
-    }
-
-    throw new Error(`Feature "${featureIdToDelete}" not found in ${_id}`)
-  }
-
   async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
     throw new Error('executeOnLocalGFF3 not implemented')
   }
@@ -176,9 +143,9 @@ export class DeleteFeatureChange extends FeatureChange {
     const inverseChangedIds = [...changedIds].reverse()
     const inverseChanges = [...changes]
       .reverse()
-      .map((deleteFeatuerChange) => ({
-        addedFeature: deleteFeatuerChange.deletedFeature,
-        parentFeatureId: deleteFeatuerChange.parentFeatureId,
+      .map((deleteFeatureChange) => ({
+        addedFeature: deleteFeatureChange.deletedFeature,
+        parentFeatureId: deleteFeatureChange.parentFeatureId,
       }))
     logger.debug?.(`INVERSE CHANGE '${JSON.stringify(inverseChanges)}'`)
     return new AddFeatureChange(

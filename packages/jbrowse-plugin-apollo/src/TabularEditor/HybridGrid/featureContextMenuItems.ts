@@ -7,7 +7,13 @@ import {
 } from '@jbrowse/core/util'
 
 import { type ChangeManager } from '../../ChangeManager'
-import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
+import {
+  AddChildFeature,
+  CopyFeature,
+  DeleteFeature,
+  MergeExons,
+  SplitExon,
+} from '../../components'
 import { type ApolloSessionModel } from '../../session'
 import { getApolloInternetAccount } from '../../util'
 
@@ -99,6 +105,50 @@ export function featureContextMenuItems(
           ;(session as unknown as AbstractSessionModel).queueDialog(
             (doneCallback) => [
               DeleteFeature,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                changeManager,
+                sourceFeature: feature,
+                sourceAssemblyId: currentAssemblyId,
+                selectedFeature,
+                setSelectedFeature,
+              },
+            ],
+          )
+        },
+      },
+      {
+        label: 'Merge exons',
+        disabled: !admin,
+        onClick: () => {
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              MergeExons,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                changeManager,
+                sourceFeature: feature,
+                sourceAssemblyId: currentAssemblyId,
+                selectedFeature,
+                setSelectedFeature,
+              },
+            ],
+          )
+        },
+      },
+      {
+        label: 'Split exon',
+        disabled: !admin,
+        onClick: () => {
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              SplitExon,
               {
                 session,
                 handleClose: () => {
