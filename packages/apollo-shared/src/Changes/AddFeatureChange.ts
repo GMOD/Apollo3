@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
@@ -133,34 +132,7 @@ export class AddFeatureChange extends FeatureChange {
               `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature._id}"`,
             )
           }
-          if (!parentFeature.children) {
-            parentFeature.children = new Map()
-          }
-          if (!parentFeature.attributes?._id) {
-            let { attributes } = parentFeature
-            if (!attributes) {
-              attributes = {}
-            }
-            attributes = {
-              _id: [parentFeature._id.toString()],
-              // eslint-disable-next-line unicorn/prefer-structured-clone
-              ...JSON.parse(JSON.stringify(attributes)),
-            }
-            parentFeature.attributes = attributes
-          }
-          parentFeature.children.set(_id, {
-            allIds: [],
-            ...addedFeature,
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            _id,
-          })
-          // Child features should be sorted for click and drag of gene glyphs to work properly
-          parentFeature.children = new Map(
-            [...parentFeature.children.entries()].sort(
-              (a, b) => a[1].min - b[1].min,
-            ),
-          )
+          this.addChild(parentFeature, addedFeature)
           const childIds = this.getChildFeatureIds(addedFeature)
           topLevelFeature.allIds.push(_id, ...childIds)
           await topLevelFeature.save()

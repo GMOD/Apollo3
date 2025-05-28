@@ -3,7 +3,13 @@ import { type MenuItem } from '@jbrowse/core/ui'
 import { type AbstractSessionModel } from '@jbrowse/core/util'
 import { type Theme, alpha } from '@mui/material'
 
-import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
+import {
+  AddChildFeature,
+  CopyFeature,
+  DeleteFeature,
+  MergeExons,
+  SplitExon,
+} from '../../components'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
   type LinearApolloDisplayMouseEvents,
@@ -273,6 +279,11 @@ function getContextMenuItems(
   const [region] = regions
   const sourceAssemblyId = display.getAssemblyId(region.assemblyName)
   const currentAssemblyId = display.getAssemblyId(region.assemblyName)
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+
   menuItems.push(
     {
       label: 'Add child feature',
@@ -322,6 +333,56 @@ function getContextMenuItems(
         ;(session as unknown as AbstractSessionModel).queueDialog(
           (doneCallback) => [
             DeleteFeature,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature,
+              sourceAssemblyId: currentAssemblyId,
+              selectedFeature,
+              setSelectedFeature: (feature?: AnnotationFeature) => {
+                display.setSelectedFeature(feature)
+              },
+            },
+          ],
+        )
+      },
+    },
+    {
+      label: 'Merge exons',
+      disabled:
+        !admin || !featureTypeOntology.isTypeOf(sourceFeature.type, 'exon'),
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            MergeExons,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature,
+              sourceAssemblyId: currentAssemblyId,
+              selectedFeature,
+              setSelectedFeature: (feature?: AnnotationFeature) => {
+                display.setSelectedFeature(feature)
+              },
+            },
+          ],
+        )
+      },
+    },
+    {
+      label: 'Split exon',
+      disabled:
+        !admin || !featureTypeOntology.isTypeOf(sourceFeature.type, 'exon'),
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            SplitExon,
             {
               session,
               handleClose: () => {

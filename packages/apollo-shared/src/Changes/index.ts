@@ -11,8 +11,12 @@ import { FeatureAttributeChange } from './FeatureAttributeChange'
 import { ImportJBrowseConfigChange } from './ImportJBrowseConfigChange'
 import { LocationEndChange } from './LocationEndChange'
 import { LocationStartChange } from './LocationStartChange'
+import { MergeExonsChange } from './MergeExonsChange'
+import { SplitExonChange } from './SplitExonChange'
 import { StrandChange } from './StrandChange'
 import { TypeChange } from './TypeChange'
+import { UndoMergeExonsChange } from './UndoMergeExonsChange'
+import { UndoSplitExonChange } from './UndoSplitExonChange'
 import { UserChange } from './UserChange'
 
 export const changes = {
@@ -28,6 +32,10 @@ export const changes = {
   ImportJBrowseConfigChange,
   LocationEndChange,
   LocationStartChange,
+  MergeExonsChange,
+  SplitExonChange,
+  UndoMergeExonsChange,
+  UndoSplitExonChange,
   StrandChange,
   TypeChange,
   UserChange,
@@ -46,6 +54,10 @@ export * from './FeatureAttributeChange'
 export * from './ImportJBrowseConfigChange'
 export * from './LocationEndChange'
 export * from './LocationStartChange'
+export * from './MergeExonsChange'
+export * from './SplitExonChange'
+export * from './UndoMergeExonsChange'
+export * from './UndoSplitExonChange'
 export * from './StrandChange'
 export * from './TypeChange'
 export * from './UserChange'
