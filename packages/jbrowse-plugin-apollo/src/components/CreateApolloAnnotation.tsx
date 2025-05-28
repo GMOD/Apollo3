@@ -200,7 +200,11 @@ export function CreateApolloAnnotation({
         continue
       }
 
-      if (featureTypeOntology?.isTypeOf(f.type, 'gene')) {
+      // Destination feature should be of type gene amd should be on the same strand as the source feature
+      if (
+        featureTypeOntology?.isTypeOf(f.type, 'gene') &&
+        f.strand === annotationFeature.strand
+      ) {
         const featureSnapshot = getSnapshot(f)
         filteredFeatures.push(featureSnapshot)
       }
