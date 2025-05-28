@@ -169,19 +169,6 @@ export function CreateApolloAnnotation({
     [annotationFeature],
   )
 
-  const features = useMemo(() => {
-    for (const [, asm] of apolloSessionModel.apolloDataStore.assemblies) {
-      if (asm._id === assembly.name) {
-        for (const [, refSeq] of asm.refSeqs) {
-          if (refSeq._id === refSeqId) {
-            return refSeq.features
-          }
-        }
-      }
-    }
-    return []
-  }, [])
-
   const [parentFeatureChecked, setParentFeatureChecked] = useState(true)
   const [checkedChildrens, setCheckedChildrens] = useState<string[]>(childIds)
   const [errorMessage, setErrorMessage] = useState('')
@@ -192,10 +179,16 @@ export function CreateApolloAnnotation({
   const [selectedDestinationFeature, setSelectedDestinationFeature] =
     useState<AnnotationFeatureSnapshot>()
 
+  const apolloAssembly = apolloSessionModel.apolloDataStore.assemblies.get(
+    assembly.name,
+  )
+  const refSeq = apolloAssembly?.refSeqs.get(refSeqId)
+  const features = refSeq?.getFeatures(region.start, region.end)
+
   const getDestinationFeatures = () => {
     const filteredFeatures: AnnotationFeatureSnapshot[] = []
 
-    for (const [, f] of features) {
+    for (const f of features ?? []) {
       if (f.min > region.end || f.max < region.start) {
         continue
       }

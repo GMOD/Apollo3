@@ -1,4 +1,4 @@
-import { isContainedWithin } from '@jbrowse/core/util'
+import { doesIntersect2, isContainedWithin } from '@jbrowse/core/util'
 import {
   type Instance,
   type SnapshotIn,
@@ -7,6 +7,7 @@ import {
 } from 'mobx-state-tree'
 
 import {
+  type AnnotationFeature,
   AnnotationFeatureModel,
   type AnnotationFeatureSnapshot,
 } from './AnnotationFeatureModel'
@@ -123,6 +124,15 @@ export const ApolloRefSeq = types
         }
       }
       return ''
+    },
+    getFeatures(min: number, max: number): AnnotationFeature[] {
+      const features: AnnotationFeature[] = []
+      for (const [, feature] of self.features) {
+        if (doesIntersect2(feature.min, feature.max, min, max)) {
+          features.push(feature)
+        }
+      }
+      return features
     },
   }))
 
