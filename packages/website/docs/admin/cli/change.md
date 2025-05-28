@@ -26,4 +26,4 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/change/get.ts](https://github.com/GMOD/Apollo3/blob/v0.3.5/packages/apollo-cli/src/commands/change/get.ts)_
+[src/commands/change/get.ts](https://github.com/GMOD/Apollo3/blob/v0.3.6/packages/apollo-cli/src/commands/change/get.ts)_

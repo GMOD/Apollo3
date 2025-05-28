@@ -60,68 +60,32 @@ export class LocationEndChange extends FeatureChange {
   async executeOnServer(backend: ServerDataStore) {
     const { featureModel, session } = backend
     const { changes, logger } = this
-    const featuresForChanges: {
-      feature: Feature
-      topLevelFeature: FeatureDocument
-    }[] = []
     // Let's first check that all features are found and those old values match with expected ones. We do this just to be sure that all changes can be done.
+    const topLevelFeatures: FeatureDocument[] = []
     for (const change of changes) {
-      const { featureId, oldEnd } = change
+      const { featureId, oldEnd, newEnd } = change
 
-      // Search correct feature
-      const topLevelFeature = await featureModel
-        .findOne({ allIds: featureId })
-        .session(session)
-        .exec()
-
-      if (!topLevelFeature) {
-        const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
-        logger.error(errMsg)
-        throw new Error(errMsg)
-        // throw new NotFoundException(errMsg)  -- This is causing runtime error because Exception comes from @nestjs/common!!!
-      }
-      logger.debug?.(
-        `*** TOP level feature found: ${JSON.stringify(topLevelFeature)}`,
-      )
-
-      const foundFeature = this.getFeatureFromId(topLevelFeature, featureId)
-      if (!foundFeature) {
-        const errMsg = 'ERROR when searching feature by featureId'
-        logger.error(errMsg)
-        throw new Error(errMsg)
-      }
-      logger.debug?.(`*** Found feature: ${JSON.stringify(foundFeature)}`)
-      if (foundFeature.max === oldEnd) {
-        featuresForChanges.push({ feature: foundFeature, topLevelFeature })
-      } else {
-        if (foundFeature.children) {
-          for (const [, childFeature] of foundFeature.children) {
-            if (childFeature.max === oldEnd) {
-              logger.debug?.(
-                `*************** UPDATE CHILD FEATURE ID= ${featureId}, CHILD: ${JSON.stringify(
-                  childFeature,
-                )}`,
-              )
-              featuresForChanges.push({
-                feature: childFeature,
-                topLevelFeature,
-              })
-              break
-            }
-          }
+      // See if we already have top-level feature for this feature
+      let topLevelFeature: FeatureDocument | undefined | null
+      let feature: Feature | undefined | null
+      for (const tlv of topLevelFeatures) {
+        const childFeature = this.getFeatureFromId(tlv, featureId)
+        if (childFeature) {
+          topLevelFeature = tlv
+          feature = childFeature
+          break
         }
       }
-    }
-
-    // Let's update objects.
-    for (const [, change] of changes.entries()) {
-      // const { newEnd } = change
-      // const { feature, topLevelFeature } = featuresForChanges[idx]
-      const { newEnd, featureId } = change
-      const topLevelFeature = await featureModel
-        .findOne({ allIds: featureId })
-        .session(session)
-        .exec()
+      if (!topLevelFeature) {
+        // Don't already have top-level feature, so let's query it
+        topLevelFeature = await featureModel
+          .findOne({ allIds: featureId })
+          .session(session)
+          .exec()
+        if (topLevelFeature) {
+          topLevelFeatures.push(topLevelFeature)
+        }
+      }
 
       if (!topLevelFeature) {
         const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
@@ -133,9 +97,17 @@ export class LocationEndChange extends FeatureChange {
         `*** TOP level feature found: ${JSON.stringify(topLevelFeature)}`,
       )
 
-      const feature = this.getFeatureFromId(topLevelFeature, featureId)
+      if (!feature) {
+        feature = this.getFeatureFromId(topLevelFeature, featureId)
+      }
       if (!feature) {
         const errMsg = 'ERROR when searching feature by featureId'
+        logger.error(errMsg)
+        throw new Error(errMsg)
+      }
+      logger.debug?.(`*** Found feature: ${JSON.stringify(feature)}`)
+      if (feature.max !== oldEnd) {
+        const errMsg = 'Expected previous max does not match'
         logger.error(errMsg)
         throw new Error(errMsg)
       }
@@ -145,18 +117,14 @@ export class LocationEndChange extends FeatureChange {
       } else {
         topLevelFeature.markModified('children') // Mark as modified. Without this save() -method is not updating data in database
       }
-
+    }
+    for (const tlv of topLevelFeatures) {
       try {
-        await topLevelFeature.save()
+        await tlv.save()
       } catch (error) {
         logger.debug?.(`*** FAILED: ${error}`)
         throw error
       }
-      logger.debug?.(
-        `*** Object updated in Mongo. New object: ${JSON.stringify(
-          topLevelFeature,
-        )}`,
-      )
     }
   }
 
@@ -168,12 +136,13 @@ export class LocationEndChange extends FeatureChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
-    for (const [idx, changedId] of this.changedIds.entries()) {
-      const feature = dataStore.getFeature(changedId)
+    for (const change of this.changes) {
+      const { featureId, newEnd } = change
+      const feature = dataStore.getFeature(featureId)
       if (!feature) {
-        throw new Error(`Could not find feature with identifier "${changedId}"`)
+        throw new Error(`Could not find feature with identifier "${featureId}"`)
       }
-      feature.setMax(this.changes[idx].newEnd)
+      feature.setMax(newEnd)
     }
   }
 
