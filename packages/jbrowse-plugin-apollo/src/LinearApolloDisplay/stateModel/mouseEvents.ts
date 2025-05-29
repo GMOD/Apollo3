@@ -309,6 +309,10 @@ export function mouseEventsModelIntermediateFactory(
           self.cursor = cursor
         }
       },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      updateFilteredTranscripts(forms: string[]) {
+        return
+      },
     }))
     .actions(() => ({
       // onClick(event: CanvasMouseEvent) {

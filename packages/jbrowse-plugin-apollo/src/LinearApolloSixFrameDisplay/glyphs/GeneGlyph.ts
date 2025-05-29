@@ -11,8 +11,10 @@ import {
 } from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
 import equal from 'fast-deep-equal/es6'
+import { getSnapshot } from 'mobx-state-tree'
 
 import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
+import { FilterTranscripts } from '../../components/FilterTranscripts'
 import { type LinearApolloSixFrameDisplay } from '../stateModel'
 import {
   type LinearApolloSixFrameDisplayMouseEvents,
@@ -126,6 +128,7 @@ function draw(
     session,
     theme,
     highestRow,
+    filteredTranscripts,
     showFeatureLabels,
   } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
@@ -239,6 +242,12 @@ function draw(
     }
     const { children: childrenOfmRNA, cdsLocations } = child
     if (!childrenOfmRNA) {
+      continue
+    }
+    const childID: string | undefined = child.attributes
+      .get('gff_id')
+      ?.toString()
+    if (childID && filteredTranscripts.includes(childID)) {
       continue
     }
     for (const [, exon] of childrenOfmRNA) {
@@ -449,6 +458,7 @@ function drawHover(
   const {
     apolloHover,
     apolloRowHeight,
+    filteredTranscripts,
     lgv,
     highestRow,
     session,
@@ -464,6 +474,12 @@ function drawHover(
   }
   const { feature } = apolloHover
   if (!featureTypeOntology.isTypeOf(feature.type, 'transcript')) {
+    return
+  }
+  const featureID: string | undefined = feature.attributes
+    .get('gff_id')
+    ?.toString()
+  if (featureID && filteredTranscripts.includes(featureID)) {
     return
   }
   const position = stateModel.getFeatureLayoutPosition(feature)
@@ -630,7 +646,7 @@ function getDraggableFeatureInfo(
   feature: AnnotationFeature,
   stateModel: LinearApolloSixFrameDisplay,
 ): { feature: AnnotationFeature; edge: 'min' | 'max' } | undefined {
-  const { session } = stateModel
+  const { filteredTranscripts, session } = stateModel
   const { apolloDataStore } = session
   const { featureTypeOntology } = apolloDataStore.ontologyManager
   if (!featureTypeOntology) {
@@ -638,6 +654,12 @@ function getDraggableFeatureInfo(
   }
   const isTranscript = featureTypeOntology.isTypeOf(feature.type, 'transcript')
   if (cds === null) {
+    return
+  }
+  const featureID: string | undefined = feature.attributes
+    .get('gff_id')
+    ?.toString()
+  if (featureID && filteredTranscripts.includes(featureID)) {
     return
   }
   const { bp, refName, regionNumber, x } = mousePosition
@@ -706,7 +728,8 @@ function drawTooltip(
   display: LinearApolloSixFrameDisplayMouseEvents,
   context: CanvasRenderingContext2D,
 ): void {
-  const { apolloHover, apolloRowHeight, lgv, theme } = display
+  const { apolloHover, apolloRowHeight, filteredTranscripts, lgv, theme } =
+    display
   if (!apolloHover) {
     return
   }
@@ -716,6 +739,12 @@ function drawTooltip(
   }
   const position = display.getFeatureLayoutPosition(feature)
   if (!position) {
+    return
+  }
+  const featureID: string | undefined = feature.attributes
+    .get('gff_id')
+    ?.toString()
+  if (featureID && filteredTranscripts.includes(featureID)) {
     return
   }
   const { layoutIndex } = position
@@ -789,6 +818,7 @@ function getContextMenuItems(
     apolloHover,
     apolloInternetAccount: internetAccount,
     changeManager,
+    filteredTranscripts,
     regions,
     selectedFeature,
     session,
@@ -871,6 +901,32 @@ function getContextMenuItems(
       },
     },
   )
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  if (featureTypeOntology.isTypeOf(sourceFeature.type, 'gene')) {
+    menuItems.push({
+      label: 'Filter alternate transcripts',
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            FilterTranscripts,
+            {
+              handleClose: () => {
+                doneCallback()
+              },
+              sourceFeature,
+              filteredTranscripts: getSnapshot(filteredTranscripts),
+              onUpdate: (forms: string[]) => {
+                display.updateFilteredTranscripts(forms)
+              },
+            },
+          ],
+        )
+      },
+    })
+  }
   return menuItems
 }
 
