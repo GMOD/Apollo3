@@ -33,61 +33,43 @@ interface MergeTranscriptsProps {
   setSelectedFeature(feature?: AnnotationFeature): void
 }
 
-function getNeighboringTranscripts(
+function getTranscripts(
   referenceTranscript: AnnotationFeature,
+  session: ApolloSessionModel,
 ): Record<string, AnnotationFeature> {
-  const neighboringTranscripts: Record<string, AnnotationFeature> = {}
-  const tx = referenceTranscript.parent
-  if (!tx) {
+  const gene = referenceTranscript.parent
+  if (!gene) {
     throw new Error('Unable to find parent of reference transcript')
   }
-  let transcripts: AnnotationFeature[] = []
-  if (tx.children) {
-    for (const [, feature] of tx.children) {
-      if (feature.type === 'transcript') {
-        transcripts.push(feature)
+
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+
+  const transcripts: Record<string, AnnotationFeature> = {}
+  if (gene.children) {
+    for (const [, feature] of gene.children) {
+      if (
+        featureTypeOntology.isTypeOf(feature.type, 'transcript') &&
+        feature._id !== referenceTranscript._id
+      ) {
+        transcripts[feature._id] = feature
       }
     }
   }
-  transcripts = transcripts.sort((a, b) => {
-    if (a.min === b.min) {
-      return a.max - b.max
-    }
-    return a.min - b.min
-  })
-  if (tx.strand && tx.strand === -1) {
-    transcripts = transcripts.reverse()
-  }
-  let i = 0
-  for (const x of transcripts) {
-    if (x._id === referenceTranscript._id) {
-      if (transcripts.length > i + 1) {
-        neighboringTranscripts.three_prime = transcripts[i + 1]
-      }
-      if (i > 0) {
-        neighboringTranscripts.five_prime = transcripts[i - 1]
-      }
-      break
-    }
-    i++
-  }
-  return neighboringTranscripts
+  return transcripts
 }
 
 function makeRadioButtonName(
   key: string,
-  neighboringTranscripts: Record<string, AnnotationFeature>,
+  transcripts: Record<string, AnnotationFeature>,
 ): string {
-  const neighboringTranscript = neighboringTranscripts[key]
-  let name
-  if (key === 'three_prime') {
-    name = `3'end (coords: ${neighboringTranscript.min + 1}-${neighboringTranscript.max})`
-  } else if (key === 'five_prime') {
-    name = `5'end (coords: ${neighboringTranscript.min + 1}-${neighboringTranscript.max})`
-  } else {
-    throw new Error(`Unexpected direction: "${key}"`)
-  }
-  return name
+  const transcript = transcripts[key]
+  const id = transcript.attributes.get('gff_id')
+    ? transcript.attributes.get('gff_id')?.join(',')
+    : transcript._id
+  return `${id} [${transcript.min + 1}-${transcript.max}]`
 }
 
 export function MergeTranscripts({
@@ -135,10 +117,10 @@ export function MergeTranscripts({
   const handleTypeChange = (e: SelectChangeEvent) => {
     setErrorMessage('')
     const { value } = e.target
-    setSelectedTranscript(neighboringTranscripts[value])
+    setSelectedTranscript(transcripts[value])
   }
 
-  const neighboringTranscripts = getNeighboringTranscripts(sourceFeature)
+  const transcripts = getTranscripts(sourceFeature, session)
 
   return (
     <Dialog
@@ -150,9 +132,9 @@ export function MergeTranscripts({
     >
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-          {Object.keys(neighboringTranscripts).length === 0
-            ? 'There are no neighbouring transcripts to merge with'
-            : 'Merge with transcript on:'}
+          {Object.keys(transcripts).length === 0
+            ? 'There are no transcripts to merge with'
+            : 'Merge with transcript:'}
           <FormControl style={{ marginTop: 5 }}>
             <RadioGroup
               aria-labelledby="demo-radio-buttons-group-label"
@@ -160,14 +142,14 @@ export function MergeTranscripts({
               value={selectedTranscript}
               onChange={handleTypeChange}
             >
-              {Object.keys(neighboringTranscripts).map((key) => (
+              {Object.keys(transcripts).map((key) => (
                 <FormControlLabel
                   value={key}
                   key={key}
                   control={<Radio />}
                   label={
                     <Box display="flex" alignItems="center">
-                      {makeRadioButtonName(key, neighboringTranscripts)}
+                      {makeRadioButtonName(key, transcripts)}
                     </Box>
                   }
                 />
@@ -181,7 +163,7 @@ export function MergeTranscripts({
             variant="contained"
             type="submit"
             disabled={
-              Object.keys(neighboringTranscripts).length === 0 ||
+              Object.keys(transcripts).length === 0 ||
               selectedTranscript === undefined
             }
           >
