@@ -14,11 +14,11 @@ import {
   type AnnotationFeature,
   type AnnotationFeatureSnapshot,
 } from '@apollo-annotation/mst'
-import { Feature } from '@apollo-annotation/schemas'
 import { doesIntersect2 } from '@jbrowse/core/util'
 
 import { findAndDeleteChildFeature } from './DeleteFeatureChange'
 import { UndoMergeTranscriptsChange } from './UndoMergeTranscriptsChange'
+import { Feature } from '@apollo-annotation/schemas/src/feature.schema'
 
 interface SerializedMergeTranscriptsChangeBase extends SerializedFeatureChange {
   typeName: 'MergeTranscriptsChange'
@@ -91,10 +91,7 @@ export class MergeTranscriptsChange extends FeatureChange {
         logger.error(errMsg)
         throw new Error(errMsg)
       }
-      mergedTranscript.min = Math.min(firstTranscript.min, secondTranscript.min)
-      mergedTranscript.max = Math.max(firstTranscript.max, secondTranscript.max)
-
-      this.mergeTranscriptsOnServer(mergedTranscript, secondTranscript)
+      this.mergeTranscripts(mergedTranscript, secondTranscript)
       const deletedIds = findAndDeleteChildFeature(
         topLevelFeature,
         secondTranscript._id,
@@ -123,57 +120,62 @@ export class MergeTranscriptsChange extends FeatureChange {
       if (!mergedTranscript) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
-      mergedTranscript.setMin(
-        Math.min(firstTranscript.min, secondTranscript.min),
-      )
-      mergedTranscript.setMax(
-        Math.max(firstTranscript.max, secondTranscript.max),
-      )
-
-      if (secondTranscript.children) {
-        for (const [, child] of Object.entries(secondTranscript.children)) {
-          let merged = false
-          if (mergedTranscript.children) {
-            for (const [, mrgChild] of mergedTranscript.children) {
-              if (
-                mrgChild.type === child.type &&
-                doesIntersect2(child.min, child.max, mrgChild.min, mrgChild.max)
-              ) {
-                mrgChild.setMin(Math.min(child.min, mrgChild.min))
-                mrgChild.setMax(Math.max(child.max, mrgChild.max))
-                this.mergeAttributes(mrgChild, child)
-                merged = true
-              }
-              if (merged) {
-                break
-              }
-            }
-          }
-          if (!merged) {
-            mergedTranscript.addChild(child)
-          }
-        }
-      }
+      this.mergeTranscripts(mergedTranscript, secondTranscript)
       mergedTranscript.parent?.deleteChild(secondTranscript._id)
     }
   }
 
-  mergeTranscriptsOnServer(
-    mergedTranscript: Feature,
+  /* Merge attributes from source into destination */
+  mergeAttributes(
+    destination: Feature | AnnotationFeatureSnapshot,
+    source: AnnotationFeatureSnapshot,
+  ): Record<string, string[]> {
+    const destAttrs: Record<string, string[]> = destination.attributes
+      ? JSON.parse(JSON.stringify(destination.attributes))
+      : {}
+    if (source.attributes) {
+      const sourceAttrs: Record<string, string[]> = JSON.parse(
+        JSON.stringify(source.attributes),
+      )
+      Object.entries(sourceAttrs).map(([key, value]) => {
+        if (!(key in destAttrs)) {
+          destAttrs[key] = []
+        }
+        value.map((x) => {
+          if (!destAttrs[key].includes(x)) {
+            destAttrs[key].push(x)
+          }
+        })
+      })
+    }
+    return destAttrs
+  }
+
+  mergeTranscripts(
+    firstTranscript: Feature | AnnotationFeature,
     secondTranscript: AnnotationFeatureSnapshot,
   ) {
-    if (!mergedTranscript.children) {
-      mergedTranscript.children = new Map<string, Feature>()
+    if (!firstTranscript.children) {
+      firstTranscript.children = new Map<string, AnnotationFeature>()
     }
-    mergedTranscript.min = Math.min(mergedTranscript.min, secondTranscript.min)
-    mergedTranscript.max = Math.min(mergedTranscript.max, secondTranscript.max)
+    if (this.isAnnotationFeature(firstTranscript)) {
+      firstTranscript.setMin(
+        Math.min(firstTranscript.min, secondTranscript.min),
+      )
+      firstTranscript.setMax(
+        Math.max(firstTranscript.max, secondTranscript.max),
+      )
+    } else {
+      firstTranscript.min = Math.min(firstTranscript.min, secondTranscript.min)
+      firstTranscript.max = Math.max(firstTranscript.max, secondTranscript.max)
+    }
     if (secondTranscript.children) {
       for (const [sKey, secondFeatureChild] of Object.entries(
         secondTranscript.children,
       )) {
         let merged = false
-        let mrgChild: Feature | undefined
-        for (const [fKey, firstFeatureChild] of mergedTranscript.children) {
+        let mrgChild: AnnotationFeatureSnapshot | Feature | undefined
+        for (const [fKey, firstFeatureChild] of firstTranscript.children) {
           if (!merged || !mrgChild) {
             mrgChild = JSON.parse(JSON.stringify(firstFeatureChild))
           }
@@ -204,28 +206,185 @@ export class MergeTranscriptsChange extends FeatureChange {
               mrgChild.max,
               firstFeatureChild.max,
             )
-            this.mergeAttributes(mrgChild, secondFeatureChild)
+            const mergedAttrs = this.mergeAttributes(
+              mrgChild,
+              secondFeatureChild,
+            )
+            mrgChild.attributes = mergedAttrs
+            if (this.isAnnotationFeature(firstTranscript)) {
+              firstTranscript.deleteChild(firstFeatureChild._id as string)
+            } else {
+              firstTranscript.children?.delete(fKey as string)
+            }
+            merged = true
+          }
+        }
+        if (this.isAnnotationFeature(firstTranscript)) {
+          if (merged && mrgChild) {
+            const mrg: AnnotationFeatureSnapshot = JSON.parse(
+              JSON.stringify(mrgChild),
+            )
+            firstTranscript.addChild(mrg)
+          } else {
+            const ff: AnnotationFeatureSnapshot = JSON.parse(
+              JSON.stringify(secondFeatureChild),
+            )
+            firstTranscript.addChild(ff)
+          }
+        } else {
+          if (merged && mrgChild) {
+            const mrg: Feature = JSON.parse(JSON.stringify(mrgChild))
+            firstTranscript.children?.set(mrg._id.toString(), mrg)
+          } else {
+            const ff: Feature = JSON.parse(JSON.stringify(secondFeatureChild))
+            firstTranscript.children?.set(ff._id.toString(), ff)
+          }
+        }
+      }
+    }
+  }
 
-            // if (firstFeatureChild.attributes) {
-            //   if (!mrgChild.attributes) {
-            //     mrgChild.attributes = firstFeatureChild.attributes
-            //   } else {
-            //     for (const [key, value] of Object.entries(firstFeatureChild.attributes)) {
-            //       if (key in mrgChild.attributes) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  isAnnotationFeature(obj: any): obj is AnnotationFeature {
+    return (
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      typeof obj.setMin === 'function' &&
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      typeof obj.setMax === 'function' &&
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      typeof obj.addChild === 'function' &&
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      typeof obj.deleteChild === 'function'
+    )
+  }
 
-            //       }
-            //     }
-            //   }
-            // }
-            mergedTranscript.children.delete(fKey)
+  mergeTranscriptsOnClient(
+    firstTranscript: AnnotationFeature,
+    secondTranscript: AnnotationFeatureSnapshot,
+  ) {
+    if (!firstTranscript.children) {
+      firstTranscript.children = new Map<string, AnnotationFeature>()
+    }
+    firstTranscript.setMin(Math.min(firstTranscript.min, secondTranscript.min))
+    firstTranscript.setMax(Math.max(firstTranscript.max, secondTranscript.max))
+    if (secondTranscript.children) {
+      for (const [, secondFeatureChild] of Object.entries(
+        secondTranscript.children,
+      )) {
+        let merged = false
+        let mrgChild: AnnotationFeatureSnapshot | undefined
+        for (const [, firstFeatureChild] of firstTranscript.children) {
+          if (!merged || !mrgChild) {
+            mrgChild = JSON.parse(JSON.stringify(firstFeatureChild))
+          }
+          if (
+            mrgChild &&
+            mrgChild.type === secondFeatureChild.type &&
+            mrgChild.type === firstFeatureChild.type &&
+            doesIntersect2(
+              secondFeatureChild.min,
+              secondFeatureChild.max,
+              mrgChild.min,
+              mrgChild.max,
+            ) &&
+            doesIntersect2(
+              firstFeatureChild.min,
+              firstFeatureChild.max,
+              mrgChild.min,
+              mrgChild.max,
+            )
+          ) {
+            mrgChild.min = Math.min(
+              secondFeatureChild.min,
+              mrgChild.min,
+              firstFeatureChild.min,
+            )
+            mrgChild.max = Math.max(
+              secondFeatureChild.max,
+              mrgChild.max,
+              firstFeatureChild.max,
+            )
+            const mergedAttrs = this.mergeAttributes(
+              mrgChild,
+              secondFeatureChild,
+            )
+            mrgChild.attributes = mergedAttrs
+            firstTranscript.deleteChild(firstFeatureChild._id)
             merged = true
           }
         }
         if (merged && mrgChild) {
-          mergedTranscript.children.set(sKey, mrgChild)
+          firstTranscript.addChild(mrgChild)
+        } else {
+          const ff: AnnotationFeatureSnapshot = JSON.parse(
+            JSON.stringify(secondFeatureChild),
+          )
+          firstTranscript.addChild(ff)
+        }
+      }
+    }
+  }
+
+  mergeTranscriptsOnServer(
+    firstTranscript: Feature,
+    secondTranscript: AnnotationFeatureSnapshot,
+  ) {
+    if (!firstTranscript.children) {
+      firstTranscript.children = new Map<string, Feature>()
+    }
+    firstTranscript.min = Math.min(firstTranscript.min, secondTranscript.min)
+    firstTranscript.max = Math.max(firstTranscript.max, secondTranscript.max)
+    if (secondTranscript.children) {
+      for (const [sKey, secondFeatureChild] of Object.entries(
+        secondTranscript.children,
+      )) {
+        let merged = false
+        let mrgChild: Feature | undefined
+        for (const [fKey, firstFeatureChild] of firstTranscript.children) {
+          if (!merged || !mrgChild) {
+            mrgChild = JSON.parse(JSON.stringify(firstFeatureChild))
+          }
+          if (
+            mrgChild &&
+            mrgChild.type === secondFeatureChild.type &&
+            mrgChild.type === firstFeatureChild.type &&
+            doesIntersect2(
+              secondFeatureChild.min,
+              secondFeatureChild.max,
+              mrgChild.min,
+              mrgChild.max,
+            ) &&
+            doesIntersect2(
+              firstFeatureChild.min,
+              firstFeatureChild.max,
+              mrgChild.min,
+              mrgChild.max,
+            )
+          ) {
+            mrgChild.min = Math.min(
+              secondFeatureChild.min,
+              mrgChild.min,
+              firstFeatureChild.min,
+            )
+            mrgChild.max = Math.max(
+              secondFeatureChild.max,
+              mrgChild.max,
+              firstFeatureChild.max,
+            )
+            const mergedAttrs = this.mergeAttributes(
+              mrgChild,
+              secondFeatureChild,
+            )
+            mrgChild.attributes = mergedAttrs
+            firstTranscript.children.delete(fKey)
+            merged = true
+          }
+        }
+        if (merged && mrgChild) {
+          firstTranscript.children.set(sKey, mrgChild)
         } else {
           const ff: Feature = JSON.parse(JSON.stringify(secondFeatureChild))
-          mergedTranscript.children.set(sKey, ff)
+          firstTranscript.children.set(sKey, ff)
         }
       }
     }
@@ -254,130 +413,4 @@ export class MergeTranscriptsChange extends FeatureChange {
       { logger },
     )
   }
-
-  /* Merge attributes from source into destination */
-  mergeAttributes(
-    destination: Feature | AnnotationFeature,
-    source: Feature | AnnotationFeature | AnnotationFeatureSnapshot,
-  ) {
-    if (!source.attributes) {
-      return
-    }
-    const destAttrs: Record<string, string[]> = destination.attributes
-      ? JSON.parse(JSON.stringify(destination.attributes))
-      : {}
-    const sourceAttrs: Record<string, string[]> = JSON.parse(
-      JSON.stringify(source.attributes),
-    )
-
-    Object.entries(sourceAttrs).map(([key, value]) => {
-      if (!(key in destAttrs)) {
-        destAttrs[key] = []
-      }
-      value.map((x) => {
-        if (!destAttrs[key].includes(x)) {
-          destAttrs[key].push(x)
-        }
-      })
-    })
-    if (destination instanceof Feature) {
-      destination.attributes = destAttrs
-    }
-    //else {
-    //  Object.entries(destAttrs).map(([k, v]) => {
-    //    destination.setAttribute(k, v)
-    //  })
-    // }
-  }
-
-  // mergeAttributesOnClient(
-  //   mergedFeature: AnnotationFeature,
-  //   secondFeature: AnnotationFeatureSnapshot,
-  // ) {
-  //   if (!secondFeature.attributes) {
-  //     return
-  //   }
-  //   const secondAttrs: Record<string, string[]> = JSON.parse(
-  //     JSON.stringify(secondFeature.attributes),
-  //   )
-
-  //   for (const key of Object.keys(secondAttrs)) {
-  //     if (key === '_id' || key === 'gff_id') {
-  //       continue
-  //     }
-
-  //     const mergedAttr: string[] = mergedFeature.attributes.get(key)
-  //       ? JSON.parse(JSON.stringify(mergedFeature.attributes.get(key)))
-  //       : []
-  //     secondAttrs[key].map((x) => {
-  //       if (!mergedAttr.includes(x)) {
-  //         mergedAttr.push(x)
-  //       }
-  //     })
-  //     mergedFeature.setAttribute(key, mergedAttr)
-  //   }
-  // }
-
-  // mergeAttributesOnServer(
-  //   mergedFeature: Feature,
-  //   secondFeature: AnnotationFeatureSnapshot,
-  // ) {
-  //   let mergedAttrs: Record<string, string[]> = {}
-  //   if (mergedFeature.attributes) {
-  //     mergedAttrs = JSON.parse(JSON.stringify(mergedFeature.attributes))
-  //   }
-
-  //   if (!mergedFeature.attributes) {
-  //     mergedFeature.attributes = {}
-  //   }
-  //   if (secondFeature.attributes) {
-  //     const attrs: Record<string, string[]> = JSON.parse(
-  //       JSON.stringify(secondFeature.attributes),
-  //     )
-  //     for (const key of Object.keys(attrs)) {
-  //       if (key === '_id' || key === 'gff_id') {
-  //         continue
-  //       }
-  //       if (!Object.keys(mergedAttrs).includes(key)) {
-  //         mergedAttrs[key] = []
-  //       }
-  //       attrs[key].map((x) => {
-  //         if (!mergedAttrs[key].includes(x)) {
-  //           mergedAttrs[key].push(x)
-  //         }
-  //       })
-  //     }
-  //     mergedFeature.attributes = mergedAttrs
-  //   }
-  // }
-
-  // mergeAttributes(
-  //   firstTranscript: AnnotationFeatureSnapshot,
-  //   secondTranscript: AnnotationFeatureSnapshot,
-  // ): Record<string, string[]> {
-  //   let mergedAttrs: Record<string, string[]> = {}
-  //   if (firstTranscript.attributes) {
-  //     mergedAttrs = JSON.parse(JSON.stringify(firstTranscript.attributes))
-  //   }
-
-  //   if (secondTranscript.attributes) {
-  //     const attrs: Record<string, string[]> = JSON.parse(
-  //       JSON.stringify(secondTranscript.attributes),
-  //     )
-  //     for (const key of Object.keys(attrs)) {
-  //       if (key === '_id' || key === 'gff_id') {
-  //         continue
-  //       }
-  //       if (!Object.keys(mergedAttrs).includes(key)) {
-  //         mergedAttrs[key] = []
-  //       }
-  //       attrs[key].map((x) => {
-  //         if (!mergedAttrs[key].includes(x)) {
-  //           mergedAttrs[key].push(x)
-  //         }
-  //       })
-  //     }
-  //   }
-  //   return mergedAttrs
-  // }
 }

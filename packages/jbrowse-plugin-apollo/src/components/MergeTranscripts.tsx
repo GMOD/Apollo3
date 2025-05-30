@@ -66,9 +66,11 @@ function makeRadioButtonName(
   transcripts: Record<string, AnnotationFeature>,
 ): string {
   const transcript = transcripts[key]
-  const id = transcript.attributes.get('gff_id')
-    ? transcript.attributes.get('gff_id')?.join(',')
-    : transcript._id
+  const id = transcript.attributes.get('gff_name')
+    ? transcript.attributes.get('gff_name')?.join(',')
+    : transcript.attributes.get('gff_id')
+      ? transcript.attributes.get('gff_id')?.join(',')
+      : transcript._id
   return `${id} [${transcript.min + 1}-${transcript.max}]`
 }
 
