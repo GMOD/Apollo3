@@ -14,11 +14,11 @@ import {
   type AnnotationFeature,
   type AnnotationFeatureSnapshot,
 } from '@apollo-annotation/mst'
+import { type Feature } from '@apollo-annotation/schemas/src/feature.schema'
 import { doesIntersect2 } from '@jbrowse/core/util'
 
 import { findAndDeleteChildFeature } from './DeleteFeatureChange'
 import { UndoMergeTranscriptsChange } from './UndoMergeTranscriptsChange'
-import { Feature } from '@apollo-annotation/schemas/src/feature.schema'
 
 interface SerializedMergeTranscriptsChangeBase extends SerializedFeatureChange {
   typeName: 'MergeTranscriptsChange'
@@ -170,7 +170,7 @@ export class MergeTranscriptsChange extends FeatureChange {
       firstTranscript.max = Math.max(firstTranscript.max, secondTranscript.max)
     }
     if (secondTranscript.children) {
-      for (const [sKey, secondFeatureChild] of Object.entries(
+      for (const [, secondFeatureChild] of Object.entries(
         secondTranscript.children,
       )) {
         let merged = false
