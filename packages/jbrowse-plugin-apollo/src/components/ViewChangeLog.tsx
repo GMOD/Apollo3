@@ -11,8 +11,10 @@ import {
   DialogActions,
   DialogContent,
   DialogContentText,
+  Grid2,
   MenuItem,
   Select,
+  TextField,
   type SelectChangeEvent,
 } from '@mui/material'
 import {
@@ -177,41 +179,59 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
   return (
     <Dialog
       open
-      fullScreen
-      title="View change log"
+      title="Changelog"
       handleClose={handleClose}
       data-testid="view-changelog"
+      maxWidth="xl"
+      fullWidth
     >
-      <Select
-        style={{ width: 200, marginLeft: 40 }}
-        value={assemblyId}
-        onChange={handleChangeAssembly}
-      >
-        {assemblyCollection.map((option) => (
-          <MenuItem key={option._id} value={option._id}>
-            {option.name}
-          </MenuItem>
-        ))}
-      </Select>
-
       <DialogContent>
-        <DataGrid
-          pagination
-          rows={displayGridData}
-          columns={gridColumns}
-          getRowId={(row) => row._id}
-          slots={{ toolbar: GridToolbar }}
-          initialState={{
-            sorting: { sortModel: [{ field: 'sequence', sort: 'desc' }] },
-            columns: { columnVisibilityModel: { sequence: false } },
-          }}
-        />
+        <Grid2 container spacing={2}>
+          <Grid2 size={6}>
+            <Select
+              value={assemblyId}
+              onChange={handleChangeAssembly}
+              size="small"
+              style={{
+                width: 300,
+                margin: 0,
+              }}
+            >
+              {assemblyCollection.map((option) => (
+                <MenuItem key={option._id} value={option._id}>
+                  {option.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </Grid2>
+          <Grid2 size={6}>
+            <TextField
+              id="outlined-basic"
+              label="Filter by feature name or id"
+              size="small"
+              variant="outlined"
+              style={{
+                float: 'right',
+                width: 300,
+                margin: 0,
+              }}
+            />
+          </Grid2>
+          <Grid2 size={12} sx={{ height: '70vh', overflowY: 'scroll' }}>
+            <DataGrid
+              pagination
+              rows={displayGridData}
+              columns={gridColumns}
+              getRowId={(row) => row._id}
+              slots={{ toolbar: GridToolbar }}
+              initialState={{
+                sorting: { sortModel: [{ field: 'sequence', sort: 'desc' }] },
+                columns: { columnVisibilityModel: { sequence: false } },
+              }}
+            />
+          </Grid2>
+        </Grid2>
       </DialogContent>
-      <DialogActions>
-        <Button variant="outlined" type="submit" onClick={handleClose}>
-          Close
-        </Button>
-      </DialogActions>
       {errorMessage ? (
         <DialogContent>
           <DialogContentText color="error">{errorMessage}</DialogContentText>
