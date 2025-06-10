@@ -12,6 +12,7 @@ import {
   CopyFeature,
   DeleteFeature,
   MergeExons,
+  MergeTranscripts,
   SplitExon,
 } from '../../components'
 import { type ApolloSessionModel } from '../../session'
@@ -102,6 +103,28 @@ export function featureContextMenuItems(
           ;(session as unknown as AbstractSessionModel).queueDialog(
             (doneCallback) => [
               DeleteFeature,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                changeManager,
+                sourceFeature: feature,
+                sourceAssemblyId: currentAssemblyId,
+                selectedFeature,
+                setSelectedFeature,
+              },
+            ],
+          )
+        },
+      },
+      {
+        label: 'Merge transcripts',
+        disabled: !admin,
+        onClick: () => {
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              MergeTranscripts,
               {
                 session,
                 handleClose: () => {
