@@ -97,6 +97,10 @@ export class JBrowseService {
         name: 'Apollo',
         url: pluginLocation,
       },
+      {
+        name: 'HavanaApolloPlugin',
+        url: 'http://localhost:9001/dist/havana-apollo-plugin.umd.development.js',
+      },
     ]
   }
 
