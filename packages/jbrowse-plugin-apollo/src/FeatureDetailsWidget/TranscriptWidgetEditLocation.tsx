@@ -1157,34 +1157,75 @@ export const TranscriptWidgetEditLocation = observer(
               style={{ textAlign: 'center', marginTop: 10 }}
             >
               <Grid2 size={1} />
-              <Grid2 size={4}>
-                <StyledTextField
-                  margin="dense"
-                  variant="outlined"
-                  value={cdsMin + 1}
-                  onChangeCommitted={(newLocation: number) => {
-                    handleCDSLocationChange(
-                      cdsMin,
-                      newLocation - 1,
-                      feature,
-                      true,
-                    )
-                  }}
-                />
-              </Grid2>
+              {strand === 1 ? (
+                <Grid2 size={4}>
+                  <StyledTextField
+                    margin="dense"
+                    variant="outlined"
+                    value={cdsMin + 1}
+                    onChangeCommitted={(newLocation: number) => {
+                      handleCDSLocationChange(
+                        cdsMin,
+                        newLocation - 1,
+                        feature,
+                        true,
+                      )
+                    }}
+                  />
+                </Grid2>
+              ) : (
+                <Grid2 size={4}>
+                  <StyledTextField
+                    margin="dense"
+                    variant="outlined"
+                    value={cdsMax}
+                    onChangeCommitted={(newLocation: number) => {
+                      handleCDSLocationChange(
+                        cdsMax,
+                        newLocation,
+                        feature,
+                        false,
+                      )
+                    }}
+                  />
+                </Grid2>
+              )}
               <Grid2 size={2}>
                 <Typography component={'span'}>CDS</Typography>
               </Grid2>
-              <Grid2 size={4}>
-                <StyledTextField
-                  margin="dense"
-                  variant="outlined"
-                  value={cdsMax}
-                  onChangeCommitted={(newLocation: number) => {
-                    handleCDSLocationChange(cdsMax, newLocation, feature, false)
-                  }}
-                />
-              </Grid2>
+              {strand === 1 ? (
+                <Grid2 size={4}>
+                  <StyledTextField
+                    margin="dense"
+                    variant="outlined"
+                    value={cdsMax}
+                    onChangeCommitted={(newLocation: number) => {
+                      handleCDSLocationChange(
+                        cdsMax,
+                        newLocation,
+                        feature,
+                        false,
+                      )
+                    }}
+                  />
+                </Grid2>
+              ) : (
+                <Grid2 size={4}>
+                  <StyledTextField
+                    margin="dense"
+                    variant="outlined"
+                    value={cdsMin + 1}
+                    onChangeCommitted={(newLocation: number) => {
+                      handleCDSLocationChange(
+                        cdsMin,
+                        newLocation - 1,
+                        feature,
+                        true,
+                      )
+                    }}
+                  />
+                </Grid2>
+              )}
               <Grid2 size={1} />
             </Grid2>
           </div>
