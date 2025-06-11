@@ -38,6 +38,10 @@ export const TranscriptWidgetSummary = observer(
             </TableRow>
           )}
           <TableRow>
+            <HeaderTableCell>Type</HeaderTableCell>
+            <TableCell>{feature.type}</TableCell>
+          </TableRow>
+          <TableRow>
             <HeaderTableCell>Location</HeaderTableCell>
             <TableCell>
               {props.refName}:{feature.min}..{feature.max}
