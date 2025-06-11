@@ -1,9 +1,6 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
-import {
-  type AbstractSessionModel,
-  isSessionModelWithWidgets,
-} from '@jbrowse/core/util'
+import { type AbstractSessionModel } from '@jbrowse/core/util'
 import { type Theme, alpha } from '@mui/material'
 
 import {
@@ -13,7 +10,6 @@ import {
   MergeExons,
   SplitExon,
 } from '../../components'
-import { type ApolloSessionModel } from '../../session'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
   type LinearApolloDisplayMouseEvents,
@@ -249,34 +245,6 @@ function getTextColor(theme: Theme | undefined, selected: boolean) {
     : theme?.palette.text.primary ?? 'black'
 }
 
-function isTranscriptFeature(
-  feature: AnnotationFeature,
-  session: ApolloSessionModel,
-): boolean {
-  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
-  return (
-    featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
-    featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')
-  )
-}
-
-function isCdsOrExonFeature(
-  feature: AnnotationFeature,
-  session: ApolloSessionModel,
-): boolean {
-  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
-  return (
-    featureTypeOntology.isTypeOf(feature.type, 'CDS') ||
-    featureTypeOntology.isTypeOf(feature.type, 'exon')
-  )
-}
-
 export function drawBox(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -433,34 +401,6 @@ function getContextMenuItems(
       },
     },
   )
-
-  if (
-    isSessionModelWithWidgets(session) &&
-    (isTranscriptFeature(sourceFeature, session) ||
-      isCdsOrExonFeature(sourceFeature, session))
-  ) {
-    let transcript = sourceFeature
-    if (sourceFeature.parent && isCdsOrExonFeature(sourceFeature, session)) {
-      transcript = sourceFeature.parent
-    }
-
-    menuItems.push({
-      label: 'Open transcript details',
-      onClick: () => {
-        const apolloTranscriptWidget = session.addWidget(
-          'ApolloTranscriptDetails',
-          'apolloTranscriptDetails',
-          {
-            feature: transcript,
-            assembly: currentAssemblyId,
-            changeManager,
-            refName: region.refName,
-          },
-        )
-        session.showWidget(apolloTranscriptWidget)
-      },
-    })
-  }
   return menuItems
 }
 
