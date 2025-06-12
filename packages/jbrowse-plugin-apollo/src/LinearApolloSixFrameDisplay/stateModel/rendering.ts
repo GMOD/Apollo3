@@ -4,7 +4,7 @@ import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/con
 import { doesIntersect2 } from '@jbrowse/core/util'
 import { type Theme } from '@mui/material'
 import { autorun } from 'mobx'
-import { type Instance, addDisposer } from 'mobx-state-tree'
+import { type Instance, addDisposer, types } from 'mobx-state-tree'
 
 import { type ApolloSessionModel } from '../../session'
 
@@ -29,6 +29,7 @@ export function renderingModelIntermediateFactory(
       detailsHeight: 200,
       lastRowTooltipBufferHeight: 80,
       isShown: true,
+      filteredTranscripts: types.array(types.string),
     })
     .volatile(() => ({
       canvas: null as HTMLCanvasElement | null,
@@ -38,8 +39,9 @@ export function renderingModelIntermediateFactory(
     }))
     .views((self) => ({
       get featuresHeight() {
+        const featureLabelSpacer = self.showFeatureLabels ? 2 : 1
         return (
-          (self.highestRow + 1) * self.apolloRowHeight +
+          featureLabelSpacer * ((self.highestRow + 1) * self.apolloRowHeight) +
           self.lastRowTooltipBufferHeight
         )
       },

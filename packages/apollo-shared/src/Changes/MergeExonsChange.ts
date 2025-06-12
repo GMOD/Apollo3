@@ -108,11 +108,13 @@ export class MergeExonsChange extends FeatureChange {
       throw new Error('No data store')
     }
 
-    for (const [idx, changedId] of this.changedIds.entries()) {
-      const { firstExon, secondExon } = this.changes[idx]
+    for (const change of this.changes) {
+      const { firstExon, secondExon } = change
       const mergedExon = dataStore.getFeature(firstExon._id)
       if (!mergedExon) {
-        throw new Error(`Could not find feature with identifier "${changedId}"`)
+        throw new Error(
+          `Could not find feature with identifier "${firstExon._id}"`,
+        )
       }
       mergedExon.setMin(Math.min(firstExon.min, secondExon.min))
       mergedExon.setMax(Math.max(firstExon.max, secondExon.max))

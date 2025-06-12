@@ -4,7 +4,7 @@ import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/con
 import { defaultCodonTable, doesIntersect2, revcom } from '@jbrowse/core/util'
 import { type Theme } from '@mui/material'
 import { autorun } from 'mobx'
-import { type Instance, addDisposer } from 'mobx-state-tree'
+import { type Instance, addDisposer, types } from 'mobx-state-tree'
 
 import { type ApolloSessionModel } from '../../session'
 
@@ -27,6 +27,7 @@ export function renderingModelIntermediateFactory(
       detailsHeight: 200,
       lastRowTooltipBufferHeight: 40,
       isShown: true,
+      filteredTranscripts: types.array(types.string),
     })
     .volatile(() => ({
       canvas: null as HTMLCanvasElement | null,

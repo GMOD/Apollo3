@@ -37,6 +37,10 @@ export interface MousePosition {
 
 export type MousePositionWithFeatureAndGlyph = Required<MousePosition>
 
+type MinEdge = 'min'
+type MaxEdge = 'max'
+type Edge = MinEdge | MaxEdge
+
 export function isMousePositionWithFeatureAndGlyph(
   mousePosition: MousePosition,
 ): mousePosition is MousePositionWithFeatureAndGlyph {
@@ -110,6 +114,114 @@ function highlightSeq(
   }
 }
 
+interface LocationChange {
+  featureId: string
+  oldLocation: number
+  newLocation: number
+}
+
+function expandFeatures(
+  feature: AnnotationFeature,
+  newLocation: number,
+  edge: Edge,
+): LocationChange[] {
+  const featureId = feature._id
+  const oldLocation = feature[edge]
+  const changes: LocationChange[] = [{ featureId, oldLocation, newLocation }]
+  const { parent } = feature
+  if (
+    parent &&
+    ((edge === 'min' && parent[edge] > newLocation) ||
+      (edge === 'max' && parent[edge] < newLocation))
+  ) {
+    changes.push(...expandFeatures(parent, newLocation, edge))
+  }
+  return changes
+}
+
+function shrinkFeatures(
+  feature: AnnotationFeature,
+  newLocation: number,
+  edge: Edge,
+  shrinkParent: boolean,
+  childIdToSkip?: string,
+): LocationChange[] {
+  const featureId = feature._id
+  const oldLocation = feature[edge]
+  const changes: LocationChange[] = [{ featureId, oldLocation, newLocation }]
+  const { parent, children } = feature
+  if (children) {
+    for (const [, child] of children) {
+      if (child._id === childIdToSkip) {
+        continue
+      }
+      if (
+        (edge === 'min' && child[edge] < newLocation) ||
+        (edge === 'max' && child[edge] > newLocation)
+      ) {
+        changes.push(...shrinkFeatures(child, newLocation, edge, shrinkParent))
+      }
+    }
+  }
+  if (parent && shrinkParent) {
+    const siblings: AnnotationFeature[] = []
+    if (parent.children) {
+      for (const [, c] of parent.children) {
+        if (c._id === featureId) {
+          continue
+        }
+        siblings.push(c)
+      }
+    }
+    if (siblings.length === 0) {
+      changes.push(
+        ...shrinkFeatures(parent, newLocation, edge, shrinkParent, featureId),
+      )
+    } else {
+      const oldLocation = parent[edge]
+      const boundedLocation = Math[edge](
+        ...siblings.map((s) => s[edge]),
+        newLocation,
+      )
+      if (boundedLocation !== oldLocation) {
+        changes.push(
+          ...shrinkFeatures(
+            parent,
+            boundedLocation,
+            edge,
+            shrinkParent,
+            featureId,
+          ),
+        )
+      }
+    }
+  }
+  return changes
+}
+
+function getPropagatedLocationChanges(
+  feature: AnnotationFeature,
+  newLocation: number,
+  edge: Edge,
+  shrinkParent = false,
+): LocationChange[] {
+  const oldLocation = feature[edge]
+  if (newLocation === oldLocation) {
+    throw new Error(`New and existing locations are the same: "${newLocation}"`)
+  }
+  if (edge === 'min') {
+    if (newLocation > oldLocation) {
+      // shrinking feature, may need to shrink children and/or parents
+      return shrinkFeatures(feature, newLocation, edge, shrinkParent)
+    }
+    return expandFeatures(feature, newLocation, edge)
+  }
+  if (newLocation < oldLocation) {
+    return shrinkFeatures(feature, newLocation, edge, shrinkParent)
+  }
+  return expandFeatures(feature, newLocation, edge)
+}
+
 export function mouseEventsModelIntermediateFactory(
   pluginManager: PluginManager,
   configSchema: AnyConfigurationSchemaType,
@@ -125,7 +237,8 @@ export function mouseEventsModelIntermediateFactory(
         start: MousePosition
         current: MousePosition
         feature: AnnotationFeature
-        edge: 'min' | 'max'
+        edge: Edge
+        shrinkParent: boolean
       } | null,
       cursor: undefined as CSSProperties['cursor'] | undefined,
       apolloHover: undefined as FeatureAndGlyphUnderMouse | undefined,
@@ -195,6 +308,10 @@ export function mouseEventsModelIntermediateFactory(
         if (self.cursor !== cursor) {
           self.cursor = cursor
         }
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      updateFilteredTranscripts(forms: string[]) {
+        return
       },
     }))
     .actions(() => ({
@@ -356,20 +473,23 @@ export function mouseEventsModelFactory(
       startDrag(
         mousePosition: MousePositionWithFeatureAndGlyph,
         feature: AnnotationFeature,
-        edge: 'min' | 'max',
+        edge: Edge,
+        shrinkParent = false,
       ) {
         self.apolloDragging = {
           start: mousePosition,
           current: mousePosition,
           feature,
           edge,
+          shrinkParent,
         }
       },
       endDrag() {
         if (!self.apolloDragging) {
           throw new Error('endDrag() called with no current drag in progress')
         }
-        const { current, edge, feature, start } = self.apolloDragging
+        const { current, edge, feature, start, shrinkParent } =
+          self.apolloDragging
         // don't do anything if it was only dragged a tiny bit
         if (Math.abs(current.x - start.x) <= 4) {
           self.setDragging()
@@ -379,33 +499,35 @@ export function mouseEventsModelFactory(
         const { displayedRegions } = self.lgv
         const region = displayedRegions[start.regionNumber]
         const assembly = self.getAssemblyId(region.assemblyName)
+        const changes = getPropagatedLocationChanges(
+          feature,
+          current.bp,
+          edge,
+          shrinkParent,
+        )
 
-        let change: LocationEndChange | LocationStartChange
-        if (edge === 'max') {
-          const featureId = feature._id
-          const oldEnd = feature.max
-          const newEnd = current.bp
-          change = new LocationEndChange({
-            typeName: 'LocationEndChange',
-            changedIds: [featureId],
-            featureId,
-            oldEnd,
-            newEnd,
-            assembly,
-          })
-        } else {
-          const featureId = feature._id
-          const oldStart = feature.min
-          const newStart = current.bp
-          change = new LocationStartChange({
-            typeName: 'LocationStartChange',
-            changedIds: [featureId],
-            featureId,
-            oldStart,
-            newStart,
-            assembly,
-          })
-        }
+        const change: LocationEndChange | LocationStartChange =
+          edge === 'max'
+            ? new LocationEndChange({
+                typeName: 'LocationEndChange',
+                changedIds: changes.map((c) => c.featureId),
+                changes: changes.map((c) => ({
+                  featureId: c.featureId,
+                  oldEnd: c.oldLocation,
+                  newEnd: c.newLocation,
+                })),
+                assembly,
+              })
+            : new LocationStartChange({
+                typeName: 'LocationStartChange',
+                changedIds: changes.map((c) => c.featureId),
+                changes: changes.map((c) => ({
+                  featureId: c.featureId,
+                  oldStart: c.oldLocation,
+                  newStart: c.newLocation,
+                })),
+                assembly,
+              })
         void self.changeManager.submit(change)
         self.setDragging()
         self.setCursor()
@@ -461,6 +583,8 @@ export function mouseEventsModelFactory(
             mousePosition,
             event,
           )
+        } else {
+          self.setSelectedFeature()
         }
 
         if (self.apolloDragging) {

@@ -82,6 +82,9 @@ export function layoutsModelFactory(
       getGlyph(_feature: AnnotationFeature) {
         return geneGlyph
       },
+      featureLabelSpacer(elem: number): number {
+        return self.showFeatureLabels ? elem * 2 - 1 : elem
+      },
     }))
     .actions((self) => ({
       addSeenFeature(feature: AnnotationFeature) {
@@ -89,6 +92,11 @@ export function layoutsModelFactory(
       },
       deleteSeenFeature(featureId: string) {
         self.seenFeatures.delete(featureId)
+      },
+    }))
+    .views((self) => ({
+      get geneTrackRowNums() {
+        return [4, 5].map((elem) => self.featureLabelSpacer(elem))
       },
     }))
     .views((self) => ({
@@ -120,7 +128,10 @@ export function layoutsModelFactory(
               throw new Error('featureTypeOntology is undefined')
             }
             if (feature.looksLikeGene) {
-              const rowNum = feature.strand == 1 ? 4 : 5
+              const rowNum =
+                feature.strand == 1
+                  ? self.geneTrackRowNums[0]
+                  : self.geneTrackRowNums[1]
               if (!featureLayout.get(rowNum)) {
                 featureLayout.set(rowNum, [])
               }
@@ -142,7 +153,10 @@ export function layoutsModelFactory(
                       if (!featureTypeOntology.isTypeOf(exon.type, 'exon')) {
                         continue
                       }
-                      const rowNum = exon.strand == 1 ? 4 : 5
+                      const rowNum =
+                        exon.strand == 1
+                          ? self.geneTrackRowNums[0]
+                          : self.geneTrackRowNums[1]
                       const layoutRow = featureLayout.get(rowNum)
                       layoutRow?.push({ rowNum, feature: exon, cds: null })
                     }
@@ -155,7 +169,9 @@ export function layoutsModelFactory(
                         strand ?? 1,
                         cds.phase,
                       )
-                      rowNum = rowNum < 0 ? -1 * rowNum + 5 : rowNum
+                      rowNum = self.featureLabelSpacer(
+                        rowNum < 0 ? -1 * rowNum + 5 : rowNum,
+                      )
                       if (!featureLayout.get(rowNum)) {
                         featureLayout.set(rowNum, [])
                       }

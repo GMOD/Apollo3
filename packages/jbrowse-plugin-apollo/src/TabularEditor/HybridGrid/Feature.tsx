@@ -68,6 +68,8 @@ function makeContextMenuItems(
     selectedFeature,
     session,
     setSelectedFeature,
+    filteredTranscripts,
+    updateFilteredTranscripts,
   } = display
   return featureContextMenuItems(
     feature,
@@ -77,6 +79,8 @@ function makeContextMenuItems(
     setSelectedFeature,
     session,
     changeManager,
+    filteredTranscripts,
+    updateFilteredTranscripts,
   )
 }
 

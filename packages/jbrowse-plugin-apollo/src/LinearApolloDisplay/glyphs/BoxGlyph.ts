@@ -1,10 +1,6 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
-import {
-  type AbstractSessionModel,
-  type SessionWithWidgets,
-  isSessionModelWithWidgets,
-} from '@jbrowse/core/util'
+import { type AbstractSessionModel } from '@jbrowse/core/util'
 import { type Theme, alpha } from '@mui/material'
 
 import {
@@ -356,25 +352,6 @@ function getContextMenuItems(
       },
     },
     {
-      label: 'Edit feature details',
-      onClick: () => {
-        const apolloFeatureWidget = (
-          session as unknown as SessionWithWidgets
-        ).addWidget(
-          'ApolloFeatureDetailsWidget',
-          'apolloFeatureDetailsWidget',
-          {
-            feature: sourceFeature,
-            assembly: currentAssemblyId,
-            refName: region.refName,
-          },
-        )
-        ;(session as unknown as SessionWithWidgets).showWidget(
-          apolloFeatureWidget,
-        )
-      },
-    },
-    {
       label: 'Merge exons',
       disabled:
         !admin || !featureTypeOntology.isTypeOf(sourceFeature.type, 'exon'),
@@ -451,31 +428,6 @@ function getContextMenuItems(
       },
     },
   )
-  if (
-    (featureTypeOntology.isTypeOf(sourceFeature.type, 'transcript') ||
-      featureTypeOntology.isTypeOf(
-        sourceFeature.type,
-        'pseudogenic_transcript',
-      )) &&
-    isSessionModelWithWidgets(session)
-  ) {
-    menuItems.push({
-      label: 'Edit transcript details',
-      onClick: () => {
-        const apolloTranscriptWidget = session.addWidget(
-          'ApolloTranscriptDetails',
-          'apolloTranscriptDetails',
-          {
-            feature: sourceFeature,
-            assembly: currentAssemblyId,
-            changeManager,
-            refName: region.refName,
-          },
-        )
-        session.showWidget(apolloTranscriptWidget)
-      },
-    })
-  }
   return menuItems
 }
 
@@ -543,9 +495,12 @@ function onMouseUp(
     return
   }
   const { featureAndGlyphUnderMouse } = mousePosition
-  if (featureAndGlyphUnderMouse?.feature) {
-    stateModel.setSelectedFeature(featureAndGlyphUnderMouse.feature)
+  if (!featureAndGlyphUnderMouse) {
+    return
   }
+  const { feature } = featureAndGlyphUnderMouse
+  stateModel.setSelectedFeature(feature)
+  stateModel.showFeatureDetailsWidget(feature)
 }
 
 /** @returns undefined if mouse not on the edge of this feature, otherwise 'start' or 'end' depending on which edge */

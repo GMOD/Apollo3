@@ -60,19 +60,32 @@ export class LocationStartChange extends FeatureChange {
   async executeOnServer(backend: ServerDataStore) {
     const { featureModel, session } = backend
     const { changes, logger } = this
-    const featuresForChanges: {
-      feature: Feature
-      topLevelFeature: FeatureDocument
-    }[] = []
     // Let's first check that all features are found and those old values match with expected ones. We do this just to be sure that all changes can be done.
+    const topLevelFeatures: FeatureDocument[] = []
     for (const change of changes) {
-      const { featureId, oldStart } = change
+      const { featureId, oldStart, newStart } = change
 
-      // Search correct feature
-      const topLevelFeature = await featureModel
-        .findOne({ allIds: featureId })
-        .session(session)
-        .exec()
+      // See if we already have top-level feature for this feature
+      let topLevelFeature: FeatureDocument | undefined | null
+      let feature: Feature | undefined | null
+      for (const tlv of topLevelFeatures) {
+        const childFeature = this.getFeatureFromId(tlv, featureId)
+        if (childFeature) {
+          topLevelFeature = tlv
+          feature = childFeature
+          break
+        }
+      }
+      if (!topLevelFeature) {
+        // Don't already have top-level feature, so let's query it
+        topLevelFeature = await featureModel
+          .findOne({ allIds: featureId })
+          .session(session)
+          .exec()
+        if (topLevelFeature) {
+          topLevelFeatures.push(topLevelFeature)
+        }
+      }
 
       if (!topLevelFeature) {
         const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
@@ -84,57 +97,34 @@ export class LocationStartChange extends FeatureChange {
         `*** TOP level feature found: ${JSON.stringify(topLevelFeature)}`,
       )
 
-      const foundFeature = this.getFeatureFromId(topLevelFeature, featureId)
-      if (!foundFeature) {
+      if (!feature) {
+        feature = this.getFeatureFromId(topLevelFeature, featureId)
+      }
+      if (!feature) {
         const errMsg = 'ERROR when searching feature by featureId'
         logger.error(errMsg)
         throw new Error(errMsg)
       }
-      logger.debug?.(`*** Found feature: ${JSON.stringify(foundFeature)}`)
-      if (foundFeature.min === oldStart) {
-        featuresForChanges.push({ feature: foundFeature, topLevelFeature })
-      } else {
-        if (foundFeature.children) {
-          for (const [, childFeature] of foundFeature.children) {
-            if (childFeature.min === oldStart) {
-              logger.debug?.(
-                `*** UPDATE CHILD FEATURE ID= ${featureId}, CHILD: ${JSON.stringify(
-                  childFeature,
-                )}`,
-              )
-              featuresForChanges.push({
-                feature: childFeature,
-                topLevelFeature,
-              })
-              break
-            }
-          }
-        }
+      logger.debug?.(`*** Found feature: ${JSON.stringify(feature)}`)
+      if (feature.min !== oldStart) {
+        const errMsg = 'Expected previous max does not match'
+        logger.error(errMsg)
+        throw new Error(errMsg)
       }
-    }
-
-    // Let's update objects.
-    for (const [idx, change] of changes.entries()) {
-      const { newStart } = change
-      const { feature, topLevelFeature } = featuresForChanges[idx]
       feature.min = newStart
       if (topLevelFeature._id.equals(feature._id)) {
         topLevelFeature.markModified('start') // Mark as modified. Without this save() -method is not updating data in database
       } else {
         topLevelFeature.markModified('children') // Mark as modified. Without this save() -method is not updating data in database
       }
-
+    }
+    for (const tlv of topLevelFeatures) {
       try {
-        await topLevelFeature.save()
+        await tlv.save()
       } catch (error) {
         logger.debug?.(`*** FAILED: ${error}`)
         throw error
       }
-      logger.debug?.(
-        `*** Object updated in Mongo. New object: ${JSON.stringify(
-          topLevelFeature,
-        )}`,
-      )
     }
   }
 
@@ -146,12 +136,13 @@ export class LocationStartChange extends FeatureChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
-    for (const [idx, changedId] of this.changedIds.entries()) {
-      const feature = dataStore.getFeature(changedId)
+    for (const change of this.changes) {
+      const { featureId, newStart } = change
+      const feature = dataStore.getFeature(featureId)
       if (!feature) {
-        throw new Error(`Could not find feature with identifier "${changedId}"`)
+        throw new Error(`Could not find feature with identifier "${featureId}"`)
       }
-      feature.setMin(this.changes[idx].newStart)
+      feature.setMin(newStart)
     }
   }
 

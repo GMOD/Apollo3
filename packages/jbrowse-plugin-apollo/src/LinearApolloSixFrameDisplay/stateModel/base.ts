@@ -10,6 +10,7 @@ import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/con
 import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
 import {
   type AbstractSessionModel,
+  type SessionWithWidgets,
   getContainingView,
   getSession,
 } from '@jbrowse/core/util'
@@ -36,6 +37,7 @@ export function baseModelFactory(
       configuration: ConfigurationReference(configSchema),
       graphical: true,
       table: false,
+      showFeatureLabels: true,
       heightPreConfig: types.maybe(
         types.refinement(
           'displayHeight',
@@ -164,6 +166,9 @@ export function baseModelFactory(
         self.graphical = true
         self.table = true
       },
+      toggleShowFeatureLabels() {
+        self.showFeatureLabels = !self.showFeatureLabels
+      },
       updateFilteredFeatureTypes(types: string[]) {
         self.filteredFeatureTypes = cast(types)
       },
@@ -172,7 +177,7 @@ export function baseModelFactory(
       const { filteredFeatureTypes, trackMenuItems: superTrackMenuItems } = self
       return {
         trackMenuItems() {
-          const { graphical, table } = self
+          const { graphical, table, showFeatureLabels } = self
           return [
             ...superTrackMenuItems(),
             {
@@ -201,6 +206,14 @@ export function baseModelFactory(
                   checked: table && graphical,
                   onClick: () => {
                     self.showGraphicalAndTable()
+                  },
+                },
+                {
+                  label: 'Feature Labels',
+                  type: 'checkbox',
+                  checked: showFeatureLabels,
+                  onClick: () => {
+                    self.toggleShowFeatureLabels()
                   },
                 },
               ],
@@ -235,6 +248,34 @@ export function baseModelFactory(
         ;(
           self.session as unknown as ApolloSessionModel
         ).apolloSetSelectedFeature(feature)
+      },
+      showFeatureDetailsWidget(
+        feature: AnnotationFeature,
+        customWidgetNameAndId?: [string, string],
+      ) {
+        const [region] = self.regions
+        const { assemblyName, refName } = region
+        const assembly = self.getAssemblyId(assemblyName)
+        if (!assembly) {
+          return
+        }
+        const { session } = self
+        const { changeManager } = session.apolloDataStore
+        const [widgetName, widgetId] = customWidgetNameAndId ?? [
+          'ApolloFeatureDetailsWidget',
+          'apolloFeatureDetailsWidget',
+        ]
+        const apolloFeatureWidget = (
+          session as unknown as SessionWithWidgets
+        ).addWidget(widgetName, widgetId, {
+          feature,
+          assembly,
+          refName,
+          changeManager,
+        })
+        ;(session as unknown as SessionWithWidgets).showWidget(
+          apolloFeatureWidget,
+        )
       },
       afterAttach() {
         addDisposer(
