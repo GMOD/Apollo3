@@ -238,7 +238,7 @@ export class MergeTranscriptsChange extends FeatureChange {
     }
     let merged = false
     let mrgChild: AnnotationFeature | undefined
-    let toDelete = true
+    let toDelete
     for (const [, firstFeatureChild] of firstTranscript.children) {
       if (!merged || !mrgChild) {
         toDelete = false
