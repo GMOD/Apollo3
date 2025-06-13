@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import {
   type ChangeOptions,
   type ClientDataStore,
@@ -10,6 +11,7 @@ import {
 } from '@apollo-annotation/common'
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
+import { findAndDeleteChildFeature } from './DeleteFeatureChange'
 import { UndoMergeExonsChange } from './UndoMergeExonsChange'
 
 interface SerializedMergeExonsChangeBase extends SerializedFeatureChange {
@@ -83,9 +85,10 @@ export class MergeExonsChange extends FeatureChange {
       mergedExon.min = Math.min(firstExon.min, secondExon.min)
       mergedExon.max = Math.max(firstExon.max, secondExon.max)
       mergedExon.attributes = this.mergeAttributes(firstExon, secondExon)
-      const deletedIds = this.findAndDeleteChildFeature(
+      const deletedIds = findAndDeleteChildFeature(
         topLevelFeature,
         secondExon._id,
+        this,
       )
       deletedIds.push(secondExon._id)
       topLevelFeature.allIds = topLevelFeature.allIds.filter(
