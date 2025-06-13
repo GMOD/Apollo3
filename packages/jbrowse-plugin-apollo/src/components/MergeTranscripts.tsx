@@ -61,11 +61,7 @@ function getTranscripts(
   return transcripts
 }
 
-function makeRadioButtonName(
-  key: string,
-  transcripts: Record<string, AnnotationFeature>,
-): string {
-  const transcript = transcripts[key]
+function makeRadioButtonName(transcript: AnnotationFeature): string {
   let id
   if (transcript.attributes.get('gff_name')) {
     id = transcript.attributes.get('gff_name')?.join(',')
@@ -154,7 +150,7 @@ export function MergeTranscripts({
                   control={<Radio />}
                   label={
                     <Box display="flex" alignItems="center">
-                      {makeRadioButtonName(key, transcripts)}
+                      {makeRadioButtonName(transcripts[key])}
                     </Box>
                   }
                 />
