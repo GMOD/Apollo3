@@ -106,7 +106,8 @@ export function MergeExons({
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    if (!selectedExon) {
+    const { parent } = sourceFeature
+    if (!(selectedExon && parent)) {
       return
     }
     if (selectedFeature?._id === sourceFeature._id) {
@@ -118,7 +119,7 @@ export function MergeExons({
       assembly: sourceAssemblyId,
       firstExon: getSnapshot(sourceFeature),
       secondExon: getSnapshot(selectedExon),
-      parentFeatureId: sourceFeature.parent?._id,
+      parentFeatureId: parent._id,
     })
     await changeManager.submit(change)
     notify('Exons successfully merged', 'success')
