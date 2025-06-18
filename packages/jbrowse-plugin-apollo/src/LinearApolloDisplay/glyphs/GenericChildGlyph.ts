@@ -1,6 +1,8 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
+import { type MenuItem } from '@jbrowse/core/ui'
 
 import { type LinearApolloDisplay } from '../stateModel'
+import { type LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
 import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
 
 import { boxGlyph, drawBox, isSelectedFeature } from './BoxGlyph'
@@ -130,12 +132,32 @@ function getRowForFeature(
   return
 }
 
+function getContextMenuItems(
+  display: LinearApolloDisplayMouseEvents,
+): MenuItem[] {
+  const { apolloHover, session } = display
+  const menuItems: MenuItem[] = []
+  if (!apolloHover) {
+    return menuItems
+  }
+  const { feature: sourceFeature } = apolloHover
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  const sourceFeatureMenuItems = boxGlyph.getContextMenuItems(display)
+  menuItems.push({ label: sourceFeature.type, subMenu: sourceFeatureMenuItems })
+  // get parent/child features
+  // for each of them, call boxGlyph.getContextMenuItemsForFeature(display, feature)
+  // add each to a submenu
+  return menuItems
+}
+
 // False positive here, none of these functions use "this"
 /* eslint-disable @typescript-eslint/unbound-method */
 const {
   drawDragPreview,
   drawTooltip,
-  getContextMenuItems,
   onMouseDown,
   onMouseLeave,
   onMouseMove,

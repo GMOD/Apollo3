@@ -260,8 +260,19 @@ export function drawBox(
 function getContextMenuItems(
   display: LinearApolloDisplayMouseEvents,
 ): MenuItem[] {
+  const { apolloHover } = display
+  if (!apolloHover) {
+    return []
+  }
+  const { feature: sourceFeature } = apolloHover
+  return getContextMenuItemsForFeature(display, sourceFeature)
+}
+
+function getContextMenuItemsForFeature(
+  display: LinearApolloDisplayMouseEvents,
+  sourceFeature: AnnotationFeature,
+): MenuItem[] {
   const {
-    apolloHover,
     apolloInternetAccount: internetAccount,
     changeManager,
     regions,
@@ -269,10 +280,6 @@ function getContextMenuItems(
     session,
   } = display
   const menuItems: MenuItem[] = []
-  if (!apolloHover) {
-    return menuItems
-  }
-  const { feature: sourceFeature } = apolloHover
   const role = internetAccount ? internetAccount.role : 'admin'
   const admin = role === 'admin'
   const readOnly = !(role && ['admin', 'user'].includes(role))
