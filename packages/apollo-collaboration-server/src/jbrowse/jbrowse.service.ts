@@ -69,6 +69,7 @@ export class JBrowseService {
           ],
         },
       },
+      ApolloPlugin: { hasRole: false },
     }
     if (role === Role.None) {
       return configuration
@@ -76,6 +77,7 @@ export class JBrowseService {
     return {
       ...configuration,
       ApolloPlugin: {
+        hasRole: true,
         ontologies: [
           {
             name: 'Sequence Ontology',
