@@ -2,7 +2,6 @@ import { type IDBPDatabase, openDB } from 'idb'
 
 Cypress.Commands.add('loginAsGuest', () => {
   cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
-  cy.contains('Linear Genome View', { timeout: 10_000 }).click()
   cy.contains('Continue as Guest', { timeout: 10_000 }).click()
   // eslint-disable-next-line cypress/no-unnecessary-waiting
   cy.wait(2000)
@@ -100,6 +99,8 @@ Cypress.Commands.add('addOntologies', () => {
 })
 
 Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
+  // eslint-disable-next-line cypress/no-unnecessary-waiting
+  cy.wait(1000)
   cy.get('button[data-testid="dropDownMenuButton"]', { timeout: 10_000 })
     .contains('Apollo')
     .click({ force: true, timeout: 10_000 })

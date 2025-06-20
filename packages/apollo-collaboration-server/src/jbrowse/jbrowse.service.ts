@@ -211,6 +211,7 @@ export class JBrowseService {
         configuration: this.getConfiguration(role),
         plugins: this.getPlugins(),
         internetAccounts: this.getInternetAccounts(),
+        defaultSession: this.getDefaultSession(),
       }
     }
     const storedConfig = await this.getJBrowseConfig()
