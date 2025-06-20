@@ -15,6 +15,7 @@ import {
   flow,
   getRoot,
   getSnapshot,
+  isAlive,
   types,
 } from 'mobx-state-tree'
 
@@ -79,7 +80,9 @@ export const OntologyRecordType = types
       const equivalents: string[] = terms
         .map((term) => term.lbl)
         .filter((term) => term != undefined)
-      self.setEquivalentTypes(type, equivalents)
+      if (isAlive(self)) {
+        self.setEquivalentTypes(type, equivalents)
+      }
     }),
   }))
   .actions((self) => ({
