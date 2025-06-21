@@ -10,6 +10,11 @@ const ApolloPluginConfigurationSchema = ConfigurationSchema('ApolloPlugin', {
     type: 'string',
     defaultValue: 'Sequence Ontology',
   },
+  hasRole: {
+    description: 'Flag used internally by jbrowse-plugin-apollo',
+    type: 'boolean',
+    defaultValue: false,
+  },
 })
 
 export default ApolloPluginConfigurationSchema

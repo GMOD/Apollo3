@@ -69,6 +69,7 @@ export class JBrowseService {
           ],
         },
       },
+      ApolloPlugin: { hasRole: false },
     }
     if (role === Role.None) {
       return configuration
@@ -76,6 +77,7 @@ export class JBrowseService {
     return {
       ...configuration,
       ApolloPlugin: {
+        hasRole: true,
         ontologies: [
           {
             name: 'Sequence Ontology',
@@ -209,6 +211,7 @@ export class JBrowseService {
         configuration: this.getConfiguration(role),
         plugins: this.getPlugins(),
         internetAccounts: this.getInternetAccounts(),
+        defaultSession: this.getDefaultSession(),
       }
     }
     const storedConfig = await this.getJBrowseConfig()
