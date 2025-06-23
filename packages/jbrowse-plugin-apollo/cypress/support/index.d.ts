@@ -5,7 +5,11 @@ declare namespace Cypress {
     addOntologies(): Chainable<void>
     loginAsGuest(): Chainable<void>
     deleteAssemblies(): Chainable<void>
-    addAssemblyFromGff(assemblyName: string, fin: string): Chainable<void>
+    addAssemblyFromGff(
+      assemblyName: string,
+      fin: string,
+      launch?: boolean,
+    ): Chainable<void>
     selectAssemblyToView(assemblyName: string): Chainable<void>
     searchFeatures(query: string, expectedNumOfHits: number): Chainable<void>
     currentLocationEquals(
