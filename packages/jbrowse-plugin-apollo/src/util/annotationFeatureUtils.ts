@@ -1,10 +1,6 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
-import {
-  LinearApolloDisplayMouseEvents,
-  MousePosition,
-  MousePositionWithFeatureAndGlyph,
-} from '../LinearApolloDisplay/stateModel/mouseEvents'
-import { MenuItem } from '@jbrowse/core/ui'
+
+import { type MousePosition } from '../LinearApolloDisplay/stateModel/mouseEvents'
 
 export function getFeatureName(feature: AnnotationFeature) {
   const { attributes } = feature
