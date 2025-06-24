@@ -28,6 +28,11 @@ jobs:
           mongodb-version: 7
           mongodb-replica-set: test-rs
 
+      - name: Start local file server
+        run:
+          yarn --cwd packages/apollo-collaboration-server/test/data/ serve
+          --listen 3131 &
+
       - name: Run tests
         run: yarn run test:e2e:debug
         working-directory: packages/jbrowse-plugin-apollo

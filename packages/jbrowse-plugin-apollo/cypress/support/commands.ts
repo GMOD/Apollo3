@@ -2,7 +2,6 @@ import { type IDBPDatabase, openDB } from 'idb'
 
 Cypress.Commands.add('loginAsGuest', () => {
   cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
-  cy.contains('Linear Genome View', { timeout: 10_000 }).click()
   cy.contains('Continue as Guest', { timeout: 10_000 }).click()
   // eslint-disable-next-line cypress/no-unnecessary-waiting
   cy.wait(2000)
@@ -99,42 +98,48 @@ Cypress.Commands.add('addOntologies', () => {
   })
 })
 
-Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
-  cy.get('button[data-testid="dropDownMenuButton"]', { timeout: 10_000 })
-    .contains('Apollo')
-    .click({ force: true, timeout: 10_000 })
-  cy.contains('Add Assembly', { timeout: 10_000 }).click()
-  cy.get('form[data-testid="submit-form"]').within(() => {
-    cy.get('input[type="TextField"]').type(assemblyName)
-    cy.contains('GFF3 input')
-      .parent()
-      .parent()
-      .within(() => {
-        cy.get('button').click()
-      })
-    cy.get('input[data-testid="gff3-input-file"]').selectFile(fin)
-    cy.contains('Load features from GFF3')
-      .parent()
-      .within(() => {
-        cy.get('input[type="checkbox"]').should('be.checked')
-      })
-    cy.intercept('/changes').as('changes')
-    cy.get('Button[data-testid="submit-button"]').click()
-    cy.wait('@changes').its('response.statusCode').should('match', /2../)
-  })
+Cypress.Commands.add(
+  'addAssemblyFromGff',
+  (assemblyName, fin, launch = true) => {
+    cy.get('button[data-testid="dropDownMenuButton"]', { timeout: 10_000 })
+      .contains('Apollo')
+      .click({ force: true, timeout: 10_000 })
+    cy.contains('Add Assembly', { timeout: 10_000 }).click()
+    cy.get('form[data-testid="submit-form"]').within(() => {
+      cy.get('input[type="TextField"]').type(assemblyName)
+      cy.contains('GFF3 input')
+        .parent()
+        .parent()
+        .within(() => {
+          cy.get('button').click()
+        })
+      cy.get('input[data-testid="gff3-input-file"]').selectFile(fin)
+      cy.contains('Load features from GFF3')
+        .parent()
+        .within(() => {
+          cy.get('input[type="checkbox"]').should('be.checked')
+        })
+      cy.intercept('/changes').as('changes')
+      cy.get('Button[data-testid="submit-button"]').click()
+      cy.wait('@changes').its('response.statusCode').should('match', /2../)
+    })
 
-  cy.contains('UploadAssemblyFile')
-    .parent()
-    .should('contain', 'All operations successful')
-  cy.contains('AddAssemblyAndFeaturesFromFileChange')
-    .parent()
-    .should('contain', 'All operations successful')
-  cy.get('button[aria-label="Close drawer"]', { timeout: 10_000 }).click()
-  // eslint-disable-next-line cypress/no-unnecessary-waiting
-  cy.wait(1000)
-  cy.reload()
-  cy.contains('Select assembly to view', { timeout: 10_000 })
-})
+    cy.contains('UploadAssemblyFile')
+      .parent()
+      .should('contain', 'All operations successful')
+    cy.contains('AddAssemblyAndFeaturesFromFileChange')
+      .parent()
+      .should('contain', 'All operations successful')
+    cy.get('button[aria-label="Close drawer"]', { timeout: 10_000 }).click()
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(1000)
+    cy.reload()
+    if (launch) {
+      cy.contains('Launch view').click()
+    }
+    cy.contains('Select assembly to view', { timeout: 10_000 })
+  },
+)
 
 Cypress.Commands.add('selectAssemblyToView', (assemblyName) => {
   cy.contains('Select assembly to view', { timeout: 10_000 })
