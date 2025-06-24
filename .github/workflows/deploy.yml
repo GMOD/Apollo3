@@ -45,7 +45,7 @@ jobs:
           TARBALL=$(jq --raw-output ".versions.\"${LATEST_VERSION}\".dist.tarball" jpa.json)
           wget --output-document=- --quiet ${TARBALL} | \
             tar --extract --gzip --file=- --strip=2 package/dist/jbrowse-plugin-apollo.umd.production.min.js
-          cp dist/jbrowse-plugin-apollo.umd.production.min.js dist/apollo.js
+          cp jbrowse-plugin-apollo.umd.production.min.js apollo.js
       - name: Upload built plugin files
         uses: actions/upload-artifact@v4
         with:
