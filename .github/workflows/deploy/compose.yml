@@ -1,5 +1,3 @@
-name: apollo-demo-site
-
 services:
   apollo-collaboration-server:
     image: ghcr.io/gmod/apollo-collaboration-server:${DOCKER_TAG}

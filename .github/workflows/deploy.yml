@@ -111,6 +111,6 @@ jobs:
           DOCKER_TAG: ${{ vars.DOCKER_TAG }}
         working-directory: .github/workflows/deploy
         run: |
-          docker --context staging compose down
-          docker --context staging compose pull
-          docker --context staging compose up --build --detach --wait --wait-timeout 120
+          docker --context staging compose --project-name apollo-demo-${{ inputs.environment }}-site down
+          docker --context staging compose --project-name apollo-demo-${{ inputs.environment }}-site pull
+          docker --context staging compose --project-name apollo-demo-${{ inputs.environment }}-site up --build --detach --wait --wait-timeout 120
