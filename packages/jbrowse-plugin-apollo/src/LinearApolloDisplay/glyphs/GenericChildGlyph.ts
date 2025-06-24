@@ -1,6 +1,10 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
 
+import {
+  getFeaturesUnderClick,
+  makeFeatureLabel,
+} from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
   type LinearApolloDisplayMouseEvents,
@@ -153,10 +157,23 @@ function getContextMenuItems(
     display,
     mousePosition,
   )
-  menuItems.push({ label: sourceFeature.type, subMenu: sourceFeatureMenuItems })
-  // get parent/child features
-  // for each of them, call boxGlyph.getContextMenuItemsForFeature(display, feature)
-  // add each to a submenu
+  menuItems.push({
+    label: makeFeatureLabel(sourceFeature),
+    subMenu: sourceFeatureMenuItems,
+  })
+  for (const relative of getFeaturesUnderClick(mousePosition)) {
+    if (relative._id === sourceFeature._id) {
+      continue
+    }
+    const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(
+      display,
+      relative,
+    )
+    menuItems.push({
+      label: makeFeatureLabel(relative),
+      subMenu: contextMenuItemsForFeature,
+    })
+  }
   return menuItems
 }
 
@@ -165,6 +182,7 @@ function getContextMenuItems(
 const {
   drawDragPreview,
   drawTooltip,
+  getContextMenuItemsForFeature,
   onMouseDown,
   onMouseLeave,
   onMouseMove,
@@ -177,6 +195,7 @@ export const genericChildGlyph: Glyph = {
   drawDragPreview,
   drawHover,
   drawTooltip,
+  getContextMenuItemsForFeature,
   getContextMenuItems,
   getFeatureFromLayout,
   getRowCount,

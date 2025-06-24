@@ -515,6 +515,7 @@ export const boxGlyph: Glyph = {
   drawDragPreview,
   drawHover,
   drawTooltip,
+  getContextMenuItemsForFeature,
   getContextMenuItems,
   getFeatureFromLayout,
   getRowCount,

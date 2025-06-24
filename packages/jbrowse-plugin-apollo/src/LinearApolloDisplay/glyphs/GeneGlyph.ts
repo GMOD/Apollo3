@@ -1,11 +1,17 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
+import { type MenuItem } from '@jbrowse/core/ui'
 import { getFrame, intersection2 } from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material'
 
 import { type OntologyRecord } from '../../OntologyManager'
+import {
+  getFeaturesUnderClick,
+  makeFeatureLabel,
+} from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
+  type LinearApolloDisplayMouseEvents,
   type MousePosition,
   type MousePositionWithFeatureAndGlyph,
   isMousePositionWithFeatureAndGlyph,
@@ -800,9 +806,48 @@ function getDraggableFeatureInfo(
   return
 }
 
+function getContextMenuItems(
+  display: LinearApolloDisplayMouseEvents,
+  mousePosition: MousePositionWithFeatureAndGlyph,
+): MenuItem[] {
+  const { apolloHover, session } = display
+  const menuItems: MenuItem[] = []
+  if (!apolloHover) {
+    return menuItems
+  }
+  const { feature: sourceFeature } = apolloHover
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  const sourceFeatureMenuItems = boxGlyph.getContextMenuItems(
+    display,
+    mousePosition,
+  )
+  menuItems.push({
+    label: makeFeatureLabel(sourceFeature),
+    subMenu: sourceFeatureMenuItems,
+  })
+
+  for (const relative of getFeaturesUnderClick(mousePosition)) {
+    if (relative._id === sourceFeature._id) {
+      continue
+    }
+    const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(
+      display,
+      relative,
+    )
+    menuItems.push({
+      label: makeFeatureLabel(relative),
+      subMenu: contextMenuItemsForFeature,
+    })
+  }
+  return menuItems
+}
+
 // False positive here, none of these functions use "this"
 /* eslint-disable @typescript-eslint/unbound-method */
-const { drawTooltip, getContextMenuItems, onMouseLeave } = boxGlyph
+const { drawTooltip, getContextMenuItemsForFeature, onMouseLeave } = boxGlyph
 /* eslint-enable @typescript-eslint/unbound-method */
 
 export const geneGlyph: Glyph = {
@@ -811,6 +856,7 @@ export const geneGlyph: Glyph = {
   drawHover,
   drawTooltip,
   getContextMenuItems,
+  getContextMenuItemsForFeature,
   getFeatureFromLayout,
   getRowCount,
   getRowForFeature,
