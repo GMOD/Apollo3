@@ -268,6 +268,18 @@ function getContextMenuItems(
   return getContextMenuItemsForFeature(display, sourceFeature)
 }
 
+function makeFeatureLabel(feature: AnnotationFeature) {
+  let name: string | undefined
+  if (feature.attributes.get('gff_name')) {
+    name = feature.attributes.get('gff_name')?.join(',')
+  } else if (feature.attributes.get('gff_id')) {
+    name = feature.attributes.get('gff_id')?.join(',')
+  } else {
+    name = feature._id
+  }
+  return `${name} (${(feature.min + 1).toLocaleString('en')}..${feature.max.toLocaleString('en')})`
+}
+
 function getContextMenuItemsForFeature(
   display: LinearApolloDisplayMouseEvents,
   sourceFeature: AnnotationFeature,
@@ -292,6 +304,10 @@ function getContextMenuItemsForFeature(
   }
 
   menuItems.push(
+    {
+      label: makeFeatureLabel(sourceFeature),
+      type: 'subHeader',
+    },
     {
       label: 'Add child feature',
       disabled: readOnly,

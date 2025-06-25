@@ -5,10 +5,7 @@ import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material'
 
 import { type OntologyRecord } from '../../OntologyManager'
-import {
-  getFeaturesUnderClick,
-  makeFeatureLabel,
-} from '../../util/annotationFeatureUtils'
+import { getFeaturesUnderClick } from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
   type LinearApolloDisplayMouseEvents,
@@ -825,7 +822,7 @@ function getContextMenuItems(
     mousePosition,
   )
   menuItems.push({
-    label: makeFeatureLabel(sourceFeature),
+    label: sourceFeature.type,
     subMenu: sourceFeatureMenuItems,
   })
 
@@ -838,7 +835,7 @@ function getContextMenuItems(
       relative,
     )
     menuItems.push({
-      label: makeFeatureLabel(relative),
+      label: relative.type,
       subMenu: contextMenuItemsForFeature,
     })
   }

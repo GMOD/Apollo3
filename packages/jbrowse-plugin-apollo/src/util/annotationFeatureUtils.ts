@@ -75,17 +75,17 @@ function getParents(feature: AnnotationFeature): AnnotationFeature[] {
   return parents
 }
 
-export function makeFeatureLabel(feature: AnnotationFeature) {
-  let name: string | undefined
-  if (feature.attributes.get('gff_name')) {
-    name = feature.attributes.get('gff_name')?.join(',')
-  } else if (feature.attributes.get('gff_id')) {
-    name = feature.attributes.get('gff_id')?.join(',')
-  } else {
-    name = feature._id
-  }
-  return `${feature.type} [${feature.min + 1}-${feature.max}] ${name}`
-}
+// export function makeFeatureLabel(feature: AnnotationFeature) {
+//   let name: string | undefined
+//   if (feature.attributes.get('gff_name')) {
+//     name = feature.attributes.get('gff_name')?.join(',')
+//   } else if (feature.attributes.get('gff_id')) {
+//     name = feature.attributes.get('gff_id')?.join(',')
+//   } else {
+//     name = feature._id
+//   }
+//   return `${feature.type} [${feature.min + 1}-${feature.max}] ${name}`
+// }
 
 export function getFeaturesUnderClick(
   mousePosition: MousePosition,
