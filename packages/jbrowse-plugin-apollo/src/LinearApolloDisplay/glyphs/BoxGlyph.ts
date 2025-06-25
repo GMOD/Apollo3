@@ -284,6 +284,7 @@ function getContextMenuItems(
     throw new Error('featureTypeOntology is undefined')
   }
 
+  // Add only relevant options
   menuItems.push(
     {
       label: 'Add child feature',

@@ -10,9 +10,12 @@ import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import {
   Button,
+  Checkbox,
   DialogActions,
   DialogContent,
   DialogContentText,
+  FormControlLabel,
+  FormGroup,
   MenuItem,
   Select,
   type SelectChangeEvent,
@@ -37,6 +40,7 @@ interface DownloadGFF3Props {
 }
 
 export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
+  const [includeFASTA, setincludeFASTA] = useState(false)
   const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -114,7 +118,7 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
     const exportURL = new URL('export', internetAccount.baseURL)
     const params: Record<string, string> = {
       exportID,
-      includeFASTA: 'true',
+      includeFASTA: includeFASTA ? 'true' : 'false',
     }
     const exportSearchParams = new URLSearchParams(params)
     exportURL.search = exportSearchParams.toString()
@@ -199,6 +203,21 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
           <DialogContentText>
             Select assembly to export to GFF3
           </DialogContentText>
+
+          <FormGroup>
+            <FormControlLabel
+              data-testid="include-fasta-checkbox"
+              control={
+                <Checkbox
+                  checked={includeFASTA}
+                  onChange={() => {
+                    setincludeFASTA(!includeFASTA)
+                  }}
+                />
+              }
+              label="Include fasta sequence in GFF output"
+            />
+          </FormGroup>
         </DialogContent>
         <DialogActions>
           <Button
