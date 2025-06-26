@@ -1,10 +1,15 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
-import { getFrame, intersection2 } from '@jbrowse/core/util'
+import {
+  type AbstractSessionModel,
+  getFrame,
+  intersection2,
+} from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material'
 
 import { type OntologyRecord } from '../../OntologyManager'
+import { MergeExons, SplitExon } from '../../components'
 import { getFeaturesUnderClick } from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
@@ -807,35 +812,86 @@ function getContextMenuItems(
   display: LinearApolloDisplayMouseEvents,
   mousePosition: MousePositionWithFeatureAndGlyph,
 ): MenuItem[] {
-  const { apolloHover, session } = display
+  const {
+    apolloInternetAccount: internetAccount,
+    apolloHover,
+    changeManager,
+    regions,
+    selectedFeature,
+    session,
+  } = display
+  const [region] = regions
+  const currentAssemblyId = display.getAssemblyId(region.assemblyName)
   const menuItems: MenuItem[] = []
+  const role = internetAccount ? internetAccount.role : 'admin'
+  const admin = role === 'admin'
   if (!apolloHover) {
     return menuItems
   }
-  const { feature: sourceFeature } = apolloHover
   const { featureTypeOntology } = session.apolloDataStore.ontologyManager
   if (!featureTypeOntology) {
     throw new Error('featureTypeOntology is undefined')
   }
-  const sourceFeatureMenuItems = boxGlyph.getContextMenuItems(
-    display,
-    mousePosition,
-  )
-  menuItems.push({
-    label: sourceFeature.type,
-    subMenu: sourceFeatureMenuItems,
-  })
 
-  for (const relative of getFeaturesUnderClick(mousePosition)) {
-    if (relative._id === sourceFeature._id) {
-      continue
-    }
+  for (const feature of getFeaturesUnderClick(mousePosition)) {
     const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(
       display,
-      relative,
+      feature,
     )
+    if (featureTypeOntology.isTypeOf(feature.type, 'exon')) {
+      contextMenuItemsForFeature.push(
+        {
+          label: 'Merge exons',
+          disabled: !admin,
+          onClick: () => {
+            ;(session as unknown as AbstractSessionModel).queueDialog(
+              (doneCallback) => [
+                MergeExons,
+                {
+                  session,
+                  handleClose: () => {
+                    doneCallback()
+                  },
+                  changeManager,
+                  sourceFeature: feature,
+                  sourceAssemblyId: currentAssemblyId,
+                  selectedFeature,
+                  setSelectedFeature: (feature?: AnnotationFeature) => {
+                    display.setSelectedFeature(feature)
+                  },
+                },
+              ],
+            )
+          },
+        },
+        {
+          label: 'Split exon',
+          disabled: !admin,
+          onClick: () => {
+            ;(session as unknown as AbstractSessionModel).queueDialog(
+              (doneCallback) => [
+                SplitExon,
+                {
+                  session,
+                  handleClose: () => {
+                    doneCallback()
+                  },
+                  changeManager,
+                  sourceFeature: feature,
+                  sourceAssemblyId: currentAssemblyId,
+                  selectedFeature,
+                  setSelectedFeature: (feature?: AnnotationFeature) => {
+                    display.setSelectedFeature(feature)
+                  },
+                },
+              ],
+            )
+          },
+        },
+      )
+    }
     menuItems.push({
-      label: relative.type,
+      label: feature.type,
       subMenu: contextMenuItemsForFeature,
     })
   }

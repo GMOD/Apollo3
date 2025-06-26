@@ -3,13 +3,7 @@ import { type MenuItem } from '@jbrowse/core/ui'
 import { type AbstractSessionModel } from '@jbrowse/core/util'
 import { type Theme, alpha } from '@mui/material'
 
-import {
-  AddChildFeature,
-  CopyFeature,
-  DeleteFeature,
-  MergeExons,
-  SplitExon,
-} from '../../components'
+import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
   type LinearApolloDisplayMouseEvents,
@@ -277,7 +271,14 @@ function makeFeatureLabel(feature: AnnotationFeature) {
   } else {
     name = feature._id
   }
-  return `${name} (${(feature.min + 1).toLocaleString('en')}..${feature.max.toLocaleString('en')})`
+  const coords = `(${(feature.min + 1).toLocaleString('en')}..${feature.max.toLocaleString('en')})`
+  const maxLen = 60
+  if (name && name.length + coords.length > maxLen + 5) {
+    const trim = maxLen - coords.length
+    name = trim > 0 ? name.slice(0, trim) : ''
+    name = `${name}[...]`
+  }
+  return `${name} ${coords}`
 }
 
 function getContextMenuItemsForFeature(
@@ -356,56 +357,6 @@ function getContextMenuItemsForFeature(
         ;(session as unknown as AbstractSessionModel).queueDialog(
           (doneCallback) => [
             DeleteFeature,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager,
-              sourceFeature,
-              sourceAssemblyId: currentAssemblyId,
-              selectedFeature,
-              setSelectedFeature: (feature?: AnnotationFeature) => {
-                display.setSelectedFeature(feature)
-              },
-            },
-          ],
-        )
-      },
-    },
-    {
-      label: 'Merge exons',
-      disabled:
-        !admin || !featureTypeOntology.isTypeOf(sourceFeature.type, 'exon'),
-      onClick: () => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            MergeExons,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager,
-              sourceFeature,
-              sourceAssemblyId: currentAssemblyId,
-              selectedFeature,
-              setSelectedFeature: (feature?: AnnotationFeature) => {
-                display.setSelectedFeature(feature)
-              },
-            },
-          ],
-        )
-      },
-    },
-    {
-      label: 'Split exon',
-      disabled:
-        !admin || !featureTypeOntology.isTypeOf(sourceFeature.type, 'exon'),
-      onClick: () => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            SplitExon,
             {
               session,
               handleClose: () => {
