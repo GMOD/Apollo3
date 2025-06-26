@@ -10,48 +10,52 @@ import {
 } from '@apollo-annotation/common'
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
-import { MergeExonsChange } from './MergeExonsChange'
+import { MergeTranscriptsChange } from './MergeTranscriptsChange'
 
-interface SerializedUndoMergeExonsChangeBase extends SerializedFeatureChange {
-  typeName: 'UndoMergeExonsChange'
+interface SerializedUndoMergeTranscriptsChangeBase
+  extends SerializedFeatureChange {
+  typeName: 'UndoMergeTranscriptsChange'
 }
 
-export interface UndoMergeExonsChangeDetails {
-  exonsToRestore: AnnotationFeatureSnapshot[]
+export interface UndoMergeTranscriptsChangeDetails {
+  transcriptsToRestore: AnnotationFeatureSnapshot[]
   parentFeatureId: string
 }
 
-interface SerializedUndoMergeExonsChangeSingle
-  extends SerializedUndoMergeExonsChangeBase,
-    UndoMergeExonsChangeDetails {}
+interface SerializedUndoMergeTranscriptsChangeSingle
+  extends SerializedUndoMergeTranscriptsChangeBase,
+    UndoMergeTranscriptsChangeDetails {}
 
-interface SerializedUndoMergeExonsChangeMultiple
-  extends SerializedUndoMergeExonsChangeBase {
-  changes: UndoMergeExonsChangeDetails[]
+interface SerializedUndoMergeTranscriptsChangeMultiple
+  extends SerializedUndoMergeTranscriptsChangeBase {
+  changes: UndoMergeTranscriptsChangeDetails[]
 }
 
-export type SerializedUndoMergeExonsChange =
-  | SerializedUndoMergeExonsChangeSingle
-  | SerializedUndoMergeExonsChangeMultiple
-export class UndoMergeExonsChange extends FeatureChange {
-  typeName = 'UndoMergeExonsChange' as const
-  changes: UndoMergeExonsChangeDetails[]
+export type SerializedUndoMergeTranscriptsChange =
+  | SerializedUndoMergeTranscriptsChangeSingle
+  | SerializedUndoMergeTranscriptsChangeMultiple
+export class UndoMergeTranscriptsChange extends FeatureChange {
+  typeName = 'UndoMergeTranscriptsChange' as const
+  changes: UndoMergeTranscriptsChangeDetails[]
 
-  constructor(json: SerializedUndoMergeExonsChange, options?: ChangeOptions) {
+  constructor(
+    json: SerializedUndoMergeTranscriptsChange,
+    options?: ChangeOptions,
+  ) {
     super(json, options)
     this.changes = 'changes' in json ? json.changes : [json]
   }
 
-  toJSON(): SerializedUndoMergeExonsChange {
+  toJSON(): SerializedUndoMergeTranscriptsChange {
     const { assembly, changedIds, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ exonsToRestore, parentFeatureId }] = changes
+      const [{ transcriptsToRestore, parentFeatureId }] = changes
 
       return {
         typeName,
         changedIds,
         assembly,
-        exonsToRestore,
+        transcriptsToRestore,
         parentFeatureId,
       }
     }
@@ -62,10 +66,10 @@ export class UndoMergeExonsChange extends FeatureChange {
     const { featureModel, session } = backend
     const { changes } = this
     for (const change of changes) {
-      const { exonsToRestore, parentFeatureId } = change
-      if (exonsToRestore.length !== 2) {
+      const { transcriptsToRestore, parentFeatureId } = change
+      if (transcriptsToRestore.length !== 2) {
         throw new Error(
-          `Expected exactly two exons to restore. Got :${exonsToRestore.length}`,
+          `Expected exactly two transcripts to restore. Got :${transcriptsToRestore.length}`,
         )
       }
       const topLevelFeature = await featureModel
@@ -87,10 +91,10 @@ export class UndoMergeExonsChange extends FeatureChange {
       if (!parentFeature.children) {
         parentFeature.children = new Map()
       }
-      for (const exon of exonsToRestore) {
-        this.addChild(parentFeature, exon)
-        const childIds = this.getChildFeatureIds(exon)
-        topLevelFeature.allIds.push(exon._id, ...childIds)
+      for (const transcript of transcriptsToRestore) {
+        this.addChild(parentFeature, transcript)
+        const childIds = this.getChildFeatureIds(transcript)
+        topLevelFeature.allIds.push(transcript._id, ...childIds)
       }
       await topLevelFeature.save()
     }
@@ -107,7 +111,7 @@ export class UndoMergeExonsChange extends FeatureChange {
     }
     const { changes } = this
     for (const change of changes) {
-      const { exonsToRestore, parentFeatureId } = change
+      const { transcriptsToRestore, parentFeatureId } = change
       if (!parentFeatureId) {
         throw new Error('Parent ID is missing')
       }
@@ -119,8 +123,8 @@ export class UndoMergeExonsChange extends FeatureChange {
       if (!parentFeature.attributes.get('_id')) {
         parentFeature.setAttribute('_id', [parentFeature._id])
       }
-      for (const exon of exonsToRestore) {
-        parentFeature.addChild(exon)
+      for (const transcript of transcriptsToRestore) {
+        parentFeature.addChild(transcript)
       }
     }
   }
@@ -130,16 +134,16 @@ export class UndoMergeExonsChange extends FeatureChange {
     const inverseChangedIds = [...changedIds].reverse()
     const inverseChanges = [...changes]
       .reverse()
-      .map((undoMergeExonsChange) => ({
-        firstExon: undoMergeExonsChange.exonsToRestore[0],
-        secondExon: undoMergeExonsChange.exonsToRestore[1],
-        parentFeatureId: undoMergeExonsChange.parentFeatureId,
+      .map((undoMergeTranscriptsChange) => ({
+        firstTranscript: undoMergeTranscriptsChange.transcriptsToRestore[0],
+        secondTranscript: undoMergeTranscriptsChange.transcriptsToRestore[1],
+        parentFeatureId: undoMergeTranscriptsChange.parentFeatureId,
       }))
 
-    return new MergeExonsChange(
+    return new MergeTranscriptsChange(
       {
         changedIds: inverseChangedIds,
-        typeName: 'MergeExonsChange',
+        typeName: 'MergeTranscriptsChange',
         changes: inverseChanges,
         assembly,
       },

@@ -8,6 +8,7 @@ import {
   CopyFeature,
   DeleteFeature,
   MergeExons,
+  MergeTranscripts,
   SplitExon,
 } from '../../components'
 import { type LinearApolloDisplay } from '../stateModel'
@@ -383,6 +384,32 @@ function getContextMenuItems(
         ;(session as unknown as AbstractSessionModel).queueDialog(
           (doneCallback) => [
             SplitExon,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature,
+              sourceAssemblyId: currentAssemblyId,
+              selectedFeature,
+              setSelectedFeature: (feature?: AnnotationFeature) => {
+                display.setSelectedFeature(feature)
+              },
+            },
+          ],
+        )
+      },
+    },
+    {
+      label: 'Merge transcript',
+      disabled:
+        !admin ||
+        !featureTypeOntology.isTypeOf(sourceFeature.type, 'transcript'),
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            MergeTranscripts,
             {
               session,
               handleClose: () => {
