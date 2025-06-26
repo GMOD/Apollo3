@@ -1,11 +1,19 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
-import { getFrame, intersection2 } from '@jbrowse/core/util'
+import { type MenuItem } from '@jbrowse/core/ui'
+import {
+  type AbstractSessionModel,
+  getFrame,
+  intersection2,
+} from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material'
 
 import { type OntologyRecord } from '../../OntologyManager'
+import { MergeExons, SplitExon } from '../../components'
+import { getFeaturesUnderClick } from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
+  type LinearApolloDisplayMouseEvents,
   type MousePosition,
   type MousePositionWithFeatureAndGlyph,
   isMousePositionWithFeatureAndGlyph,
@@ -800,9 +808,99 @@ function getDraggableFeatureInfo(
   return
 }
 
+function getContextMenuItems(
+  display: LinearApolloDisplayMouseEvents,
+  mousePosition: MousePositionWithFeatureAndGlyph,
+): MenuItem[] {
+  const {
+    apolloInternetAccount: internetAccount,
+    apolloHover,
+    changeManager,
+    regions,
+    selectedFeature,
+    session,
+  } = display
+  const [region] = regions
+  const currentAssemblyId = display.getAssemblyId(region.assemblyName)
+  const menuItems: MenuItem[] = []
+  const role = internetAccount ? internetAccount.role : 'admin'
+  const admin = role === 'admin'
+  if (!apolloHover) {
+    return menuItems
+  }
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+
+  for (const feature of getFeaturesUnderClick(mousePosition)) {
+    const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(
+      display,
+      feature,
+    )
+    if (featureTypeOntology.isTypeOf(feature.type, 'exon')) {
+      contextMenuItemsForFeature.push(
+        {
+          label: 'Merge exons',
+          disabled: !admin,
+          onClick: () => {
+            ;(session as unknown as AbstractSessionModel).queueDialog(
+              (doneCallback) => [
+                MergeExons,
+                {
+                  session,
+                  handleClose: () => {
+                    doneCallback()
+                  },
+                  changeManager,
+                  sourceFeature: feature,
+                  sourceAssemblyId: currentAssemblyId,
+                  selectedFeature,
+                  setSelectedFeature: (feature?: AnnotationFeature) => {
+                    display.setSelectedFeature(feature)
+                  },
+                },
+              ],
+            )
+          },
+        },
+        {
+          label: 'Split exon',
+          disabled: !admin,
+          onClick: () => {
+            ;(session as unknown as AbstractSessionModel).queueDialog(
+              (doneCallback) => [
+                SplitExon,
+                {
+                  session,
+                  handleClose: () => {
+                    doneCallback()
+                  },
+                  changeManager,
+                  sourceFeature: feature,
+                  sourceAssemblyId: currentAssemblyId,
+                  selectedFeature,
+                  setSelectedFeature: (feature?: AnnotationFeature) => {
+                    display.setSelectedFeature(feature)
+                  },
+                },
+              ],
+            )
+          },
+        },
+      )
+    }
+    menuItems.push({
+      label: feature.type,
+      subMenu: contextMenuItemsForFeature,
+    })
+  }
+  return menuItems
+}
+
 // False positive here, none of these functions use "this"
 /* eslint-disable @typescript-eslint/unbound-method */
-const { drawTooltip, getContextMenuItems, onMouseLeave } = boxGlyph
+const { drawTooltip, getContextMenuItemsForFeature, onMouseLeave } = boxGlyph
 /* eslint-enable @typescript-eslint/unbound-method */
 
 export const geneGlyph: Glyph = {
@@ -811,6 +909,7 @@ export const geneGlyph: Glyph = {
   drawHover,
   drawTooltip,
   getContextMenuItems,
+  getContextMenuItemsForFeature,
   getFeatureFromLayout,
   getRowCount,
   getRowForFeature,
