@@ -119,6 +119,7 @@ jobs:
           URL: ${{ vars.URL }}
           DOCKER_TAG: ${{ vars.DOCKER_TAG }}
           ENVIRONMENT: ${{ inputs.environment }}
+          PORT: ${{ vars.PORT }}
         working-directory: .github/workflows/deploy
         run: |
           docker --context ${{ inputs.environment }} compose --project-name apollo-demo-${{ inputs.environment }}-site down

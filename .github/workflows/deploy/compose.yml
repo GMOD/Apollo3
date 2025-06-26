@@ -18,8 +18,6 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       ALLOW_ROOT_USER: true
       ROOT_USER_PASSWORD: ${ROOT_USER_PASSWORD}
-    ports:
-      - 3999:3999
     volumes:
       - uploaded-files-volume:/data/uploads
     restart: unless-stopped
@@ -30,7 +28,7 @@ services:
     depends_on:
       - apollo-collaboration-server
     ports:
-      - '80:80'
+      - ${PORT}:80
     volumes:
       - /home/ec2-user/deployment/data-${ENVIRONMENT}/:/usr/local/apache2/htdocs/data/
     restart: unless-stopped
@@ -38,10 +36,10 @@ services:
   mongo-node-1:
     image: mongo:7
     command:
-      - '--replSet'
+      - --replSet
       - rs0
-      - '--bind_ip_all'
-      - '--port'
+      - --bind_ip_all
+      - --port
       - '27017'
     healthcheck:
       interval: 30s
@@ -65,8 +63,6 @@ services:
         }
         "
       timeout: 10s
-    ports:
-      - '27017:27017'
     volumes:
       - mongo-node-1_data:/data/db
       - mongo-node-1_config:/data/configdb
@@ -75,13 +71,11 @@ services:
   mongo-node-2:
     image: mongo:7
     command:
-      - '--replSet'
+      - --replSet
       - rs0
-      - '--bind_ip_all'
-      - '--port'
+      - --bind_ip_all
+      - --port
       - '27018'
-    ports:
-      - '27018:27018'
     volumes:
       - mongo-node-2_data:/data/db
       - mongo-node-2_config:/data/configdb
