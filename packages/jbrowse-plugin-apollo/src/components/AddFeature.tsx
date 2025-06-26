@@ -120,7 +120,9 @@ export function AddFeature({
     }
 
     if (!refSeqId) {
-      setErrorMessage('Invalid refseq id')
+      setErrorMessage(
+        'Invalid refseq id. Make sure you have the Apollo annotation track open',
+      )
       return
     }
 
@@ -231,7 +233,11 @@ export function AddFeature({
   }
 
   let submitDisabled: boolean = Boolean(error) || !(start && end && type)
-  if (type === NewFeature.CUSTOM && !customType) {
+  if (
+    (type === NewFeature.CUSTOM && !customType) ||
+    (!strand && type === NewFeature.GENE_AND_SUBFEATURES) ||
+    (!strand && type === NewFeature.TRANSCRIPT_AND_SUBFEATURES)
+  ) {
     submitDisabled = true
   }
 
