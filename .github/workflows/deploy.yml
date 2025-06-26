@@ -69,7 +69,7 @@ jobs:
           if [[ ${{ inputs.environment }} == prod ]]; then
             curl -fsSL https://s3.amazonaws.com/jbrowse.org/code/jb2/latest/jbrowse-web-latest.zip > jbrowse-web.zip
           else
-            curl -fsSL https://s3.amazonaws.com/jbrowse.org/code/b2/main/jbrowse-web-main.zip > jbrowse-web.zip
+            curl -fsSL https://s3.amazonaws.com/jbrowse.org/code/jb2/main/jbrowse-web-main.zip > jbrowse-web.zip
           fi
         working-directory: .github/workflows/deploy
       - name: Configure AWS credentials
