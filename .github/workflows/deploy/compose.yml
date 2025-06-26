@@ -32,8 +32,7 @@ services:
     ports:
       - '80:80'
     volumes:
-      - /home/ec2-user/deployment/data/:/usr/local/apache2/htdocs/data/
-      - /home/ec2-user/deployment/demoData/:/usr/local/apache2/htdocs/demoData/
+      - /home/ec2-user/deployment/data-${ENVIRONMENT}/:/usr/local/apache2/htdocs/data/
     restart: unless-stopped
 
   mongo-node-1:

@@ -118,6 +118,7 @@ jobs:
           ROOT_USER_PASSWORD: ${{ secrets.ROOT_USER_PASSWORD }}
           URL: ${{ vars.URL }}
           DOCKER_TAG: ${{ vars.DOCKER_TAG }}
+          ENVIRONMENT: ${{ inputs.environment }}
         working-directory: .github/workflows/deploy
         run: |
           docker --context ${{ inputs.environment }} compose --project-name apollo-demo-${{ inputs.environment }}-site down
