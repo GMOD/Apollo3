@@ -67,7 +67,7 @@ jobs:
               --add-host host.docker.internal=host-gateway \
               --volume /home/ec2-user/.config/apollo-cli:/root/.config/apollo-cli \
               --volume /home/ec2-user/data:/data \
-              --env APOLLO_PROFILE=auto \
+              --env APOLLO_PROFILE=${{ inputs.environment }} \
               ghcr.io/gmod/apollo-cli:${{ vars.DOCKER_TAG }} \
               "$@"
           }
