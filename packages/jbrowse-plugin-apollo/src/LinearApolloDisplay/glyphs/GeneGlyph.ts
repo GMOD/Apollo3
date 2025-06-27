@@ -4,12 +4,14 @@ import {
   type AbstractSessionModel,
   getFrame,
   intersection2,
+  isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material'
 
 import { type OntologyRecord } from '../../OntologyManager'
 import { MergeExons, SplitExon } from '../../components'
+import { type ApolloSessionModel } from '../../session'
 import { getFeaturesUnderClick } from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
@@ -808,6 +810,42 @@ function getDraggableFeatureInfo(
   return
 }
 
+function isTranscriptFeature(
+  feature: AnnotationFeature,
+  session: ApolloSessionModel,
+): boolean {
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  return (
+    featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
+    featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')
+  )
+}
+
+function isExonFeature(
+  feature: AnnotationFeature,
+  session: ApolloSessionModel,
+): boolean {
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  return featureTypeOntology.isTypeOf(feature.type, 'exon')
+}
+
+function isCDSFeature(
+  feature: AnnotationFeature,
+  session: ApolloSessionModel,
+): boolean {
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  return featureTypeOntology.isTypeOf(feature.type, 'CDS')
+}
+
 function getContextMenuItems(
   display: LinearApolloDisplayMouseEvents,
   mousePosition: MousePositionWithFeatureAndGlyph,
@@ -828,17 +866,18 @@ function getContextMenuItems(
   if (!apolloHover) {
     return menuItems
   }
-  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
+
+  let featuresUnderClick = getFeaturesUnderClick(mousePosition)
+  if (isCDSFeature(mousePosition.featureAndGlyphUnderMouse.feature, session)) {
+    featuresUnderClick = getFeaturesUnderClick(mousePosition, true)
   }
 
-  for (const feature of getFeaturesUnderClick(mousePosition)) {
+  for (const feature of featuresUnderClick) {
     const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(
       display,
       feature,
     )
-    if (featureTypeOntology.isTypeOf(feature.type, 'exon')) {
+    if (isExonFeature(feature, session)) {
       contextMenuItemsForFeature.push(
         {
           label: 'Merge exons',
@@ -889,6 +928,27 @@ function getContextMenuItems(
           },
         },
       )
+    }
+    if (
+      isTranscriptFeature(feature, session) &&
+      isSessionModelWithWidgets(session)
+    ) {
+      contextMenuItemsForFeature.push({
+        label: 'Open transcript details',
+        onClick: () => {
+          const apolloTranscriptWidget = session.addWidget(
+            'ApolloTranscriptDetails',
+            'apolloTranscriptDetails',
+            {
+              feature,
+              assembly: currentAssemblyId,
+              changeManager,
+              refName: region.refName,
+            },
+          )
+          session.showWidget(apolloTranscriptWidget)
+        },
+      })
     }
     menuItems.push({
       label: feature.type,

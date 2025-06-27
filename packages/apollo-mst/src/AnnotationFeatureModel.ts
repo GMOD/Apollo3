@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { getSession, intersection2 } from '@jbrowse/core/util'
 import {
   type IAnyModelType,
@@ -127,14 +130,14 @@ export const AnnotationFeatureModel = types
       return false
     },
     get transcriptExonParts(): TranscriptParts {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const session = getSession(self) as any
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { apolloDataStore } = session
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       const { featureTypeOntology } = apolloDataStore.ontologyManager
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      if (!featureTypeOntology.isTypeOf(self.type, 'transcript')) {
+      if (
+        !featureTypeOntology.isTypeOf(self.type, 'transcript') &&
+        !featureTypeOntology.isTypeOf(self.type, 'pseudogenic_transcript')
+      ) {
         throw new Error(
           'Feature is not a transcript or equivalent, cannot calculate exon locations',
         )
@@ -144,7 +147,6 @@ export const AnnotationFeatureModel = types
         throw new Error('No exons in transcript')
       }
       const sortedChildren = [...children.values()]
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         .filter((child) => featureTypeOntology.isTypeOf(child.type, 'exon'))
         .sort((a, b) => a.min - b.min)
       let lastMax = self.min
@@ -177,14 +179,14 @@ export const AnnotationFeatureModel = types
       return parts
     },
     get transcriptParts(): TranscriptParts[] {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const session = getSession(self) as any
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { apolloDataStore } = session
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       const { featureTypeOntology } = apolloDataStore.ontologyManager
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      if (!featureTypeOntology.isTypeOf(self.type, 'transcript')) {
+      if (
+        !featureTypeOntology.isTypeOf(self.type, 'transcript') &&
+        !featureTypeOntology.isTypeOf(self.type, 'pseudogenic_transcript')
+      ) {
         throw new Error(
           'Only features of type "transcript" or equivalent can calculate CDS locations',
         )
@@ -193,9 +195,8 @@ export const AnnotationFeatureModel = types
       if (!children) {
         throw new Error('no CDS or exons in transcript')
       }
-      const cdsChildren = [...children.values()].filter(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-        (child) => featureTypeOntology.isTypeOf(child.type, 'CDS'),
+      const cdsChildren = [...children.values()].filter((child) =>
+        featureTypeOntology.isTypeOf(child.type, 'CDS'),
       )
       const transcriptParts: TranscriptParts[] = []
       if (cdsChildren.length === 0) {
@@ -208,7 +209,6 @@ export const AnnotationFeatureModel = types
         let hasIntersected = false
         const exonLocations: TranscriptPartLocation[] = []
         for (const [, child] of children) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
           if (featureTypeOntology.isTypeOf(child.type, 'exon')) {
             exonLocations.push({ min: child.min, max: child.max })
           }
@@ -292,11 +292,9 @@ export const AnnotationFeatureModel = types
       )
     },
     get looksLikeGene(): boolean {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const session = getSession(self) as any
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { apolloDataStore } = session
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       const { featureTypeOntology } = apolloDataStore.ontologyManager
       if (!featureTypeOntology) {
         return false
@@ -305,20 +303,15 @@ export const AnnotationFeatureModel = types
       if (!children?.size) {
         return false
       }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const isGene =
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         featureTypeOntology.isTypeOf(self.type, 'gene') ||
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         featureTypeOntology.isTypeOf(self.type, 'pseudogene')
       if (!isGene) {
         return false
       }
       for (const [, child] of children) {
         if (
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
           featureTypeOntology.isTypeOf(child.type, 'transcript') ||
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
           featureTypeOntology.isTypeOf(child.type, 'pseudogenic_transcript')
         ) {
           const { children: grandChildren } = child
@@ -326,7 +319,6 @@ export const AnnotationFeatureModel = types
             return false
           }
           return [...grandChildren.values()].some((grandchild) =>
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             featureTypeOntology.isTypeOf(grandchild.type, 'exon'),
           )
         }
