@@ -30,7 +30,10 @@ let forwardFillLight: CanvasPattern | null = null
 let backwardFillLight: CanvasPattern | null = null
 let forwardFillDark: CanvasPattern | null = null
 let backwardFillDark: CanvasPattern | null = null
-if ('document' in globalThis) {
+const canvas = globalThis.document.createElement('canvas')
+// @ts-expect-error getContext is undefined in the web worker
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+if (canvas?.getContext) {
   for (const direction of ['forward', 'backward']) {
     for (const themeMode of ['light', 'dark']) {
       const canvas = document.createElement('canvas')
