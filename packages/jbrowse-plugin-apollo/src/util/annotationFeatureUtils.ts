@@ -77,6 +77,7 @@ function getParents(feature: AnnotationFeature): AnnotationFeature[] {
 
 export function getFeaturesUnderClick(
   mousePosition: MousePosition,
+  includeSiblings = false,
 ): AnnotationFeature[] {
   const clickedFeatures: AnnotationFeature[] = []
   if (!mousePosition.featureAndGlyphUnderMouse) {
@@ -92,6 +93,9 @@ export function getFeaturesUnderClick(
     if (child.min < bp && child.max >= bp) {
       clickedFeatures.push(child)
     }
+  }
+  if (!includeSiblings) {
+    return clickedFeatures
   }
 
   // Also add siblings , i.e. features having the same parent as the clicked

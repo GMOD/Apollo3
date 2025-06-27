@@ -835,6 +835,17 @@ function isExonFeature(
   return featureTypeOntology.isTypeOf(feature.type, 'exon')
 }
 
+function isCDSFeature(
+  feature: AnnotationFeature,
+  session: ApolloSessionModel,
+): boolean {
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  return featureTypeOntology.isTypeOf(feature.type, 'CDS')
+}
+
 function getContextMenuItems(
   display: LinearApolloDisplayMouseEvents,
   mousePosition: MousePositionWithFeatureAndGlyph,
@@ -856,7 +867,12 @@ function getContextMenuItems(
     return menuItems
   }
 
-  for (const feature of getFeaturesUnderClick(mousePosition)) {
+  let featuresUnderClick = getFeaturesUnderClick(mousePosition)
+  if (isCDSFeature(mousePosition.featureAndGlyphUnderMouse.feature, session)) {
+    featuresUnderClick = getFeaturesUnderClick(mousePosition, true)
+  }
+
+  for (const feature of featuresUnderClick) {
     const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(
       display,
       feature,
