@@ -9,6 +9,7 @@ services:
       MONGODB_URI: mongodb://mongo-node-1:27017,mongo-node-2:27018/apolloDb?replicaSet=rs0
       FILE_UPLOAD_FOLDER: /data/uploads
       LOG_LEVELS: error,warn,log,debug
+      NO_COLOR: true
       ALLOW_GUEST_USER: true
       DEFAULT_NEW_USER_ROLE: user
       URL: ${URL}
