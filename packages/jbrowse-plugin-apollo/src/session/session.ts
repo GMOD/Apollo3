@@ -36,6 +36,7 @@ import {
 import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloJobModel } from '../ApolloJobModel'
 import { type ChangeManager } from '../ChangeManager'
+import type ApolloPluginConfigurationSchema from '../config'
 import { type ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
@@ -185,15 +186,6 @@ export function extendSession(
     }))
     .actions((self) => ({
       afterCreate: flow(function* afterCreate() {
-        // When the initial config.json loads, it doesn't include the Apollo
-        // tracks, which would result in a potentially invalid session snapshot
-        // if any tracks are open. Here we copy the session snapshot, apply an
-        // empty session snapshot, and then restore the original session
-        // snapshot after the updated config.json loads.
-        const sessionSnapshot = getSnapshot(self)
-        const { id, name } = sessionSnapshot
-        applySnapshot(self, { name, id })
-        const { internetAccounts, jbrowse } = getRoot<ApolloRootModel>(self)
         autorun(
           () => {
             // broadcastLocations() // **** This is not working and therefore we need to duplicate broadcastLocations() -method code here because autorun() does not observe changes otherwise
@@ -254,7 +246,29 @@ export function extendSession(
           },
           { name: 'ApolloSession' },
         )
-        // END AUTORUN
+        // When the initial config.json loads, it doesn't include the Apollo
+        // tracks, which would result in a potentially invalid session snapshot
+        // if any tracks are open. Here we copy the session snapshot, apply an
+        // empty session snapshot, and then restore the original session
+        // snapshot after the updated config.json loads.
+        // @ts-expect-error type is missing on ApolloRootModel
+        const { internetAccounts, jbrowse, reloadPluginManagerCallback } =
+          getRoot<ApolloRootModel>(self)
+        const pluginConfiguration =
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          jbrowse.configuration.ApolloPlugin as Instance<
+            typeof ApolloPluginConfigurationSchema
+          >
+        const hasRole = readConfObject(
+          pluginConfiguration,
+          'hasRole',
+        ) as boolean
+        if (hasRole) {
+          return
+        }
+        const sessionSnapshot = getSnapshot(self)
+        const { id, name } = sessionSnapshot
+        applySnapshot(self, { name, id })
 
         // fetch and initialize assemblies for each of our Apollo internet accounts
         for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
@@ -290,9 +304,8 @@ export function extendSession(
             console.error(error)
             continue
           }
-          applySnapshot(jbrowse, jbrowseConfig)
-          // @ts-expect-error snapshot seems to get wrong type?
-          applySnapshot(self, sessionSnapshot)
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+          reloadPluginManagerCallback(jbrowseConfig, sessionSnapshot)
         }
       }),
       beforeDestroy() {

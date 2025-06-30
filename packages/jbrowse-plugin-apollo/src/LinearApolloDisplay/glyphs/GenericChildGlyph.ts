@@ -1,6 +1,12 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
+import { type MenuItem } from '@jbrowse/core/ui'
 
+import { getFeaturesUnderClick } from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
+import {
+  type LinearApolloDisplayMouseEvents,
+  type MousePositionWithFeatureAndGlyph,
+} from '../stateModel/mouseEvents'
 import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
 
 import { boxGlyph, drawBox, isSelectedFeature } from './BoxGlyph'
@@ -130,12 +136,50 @@ function getRowForFeature(
   return
 }
 
+function getContextMenuItems(
+  display: LinearApolloDisplayMouseEvents,
+  mousePosition: MousePositionWithFeatureAndGlyph,
+): MenuItem[] {
+  const { apolloHover, session } = display
+  const menuItems: MenuItem[] = []
+  if (!apolloHover) {
+    return menuItems
+  }
+  const { feature: sourceFeature } = apolloHover
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  const sourceFeatureMenuItems = boxGlyph.getContextMenuItems(
+    display,
+    mousePosition,
+  )
+  menuItems.push({
+    label: sourceFeature.type,
+    subMenu: sourceFeatureMenuItems,
+  })
+  for (const relative of getFeaturesUnderClick(mousePosition)) {
+    if (relative._id === sourceFeature._id) {
+      continue
+    }
+    const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(
+      display,
+      relative,
+    )
+    menuItems.push({
+      label: relative.type,
+      subMenu: contextMenuItemsForFeature,
+    })
+  }
+  return menuItems
+}
+
 // False positive here, none of these functions use "this"
 /* eslint-disable @typescript-eslint/unbound-method */
 const {
   drawDragPreview,
   drawTooltip,
-  getContextMenuItems,
+  getContextMenuItemsForFeature,
   onMouseDown,
   onMouseLeave,
   onMouseMove,
@@ -148,6 +192,7 @@ export const genericChildGlyph: Glyph = {
   drawDragPreview,
   drawHover,
   drawTooltip,
+  getContextMenuItemsForFeature,
   getContextMenuItems,
   getFeatureFromLayout,
   getRowCount,

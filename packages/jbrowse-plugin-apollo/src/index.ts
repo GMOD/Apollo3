@@ -201,21 +201,6 @@ export default class ApolloPlugin extends Plugin {
       })
     })
 
-    pluginManager.addDisplayType(() => {
-      const configSchema = linearApolloSixFrameDisplayConfigSchema
-      return new DisplayType({
-        name: 'LinearApolloSixFrameDisplay',
-        configSchema,
-        stateModel: LinearApolloSixFrameDisplayStateModelFactory(
-          pluginManager,
-          configSchema,
-        ),
-        trackType: 'ApolloTrack',
-        viewType: 'LinearGenomeView',
-        ReactComponent: LinearApolloSixFrameDisplayComponent,
-      })
-    })
-
     pluginManager.addToExtensionPoint(
       'Core-extendSession',
       // @ts-expect-error not sure how to deal with snapshot model types

@@ -76,5 +76,13 @@ export interface Glyph {
     context: CanvasRenderingContext2D,
   ): void
 
-  getContextMenuItems(display: LinearApolloDisplayMouseEvents): MenuItem[]
+  getContextMenuItemsForFeature(
+    display: LinearApolloDisplayMouseEvents,
+    sourceFeature: AnnotationFeature,
+  ): MenuItem[]
+
+  getContextMenuItems(
+    display: LinearApolloDisplayMouseEvents,
+    currentMousePosition: MousePositionWithFeatureAndGlyph,
+  ): MenuItem[]
 }

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
+
 import { type Change } from '@apollo-annotation/common'
 import { type Feature, type FeatureDocument } from '@apollo-annotation/schemas'
 import { type ClientSession, type Model } from 'mongoose'
@@ -10,6 +10,7 @@ import {
   isLocationEndChange,
   isLocationStartChange,
 } from '../Changes'
+import { getPrintableId } from '../util'
 
 import { Validation, type ValidationResult } from './Validation'
 
@@ -80,7 +81,7 @@ export class ParentChildValidation extends Validation {
         (childFeature.max > feature.max || childFeature.min < feature.min)
       ) {
         throw new Error(
-          `Feature "${childFeature._id}" exceeds the bounds of its parent, "${feature._id}"`,
+          `Feature ${getPrintableId(childFeature)} exceeds the bounds of its parent, ${getPrintableId(feature)}`,
         )
       }
       this.checkChildFeatureBoundaries(childFeature)
