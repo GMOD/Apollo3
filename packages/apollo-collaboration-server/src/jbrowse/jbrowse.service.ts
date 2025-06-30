@@ -141,7 +141,10 @@ export class JBrowseService {
         this.logger.debug(`generating assembly ${assemblyId}`)
         return {
           name: assemblyId,
-          aliases: [assembly.name, ...assembly.aliases],
+          aliases:
+            assembly.aliases.length > 0
+              ? [...assembly.aliases]
+              : [assembly.name],
           displayName: assembly.displayName || assembly.name,
           sequence: {
             trackId: `sequenceConfigId-${assembly.name}`,

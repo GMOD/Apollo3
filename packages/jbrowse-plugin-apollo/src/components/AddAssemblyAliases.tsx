@@ -1,7 +1,7 @@
-import { AddAssemblyAliasesChange } from '@apollo-annotation/shared/src/Changes/AddAssemblyAliasesChange'
+import { AddAssemblyAliasesChange } from '@apollo-annotation/shared'
 import { Box, DialogContent, DialogContentText } from '@mui/material'
-import { DataGrid, GridRowModel, type GridColDef } from '@mui/x-data-grid'
-import React, { useEffect } from 'react'
+import { DataGrid, type GridColDef, type GridRowModel } from '@mui/x-data-grid'
+import React from 'react'
 
 import {
   type ApolloInternetAccount,
@@ -36,7 +36,7 @@ const columns: GridColDef[] = [
 interface AssemblyAlias {
   id: string
   name: string
-  aliases: string[]
+  aliases: string
 }
 
 export function AddAssemblyAliases({
@@ -58,34 +58,17 @@ export function AddAssemblyAliases({
     return {
       id: assembly.name,
       name: assembly.displayName ?? assembly.name,
-      aliases: assembly.aliases,
+      aliases: assembly.aliases.join(', '),
     } as AssemblyAlias
   })
 
   const [errorMessage, setErrorMessage] = React.useState('')
 
-  // const [rows, setRows] = React.useState<AssemblyAlias[]>([])
-
-  // useEffect(() => {
-  //     if (assemblies.length === 0) {
-  //         handleClose()
-  //     }
-  //     const rows: AssemblyAlias[] = assemblies.map((assembly, index) => {
-  //         return {
-  //             id: index,
-  //             name: assembly.displayName ?? assembly.name,
-  //             aliases: assembly.aliases,
-  //         } as AssemblyAlias
-  //     })
-  //     setRows(rows)
-  // // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [])
-
   const processRowUpdate = (newRow: GridRowModel, _oldRow: GridRowModel) => {
     const change = new AddAssemblyAliasesChange({
       typeName: 'AddAssemblyAliasesChange',
-      assembly: newRow.name as string,
-      aliases: newRow.aliases as string[],
+      assembly: newRow.id as string,
+      aliases: (newRow.aliases as string).split(','),
     })
     void changeManager.submit(change).catch(() => {
       setErrorMessage('Error submitting change')

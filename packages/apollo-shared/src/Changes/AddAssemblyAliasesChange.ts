@@ -7,6 +7,7 @@ import {
   type SerializedAssemblySpecificChange,
   type ServerDataStore,
 } from '@apollo-annotation/common'
+import { getSession } from '@jbrowse/core/util'
 
 export interface SerializedAssemblyAliasesChange
   extends SerializedAssemblySpecificChange {
@@ -23,8 +24,15 @@ export class AddAssemblyAliasesChange extends AssemblySpecificChange {
     this.aliases = json.aliases
   }
 
-  executeOnClient(_clientDataStore: ClientDataStore): Promise<void> {
-    throw new Error('Method not implemented.')
+  executeOnClient(clientDataStore: ClientDataStore) {
+    const { assemblyManager } = getSession(clientDataStore)
+    const assembly = assemblyManager.get(this.assembly)
+    if (!assembly) {
+      throw new Error(`assembly ${this.assembly} not found`)
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    assembly.configuration.aliases.set(this.aliases)
+    return Promise.resolve()
   }
 
   getInverse(): Change {
@@ -37,15 +45,17 @@ export class AddAssemblyAliasesChange extends AssemblySpecificChange {
   }
 
   async executeOnServer(backend: ServerDataStore) {
-    const { assemblyModel, session } = backend
+    const { assemblyModel } = backend
     const { assembly, logger, aliases } = this
-
     logger.debug?.(
       `Updating assembly aliases for assembly: ${assembly}, aliases: ${JSON.stringify(aliases)}`,
     )
-    await assemblyModel
-      .updateOne({ name: assembly }, { $set: { aliases } })
-      .session(session)
+    const asm = await assemblyModel.findById(assembly)
+    if (!asm) {
+      throw new Error(`Assembly with ID ${assembly} not found`)
+    }
+    asm.aliases = aliases
+    await asm.save()
   }
 
   executeOnLocalGFF3(_backend: LocalGFF3DataStore): Promise<unknown> {
