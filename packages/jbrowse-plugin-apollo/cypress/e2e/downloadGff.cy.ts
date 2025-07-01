@@ -44,7 +44,7 @@ describe('Download GFF', () => {
     })
   })
 
-  it.skip('Can download gff without fasta', () => {
+  it('Can download gff without fasta', () => {
     cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
     cy.get('button[data-testid="dropDownMenuButton"]')
       .contains('Apollo')
