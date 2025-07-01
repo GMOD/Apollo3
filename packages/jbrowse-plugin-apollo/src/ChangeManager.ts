@@ -123,10 +123,10 @@ export class ChangeManager {
       if (change.notification) {
         session.notify(change.notification, 'success')
       }
-    }
-    if (addToRecents) {
-      // Push the change into array
-      this.recentChanges.push(change)
+      if (addToRecents) {
+        // Push the change into array
+        this.recentChanges.push(change)
+      }
     }
 
     if (updateJobsManager) {
@@ -136,7 +136,8 @@ export class ChangeManager {
 
   async revert(change: Change, submitToBackend = true) {
     const inverseChange = change.getInverse()
-    return this.submit(inverseChange, { submitToBackend, addToRecents: false })
+    const opts = { submitToBackend, addToRecents: false }
+    return this.submit(inverseChange, opts)
   }
 
   /**
