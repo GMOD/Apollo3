@@ -101,6 +101,8 @@ Cypress.Commands.add('addOntologies', () => {
 Cypress.Commands.add(
   'addAssemblyFromGff',
   (assemblyName, fin, launch = true) => {
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(1000)
     cy.get('button[data-testid="dropDownMenuButton"]', { timeout: 10_000 })
       .contains('Apollo')
       .click({ force: true, timeout: 10_000 })

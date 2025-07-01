@@ -39,41 +39,41 @@ jobs:
       - name: Set up SSH
         run: |
           mkdir --parents ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/staging
-          chmod 600 ~/.ssh/staging
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/${{ inputs.environment }}
+          chmod 600 ~/.ssh/${{ inputs.environment }}
           cat >>~/.ssh/config <<END
-          Host staging
+          Host ${{ inputs.environment }}
             HostName ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }}
             User ec2-user
-            IdentityFile ~/.ssh/staging
+            IdentityFile ~/.ssh/${{ inputs.environment }}
             ServerAliveInterval 60
             ServerAliveCountMax 10
           END
           ssh-keyscan -H ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }} >> ~/.ssh/known_hosts
       - name: Create Docker context
         run: |
-          docker context create staging \
-            --docker host=ssh://staging \
-            --description "Staging server"
+          docker context create ${{ inputs.environment }} \
+            --docker host=ssh://${{ inputs.environment }} \
+            --description "${{ inputs.environment }} server"
       - name: Load data
         run: |
-          docker --context staging pull ghcr.io/gmod/apollo-cli:${{ vars.DOCKER_TAG }}
+          docker --context ${{ inputs.environment }} pull ghcr.io/gmod/apollo-cli:${{ vars.DOCKER_TAG }}
           function apollo() {
             docker \
-              --context staging \
+              --context ${{ inputs.environment }} \
               run \
               --rm \
               --interactive \
               --add-host host.docker.internal=host-gateway \
               --volume /home/ec2-user/.config/apollo-cli:/root/.config/apollo-cli \
               --volume /home/ec2-user/data:/data \
-              --env APOLLO_PROFILE=auto \
+              --env APOLLO_PROFILE=${{ inputs.environment }} \
               ghcr.io/gmod/apollo-cli:${{ vars.DOCKER_TAG }} \
               "$@"
           }
 
           set -x
-          apollo config address http://host.docker.internal/apollo
+          apollo config address http://host.docker.internal:${{ vars.PORT }}/apollo
           apollo config accessType root
           apollo config rootPassword ${{ secrets.ROOT_USER_PASSWORD }}
           apollo login --force

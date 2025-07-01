@@ -252,7 +252,13 @@ function getTranscriptParts(
 function getCdsLocations(
   feature: AnnotationFeatureSnapshot,
 ): TranscriptPartCoding[][] {
-  const transcriptParts = getTranscriptParts(feature)
+  let transcriptParts: TranscriptParts[] = []
+  try {
+    transcriptParts = getTranscriptParts(feature)
+  } catch {
+    return []
+  }
+
   return transcriptParts.map((transcript) =>
     transcript.filter((transcriptPart) => transcriptPart.type === 'CDS'),
   )

@@ -1,5 +1,3 @@
-name: apollo-demo-site
-
 services:
   apollo-collaboration-server:
     image: ghcr.io/gmod/apollo-collaboration-server:${DOCKER_TAG}
@@ -11,6 +9,7 @@ services:
       MONGODB_URI: mongodb://mongo-node-1:27017,mongo-node-2:27018/apolloDb?replicaSet=rs0
       FILE_UPLOAD_FOLDER: /data/uploads
       LOG_LEVELS: error,warn,log,debug
+      NO_COLOR: true
       ALLOW_GUEST_USER: true
       DEFAULT_NEW_USER_ROLE: user
       URL: ${URL}
@@ -20,33 +19,28 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       ALLOW_ROOT_USER: true
       ROOT_USER_PASSWORD: ${ROOT_USER_PASSWORD}
-    ports:
-      - 3999:3999
     volumes:
       - uploaded-files-volume:/data/uploads
     restart: unless-stopped
 
   client:
     build:
-      args:
-        JBROWSE_VERSION: 3.0.3
       context: .
     depends_on:
       - apollo-collaboration-server
     ports:
-      - '80:80'
+      - ${PORT}:80
     volumes:
-      - /home/ec2-user/deployment/data/:/usr/local/apache2/htdocs/data/
-      - /home/ec2-user/deployment/demoData/:/usr/local/apache2/htdocs/demoData/
+      - /home/ec2-user/deployment/data-${ENVIRONMENT}/:/usr/local/apache2/htdocs/data/
     restart: unless-stopped
 
   mongo-node-1:
     image: mongo:7
     command:
-      - '--replSet'
+      - --replSet
       - rs0
-      - '--bind_ip_all'
-      - '--port'
+      - --bind_ip_all
+      - --port
       - '27017'
     healthcheck:
       interval: 30s
@@ -70,8 +64,6 @@ services:
         }
         "
       timeout: 10s
-    ports:
-      - '27017:27017'
     volumes:
       - mongo-node-1_data:/data/db
       - mongo-node-1_config:/data/configdb
@@ -80,13 +72,11 @@ services:
   mongo-node-2:
     image: mongo:7
     command:
-      - '--replSet'
+      - --replSet
       - rs0
-      - '--bind_ip_all'
-      - '--port'
+      - --bind_ip_all
+      - --port
       - '27018'
-    ports:
-      - '27018:27018'
     volumes:
       - mongo-node-2_data:/data/db
       - mongo-node-2_config:/data/configdb
