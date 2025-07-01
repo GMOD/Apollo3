@@ -130,13 +130,13 @@ jobs:
         working-directory: ${{ runner.temp }}/digests-cli
         run: |
           docker buildx imagetools create \
-            --tag ghcr.io/gmod/apollo-cli:${{ inputs.tag }} \
+            --tag ghcr.io/gmod/apollo-cli:testing-${{ inputs.tag }} \
             $(printf 'ghcr.io/gmod/apollo-cli@sha256:%s ' *)
 
       - name: Inspect CLI image
         run: |
           docker buildx imagetools inspect \
-            ghcr.io/gmod/apollo-cli:${{ inputs.tag }}
+            ghcr.io/gmod/apollo-cli:testing-${{ inputs.tag }}
 
       - name: Download digests collab image
         uses: actions/download-artifact@v4
@@ -149,10 +149,10 @@ jobs:
         working-directory: ${{ runner.temp }}/digests-collab
         run: |
           docker buildx imagetools create \
-            --tag ghcr.io/gmod/apollo-collaboration-server:${{ inputs.tag }} \
+            --tag ghcr.io/gmod/apollo-collaboration-server:testing-${{ inputs.tag }} \
             $(printf 'ghcr.io/gmod/apollo-collaboration-server@sha256:%s ' *)
 
       - name: Inspect collab image
         run: |
           docker buildx imagetools inspect \
-            ghcr.io/gmod/apollo-collaboration-server:${{ inputs.tag }}
+            ghcr.io/gmod/apollo-collaboration-server:testing-${{ inputs.tag }}
