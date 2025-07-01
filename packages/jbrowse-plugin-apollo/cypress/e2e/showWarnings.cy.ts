@@ -16,10 +16,7 @@ describe('Warning signs', () => {
     // Here it would be nice to check that there are no ErrorIcons yet.
     // For this we need to make sure that the gene model is actually on the canvas,
     // which is not obvious how to do.
-
-    cy.get('button[data-testid="track_menu_icon"]').click()
-    cy.contains('Appearance').trigger('mouseover')
-    cy.contains('Show both graphical and table display').click()
+    cy.annotationTrackAppearance('Show both graphical and table display')
     cy.contains('cds07').rightclick()
     cy.contains('Edit feature details').click()
     cy.get('div[data-testid="basic_information"]')
