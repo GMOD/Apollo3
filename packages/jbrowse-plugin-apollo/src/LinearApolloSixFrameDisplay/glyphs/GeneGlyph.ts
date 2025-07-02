@@ -15,6 +15,7 @@ import { getSnapshot } from 'mobx-state-tree'
 
 import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
 import { FilterTranscripts } from '../../components/FilterTranscripts'
+import { getMinAndMaxPx, getOverlappingEdge } from '../../util'
 import { type LinearApolloSixFrameDisplay } from '../stateModel'
 import {
   type LinearApolloSixFrameDisplayMouseEvents,
@@ -563,6 +564,7 @@ function onMouseDown(
       currentMousePosition,
       draggableFeature.feature,
       draggableFeature.edge,
+      true,
     )
   }
 }
@@ -664,61 +666,49 @@ function getDraggableFeatureInfo(
   }
   const { bp, refName, regionNumber, x } = mousePosition
   const { lgv } = stateModel
-  const { offsetPx } = lgv
-
-  const minPxInfo = lgv.bpToPx({ refName, coord: cds.min, regionNumber })
-  const maxPxInfo = lgv.bpToPx({ refName, coord: cds.max, regionNumber })
-  if (minPxInfo === undefined || maxPxInfo === undefined) {
-    return
-  }
-  const minPx = minPxInfo.offsetPx - offsetPx
-  const maxPx = maxPxInfo.offsetPx - offsetPx
-  if (Math.abs(maxPx - minPx) < 8) {
-    return
-  }
   if (isTranscript) {
     const transcript = feature
     if (!transcript.children) {
       return
     }
     const exonChildren: AnnotationFeature[] = []
+    const cdsChildren: AnnotationFeature[] = []
     for (const child of transcript.children.values()) {
       const childIsExon = featureTypeOntology.isTypeOf(child.type, 'exon')
+      const childIsCDS = featureTypeOntology.isTypeOf(child.type, 'CDS')
       if (childIsExon) {
         exonChildren.push(child)
+      } else if (childIsCDS) {
+        cdsChildren.push(child)
       }
     }
-
     const overlappingExon = exonChildren.find((child) => {
       const [start, end] = intersection2(bp, bp + 1, child.min, child.max)
       return start !== undefined && end !== undefined
     })
-    if (!overlappingExon) {
-      return
+    if (overlappingExon) {
+      // We are on an exon, are we on the edge of it?
+      const minMax = getMinAndMaxPx(overlappingExon, refName, regionNumber, lgv)
+      if (minMax) {
+        const overlappingEdge = getOverlappingEdge(overlappingExon, x, minMax)
+        if (overlappingEdge) {
+          return overlappingEdge
+        }
+      }
     }
-    const minPxInfo = lgv.bpToPx({
-      refName,
-      coord: overlappingExon.min,
-      regionNumber,
-    })
-    const maxPxInfo = lgv.bpToPx({
-      refName,
-      coord: overlappingExon.max,
-      regionNumber,
-    })
-    if (minPxInfo === undefined || maxPxInfo === undefined) {
-      return
-    }
-    const minPx = minPxInfo.offsetPx - offsetPx
-    const maxPx = maxPxInfo.offsetPx - offsetPx
-    if (Math.abs(maxPx - minPx) < 8) {
-      return
-    }
-    if (Math.abs(minPx - x) < 4) {
-      return { feature: overlappingExon, edge: 'min' }
-    }
-    if (Math.abs(maxPx - x) < 4) {
-      return { feature: overlappingExon, edge: 'max' }
+    // End of special cases, let's see if we're on the edge of this CDS or exon
+    const minMax = getMinAndMaxPx(cds, refName, regionNumber, lgv)
+    if (minMax) {
+      const overlappingCDS = cdsChildren.find((child) => {
+        const [start, end] = intersection2(bp, bp + 1, child.min, child.max)
+        return start !== undefined && end !== undefined
+      })
+      if (overlappingCDS) {
+        const overlappingEdge = getOverlappingEdge(overlappingCDS, x, minMax)
+        if (overlappingEdge) {
+          return overlappingEdge
+        }
+      }
     }
   }
   return

@@ -30,3 +30,5 @@ export function getApolloInternetAccount(session: ApolloSessionModel) {
 
 export * from './loadAssemblyIntoClient'
 export * from './annotationFeatureUtils'
+export * from './glyphUtils'
+export * from './mouseEventsUtils'
