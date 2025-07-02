@@ -83,4 +83,82 @@ describe('Undo edits', () => {
       cy.contains('No changes to undo')
     })
   })
+
+  it.only('Undo attribute changes', () => {
+    const assemblyName = 'onegene.fasta.gff3'
+    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
+    cy.selectAssemblyToView(assemblyName)
+
+    cy.contains('Open track selector').click()
+    cy.contains('Annotations (').click()
+    cy.get('button[aria-label="Minimize drawer"]').click()
+    cy.annotationTrackAppearance('Show both graphical and table display')
+    cy.get('input[placeholder="Search for location"]').type(
+      'ctgA:1..200{enter}',
+    )
+
+    cy.get('tbody', { timeout: 10_000 }).contains('tr', 'CDS1').rightclick()
+    cy.contains('Edit feature details', { timeout: 10_000 }).click()
+    cy.contains('li', 'source').within(() => {
+      cy.get('button').click()
+    })
+
+    // Edit attribute
+    cy.contains('li', 'Edit').click()
+    cy.get('input[value="example"]').type(
+      '{selectall}{backspace}EditExample{enter}',
+    )
+    cy.contains('button', 'Update').click()
+    cy.get('tbody', { timeout: 10_000 }).contains('EditExample')
+
+    // Add attribute
+    cy.contains('button', 'Add new').click()
+    cy.contains('label', 'Attribute key')
+      .parent()
+      .within(() => {
+        cy.get('input').type('newKey{enter}')
+      })
+    cy.contains('newKey')
+      .parent()
+      .parent()
+      .within(() => {
+        cy.get('input').type('New value{enter}')
+        cy.contains('button', 'Add').click()
+      })
+    cy.get('tbody', { timeout: 10_000 }).contains('New value')
+
+    // Delete attribute
+    cy.contains('li', 'newKey').within(() => {
+      cy.get('button').click()
+    })
+    cy.contains('li', 'Delete').click()
+    cy.get('tbody', { timeout: 10_000 })
+      .contains('New value')
+      .should('not.exist')
+
+    // Undo's
+    cy.selectFromApolloMenu('Undo') // Undo delete
+    cy.get('tbody', { timeout: 10_000 }).contains('New value')
+    cy.get('tbody', { timeout: 10_000 }).contains('EditExample')
+
+    cy.selectFromApolloMenu('Undo') // Undo add
+    cy.get('tbody', { timeout: 10_000 })
+      .contains('New value')
+      .should('not.exist')
+    cy.get('tbody', { timeout: 10_000 }).contains('EditExample')
+
+    cy.selectFromApolloMenu('Undo') // Undo edit
+    cy.get('tbody', { timeout: 10_000 })
+      .contains('EditExample')
+      .should('not.exist')
+    cy.get('tbody', { timeout: 10_000 })
+      .contains('tr', 'CDS1')
+      .within(() => {
+        cy.contains('example')
+      })
+
+    cy.selectFromApolloMenu('Undo').then(() => {
+      cy.contains('No changes to undo')
+    })
+  })
 })
