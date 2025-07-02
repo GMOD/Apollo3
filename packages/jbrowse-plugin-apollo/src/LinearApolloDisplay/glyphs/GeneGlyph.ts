@@ -738,7 +738,7 @@ function getDraggableFeatureInfo(
       // We are on an exon, are we on the edge of it?
       const minMax = getMinAndMaxPx(overlappingExon, refName, regionNumber, lgv)
       if (minMax) {
-        const overlappingEdge = getOverlappingEdge(feature, x, minMax)
+        const overlappingEdge = getOverlappingEdge(overlappingExon, x, minMax)
         if (overlappingEdge) {
           return overlappingEdge
         }
