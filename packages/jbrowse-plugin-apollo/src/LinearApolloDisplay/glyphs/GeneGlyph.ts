@@ -1,9 +1,9 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { getFrame, intersection2 } from '@jbrowse/core/util'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material'
 
 import { type OntologyRecord } from '../../OntologyManager'
+import { getMinAndMaxPx, getOverlappingEdge } from '../../util'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
   type MousePosition,
@@ -688,50 +688,6 @@ function onMouseUp(
   } else {
     stateModel.showFeatureDetailsWidget(feature)
   }
-}
-
-function getMinAndMaxPx(
-  feature: AnnotationFeature,
-  refName: string,
-  regionNumber: number,
-  lgv: LinearGenomeViewModel,
-): [number, number] | undefined {
-  const minPxInfo = lgv.bpToPx({
-    refName,
-    coord: feature.min,
-    regionNumber,
-  })
-  const maxPxInfo = lgv.bpToPx({
-    refName,
-    coord: feature.max,
-    regionNumber,
-  })
-  if (minPxInfo === undefined || maxPxInfo === undefined) {
-    return
-  }
-  const { offsetPx } = lgv
-  const minPx = minPxInfo.offsetPx - offsetPx
-  const maxPx = maxPxInfo.offsetPx - offsetPx
-  return [minPx, maxPx]
-}
-
-function getOverlappingEdge(
-  feature: AnnotationFeature,
-  x: number,
-  minMax: [number, number],
-): { feature: AnnotationFeature; edge: 'min' | 'max' } | undefined {
-  const [minPx, maxPx] = minMax
-  // Feature is too small to tell if we're overlapping an edge
-  if (Math.abs(maxPx - minPx) < 8) {
-    return
-  }
-  if (Math.abs(minPx - x) < 4) {
-    return { feature, edge: 'min' }
-  }
-  if (Math.abs(maxPx - x) < 4) {
-    return { feature, edge: 'max' }
-  }
-  return
 }
 
 function getDraggableFeatureInfo(
