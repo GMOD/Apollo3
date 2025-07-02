@@ -46,6 +46,10 @@ export function DeleteFeature({
       setSelectedFeature()
     }
 
+    // IF the parent of the deleted feature has children and the children cover a smaller area resize the parent
+    // If the feature being deleted is an exon check the CDS.
+    // Don't delete or resize if the deleted feature os ther only child
+
     // Delete features
     const change = new DeleteFeatureChange({
       changedIds: [sourceFeature._id],
