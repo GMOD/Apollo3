@@ -76,7 +76,10 @@ export class ChangeManager {
         jobsManager.abortJob(job.name, String(error))
       }
       console.error(error)
-      session.notify(String(error), 'error')
+      session.notify(
+        `Error encountered in client: ${String(error)}. Data may be out of sync, please refresh the page`,
+        'error',
+      )
       return
     }
 

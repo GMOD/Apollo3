@@ -39,7 +39,7 @@ export function DeleteFeature({
   const { notify } = session as unknown as AbstractSessionModel
   const [errorMessage, setErrorMessage] = useState('')
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
     if (selectedFeature?._id === sourceFeature._id) {
@@ -54,8 +54,7 @@ export function DeleteFeature({
       deletedFeature: getSnapshot(sourceFeature),
       parentFeatureId: sourceFeature.parent?._id,
     })
-    await changeManager.submit(change)
-    notify('Feature deleted successfully', 'success')
+    void changeManager.submit(change)
     handleClose()
     event.preventDefault()
   }
