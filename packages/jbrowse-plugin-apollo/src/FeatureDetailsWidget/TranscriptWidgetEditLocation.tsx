@@ -123,7 +123,10 @@ export const TranscriptWidgetEditLocation = observer(
         featureTypeOntology: OntologyRecord
       }
 
-    if (!featureTypeOntology.isTypeOf(feature.type, 'transcript')) {
+    if (
+      !featureTypeOntology.isTypeOf(feature.type, 'transcript') &&
+      !featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')
+    ) {
       throw new Error('Feature is not a transcript or equivalent')
     }
 

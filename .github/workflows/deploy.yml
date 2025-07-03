@@ -20,17 +20,19 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v4
-      - name: Use Node.js 18.x
+      - name: Use Node.js 20.x
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: yarn
       - name: Install
         if: inputs.environment == 'staging'
         run: yarn --immutable
       - name: Build plugin
         if: inputs.environment == 'staging'
-        run: yarn build
+        run: |
+          yarn build
+          cp dist/jbrowse-plugin-apollo.umd.development.js dist/apollo.js
         working-directory: packages/jbrowse-plugin-apollo
       - name: Fetch plugin
         if: inputs.environment == 'prod'
@@ -42,14 +44,13 @@ jobs:
           LATEST_VERSION=$(jq --raw-output '."dist-tags".latest' jpa.json)
           TARBALL=$(jq --raw-output ".versions.\"${LATEST_VERSION}\".dist.tarball" jpa.json)
           wget --output-document=- --quiet ${TARBALL} | \
-            tar --extract --gzip --file=- --strip=2 package/dist/jbrowse-plugin-apollo.umd.development.js package/dist/jbrowse-plugin-apollo.umd.production.min.js
+            tar --extract --gzip --file=- --strip=2 package/dist/jbrowse-plugin-apollo.umd.production.min.js
+          cp jbrowse-plugin-apollo.umd.production.min.js apollo.js
       - name: Upload built plugin files
         uses: actions/upload-artifact@v4
         with:
           name: plugin
-          path: |
-            packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js
-            packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.production.min.js
+          path: packages/jbrowse-plugin-apollo/dist/apollo.js
   deploy:
     name: Deploy to ${{ inputs.environment }} demo server
     runs-on: ubuntu-latest
@@ -63,6 +64,14 @@ jobs:
         with:
           name: plugin
           path: .github/workflows/deploy/
+      - name: Download JBrowse ZIP
+        run: |
+          if [[ ${{ inputs.environment }} == prod ]]; then
+            curl -fsSL https://s3.amazonaws.com/jbrowse.org/code/jb2/latest/jbrowse-web-latest.zip > jbrowse-web.zip
+          else
+            curl -fsSL https://s3.amazonaws.com/jbrowse.org/code/jb2/main/jbrowse-web-main.zip > jbrowse-web.zip
+          fi
+        working-directory: .github/workflows/deploy
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -80,20 +89,20 @@ jobs:
       - name: Set up SSH
         run: |
           mkdir --parents ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY  }}" >  ~/.ssh/staging
-          chmod 600 ~/.ssh/staging
+          echo "${{ secrets.SSH_PRIVATE_KEY  }}" >  ~/.ssh/${{ inputs.environment }}
+          chmod 600 ~/.ssh/${{ inputs.environment }}
           cat >>~/.ssh/config <<END
-          Host staging
+          Host ${{ inputs.environment }}
             HostName ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }}
             User ec2-user
-            IdentityFile ~/.ssh/staging
+            IdentityFile ~/.ssh/${{ inputs.environment }}
           END
           ssh-keyscan -H ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }} >> ~/.ssh/known_hosts
       - name: Create Docker context
         run: |
-          docker context create staging \
-            --docker host=ssh://staging \
-            --description "Staging server"
+          docker context create ${{ inputs.environment }} \
+            --docker host=ssh://${{ inputs.environment }} \
+            --description "${{ inputs.environment }} server"
       - name: Log in to the GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -109,8 +118,10 @@ jobs:
           ROOT_USER_PASSWORD: ${{ secrets.ROOT_USER_PASSWORD }}
           URL: ${{ vars.URL }}
           DOCKER_TAG: ${{ vars.DOCKER_TAG }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          PORT: ${{ vars.PORT }}
         working-directory: .github/workflows/deploy
         run: |
-          docker --context staging compose down
-          docker --context staging compose pull
-          docker --context staging compose up --build --detach --wait --wait-timeout 120
+          docker --context ${{ inputs.environment }} compose --project-name apollo-demo-${{ inputs.environment }}-site down
+          docker --context ${{ inputs.environment }} compose --project-name apollo-demo-${{ inputs.environment }}-site pull
+          docker --context ${{ inputs.environment }} compose --project-name apollo-demo-${{ inputs.environment }}-site up --build --detach --wait --wait-timeout 120

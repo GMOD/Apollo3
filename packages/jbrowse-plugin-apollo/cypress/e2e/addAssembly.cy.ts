@@ -30,6 +30,7 @@ describe('Add Assembly', () => {
     })
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
+    cy.contains('Launch view').click()
     cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
       cy.contains('volvox')
     })
@@ -61,6 +62,7 @@ describe('Add Assembly', () => {
     })
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
+    cy.contains('Launch view').click()
     cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
       cy.contains('volvox')
     })
@@ -86,6 +88,7 @@ describe('Add Assembly', () => {
     })
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
+    cy.contains('Launch view').click()
     cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
       cy.contains('volvox')
     })
@@ -121,6 +124,7 @@ describe('Add Assembly', () => {
     })
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
+    cy.contains('Launch view').click()
     cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
       cy.contains('volvox')
     })
@@ -144,6 +148,7 @@ describe('Add Assembly', () => {
     })
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
+    cy.contains('Launch view').click()
     cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
       cy.contains('volvox')
     })
@@ -177,6 +182,7 @@ describe('Add Assembly', () => {
     })
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
+    cy.contains('Launch view').click()
     cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
       cy.contains('volvox')
     })
@@ -254,6 +260,7 @@ describe('Add Assembly', () => {
     })
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
+    cy.contains('Launch view').click()
     cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
       cy.contains('volvox')
     })
@@ -286,6 +293,7 @@ describe('Add Assembly', () => {
     })
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
+    cy.contains('Launch view').click()
     cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
       cy.contains('volvox')
     })

@@ -1,5 +1,7 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 
+import { type MousePosition } from '../LinearApolloDisplay/stateModel/mouseEvents'
+
 export function getFeatureName(feature: AnnotationFeature) {
   const { attributes } = feature
   const name = attributes.get('gff_name')
@@ -50,4 +52,67 @@ export function getStrand(strand: number | undefined) {
     return 'Reverse'
   }
   return ''
+}
+
+function getChildren(feature: AnnotationFeature): AnnotationFeature[] {
+  const children: AnnotationFeature[] = []
+  //
+  if (feature.children) {
+    for (const [, ff] of feature.children) {
+      children.push(ff)
+    }
+  }
+  return children
+}
+
+function getParents(feature: AnnotationFeature): AnnotationFeature[] {
+  const parents: AnnotationFeature[] = []
+  let { parent } = feature
+  while (parent) {
+    parents.push(parent)
+    ;({ parent } = parent)
+  }
+  return parents
+}
+
+export function getFeaturesUnderClick(
+  mousePosition: MousePosition,
+  includeSiblings = false,
+): AnnotationFeature[] {
+  const clickedFeatures: AnnotationFeature[] = []
+  if (!mousePosition.featureAndGlyphUnderMouse) {
+    return clickedFeatures
+  }
+  clickedFeatures.push(mousePosition.featureAndGlyphUnderMouse.feature)
+  for (const x of getParents(mousePosition.featureAndGlyphUnderMouse.feature)) {
+    clickedFeatures.push(x)
+  }
+  const { bp } = mousePosition
+  const children = getChildren(mousePosition.featureAndGlyphUnderMouse.feature)
+  for (const child of children) {
+    if (child.min < bp && child.max >= bp) {
+      clickedFeatures.push(child)
+    }
+  }
+  if (!includeSiblings) {
+    return clickedFeatures
+  }
+
+  // Also add siblings , i.e. features having the same parent as the clicked
+  // one and intersecting the click position
+  if (mousePosition.featureAndGlyphUnderMouse.feature.parent) {
+    const siblings =
+      mousePosition.featureAndGlyphUnderMouse.feature.parent.children
+    if (siblings) {
+      for (const [, sib] of siblings) {
+        if (sib._id == mousePosition.featureAndGlyphUnderMouse.feature._id) {
+          continue
+        }
+        if (sib.min < bp && sib.max >= bp) {
+          clickedFeatures.push(sib)
+        }
+      }
+    }
+  }
+  return clickedFeatures
 }
