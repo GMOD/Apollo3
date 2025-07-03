@@ -112,12 +112,11 @@ function getSequenceSegments(
       const [firstLocation] = cdsLocations
       const locs: { min: number; max: number }[] = []
       for (const loc of firstLocation) {
-        let sequence = getSequence(loc.min, loc.max)
-        if (strand === -1) {
-          sequence = revcom(sequence)
-        }
-        wholeSequence += sequence
+        wholeSequence += getSequence(loc.min, loc.max)
         locs.push({ min: loc.min, max: loc.max })
+      }
+      if (strand === -1) {
+        wholeSequence = revcom(wholeSequence)
       }
       const sequenceLines = splitStringIntoChunks(
         wholeSequence,
@@ -131,12 +130,11 @@ function getSequenceSegments(
       const [firstLocation] = cdsLocations
       const locs: { min: number; max: number }[] = []
       for (const loc of firstLocation) {
-        let sequence = getSequence(loc.min, loc.max)
-        if (strand === -1) {
-          sequence = revcom(sequence)
-        }
-        wholeSequence += sequence
+        wholeSequence += getSequence(loc.min, loc.max)
         locs.push({ min: loc.min, max: loc.max })
+      }
+      if (strand === -1) {
+        wholeSequence = revcom(wholeSequence)
       }
       let protein = ''
       for (let i = 0; i < wholeSequence.length; i += 3) {

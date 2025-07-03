@@ -1174,6 +1174,7 @@ export const TranscriptWidgetEditLocation = observer(
                         true,
                       )
                     }}
+                    style={{ border: '1px solid black', borderRadius: 5 }}
                   />
                 </Grid2>
               ) : (
@@ -1190,6 +1191,7 @@ export const TranscriptWidgetEditLocation = observer(
                         false,
                       )
                     }}
+                    style={{ border: '1px solid black', borderRadius: 5 }}
                   />
                 </Grid2>
               )}
@@ -1210,6 +1212,7 @@ export const TranscriptWidgetEditLocation = observer(
                         false,
                       )
                     }}
+                    style={{ border: '1px solid black', borderRadius: 5 }}
                   />
                 </Grid2>
               ) : (
@@ -1226,6 +1229,7 @@ export const TranscriptWidgetEditLocation = observer(
                         true,
                       )
                     }}
+                    style={{ border: '1px solid black', borderRadius: 5 }}
                   />
                 </Grid2>
               )}
@@ -1256,39 +1260,75 @@ export const TranscriptWidgetEditLocation = observer(
                           </Typography>
                         ))}
                     </Grid2>
-                    <Grid2 size={4} style={{ padding: 0 }}>
-                      <StyledTextField
-                        margin="dense"
-                        variant="outlined"
-                        value={loc.min + 1}
-                        onChangeCommitted={(newLocation: number) => {
-                          handleExonLocationChange(
-                            loc.min,
-                            newLocation - 1,
-                            feature,
-                            true,
-                          )
-                        }}
-                      />
-                    </Grid2>
+                    {strand === 1 ? (
+                      <Grid2 size={4} style={{ padding: 0 }}>
+                        <StyledTextField
+                          margin="dense"
+                          variant="outlined"
+                          value={loc.min + 1}
+                          onChangeCommitted={(newLocation: number) => {
+                            handleExonLocationChange(
+                              loc.min,
+                              newLocation - 1,
+                              feature,
+                              true,
+                            )
+                          }}
+                        />
+                      </Grid2>
+                    ) : (
+                      <Grid2 size={4} style={{ padding: 0 }}>
+                        <StyledTextField
+                          margin="dense"
+                          variant="outlined"
+                          value={loc.max}
+                          onChangeCommitted={(newLocation: number) => {
+                            handleExonLocationChange(
+                              loc.max,
+                              newLocation,
+                              feature,
+                              false,
+                            )
+                          }}
+                        />
+                      </Grid2>
+                    )}
                     <Grid2 size={2}>
                       <Strand strand={feature.strand} />
                     </Grid2>
-                    <Grid2 size={4} style={{ padding: 0 }}>
-                      <StyledTextField
-                        margin="dense"
-                        variant="outlined"
-                        value={loc.max}
-                        onChangeCommitted={(newLocation: number) => {
-                          handleExonLocationChange(
-                            loc.max,
-                            newLocation,
-                            feature,
-                            false,
-                          )
-                        }}
-                      />
-                    </Grid2>
+                    {strand === 1 ? (
+                      <Grid2 size={4} style={{ padding: 0 }}>
+                        <StyledTextField
+                          margin="dense"
+                          variant="outlined"
+                          value={loc.max}
+                          onChangeCommitted={(newLocation: number) => {
+                            handleExonLocationChange(
+                              loc.max,
+                              newLocation,
+                              feature,
+                              false,
+                            )
+                          }}
+                        />
+                      </Grid2>
+                    ) : (
+                      <Grid2 size={4} style={{ padding: 0 }}>
+                        <StyledTextField
+                          margin="dense"
+                          variant="outlined"
+                          value={loc.min + 1}
+                          onChangeCommitted={(newLocation: number) => {
+                            handleExonLocationChange(
+                              loc.min,
+                              newLocation - 1,
+                              feature,
+                              true,
+                            )
+                          }}
+                        />
+                      </Grid2>
+                    )}
                     <Grid2 size={1}>
                       {index !== transcriptExonParts.length - 1 &&
                         getThreePrimeSpliceSite(loc, index).map((site, idx) => (
