@@ -75,6 +75,7 @@ export const ApolloTranscriptDetailsWidget = observer(
     const apolloInternetAccount = internetAccounts.find(
       (ia) => ia.type === 'ApolloInternetAccount',
     ) as ApolloInternetAccountModel | undefined
+    const token = apolloInternetAccount?.retrieveToken()
     const role = apolloInternetAccount ? apolloInternetAccount.role : 'admin'
     const editable = ['admin', 'user'].includes(role ?? '')
 
@@ -125,6 +126,7 @@ export const ApolloTranscriptDetailsWidget = observer(
         feature,
         session,
         assembly,
+        token,
       },
     ) as React.ElementType
 
@@ -264,6 +266,7 @@ export const ApolloTranscriptDetailsWidget = observer(
           feature={feature}
           session={session}
           assembly={assembly}
+          token={token}
         />
       </div>
     )
