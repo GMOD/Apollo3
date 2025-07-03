@@ -83,7 +83,7 @@ export function CopyFeature({
   sourceAssemblyId,
   sourceFeature,
 }: CopyFeatureProps) {
-  const { assemblyManager, notify } = session as unknown as AbstractSessionModel
+  const { assemblyManager } = session as unknown as AbstractSessionModel
   const assemblies = assemblyManager.assemblyList
 
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<
@@ -203,9 +203,7 @@ export function CopyFeature({
       copyFeature: true,
       allIds: featureIds,
     })
-    await changeManager.submit(change)
-
-    notify('Feature copied successfully', 'success')
+    void changeManager.submit(change)
     handleClose()
     event.preventDefault()
   }

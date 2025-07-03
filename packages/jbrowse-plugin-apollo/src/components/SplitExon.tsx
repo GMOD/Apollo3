@@ -5,7 +5,6 @@ import {
   type AnnotationFeatureSnapshot,
 } from '@apollo-annotation/mst'
 import { SplitExonChange } from '@apollo-annotation/shared'
-import { type AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
   DialogActions,
@@ -60,17 +59,15 @@ export function SplitExon({
   changeManager,
   handleClose,
   selectedFeature,
-  session,
   setSelectedFeature,
   sourceAssemblyId,
   sourceFeature,
 }: SplitExonProps) {
-  const { notify } = session as unknown as AbstractSessionModel
   const [errorMessage, setErrorMessage] = useState('')
 
   const exonToBeSplit = getSnapshot(sourceFeature)
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
     if (selectedFeature?._id === sourceFeature._id) {
@@ -97,8 +94,7 @@ export function SplitExon({
       leftExonId: new ObjectID().toHexString(),
       rightExonId: new ObjectID().toHexString(),
     })
-    await changeManager.submit(change)
-    notify('Exon successfully split', 'success')
+    void changeManager.submit(change)
     handleClose()
     event.preventDefault()
   }

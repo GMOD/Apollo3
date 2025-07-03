@@ -3,10 +3,7 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
-import {
-  type AbstractSessionModel,
-  type Region,
-} from '@jbrowse/core/util/types'
+import { type Region } from '@jbrowse/core/util/types'
 import InfoIcon from '@mui/icons-material/Info'
 import {
   Box,
@@ -96,7 +93,6 @@ export function AddFeature({
   region,
   session,
 }: AddFeatureProps) {
-  const { notify } = session as unknown as AbstractSessionModel
   const [end, setEnd] = useState(String(region.end))
   const [start, setStart] = useState(String(region.start + 1))
   const [type, setType] = useState<NewFeature>(NewFeature.GENE_AND_SUBFEATURES)
@@ -104,7 +100,7 @@ export function AddFeature({
   const [strand, setStrand] = useState<1 | -1 | undefined>()
   const [errorMessage, setErrorMessage] = useState('')
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
 
@@ -151,8 +147,7 @@ export function AddFeature({
           children,
         },
       })
-      await changeManager.submit(change)
-      notify('Feature added successfully', 'success')
+      void changeManager.submit(change)
       handleClose()
       return
     }
@@ -169,8 +164,7 @@ export function AddFeature({
         assembly: region.assemblyName,
         addedFeature: mRNA,
       })
-      await changeManager.submit(change)
-      notify('Feature added successfully', 'success')
+      void changeManager.submit(change)
       handleClose()
       return
     }
@@ -193,8 +187,7 @@ export function AddFeature({
         strand,
       },
     })
-    await changeManager.submit(change)
-    notify('Feature added successfully', 'success')
+    void changeManager.submit(change)
     handleClose()
     return
   }

@@ -34,6 +34,7 @@ interface SerializedMergeExonsChangeMultiple
 export type SerializedMergeExonsChange =
   | SerializedMergeExonsChangeSingle
   | SerializedMergeExonsChangeMultiple
+
 export class MergeExonsChange extends FeatureChange {
   typeName = 'MergeExonsChange' as const
   changes: MergeExonsChangeDetails[]
@@ -41,6 +42,10 @@ export class MergeExonsChange extends FeatureChange {
   constructor(json: SerializedMergeExonsChange, options?: ChangeOptions) {
     super(json, options)
     this.changes = 'changes' in json ? json.changes : [json]
+  }
+  // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+  get notification() {
+    return 'Exons successfully merged'
   }
 
   toJSON(): SerializedMergeExonsChange {
