@@ -92,16 +92,31 @@ terms to non-existing terms'
       featureJson.attributes = {}
     }
 
+    const oldAttributes: Record<string, string[]> = {}
+    for (const [key, val] of Object.entries(featureJson.attributes)) {
+      if (!val) {
+        continue
+      }
+      oldAttributes[key] = [...val]
+    }
+
     if (flags.value === undefined && !flags.delete) {
-      this.log(JSON.stringify(featureJson.attributes[flags.attribute]))
+      this.log(JSON.stringify(oldAttributes[flags.attribute]))
       return
+    }
+
+    const newAttributes: Record<string, string[]> = {}
+    for (const [key, val] of Object.entries(oldAttributes)) {
+      newAttributes[key] = [...val]
     }
 
     if (flags.delete) {
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-      delete featureJson.attributes[flags.attribute]
+      delete newAttributes[flags.attribute]
+    } else if (flags.value) {
+      newAttributes[flags.attribute] = flags.value
     } else {
-      featureJson.attributes[flags.attribute] = flags.value
+      throw new Error(`Unexpected condition: value is "${flags.value}"`)
     }
 
     const assembly = await getAssemblyFromRefseq(
@@ -110,20 +125,13 @@ terms to non-existing terms'
       featureJson.refSeq,
     )
 
-    const attrs: Record<string, string[]> = {}
-    for (const [key, val] of Object.entries(featureJson.attributes)) {
-      if (!val) {
-        continue
-      }
-      attrs[key] = [...val]
-    }
-
     const changeJson: SerializedFeatureAttributeChange = {
       typeName: 'FeatureAttributeChange',
       changedIds: [featureId],
       assembly,
       featureId,
-      attributes: attrs,
+      oldAttributes,
+      newAttributes,
     }
 
     const url = new URL(localhostToAddress(`${access.address}/changes`))

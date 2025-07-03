@@ -13,7 +13,7 @@
  *
  * Run only matching pattern:
  *
- * yarn test:cli --test-name-pattern='Print help|Feature get'
+ * yarn tsx --test-name-pattern='Print help|Feature get' src/test/test.ts
  */
 
 import assert from 'node:assert'
@@ -651,7 +651,7 @@ void describe('Test CLI', () => {
 
     // Edit existing attribute value
     p = new Shell(
-      `${apollo} feature edit-attribute ${P} -i $${fid} -a source -v 'Eggs & Stuff'`,
+      `${apollo} feature edit-attribute ${P} -i ${fid} -a source -v 'Eggs & Stuff'`,
     )
     p = new Shell(`${apollo} feature edit-attribute ${P} -i ${fid} -a source`)
     let out = JSON.parse(p.stdout)
