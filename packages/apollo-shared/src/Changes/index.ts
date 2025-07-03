@@ -1,3 +1,4 @@
+import { AddAssemblyAliasesChange } from './AddAssemblyAliasesChange'
 import { AddAssemblyAndFeaturesFromFileChange } from './AddAssemblyAndFeaturesFromFileChange'
 import { AddAssemblyFromExternalChange } from './AddAssemblyFromExternalChange'
 import { AddAssemblyFromFileChange } from './AddAssemblyFromFileChange'
@@ -44,6 +45,7 @@ export const changes = {
   TypeChange,
   UserChange,
   AddRefSeqAliasesChange,
+  AddAssemblyAliasesChange,
 }
 
 export * from './AddAssemblyAndFeaturesFromFileChange'
@@ -68,3 +70,4 @@ export * from './StrandChange'
 export * from './TypeChange'
 export * from './UserChange'
 export * from './AddRefSeqAliasesChange'
+export * from './AddAssemblyAliasesChange'
