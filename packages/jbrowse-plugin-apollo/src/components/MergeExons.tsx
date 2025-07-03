@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-misused-promises */
+
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { MergeExonsChange } from '@apollo-annotation/shared'
 import {
