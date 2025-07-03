@@ -18,44 +18,141 @@ on:
           - latest
 
 jobs:
-  build-and-push-docker:
-    name: Build and push Docker image
-    runs-on: ubuntu-latest
+  build-docker:
+    name: Build Docker image
+    runs-on: ${{ matrix.platform.runner }}
+    strategy:
+      matrix:
+        platform:
+          - runner: ubuntu-latest
+            arch: linux/amd64
+          - runner: ubuntu-24.04-arm
+            arch: linux/arm64
     steps:
+      - name: Prepare
+        run: |
+          platform=${{ matrix.platform.arch }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+
       - name: Check out
         uses: actions/checkout@v4
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+
       - name: Log in to the GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push Apollo CLI image
+
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push by digest CLI image
+        id: buildcli
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/arm64/v8,linux/amd64
           push: true
-          tags: ghcr.io/gmod/apollo-cli:${{ inputs.tag }}
+          tags: ghcr.io/gmod/apollo-cli
           file:
             ${{ inputs.tag == 'dev' && 'packages/apollo-cli/dev.Dockerfile' ||
             'packages/apollo-cli/Dockerfile' }}
           outputs:
-            type=image,annotation-index.org.opencontainers.image.description=
+            type=image,push-by-digest=true,annotation-index.org.opencontainers.image.description=
             Apollo CLI
           cache-from: type=registry,ref=user/app:latest
           cache-to: type=inline
-      - name: Build and push Apollo collaboration server image
+
+      - name: Export digests of CLI image
+        run: |
+          digestdir=${{ runner.temp }}/digests-cli
+          mkdir -p "${digestdir}"
+          digest="${{ steps.buildcli.outputs.digest }}"
+          touch "${digestdir}/${digest#sha256:}"
+
+      - name: Upload digests of CLI image
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-cli-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/digests-cli/*
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Build and push by digest collaboration server image
+        id: buildcollab
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/arm64/v8,linux/amd64
           push: true
-          tags: ghcr.io/gmod/apollo-collaboration-server:${{ inputs.tag }}
+          tags: ghcr.io/gmod/apollo-collaboration-server
           outputs:
-            type=image,annotation-index.org.opencontainers.image.description=Apollo
+            type=image,push-by-digest=true,annotation-index.org.opencontainers.image.description=Apollo
             collaboration server
           cache-from: type=registry,ref=user/app:latest
           cache-to: type=inline
+
+      - name: Export digests of collab image
+        run: |
+          digestdir=${{ runner.temp }}/digests-collab
+          mkdir -p "${digestdir}"
+          digest="${{ steps.buildcollab.outputs.digest }}"
+          touch "${digestdir}/${digest#sha256:}"
+
+      - name: Upload digests of collab image
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-collab-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/digests-collab/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    runs-on: ubuntu-latest
+    needs:
+      - build-docker
+    steps:
+      - name: Log in to the GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Download digests CLI image
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/digests-cli
+          pattern: digests-cli-*
+          merge-multiple: true
+
+      - name: Create manifest list and push CLI image
+        working-directory: ${{ runner.temp }}/digests-cli
+        run: |
+          docker buildx imagetools create \
+            --tag ghcr.io/gmod/apollo-cli:${{ inputs.tag }} \
+            $(printf 'ghcr.io/gmod/apollo-cli@sha256:%s ' *)
+
+      - name: Inspect CLI image
+        run: |
+          docker buildx imagetools inspect \
+            ghcr.io/gmod/apollo-cli:${{ inputs.tag }}
+
+      - name: Download digests collab image
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/digests-collab
+          pattern: digests-collab-*
+          merge-multiple: true
+
+      - name: Create manifest list and push collab image
+        working-directory: ${{ runner.temp }}/digests-collab
+        run: |
+          docker buildx imagetools create \
+            --tag ghcr.io/gmod/apollo-collaboration-server:${{ inputs.tag }} \
+            $(printf 'ghcr.io/gmod/apollo-collaboration-server@sha256:%s ' *)
+
+      - name: Inspect collab image
+        run: |
+          docker buildx imagetools inspect \
+            ghcr.io/gmod/apollo-collaboration-server:${{ inputs.tag }}

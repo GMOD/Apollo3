@@ -304,6 +304,7 @@ function getContextMenuItemsForFeature(
     throw new Error('featureTypeOntology is undefined')
   }
 
+  // Add only relevant options
   menuItems.push(
     {
       label: makeFeatureLabel(sourceFeature),
