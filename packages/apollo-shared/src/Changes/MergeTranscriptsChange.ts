@@ -14,7 +14,7 @@ import {
   type AnnotationFeature,
   type AnnotationFeatureSnapshot,
 } from '@apollo-annotation/mst'
-import { type Feature } from '@apollo-annotation/schemas/src/feature.schema'
+import { type Feature } from '@apollo-annotation/schemas'
 import { doesIntersect2 } from '@jbrowse/core/util'
 
 import { findAndDeleteChildFeature } from './DeleteFeatureChange'
