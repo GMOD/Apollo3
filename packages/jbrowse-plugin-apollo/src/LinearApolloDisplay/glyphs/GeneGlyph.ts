@@ -10,7 +10,7 @@ import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material'
 
 import { type OntologyRecord } from '../../OntologyManager'
-import { MergeExons, SplitExon } from '../../components'
+import { MergeExons, MergeTranscripts, SplitExon } from '../../components'
 import { type ApolloSessionModel } from '../../session'
 import { getFeaturesUnderClick } from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
@@ -932,26 +932,48 @@ function getContextMenuItems(
         },
       )
     }
-    if (
-      isTranscriptFeature(feature, session) &&
-      isSessionModelWithWidgets(session)
-    ) {
+    if (isTranscriptFeature(feature, session)) {
       contextMenuItemsForFeature.push({
-        label: 'Open transcript details',
+        label: 'Merge transcript',
         onClick: () => {
-          const apolloTranscriptWidget = session.addWidget(
-            'ApolloTranscriptDetails',
-            'apolloTranscriptDetails',
-            {
-              feature,
-              assembly: currentAssemblyId,
-              changeManager,
-              refName: region.refName,
-            },
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              MergeTranscripts,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                changeManager,
+                sourceFeature: feature,
+                sourceAssemblyId: currentAssemblyId,
+                selectedFeature,
+                setSelectedFeature: (feature?: AnnotationFeature) => {
+                  display.setSelectedFeature(feature)
+                },
+              },
+            ],
           )
-          session.showWidget(apolloTranscriptWidget)
         },
       })
+      if (isSessionModelWithWidgets(session)) {
+        contextMenuItemsForFeature.push({
+          label: 'Open transcript details',
+          onClick: () => {
+            const apolloTranscriptWidget = session.addWidget(
+              'ApolloTranscriptDetails',
+              'apolloTranscriptDetails',
+              {
+                feature,
+                assembly: currentAssemblyId,
+                changeManager,
+                refName: region.refName,
+              },
+            )
+            session.showWidget(apolloTranscriptWidget)
+          },
+        })
+      }
     }
     menuItems.push({
       label: feature.type,

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import {
   type ChangeOptions,
   type ClientDataStore,
@@ -10,6 +11,7 @@ import {
 } from '@apollo-annotation/common'
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
+import { findAndDeleteChildFeature } from './DeleteFeatureChange'
 import { UndoSplitExonChange } from './UndoSplitExonChange'
 
 interface SerializedSplitExonChangeBase extends SerializedFeatureChange {
@@ -130,9 +132,10 @@ export class SplitExonChange extends FeatureChange {
         [...tx.children.entries()].sort((a, b) => a[1].min - b[1].min),
       )
 
-      const deletedIds = this.findAndDeleteChildFeature(
+      const deletedIds = findAndDeleteChildFeature(
         topLevelFeature,
         exonToBeSplit._id,
+        this,
       )
       deletedIds.push(exonToBeSplit._id)
       topLevelFeature.allIds = topLevelFeature.allIds.filter(
@@ -153,7 +156,7 @@ export class SplitExonChange extends FeatureChange {
       throw new Error('No data store')
     }
 
-    for (const change of this.changes) {
+    for (const [idx] of this.changedIds.entries()) {
       const {
         exonToBeSplit,
         parentFeatureId,
@@ -161,7 +164,7 @@ export class SplitExonChange extends FeatureChange {
         downstreamCut,
         leftExonId,
         rightExonId,
-      } = change
+      } = this.changes[idx]
       if (!parentFeatureId) {
         throw new Error('TODO: Split exon without parent')
       }
