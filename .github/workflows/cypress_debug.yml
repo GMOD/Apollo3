@@ -9,10 +9,10 @@ jobs:
       - name: Check out
         uses: actions/checkout@v4
 
-      - name: Use Node.js 18.x
+      - name: Use Node.js 20.x
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: yarn
 
       - name: Install
@@ -27,6 +27,11 @@ jobs:
         with:
           mongodb-version: 7
           mongodb-replica-set: test-rs
+
+      - name: Start local file server
+        run:
+          yarn --cwd packages/apollo-collaboration-server/test/data/ serve
+          --listen 3131 &
 
       - name: Run tests
         run: yarn run test:e2e:debug

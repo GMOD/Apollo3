@@ -1,11 +1,21 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
-import { getFrame, intersection2 } from '@jbrowse/core/util'
+import { type MenuItem } from '@jbrowse/core/ui'
+import {
+  type AbstractSessionModel,
+  getFrame,
+  intersection2,
+  isSessionModelWithWidgets,
+} from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
 
 import { type OntologyRecord } from '../../OntologyManager'
+import { MergeExons, MergeTranscripts, SplitExon } from '../../components'
+import { type ApolloSessionModel } from '../../session'
 import { getMinAndMaxPx, getOverlappingEdge } from '../../util'
+import { getFeaturesUnderClick } from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
+  type LinearApolloDisplayMouseEvents,
   type MousePosition,
   type MousePositionWithFeatureAndGlyph,
   isMousePositionWithFeatureAndGlyph,
@@ -20,7 +30,10 @@ let forwardFillLight: CanvasPattern | null = null
 let backwardFillLight: CanvasPattern | null = null
 let forwardFillDark: CanvasPattern | null = null
 let backwardFillDark: CanvasPattern | null = null
-if ('document' in globalThis) {
+const canvas = globalThis.document.createElement('canvas')
+// @ts-expect-error getContext is undefined in the web worker
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+if (canvas?.getContext) {
   for (const direction of ['forward', 'backward']) {
     for (const themeMode of ['light', 'dark']) {
       const canvas = document.createElement('canvas')
@@ -756,9 +769,179 @@ function getDraggableFeatureInfo(
   return
 }
 
+function isTranscriptFeature(
+  feature: AnnotationFeature,
+  session: ApolloSessionModel,
+): boolean {
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  return (
+    featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
+    featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')
+  )
+}
+
+function isExonFeature(
+  feature: AnnotationFeature,
+  session: ApolloSessionModel,
+): boolean {
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  return featureTypeOntology.isTypeOf(feature.type, 'exon')
+}
+
+function isCDSFeature(
+  feature: AnnotationFeature,
+  session: ApolloSessionModel,
+): boolean {
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  return featureTypeOntology.isTypeOf(feature.type, 'CDS')
+}
+
+function getContextMenuItems(
+  display: LinearApolloDisplayMouseEvents,
+  mousePosition: MousePositionWithFeatureAndGlyph,
+): MenuItem[] {
+  const {
+    apolloInternetAccount: internetAccount,
+    apolloHover,
+    changeManager,
+    regions,
+    selectedFeature,
+    session,
+  } = display
+  const [region] = regions
+  const currentAssemblyId = display.getAssemblyId(region.assemblyName)
+  const menuItems: MenuItem[] = []
+  const role = internetAccount ? internetAccount.role : 'admin'
+  const admin = role === 'admin'
+  if (!apolloHover) {
+    return menuItems
+  }
+
+  let featuresUnderClick = getFeaturesUnderClick(mousePosition)
+  if (isCDSFeature(mousePosition.featureAndGlyphUnderMouse.feature, session)) {
+    featuresUnderClick = getFeaturesUnderClick(mousePosition, true)
+  }
+
+  for (const feature of featuresUnderClick) {
+    const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(
+      display,
+      feature,
+    )
+    if (isExonFeature(feature, session)) {
+      contextMenuItemsForFeature.push(
+        {
+          label: 'Merge exons',
+          disabled: !admin,
+          onClick: () => {
+            ;(session as unknown as AbstractSessionModel).queueDialog(
+              (doneCallback) => [
+                MergeExons,
+                {
+                  session,
+                  handleClose: () => {
+                    doneCallback()
+                  },
+                  changeManager,
+                  sourceFeature: feature,
+                  sourceAssemblyId: currentAssemblyId,
+                  selectedFeature,
+                  setSelectedFeature: (feature?: AnnotationFeature) => {
+                    display.setSelectedFeature(feature)
+                  },
+                },
+              ],
+            )
+          },
+        },
+        {
+          label: 'Split exon',
+          disabled: !admin,
+          onClick: () => {
+            ;(session as unknown as AbstractSessionModel).queueDialog(
+              (doneCallback) => [
+                SplitExon,
+                {
+                  session,
+                  handleClose: () => {
+                    doneCallback()
+                  },
+                  changeManager,
+                  sourceFeature: feature,
+                  sourceAssemblyId: currentAssemblyId,
+                  selectedFeature,
+                  setSelectedFeature: (feature?: AnnotationFeature) => {
+                    display.setSelectedFeature(feature)
+                  },
+                },
+              ],
+            )
+          },
+        },
+      )
+    }
+    if (isTranscriptFeature(feature, session)) {
+      contextMenuItemsForFeature.push({
+        label: 'Merge transcript',
+        onClick: () => {
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              MergeTranscripts,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                changeManager,
+                sourceFeature: feature,
+                sourceAssemblyId: currentAssemblyId,
+                selectedFeature,
+                setSelectedFeature: (feature?: AnnotationFeature) => {
+                  display.setSelectedFeature(feature)
+                },
+              },
+            ],
+          )
+        },
+      })
+      if (isSessionModelWithWidgets(session)) {
+        contextMenuItemsForFeature.push({
+          label: 'Open transcript details',
+          onClick: () => {
+            const apolloTranscriptWidget = session.addWidget(
+              'ApolloTranscriptDetails',
+              'apolloTranscriptDetails',
+              {
+                feature,
+                assembly: currentAssemblyId,
+                changeManager,
+                refName: region.refName,
+              },
+            )
+            session.showWidget(apolloTranscriptWidget)
+          },
+        })
+      }
+    }
+    menuItems.push({
+      label: feature.type,
+      subMenu: contextMenuItemsForFeature,
+    })
+  }
+  return menuItems
+}
+
 // False positive here, none of these functions use "this"
 /* eslint-disable @typescript-eslint/unbound-method */
-const { drawTooltip, getContextMenuItems, onMouseLeave } = boxGlyph
+const { drawTooltip, getContextMenuItemsForFeature, onMouseLeave } = boxGlyph
 /* eslint-enable @typescript-eslint/unbound-method */
 
 export const geneGlyph: Glyph = {
@@ -767,6 +950,7 @@ export const geneGlyph: Glyph = {
   drawHover,
   drawTooltip,
   getContextMenuItems,
+  getContextMenuItemsForFeature,
   getFeatureFromLayout,
   getRowCount,
   getRowForFeature,

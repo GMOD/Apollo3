@@ -69,6 +69,7 @@ export class JBrowseService {
           ],
         },
       },
+      ApolloPlugin: { hasRole: false },
     }
     if (role === Role.None) {
       return configuration
@@ -76,6 +77,7 @@ export class JBrowseService {
     return {
       ...configuration,
       ApolloPlugin: {
+        hasRole: true,
         ontologies: [
           {
             name: 'Sequence Ontology',
@@ -141,7 +143,10 @@ export class JBrowseService {
         this.logger.debug(`generating assembly ${assemblyId}`)
         return {
           name: assemblyId,
-          aliases: [assembly.name, ...assembly.aliases],
+          aliases:
+            assembly.aliases.length > 0
+              ? [...assembly.aliases]
+              : [assembly.name],
           displayName: assembly.displayName || assembly.name,
           sequence: {
             trackId: `sequenceConfigId-${assembly.name}`,

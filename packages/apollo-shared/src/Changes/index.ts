@@ -1,3 +1,4 @@
+import { AddAssemblyAliasesChange } from './AddAssemblyAliasesChange'
 import { AddAssemblyAndFeaturesFromFileChange } from './AddAssemblyAndFeaturesFromFileChange'
 import { AddAssemblyFromExternalChange } from './AddAssemblyFromExternalChange'
 import { AddAssemblyFromFileChange } from './AddAssemblyFromFileChange'
@@ -12,10 +13,12 @@ import { ImportJBrowseConfigChange } from './ImportJBrowseConfigChange'
 import { LocationEndChange } from './LocationEndChange'
 import { LocationStartChange } from './LocationStartChange'
 import { MergeExonsChange } from './MergeExonsChange'
+import { MergeTranscriptsChange } from './MergeTranscriptsChange'
 import { SplitExonChange } from './SplitExonChange'
 import { StrandChange } from './StrandChange'
 import { TypeChange } from './TypeChange'
 import { UndoMergeExonsChange } from './UndoMergeExonsChange'
+import { UndoMergeTranscriptsChange } from './UndoMergeTranscriptsChange'
 import { UndoSplitExonChange } from './UndoSplitExonChange'
 import { UserChange } from './UserChange'
 
@@ -34,12 +37,15 @@ export const changes = {
   LocationStartChange,
   MergeExonsChange,
   SplitExonChange,
+  MergeTranscriptsChange,
   UndoMergeExonsChange,
   UndoSplitExonChange,
+  UndoMergeTranscriptsChange,
   StrandChange,
   TypeChange,
   UserChange,
   AddRefSeqAliasesChange,
+  AddAssemblyAliasesChange,
 }
 
 export * from './AddAssemblyAndFeaturesFromFileChange'
@@ -56,9 +62,12 @@ export * from './LocationEndChange'
 export * from './LocationStartChange'
 export * from './MergeExonsChange'
 export * from './SplitExonChange'
+export * from './MergeTranscriptsChange'
 export * from './UndoMergeExonsChange'
 export * from './UndoSplitExonChange'
+export * from './UndoMergeTranscriptsChange'
 export * from './StrandChange'
 export * from './TypeChange'
 export * from './UserChange'
 export * from './AddRefSeqAliasesChange'
+export * from './AddAssemblyAliasesChange'

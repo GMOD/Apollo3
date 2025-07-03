@@ -14,7 +14,6 @@ import { type Instance, addDisposer } from 'mobx-state-tree'
 import { type CSSProperties } from 'react'
 
 import { type Edge, getPropagatedLocationChanges } from '../../util'
-import { type Coord } from '../components'
 import { type Glyph } from '../glyphs/Glyph'
 import { type CanvasMouseEvent } from '../types'
 
@@ -45,7 +44,7 @@ export function isMousePositionWithFeatureAndGlyph(
 }
 
 function getMousePosition(
-  event: CanvasMouseEvent,
+  event: React.MouseEvent,
   lgv: LinearGenomeViewModel,
 ): MousePosition {
   const canvas = event.currentTarget
@@ -133,7 +132,7 @@ export function mouseEventsModelIntermediateFactory(
       apolloHover: undefined as FeatureAndGlyphUnderMouse | undefined,
     }))
     .views((self) => ({
-      getMousePosition(event: CanvasMouseEvent): MousePosition {
+      getMousePosition(event: React.MouseEvent): MousePosition {
         const mousePosition = getMousePosition(event, self.lgv)
         const { bp, regionNumber, y } = mousePosition
         const row = Math.floor(y / self.apolloRowHeight)
@@ -346,14 +345,18 @@ export function mouseEventsModelFactory(
   )
 
   return LinearApolloDisplayMouseEvents.views((self) => ({
-    contextMenuItems(contextCoord?: Coord): MenuItem[] {
+    contextMenuItems(event: React.MouseEvent<HTMLDivElement>): MenuItem[] {
       const { apolloHover } = self
-      if (!(apolloHover && contextCoord)) {
+      if (!apolloHover) {
         return []
       }
+      const mousePosition = self.getMousePosition(event)
       const { topLevelFeature } = apolloHover
       const glyph = self.getGlyph(topLevelFeature)
-      return glyph.getContextMenuItems(self)
+      if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
+        return glyph.getContextMenuItems(self, mousePosition)
+      }
+      return []
     },
   }))
     .actions((self) => ({

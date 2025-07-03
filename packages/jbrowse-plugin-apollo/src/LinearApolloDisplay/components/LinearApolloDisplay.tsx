@@ -139,7 +139,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
           } else {
             const coord: [number, number] = [event.clientX, event.clientY]
             setContextCoord(coord)
-            setContextMenuItems(getContextMenuItems(coord))
+            setContextMenuItems(getContextMenuItems(event))
           }
         }}
       >

@@ -26,6 +26,9 @@ interface JBrowseInternetAccount {
 
 export interface JBrowseConfig {
   assemblies?: JBrowseAssembly[]
+  configuration?: {
+    ApolloPlugin?: Record<string, unknown>
+  }
   tracks?: JBrowseTrack[]
   plugins?: JBrowsePlugin[]
   internetAccounts?: JBrowseInternetAccount[]
@@ -39,28 +42,40 @@ export interface SerializedImportJBrowseConfigChange {
 }
 
 export function filterJBrowseConfig(config: JBrowseConfig): JBrowseConfig {
-  const { __v, _id, assemblies, internetAccounts, plugins, tracks, ...rest } =
-    config
-  const filteredAssemblies = assemblies?.filter(
-    (a) => a.sequence.adapter.type !== 'ApolloSequenceAdapter',
-  )
-  const filteredTracks = tracks?.filter((t) => t.type !== 'ApolloTrack')
-  const filteredPlugins = plugins?.filter((p) => p.name !== 'Apollo')
-  const filteredInternetAccounts = internetAccounts?.filter(
-    (i) => i.type !== 'ApolloInternetAccount',
-  )
+  const {
+    __v,
+    _id,
+    assemblies,
+    configuration,
+    internetAccounts,
+    plugins,
+    tracks,
+    ...rest
+  } = config
+  // Need to make sure that configuration.ApolloPlugin.hasRole isn't set
   const filteredConfig = rest as JBrowseConfig
-  if (filteredAssemblies) {
-    filteredConfig.assemblies = filteredAssemblies
+  if (assemblies) {
+    filteredConfig.assemblies = assemblies.filter(
+      (a) => a.sequence.adapter.type !== 'ApolloSequenceAdapter',
+    )
   }
-  if (filteredTracks) {
-    filteredConfig.tracks = filteredTracks
+  if (configuration?.ApolloPlugin?.hasRole) {
+    const { hasRole, ...apolloPluginRest } = configuration.ApolloPlugin
+    filteredConfig.configuration = {
+      ...configuration,
+      ApolloPlugin: apolloPluginRest,
+    }
   }
-  if (filteredPlugins) {
-    filteredConfig.plugins = filteredPlugins
+  if (internetAccounts) {
+    filteredConfig.internetAccounts = internetAccounts.filter(
+      (i) => i.type !== 'ApolloInternetAccount',
+    )
   }
-  if (filteredInternetAccounts) {
-    filteredConfig.internetAccounts = filteredInternetAccounts
+  if (plugins) {
+    filteredConfig.plugins = plugins.filter((p) => p.name !== 'Apollo')
+  }
+  if (tracks) {
+    filteredConfig.trackss = tracks.filter((t) => t.type !== 'ApolloTrack')
   }
   return filteredConfig
 }

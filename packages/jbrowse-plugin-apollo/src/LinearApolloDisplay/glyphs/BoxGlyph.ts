@@ -3,13 +3,7 @@ import { type MenuItem } from '@jbrowse/core/ui'
 import { type AbstractSessionModel } from '@jbrowse/core/util'
 import { type Theme, alpha } from '@mui/material'
 
-import {
-  AddChildFeature,
-  CopyFeature,
-  DeleteFeature,
-  MergeExons,
-  SplitExon,
-} from '../../components'
+import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
   type LinearApolloDisplayMouseEvents,
@@ -260,8 +254,38 @@ export function drawBox(
 function getContextMenuItems(
   display: LinearApolloDisplayMouseEvents,
 ): MenuItem[] {
+  const { apolloHover } = display
+  if (!apolloHover) {
+    return []
+  }
+  const { feature: sourceFeature } = apolloHover
+  return getContextMenuItemsForFeature(display, sourceFeature)
+}
+
+function makeFeatureLabel(feature: AnnotationFeature) {
+  let name: string | undefined
+  if (feature.attributes.get('gff_name')) {
+    name = feature.attributes.get('gff_name')?.join(',')
+  } else if (feature.attributes.get('gff_id')) {
+    name = feature.attributes.get('gff_id')?.join(',')
+  } else {
+    name = feature._id
+  }
+  const coords = `(${(feature.min + 1).toLocaleString('en')}..${feature.max.toLocaleString('en')})`
+  const maxLen = 60
+  if (name && name.length + coords.length > maxLen + 5) {
+    const trim = maxLen - coords.length
+    name = trim > 0 ? name.slice(0, trim) : ''
+    name = `${name}[...]`
+  }
+  return `${name} ${coords}`
+}
+
+function getContextMenuItemsForFeature(
+  display: LinearApolloDisplayMouseEvents,
+  sourceFeature: AnnotationFeature,
+): MenuItem[] {
   const {
-    apolloHover,
     apolloInternetAccount: internetAccount,
     changeManager,
     regions,
@@ -269,10 +293,6 @@ function getContextMenuItems(
     session,
   } = display
   const menuItems: MenuItem[] = []
-  if (!apolloHover) {
-    return menuItems
-  }
-  const { feature: sourceFeature } = apolloHover
   const role = internetAccount ? internetAccount.role : 'admin'
   const admin = role === 'admin'
   const readOnly = !(role && ['admin', 'user'].includes(role))
@@ -284,7 +304,12 @@ function getContextMenuItems(
     throw new Error('featureTypeOntology is undefined')
   }
 
+  // Add only relevant options
   menuItems.push(
+    {
+      label: makeFeatureLabel(sourceFeature),
+      type: 'subHeader',
+    },
     {
       label: 'Add child feature',
       disabled: readOnly,
@@ -333,56 +358,6 @@ function getContextMenuItems(
         ;(session as unknown as AbstractSessionModel).queueDialog(
           (doneCallback) => [
             DeleteFeature,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager,
-              sourceFeature,
-              sourceAssemblyId: currentAssemblyId,
-              selectedFeature,
-              setSelectedFeature: (feature?: AnnotationFeature) => {
-                display.setSelectedFeature(feature)
-              },
-            },
-          ],
-        )
-      },
-    },
-    {
-      label: 'Merge exons',
-      disabled:
-        !admin || !featureTypeOntology.isTypeOf(sourceFeature.type, 'exon'),
-      onClick: () => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            MergeExons,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager,
-              sourceFeature,
-              sourceAssemblyId: currentAssemblyId,
-              selectedFeature,
-              setSelectedFeature: (feature?: AnnotationFeature) => {
-                display.setSelectedFeature(feature)
-              },
-            },
-          ],
-        )
-      },
-    },
-    {
-      label: 'Split exon',
-      disabled:
-        !admin || !featureTypeOntology.isTypeOf(sourceFeature.type, 'exon'),
-      onClick: () => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            SplitExon,
             {
               session,
               handleClose: () => {
@@ -508,6 +483,7 @@ export const boxGlyph: Glyph = {
   drawDragPreview,
   drawHover,
   drawTooltip,
+  getContextMenuItemsForFeature,
   getContextMenuItems,
   getFeatureFromLayout,
   getRowCount,
