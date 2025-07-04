@@ -10,6 +10,7 @@ import {
   ImportFeatures,
   ManageUsers,
 } from '../components'
+import { AddAssemblyAliases } from '../components/AddAssemblyAliases'
 import { type ApolloSessionModel } from '../session'
 
 export function addMenuItems(rootModel: AbstractMenuManager) {
@@ -70,6 +71,23 @@ export function addMenuItems(rootModel: AbstractMenuManager) {
       ;(session as unknown as AbstractSessionModel).queueDialog(
         (doneCallback) => [
           AddRefSeqAliases,
+          {
+            session,
+            handleClose: () => {
+              doneCallback()
+            },
+            changeManager: session.apolloDataStore.changeManager,
+          },
+        ],
+      )
+    },
+  })
+  rootModel.appendToMenu('Apollo', {
+    label: 'Add Assembly aliases',
+    onClick: (session: ApolloSessionModel) => {
+      ;(session as unknown as AbstractSessionModel).queueDialog(
+        (doneCallback) => [
+          AddAssemblyAliases,
           {
             session,
             handleClose: () => {
