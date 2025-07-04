@@ -6,12 +6,12 @@ import {
   intersection2,
   isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material'
 
 import { type OntologyRecord } from '../../OntologyManager'
 import { MergeExons, MergeTranscripts, SplitExon } from '../../components'
 import { type ApolloSessionModel } from '../../session'
+import { getMinAndMaxPx, getOverlappingEdge } from '../../util'
 import { getFeaturesUnderClick } from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
@@ -703,50 +703,6 @@ function onMouseUp(
   }
 }
 
-function getMinAndMaxPx(
-  feature: AnnotationFeature,
-  refName: string,
-  regionNumber: number,
-  lgv: LinearGenomeViewModel,
-): [number, number] | undefined {
-  const minPxInfo = lgv.bpToPx({
-    refName,
-    coord: feature.min,
-    regionNumber,
-  })
-  const maxPxInfo = lgv.bpToPx({
-    refName,
-    coord: feature.max,
-    regionNumber,
-  })
-  if (minPxInfo === undefined || maxPxInfo === undefined) {
-    return
-  }
-  const { offsetPx } = lgv
-  const minPx = minPxInfo.offsetPx - offsetPx
-  const maxPx = maxPxInfo.offsetPx - offsetPx
-  return [minPx, maxPx]
-}
-
-function getOverlappingEdge(
-  feature: AnnotationFeature,
-  x: number,
-  minMax: [number, number],
-): { feature: AnnotationFeature; edge: 'min' | 'max' } | undefined {
-  const [minPx, maxPx] = minMax
-  // Feature is too small to tell if we're overlapping an edge
-  if (Math.abs(maxPx - minPx) < 8) {
-    return
-  }
-  if (Math.abs(minPx - x) < 4) {
-    return { feature, edge: 'min' }
-  }
-  if (Math.abs(maxPx - x) < 4) {
-    return { feature, edge: 'max' }
-  }
-  return
-}
-
 function getDraggableFeatureInfo(
   mousePosition: MousePosition,
   feature: AnnotationFeature,
@@ -795,7 +751,7 @@ function getDraggableFeatureInfo(
       // We are on an exon, are we on the edge of it?
       const minMax = getMinAndMaxPx(overlappingExon, refName, regionNumber, lgv)
       if (minMax) {
-        const overlappingEdge = getOverlappingEdge(feature, x, minMax)
+        const overlappingEdge = getOverlappingEdge(overlappingExon, x, minMax)
         if (overlappingEdge) {
           return overlappingEdge
         }
