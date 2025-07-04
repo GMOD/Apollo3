@@ -30,9 +30,7 @@ describe('Different ways of editing features', () => {
     cy.contains('Annotations (').click()
     cy.get('button[aria-label="Minimize drawer"]').click()
 
-    cy.get('[data-testid="track_menu_icon"]').click()
-    cy.contains('Appearance').trigger('mouseover')
-    cy.contains('Show both graphical and table display').click()
+    cy.annotationTrackAppearance('Show both graphical and table display')
 
     cy.get('input[placeholder="Search for location"]').type(
       'ctgA:9400..9600{enter}',
@@ -68,9 +66,7 @@ describe('Different ways of editing features', () => {
     cy.addAssemblyFromGff('stopcodon', 'test_data/cdsChecks/stopcodon.gff3')
     cy.selectAssemblyToView('stopcodon')
     cy.searchFeatures('gene02', 1)
-    cy.get('[data-testid="track_menu_icon"]').click()
-    cy.contains('Appearance').trigger('mouseover')
-    cy.contains('Show both graphical and table display').click()
+    cy.annotationTrackAppearance('Show both graphical and table display')
     cy.contains('td', '=cds02.1').rightclick()
     cy.contains('Delete feature').click()
     cy.contains('Are you sure you want to delete the selected feature?')
@@ -89,9 +85,7 @@ describe('Different ways of editing features', () => {
     cy.addAssemblyFromGff('stopcodon', 'test_data/cdsChecks/stopcodon.gff3')
     cy.selectAssemblyToView('stopcodon')
     cy.searchFeatures('gene04', 1)
-    cy.get('[data-testid="track_menu_icon"]').click()
-    cy.contains('Appearance').trigger('mouseover')
-    cy.contains('Show both graphical and table display').click()
+    cy.annotationTrackAppearance('Show both graphical and table display')
     cy.contains('td', '=cds04.1').rightclick()
     cy.contains('Delete feature').click()
 
@@ -111,9 +105,7 @@ describe('Different ways of editing features', () => {
     cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
     cy.selectAssemblyToView('onegene.fasta.gff3')
     cy.searchFeatures('gx1', 1)
-    cy.get('[data-testid="track_menu_icon"]').click()
-    cy.contains('Appearance').trigger('mouseover')
-    cy.contains('Show both graphical and table display').click()
+    cy.annotationTrackAppearance('Show both graphical and table display')
     cy.contains('td', '=CDS1')
     cy.contains('td', '=tx1').rightclick()
     cy.contains('Delete feature').click()
@@ -132,9 +124,7 @@ describe('Different ways of editing features', () => {
     cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
     cy.selectAssemblyToView('onegene.fasta.gff3')
     cy.searchFeatures('gx1', 1)
-    cy.get('[data-testid="track_menu_icon"]').click()
-    cy.contains('Appearance').trigger('mouseover')
-    cy.contains('Show both graphical and table display').click()
+    cy.annotationTrackAppearance('Show both graphical and table display')
     // In headless mode it seems to take a long time for menus to be populated
     cy.get('input[type="text"][value="CDS"]', { timeout: 60_000 }).click({
       timeout: 60_000,
@@ -153,9 +143,7 @@ describe('Different ways of editing features', () => {
     cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
     cy.selectAssemblyToView('onegene.fasta.gff3')
     cy.searchFeatures('gx1', 1)
-    cy.get('[data-testid="track_menu_icon"]').click()
-    cy.contains('Appearance').trigger('mouseover')
-    cy.contains('Show both graphical and table display').click()
+    cy.annotationTrackAppearance('Show both graphical and table display')
     // In headless mode it seems to take a long time for menus to be populated
     cy.get('input[type="text"][value="CDS"]', { timeout: 60_000 }).rightclick({
       timeout: 60_000,

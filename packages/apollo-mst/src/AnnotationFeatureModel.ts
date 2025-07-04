@@ -344,7 +344,7 @@ export const AnnotationFeatureModel = types
     },
     setMin(min: number) {
       if (min > self.max) {
-        throw new Error(`Min "${min}" is greater than max "${self.max}"`)
+        throw new Error(`Min "${min + 1}" is greater than max "${self.max}"`)
       }
       if (self.min !== min) {
         self.min = min

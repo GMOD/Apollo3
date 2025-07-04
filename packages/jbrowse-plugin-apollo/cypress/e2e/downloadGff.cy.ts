@@ -14,10 +14,7 @@ describe('Download GFF', () => {
 
   it('Can download gff with fasta', () => {
     cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
-    cy.get('button[data-testid="dropDownMenuButton"]')
-      .contains('Apollo')
-      .click()
-    cy.contains('Download GFF3').click()
+    cy.selectFromApolloMenu('Download GFF3')
     cy.focused()
       .contains('Select assembly')
       .parent()

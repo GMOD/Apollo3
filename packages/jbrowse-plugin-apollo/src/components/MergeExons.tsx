@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-misused-promises */
+
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { MergeExonsChange } from '@apollo-annotation/shared'
-import { type AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Box,
   Button,
@@ -94,16 +93,14 @@ export function MergeExons({
   changeManager,
   handleClose,
   selectedFeature,
-  session,
   setSelectedFeature,
   sourceAssemblyId,
   sourceFeature,
 }: MergeExonsProps) {
-  const { notify } = session as unknown as AbstractSessionModel
   const [errorMessage, setErrorMessage] = useState('')
   const [selectedExon, setSelectedExon] = useState<AnnotationFeature>()
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
     const { parent } = sourceFeature
@@ -121,8 +118,7 @@ export function MergeExons({
       secondExon: getSnapshot(selectedExon),
       parentFeatureId: parent._id,
     })
-    await changeManager.submit(change)
-    notify('Exons successfully merged', 'success')
+    void changeManager.submit(change)
     handleClose()
     event.preventDefault()
   }

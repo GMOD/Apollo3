@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-misused-promises */
+
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { DeleteFeatureChange } from '@apollo-annotation/shared'
-import { type AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
   DialogActions,
@@ -31,15 +30,13 @@ export function DeleteFeature({
   changeManager,
   handleClose,
   selectedFeature,
-  session,
   setSelectedFeature,
   sourceAssemblyId,
   sourceFeature,
 }: DeleteFeatureProps) {
-  const { notify } = session as unknown as AbstractSessionModel
   const [errorMessage, setErrorMessage] = useState('')
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
     if (selectedFeature?._id === sourceFeature._id) {
@@ -54,8 +51,7 @@ export function DeleteFeature({
       deletedFeature: getSnapshot(sourceFeature),
       parentFeatureId: sourceFeature.parent?._id,
     })
-    await changeManager.submit(change)
-    notify('Feature deleted successfully', 'success')
+    void changeManager.submit(change)
     handleClose()
     event.preventDefault()
   }

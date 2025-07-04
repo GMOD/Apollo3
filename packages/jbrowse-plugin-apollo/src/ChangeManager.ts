@@ -76,7 +76,10 @@ export class ChangeManager {
         jobsManager.abortJob(job.name, String(error))
       }
       console.error(error)
-      session.notify(String(error), 'error')
+      session.notify(
+        `Error encountered in client: ${String(error)}. Data may be out of sync, please refresh the page`,
+        'error',
+      )
       return
     }
 
@@ -123,10 +126,10 @@ export class ChangeManager {
       if (change.notification) {
         session.notify(change.notification, 'success')
       }
-    }
-    if (addToRecents) {
-      // Push the change into array
-      this.recentChanges.push(change)
+      if (addToRecents) {
+        // Push the change into array
+        this.recentChanges.push(change)
+      }
     }
 
     if (updateJobsManager) {
@@ -136,7 +139,8 @@ export class ChangeManager {
 
   async revert(change: Change, submitToBackend = true) {
     const inverseChange = change.getInverse()
-    return this.submit(inverseChange, { submitToBackend, addToRecents: false })
+    const opts = { submitToBackend, addToRecents: false }
+    return this.submit(inverseChange, opts)
   }
 
   /**
