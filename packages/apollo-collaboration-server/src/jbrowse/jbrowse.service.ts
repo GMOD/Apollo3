@@ -97,11 +97,6 @@ export class JBrowseService {
         name: 'Apollo',
         url: pluginLocation,
       },
-      {
-        name: 'HavanaApolloPlugin',
-        // url: 'https://unpkg.com/havana-apollo-plugin@0.0.7/dist/havana-apollo-plugin.umd.production.min.js',
-        url: 'http://localhost:9001/dist/havana-apollo-plugin.umd.development.js',
-      },
     ]
   }
 
