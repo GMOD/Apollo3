@@ -153,7 +153,6 @@ export const TranscriptWidgetEditLocation = observer(
       newLocation: number,
       feature: AnnotationFeature,
       isMin: boolean,
-      onComplete?: () => void,
     ) {
       if (!feature.children) {
         throw new Error('Transcript should have child features')
@@ -290,16 +289,9 @@ export const TranscriptWidgetEditLocation = observer(
           appendStartLocationChange(cdsFeature, startChange, newLocation)
         }
 
-        void changeManager
-          .submit(startChange)
-          .then(() => {
-            if (onComplete) {
-              onComplete()
-            }
-          })
-          .catch(() => {
-            notify('Error updating feature CDS start position', 'error')
-          })
+        void changeManager.submit(startChange).catch(() => {
+          notify('Error updating feature CDS start position', 'error')
+        })
       }
 
       if (!isMin && newLocation !== cdsFeature.max) {
@@ -345,16 +337,9 @@ export const TranscriptWidgetEditLocation = observer(
           appendEndLocationChange(cdsFeature, endChange, newLocation)
         }
 
-        void changeManager
-          .submit(endChange)
-          .then(() => {
-            if (onComplete) {
-              onComplete()
-            }
-          })
-          .catch(() => {
-            notify('Error updating feature CDS end position', 'error')
-          })
+        void changeManager.submit(endChange).catch(() => {
+          notify('Error updating feature CDS end position', 'error')
+        })
       }
     }
 
@@ -363,6 +348,7 @@ export const TranscriptWidgetEditLocation = observer(
       newLocation: number,
       feature: AnnotationFeature,
       isMin: boolean,
+      onComplete?: () => void,
     ) => {
       if (!feature.children) {
         throw new Error('Transcript should have child features')
@@ -400,9 +386,16 @@ export const TranscriptWidgetEditLocation = observer(
             assembly,
           })
 
-      void changeManager.submit(change).catch(() => {
-        notify('Error updating feature CDS position', 'error')
-      })
+      void changeManager
+        .submit(change)
+        .then(() => {
+          if (onComplete) {
+            onComplete()
+          }
+        })
+        .catch(() => {
+          notify('Error updating feature CDS position', 'error')
+        })
     }
 
     function handleExonLocationChange(
@@ -1028,10 +1021,17 @@ export const TranscriptWidgetEditLocation = observer(
       )
 
       if (strand === 1) {
+        if (startCodonGenomicLoc > stopCodonGenomicLoc) {
+          notify(
+            'Start codon genomic location should be less than stop codon genomic location',
+            'error',
+          )
+          return
+        }
         let promise
         if (startCodonGenomicLoc !== cdsMin) {
           promise = new Promise((resolve) => {
-            handleCDSLocationChange(
+            updateCDSLocation(
               cdsMin,
               startCodonGenomicLoc,
               feature,
@@ -1046,24 +1046,27 @@ export const TranscriptWidgetEditLocation = observer(
         if (stopCodonGenomicLoc !== cdsMax) {
           if (promise) {
             void promise.then(() => {
-              handleCDSLocationChange(
-                cdsMax,
-                stopCodonGenomicLoc,
-                feature,
-                false,
-              )
+              updateCDSLocation(cdsMax, stopCodonGenomicLoc, feature, false)
             })
           } else {
-            handleCDSLocationChange(cdsMax, stopCodonGenomicLoc, feature, false)
+            updateCDSLocation(cdsMax, stopCodonGenomicLoc, feature, false)
           }
         }
       }
 
       if (strand === -1) {
+        // reverse strand
+        if (startCodonGenomicLoc < stopCodonGenomicLoc) {
+          notify(
+            'Start codon genomic location should be less than stop codon genomic location',
+            'error',
+          )
+          return
+        }
         let promise
         if (startCodonGenomicLoc !== cdsMax) {
           promise = new Promise((resolve) => {
-            handleCDSLocationChange(
+            updateCDSLocation(
               cdsMax,
               startCodonGenomicLoc,
               feature,
@@ -1078,18 +1081,14 @@ export const TranscriptWidgetEditLocation = observer(
         if (stopCodonGenomicLoc !== cdsMin) {
           if (promise) {
             void promise.then(() => {
-              handleCDSLocationChange(
-                cdsMin,
-                stopCodonGenomicLoc,
-                feature,
-                true,
-              )
+              updateCDSLocation(cdsMin, stopCodonGenomicLoc, feature, true)
             })
           } else {
-            handleCDSLocationChange(cdsMin, stopCodonGenomicLoc, feature, true)
+            updateCDSLocation(cdsMin, stopCodonGenomicLoc, feature, true)
           }
         }
       }
+      notify('Translation sequence trimmed to start and stop codons', 'success')
     }
 
     const copyToClipboard = () => {
@@ -1110,7 +1109,7 @@ export const TranscriptWidgetEditLocation = observer(
       <div>
         {cdsPresent && (
           <div>
-            <Accordion defaultExpanded>
+            <Accordion>
               <StyledAccordionSummary
                 expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
                 aria-controls="panel1-content"
@@ -1161,34 +1160,79 @@ export const TranscriptWidgetEditLocation = observer(
               style={{ textAlign: 'center', marginTop: 10 }}
             >
               <Grid2 size={1} />
-              <Grid2 size={4}>
-                <StyledTextField
-                  margin="dense"
-                  variant="outlined"
-                  value={cdsMin + 1}
-                  onChangeCommitted={(newLocation: number) => {
-                    handleCDSLocationChange(
-                      cdsMin,
-                      newLocation - 1,
-                      feature,
-                      true,
-                    )
-                  }}
-                />
-              </Grid2>
+              {strand === 1 ? (
+                <Grid2 size={4}>
+                  <StyledTextField
+                    margin="dense"
+                    variant="outlined"
+                    value={cdsMin + 1}
+                    onChangeCommitted={(newLocation: number) => {
+                      handleCDSLocationChange(
+                        cdsMin,
+                        newLocation - 1,
+                        feature,
+                        true,
+                      )
+                    }}
+                    style={{ border: '1px solid black', borderRadius: 5 }}
+                  />
+                </Grid2>
+              ) : (
+                <Grid2 size={4}>
+                  <StyledTextField
+                    margin="dense"
+                    variant="outlined"
+                    value={cdsMax}
+                    onChangeCommitted={(newLocation: number) => {
+                      handleCDSLocationChange(
+                        cdsMax,
+                        newLocation,
+                        feature,
+                        false,
+                      )
+                    }}
+                    style={{ border: '1px solid black', borderRadius: 5 }}
+                  />
+                </Grid2>
+              )}
               <Grid2 size={2}>
                 <Typography component={'span'}>CDS</Typography>
               </Grid2>
-              <Grid2 size={4}>
-                <StyledTextField
-                  margin="dense"
-                  variant="outlined"
-                  value={cdsMax}
-                  onChangeCommitted={(newLocation: number) => {
-                    handleCDSLocationChange(cdsMax, newLocation, feature, false)
-                  }}
-                />
-              </Grid2>
+              {strand === 1 ? (
+                <Grid2 size={4}>
+                  <StyledTextField
+                    margin="dense"
+                    variant="outlined"
+                    value={cdsMax}
+                    onChangeCommitted={(newLocation: number) => {
+                      handleCDSLocationChange(
+                        cdsMax,
+                        newLocation,
+                        feature,
+                        false,
+                      )
+                    }}
+                    style={{ border: '1px solid black', borderRadius: 5 }}
+                  />
+                </Grid2>
+              ) : (
+                <Grid2 size={4}>
+                  <StyledTextField
+                    margin="dense"
+                    variant="outlined"
+                    value={cdsMin + 1}
+                    onChangeCommitted={(newLocation: number) => {
+                      handleCDSLocationChange(
+                        cdsMin,
+                        newLocation - 1,
+                        feature,
+                        true,
+                      )
+                    }}
+                    style={{ border: '1px solid black', borderRadius: 5 }}
+                  />
+                </Grid2>
+              )}
               <Grid2 size={1} />
             </Grid2>
           </div>
@@ -1216,39 +1260,75 @@ export const TranscriptWidgetEditLocation = observer(
                           </Typography>
                         ))}
                     </Grid2>
-                    <Grid2 size={4} style={{ padding: 0 }}>
-                      <StyledTextField
-                        margin="dense"
-                        variant="outlined"
-                        value={loc.min + 1}
-                        onChangeCommitted={(newLocation: number) => {
-                          handleExonLocationChange(
-                            loc.min,
-                            newLocation - 1,
-                            feature,
-                            true,
-                          )
-                        }}
-                      />
-                    </Grid2>
+                    {strand === 1 ? (
+                      <Grid2 size={4} style={{ padding: 0 }}>
+                        <StyledTextField
+                          margin="dense"
+                          variant="outlined"
+                          value={loc.min + 1}
+                          onChangeCommitted={(newLocation: number) => {
+                            handleExonLocationChange(
+                              loc.min,
+                              newLocation - 1,
+                              feature,
+                              true,
+                            )
+                          }}
+                        />
+                      </Grid2>
+                    ) : (
+                      <Grid2 size={4} style={{ padding: 0 }}>
+                        <StyledTextField
+                          margin="dense"
+                          variant="outlined"
+                          value={loc.max}
+                          onChangeCommitted={(newLocation: number) => {
+                            handleExonLocationChange(
+                              loc.max,
+                              newLocation,
+                              feature,
+                              false,
+                            )
+                          }}
+                        />
+                      </Grid2>
+                    )}
                     <Grid2 size={2}>
                       <Strand strand={feature.strand} />
                     </Grid2>
-                    <Grid2 size={4} style={{ padding: 0 }}>
-                      <StyledTextField
-                        margin="dense"
-                        variant="outlined"
-                        value={loc.max}
-                        onChangeCommitted={(newLocation: number) => {
-                          handleExonLocationChange(
-                            loc.max,
-                            newLocation,
-                            feature,
-                            false,
-                          )
-                        }}
-                      />
-                    </Grid2>
+                    {strand === 1 ? (
+                      <Grid2 size={4} style={{ padding: 0 }}>
+                        <StyledTextField
+                          margin="dense"
+                          variant="outlined"
+                          value={loc.max}
+                          onChangeCommitted={(newLocation: number) => {
+                            handleExonLocationChange(
+                              loc.max,
+                              newLocation,
+                              feature,
+                              false,
+                            )
+                          }}
+                        />
+                      </Grid2>
+                    ) : (
+                      <Grid2 size={4} style={{ padding: 0 }}>
+                        <StyledTextField
+                          margin="dense"
+                          variant="outlined"
+                          value={loc.min + 1}
+                          onChangeCommitted={(newLocation: number) => {
+                            handleExonLocationChange(
+                              loc.min,
+                              newLocation - 1,
+                              feature,
+                              true,
+                            )
+                          }}
+                        />
+                      </Grid2>
+                    )}
                     <Grid2 size={1}>
                       {index !== transcriptExonParts.length - 1 &&
                         getThreePrimeSpliceSite(loc, index).map((site, idx) => (
