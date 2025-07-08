@@ -13,6 +13,7 @@ import { observer } from 'mobx-react'
 import React, { useEffect, useRef, useState } from 'react'
 
 import { type ApolloSessionModel } from '../session'
+import { copyToClipboard } from '../util/copyToClipboard'
 
 const SEQUENCE_WRAP_LENGTH = 60
 
@@ -275,19 +276,12 @@ export const TranscriptSequence = observer(function TranscriptSequence({
     setLocationIntervals(locIntervals)
   }
 
-  // Function to copy text to clipboard
-  const copyToClipboard = () => {
+  const onCopyClick = () => {
     const seqDiv = seqRef.current
     if (!seqDiv) {
       return
     }
-    const textBlob = new Blob([seqDiv.outerText], { type: 'text/plain' })
-    const htmlBlob = new Blob([seqDiv.outerHTML], { type: 'text/html' })
-    const clipboardItem = new ClipboardItem({
-      [textBlob.type]: textBlob,
-      [htmlBlob.type]: htmlBlob,
-    })
-    void navigator.clipboard.write([clipboardItem])
+    void copyToClipboard(seqDiv)
   }
 
   return (
@@ -306,7 +300,7 @@ export const TranscriptSequence = observer(function TranscriptSequence({
       </Select>
       <Button
         variant="contained"
-        onClick={copyToClipboard}
+        onClick={onCopyClick}
         style={{ marginLeft: 10 }}
         size="medium"
       >
