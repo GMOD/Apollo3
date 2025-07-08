@@ -141,7 +141,7 @@ export const TranscriptWidgetEditLocation = observer(
     const cdsPresent = firstCDSLocation.length > 0
 
     if (cdsPresent) {
-      const sortedCDSLocations = firstCDSLocation.sort(
+      const sortedCDSLocations = firstCDSLocation.toSorted(
         ({ min: a }, { min: b }) => a - b,
       )
       cdsMin = sortedCDSLocations[0].min
@@ -863,7 +863,10 @@ export const TranscriptWidgetEditLocation = observer(
     const getTranslationSequence = () => {
       let wholeSequence = ''
       const [firstLocation] = cdsLocations
-      for (const loc of firstLocation) {
+      const sortedCDSLocations = firstLocation.toSorted(
+        ({ min: a }, { min: b }) => a - b,
+      )
+      for (const loc of sortedCDSLocations) {
         wholeSequence += refData.getSequence(loc.min, loc.max)
       }
       if (strand === -1) {
