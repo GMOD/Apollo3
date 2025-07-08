@@ -1096,13 +1096,23 @@ export const TranscriptWidgetEditLocation = observer(
       if (!seqDiv) {
         return
       }
-      const textBlob = new Blob([seqDiv.outerText], { type: 'text/plain' })
-      const htmlBlob = new Blob([seqDiv.outerHTML], { type: 'text/html' })
-      const clipboardItem = new ClipboardItem({
-        [textBlob.type]: textBlob,
-        [htmlBlob.type]: htmlBlob,
-      })
-      void navigator.clipboard.write([clipboardItem])
+
+      if (typeof ClipboardItem === 'undefined') {
+        try {
+          // eslint-disable-next-line unicorn/prefer-dom-node-text-content
+          void navigator.clipboard.writeText(seqDiv.innerText)
+        } catch (error) {
+          console.error('Clipboard writeText failed', error)
+        }
+      } else {
+        const textBlob = new Blob([seqDiv.outerText], { type: 'text/plain' })
+        const htmlBlob = new Blob([seqDiv.outerHTML], { type: 'text/html' })
+        const clipboardItem = new ClipboardItem({
+          [textBlob.type]: textBlob,
+          [htmlBlob.type]: htmlBlob,
+        })
+        void navigator.clipboard.write([clipboardItem])
+      }
     }
 
     return (
