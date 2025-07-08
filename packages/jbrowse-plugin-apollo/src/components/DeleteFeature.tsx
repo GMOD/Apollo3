@@ -170,7 +170,8 @@ export function DeleteFeature({
 
   function resizeParent(
     featureToDelete: AnnotationFeature,
-  ): FeatureChange | undefined {
+    changes: FeatureChange[],
+  ) {
     if (
       !featureToDelete.parent?.children ||
       featureToDelete.parent.children.size === 1
@@ -183,16 +184,19 @@ export function DeleteFeature({
       _children.push(x)
     }
     const children = _children.sort((a, b) => a.min - b.min)
+    let change: FeatureChange | undefined
     if (featureToDelete._id === children[0]._id) {
       const newParentFeatureStart = children[1].min
-      return new LocationStartChange({
-        typeName: 'LocationStartChange',
-        changedIds: [featureToDelete.parent._id],
-        featureId: featureToDelete.parent._id,
-        oldStart: featureToDelete.parent.min,
-        newStart: newParentFeatureStart,
-        assembly: sourceAssemblyId,
-      })
+      if (featureToDelete.parent.min != newParentFeatureStart) {
+        change = new LocationStartChange({
+          typeName: 'LocationStartChange',
+          changedIds: [featureToDelete.parent._id],
+          featureId: featureToDelete.parent._id,
+          oldStart: featureToDelete.parent.min,
+          newStart: newParentFeatureStart,
+          assembly: sourceAssemblyId,
+        })
+      }
     }
     if (
       // eslint-disable-next-line unicorn/prefer-at
@@ -200,17 +204,21 @@ export function DeleteFeature({
     ) {
       // eslint-disable-next-line unicorn/prefer-at
       const newParentFeatureEnd = children[children.length - 2].max
-      return new LocationEndChange({
-        typeName: 'LocationEndChange',
-        changedIds: [featureToDelete.parent._id],
-        featureId: featureToDelete.parent._id,
-        oldEnd: featureToDelete.parent.max,
-        newEnd: newParentFeatureEnd,
-        assembly: sourceAssemblyId,
-      })
+      if (featureToDelete.parent.max != newParentFeatureEnd) {
+        change = new LocationEndChange({
+          typeName: 'LocationEndChange',
+          changedIds: [featureToDelete.parent._id],
+          featureId: featureToDelete.parent._id,
+          oldEnd: featureToDelete.parent.max,
+          newEnd: newParentFeatureEnd,
+          assembly: sourceAssemblyId,
+        })
+      }
     }
-    // The feature to be deleted is neither the first nor the last child so no need to resize the parent
-    return
+    if (change) {
+      changes.push(change)
+      resizeParent(featureToDelete.parent, changes)
+    }
   }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -220,13 +228,13 @@ export function DeleteFeature({
       setSelectedFeature()
     }
 
-    let resizeParentChange: FeatureChange | undefined
+    const resizeParentChanges: FeatureChange[] = []
     if (isPartOfGene(sourceFeature)) {
       const cdsChange = resizeCDS(sourceFeature)
       if (cdsChange) {
         await changeManager.submit(cdsChange)
       }
-      resizeParentChange = resizeParent(sourceFeature)
+      resizeParent(sourceFeature, resizeParentChanges)
     }
 
     // Delete features
@@ -238,8 +246,9 @@ export function DeleteFeature({
       parentFeatureId: sourceFeature.parent?._id,
     })
     await changeManager.submit(change)
-    if (resizeParentChange) {
-      await changeManager.submit(resizeParentChange)
+    console.log(JSON.stringify(resizeParentChanges, null, 2))
+    for (const change of resizeParentChanges) {
+      await changeManager.submit(change)
     }
     notify('Feature deleted successfully', 'success')
     handleClose()
