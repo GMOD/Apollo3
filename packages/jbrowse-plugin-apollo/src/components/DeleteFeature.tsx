@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
-import { type FeatureChange } from '@apollo-annotation/common'
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import {
   DeleteFeatureChange,
@@ -106,7 +105,7 @@ export function DeleteFeature({
   const { ontologyManager } = session.apolloDataStore
   const { featureTypeOntology } = ontologyManager
 
-  function resizeCDS(
+  function trimCDS(
     sourceFeature: AnnotationFeature,
   ): DeleteFeatureChange | LocationChange | undefined {
     if (!featureTypeOntology) {
@@ -211,7 +210,7 @@ export function DeleteFeature({
     throw new Error('Unexpected relationship between exon and CDS')
   }
 
-  function resizeParent(
+  function trimParent(
     featureToDelete: AnnotationFeature,
   ): LocationChange | undefined {
     if (
@@ -325,7 +324,7 @@ export function DeleteFeature({
           'pseudogenic_transcript',
         ))
     ) {
-      const geneChange = resizeParent(sourceFeature)
+      const geneChange = trimParent(sourceFeature)
       if (geneChange) {
         locationChanges.push(geneChange)
       }
@@ -335,7 +334,7 @@ export function DeleteFeature({
       featureTypeOntology &&
       featureTypeOntology.isTypeOf(sourceFeature.type, 'exon')
     ) {
-      const cdsChange = resizeCDS(sourceFeature)
+      const cdsChange = trimCDS(sourceFeature)
       if (cdsChange) {
         if (cdsChange.typeName === 'DeleteFeatureChange') {
           deleteChanges.changedIds.push(...cdsChange.changedIds)
@@ -345,7 +344,7 @@ export function DeleteFeature({
         }
       }
 
-      const txChange = resizeParent(sourceFeature)
+      const txChange = trimParent(sourceFeature)
       if (txChange) {
         locationChanges.push(txChange)
         // Parent transcript has changed. See if we need to resize the parent gene
