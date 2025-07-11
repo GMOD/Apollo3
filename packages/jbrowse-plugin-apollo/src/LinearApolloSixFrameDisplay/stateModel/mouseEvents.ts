@@ -14,6 +14,7 @@ import { autorun } from 'mobx'
 import { type Instance, addDisposer, cast } from 'mobx-state-tree'
 import { type CSSProperties } from 'react'
 
+import { type Edge, getPropagatedLocationChanges } from '../../util'
 import { type Coord } from '../components'
 import { type Glyph } from '../glyphs/Glyph'
 import { type CanvasMouseEvent } from '../types'
@@ -75,7 +76,8 @@ export function mouseEventsModelIntermediateFactory(
         start: MousePosition
         current: MousePosition
         feature: AnnotationFeature
-        edge: 'min' | 'max'
+        edge: Edge
+        shrinkParent: boolean
       } | null,
       cursor: undefined as CSSProperties['cursor'] | undefined,
       apolloHover: undefined as FeatureAndGlyphUnderMouse | undefined,
@@ -186,20 +188,23 @@ export function mouseEventsModelFactory(
       startDrag(
         mousePosition: MousePositionWithFeatureAndGlyph,
         feature: AnnotationFeature,
-        edge: 'min' | 'max',
+        edge: Edge,
+        shrinkParent = false,
       ) {
         self.apolloDragging = {
           start: mousePosition,
           current: mousePosition,
           feature,
           edge,
+          shrinkParent,
         }
       },
       endDrag() {
         if (!self.apolloDragging) {
           throw new Error('endDrag() called with no current drag in progress')
         }
-        const { current, edge, feature, start } = self.apolloDragging
+        const { current, edge, feature, start, shrinkParent } =
+          self.apolloDragging
         // don't do anything if it was only dragged a tiny bit
         if (Math.abs(current.x - start.x) <= 4) {
           self.setDragging()
@@ -209,33 +214,35 @@ export function mouseEventsModelFactory(
         const { displayedRegions } = self.lgv
         const region = displayedRegions[start.regionNumber]
         const assembly = self.getAssemblyId(region.assemblyName)
+        const changes = getPropagatedLocationChanges(
+          feature,
+          current.bp,
+          edge,
+          shrinkParent,
+        )
 
-        let change: LocationEndChange | LocationStartChange
-        if (edge === 'max') {
-          const featureId = feature._id
-          const oldEnd = feature.max
-          const newEnd = current.bp
-          change = new LocationEndChange({
-            typeName: 'LocationEndChange',
-            changedIds: [featureId],
-            featureId,
-            oldEnd,
-            newEnd,
-            assembly,
-          })
-        } else {
-          const featureId = feature._id
-          const oldStart = feature.min
-          const newStart = current.bp
-          change = new LocationStartChange({
-            typeName: 'LocationStartChange',
-            changedIds: [featureId],
-            featureId,
-            oldStart,
-            newStart,
-            assembly,
-          })
-        }
+        const change: LocationEndChange | LocationStartChange =
+          edge === 'max'
+            ? new LocationEndChange({
+                typeName: 'LocationEndChange',
+                changedIds: changes.map((c) => c.featureId),
+                changes: changes.map((c) => ({
+                  featureId: c.featureId,
+                  oldEnd: c.oldLocation,
+                  newEnd: c.newLocation,
+                })),
+                assembly,
+              })
+            : new LocationStartChange({
+                typeName: 'LocationStartChange',
+                changedIds: changes.map((c) => c.featureId),
+                changes: changes.map((c) => ({
+                  featureId: c.featureId,
+                  oldStart: c.oldLocation,
+                  newStart: c.newLocation,
+                })),
+                assembly,
+              })
         void self.changeManager.submit(change)
         self.setDragging()
         self.setCursor()
@@ -291,6 +298,8 @@ export function mouseEventsModelFactory(
             mousePosition,
             event,
           )
+        } else {
+          self.setSelectedFeature()
         }
 
         if (self.apolloDragging) {

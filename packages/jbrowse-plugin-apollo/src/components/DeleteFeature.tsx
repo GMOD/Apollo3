@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-misused-promises */
+
+import { type FeatureChange } from '@apollo-annotation/common'
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import {
   DeleteFeatureChange,
   LocationEndChange,
   LocationStartChange,
 } from '@apollo-annotation/shared'
-import { type AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
   DialogActions,
@@ -20,8 +20,14 @@ import { type ChangeManager } from '../ChangeManager'
 import { type ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
-import { executionAsyncId } from 'node:async_hooks'
-import { FeatureChange } from '@apollo-annotation/common'
+
+interface LocationChange {
+  typeName: 'LocationStartChange' | 'LocationEndChange'
+  changedId: string
+  featureId: string
+  oldLocation: number
+  newLocation: number
+}
 
 interface DeleteFeatureProps {
   session: ApolloSessionModel
@@ -33,6 +39,60 @@ interface DeleteFeatureProps {
   setSelectedFeature(feature?: AnnotationFeature): void
 }
 
+function lumpLocationChanges(
+  changes: LocationChange[],
+  assembly: string,
+): LocationStartChange | LocationEndChange | undefined {
+  if (changes.length === 0) {
+    return
+  }
+  const locationStartChange = new LocationStartChange({
+    typeName: 'LocationStartChange',
+    changedIds: [],
+    changes: [],
+    assembly,
+  })
+  const locationEndChange = new LocationEndChange({
+    typeName: 'LocationEndChange',
+    changedIds: [],
+    changes: [],
+    assembly,
+  })
+  for (const change of changes) {
+    if (change.typeName === 'LocationStartChange') {
+      locationStartChange.changedIds.push(change.changedId)
+      const cc = {
+        featureId: change.featureId,
+        oldStart: change.oldLocation,
+        newStart: change.newLocation,
+      }
+      locationStartChange.changes.push(cc)
+    }
+    if (change.typeName === 'LocationEndChange') {
+      locationEndChange.changedIds.push(change.changedId)
+      const cc = {
+        featureId: change.featureId,
+        oldEnd: change.oldLocation,
+        newEnd: change.newLocation,
+      }
+      locationEndChange.changes.push(cc)
+    }
+  }
+  if (
+    locationStartChange.changedIds.length > 0 &&
+    locationEndChange.changedIds.length === 0
+  ) {
+    return locationStartChange
+  }
+  if (
+    locationEndChange.changedIds.length > 0 &&
+    locationStartChange.changedIds.length === 0
+  ) {
+    return locationEndChange
+  }
+  throw new Error('Unexpected list of changes')
+}
+
 export function DeleteFeature({
   changeManager,
   handleClose,
@@ -42,32 +102,13 @@ export function DeleteFeature({
   sourceAssemblyId,
   sourceFeature,
 }: DeleteFeatureProps) {
-  const { notify } = session as unknown as AbstractSessionModel
   const [errorMessage, setErrorMessage] = useState('')
   const { ontologyManager } = session.apolloDataStore
   const { featureTypeOntology } = ontologyManager
 
-  function isPartOfGene(sourceFeature: AnnotationFeature): boolean {
-    if (!featureTypeOntology) {
-      return false
-    }
-    if (
-      featureTypeOntology.isTypeOf(sourceFeature.type, 'gene') ||
-      featureTypeOntology.isTypeOf(sourceFeature.type, 'pseudogene') ||
-      featureTypeOntology.isTypeOf(sourceFeature.type, 'transcript') ||
-      featureTypeOntology.isTypeOf(sourceFeature.type, 'pseudogenic_transcript')
-    ) {
-      return true
-    }
-    if (!sourceFeature.parent) {
-      return false
-    }
-    return isPartOfGene(sourceFeature.parent)
-  }
-
   function resizeCDS(
     sourceFeature: AnnotationFeature,
-  ): FeatureChange | undefined {
+  ): DeleteFeatureChange | LocationChange | undefined {
     if (!featureTypeOntology) {
       return
     }
@@ -119,8 +160,12 @@ export function DeleteFeature({
         changedIds: [cdsFeature._id],
         typeName: 'DeleteFeatureChange',
         assembly: sourceAssemblyId,
-        deletedFeature: getSnapshot(cdsFeature),
-        parentFeatureId: cdsFeature.parent?._id,
+        changes: [
+          {
+            deletedFeature: getSnapshot(cdsFeature),
+            parentFeatureId: cdsFeature.parent?._id,
+          },
+        ],
       })
     }
     if (sourceFeature.min <= cdsStart && sourceFeature.max > cdsStart) {
@@ -135,14 +180,13 @@ export function DeleteFeature({
       if (!newCdsStart) {
         throw new Error('Error setting new CDS start')
       }
-      return new LocationStartChange({
+      return {
         typeName: 'LocationStartChange',
-        changedIds: [cdsFeature._id],
+        changedId: cdsFeature._id,
         featureId: cdsFeature._id,
-        oldStart: cdsFeature.min,
-        newStart: newCdsStart,
-        assembly: sourceAssemblyId,
-      })
+        oldLocation: cdsFeature.min,
+        newLocation: newCdsStart,
+      }
     }
     if (sourceFeature.min < cdsEnd && sourceFeature.max >= cdsEnd) {
       // Exon overlaps the end of the CDS so we need to move the CDS end
@@ -156,22 +200,20 @@ export function DeleteFeature({
       if (!newCdsEnd) {
         throw new Error('Error setting new CDS end')
       }
-      return new LocationEndChange({
+      return {
         typeName: 'LocationEndChange',
-        changedIds: [cdsFeature._id],
+        changedId: cdsFeature._id,
         featureId: cdsFeature._id,
-        oldEnd: cdsFeature.max,
-        newEnd: newCdsEnd,
-        assembly: sourceAssemblyId,
-      })
+        oldLocation: cdsFeature.max,
+        newLocation: newCdsEnd,
+      }
     }
     throw new Error('Unexpected relationship between exon and CDS')
   }
 
   function resizeParent(
     featureToDelete: AnnotationFeature,
-    changes: FeatureChange[],
-  ) {
+  ): LocationChange | undefined {
     if (
       !featureToDelete.parent?.children ||
       featureToDelete.parent.children.size === 1
@@ -179,46 +221,78 @@ export function DeleteFeature({
       // Do not resize if this parent has only one child (i.e. the feature being deleted)
       return
     }
-    const _children = []
+    const childrenByStart = []
     for (const x of featureToDelete.parent.children.values()) {
-      _children.push(x)
+      if (!featureTypeOntology?.isTypeOf(x.type, 'CDS')) {
+        // CDS has been already handled so don't use it to resize parent
+        childrenByStart.push(x)
+      }
     }
-    const children = _children.sort((a, b) => a.min - b.min)
-    let change: FeatureChange | undefined
-    if (featureToDelete._id === children[0]._id) {
-      const newParentFeatureStart = children[1].min
-      if (featureToDelete.parent.min != newParentFeatureStart) {
-        change = new LocationStartChange({
+    childrenByStart.sort((a, b) => a.min - b.min)
+
+    const childrenByEnd = []
+    for (const x of featureToDelete.parent.children.values()) {
+      if (!featureTypeOntology?.isTypeOf(x.type, 'CDS')) {
+        // CDS has been already handled so don't use it to resize parent
+        childrenByEnd.push(x)
+      }
+    }
+    childrenByEnd.sort((a, b) => b.max - a.max)
+
+    if (featureToDelete.min === childrenByStart[0].min) {
+      // The feature to delete has the lowest start coordinate of all children
+      // Find the next lowest coordinate and reset parent to this new start
+      let newParentFeatureStart
+      for (const child of childrenByStart) {
+        if (
+          child._id !== featureToDelete._id &&
+          child.min >= featureToDelete.min
+        ) {
+          newParentFeatureStart = child.min
+          break
+        }
+      }
+      if (
+        newParentFeatureStart &&
+        newParentFeatureStart != featureToDelete.parent.min
+      ) {
+        return {
           typeName: 'LocationStartChange',
-          changedIds: [featureToDelete.parent._id],
+          changedId: featureToDelete.parent._id,
           featureId: featureToDelete.parent._id,
-          oldStart: featureToDelete.parent.min,
-          newStart: newParentFeatureStart,
-          assembly: sourceAssemblyId,
-        })
+          oldLocation: featureToDelete.parent.min,
+          newLocation: newParentFeatureStart,
+        }
       }
     }
-    if (
-      // eslint-disable-next-line unicorn/prefer-at
-      featureToDelete._id === children[children.length - 1]._id
-    ) {
-      // eslint-disable-next-line unicorn/prefer-at
-      const newParentFeatureEnd = children[children.length - 2].max
-      if (featureToDelete.parent.max != newParentFeatureEnd) {
-        change = new LocationEndChange({
+
+    if (featureToDelete.max === childrenByEnd[0].max) {
+      // The feature to delete has the highest end coordinate of all children
+      // Find the next highest coordinate and reset parent to this new end
+      let newParentFeatureEnd
+      for (const child of childrenByEnd) {
+        if (
+          child._id != featureToDelete._id &&
+          child.max <= featureToDelete.max
+        ) {
+          newParentFeatureEnd = child.max
+          break
+        }
+      }
+      if (
+        newParentFeatureEnd &&
+        newParentFeatureEnd != featureToDelete.parent.max
+      ) {
+        return {
           typeName: 'LocationEndChange',
-          changedIds: [featureToDelete.parent._id],
+          changedId: featureToDelete.parent._id,
           featureId: featureToDelete.parent._id,
-          oldEnd: featureToDelete.parent.max,
-          newEnd: newParentFeatureEnd,
-          assembly: sourceAssemblyId,
-        })
+          oldLocation: featureToDelete.parent.max,
+          newLocation: newParentFeatureEnd,
+        }
       }
     }
-    if (change) {
-      changes.push(change)
-      resizeParent(featureToDelete.parent, changes)
-    }
+    return
   }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -228,29 +302,104 @@ export function DeleteFeature({
       setSelectedFeature()
     }
 
-    const resizeParentChanges: FeatureChange[] = []
-    if (isPartOfGene(sourceFeature)) {
-      const cdsChange = resizeCDS(sourceFeature)
-      if (cdsChange) {
-        await changeManager.submit(cdsChange)
-      }
-      resizeParent(sourceFeature, resizeParentChanges)
-    }
+    const locationChanges: LocationChange[] = []
+    // const deleteChanges: DeleteFeatureChange = []
 
-    // Delete features
-    const change = new DeleteFeatureChange({
+    const deleteChanges = new DeleteFeatureChange({
       changedIds: [sourceFeature._id],
       typeName: 'DeleteFeatureChange',
       assembly: sourceAssemblyId,
-      deletedFeature: getSnapshot(sourceFeature),
-      parentFeatureId: sourceFeature.parent?._id,
+      changes: [
+        {
+          deletedFeature: getSnapshot(sourceFeature),
+          parentFeatureId: sourceFeature.parent?._id,
+        },
+      ],
     })
-    await changeManager.submit(change)
-    console.log(JSON.stringify(resizeParentChanges, null, 2))
-    for (const change of resizeParentChanges) {
-      await changeManager.submit(change)
+
+    if (
+      featureTypeOntology &&
+      (featureTypeOntology.isTypeOf(sourceFeature.type, 'transcript') ||
+        featureTypeOntology.isTypeOf(
+          sourceFeature.type,
+          'pseudogenic_transcript',
+        ))
+    ) {
+      const geneChange = resizeParent(sourceFeature)
+      if (geneChange) {
+        locationChanges.push(geneChange)
+      }
     }
-    notify('Feature deleted successfully', 'success')
+
+    if (
+      featureTypeOntology &&
+      featureTypeOntology.isTypeOf(sourceFeature.type, 'exon')
+    ) {
+      const cdsChange = resizeCDS(sourceFeature)
+      if (cdsChange) {
+        if (cdsChange.typeName === 'DeleteFeatureChange') {
+          deleteChanges.changedIds.push(...cdsChange.changedIds)
+          deleteChanges.changes.push(...cdsChange.changes)
+        } else {
+          locationChanges.push(cdsChange)
+        }
+      }
+
+      const txChange = resizeParent(sourceFeature)
+      if (txChange) {
+        locationChanges.push(txChange)
+        // Parent transcript has changed. See if we need to resize the parent gene
+        const gene = sourceFeature.parent?.parent
+        if (gene?.children) {
+          if (txChange.typeName === 'LocationStartChange') {
+            let newGeneStart = txChange.newLocation
+            for (const [, tx] of gene.children) {
+              if (tx._id != txChange.featureId && tx.min < newGeneStart) {
+                // Reset to longest child (tx)
+                newGeneStart = tx.min
+              }
+            }
+            if (newGeneStart != gene.min) {
+              locationChanges.push({
+                typeName: txChange.typeName,
+                changedId: gene._id,
+                featureId: gene._id,
+                oldLocation: gene.min,
+                newLocation: newGeneStart,
+              })
+            }
+          } else {
+            let newGeneEnd = txChange.newLocation
+            for (const [, tx] of gene.children) {
+              if (tx._id != txChange.featureId && tx.max > newGeneEnd) {
+                // Reset to longest child (tx)
+                newGeneEnd = tx.max
+              }
+            }
+            if (newGeneEnd != gene.max) {
+              locationChanges.push({
+                typeName: txChange.typeName,
+                changedId: gene._id,
+                featureId: gene._id,
+                oldLocation: gene.max,
+                newLocation: newGeneEnd,
+              })
+            }
+          }
+        }
+      }
+    }
+
+    const lumpedLocChanges = lumpLocationChanges(
+      locationChanges,
+      sourceAssemblyId,
+    )
+
+    await changeManager.submit(deleteChanges)
+    if (lumpedLocChanges) {
+      await changeManager.submit(lumpedLocChanges)
+    }
+
     handleClose()
     event.preventDefault()
   }
@@ -263,7 +412,11 @@ export function DeleteFeature({
       maxWidth={false}
       data-testid="delete-feature"
     >
-      <form onSubmit={onSubmit}>
+      <form
+        onSubmit={(event) => {
+          void onSubmit(event)
+        }}
+      >
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText>
             Are you sure you want to delete the selected feature?

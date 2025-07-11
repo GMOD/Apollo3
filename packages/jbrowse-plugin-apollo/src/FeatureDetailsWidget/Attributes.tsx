@@ -105,13 +105,15 @@ export const Attributes = observer(function Attributes({
       typeName: 'FeatureAttributeChange',
       assembly,
       featureId: _id,
-      attributes: remainingAttributes,
+      oldAttributes: attributesSerialized,
+      newAttributes: remainingAttributes,
     })
     void changeManager.submit(change)
   }
 
   function modifyFeatureAttribute(key: string, attribute: string[]) {
     const serializedAttributes = { ...getSnapshot(attributes) }
+    const oldAttributes = structuredClone(serializedAttributes)
     if (!(key in serializedAttributes)) {
       notify(`"${key}" not found in feature attributes`, 'error')
       return
@@ -127,13 +129,15 @@ export const Attributes = observer(function Attributes({
       typeName: 'FeatureAttributeChange',
       assembly,
       featureId: feature._id,
-      attributes: serializedAttributes,
+      oldAttributes,
+      newAttributes: serializedAttributes,
     })
     void changeManager.submit(change)
   }
 
   function addFeatureAttribute(key: string, attribute: string[]) {
     const serializedAttributes = { ...getSnapshot(attributes) }
+    const oldAttributes = structuredClone(serializedAttributes)
     if (key in serializedAttributes) {
       notify(`Feature already has attribute "${key}"`, 'error')
       return
@@ -145,7 +149,8 @@ export const Attributes = observer(function Attributes({
       typeName: 'FeatureAttributeChange',
       assembly,
       featureId: feature._id,
-      attributes: serializedAttributes,
+      oldAttributes,
+      newAttributes: serializedAttributes,
     })
     void changeManager.submit(change)
   }

@@ -17,7 +17,8 @@ interface SerializedFeatureAttributeChangeBase extends SerializedFeatureChange {
 
 export interface FeatureAttributeChangeDetails {
   featureId: string
-  attributes: Record<string, string[]>
+  oldAttributes: Record<string, string[]>
+  newAttributes: Record<string, string[]>
 }
 
 interface SerializedFeatureAttributeChangeSingle
@@ -45,8 +46,15 @@ export class FeatureAttributeChange extends FeatureChange {
   toJSON(): SerializedFeatureAttributeChange {
     const { assembly, changedIds, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ attributes, featureId }] = changes
-      return { typeName, changedIds, assembly, featureId, attributes }
+      const [{ oldAttributes, newAttributes, featureId }] = changes
+      return {
+        typeName,
+        changedIds,
+        assembly,
+        featureId,
+        oldAttributes,
+        newAttributes,
+      }
     }
     return { typeName, changedIds, assembly, changes }
   }
@@ -94,9 +102,9 @@ export class FeatureAttributeChange extends FeatureChange {
 
     // Let's update objects
     for (const [idx, change] of changes.entries()) {
-      const { attributes } = change
+      const { newAttributes } = change
       const { feature, topLevelFeature } = featuresForChanges[idx]
-      feature.attributes = attributes
+      feature.attributes = newAttributes
       if (topLevelFeature._id.equals(feature._id)) {
         topLevelFeature.markModified('attributes') // Mark as modified. Without this save() -method is not updating data in database
       } else {
@@ -131,7 +139,7 @@ export class FeatureAttributeChange extends FeatureChange {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
       feature.setAttributes(
-        new Map(Object.entries(this.changes[idx].attributes)),
+        new Map(Object.entries(this.changes[idx].newAttributes)),
       )
     }
   }
@@ -141,7 +149,8 @@ export class FeatureAttributeChange extends FeatureChange {
     const inverseChangedIds = [...changedIds].reverse()
     const inverseChanges = [...changes].reverse().map((oneChange) => ({
       featureId: oneChange.featureId,
-      attributes: oneChange.attributes,
+      oldAttributes: oneChange.newAttributes,
+      newAttributes: oneChange.oldAttributes,
     }))
     return new FeatureAttributeChange(
       {

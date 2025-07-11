@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await */
+
 import {
   type ChangeOptions,
   type ClientDataStore,
@@ -9,6 +10,7 @@ import {
 } from '@apollo-annotation/common'
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
+import { findAndDeleteChildFeature } from './DeleteFeatureChange'
 import { SplitExonChange } from './SplitExonChange'
 
 interface SerializedUndoSplitExonChangeBase extends SerializedFeatureChange {
@@ -109,7 +111,7 @@ export class UndoSplitExonChange extends FeatureChange {
         (id) => !idsToDelete.includes(id),
       )
       idsToDelete.map((id) =>
-        this.findAndDeleteChildFeature(topLevelFeature, id),
+        findAndDeleteChildFeature(topLevelFeature, id, this),
       )
       await topLevelFeature.save()
     }

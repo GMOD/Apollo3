@@ -45,6 +45,10 @@ export class AddFeatureChange extends FeatureChange {
     super(json, options)
     this.changes = 'changes' in json ? json.changes : [json]
   }
+  // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+  get notification() {
+    return 'Feature added successfully'
+  }
 
   toJSON(): SerializedAddFeatureChange {
     const { assembly, changedIds, changes, typeName } = this

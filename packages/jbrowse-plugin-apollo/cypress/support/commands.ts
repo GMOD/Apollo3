@@ -99,14 +99,32 @@ Cypress.Commands.add('addOntologies', () => {
 })
 
 Cypress.Commands.add(
+  'annotationTrackAppearance',
+  (
+    appearance:
+      | 'Show both graphical and table display'
+      | 'Show graphical display'
+      | 'Show table display',
+  ) => {
+    cy.get('[data-testid="track_menu_icon"]').click()
+    cy.contains('Appearance').trigger('mouseover')
+    cy.contains(appearance).click()
+  },
+)
+
+Cypress.Commands.add('selectFromApolloMenu', (menuItemName) => {
+  // eslint-disable-next-line cypress/no-unnecessary-waiting
+  cy.wait(1000)
+  cy.get('button[data-testid="dropDownMenuButton"]', { timeout: 10_000 })
+    .contains('Apollo')
+    .click({ force: true, timeout: 10_000 })
+  cy.contains(menuItemName, { timeout: 10_000 }).click()
+})
+
+Cypress.Commands.add(
   'addAssemblyFromGff',
   (assemblyName, fin, launch = true) => {
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(1000)
-    cy.get('button[data-testid="dropDownMenuButton"]', { timeout: 10_000 })
-      .contains('Apollo')
-      .click({ force: true, timeout: 10_000 })
-    cy.contains('Add Assembly', { timeout: 10_000 }).click()
+    cy.selectFromApolloMenu('Add Assembly')
     cy.get('form[data-testid="submit-form"]').within(() => {
       cy.get('input[type="TextField"]').type(assemblyName)
       cy.contains('GFF3 input')
@@ -217,10 +235,7 @@ Cypress.Commands.add(
 Cypress.Commands.add(
   'importFeatures',
   (gffFile, assemblyName, deleteExistingFeatures) => {
-    cy.contains('button[data-testid="dropDownMenuButton"]', 'Apollo').click({
-      timeout: 10_000,
-    })
-    cy.contains('Import Features').click()
+    cy.selectFromApolloMenu('Import Features')
     cy.contains('Import Features from GFF3 file', { matchCase: false })
       .parent()
       .within(() => {

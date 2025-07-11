@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { type AnnotationFeature } from '@apollo-annotation/mst'
-import { MergeExonsChange } from '@apollo-annotation/shared'
+import { MergeTranscriptsChange } from '@apollo-annotation/shared'
+import { type AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Box,
   Button,
@@ -22,7 +23,7 @@ import { type ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
 
-interface MergeExonsProps {
+interface MergeTranscriptsProps {
   session: ApolloSessionModel
   handleClose(): void
   sourceFeature: AnnotationFeature
@@ -32,93 +33,84 @@ interface MergeExonsProps {
   setSelectedFeature(feature?: AnnotationFeature): void
 }
 
-function getNeighboringExons(
-  referenceExon: AnnotationFeature,
+function getTranscripts(
+  referenceTranscript: AnnotationFeature,
+  session: ApolloSessionModel,
 ): Record<string, AnnotationFeature> {
-  const neighboringExons: Record<string, AnnotationFeature> = {}
-  const tx = referenceExon.parent
-  if (!tx) {
-    throw new Error('Unable to find parent of reference exon')
+  const gene = referenceTranscript.parent
+  if (!gene) {
+    throw new Error('Unable to find parent of reference transcript')
   }
-  let exons: AnnotationFeature[] = []
-  if (tx.children) {
-    for (const [, feature] of tx.children) {
-      if (feature.type === 'exon') {
-        exons.push(feature)
+
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+
+  const transcripts: Record<string, AnnotationFeature> = {}
+  if (gene.children) {
+    for (const [, feature] of gene.children) {
+      if (
+        featureTypeOntology.isTypeOf(feature.type, 'transcript') &&
+        feature._id !== referenceTranscript._id
+      ) {
+        transcripts[feature._id] = feature
       }
     }
   }
-  exons = exons.sort((a, b) => {
-    if (a.min === b.min) {
-      return a.max - b.max
-    }
-    return a.min - b.min
-  })
-  if (tx.strand && tx.strand === -1) {
-    exons = exons.reverse()
-  }
-  let i = 0
-  for (const x of exons) {
-    if (x._id === referenceExon._id) {
-      if (exons.length > i + 1) {
-        neighboringExons.three_prime = exons[i + 1]
-      }
-      if (i > 0) {
-        neighboringExons.five_prime = exons[i - 1]
-      }
-      break
-    }
-    i++
-  }
-  return neighboringExons
+  return transcripts
 }
 
-function makeRadioButtonName(
-  key: string,
-  neighboringExons: Record<string, AnnotationFeature>,
-): string {
-  const neighboringExon = neighboringExons[key]
-  let name
-  if (key === 'three_prime') {
-    name = `3'end (coords: ${neighboringExon.min + 1}-${neighboringExon.max})`
-  } else if (key === 'five_prime') {
-    name = `5'end (coords: ${neighboringExon.min + 1}-${neighboringExon.max})`
+function makeRadioButtonName(transcript: AnnotationFeature): string {
+  let id
+  if (transcript.attributes.get('gff_name')) {
+    id = transcript.attributes.get('gff_name')?.join(',')
+  } else if (transcript.attributes.get('gff_id')) {
+    id = transcript.attributes.get('gff_id')?.join(',')
   } else {
-    throw new Error(`Unexpected direction: "${key}"`)
+    id = transcript._id
   }
-  return name
+  return `${id} [${transcript.min + 1}-${transcript.max}]`
 }
 
-export function MergeExons({
+export function MergeTranscripts({
   changeManager,
   handleClose,
   selectedFeature,
+  session,
   setSelectedFeature,
   sourceAssemblyId,
   sourceFeature,
-}: MergeExonsProps) {
+}: MergeTranscriptsProps) {
+  const { notify } = session as unknown as AbstractSessionModel
   const [errorMessage, setErrorMessage] = useState('')
-  const [selectedExon, setSelectedExon] = useState<AnnotationFeature>()
+  const [selectedTranscript, setSelectedTranscript] =
+    useState<AnnotationFeature>()
 
-  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    const { parent } = sourceFeature
-    if (!(selectedExon && parent)) {
+    if (!selectedTranscript) {
       return
     }
     if (selectedFeature?._id === sourceFeature._id) {
       setSelectedFeature()
     }
-    const change = new MergeExonsChange({
+
+    if (!sourceFeature.parent) {
+      throw new Error('Cannot find parent')
+    }
+
+    const change = new MergeTranscriptsChange({
       changedIds: [sourceFeature._id],
-      typeName: 'MergeExonsChange',
+      typeName: 'MergeTranscriptsChange',
       assembly: sourceAssemblyId,
-      firstExon: getSnapshot(sourceFeature),
-      secondExon: getSnapshot(selectedExon),
-      parentFeatureId: parent._id,
+      firstTranscript: getSnapshot(sourceFeature),
+      secondTranscript: getSnapshot(selectedTranscript),
+      parentFeatureId: sourceFeature.parent._id,
     })
-    void changeManager.submit(change)
+    await changeManager.submit(change)
+    notify('Transcripts successfully merged', 'success')
     handleClose()
     event.preventDefault()
   }
@@ -126,39 +118,39 @@ export function MergeExons({
   const handleTypeChange = (e: SelectChangeEvent) => {
     setErrorMessage('')
     const { value } = e.target
-    setSelectedExon(neighboringExons[value])
+    setSelectedTranscript(transcripts[value])
   }
 
-  const neighboringExons = getNeighboringExons(sourceFeature)
+  const transcripts = getTranscripts(sourceFeature, session)
 
   return (
     <Dialog
       open
-      title="Merge exons"
+      title="Merge transcripts"
       handleClose={handleClose}
       maxWidth={false}
-      data-testid="merge-exons"
+      data-testid="merge-transcripts"
     >
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-          {Object.keys(neighboringExons).length === 0
-            ? 'There are no neighbouring exons to merge with'
-            : 'Merge with exon on:'}
+          {Object.keys(transcripts).length === 0
+            ? 'There are no transcripts to merge with'
+            : 'Merge with transcript:'}
           <FormControl style={{ marginTop: 5 }}>
             <RadioGroup
               aria-labelledby="demo-radio-buttons-group-label"
               name="radio-buttons-group"
-              value={selectedExon}
+              value={selectedTranscript}
               onChange={handleTypeChange}
             >
-              {Object.keys(neighboringExons).map((key) => (
+              {Object.keys(transcripts).map((key) => (
                 <FormControlLabel
                   value={key}
                   key={key}
                   control={<Radio />}
                   label={
                     <Box display="flex" alignItems="center">
-                      {makeRadioButtonName(key, neighboringExons)}
+                      {makeRadioButtonName(transcripts[key])}
                     </Box>
                   }
                 />
@@ -172,8 +164,8 @@ export function MergeExons({
             variant="contained"
             type="submit"
             disabled={
-              Object.keys(neighboringExons).length === 0 ||
-              selectedExon === undefined
+              Object.keys(transcripts).length === 0 ||
+              selectedTranscript === undefined
             }
           >
             Submit

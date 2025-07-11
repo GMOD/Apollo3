@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-misused-promises */
+
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
-import { type AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
   DialogActions,
@@ -37,7 +36,6 @@ export function AddChildFeature({
   sourceAssemblyId,
   sourceFeature,
 }: AddChildFeatureProps) {
-  const { notify } = session as unknown as AbstractSessionModel
   const [end, setEnd] = useState(String(sourceFeature.max))
   const [start, setStart] = useState(String(sourceFeature.min + 1))
   const [type, setType] = useState('')
@@ -63,7 +61,7 @@ export function AddChildFeature({
     return terms
   }
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
     const change = new AddFeatureChange({
@@ -79,8 +77,7 @@ export function AddChildFeature({
       },
       parentFeatureId: sourceFeature._id,
     })
-    await changeManager.submit(change)
-    notify('Feature added successfully', 'success')
+    void changeManager.submit(change)
     handleClose()
     event.preventDefault()
   }

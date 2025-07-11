@@ -5,6 +5,13 @@ declare namespace Cypress {
     addOntologies(): Chainable<void>
     loginAsGuest(): Chainable<void>
     deleteAssemblies(): Chainable<void>
+    selectFromApolloMenu(menuItemName: string): Chainable<void>
+    annotationTrackAppearance(
+      appearance:
+        | 'Show both graphical and table display'
+        | 'Show graphical display'
+        | 'Show table display',
+    ): Chainable<void>
     addAssemblyFromGff(
       assemblyName: string,
       fin: string,
