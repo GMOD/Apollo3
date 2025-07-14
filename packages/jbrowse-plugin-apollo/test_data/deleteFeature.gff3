@@ -1,25 +1,25 @@
 ##gff-version 3
 chr2	.	gene	3	200	.	+	.	ID=gene02
 chr2	.	mRNA	3	200	.	+	.	ID=mrna02;Parent=gene02;Name=x
-chr2	.	exon	3	40	.	+	.	ID=exon1;Parent=mrna02;Name=a;Description=one
-chr2	.	exon	50	100	.	+	.	ID=exon2;Parent=mrna02;Name=aa;Description=one1
+chr2	.	exon	3	40	.	+	.	ID=exon01;Parent=mrna02;Name=a;Description=one
+chr2	.	exon	50	100	.	+	.	ID=exon02;Parent=mrna02;Name=aa;Description=one1
 chr2	.	CDS	20	40	.	+	.	ID=cds1;Parent=mrna02;Name=b
 chr2	.	CDS	50	100	.	+	.	ID=cds1;Parent=mrna02;Name=b
 chr2	.	CDS	105	115	.	+	.	ID=cds1;Parent=mrna02;Name=b
 chr2	.	exon	105	115	.	+	.	ID=exon10;Parent=mrna02;Name=b
-chr2	.	exon	120	150	.	+	.	ID=exon3;Parent=mrna02;Name=b
+chr2	.	exon	120	150	.	+	.	ID=exon03;Parent=mrna02;Name=b
 chr2	.	CDS	120	140	.	+	.	ID=cds1;Parent=mrna02;Name=b
-chr2	.	exon	160	180	.	+	.	ID=exon4;Parent=mrna02;Name=b
-chr2	.	exon	190	200	.	+	.	ID=exon9;Parent=mrna02;Name=b
+chr2	.	exon	160	180	.	+	.	ID=exon04;Parent=mrna02;Name=b
+chr2	.	exon	190	200	.	+	.	ID=exon09;Parent=mrna02;Name=b
 #
 chr2	.	mRNA	10	190	.	+	.	ID=mrna03;Parent=gene02;Name=x
-chr2	.	exon	10	40	.	+	.	ID=exon5;Parent=mrna03;Name=a;Description=one
-chr2	.	exon	50	100	.	+	.	ID=exon6;Parent=mrna03;Name=aa;Description=one1
+chr2	.	exon	10	40	.	+	.	ID=exon05;Parent=mrna03;Name=a;Description=one
+chr2	.	exon	50	100	.	+	.	ID=exon06;Parent=mrna03;Name=aa;Description=one1
 chr2	.	CDS	60	90	.	+	.	ID=cds2;Parent=mrna03;Name=aa;Description=one1
-chr2	.	exon	120	150	.	+	.	ID=exon7;Parent=mrna03;Name=b
-chr2	.	exon	160	190	.	+	.	ID=exon8;Parent=mrna03;Name=b
-chr2	.	exon_region	160	170	.	+	.	ID=exon_region1;Parent=exon8;Name=exon_region1
-chr2	.	exon_region	180	190	.	+	.	ID=exon_region2;Parent=exon8;Name=exon_region2
+chr2	.	exon	120	150	.	+	.	ID=exon07;Parent=mrna03;Name=b
+chr2	.	exon	160	190	.	+	.	ID=exon08;Parent=mrna03;Name=b
+chr2	.	exon_region	160	170	.	+	.	ID=exon_region1;Parent=exon08;Name=exon_region1
+chr2	.	exon_region	180	190	.	+	.	ID=exon_region2;Parent=exon08;Name=exon_region2
 ##FASTA
 >chr2
 tttTTGGTGtagCAAAGTACTGTTAGGGGTTAAACTCATCATCATCTAGGACATGACTA
