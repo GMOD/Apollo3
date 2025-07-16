@@ -1,4 +1,10 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
+import {
+  AddFeatureChange,
+  DeleteFeatureChange,
+  FeatureAttributeChange,
+  TypeChange,
+} from '@apollo-annotation/shared'
 import styled from '@emotion/styled'
 import {
   type AbstractSessionModel,
@@ -58,7 +64,7 @@ export const ApolloTranscriptDetailsWidget = observer(
     model: ApolloTranscriptDetailsWidgetState
   }) {
     const { classes } = useStyles()
-    const DEFAULT_PANELS = ['summary', 'location', 'attrs']
+    const DEFAULT_PANELS = ['summary', 'location']
     const [panelState, setPanelState] = useState<string[]>(DEFAULT_PANELS)
 
     const { model } = props
@@ -79,6 +85,7 @@ export const ApolloTranscriptDetailsWidget = observer(
     const apolloInternetAccount = internetAccounts.find(
       (ia) => ia.type === 'ApolloInternetAccount',
     ) as ApolloInternetAccountModel | undefined
+    const token = apolloInternetAccount?.retrieveToken()
     const role = apolloInternetAccount ? apolloInternetAccount.role : 'admin'
     const editable = ['admin', 'user'].includes(role ?? '')
 
@@ -111,6 +118,45 @@ export const ApolloTranscriptDetailsWidget = observer(
       NoOpCustomComponent,
       props,
     ) as React.ElementType<CustomComponentProps>
+
+    const BiotypesComponent = pluginManager.evaluateExtensionPoint(
+      'Apollo-BiotypesComponent',
+      () => null,
+      {
+        key: 'status',
+        feature,
+        session,
+        assembly,
+        TypeChange,
+        DeleteFeatureChange,
+        AddFeatureChange,
+        FeatureAttributeChange,
+      },
+    ) as React.ElementType
+
+    const SaveComponent = pluginManager.evaluateExtensionPoint(
+      'Apollo-HavanaSaveComponent',
+      () => null,
+      {
+        key: 'status',
+        feature,
+        session,
+        assembly,
+        token,
+      },
+    ) as React.ElementType
+
+    const HavanaAttributesComponent = pluginManager.evaluateExtensionPoint(
+      'Apollo-HavanaAttributes',
+      () => null,
+      {
+        key: 'status',
+        feature,
+        session,
+        assembly,
+        FeatureAttributeChange,
+      },
+    ) as React.ElementType
 
     return (
       <div className={classes.root}>
@@ -156,6 +202,21 @@ export const ApolloTranscriptDetailsWidget = observer(
               refName={refName}
               session={apolloSession}
               assembly={currentAssembly._id || ''}
+            />
+            <BiotypesComponent
+              feature={feature}
+              session={session}
+              assembly={assembly}
+              TypeChange={TypeChange}
+              DeleteFeatureChange={DeleteFeatureChange}
+              AddFeatureChange={AddFeatureChange}
+              FeatureAttributeChange={FeatureAttributeChange}
+            />
+            <HavanaAttributesComponent
+              feature={feature}
+              session={session}
+              assembly={assembly}
+              FeatureAttributeChange={FeatureAttributeChange}
             />
           </AccordionDetails>
         </Accordion>
@@ -218,6 +279,12 @@ export const ApolloTranscriptDetailsWidget = observer(
             )}
           </AccordionDetails>
         </Accordion>
+        <SaveComponent
+          feature={feature}
+          session={session}
+          assembly={assembly}
+          token={token}
+        />
       </div>
     )
   },
