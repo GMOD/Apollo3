@@ -34,6 +34,7 @@ import React, { useRef } from 'react'
 
 import { type OntologyRecord } from '../OntologyManager'
 import { type ApolloSessionModel } from '../session'
+import { copyToClipboard } from '../util/copyToClipboard'
 
 import { StyledAccordionSummary } from './ApolloTranscriptDetailsWidget'
 import { NumberTextField } from './NumberTextField'
@@ -1091,18 +1092,12 @@ export const TranscriptWidgetEditLocation = observer(
       notify('Translation sequence trimmed to start and stop codons', 'success')
     }
 
-    const copyToClipboard = () => {
+    const onCopyClick = () => {
       const seqDiv = seqRef.current
       if (!seqDiv) {
         return
       }
-      const textBlob = new Blob([seqDiv.outerText], { type: 'text/plain' })
-      const htmlBlob = new Blob([seqDiv.outerHTML], { type: 'text/html' })
-      const clipboardItem = new ClipboardItem({
-        [textBlob.type]: textBlob,
-        [htmlBlob.type]: htmlBlob,
-      })
-      void navigator.clipboard.write([clipboardItem])
+      void copyToClipboard(seqDiv)
     }
 
     return (
@@ -1141,7 +1136,7 @@ export const TranscriptWidgetEditLocation = observer(
                   <Tooltip title="Copy">
                     <ContentCopyIcon
                       style={{ fontSize: 15, cursor: 'pointer' }}
-                      onClick={copyToClipboard}
+                      onClick={onCopyClick}
                     />
                   </Tooltip>
                   <Tooltip title="Trim">
