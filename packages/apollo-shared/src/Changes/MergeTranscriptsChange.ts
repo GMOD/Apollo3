@@ -16,6 +16,7 @@ import {
 } from '@apollo-annotation/mst'
 import { type Feature } from '@apollo-annotation/schemas'
 import { doesIntersect2 } from '@jbrowse/core/util'
+import { getSnapshot } from 'mobx-state-tree'
 
 import { findAndDeleteChildFeature } from './DeleteFeatureChange'
 import { UndoMergeTranscriptsChange } from './UndoMergeTranscriptsChange'
@@ -42,6 +43,7 @@ interface SerializedMergeTranscriptsChangeMultiple
 export type SerializedMergeTranscriptsChange =
   | SerializedMergeTranscriptsChangeSingle
   | SerializedMergeTranscriptsChangeMultiple
+
 export class MergeTranscriptsChange extends FeatureChange {
   typeName = 'MergeTranscriptsChange' as const
   changes: MergeTranscriptsChangeDetails[]
@@ -111,7 +113,13 @@ export class MergeTranscriptsChange extends FeatureChange {
   ) {
     firstTranscript.min = Math.min(firstTranscript.min, secondTranscript.min)
     firstTranscript.max = Math.max(firstTranscript.max, secondTranscript.max)
-    this.mergeTranscriptAttributes(firstTranscript, secondTranscript)
+
+    const txAttrs: Record<string, string[]> = firstTranscript.attributes
+      ? JSON.parse(JSON.stringify(firstTranscript.attributes))
+      : {}
+    txAttrs.merged_with = [this.stringifyAttributes(secondTranscript)]
+    firstTranscript.attributes = txAttrs
+
     if (secondTranscript.children) {
       for (const [, secondFeatureChild] of Object.entries(
         secondTranscript.children,
@@ -163,8 +171,11 @@ export class MergeTranscriptsChange extends FeatureChange {
           mrgChild.max,
           firstFeatureChild.max,
         )
-        const mergedAttrs = this.mergeAttributes(mrgChild, secondFeatureChild)
-        mrgChild.attributes = mergedAttrs
+        const txAttrs: Record<string, string[]> = mrgChild.attributes
+          ? JSON.parse(JSON.stringify(mrgChild.attributes))
+          : {}
+        txAttrs.merged_with = [this.stringifyAttributes(secondFeatureChild)]
+        mrgChild.attributes = txAttrs
         firstTranscript.children.delete(fKey)
         merged = true
       }
@@ -215,7 +226,13 @@ export class MergeTranscriptsChange extends FeatureChange {
     firstTranscript.setMin(Math.min(firstTranscript.min, secondTranscript.min))
     firstTranscript.setMax(Math.max(firstTranscript.max, secondTranscript.max))
 
-    this.mergeTranscriptAttributes(firstTranscript, secondTranscript)
+    const mrg = firstTranscript.attributes.get('merged_with')?.slice() ?? []
+    const mergedWith = this.stringifyAttributes(secondTranscript)
+    if (!mrg.includes(mergedWith)) {
+      // executeOnClient runs twice (?!) so avoid adding this key again
+      mrg.push(mergedWith)
+    }
+    firstTranscript.setAttribute('merged_with', mrg)
 
     if (secondTranscript.children) {
       for (const [, secondFeatureChild] of Object.entries(
@@ -269,15 +286,16 @@ export class MergeTranscriptsChange extends FeatureChange {
           Math.max(secondFeatureChild.max, mrgChild.max, firstFeatureChild.max),
         )
 
-        const mergedAttrs = this.mergeAttributes(mrgChild, secondFeatureChild)
-        Object.entries(mergedAttrs).map(([key, value]) => {
-          if (mrgChild) {
-            mrgChild.setAttribute(key, value)
-          }
-        })
+        const mergedWithAttributes =
+          mrgChild.attributes.get('merged_with')?.slice() ?? []
+        mergedWithAttributes.push(this.stringifyAttributes(secondFeatureChild))
         if (toDelete) {
+          mergedWithAttributes.push(
+            this.stringifyAttributes(getSnapshot(firstFeatureChild)),
+          )
           firstTranscript.deleteChild(firstFeatureChild._id)
         }
+        mrgChild.setAttribute('merged_with', [...new Set(mergedWithAttributes)])
         merged = true
       }
     }
@@ -295,62 +313,43 @@ export class MergeTranscriptsChange extends FeatureChange {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  isAnnotationFeature(obj: any): obj is AnnotationFeature {
-    return (
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      typeof obj.setMin === 'function' &&
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      typeof obj.setMax === 'function' &&
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      typeof obj.addChild === 'function' &&
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      typeof obj.deleteChild === 'function'
-    )
-  }
+  // // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // isAnnotationFeature(obj: any): obj is AnnotationFeature {
+  //   return (
+  //     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  //     typeof obj.setMin === 'function' &&
+  //     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  //     typeof obj.setMax === 'function' &&
+  //     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  //     typeof obj.addChild === 'function' &&
+  //     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  //     typeof obj.deleteChild === 'function'
+  //   )
+  // }
 
   async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
     throw new Error('executeOnLocalGFF3 not implemented')
   }
 
-  /* Merge attributes from source into destination */
-  mergeAttributes(
-    destination: Feature | AnnotationFeature,
-    source: AnnotationFeatureSnapshot,
-  ): Record<string, string[]> {
-    const destAttrs: Record<string, string[]> = destination.attributes
-      ? JSON.parse(JSON.stringify(destination.attributes))
-      : {}
-    if (source.attributes) {
-      const sourceAttrs: Record<string, string[]> = JSON.parse(
-        JSON.stringify(source.attributes),
-      )
-      Object.entries(sourceAttrs).map(([key, value]) => {
-        if (!(key in destAttrs)) {
-          destAttrs[key] = []
-        }
-        value.map((x) => {
-          if (!destAttrs[key].includes(x)) {
-            destAttrs[key].push(x)
-          }
-        })
-      })
+  stringifyAttributes(feature: AnnotationFeatureSnapshot): string {
+    if (!feature.attributes) {
+      return ''
     }
-    return destAttrs
-  }
-
-  mergeTranscriptAttributes(
-    firstTranscript: Feature | AnnotationFeature,
-    secondTranscript: AnnotationFeatureSnapshot,
-  ) {
-    const txAttrs = this.mergeAttributes(firstTranscript, secondTranscript)
-    if (this.isAnnotationFeature(firstTranscript)) {
-      Object.entries(txAttrs).map(([key, value]) => {
-        firstTranscript.setAttribute(key, value)
-      })
-    } else {
-      firstTranscript.attributes = txAttrs
+    const str = []
+    for (const [key, value] of Object.entries(feature.attributes)) {
+      let attributeName = key
+      if (attributeName.startsWith('gff_')) {
+        attributeName = attributeName.slice(4)
+        attributeName =
+          attributeName.charAt(0).toUpperCase() + attributeName.slice(1)
+      }
+      if (value) {
+        str.push(`${attributeName}%3D${value.join('%2C')}`)
+      } else {
+        str.push(attributeName)
+      }
     }
+    return str.join('%3B')
   }
 
   getInverse() {
