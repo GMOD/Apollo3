@@ -952,6 +952,9 @@ export const TranscriptWidgetEditLocation = observer(
     const getCodonGenomicLocation = (codonGenomicPosition: number) => {
       const [firstLocation] = cdsLocations
       let cdsLen = 0
+      const sortedCDSLocations = firstLocation.toSorted(
+        ({ min: a }, { min: b }) => a - b,
+      )
 
       // Suppose CDS locations are [{min: 0, max: 10}, {min: 20, max: 30}, {min: 40, max: 50}]
       // and codonGenomicPosition is 25
@@ -959,7 +962,7 @@ export const TranscriptWidgetEditLocation = observer(
       // So, start codon is in (40, 50)
       // 40 + (25-20) = 45 is the genomic location of the start codon
       if (strand === 1) {
-        for (const loc of firstLocation) {
+        for (const loc of sortedCDSLocations) {
           const locLength = loc.max - loc.min
           if (cdsLen + locLength > codonGenomicPosition) {
             return loc.min + (codonGenomicPosition - cdsLen)
@@ -967,8 +970,8 @@ export const TranscriptWidgetEditLocation = observer(
           cdsLen += locLength
         }
       } else if (strand === -1) {
-        for (let i = firstLocation.length - 1; i >= 0; i--) {
-          const loc = firstLocation[i]
+        for (let i = sortedCDSLocations.length - 1; i >= 0; i--) {
+          const loc = sortedCDSLocations[i]
           const locLength = loc.max - loc.min
           if (cdsLen + locLength > codonGenomicPosition) {
             return loc.max - (codonGenomicPosition - cdsLen)
