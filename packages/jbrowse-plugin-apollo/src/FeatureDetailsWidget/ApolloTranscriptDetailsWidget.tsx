@@ -1,10 +1,4 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
-import {
-  AddFeatureChange,
-  DeleteFeatureChange,
-  FeatureAttributeChange,
-  TypeChange,
-} from '@apollo-annotation/shared'
 import styled from '@emotion/styled'
 import {
   type AbstractSessionModel,
@@ -119,42 +113,31 @@ export const ApolloTranscriptDetailsWidget = observer(
       props,
     ) as React.ElementType<CustomComponentProps>
 
-    const BiotypesComponent = pluginManager.evaluateExtensionPoint(
-      'Apollo-BiotypesComponent',
+    const CustomTypesComponent = pluginManager.evaluateExtensionPoint(
+      'Apollo-TranscriptDetailsCustomTypesComponent',
       () => null,
       {
-        key: 'status',
         feature,
         session,
-        assembly,
-        TypeChange,
-        DeleteFeatureChange,
-        AddFeatureChange,
-        FeatureAttributeChange,
       },
     ) as React.ElementType
 
-    const SaveComponent = pluginManager.evaluateExtensionPoint(
-      'Apollo-HavanaSaveComponent',
+    const CustomSaveComponent = pluginManager.evaluateExtensionPoint(
+      'Apollo-TranscriptDetailsCustomSaveComponent',
       () => null,
       {
-        key: 'status',
         feature,
         session,
-        assembly,
         token,
       },
     ) as React.ElementType
 
-    const HavanaAttributesComponent = pluginManager.evaluateExtensionPoint(
-      'Apollo-HavanaAttributes',
+    const CustomAttributesComponent = pluginManager.evaluateExtensionPoint(
+      'Apollo-TranscriptDetailsCustomAttributesComponent',
       () => null,
       {
-        key: 'status',
         feature,
         session,
-        assembly,
-        FeatureAttributeChange,
       },
     ) as React.ElementType
 
@@ -203,21 +186,8 @@ export const ApolloTranscriptDetailsWidget = observer(
               session={apolloSession}
               assembly={currentAssembly._id || ''}
             />
-            <BiotypesComponent
-              feature={feature}
-              session={session}
-              assembly={assembly}
-              TypeChange={TypeChange}
-              DeleteFeatureChange={DeleteFeatureChange}
-              AddFeatureChange={AddFeatureChange}
-              FeatureAttributeChange={FeatureAttributeChange}
-            />
-            <HavanaAttributesComponent
-              feature={feature}
-              session={session}
-              assembly={assembly}
-              FeatureAttributeChange={FeatureAttributeChange}
-            />
+            <CustomTypesComponent feature={feature} session={session} />
+            <CustomAttributesComponent feature={feature} session={session} />
           </AccordionDetails>
         </Accordion>
         <Accordion
@@ -279,10 +249,9 @@ export const ApolloTranscriptDetailsWidget = observer(
             )}
           </AccordionDetails>
         </Accordion>
-        <SaveComponent
+        <CustomSaveComponent
           feature={feature}
           session={session}
-          assembly={assembly}
           token={token}
         />
       </div>
