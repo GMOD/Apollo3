@@ -18,11 +18,10 @@ import { type Feature } from '@apollo-annotation/schemas'
 import { doesIntersect2 } from '@jbrowse/core/util'
 import { getSnapshot } from 'mobx-state-tree'
 
+import { attributesToRecords, stringifyAttributes } from '../util'
+
 import { findAndDeleteChildFeature } from './DeleteFeatureChange'
 import { UndoMergeTranscriptsChange } from './UndoMergeTranscriptsChange'
-import { IKeyValueMap } from 'mobx'
-import { ConnectableObservable } from 'rxjs'
-import { attributesToRecords, stringifyAttributes } from '../util'
 
 interface SerializedMergeTranscriptsChangeBase extends SerializedFeatureChange {
   typeName: 'MergeTranscriptsChange'

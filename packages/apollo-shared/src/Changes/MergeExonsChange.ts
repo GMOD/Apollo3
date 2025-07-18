@@ -12,9 +12,10 @@ import {
 } from '@apollo-annotation/common'
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
+import { attributesToRecords, stringifyAttributes } from '../util'
+
 import { findAndDeleteChildFeature } from './DeleteFeatureChange'
 import { UndoMergeExonsChange } from './UndoMergeExonsChange'
-import { attributesToRecords, stringifyAttributes } from '../util'
 
 interface SerializedMergeExonsChangeBase extends SerializedFeatureChange {
   typeName: 'MergeExonsChange'
