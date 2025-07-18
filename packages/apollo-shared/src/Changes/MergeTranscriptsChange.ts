@@ -22,6 +22,7 @@ import { findAndDeleteChildFeature } from './DeleteFeatureChange'
 import { UndoMergeTranscriptsChange } from './UndoMergeTranscriptsChange'
 import { IKeyValueMap } from 'mobx'
 import { ConnectableObservable } from 'rxjs'
+import { attributesToRecords, stringifyAttributes } from '../util'
 
 interface SerializedMergeTranscriptsChangeBase extends SerializedFeatureChange {
   typeName: 'MergeTranscriptsChange'
@@ -116,15 +117,14 @@ export class MergeTranscriptsChange extends FeatureChange {
     firstTranscript.min = Math.min(firstTranscript.min, secondTranscript.min)
     firstTranscript.max = Math.max(firstTranscript.max, secondTranscript.max)
 
-    const txAttrs: Record<string, string[]> = firstTranscript.attributes
-      ? JSON.parse(JSON.stringify(firstTranscript.attributes))
-      : {}
-    txAttrs.merged_with = [
-      this.stringifyAttributes(
-        this.attributesToRecords(secondTranscript.attributes),
-      ),
+    const mergedAttributes: Record<string, string[]> =
+      firstTranscript.attributes
+        ? JSON.parse(JSON.stringify(firstTranscript.attributes))
+        : {}
+    mergedAttributes.merged_with = [
+      stringifyAttributes(attributesToRecords(secondTranscript.attributes)),
     ]
-    firstTranscript.attributes = txAttrs
+    firstTranscript.attributes = mergedAttributes
 
     if (secondTranscript.children) {
       for (const [, secondFeatureChild] of Object.entries(
@@ -183,8 +183,8 @@ export class MergeTranscriptsChange extends FeatureChange {
         )
         const mergedWithAttributes = mrgChild.attributes?.merged_with ?? []
         mergedWithAttributes.push(
-          this.stringifyAttributes(
-            this.attributesToRecords(secondFeatureChild.attributes),
+          stringifyAttributes(
+            attributesToRecords(secondFeatureChild.attributes),
           ),
         )
         if (toDelete) {
@@ -192,7 +192,7 @@ export class MergeTranscriptsChange extends FeatureChange {
             firstFeatureChild.attributes
               ? JSON.parse(JSON.stringify(firstFeatureChild.attributes))
               : undefined
-          mergedWithAttributes.push(this.stringifyAttributes(recs))
+          mergedWithAttributes.push(stringifyAttributes(recs))
           firstTranscript.children.delete(firstFeatureChild._id.toString())
         }
         if (!mrgChild.attributes) {
@@ -253,8 +253,8 @@ export class MergeTranscriptsChange extends FeatureChange {
     firstTranscript.setMax(Math.max(firstTranscript.max, secondTranscript.max))
 
     const mrg = firstTranscript.attributes.get('merged_with')?.slice() ?? []
-    const mergedWith = this.stringifyAttributes(
-      this.attributesToRecords(secondTranscript.attributes),
+    const mergedWith = stringifyAttributes(
+      attributesToRecords(secondTranscript.attributes),
     )
 
     if (!mrg.includes(mergedWith)) {
@@ -318,13 +318,13 @@ export class MergeTranscriptsChange extends FeatureChange {
         const mergedWithAttributes =
           mrgChild.attributes.get('merged_with')?.slice() ?? []
         mergedWithAttributes.push(
-          this.stringifyAttributes(
-            this.attributesToRecords(secondFeatureChild.attributes),
+          stringifyAttributes(
+            attributesToRecords(secondFeatureChild.attributes),
           ),
         )
         if (toDelete) {
           mergedWithAttributes.push(
-            this.stringifyAttributes(getSnapshot(firstFeatureChild).attributes),
+            stringifyAttributes(getSnapshot(firstFeatureChild).attributes),
           )
           firstTranscript.deleteChild(firstFeatureChild._id)
         }
@@ -332,7 +332,6 @@ export class MergeTranscriptsChange extends FeatureChange {
         merged = true
       }
     }
-    console.log('CLIENT' + JSON.stringify(mrgChild, null, 2))
 
     if (merged && mrgChild && secondFeatureChild.children) {
       Object.entries(secondFeatureChild.children).map(([, child]) => {
@@ -349,42 +348,6 @@ export class MergeTranscriptsChange extends FeatureChange {
 
   async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
     throw new Error('executeOnLocalGFF3 not implemented')
-  }
-
-  attributesToRecords(
-    attributes: IKeyValueMap<readonly string[] | undefined> | undefined,
-  ): Record<string, string[] | undefined> {
-    const records: Record<string, string[] | undefined> = {}
-    if (!attributes) {
-      return records
-    }
-    for (const [key, value] of Object.entries(attributes)) {
-      records[key] = value?.slice()
-    }
-    return records
-  }
-
-  stringifyAttributes(
-    attributes: Record<string, string[] | undefined> | undefined,
-  ): string {
-    if (!attributes) {
-      return ''
-    }
-    const str = []
-    for (const [key, value] of Object.entries(attributes)) {
-      let attributeName = key
-      if (attributeName.startsWith('gff_')) {
-        attributeName = attributeName.slice(4)
-        attributeName =
-          attributeName.charAt(0).toUpperCase() + attributeName.slice(1)
-      }
-      if (value) {
-        str.push(`${attributeName}%3D${value.join('%2C')}`)
-      } else {
-        str.push(attributeName)
-      }
-    }
-    return str.join('%3B')
   }
 
   getInverse() {

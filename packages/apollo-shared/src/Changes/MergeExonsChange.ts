@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/prefer-structured-clone */
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
@@ -13,6 +14,7 @@ import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 import { findAndDeleteChildFeature } from './DeleteFeatureChange'
 import { UndoMergeExonsChange } from './UndoMergeExonsChange'
+import { attributesToRecords, stringifyAttributes } from '../util'
 
 interface SerializedMergeExonsChangeBase extends SerializedFeatureChange {
   typeName: 'MergeExonsChange'
@@ -89,7 +91,15 @@ export class MergeExonsChange extends FeatureChange {
       }
       mergedExon.min = Math.min(firstExon.min, secondExon.min)
       mergedExon.max = Math.max(firstExon.max, secondExon.max)
-      mergedExon.attributes = this.mergeAttributes(firstExon, secondExon)
+
+      const mergedAttributes: Record<string, string[]> = mergedExon.attributes
+        ? JSON.parse(JSON.stringify(mergedExon.attributes))
+        : {}
+      mergedAttributes.merged_with = [
+        stringifyAttributes(attributesToRecords(secondExon.attributes)),
+      ]
+      mergedExon.attributes = mergedAttributes
+
       const deletedIds = findAndDeleteChildFeature(
         topLevelFeature,
         secondExon._id,
@@ -123,11 +133,16 @@ export class MergeExonsChange extends FeatureChange {
       }
       mergedExon.setMin(Math.min(firstExon.min, secondExon.min))
       mergedExon.setMax(Math.max(firstExon.max, secondExon.max))
-      const mergedAttrs = this.mergeAttributes(firstExon, secondExon)
-      mergedExon.setAttributes(new Map())
-      for (const key of Object.keys(mergedAttrs)) {
-        mergedExon.setAttribute(key, mergedAttrs[key])
+
+      const mrg = mergedExon.attributes.get('merged_with')?.slice() ?? []
+      const mergedWith = stringifyAttributes(
+        attributesToRecords(secondExon.attributes),
+      )
+      if (!mrg.includes(mergedWith)) {
+        mrg.push(mergedWith)
       }
+      mergedExon.setAttribute('merged_with', mrg)
+
       mergedExon.parent?.deleteChild(secondExon._id)
     }
   }
@@ -151,35 +166,35 @@ export class MergeExonsChange extends FeatureChange {
     )
   }
 
-  mergeAttributes(
-    firstExon: AnnotationFeatureSnapshot,
-    secondExon: AnnotationFeatureSnapshot,
-  ): Record<string, string[]> {
-    let mergedAttrs: Record<string, string[]> = {}
-    if (firstExon.attributes) {
-      // eslint-disable-next-line unicorn/prefer-structured-clone
-      mergedAttrs = JSON.parse(JSON.stringify(firstExon.attributes))
-    }
+  // mergeAttributes(
+  //   firstExon: AnnotationFeatureSnapshot,
+  //   secondExon: AnnotationFeatureSnapshot,
+  // ): Record<string, string[]> {
+  //   let mergedAttrs: Record<string, string[]> = {}
+  //   if (firstExon.attributes) {
+  //     // eslint-disable-next-line unicorn/prefer-structured-clone
+  //     mergedAttrs = JSON.parse(JSON.stringify(firstExon.attributes))
+  //   }
 
-    if (secondExon.attributes) {
-      // eslint-disable-next-line unicorn/prefer-structured-clone
-      const attrs: Record<string, string[]> = JSON.parse(
-        JSON.stringify(secondExon.attributes),
-      )
-      for (const key of Object.keys(attrs)) {
-        if (key === '_id' || key === 'gff_id') {
-          continue
-        }
-        if (!Object.keys(mergedAttrs).includes(key)) {
-          mergedAttrs[key] = []
-        }
-        attrs[key].map((x) => {
-          if (!mergedAttrs[key].includes(x)) {
-            mergedAttrs[key].push(x)
-          }
-        })
-      }
-    }
-    return mergedAttrs
-  }
+  //   if (secondExon.attributes) {
+  //     // eslint-disable-next-line unicorn/prefer-structured-clone
+  //     const attrs: Record<string, string[]> = JSON.parse(
+  //       JSON.stringify(secondExon.attributes),
+  //     )
+  //     for (const key of Object.keys(attrs)) {
+  //       if (key === '_id' || key === 'gff_id') {
+  //         continue
+  //       }
+  //       if (!Object.keys(mergedAttrs).includes(key)) {
+  //         mergedAttrs[key] = []
+  //       }
+  //       attrs[key].map((x) => {
+  //         if (!mergedAttrs[key].includes(x)) {
+  //           mergedAttrs[key].push(x)
+  //         }
+  //       })
+  //     }
+  //   }
+  //   return mergedAttrs
+  // }
 }
