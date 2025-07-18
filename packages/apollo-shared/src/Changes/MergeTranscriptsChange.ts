@@ -20,6 +20,8 @@ import { getSnapshot } from 'mobx-state-tree'
 
 import { findAndDeleteChildFeature } from './DeleteFeatureChange'
 import { UndoMergeTranscriptsChange } from './UndoMergeTranscriptsChange'
+import { IKeyValueMap } from 'mobx'
+import { ConnectableObservable } from 'rxjs'
 
 interface SerializedMergeTranscriptsChangeBase extends SerializedFeatureChange {
   typeName: 'MergeTranscriptsChange'
@@ -117,7 +119,11 @@ export class MergeTranscriptsChange extends FeatureChange {
     const txAttrs: Record<string, string[]> = firstTranscript.attributes
       ? JSON.parse(JSON.stringify(firstTranscript.attributes))
       : {}
-    txAttrs.merged_with = [this.stringifyAttributes(secondTranscript)]
+    txAttrs.merged_with = [
+      this.stringifyAttributes(
+        this.attributesToRecords(secondTranscript.attributes),
+      ),
+    ]
     firstTranscript.attributes = txAttrs
 
     if (secondTranscript.children) {
@@ -141,9 +147,13 @@ export class MergeTranscriptsChange extends FeatureChange {
     }
     let merged = false
     let mrgChild: Feature | undefined
-    for (const [fKey, firstFeatureChild] of firstTranscript.children) {
+    let toDelete
+    for (const [, firstFeatureChild] of firstTranscript.children) {
       if (!merged || !mrgChild) {
+        toDelete = false
         mrgChild = firstFeatureChild
+      } else {
+        toDelete = true
       }
       if (
         mrgChild.type === secondFeatureChild.type &&
@@ -171,12 +181,28 @@ export class MergeTranscriptsChange extends FeatureChange {
           mrgChild.max,
           firstFeatureChild.max,
         )
-        const txAttrs: Record<string, string[]> = mrgChild.attributes
-          ? JSON.parse(JSON.stringify(mrgChild.attributes))
-          : {}
-        txAttrs.merged_with = [this.stringifyAttributes(secondFeatureChild)]
-        mrgChild.attributes = txAttrs
-        firstTranscript.children.delete(fKey)
+        const mergedWithAttributes = mrgChild.attributes?.merged_with ?? []
+        mergedWithAttributes.push(
+          this.stringifyAttributes(
+            this.attributesToRecords(secondFeatureChild.attributes),
+          ),
+        )
+        if (toDelete) {
+          const recs: Record<string, string[] | undefined> =
+            firstFeatureChild.attributes
+              ? JSON.parse(JSON.stringify(firstFeatureChild.attributes))
+              : undefined
+          mergedWithAttributes.push(this.stringifyAttributes(recs))
+          firstTranscript.children.delete(firstFeatureChild._id.toString())
+        }
+        if (!mrgChild.attributes) {
+          mrgChild.attributes = {}
+        }
+        const attributes: Record<string, string[]> = JSON.parse(
+          JSON.stringify(mrgChild.attributes),
+        )
+        attributes.merged_with = [...new Set(mergedWithAttributes)]
+        mrgChild.attributes = attributes
         merged = true
       }
     }
@@ -227,7 +253,10 @@ export class MergeTranscriptsChange extends FeatureChange {
     firstTranscript.setMax(Math.max(firstTranscript.max, secondTranscript.max))
 
     const mrg = firstTranscript.attributes.get('merged_with')?.slice() ?? []
-    const mergedWith = this.stringifyAttributes(secondTranscript)
+    const mergedWith = this.stringifyAttributes(
+      this.attributesToRecords(secondTranscript.attributes),
+    )
+
     if (!mrg.includes(mergedWith)) {
       // executeOnClient runs twice (?!) so avoid adding this key again
       mrg.push(mergedWith)
@@ -288,10 +317,14 @@ export class MergeTranscriptsChange extends FeatureChange {
 
         const mergedWithAttributes =
           mrgChild.attributes.get('merged_with')?.slice() ?? []
-        mergedWithAttributes.push(this.stringifyAttributes(secondFeatureChild))
+        mergedWithAttributes.push(
+          this.stringifyAttributes(
+            this.attributesToRecords(secondFeatureChild.attributes),
+          ),
+        )
         if (toDelete) {
           mergedWithAttributes.push(
-            this.stringifyAttributes(getSnapshot(firstFeatureChild)),
+            this.stringifyAttributes(getSnapshot(firstFeatureChild).attributes),
           )
           firstTranscript.deleteChild(firstFeatureChild._id)
         }
@@ -299,6 +332,7 @@ export class MergeTranscriptsChange extends FeatureChange {
         merged = true
       }
     }
+    console.log('CLIENT' + JSON.stringify(mrgChild, null, 2))
 
     if (merged && mrgChild && secondFeatureChild.children) {
       Object.entries(secondFeatureChild.children).map(([, child]) => {
@@ -313,30 +347,31 @@ export class MergeTranscriptsChange extends FeatureChange {
     }
   }
 
-  // // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  // isAnnotationFeature(obj: any): obj is AnnotationFeature {
-  //   return (
-  //     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  //     typeof obj.setMin === 'function' &&
-  //     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  //     typeof obj.setMax === 'function' &&
-  //     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  //     typeof obj.addChild === 'function' &&
-  //     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  //     typeof obj.deleteChild === 'function'
-  //   )
-  // }
-
   async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
     throw new Error('executeOnLocalGFF3 not implemented')
   }
 
-  stringifyAttributes(feature: AnnotationFeatureSnapshot): string {
-    if (!feature.attributes) {
+  attributesToRecords(
+    attributes: IKeyValueMap<readonly string[] | undefined> | undefined,
+  ): Record<string, string[] | undefined> {
+    const records: Record<string, string[] | undefined> = {}
+    if (!attributes) {
+      return records
+    }
+    for (const [key, value] of Object.entries(attributes)) {
+      records[key] = value?.slice()
+    }
+    return records
+  }
+
+  stringifyAttributes(
+    attributes: Record<string, string[] | undefined> | undefined,
+  ): string {
+    if (!attributes) {
       return ''
     }
     const str = []
-    for (const [key, value] of Object.entries(feature.attributes)) {
+    for (const [key, value] of Object.entries(attributes)) {
       let attributeName = key
       if (attributeName.startsWith('gff_')) {
         attributeName = attributeName.slice(4)
