@@ -17,6 +17,14 @@ import { checkFeatures } from '../util'
 import { BackendDriver, type RefNameAliases } from './BackendDriver'
 
 export class InMemoryFileDriver extends BackendDriver {
+  getFeatureById(
+    _featureId: string,
+    _assemblyName: string,
+    _topLevel: boolean,
+  ): Promise<AnnotationFeatureSnapshot | undefined> {
+    throw new Error('Method not implemented.')
+  }
+
   async getFeatures(): Promise<
     [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
   > {

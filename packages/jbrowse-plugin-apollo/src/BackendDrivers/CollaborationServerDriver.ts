@@ -127,6 +127,32 @@ export class CollaborationServerDriver extends BackendDriver {
     >
   }
 
+  async getFeatureById(
+    featureId: string,
+    assemblyName: string,
+    topLevel: boolean,
+  ): Promise<AnnotationFeatureSnapshot | undefined> {
+    const internetAccount = this.clientStore.getInternetAccount(
+      assemblyName,
+    ) as ApolloInternetAccount
+    const { baseURL } = internetAccount
+
+    const url = new URL(`features/${featureId}`, baseURL)
+    const searchParams = new URLSearchParams({
+      topLevel: String(topLevel),
+    })
+    url.search = searchParams.toString()
+    const response = await this.fetch(internetAccount, url.toString())
+    if (!response.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'getFeatureById failed',
+      )
+      throw new Error(errorMessage)
+    }
+    return response.json() as Promise<AnnotationFeatureSnapshot | undefined>
+  }
+
   /**
    * Checks if there is assembly-refSeq specific socket. If not, it opens one
    * @param assembly - assemblyId

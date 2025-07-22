@@ -22,6 +22,12 @@ export abstract class BackendDriver {
     region: Region,
   ): Promise<[AnnotationFeatureSnapshot[], CheckResultSnapshot[]]>
 
+  abstract getFeatureById(
+    featureId: string,
+    assemblyName: string,
+    topLevel: boolean,
+  ): Promise<AnnotationFeatureSnapshot | undefined>
+
   abstract getSequence(region: Region): Promise<{ seq: string; refSeq: string }>
 
   abstract getRegions(assemblyName: string): Promise<Region[]>

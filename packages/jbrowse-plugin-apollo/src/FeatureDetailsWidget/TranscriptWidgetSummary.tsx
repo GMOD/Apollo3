@@ -38,6 +38,10 @@ export const TranscriptWidgetSummary = observer(
             </TableRow>
           )}
           <TableRow>
+            <HeaderTableCell>Apollo ID</HeaderTableCell>
+            <TableCell>{feature._id}</TableCell>
+          </TableRow>
+          <TableRow>
             <HeaderTableCell>Type</HeaderTableCell>
             <TableCell>{feature.type}</TableCell>
           </TableRow>

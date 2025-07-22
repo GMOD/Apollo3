@@ -74,6 +74,7 @@ export const AnnotationFeatureModel = types
      * note, dbxref, etc.
      */
     attributes: types.map(types.array(types.string)),
+    updatedAt: types.maybe(types.string),
   })
   .views((self) => ({
     get length() {
