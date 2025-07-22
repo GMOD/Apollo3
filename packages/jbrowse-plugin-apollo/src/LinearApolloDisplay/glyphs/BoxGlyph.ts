@@ -63,7 +63,7 @@ function draw(
   stateModel: LinearApolloDisplayRendering,
   displayedRegionIndex: number,
 ) {
-  const { apolloRowHeight: heightPx, lgv, session, theme } = stateModel
+  const { apolloRowHeight: heightPx, lgv, selectedFeature, theme } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const minX =
@@ -73,11 +73,10 @@ function draw(
       regionNumber: displayedRegionIndex,
     })?.offsetPx ?? 0) - offsetPx
   const { reversed } = displayedRegion
-  const { apolloSelectedFeature } = session
   const widthPx = feature.length / bpPerPx
   const startPx = reversed ? minX - widthPx : minX
   const top = row * heightPx
-  const isSelected = isSelectedFeature(feature, apolloSelectedFeature)
+  const isSelected = isSelectedFeature(feature, selectedFeature)
   const backgroundColor = getBackgroundColor(theme, isSelected)
   const textColor = getTextColor(theme, isSelected)
   const featureBox: [number, number, number, number] = [

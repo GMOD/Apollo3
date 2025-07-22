@@ -133,6 +133,7 @@ function draw(
     theme,
     highestRow,
     filteredTranscripts,
+    selectedFeature,
     showFeatureLabels,
   } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
@@ -148,7 +149,6 @@ function draw(
   if (!children) {
     return
   }
-  const { apolloSelectedFeature } = session
   const { apolloDataStore } = session
   const { featureTypeOntology } = apolloDataStore.ontologyManager
   if (!featureTypeOntology) {
@@ -177,7 +177,7 @@ function draw(
     topLevelFeatureHeight,
   )
 
-  ctx.fillStyle = isSelectedFeature(topLevelFeature, apolloSelectedFeature)
+  ctx.fillStyle = isSelectedFeature(topLevelFeature, selectedFeature)
     ? alpha('rgb(0,0,0)', 0.7)
     : alpha(theme?.palette.background.paper ?? '#ffffff', 0.7)
   ctx.fillRect(
@@ -187,7 +187,7 @@ function draw(
     topLevelFeatureHeight - 2,
   )
 
-  const isSelected = isSelectedFeature(topLevelFeature, apolloSelectedFeature)
+  const isSelected = isSelectedFeature(topLevelFeature, selectedFeature)
   const label: Label = {
     x: topLevelFeatureStartPx,
     y: topLevelFeatureTop,
@@ -269,7 +269,7 @@ function draw(
 
       const exonTop =
         topLevelFeatureTop + (topLevelFeatureHeight - exonHeight) / 2
-      const isSelected = isSelectedFeature(exon, apolloSelectedFeature)
+      const isSelected = isSelectedFeature(exon, selectedFeature)
       ctx.fillStyle = theme?.palette.text.primary ?? 'black'
       ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
       if (widthPx > 2) {
@@ -309,7 +309,7 @@ function draw(
       }
     }
 
-    const isSelected = isSelectedFeature(child, apolloSelectedFeature?.parent)
+    const isSelected = isSelectedFeature(child, selectedFeature?.parent)
     let cdsStartPx = 0
     let cdsTop = 0
     for (const cdsRow of cdsLocations) {
@@ -318,9 +318,9 @@ function draw(
       let counter = 1
       for (const cds of cdsRow.sort((a, b) => a.max - b.max)) {
         if (
-          (apolloSelectedFeature &&
+          (selectedFeature &&
             isSelected &&
-            featureTypeOntology.isTypeOf(apolloSelectedFeature.type, 'CDS')) ||
+            featureTypeOntology.isTypeOf(selectedFeature.type, 'CDS')) ||
           !deepSetHas(renderedCDS, cds)
         ) {
           const cdsWidthPx = (cds.max - cds.min) / bpPerPx
@@ -349,9 +349,9 @@ function draw(
             const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
             ctx.fillStyle = cdsColorCode
             ctx.fillStyle =
-              apolloSelectedFeature &&
+              selectedFeature &&
               isSelected &&
-              featureTypeOntology.isTypeOf(apolloSelectedFeature.type, 'CDS')
+              featureTypeOntology.isTypeOf(selectedFeature.type, 'CDS')
                 ? 'rgb(0,0,0)'
                 : cdsColorCode
             ctx.fillRect(

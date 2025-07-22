@@ -59,7 +59,7 @@ function drawFeature(
   stateModel: LinearApolloDisplayRendering,
   displayedRegionIndex: number,
 ) {
-  const { apolloRowHeight: heightPx, lgv, session } = stateModel
+  const { apolloRowHeight: heightPx, lgv, selectedFeature } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const minX =
@@ -69,12 +69,11 @@ function drawFeature(
       regionNumber: displayedRegionIndex,
     })?.offsetPx ?? 0) - offsetPx
   const { reversed } = displayedRegion
-  const { apolloSelectedFeature } = session
   const widthPx = feature.length / bpPerPx
   const startPx = reversed ? minX - widthPx : minX
   const top = row * heightPx
   const rowCount = getRowCount(feature)
-  const isSelected = isSelectedFeature(feature, apolloSelectedFeature)
+  const isSelected = isSelectedFeature(feature, selectedFeature)
   const groupingColor = isSelected ? 'rgba(130,0,0,0.45)' : 'rgba(255,0,0,0.25)'
   if (rowCount > 1) {
     // draw background that encapsulates all child features

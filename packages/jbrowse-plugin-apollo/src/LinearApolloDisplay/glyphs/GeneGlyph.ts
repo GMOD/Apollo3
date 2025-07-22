@@ -84,7 +84,7 @@ function draw(
   stateModel: LinearApolloDisplayRendering,
   displayedRegionIndex: number,
 ): void {
-  const { apolloRowHeight, lgv, session, theme } = stateModel
+  const { apolloRowHeight, lgv, selectedFeature, session, theme } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const { refName, reversed } = displayedRegion
@@ -94,7 +94,6 @@ function draw(
   if (!children) {
     return
   }
-  const { apolloSelectedFeature } = session
   const { apolloDataStore } = session
   const { featureTypeOntology } = apolloDataStore.ontologyManager
   if (!featureTypeOntology) {
@@ -237,7 +236,7 @@ function draw(
             const frameColor = theme?.palette.framesCDS.at(frame)?.main
             const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
             ctx.fillStyle =
-              apolloSelectedFeature && _id === apolloSelectedFeature._id
+              selectedFeature && _id === selectedFeature._id
                 ? 'rgb(0,0,0)'
                 : cdsColorCode
             ctx.fillRect(
@@ -308,11 +307,10 @@ function drawExon(
   forwardFill: CanvasPattern | null,
   backwardFill: CanvasPattern | null,
 ) {
-  const { apolloRowHeight, lgv, session, theme } = stateModel
+  const { apolloRowHeight, lgv, selectedFeature, theme } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const { refName, reversed } = displayedRegion
-  const { apolloSelectedFeature } = session
 
   const minX =
     (lgv.bpToPx({
@@ -331,7 +329,7 @@ function drawExon(
   if (widthPx > 2) {
     ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
     ctx.fillStyle =
-      apolloSelectedFeature && exon._id === apolloSelectedFeature._id
+      selectedFeature && exon._id === selectedFeature._id
         ? 'rgb(0,0,0)'
         : 'rgb(211,211,211)'
     ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
