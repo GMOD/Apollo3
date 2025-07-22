@@ -84,14 +84,6 @@ function makeContextMenuItems(
   )
 }
 
-function getTopLevelFeature(feature: AnnotationFeature): AnnotationFeature {
-  let cur = feature
-  while (cur.parent) {
-    cur = cur.parent
-  }
-  return cur
-}
-
 export const Feature = observer(function Feature({
   depth,
   feature,
