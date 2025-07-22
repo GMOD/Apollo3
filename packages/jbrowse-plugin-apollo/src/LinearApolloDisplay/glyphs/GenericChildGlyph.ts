@@ -87,11 +87,11 @@ function drawHover(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
-  const { apolloHover, apolloRowHeight, lgv } = stateModel
-  if (!apolloHover) {
+  const { hoveredFeature, apolloRowHeight, lgv } = stateModel
+  if (!hoveredFeature) {
     return
   }
-  const position = stateModel.getFeatureLayoutPosition(apolloHover)
+  const position = stateModel.getFeatureLayoutPosition(hoveredFeature)
   if (!position) {
     return
   }
@@ -99,7 +99,7 @@ function drawHover(
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
-  const { length, max, min } = apolloHover
+  const { length, max, min } = hoveredFeature
   const startPx =
     (lgv.bpToPx({
       refName,
@@ -113,7 +113,7 @@ function drawHover(
     startPx,
     top,
     widthPx,
-    apolloRowHeight * getRowCount(apolloHover),
+    apolloRowHeight * getRowCount(hoveredFeature),
   )
 }
 
@@ -143,9 +143,9 @@ function getContextMenuItems(
   display: LinearApolloDisplayMouseEvents,
   mousePosition: MousePositionWithFeature,
 ): MenuItem[] {
-  const { apolloHover, session } = display
+  const { hoveredFeature, session } = display
   const menuItems: MenuItem[] = []
-  if (!apolloHover) {
+  if (!hoveredFeature) {
     return menuItems
   }
   const { featureTypeOntology } = session.apolloDataStore.ontologyManager
@@ -157,11 +157,11 @@ function getContextMenuItems(
     mousePosition,
   )
   menuItems.push({
-    label: apolloHover.type,
+    label: hoveredFeature.type,
     subMenu: sourceFeatureMenuItems,
   })
   for (const relative of getFeaturesUnderClick(mousePosition)) {
-    if (relative._id === apolloHover._id) {
+    if (relative._id === hoveredFeature._id) {
       continue
     }
     const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(

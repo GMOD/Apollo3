@@ -37,7 +37,7 @@ const HybridGrid = observer(function HybridGrid({
 }: {
   model: DisplayStateModel
 }) {
-  const { apolloHover, seenFeatures, selectedFeature, tabularEditor } = model
+  const { hoveredFeature, seenFeatures, selectedFeature, tabularEditor } = model
   const theme = useTheme()
   const { classes } = useStyles()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -96,10 +96,6 @@ const HybridGrid = observer(function HybridGrid({
             })
             .map(([featureId, feature]) => {
               const isSelected = selectedFeature?._id === featureId
-              const hoveredFeature =
-                apolloHover && 'feature' in apolloHover
-                  ? apolloHover.feature
-                  : apolloHover
               const isHovered = hoveredFeature?._id === featureId
               return (
                 <Feature

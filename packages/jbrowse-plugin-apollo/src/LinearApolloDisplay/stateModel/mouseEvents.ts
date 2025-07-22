@@ -122,7 +122,6 @@ export function mouseEventsModelIntermediateFactory(
         shrinkParent: boolean
       } | null,
       cursor: undefined as CSSProperties['cursor'] | undefined,
-      apolloHover: undefined as AnnotationFeature | undefined,
     }))
     .views((self) => ({
       getMousePosition(event: React.MouseEvent): MousePosition {
@@ -182,9 +181,6 @@ export function mouseEventsModelIntermediateFactory(
       },
     }))
     .actions((self) => ({
-      setApolloHover(feature?: AnnotationFeature) {
-        self.apolloHover = feature
-      },
       setCursor(cursor?: CSSProperties['cursor']) {
         if (self.cursor !== cursor) {
           self.cursor = cursor
@@ -237,7 +233,7 @@ export function mouseEventsSeqHightlightModelFactory(
             )
 
             const {
-              apolloHover,
+              hoveredFeature,
               lgv,
               regions,
               sequenceRowHeight,
@@ -245,7 +241,7 @@ export function mouseEventsSeqHightlightModelFactory(
               theme,
             } = self
 
-            if (!apolloHover) {
+            if (!hoveredFeature) {
               return
             }
 
@@ -255,15 +251,15 @@ export function mouseEventsSeqHightlightModelFactory(
               throw new Error('featureTypeOntology is undefined')
             }
             for (const [idx, region] of regions.entries()) {
-              if (featureTypeOntology.isTypeOf(apolloHover.type, 'CDS')) {
-                const parentFeature = apolloHover.parent
+              if (featureTypeOntology.isTypeOf(hoveredFeature.type, 'CDS')) {
+                const parentFeature = hoveredFeature.parent
                 if (!parentFeature) {
                   continue
                 }
                 const cdsLocs = parentFeature.cdsLocations.find(
                   (loc) =>
-                    apolloHover.min === loc.at(0)?.min &&
-                    apolloHover.max === loc.at(-1)?.max,
+                    hoveredFeature.min === loc.at(0)?.min &&
+                    hoveredFeature.max === loc.at(-1)?.max,
                 )
                 if (!cdsLocs) {
                   continue
@@ -272,7 +268,7 @@ export function mouseEventsSeqHightlightModelFactory(
                   const frame = getFrame(
                     dl.min,
                     dl.max,
-                    apolloHover.strand ?? 1,
+                    hoveredFeature.strand ?? 1,
                     dl.phase,
                   )
                   const row = getTranslationRow(frame, lgv.bpPerPx)
@@ -297,14 +293,14 @@ export function mouseEventsSeqHightlightModelFactory(
                   )
                 }
               } else {
-                const row = getSeqRow(apolloHover.strand, lgv.bpPerPx)
+                const row = getSeqRow(hoveredFeature.strand, lgv.bpPerPx)
                 const offset =
                   (lgv.bpToPx({
                     refName: region.refName,
-                    coord: apolloHover.min,
+                    coord: hoveredFeature.min,
                     regionNumber: idx,
                   })?.offsetPx ?? 0) - lgv.offsetPx
-                const widthPx = apolloHover.length / lgv.bpPerPx
+                const widthPx = hoveredFeature.length / lgv.bpPerPx
                 const startPx = lgv.displayedRegions[idx].reversed
                   ? offset - widthPx
                   : offset
@@ -338,12 +334,12 @@ export function mouseEventsModelFactory(
 
   return LinearApolloDisplayMouseEvents.views((self) => ({
     contextMenuItems(event: React.MouseEvent<HTMLDivElement>): MenuItem[] {
-      const { apolloHover } = self
-      if (!apolloHover) {
+      const { hoveredFeature } = self
+      if (!hoveredFeature) {
         return []
       }
       const mousePosition = self.getMousePosition(event)
-      const { topLevelFeature } = apolloHover
+      const { topLevelFeature } = hoveredFeature
       const glyph = self.getGlyph(topLevelFeature)
       if (isMousePositionWithFeature(mousePosition)) {
         return glyph.getContextMenuItems(self, mousePosition)
@@ -436,13 +432,13 @@ export function mouseEventsModelFactory(
           const glyph = self.getGlyph(mousePosition.feature)
           glyph.onMouseMove(self, mousePosition, event)
         } else {
-          self.setApolloHover()
+          self.setHoveredFeature()
           self.setCursor()
         }
       },
       onMouseLeave(event: CanvasMouseEvent) {
         self.setDragging()
-        self.setApolloHover()
+        self.setHoveredFeature()
 
         const mousePosition = self.getMousePosition(event)
         if (isMousePositionWithFeature(mousePosition)) {
@@ -486,11 +482,11 @@ export function mouseEventsModelFactory(
                 self.featuresHeight,
               )
 
-              const { apolloDragging, apolloHover } = self
-              if (!apolloHover) {
+              const { apolloDragging, hoveredFeature } = self
+              if (!hoveredFeature) {
                 return
               }
-              const glyph = self.getGlyph(apolloHover)
+              const glyph = self.getGlyph(hoveredFeature)
 
               // draw mouseover hovers
               glyph.drawHover(self, ctx)

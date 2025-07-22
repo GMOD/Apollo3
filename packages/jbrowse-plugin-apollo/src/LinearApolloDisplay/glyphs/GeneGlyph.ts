@@ -414,13 +414,13 @@ function drawHover(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
-  const { apolloHover, apolloRowHeight, lgv, session, theme } = stateModel
+  const { hoveredFeature, apolloRowHeight, lgv, session, theme } = stateModel
   const { featureTypeOntology } = session.apolloDataStore.ontologyManager
 
-  if (!apolloHover) {
+  if (!hoveredFeature) {
     return
   }
-  const position = stateModel.getFeatureLayoutPosition(apolloHover)
+  const position = stateModel.getFeatureLayoutPosition(hoveredFeature)
   if (!position) {
     return
   }
@@ -428,7 +428,7 @@ function drawHover(
   const { featureRow, layoutIndex, layoutRow } = position
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
-  const { length, max, min } = apolloHover
+  const { length, max, min } = hoveredFeature
   const startPx =
     (lgv.bpToPx({
       refName,
@@ -447,7 +447,7 @@ function drawHover(
     startPx,
     top,
     widthPx,
-    apolloRowHeight * getRowCount(apolloHover, featureTypeOntology),
+    apolloRowHeight * getRowCount(hoveredFeature, featureTypeOntology),
   )
 }
 
@@ -640,7 +640,7 @@ function onMouseMove(
 ) {
   if (isMousePositionWithFeature(mousePosition)) {
     const { feature } = mousePosition
-    stateModel.setApolloHover(feature)
+    stateModel.setHoveredFeature(feature)
     const draggableFeature = getDraggableFeatureInfo(
       mousePosition,
       feature,
@@ -805,7 +805,7 @@ function getContextMenuItems(
 ): MenuItem[] {
   const {
     apolloInternetAccount: internetAccount,
-    apolloHover,
+    hoveredFeature,
     changeManager,
     regions,
     selectedFeature,
@@ -816,7 +816,7 @@ function getContextMenuItems(
   const menuItems: MenuItem[] = []
   const role = internetAccount ? internetAccount.role : 'admin'
   const admin = role === 'admin'
-  if (!apolloHover) {
+  if (!hoveredFeature) {
     return menuItems
   }
 

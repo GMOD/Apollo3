@@ -129,11 +129,11 @@ function drawHover(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
-  const { apolloHover, apolloRowHeight, lgv, theme } = stateModel
-  if (!apolloHover) {
+  const { hoveredFeature, apolloRowHeight, lgv, theme } = stateModel
+  if (!hoveredFeature) {
     return
   }
-  const position = stateModel.getFeatureLayoutPosition(apolloHover)
+  const position = stateModel.getFeatureLayoutPosition(hoveredFeature)
   if (!position) {
     return
   }
@@ -141,7 +141,7 @@ function drawHover(
   const { layoutIndex, layoutRow } = position
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
-  const { length, max, min } = apolloHover
+  const { length, max, min } = hoveredFeature
   const startPx =
     (lgv.bpToPx({
       refName,
@@ -158,11 +158,11 @@ function drawTooltip(
   display: LinearApolloDisplayMouseEvents,
   context: CanvasRenderingContext2D,
 ): void {
-  const { apolloHover, apolloRowHeight, lgv, theme } = display
-  if (!apolloHover) {
+  const { hoveredFeature, apolloRowHeight, lgv, theme } = display
+  if (!hoveredFeature) {
     return
   }
-  const position = display.getFeatureLayoutPosition(apolloHover)
+  const position = display.getFeatureLayoutPosition(hoveredFeature)
   if (!position) {
     return
   }
@@ -173,7 +173,7 @@ function drawTooltip(
 
   let location = 'Loc: '
 
-  const { length, max, min } = apolloHover
+  const { length, max, min } = hoveredFeature
   location += `${min + 1}–${max}`
 
   let startPx =
@@ -185,8 +185,8 @@ function drawTooltip(
   const top = (layoutRow + featureRow) * apolloRowHeight
   const widthPx = length / bpPerPx
 
-  const featureType = `Type: ${apolloHover.type}`
-  const { attributes } = apolloHover
+  const featureType = `Type: ${hoveredFeature.type}`
+  const { attributes } = hoveredFeature
   const featureName = attributes.get('gff_name')?.find((name) => name !== '')
   const textWidth = [
     context.measureText(featureType).width,
@@ -251,11 +251,11 @@ export function drawBox(
 function getContextMenuItems(
   display: LinearApolloDisplayMouseEvents,
 ): MenuItem[] {
-  const { apolloHover } = display
-  if (!apolloHover) {
+  const { hoveredFeature } = display
+  if (!hoveredFeature) {
     return []
   }
-  return getContextMenuItemsForFeature(display, apolloHover)
+  return getContextMenuItemsForFeature(display, hoveredFeature)
 }
 
 function makeFeatureLabel(feature: AnnotationFeature) {
@@ -419,7 +419,7 @@ function onMouseMove(
 ) {
   if (isMousePositionWithFeature(mousePosition)) {
     const { feature } = mousePosition
-    stateModel.setApolloHover(feature)
+    stateModel.setHoveredFeature(feature)
     const edge = isMouseOnFeatureEdge(mousePosition, feature, stateModel)
     if (edge) {
       stateModel.setCursor('col-resize')
