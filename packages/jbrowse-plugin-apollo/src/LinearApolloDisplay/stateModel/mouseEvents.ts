@@ -14,16 +14,9 @@ import { type Instance, addDisposer } from 'mobx-state-tree'
 import { type CSSProperties } from 'react'
 
 import { type Edge, getPropagatedLocationChanges } from '../../util'
-import { type Glyph } from '../glyphs/Glyph'
 import { type CanvasMouseEvent } from '../types'
 
 import { renderingModelFactory } from './rendering'
-
-export interface FeatureAndGlyphUnderMouse {
-  feature: AnnotationFeature
-  topLevelFeature: AnnotationFeature
-  glyph: Glyph
-}
 
 /** extended information about the position of the mouse on the canvas, including the refName, bp, and displayedRegion number */
 export interface MousePosition {
@@ -32,15 +25,15 @@ export interface MousePosition {
   refName: string
   bp: number
   regionNumber: number
-  featureAndGlyphUnderMouse?: FeatureAndGlyphUnderMouse
+  feature?: AnnotationFeature
 }
 
-export type MousePositionWithFeatureAndGlyph = Required<MousePosition>
+export type MousePositionWithFeature = Required<MousePosition>
 
-export function isMousePositionWithFeatureAndGlyph(
+export function isMousePositionWithFeature(
   mousePosition: MousePosition,
-): mousePosition is MousePositionWithFeatureAndGlyph {
-  return 'featureAndGlyphUnderMouse' in mousePosition
+): mousePosition is MousePositionWithFeature {
+  return 'feature' in mousePosition
 }
 
 function getMousePosition(
@@ -129,7 +122,7 @@ export function mouseEventsModelIntermediateFactory(
         shrinkParent: boolean
       } | null,
       cursor: undefined as CSSProperties['cursor'] | undefined,
-      apolloHover: undefined as FeatureAndGlyphUnderMouse | undefined,
+      apolloHover: undefined as AnnotationFeature | undefined,
     }))
     .views((self) => ({
       getMousePosition(event: React.MouseEvent): MousePosition {
@@ -170,7 +163,7 @@ export function mouseEventsModelIntermediateFactory(
         }
         return {
           ...mousePosition,
-          featureAndGlyphUnderMouse: { feature, topLevelFeature, glyph },
+          feature,
         }
       },
     }))
@@ -189,8 +182,8 @@ export function mouseEventsModelIntermediateFactory(
       },
     }))
     .actions((self) => ({
-      setApolloHover(n?: (typeof self)['apolloHover']) {
-        self.apolloHover = n
+      setApolloHover(feature?: AnnotationFeature) {
+        self.apolloHover = feature
       },
       setCursor(cursor?: CSSProperties['cursor']) {
         if (self.cursor !== cursor) {
@@ -255,7 +248,6 @@ export function mouseEventsSeqHightlightModelFactory(
             if (!apolloHover) {
               return
             }
-            const { feature } = apolloHover
 
             const { featureTypeOntology } =
               session.apolloDataStore.ontologyManager
@@ -263,15 +255,15 @@ export function mouseEventsSeqHightlightModelFactory(
               throw new Error('featureTypeOntology is undefined')
             }
             for (const [idx, region] of regions.entries()) {
-              if (featureTypeOntology.isTypeOf(feature.type, 'CDS')) {
-                const parentFeature = feature.parent
+              if (featureTypeOntology.isTypeOf(apolloHover.type, 'CDS')) {
+                const parentFeature = apolloHover.parent
                 if (!parentFeature) {
                   continue
                 }
                 const cdsLocs = parentFeature.cdsLocations.find(
                   (loc) =>
-                    feature.min === loc.at(0)?.min &&
-                    feature.max === loc.at(-1)?.max,
+                    apolloHover.min === loc.at(0)?.min &&
+                    apolloHover.max === loc.at(-1)?.max,
                 )
                 if (!cdsLocs) {
                   continue
@@ -280,7 +272,7 @@ export function mouseEventsSeqHightlightModelFactory(
                   const frame = getFrame(
                     dl.min,
                     dl.max,
-                    feature.strand ?? 1,
+                    apolloHover.strand ?? 1,
                     dl.phase,
                   )
                   const row = getTranslationRow(frame, lgv.bpPerPx)
@@ -305,14 +297,14 @@ export function mouseEventsSeqHightlightModelFactory(
                   )
                 }
               } else {
-                const row = getSeqRow(feature.strand, lgv.bpPerPx)
+                const row = getSeqRow(apolloHover.strand, lgv.bpPerPx)
                 const offset =
                   (lgv.bpToPx({
                     refName: region.refName,
-                    coord: feature.min,
+                    coord: apolloHover.min,
                     regionNumber: idx,
                   })?.offsetPx ?? 0) - lgv.offsetPx
-                const widthPx = feature.length / lgv.bpPerPx
+                const widthPx = apolloHover.length / lgv.bpPerPx
                 const startPx = lgv.displayedRegions[idx].reversed
                   ? offset - widthPx
                   : offset
@@ -353,7 +345,7 @@ export function mouseEventsModelFactory(
       const mousePosition = self.getMousePosition(event)
       const { topLevelFeature } = apolloHover
       const glyph = self.getGlyph(topLevelFeature)
-      if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
+      if (isMousePositionWithFeature(mousePosition)) {
         return glyph.getContextMenuItems(self, mousePosition)
       }
       return []
@@ -363,7 +355,7 @@ export function mouseEventsModelFactory(
       // explicitly pass in a feature in case it's not the same as the one in
       // mousePosition (e.g. if features are drawn overlapping).
       startDrag(
-        mousePosition: MousePositionWithFeatureAndGlyph,
+        mousePosition: MousePositionWithFeature,
         feature: AnnotationFeature,
         edge: Edge,
         shrinkParent = false,
@@ -428,12 +420,9 @@ export function mouseEventsModelFactory(
     .actions((self) => ({
       onMouseDown(event: CanvasMouseEvent) {
         const mousePosition = self.getMousePosition(event)
-        if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
-          mousePosition.featureAndGlyphUnderMouse.glyph.onMouseDown(
-            self,
-            mousePosition,
-            event,
-          )
+        if (isMousePositionWithFeature(mousePosition)) {
+          const glyph = self.getGlyph(mousePosition.feature)
+          glyph.onMouseDown(self, mousePosition, event)
         }
       },
       onMouseMove(event: CanvasMouseEvent) {
@@ -443,12 +432,9 @@ export function mouseEventsModelFactory(
           self.continueDrag(mousePosition, event)
           return
         }
-        if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
-          mousePosition.featureAndGlyphUnderMouse.glyph.onMouseMove(
-            self,
-            mousePosition,
-            event,
-          )
+        if (isMousePositionWithFeature(mousePosition)) {
+          const glyph = self.getGlyph(mousePosition.feature)
+          glyph.onMouseMove(self, mousePosition, event)
         } else {
           self.setApolloHover()
           self.setCursor()
@@ -459,22 +445,16 @@ export function mouseEventsModelFactory(
         self.setApolloHover()
 
         const mousePosition = self.getMousePosition(event)
-        if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
-          mousePosition.featureAndGlyphUnderMouse.glyph.onMouseLeave(
-            self,
-            mousePosition,
-            event,
-          )
+        if (isMousePositionWithFeature(mousePosition)) {
+          const glyph = self.getGlyph(mousePosition.feature)
+          glyph.onMouseLeave(self, mousePosition, event)
         }
       },
       onMouseUp(event: CanvasMouseEvent) {
         const mousePosition = self.getMousePosition(event)
-        if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
-          mousePosition.featureAndGlyphUnderMouse.glyph.onMouseUp(
-            self,
-            mousePosition,
-            event,
-          )
+        if (isMousePositionWithFeature(mousePosition)) {
+          const glyph = self.getGlyph(mousePosition.feature)
+          glyph.onMouseUp(self, mousePosition, event)
         } else {
           self.setSelectedFeature()
         }
@@ -510,7 +490,7 @@ export function mouseEventsModelFactory(
               if (!apolloHover) {
                 return
               }
-              const { glyph } = apolloHover
+              const glyph = self.getGlyph(apolloHover)
 
               // draw mouseover hovers
               glyph.drawHover(self, ctx)

@@ -5,7 +5,7 @@ import { getFeaturesUnderClick } from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
   type LinearApolloDisplayMouseEvents,
-  type MousePositionWithFeatureAndGlyph,
+  type MousePositionWithFeature,
 } from '../stateModel/mouseEvents'
 import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
 
@@ -91,8 +91,7 @@ function drawHover(
   if (!apolloHover) {
     return
   }
-  const { feature } = apolloHover
-  const position = stateModel.getFeatureLayoutPosition(feature)
+  const position = stateModel.getFeatureLayoutPosition(apolloHover)
   if (!position) {
     return
   }
@@ -100,7 +99,7 @@ function drawHover(
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
-  const { length, max, min } = feature
+  const { length, max, min } = apolloHover
   const startPx =
     (lgv.bpToPx({
       refName,
@@ -110,7 +109,12 @@ function drawHover(
   const top = (layoutRow + featureRow) * apolloRowHeight
   const widthPx = length / bpPerPx
   ctx.fillStyle = 'rgba(0,0,0,0.2)'
-  ctx.fillRect(startPx, top, widthPx, apolloRowHeight * getRowCount(feature))
+  ctx.fillRect(
+    startPx,
+    top,
+    widthPx,
+    apolloRowHeight * getRowCount(apolloHover),
+  )
 }
 
 function getFeatureFromLayout(
@@ -137,14 +141,13 @@ function getRowForFeature(
 
 function getContextMenuItems(
   display: LinearApolloDisplayMouseEvents,
-  mousePosition: MousePositionWithFeatureAndGlyph,
+  mousePosition: MousePositionWithFeature,
 ): MenuItem[] {
   const { apolloHover, session } = display
   const menuItems: MenuItem[] = []
   if (!apolloHover) {
     return menuItems
   }
-  const { feature: sourceFeature } = apolloHover
   const { featureTypeOntology } = session.apolloDataStore.ontologyManager
   if (!featureTypeOntology) {
     throw new Error('featureTypeOntology is undefined')
@@ -154,11 +157,11 @@ function getContextMenuItems(
     mousePosition,
   )
   menuItems.push({
-    label: sourceFeature.type,
+    label: apolloHover.type,
     subMenu: sourceFeatureMenuItems,
   })
   for (const relative of getFeaturesUnderClick(mousePosition)) {
-    if (relative._id === sourceFeature._id) {
+    if (relative._id === apolloHover._id) {
       continue
     }
     const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(

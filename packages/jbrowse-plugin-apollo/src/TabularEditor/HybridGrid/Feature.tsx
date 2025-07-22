@@ -258,7 +258,11 @@ export const Feature = observer(function Feature({
               return text.includes(filterText)
             })
             .map(([featureId, childFeature]) => {
-              const childHovered = apolloHover?.feature._id === childFeature._id
+              const hoveredFeature =
+                apolloHover && 'feature' in apolloHover
+                  ? apolloHover.feature
+                  : apolloHover
+              const childHovered = hoveredFeature?._id === childFeature._id
               const childSelected = selectedFeature?._id === childFeature._id
               return (
                 <Feature
