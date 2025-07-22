@@ -34,6 +34,7 @@ import React, { useRef } from 'react'
 
 import { type OntologyRecord } from '../OntologyManager'
 import { type ApolloSessionModel } from '../session'
+import { copyToClipboard } from '../util/copyToClipboard'
 
 import { StyledAccordionSummary } from './ApolloTranscriptDetailsWidget'
 import { NumberTextField } from './NumberTextField'
@@ -141,7 +142,7 @@ export const TranscriptWidgetEditLocation = observer(
     const cdsPresent = firstCDSLocation.length > 0
 
     if (cdsPresent) {
-      const sortedCDSLocations = firstCDSLocation.sort(
+      const sortedCDSLocations = firstCDSLocation.toSorted(
         ({ min: a }, { min: b }) => a - b,
       )
       cdsMin = sortedCDSLocations[0].min
@@ -856,7 +857,10 @@ export const TranscriptWidgetEditLocation = observer(
     const getTranslationSequence = () => {
       let wholeSequence = ''
       const [firstLocation] = cdsLocations
-      for (const loc of firstLocation) {
+      const sortedCDSLocations = firstLocation.toSorted(
+        ({ min: a }, { min: b }) => a - b,
+      )
+      for (const loc of sortedCDSLocations) {
         wholeSequence += refData.getSequence(loc.min, loc.max)
       }
       if (strand === -1) {
@@ -942,6 +946,9 @@ export const TranscriptWidgetEditLocation = observer(
     const getCodonGenomicLocation = (codonGenomicPosition: number) => {
       const [firstLocation] = cdsLocations
       let cdsLen = 0
+      const sortedCDSLocations = firstLocation.toSorted(
+        ({ min: a }, { min: b }) => a - b,
+      )
 
       // Suppose CDS locations are [{min: 0, max: 10}, {min: 20, max: 30}, {min: 40, max: 50}]
       // and codonGenomicPosition is 25
@@ -949,7 +956,7 @@ export const TranscriptWidgetEditLocation = observer(
       // So, start codon is in (40, 50)
       // 40 + (25-20) = 45 is the genomic location of the start codon
       if (strand === 1) {
-        for (const loc of firstLocation) {
+        for (const loc of sortedCDSLocations) {
           const locLength = loc.max - loc.min
           if (cdsLen + locLength > codonGenomicPosition) {
             return loc.min + (codonGenomicPosition - cdsLen)
@@ -957,8 +964,8 @@ export const TranscriptWidgetEditLocation = observer(
           cdsLen += locLength
         }
       } else if (strand === -1) {
-        for (let i = firstLocation.length - 1; i >= 0; i--) {
-          const loc = firstLocation[i]
+        for (let i = sortedCDSLocations.length - 1; i >= 0; i--) {
+          const loc = sortedCDSLocations[i]
           const locLength = loc.max - loc.min
           if (cdsLen + locLength > codonGenomicPosition) {
             return loc.max - (codonGenomicPosition - cdsLen)
@@ -1091,18 +1098,12 @@ export const TranscriptWidgetEditLocation = observer(
       notify('Translation sequence trimmed to start and stop codons', 'success')
     }
 
-    const copyToClipboard = () => {
+    const onCopyClick = () => {
       const seqDiv = seqRef.current
       if (!seqDiv) {
         return
       }
-      const textBlob = new Blob([seqDiv.outerText], { type: 'text/plain' })
-      const htmlBlob = new Blob([seqDiv.outerHTML], { type: 'text/html' })
-      const clipboardItem = new ClipboardItem({
-        [textBlob.type]: textBlob,
-        [htmlBlob.type]: htmlBlob,
-      })
-      void navigator.clipboard.write([clipboardItem])
+      void copyToClipboard(seqDiv)
     }
 
     return (
@@ -1141,7 +1142,7 @@ export const TranscriptWidgetEditLocation = observer(
                   <Tooltip title="Copy">
                     <ContentCopyIcon
                       style={{ fontSize: 15, cursor: 'pointer' }}
-                      onClick={copyToClipboard}
+                      onClick={onCopyClick}
                     />
                   </Tooltip>
                   <Tooltip title="Trim">
