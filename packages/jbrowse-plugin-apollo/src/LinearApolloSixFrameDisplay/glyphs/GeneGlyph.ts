@@ -15,7 +15,11 @@ import { getSnapshot } from 'mobx-state-tree'
 
 import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
 import { FilterTranscripts } from '../../components/FilterTranscripts'
-import { getMinAndMaxPx, getOverlappingEdge } from '../../util'
+import {
+  getMinAndMaxPx,
+  getOverlappingEdge,
+  isSelectedFeature,
+} from '../../util'
 import { type LinearApolloSixFrameDisplay } from '../stateModel'
 import {
   type LinearApolloSixFrameDisplayMouseEvents,
@@ -636,13 +640,6 @@ function onMouseUp(
   } else {
     stateModel.showFeatureDetailsWidget(feature)
   }
-}
-
-export function isSelectedFeature(
-  feature: AnnotationFeature,
-  selectedFeature: AnnotationFeature | undefined,
-) {
-  return Boolean(selectedFeature && feature._id === selectedFeature._id)
 }
 
 function getDraggableFeatureInfo(

@@ -1,6 +1,7 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
 
+import { isSelectedFeature } from '../../util'
 import { getFeaturesUnderClick } from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
@@ -9,7 +10,7 @@ import {
 } from '../stateModel/mouseEvents'
 import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
 
-import { boxGlyph, drawBox, isSelectedFeature } from './BoxGlyph'
+import { boxGlyph, drawBox } from './BoxGlyph'
 import { type Glyph } from './Glyph'
 
 function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {

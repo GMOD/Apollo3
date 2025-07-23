@@ -4,6 +4,7 @@ import { type AbstractSessionModel } from '@jbrowse/core/util'
 import { type Theme, alpha } from '@mui/material'
 
 import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
+import { isSelectedFeature } from '../../util'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
   type LinearApolloDisplayMouseEvents,
@@ -214,13 +215,6 @@ function drawTooltip(
   }
   textTop = textTop + 12
   context.fillText(location, startPx + 2, textTop)
-}
-
-export function isSelectedFeature(
-  feature: AnnotationFeature,
-  selectedFeature: AnnotationFeature | undefined,
-) {
-  return Boolean(selectedFeature && feature._id === selectedFeature._id)
 }
 
 function getBackgroundColor(theme: Theme | undefined, selected: boolean) {

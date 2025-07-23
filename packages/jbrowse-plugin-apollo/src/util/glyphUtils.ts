@@ -47,3 +47,10 @@ export function getOverlappingEdge(
   }
   return
 }
+
+export function isSelectedFeature(
+  feature: AnnotationFeature,
+  selectedFeature: AnnotationFeature | undefined,
+) {
+  return Boolean(selectedFeature && feature._id === selectedFeature._id)
+}
