@@ -8,8 +8,8 @@ import { type LinearApolloDisplay } from '../stateModel'
 import {
   type LinearApolloDisplayMouseEvents,
   type MousePosition,
-  type MousePositionWithFeatureAndGlyph,
-  isMousePositionWithFeatureAndGlyph,
+  type MousePositionWithFeature,
+  isMousePositionWithFeature,
 } from '../stateModel/mouseEvents'
 import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
 import { type CanvasMouseEvent } from '../types'
@@ -63,7 +63,7 @@ function draw(
   stateModel: LinearApolloDisplayRendering,
   displayedRegionIndex: number,
 ) {
-  const { apolloRowHeight: heightPx, lgv, session, theme } = stateModel
+  const { apolloRowHeight: heightPx, lgv, selectedFeature, theme } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const minX =
@@ -73,11 +73,10 @@ function draw(
       regionNumber: displayedRegionIndex,
     })?.offsetPx ?? 0) - offsetPx
   const { reversed } = displayedRegion
-  const { apolloSelectedFeature } = session
   const widthPx = feature.length / bpPerPx
   const startPx = reversed ? minX - widthPx : minX
   const top = row * heightPx
-  const isSelected = isSelectedFeature(feature, apolloSelectedFeature)
+  const isSelected = isSelectedFeature(feature, selectedFeature)
   const backgroundColor = getBackgroundColor(theme, isSelected)
   const textColor = getTextColor(theme, isSelected)
   const featureBox: [number, number, number, number] = [
@@ -130,12 +129,11 @@ function drawHover(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
-  const { apolloHover, apolloRowHeight, lgv, theme } = stateModel
-  if (!apolloHover) {
+  const { hoveredFeature, apolloRowHeight, lgv, theme } = stateModel
+  if (!hoveredFeature) {
     return
   }
-  const { feature } = apolloHover
-  const position = stateModel.getFeatureLayoutPosition(feature)
+  const position = stateModel.getFeatureLayoutPosition(hoveredFeature)
   if (!position) {
     return
   }
@@ -143,7 +141,7 @@ function drawHover(
   const { layoutIndex, layoutRow } = position
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
-  const { length, max, min } = feature
+  const { length, max, min } = hoveredFeature
   const startPx =
     (lgv.bpToPx({
       refName,
@@ -160,12 +158,11 @@ function drawTooltip(
   display: LinearApolloDisplayMouseEvents,
   context: CanvasRenderingContext2D,
 ): void {
-  const { apolloHover, apolloRowHeight, lgv, theme } = display
-  if (!apolloHover) {
+  const { hoveredFeature, apolloRowHeight, lgv, theme } = display
+  if (!hoveredFeature) {
     return
   }
-  const { feature } = apolloHover
-  const position = display.getFeatureLayoutPosition(feature)
+  const position = display.getFeatureLayoutPosition(hoveredFeature)
   if (!position) {
     return
   }
@@ -176,7 +173,7 @@ function drawTooltip(
 
   let location = 'Loc: '
 
-  const { length, max, min } = feature
+  const { length, max, min } = hoveredFeature
   location += `${min + 1}–${max}`
 
   let startPx =
@@ -188,8 +185,8 @@ function drawTooltip(
   const top = (layoutRow + featureRow) * apolloRowHeight
   const widthPx = length / bpPerPx
 
-  const featureType = `Type: ${feature.type}`
-  const { attributes } = feature
+  const featureType = `Type: ${hoveredFeature.type}`
+  const { attributes } = hoveredFeature
   const featureName = attributes.get('gff_name')?.find((name) => name !== '')
   const textWidth = [
     context.measureText(featureType).width,
@@ -254,12 +251,11 @@ export function drawBox(
 function getContextMenuItems(
   display: LinearApolloDisplayMouseEvents,
 ): MenuItem[] {
-  const { apolloHover } = display
-  if (!apolloHover) {
+  const { hoveredFeature } = display
+  if (!hoveredFeature) {
     return []
   }
-  const { feature: sourceFeature } = apolloHover
-  return getContextMenuItemsForFeature(display, sourceFeature)
+  return getContextMenuItemsForFeature(display, hoveredFeature)
 }
 
 function makeFeatureLabel(feature: AnnotationFeature) {
@@ -400,13 +396,12 @@ function getRowForFeature(
 
 function onMouseDown(
   stateModel: LinearApolloDisplay,
-  currentMousePosition: MousePositionWithFeatureAndGlyph,
+  currentMousePosition: MousePositionWithFeature,
   event: CanvasMouseEvent,
 ) {
-  const { featureAndGlyphUnderMouse } = currentMousePosition
+  const { feature } = currentMousePosition
   // swallow the mouseDown if we are on the edge of the feature so that we
   // don't start dragging the view if we try to drag the feature edge
-  const { feature } = featureAndGlyphUnderMouse
   const edge = isMouseOnFeatureEdge(currentMousePosition, feature, stateModel)
   if (edge) {
     event.stopPropagation()
@@ -422,10 +417,9 @@ function onMouseMove(
   stateModel: LinearApolloDisplay,
   mousePosition: MousePosition,
 ) {
-  if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
-    const { featureAndGlyphUnderMouse } = mousePosition
-    stateModel.setApolloHover(featureAndGlyphUnderMouse)
-    const { feature } = featureAndGlyphUnderMouse
+  if (isMousePositionWithFeature(mousePosition)) {
+    const { feature } = mousePosition
+    stateModel.setHoveredFeature(feature)
     const edge = isMouseOnFeatureEdge(mousePosition, feature, stateModel)
     if (edge) {
       stateModel.setCursor('col-resize')
@@ -442,11 +436,10 @@ function onMouseUp(
   if (stateModel.apolloDragging) {
     return
   }
-  const { featureAndGlyphUnderMouse } = mousePosition
-  if (!featureAndGlyphUnderMouse) {
+  const { feature } = mousePosition
+  if (!feature) {
     return
   }
-  const { feature } = featureAndGlyphUnderMouse
   stateModel.setSelectedFeature(feature)
   stateModel.showFeatureDetailsWidget(feature)
 }

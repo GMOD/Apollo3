@@ -17,8 +17,8 @@ import { type LinearApolloDisplay } from '../stateModel'
 import {
   type LinearApolloDisplayMouseEvents,
   type MousePosition,
-  type MousePositionWithFeatureAndGlyph,
-  isMousePositionWithFeatureAndGlyph,
+  type MousePositionWithFeature,
+  isMousePositionWithFeature,
 } from '../stateModel/mouseEvents'
 import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
 import { type CanvasMouseEvent } from '../types'
@@ -84,7 +84,7 @@ function draw(
   stateModel: LinearApolloDisplayRendering,
   displayedRegionIndex: number,
 ): void {
-  const { apolloRowHeight, lgv, session, theme } = stateModel
+  const { apolloRowHeight, lgv, selectedFeature, session, theme } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const { refName, reversed } = displayedRegion
@@ -94,7 +94,6 @@ function draw(
   if (!children) {
     return
   }
-  const { apolloSelectedFeature } = session
   const { apolloDataStore } = session
   const { featureTypeOntology } = apolloDataStore.ontologyManager
   if (!featureTypeOntology) {
@@ -237,7 +236,7 @@ function draw(
             const frameColor = theme?.palette.framesCDS.at(frame)?.main
             const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
             ctx.fillStyle =
-              apolloSelectedFeature && _id === apolloSelectedFeature._id
+              selectedFeature && _id === selectedFeature._id
                 ? 'rgb(0,0,0)'
                 : cdsColorCode
             ctx.fillRect(
@@ -308,11 +307,10 @@ function drawExon(
   forwardFill: CanvasPattern | null,
   backwardFill: CanvasPattern | null,
 ) {
-  const { apolloRowHeight, lgv, session, theme } = stateModel
+  const { apolloRowHeight, lgv, selectedFeature, theme } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const { refName, reversed } = displayedRegion
-  const { apolloSelectedFeature } = session
 
   const minX =
     (lgv.bpToPx({
@@ -331,7 +329,7 @@ function drawExon(
   if (widthPx > 2) {
     ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
     ctx.fillStyle =
-      apolloSelectedFeature && exon._id === apolloSelectedFeature._id
+      selectedFeature && exon._id === selectedFeature._id
         ? 'rgb(0,0,0)'
         : 'rgb(211,211,211)'
     ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
@@ -416,14 +414,13 @@ function drawHover(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
-  const { apolloHover, apolloRowHeight, lgv, session, theme } = stateModel
+  const { hoveredFeature, apolloRowHeight, lgv, session, theme } = stateModel
   const { featureTypeOntology } = session.apolloDataStore.ontologyManager
 
-  if (!apolloHover) {
+  if (!hoveredFeature) {
     return
   }
-  const { feature } = apolloHover
-  const position = stateModel.getFeatureLayoutPosition(feature)
+  const position = stateModel.getFeatureLayoutPosition(hoveredFeature)
   if (!position) {
     return
   }
@@ -431,7 +428,7 @@ function drawHover(
   const { featureRow, layoutIndex, layoutRow } = position
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
-  const { length, max, min } = feature
+  const { length, max, min } = hoveredFeature
   const startPx =
     (lgv.bpToPx({
       refName,
@@ -450,7 +447,7 @@ function drawHover(
     startPx,
     top,
     widthPx,
-    apolloRowHeight * getRowCount(feature, featureTypeOntology),
+    apolloRowHeight * getRowCount(hoveredFeature, featureTypeOntology),
   )
 }
 
@@ -615,13 +612,12 @@ function getRowForFeature(
 
 function onMouseDown(
   stateModel: LinearApolloDisplay,
-  currentMousePosition: MousePositionWithFeatureAndGlyph,
+  currentMousePosition: MousePositionWithFeature,
   event: CanvasMouseEvent,
 ) {
-  const { featureAndGlyphUnderMouse } = currentMousePosition
+  const { feature } = currentMousePosition
   // swallow the mouseDown if we are on the edge of the feature so that we
   // don't start dragging the view if we try to drag the feature edge
-  const { feature } = featureAndGlyphUnderMouse
   const draggableFeature = getDraggableFeatureInfo(
     currentMousePosition,
     feature,
@@ -642,10 +638,9 @@ function onMouseMove(
   stateModel: LinearApolloDisplay,
   mousePosition: MousePosition,
 ) {
-  if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
-    const { featureAndGlyphUnderMouse } = mousePosition
-    stateModel.setApolloHover(featureAndGlyphUnderMouse)
-    const { feature } = featureAndGlyphUnderMouse
+  if (isMousePositionWithFeature(mousePosition)) {
+    const { feature } = mousePosition
+    stateModel.setHoveredFeature(feature)
     const draggableFeature = getDraggableFeatureInfo(
       mousePosition,
       feature,
@@ -666,11 +661,10 @@ function onMouseUp(
   if (stateModel.apolloDragging) {
     return
   }
-  const { featureAndGlyphUnderMouse } = mousePosition
-  if (!featureAndGlyphUnderMouse) {
+  const { feature } = mousePosition
+  if (!feature) {
     return
   }
-  const { feature } = featureAndGlyphUnderMouse
   stateModel.setSelectedFeature(feature)
   const { session } = stateModel
   const { apolloDataStore } = session
@@ -807,11 +801,11 @@ function isCDSFeature(
 
 function getContextMenuItems(
   display: LinearApolloDisplayMouseEvents,
-  mousePosition: MousePositionWithFeatureAndGlyph,
+  mousePosition: MousePositionWithFeature,
 ): MenuItem[] {
   const {
     apolloInternetAccount: internetAccount,
-    apolloHover,
+    hoveredFeature,
     changeManager,
     regions,
     selectedFeature,
@@ -822,12 +816,12 @@ function getContextMenuItems(
   const menuItems: MenuItem[] = []
   const role = internetAccount ? internetAccount.role : 'admin'
   const admin = role === 'admin'
-  if (!apolloHover) {
+  if (!hoveredFeature) {
     return menuItems
   }
 
   let featuresUnderClick = getFeaturesUnderClick(mousePosition)
-  if (isCDSFeature(mousePosition.featureAndGlyphUnderMouse.feature, session)) {
+  if (isCDSFeature(mousePosition.feature, session)) {
     featuresUnderClick = getFeaturesUnderClick(mousePosition, true)
   }
 

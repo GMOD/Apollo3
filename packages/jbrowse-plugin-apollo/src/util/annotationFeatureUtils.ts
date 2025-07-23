@@ -80,15 +80,15 @@ export function getFeaturesUnderClick(
   includeSiblings = false,
 ): AnnotationFeature[] {
   const clickedFeatures: AnnotationFeature[] = []
-  if (!mousePosition.featureAndGlyphUnderMouse) {
+  if (!mousePosition.feature) {
     return clickedFeatures
   }
-  clickedFeatures.push(mousePosition.featureAndGlyphUnderMouse.feature)
-  for (const x of getParents(mousePosition.featureAndGlyphUnderMouse.feature)) {
+  clickedFeatures.push(mousePosition.feature)
+  for (const x of getParents(mousePosition.feature)) {
     clickedFeatures.push(x)
   }
   const { bp } = mousePosition
-  const children = getChildren(mousePosition.featureAndGlyphUnderMouse.feature)
+  const children = getChildren(mousePosition.feature)
   for (const child of children) {
     if (child.min < bp && child.max >= bp) {
       clickedFeatures.push(child)
@@ -100,12 +100,11 @@ export function getFeaturesUnderClick(
 
   // Also add siblings , i.e. features having the same parent as the clicked
   // one and intersecting the click position
-  if (mousePosition.featureAndGlyphUnderMouse.feature.parent) {
-    const siblings =
-      mousePosition.featureAndGlyphUnderMouse.feature.parent.children
+  if (mousePosition.feature.parent) {
+    const siblings = mousePosition.feature.parent.children
     if (siblings) {
       for (const [, sib] of siblings) {
-        if (sib._id == mousePosition.featureAndGlyphUnderMouse.feature._id) {
+        if (sib._id == mousePosition.feature._id) {
           continue
         }
         if (sib.min < bp && sib.max >= bp) {
