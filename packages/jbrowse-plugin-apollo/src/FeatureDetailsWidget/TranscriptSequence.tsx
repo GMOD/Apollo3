@@ -190,6 +190,14 @@ function getLocationIntervals(seqSegments: SequenceSegment[]) {
   return locIntervals
 }
 
+function getSequenceLength(locationIntervals: { min: number; max: number }[]) {
+  let length = 0
+  for (const loc of locationIntervals) {
+    length += loc.max - loc.min
+  }
+  return length
+}
+
 export const TranscriptSequence = observer(function TranscriptSequence({
   assembly,
   feature,
@@ -320,7 +328,8 @@ export const TranscriptSequence = observer(function TranscriptSequence({
               : `${interval.max}-${interval.min + 1}`,
           )
           .join(';')}
-        ({feature.strand === 1 ? '+' : '-'})
+        (strand={feature.strand === 1 ? '+' : '-'};length=
+        {getSequenceLength(locationIntervals)})
         <br />
         {sequenceSegments.map((segment, index) => (
           <span

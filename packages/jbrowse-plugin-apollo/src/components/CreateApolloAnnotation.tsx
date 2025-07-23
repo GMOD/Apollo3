@@ -194,10 +194,8 @@ export function CreateApolloAnnotation({
       }
 
       // Destination feature should be of type gene amd should be on the same strand as the source feature
-      if (
-        featureTypeOntology?.isTypeOf(f.type, 'gene') &&
-        f.strand === annotationFeature.strand
-      ) {
+      // featureTypeOntology?.isTypeOf(f.type, 'gene') && f.strand === annotationFeature.strand
+      if (featureTypeOntology?.isTypeOf(f.type, 'gene')) {
         const featureSnapshot = getSnapshot(f)
         filteredFeatures.push(featureSnapshot)
       }
@@ -384,6 +382,16 @@ export function CreateApolloAnnotation({
     }
     for (const transcriptId of Object.keys(transcripts)) {
       const transcript = transcripts[transcriptId]
+      transcript.strand = selectedDestinationFeature.strand
+
+      // update strand of transcript children if they exist
+      if (transcript.children) {
+        for (const childId of Object.keys(transcript.children)) {
+          transcript.children[childId].strand =
+            selectedDestinationFeature.strand
+        }
+      }
+
       const change = new AddFeatureChange({
         parentFeatureId: selectedDestinationFeature._id,
         changedIds: [selectedDestinationFeature._id],
