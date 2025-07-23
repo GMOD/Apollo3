@@ -246,17 +246,12 @@ export class MergeTranscriptsChange extends FeatureChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
-    console.log('changedIds ' + JSON.stringify(this.changedIds))
     for (const [idx, changedId] of this.changedIds.entries()) {
       const { firstTranscript, secondTranscript } = this.changes[idx]
       const mergedTranscript = dataStore.getFeature(firstTranscript._id)
       if (!mergedTranscript) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
-      console.log('IDX ' + idx.toString() + ' changeId ' + changedId)
-      console.log(
-        'mergedTranscript ' + JSON.stringify(mergedTranscript, null, 2),
-      )
       this.mergeTranscriptsOnClient(mergedTranscript, secondTranscript)
       mergedTranscript.parent?.deleteChild(secondTranscript._id)
     }
@@ -284,9 +279,6 @@ export class MergeTranscriptsChange extends FeatureChange {
       for (const [, secondFeatureChild] of Object.entries(
         secondTranscript.children,
       )) {
-        console.log(
-          'firstTranscript ' + JSON.stringify(firstTranscript, null, 2),
-        )
         this.mergeFeatureIntoTranscriptOnClient(
           secondFeatureChild,
           firstTranscript,
@@ -305,9 +297,6 @@ export class MergeTranscriptsChange extends FeatureChange {
     let merged = false
     let mrgChild: AnnotationFeature | undefined
     let toDelete
-    console.log(
-      'secondFeatureChild ' + JSON.stringify(secondFeatureChild, null, 2),
-    )
     for (const [, firstFeatureChild] of firstTranscript.children) {
       if (!merged || !mrgChild) {
         toDelete = false
@@ -315,7 +304,6 @@ export class MergeTranscriptsChange extends FeatureChange {
       } else {
         toDelete = true
       }
-      console.log('mrgChild ' + JSON.stringify(mrgChild, null, 2))
       if (
         mrgChild.type === secondFeatureChild.type &&
         mrgChild.type === firstFeatureChild.type &&
