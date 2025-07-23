@@ -12,7 +12,7 @@ import { type OntologyRecord } from '../../OntologyManager'
 import { MergeExons, MergeTranscripts, SplitExon } from '../../components'
 import { type ApolloSessionModel } from '../../session'
 import { getMinAndMaxPx, getOverlappingEdge } from '../../util'
-import { getFeaturesUnderClick } from '../../util/annotationFeatureUtils'
+import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
   type LinearApolloDisplayMouseEvents,
@@ -825,116 +825,125 @@ function getContextMenuItems(
   if (!apolloHover) {
     return menuItems
   }
-
-  let featuresUnderClick = getFeaturesUnderClick(mousePosition)
-  if (isCDSFeature(mousePosition.featureAndGlyphUnderMouse.feature, session)) {
-    featuresUnderClick = getFeaturesUnderClick(mousePosition, true)
-  }
-
-  for (const feature of featuresUnderClick) {
-    const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(
-      display,
-      feature,
+  if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
+    const { bp, featureAndGlyphUnderMouse } = mousePosition
+    let featuresUnderClick = getRelatedFeatures(
+      featureAndGlyphUnderMouse.feature,
+      bp,
     )
-    if (isExonFeature(feature, session)) {
-      contextMenuItemsForFeature.push(
-        {
-          label: 'Merge exons',
-          disabled: !admin,
-          onClick: () => {
-            ;(session as unknown as AbstractSessionModel).queueDialog(
-              (doneCallback) => [
-                MergeExons,
-                {
-                  session,
-                  handleClose: () => {
-                    doneCallback()
-                  },
-                  changeManager,
-                  sourceFeature: feature,
-                  sourceAssemblyId: currentAssemblyId,
-                  selectedFeature,
-                  setSelectedFeature: (feature?: AnnotationFeature) => {
-                    display.setSelectedFeature(feature)
-                  },
-                },
-              ],
-            )
-          },
-        },
-        {
-          label: 'Split exon',
-          disabled: !admin,
-          onClick: () => {
-            ;(session as unknown as AbstractSessionModel).queueDialog(
-              (doneCallback) => [
-                SplitExon,
-                {
-                  session,
-                  handleClose: () => {
-                    doneCallback()
-                  },
-                  changeManager,
-                  sourceFeature: feature,
-                  sourceAssemblyId: currentAssemblyId,
-                  selectedFeature,
-                  setSelectedFeature: (feature?: AnnotationFeature) => {
-                    display.setSelectedFeature(feature)
-                  },
-                },
-              ],
-            )
-          },
-        },
+    if (isCDSFeature(featureAndGlyphUnderMouse.feature, session)) {
+      featuresUnderClick = getRelatedFeatures(
+        featureAndGlyphUnderMouse.feature,
+        bp,
+        true,
       )
     }
-    if (isTranscriptFeature(feature, session)) {
-      contextMenuItemsForFeature.push({
-        label: 'Merge transcript',
-        onClick: () => {
-          ;(session as unknown as AbstractSessionModel).queueDialog(
-            (doneCallback) => [
-              MergeTranscripts,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                },
-                changeManager,
-                sourceFeature: feature,
-                sourceAssemblyId: currentAssemblyId,
-                selectedFeature,
-                setSelectedFeature: (feature?: AnnotationFeature) => {
-                  display.setSelectedFeature(feature)
-                },
-              },
-            ],
-          )
-        },
-      })
-      if (isSessionModelWithWidgets(session)) {
+
+    for (const feature of featuresUnderClick) {
+      const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(
+        display,
+        feature,
+      )
+      if (isExonFeature(feature, session)) {
+        contextMenuItemsForFeature.push(
+          {
+            label: 'Merge exons',
+            disabled: !admin,
+            onClick: () => {
+              ;(session as unknown as AbstractSessionModel).queueDialog(
+                (doneCallback) => [
+                  MergeExons,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                    },
+                    changeManager,
+                    sourceFeature: feature,
+                    sourceAssemblyId: currentAssemblyId,
+                    selectedFeature,
+                    setSelectedFeature: (feature?: AnnotationFeature) => {
+                      display.setSelectedFeature(feature)
+                    },
+                  },
+                ],
+              )
+            },
+          },
+          {
+            label: 'Split exon',
+            disabled: !admin,
+            onClick: () => {
+              ;(session as unknown as AbstractSessionModel).queueDialog(
+                (doneCallback) => [
+                  SplitExon,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                    },
+                    changeManager,
+                    sourceFeature: feature,
+                    sourceAssemblyId: currentAssemblyId,
+                    selectedFeature,
+                    setSelectedFeature: (feature?: AnnotationFeature) => {
+                      display.setSelectedFeature(feature)
+                    },
+                  },
+                ],
+              )
+            },
+          },
+        )
+      }
+      if (isTranscriptFeature(feature, session)) {
         contextMenuItemsForFeature.push({
-          label: 'Open transcript details',
+          label: 'Merge transcript',
           onClick: () => {
-            const apolloTranscriptWidget = session.addWidget(
-              'ApolloTranscriptDetails',
-              'apolloTranscriptDetails',
-              {
-                feature,
-                assembly: currentAssemblyId,
-                changeManager,
-                refName: region.refName,
-              },
+            ;(session as unknown as AbstractSessionModel).queueDialog(
+              (doneCallback) => [
+                MergeTranscripts,
+                {
+                  session,
+                  handleClose: () => {
+                    doneCallback()
+                  },
+                  changeManager,
+                  sourceFeature: feature,
+                  sourceAssemblyId: currentAssemblyId,
+                  selectedFeature,
+                  setSelectedFeature: (feature?: AnnotationFeature) => {
+                    display.setSelectedFeature(feature)
+                  },
+                },
+              ],
             )
-            session.showWidget(apolloTranscriptWidget)
           },
         })
+        if (isSessionModelWithWidgets(session)) {
+          contextMenuItemsForFeature.push({
+            label: 'Open transcript details',
+            onClick: () => {
+              const apolloTranscriptWidget = session.addWidget(
+                'ApolloTranscriptDetails',
+                'apolloTranscriptDetails',
+                {
+                  feature,
+                  assembly: currentAssemblyId,
+                  changeManager,
+                  refName: region.refName,
+                },
+              )
+              session.showWidget(apolloTranscriptWidget)
+            },
+          })
+        }
       }
+      menuItems.push({
+        label: feature.type,
+        subMenu: contextMenuItemsForFeature,
+      })
     }
-    menuItems.push({
-      label: feature.type,
-      subMenu: contextMenuItemsForFeature,
-    })
   }
   return menuItems
 }
