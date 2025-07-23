@@ -748,8 +748,8 @@ function CollapsedFeatureAttributeContent(props: {
     })
 
     const diffAttrs = getDiffAttributes(
-      row.changes?.[0].oldAttributes as Record<string, string[]>,
-      row.changes?.[0].newAttributes as Record<string, string[]>,
+      (row.changes?.[0].oldAttributes ?? {}) as Record<string, string[]>,
+      (row.changes?.[0].newAttributes ?? {}) as Record<string, string[]>,
     )
     setDiffAttributes(diffAttrs)
     // eslint-disable-next-line react-hooks/exhaustive-deps
