@@ -64,5 +64,6 @@ export interface Glyph {
 
   getContextMenuItems(
     display: LinearApolloSixFrameDisplayMouseEvents,
+    currentMousePosition: MousePositionWithFeatureAndGlyph,
   ): MenuItem[]
 }

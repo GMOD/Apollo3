@@ -116,3 +116,41 @@ export function getFeaturesUnderClick(
   }
   return clickedFeatures
 }
+
+export function getRelatedFeatures(
+  feature: AnnotationFeature,
+  bp: number,
+  includeSiblings = false,
+): AnnotationFeature[] {
+  const relatedFeatures: AnnotationFeature[] = []
+  relatedFeatures.push(feature)
+  for (const x of getParents(feature)) {
+    relatedFeatures.push(x)
+  }
+  const children = getChildren(feature)
+  for (const child of children) {
+    if (child.min < bp && child.max >= bp) {
+      relatedFeatures.push(child)
+    }
+  }
+  if (!includeSiblings) {
+    return relatedFeatures
+  }
+
+  // Also add siblings , i.e. features having the same parent as the clicked
+  // one and intersecting the click position
+  if (feature.parent) {
+    const siblings = feature.parent.children
+    if (siblings) {
+      for (const [, sib] of siblings) {
+        if (sib._id == feature._id) {
+          continue
+        }
+        if (sib.min < bp && sib.max >= bp) {
+          relatedFeatures.push(sib)
+        }
+      }
+    }
+  }
+  return relatedFeatures
+}
