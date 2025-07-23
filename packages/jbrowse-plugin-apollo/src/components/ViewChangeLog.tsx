@@ -455,6 +455,20 @@ function Row(props: {
         )
         break
       }
+      case 'AddFeatureChange': {
+        setCollapsedContent(
+          <CollapsedAddFeatureContent
+            row={row}
+            session={session}
+            assemblyId={assemblyId}
+          />,
+        )
+        break
+      }
+      case 'DeleteFeatureChange': {
+        setCollapsedContent(<CollapsedDeleteFeatureContent row={row} />)
+        break
+      }
       default: {
         setCollapsedContent(<CollapsedJsonContent row={row} />)
       }
@@ -501,6 +515,188 @@ function Row(props: {
         </TableRow>
       )}
     </React.Fragment>
+  )
+}
+
+interface CollapsedFeatureTableRow {
+  id: string
+  type: string
+  status?: string
+}
+
+function CollapsedAddFeatureContent(props: {
+  row: Change
+  session: ApolloSessionModel
+  assemblyId: string
+}) {
+  const { row, session, assemblyId } = props
+  const { changes } = row
+  const { addedFeature } = changes?.[0] || {}
+  const feature: AnnotationFeatureSnapshot =
+    addedFeature as AnnotationFeatureSnapshot
+
+  const [addedFeatureRows, setAddedFeatureRows] = useState<
+    CollapsedFeatureTableRow[]
+  >([])
+  const [gene, setGene] = useState<AnnotationFeatureSnapshot | undefined>()
+
+  useEffect(() => {
+    const fetchGeneFeature = async (featureId: string) => {
+      if (!featureId) {
+        return
+      }
+      const driver = session.apolloDataStore.collaborationServerDriver
+      const fetchedFeature = await driver.getFeatureById(
+        featureId,
+        assemblyId,
+        true,
+      )
+      if (!fetchedFeature) {
+        return
+      }
+      setGene(fetchedFeature)
+    }
+
+    if (feature.type === 'gene') {
+      setGene(feature)
+    } else {
+      const featureId = feature._id
+      fetchGeneFeature(featureId).catch((error) => {
+        console.error('Error fetching feature by ID:', error)
+        setGene(undefined)
+      })
+    }
+
+    const rows: CollapsedFeatureTableRow[] = []
+    rows.push({
+      id: feature._id,
+      type: feature.type,
+    })
+
+    if (feature.children) {
+      for (const [, child] of Object.entries(feature.children)) {
+        rows.push({
+          id: child._id,
+          type: child.type,
+        })
+        if (child.children) {
+          for (const [, grandChild] of Object.entries(child.children)) {
+            rows.push({
+              id: grandChild._id,
+              type: grandChild.type,
+            })
+          }
+        }
+      }
+    }
+    setAddedFeatureRows(rows)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [row])
+
+  if (!addedFeature) {
+    return <CollapsedJsonContent row={row} />
+  }
+
+  return (
+    <TableContainer
+      component={Paper}
+      style={{ margin: 10, maxHeight: '300px', overflow: 'auto' }}
+    >
+      <Table size="small">
+        <TableBody>
+          <TableRow style={{ borderTop: '1px solid #e0e0e0' }}>
+            <TableCell>
+              <small>Feature ID</small>
+            </TableCell>
+            <TableCell>
+              <small>Type</small>
+            </TableCell>
+            <TableCell>
+              <small>Status</small>
+            </TableCell>
+          </TableRow>
+          {addedFeatureRows.map((r) => (
+            <TableRow key={r.id}>
+              <TableCell>
+                <small>{r.id}</small>
+              </TableCell>
+              <TableCell>
+                <small>{r.type}</small>
+              </TableCell>
+              <TableCell>
+                <small>{getFeatureStatus(gene, row)}</small>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  )
+}
+
+function CollapsedDeleteFeatureContent(props: { row: Change }) {
+  const { row } = props
+  const { changes } = row
+  const { deletedFeature } = changes?.[0] || {}
+
+  if (!deletedFeature) {
+    return <CollapsedJsonContent row={row} />
+  }
+
+  const feature: AnnotationFeatureSnapshot =
+    deletedFeature as AnnotationFeatureSnapshot
+  const deletedFeatureRows: CollapsedFeatureTableRow[] = []
+
+  deletedFeatureRows.push({
+    id: feature._id,
+    type: feature.type,
+  })
+
+  if (feature.children) {
+    for (const [, child] of Object.entries(feature.children)) {
+      deletedFeatureRows.push({
+        id: child._id,
+        type: child.type,
+      })
+      if (child.children) {
+        for (const [, grandChild] of Object.entries(child.children)) {
+          deletedFeatureRows.push({
+            id: grandChild._id,
+            type: grandChild.type,
+          })
+        }
+      }
+    }
+  }
+
+  return (
+    <TableContainer
+      component={Paper}
+      style={{ margin: 10, maxHeight: '300px', overflow: 'auto' }}
+    >
+      <Table size="small">
+        <TableBody>
+          <TableRow style={{ borderTop: '1px solid #e0e0e0' }}>
+            <TableCell>
+              <small>Feature ID</small>
+            </TableCell>
+            <TableCell>
+              <small>Type</small>
+            </TableCell>
+          </TableRow>
+          {deletedFeatureRows.map((row) => (
+            <TableRow key={row.id}>
+              <TableCell>
+                <small>{row.id}</small>
+              </TableCell>
+              <TableCell>
+                <small>{row.type}</small>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
   )
 }
 
@@ -826,29 +1022,32 @@ function CollapsedDiffAttributesContent(props: {
   )
 }
 
+const getFeatureStatus = (
+  gene: AnnotationFeatureSnapshot | undefined,
+  row: Change,
+): string => {
+  if (!gene) {
+    return 'Unknown'
+  }
+  const savedAt: string | undefined = gene.attributes?.savedAt?.[0]
+
+  if (savedAt && row.updatedAt) {
+    const havanaSavedAtDate = new Date(savedAt)
+    const geneUpdatedAtDate = new Date(row.updatedAt)
+
+    if (havanaSavedAtDate >= geneUpdatedAtDate) {
+      return 'Done'
+    }
+  }
+  return 'Pending'
+}
+
 function CollapsedInfoContent(props: {
   feature: AnnotationFeatureSnapshot
   gene: AnnotationFeatureSnapshot | undefined
   row: Change
 }) {
   const { feature, gene, row } = props
-
-  const getFeatureStatus = (): string => {
-    if (!gene) {
-      return 'Unknown'
-    }
-    const savedAt: string | undefined = gene.attributes?.savedAt?.[0]
-
-    if (savedAt && row.updatedAt) {
-      const havanaSavedAtDate = new Date(savedAt)
-      const geneUpdatedAtDate = new Date(row.updatedAt)
-
-      if (havanaSavedAtDate >= geneUpdatedAtDate) {
-        return 'Done'
-      }
-    }
-    return 'Pending'
-  }
 
   return (
     <TableContainer component={Paper} style={{ margin: 10 }}>
@@ -883,7 +1082,7 @@ function CollapsedInfoContent(props: {
               </TableCell>
             )}
             <TableCell>
-              <small>{getFeatureStatus()}</small>
+              <small>{getFeatureStatus(gene, row)}</small>
             </TableCell>
           </TableRow>
         </TableBody>
