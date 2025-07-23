@@ -120,9 +120,14 @@ export class MergeTranscriptsChange extends FeatureChange {
       firstTranscript.attributes
         ? JSON.parse(JSON.stringify(firstTranscript.attributes))
         : {}
-    mergedAttributes.merged_with = [
-      stringifyAttributes(attributesToRecords(secondTranscript.attributes)),
-    ]
+    if (secondTranscript.attributes) {
+      if (!Object.keys(mergedAttributes).includes('merged_with')) {
+        mergedAttributes.merged_with = []
+      }
+      mergedAttributes.merged_with.push(
+        stringifyAttributes(attributesToRecords(secondTranscript.attributes)),
+      )
+    }
     firstTranscript.attributes = mergedAttributes
 
     if (secondTranscript.children) {
@@ -180,12 +185,25 @@ export class MergeTranscriptsChange extends FeatureChange {
           mrgChild.max,
           firstFeatureChild.max,
         )
-        const mergedWithAttributes = mrgChild.attributes?.merged_with ?? []
+
+        if (!mrgChild.attributes) {
+          mrgChild.attributes = {}
+        }
+
+        const mrgChildAttr: Record<string, string[]> = JSON.parse(
+          JSON.stringify(mrgChild.attributes),
+        )
+
+        if (!Object.keys(mrgChildAttr).includes('merged_with')) {
+          mrgChildAttr.merged_with = []
+        }
+        const mergedWithAttributes = mrgChildAttr.merged_with
         mergedWithAttributes.push(
           stringifyAttributes(
             attributesToRecords(secondFeatureChild.attributes),
           ),
         )
+
         if (toDelete) {
           const recs: Record<string, string[] | undefined> =
             firstFeatureChild.attributes
@@ -194,14 +212,9 @@ export class MergeTranscriptsChange extends FeatureChange {
           mergedWithAttributes.push(stringifyAttributes(recs))
           firstTranscript.children.delete(firstFeatureChild._id.toString())
         }
-        if (!mrgChild.attributes) {
-          mrgChild.attributes = {}
-        }
-        const attributes: Record<string, string[]> = JSON.parse(
-          JSON.stringify(mrgChild.attributes),
-        )
-        attributes.merged_with = [...new Set(mergedWithAttributes)]
-        mrgChild.attributes = attributes
+
+        mrgChildAttr.merged_with = [...new Set(mergedWithAttributes)]
+        mrgChild.attributes = mrgChildAttr
         merged = true
       }
     }
@@ -233,12 +246,17 @@ export class MergeTranscriptsChange extends FeatureChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
+    console.log('changedIds ' + JSON.stringify(this.changedIds))
     for (const [idx, changedId] of this.changedIds.entries()) {
       const { firstTranscript, secondTranscript } = this.changes[idx]
       const mergedTranscript = dataStore.getFeature(firstTranscript._id)
       if (!mergedTranscript) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
+      console.log('IDX ' + idx.toString() + ' changeId ' + changedId)
+      console.log(
+        'mergedTranscript ' + JSON.stringify(mergedTranscript, null, 2),
+      )
       this.mergeTranscriptsOnClient(mergedTranscript, secondTranscript)
       mergedTranscript.parent?.deleteChild(secondTranscript._id)
     }
@@ -266,6 +284,9 @@ export class MergeTranscriptsChange extends FeatureChange {
       for (const [, secondFeatureChild] of Object.entries(
         secondTranscript.children,
       )) {
+        console.log(
+          'firstTranscript ' + JSON.stringify(firstTranscript, null, 2),
+        )
         this.mergeFeatureIntoTranscriptOnClient(
           secondFeatureChild,
           firstTranscript,
@@ -284,6 +305,9 @@ export class MergeTranscriptsChange extends FeatureChange {
     let merged = false
     let mrgChild: AnnotationFeature | undefined
     let toDelete
+    console.log(
+      'secondFeatureChild ' + JSON.stringify(secondFeatureChild, null, 2),
+    )
     for (const [, firstFeatureChild] of firstTranscript.children) {
       if (!merged || !mrgChild) {
         toDelete = false
@@ -291,6 +315,7 @@ export class MergeTranscriptsChange extends FeatureChange {
       } else {
         toDelete = true
       }
+      console.log('mrgChild ' + JSON.stringify(mrgChild, null, 2))
       if (
         mrgChild.type === secondFeatureChild.type &&
         mrgChild.type === firstFeatureChild.type &&
@@ -338,7 +363,9 @@ export class MergeTranscriptsChange extends FeatureChange {
       })
     }
 
-    if (!(merged && mrgChild)) {
+    if (merged && mrgChild) {
+      firstTranscript.addChild(getSnapshot(mrgChild))
+    } else {
       // This secondFeatureChild has no overlap with any feature in the
       // receiving transcript so we add it as it is to the receiving transcript
       firstTranscript.addChild(secondFeatureChild)
