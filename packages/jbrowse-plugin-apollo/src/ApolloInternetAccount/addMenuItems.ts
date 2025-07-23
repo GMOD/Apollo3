@@ -120,12 +120,14 @@ export function addMenuItems(rootModel: AbstractMenuManager) {
     label: 'Undo',
     onClick: (session: ApolloSessionModel) => {
       const { apolloDataStore } = session
-      const { notify } = session as unknown as AbstractSessionModel
-      if (apolloDataStore.changeManager.recentChanges.length > 0) {
-        void apolloDataStore.changeManager.revertLastChange()
-      } else {
-        notify('No changes to undo', 'info')
-      }
+      void apolloDataStore.changeManager.undoLastChange()
+    },
+  })
+  rootModel.appendToMenu('Apollo', {
+    label: 'Redo',
+    onClick: (session: ApolloSessionModel) => {
+      const { apolloDataStore } = session
+      void apolloDataStore.changeManager.redoLastChange()
     },
   })
 }
