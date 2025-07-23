@@ -52,6 +52,11 @@ import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
 } from './LinearApolloDisplay'
 import {
+  LinearApolloReferenceSequenceDisplay,
+  configSchema as linearApolloReferenceSequenceDisplayConfigSchema,
+  stateModelFactory as LinearApolloReferenceSequenceDisplayStateModelFactory,
+} from './LinearApolloReferenceSequenceDisplay'
+import {
   configSchema as linearApolloSixFrameDisplayConfigSchema,
   stateModelFactory as LinearApolloSixFrameDisplayStateModelFactory,
 } from './LinearApolloSixFrameDisplay'
@@ -198,6 +203,22 @@ export default class ApolloPlugin extends Plugin {
         trackType: 'ApolloTrack',
         viewType: 'LinearGenomeView',
         ReactComponent: LinearApolloSixFrameDisplayComponent,
+      })
+    })
+
+    pluginManager.addDisplayType(() => {
+      const configSchema = linearApolloReferenceSequenceDisplayConfigSchema
+      return new DisplayType({
+        name: 'LinearApolloReferenceSequenceDisplay',
+        configSchema,
+        stateModel: LinearApolloReferenceSequenceDisplayStateModelFactory(
+          pluginManager,
+          configSchema,
+        ),
+        displayName: 'Apollo reference sequence display',
+        trackType: 'ReferenceSequenceTrack',
+        viewType: 'LinearGenomeView',
+        ReactComponent: LinearApolloReferenceSequenceDisplay,
       })
     })
 
