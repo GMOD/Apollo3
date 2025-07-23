@@ -13,9 +13,12 @@ import { alpha } from '@mui/material'
 import equal from 'fast-deep-equal/es6'
 import { getSnapshot } from 'mobx-state-tree'
 
-import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
 import { FilterTranscripts } from '../../components/FilterTranscripts'
-import { getMinAndMaxPx, getOverlappingEdge } from '../../util'
+import {
+  getContextMenuItemsForFeature,
+  getMinAndMaxPx,
+  getOverlappingEdge,
+} from '../../util'
 import { type LinearApolloSixFrameDisplay } from '../stateModel'
 import {
   type LinearApolloSixFrameDisplayMouseEvents,
@@ -807,92 +810,14 @@ function drawTooltip(
 function getContextMenuItems(
   display: LinearApolloSixFrameDisplayMouseEvents,
 ): MenuItem[] {
-  const {
-    apolloHover,
-    apolloInternetAccount: internetAccount,
-    changeManager,
-    filteredTranscripts,
-    regions,
-    selectedFeature,
-    session,
-  } = display
-  const menuItems: MenuItem[] = []
+  const { apolloHover, filteredTranscripts, session } = display
   if (!apolloHover) {
-    return menuItems
+    return []
   }
   const { feature: sourceFeature } = apolloHover
-  const role = internetAccount ? internetAccount.role : 'admin'
-  const admin = role === 'admin'
-  const readOnly = !(role && ['admin', 'user'].includes(role))
-  const [region] = regions
-  const sourceAssemblyId = display.getAssemblyId(region.assemblyName)
-  const currentAssemblyId = display.getAssemblyId(region.assemblyName)
-  menuItems.push(
-    {
-      label: 'Add child feature',
-      disabled: readOnly,
-      onClick: () => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            AddChildFeature,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager,
-              sourceFeature,
-              sourceAssemblyId,
-              internetAccount,
-            },
-          ],
-        )
-      },
-    },
-    {
-      label: 'Copy features and annotations',
-      disabled: readOnly,
-      onClick: () => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            CopyFeature,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager,
-              sourceFeature,
-              sourceAssemblyId: currentAssemblyId,
-            },
-          ],
-        )
-      },
-    },
-    {
-      label: 'Delete feature',
-      disabled: !admin,
-      onClick: () => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            DeleteFeature,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager,
-              sourceFeature,
-              sourceAssemblyId: currentAssemblyId,
-              selectedFeature,
-              setSelectedFeature: (feature?: AnnotationFeature) => {
-                display.setSelectedFeature(feature)
-              },
-            },
-          ],
-        )
-      },
-    },
+  const menuItems: MenuItem[] = getContextMenuItemsForFeature(
+    display,
+    sourceFeature,
   )
   const { featureTypeOntology } = session.apolloDataStore.ontologyManager
   if (!featureTypeOntology) {
@@ -933,6 +858,7 @@ export const geneGlyph: Glyph = {
   drawHover,
   drawTooltip,
   getContextMenuItems,
+  getContextMenuItemsForFeature,
   onMouseDown,
   onMouseLeave,
   onMouseMove,
