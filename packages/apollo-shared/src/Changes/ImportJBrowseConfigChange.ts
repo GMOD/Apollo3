@@ -75,7 +75,7 @@ export function filterJBrowseConfig(config: JBrowseConfig): JBrowseConfig {
     filteredConfig.plugins = plugins.filter((p) => p.name !== 'Apollo')
   }
   if (tracks) {
-    filteredConfig.trackss = tracks.filter((t) => t.type !== 'ApolloTrack')
+    filteredConfig.tracks = tracks.filter((t) => t.type !== 'ApolloTrack')
   }
   return filteredConfig
 }
