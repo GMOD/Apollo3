@@ -1,7 +1,5 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 
-import { type MousePosition } from '../LinearApolloDisplay/stateModel/mouseEvents'
-
 export function getFeatureName(feature: AnnotationFeature) {
   const { attributes } = feature
   const name = attributes.get('gff_name')
