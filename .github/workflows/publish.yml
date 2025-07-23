@@ -36,7 +36,7 @@ jobs:
       tag: latest
     secrets: inherit
   deploy:
-    needs: [publish-docker]
+    needs: [publish-npm, publish-docker]
     uses: ./.github/workflows/deploy.yml
     with:
       environment: prod
