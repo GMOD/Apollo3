@@ -36,6 +36,10 @@ const useStyles = makeStyles()((theme) => ({
     position: 'absolute',
     left: 0,
   },
+  center: {
+    display: 'flex',
+    justifyContent: 'center',
+  },
   ellipses: {
     textOverflow: 'ellipsis',
     overflow: 'hidden',
@@ -76,8 +80,6 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
     setCanvas,
     setCollaboratorCanvas,
     setOverlayCanvas,
-    setSeqTrackCanvas,
-    setSeqTrackOverlayCanvas,
     setTheme,
   } = model
   const { classes } = useStyles()
@@ -95,36 +97,6 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const { assemblyManager } = session as unknown as AbstractSessionModel
   return (
     <>
-      {3 / lgv.bpPerPx >= 1 ? (
-        <div
-          className={classes.canvasContainer}
-          style={{
-            width: lgv.dynamicBlocks.totalWidthPx,
-            height: lgv.bpPerPx <= 1 ? 125 : 95,
-          }}
-        >
-          <canvas
-            ref={async (node: HTMLCanvasElement) => {
-              await Promise.resolve()
-              setSeqTrackCanvas(node)
-            }}
-            width={lgv.dynamicBlocks.totalWidthPx}
-            height={lgv.bpPerPx <= 1 ? 125 : 95}
-            className={classes.canvas}
-            data-testid="seqTrackCanvas"
-          />
-          <canvas
-            ref={async (node: HTMLCanvasElement) => {
-              await Promise.resolve()
-              setSeqTrackOverlayCanvas(node)
-            }}
-            width={lgv.dynamicBlocks.totalWidthPx}
-            height={lgv.bpPerPx <= 1 ? 125 : 95}
-            className={classes.canvas}
-            data-testid="seqTrackOverlayCanvas"
-          />
-        </div>
-      ) : null}
       <div
         className={classes.canvasContainer}
         style={{
@@ -149,7 +121,11 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
           </div>
         ) : null}
         {message ? (
-          <Alert severity="warning" classes={{ message: classes.ellipses }}>
+          <Alert
+            severity="warning"
+            classes={{ message: classes.ellipses }}
+            slotProps={{ root: { className: classes.center } }}
+          >
             <Tooltip title={message}>
               <div>{message}</div>
             </Tooltip>

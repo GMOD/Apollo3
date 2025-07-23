@@ -6,9 +6,7 @@ import {
 import type PluginManager from '@jbrowse/core/PluginManager'
 import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import { type MenuItem } from '@jbrowse/core/ui'
-import { type Frame, getFrame } from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { type Theme } from '@mui/material'
 import { autorun } from 'mobx'
 import { type Instance, addDisposer } from 'mobx-state-tree'
 import { type CSSProperties } from 'react'
@@ -47,60 +45,6 @@ function getMousePosition(
   const y = clientY - top
   const { coord: bp, index: regionNumber, refName } = lgv.pxToBp(x)
   return { x, y, refName, bp, regionNumber }
-}
-
-function getTranslationRow(frame: Frame, bpPerPx: number) {
-  const offset = bpPerPx <= 1 ? 2 : 0
-  switch (frame) {
-    case 3: {
-      return 0
-    }
-    case 2: {
-      return 1
-    }
-    case 1: {
-      return 2
-    }
-    case -1: {
-      return 3 + offset
-    }
-    case -2: {
-      return 4 + offset
-    }
-    case -3: {
-      return 5 + offset
-    }
-  }
-}
-
-function getSeqRow(
-  strand: 1 | -1 | undefined,
-  bpPerPx: number,
-): number | undefined {
-  if (bpPerPx > 1 || strand === undefined) {
-    return
-  }
-  return strand === 1 ? 3 : 4
-}
-
-function highlightSeq(
-  seqTrackOverlayctx: CanvasRenderingContext2D,
-  theme: Theme | undefined,
-  startPx: number,
-  sequenceRowHeight: number,
-  row: number | undefined,
-  widthPx: number,
-) {
-  if (row !== undefined) {
-    seqTrackOverlayctx.fillStyle =
-      theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
-    seqTrackOverlayctx.fillRect(
-      startPx,
-      sequenceRowHeight * row,
-      widthPx,
-      sequenceRowHeight,
-    )
-  }
 }
 
 export function mouseEventsModelIntermediateFactory(
@@ -199,135 +143,11 @@ export function mouseEventsModelIntermediateFactory(
     }))
 }
 
-export function mouseEventsSeqHightlightModelFactory(
-  pluginManager: PluginManager,
-  configSchema: AnyConfigurationSchemaType,
-) {
-  const LinearApolloDisplayRendering = mouseEventsModelIntermediateFactory(
-    pluginManager,
-    configSchema,
-  )
-
-  return LinearApolloDisplayRendering.actions((self) => ({
-    afterAttach() {
-      addDisposer(
-        self,
-        autorun(
-          () => {
-            // This type is wrong in @jbrowse/core
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-            if (!self.lgv.initialized || self.regionCannotBeRendered()) {
-              return
-            }
-            const seqTrackOverlayctx =
-              self.seqTrackOverlayCanvas?.getContext('2d')
-            if (!seqTrackOverlayctx) {
-              return
-            }
-
-            seqTrackOverlayctx.clearRect(
-              0,
-              0,
-              self.lgv.dynamicBlocks.totalWidthPx,
-              self.lgv.bpPerPx <= 1 ? 125 : 95,
-            )
-
-            const {
-              hoveredFeature,
-              lgv,
-              regions,
-              sequenceRowHeight,
-              session,
-              theme,
-            } = self
-
-            if (!hoveredFeature) {
-              return
-            }
-
-            const { featureTypeOntology } =
-              session.apolloDataStore.ontologyManager
-            if (!featureTypeOntology) {
-              throw new Error('featureTypeOntology is undefined')
-            }
-            for (const [idx, region] of regions.entries()) {
-              if (featureTypeOntology.isTypeOf(hoveredFeature.type, 'CDS')) {
-                const parentFeature = hoveredFeature.parent
-                if (!parentFeature) {
-                  continue
-                }
-                const cdsLocs = parentFeature.cdsLocations.find(
-                  (loc) =>
-                    hoveredFeature.min === loc.at(0)?.min &&
-                    hoveredFeature.max === loc.at(-1)?.max,
-                )
-                if (!cdsLocs) {
-                  continue
-                }
-                for (const dl of cdsLocs) {
-                  const frame = getFrame(
-                    dl.min,
-                    dl.max,
-                    hoveredFeature.strand ?? 1,
-                    dl.phase,
-                  )
-                  const row = getTranslationRow(frame, lgv.bpPerPx)
-                  const offset =
-                    (lgv.bpToPx({
-                      refName: region.refName,
-                      coord: dl.min,
-                      regionNumber: idx,
-                    })?.offsetPx ?? 0) - lgv.offsetPx
-                  const widthPx = (dl.max - dl.min) / lgv.bpPerPx
-                  const startPx = lgv.displayedRegions[idx].reversed
-                    ? offset - widthPx
-                    : offset
-
-                  highlightSeq(
-                    seqTrackOverlayctx,
-                    theme,
-                    startPx,
-                    sequenceRowHeight,
-                    row,
-                    widthPx,
-                  )
-                }
-              } else {
-                const row = getSeqRow(hoveredFeature.strand, lgv.bpPerPx)
-                const offset =
-                  (lgv.bpToPx({
-                    refName: region.refName,
-                    coord: hoveredFeature.min,
-                    regionNumber: idx,
-                  })?.offsetPx ?? 0) - lgv.offsetPx
-                const widthPx = hoveredFeature.length / lgv.bpPerPx
-                const startPx = lgv.displayedRegions[idx].reversed
-                  ? offset - widthPx
-                  : offset
-
-                highlightSeq(
-                  seqTrackOverlayctx,
-                  theme,
-                  startPx,
-                  sequenceRowHeight,
-                  row,
-                  widthPx,
-                )
-              }
-            }
-          },
-          { name: 'LinearApolloDisplayRenderSeqHighlight' },
-        ),
-      )
-    },
-  }))
-}
-
 export function mouseEventsModelFactory(
   pluginManager: PluginManager,
   configSchema: AnyConfigurationSchemaType,
 ) {
-  const LinearApolloDisplayMouseEvents = mouseEventsSeqHightlightModelFactory(
+  const LinearApolloDisplayMouseEvents = mouseEventsModelIntermediateFactory(
     pluginManager,
     configSchema,
   )
