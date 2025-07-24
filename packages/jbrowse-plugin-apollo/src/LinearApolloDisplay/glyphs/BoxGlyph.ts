@@ -1,10 +1,8 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
-import { type AbstractSessionModel } from '@jbrowse/core/util'
 import { type Theme, alpha } from '@mui/material'
 
-import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
-import { isSelectedFeature } from '../../util'
+import { getContextMenuItemsForFeature, isSelectedFeature } from '../../util'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
   type LinearApolloDisplayMouseEvents,
@@ -250,123 +248,6 @@ function getContextMenuItems(
     return []
   }
   return getContextMenuItemsForFeature(display, hoveredFeature)
-}
-
-function makeFeatureLabel(feature: AnnotationFeature) {
-  let name: string | undefined
-  if (feature.attributes.get('gff_name')) {
-    name = feature.attributes.get('gff_name')?.join(',')
-  } else if (feature.attributes.get('gff_id')) {
-    name = feature.attributes.get('gff_id')?.join(',')
-  } else {
-    name = feature._id
-  }
-  const coords = `(${(feature.min + 1).toLocaleString('en')}..${feature.max.toLocaleString('en')})`
-  const maxLen = 60
-  if (name && name.length + coords.length > maxLen + 5) {
-    const trim = maxLen - coords.length
-    name = trim > 0 ? name.slice(0, trim) : ''
-    name = `${name}[...]`
-  }
-  return `${name} ${coords}`
-}
-
-function getContextMenuItemsForFeature(
-  display: LinearApolloDisplayMouseEvents,
-  sourceFeature: AnnotationFeature,
-): MenuItem[] {
-  const {
-    apolloInternetAccount: internetAccount,
-    changeManager,
-    regions,
-    selectedFeature,
-    session,
-  } = display
-  const menuItems: MenuItem[] = []
-  const role = internetAccount ? internetAccount.role : 'admin'
-  const admin = role === 'admin'
-  const readOnly = !(role && ['admin', 'user'].includes(role))
-  const [region] = regions
-  const sourceAssemblyId = display.getAssemblyId(region.assemblyName)
-  const currentAssemblyId = display.getAssemblyId(region.assemblyName)
-  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
-
-  // Add only relevant options
-  menuItems.push(
-    {
-      label: makeFeatureLabel(sourceFeature),
-      type: 'subHeader',
-    },
-    {
-      label: 'Add child feature',
-      disabled: readOnly,
-      onClick: () => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            AddChildFeature,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager,
-              sourceFeature,
-              sourceAssemblyId,
-              internetAccount,
-            },
-          ],
-        )
-      },
-    },
-    {
-      label: 'Copy features and annotations',
-      disabled: readOnly,
-      onClick: () => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            CopyFeature,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager,
-              sourceFeature,
-              sourceAssemblyId: currentAssemblyId,
-            },
-          ],
-        )
-      },
-    },
-    {
-      label: 'Delete feature',
-      disabled: !admin,
-      onClick: () => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            DeleteFeature,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager,
-              sourceFeature,
-              sourceAssemblyId: currentAssemblyId,
-              selectedFeature,
-              setSelectedFeature: (feature?: AnnotationFeature) => {
-                display.setSelectedFeature(feature)
-              },
-            },
-          ],
-        )
-      },
-    },
-  )
-  return menuItems
 }
 
 function getFeatureFromLayout(

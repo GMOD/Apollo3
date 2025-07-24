@@ -1,7 +1,5 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 
-import { type MousePosition } from '../LinearApolloDisplay/stateModel/mouseEvents'
-
 export function getFeatureName(feature: AnnotationFeature) {
   const { attributes } = feature
   const name = attributes.get('gff_name')
@@ -75,43 +73,40 @@ function getParents(feature: AnnotationFeature): AnnotationFeature[] {
   return parents
 }
 
-export function getFeaturesUnderClick(
-  mousePosition: MousePosition,
+export function getRelatedFeatures(
+  feature: AnnotationFeature,
+  bp: number,
   includeSiblings = false,
 ): AnnotationFeature[] {
-  const clickedFeatures: AnnotationFeature[] = []
-  if (!mousePosition.feature) {
-    return clickedFeatures
+  const relatedFeatures: AnnotationFeature[] = []
+  relatedFeatures.push(feature)
+  for (const x of getParents(feature)) {
+    relatedFeatures.push(x)
   }
-  clickedFeatures.push(mousePosition.feature)
-  for (const x of getParents(mousePosition.feature)) {
-    clickedFeatures.push(x)
-  }
-  const { bp } = mousePosition
-  const children = getChildren(mousePosition.feature)
+  const children = getChildren(feature)
   for (const child of children) {
     if (child.min < bp && child.max >= bp) {
-      clickedFeatures.push(child)
+      relatedFeatures.push(child)
     }
   }
   if (!includeSiblings) {
-    return clickedFeatures
+    return relatedFeatures
   }
 
   // Also add siblings , i.e. features having the same parent as the clicked
   // one and intersecting the click position
-  if (mousePosition.feature.parent) {
-    const siblings = mousePosition.feature.parent.children
+  if (feature.parent) {
+    const siblings = feature.parent.children
     if (siblings) {
       for (const [, sib] of siblings) {
-        if (sib._id == mousePosition.feature._id) {
+        if (sib._id == feature._id) {
           continue
         }
         if (sib.min < bp && sib.max >= bp) {
-          clickedFeatures.push(sib)
+          relatedFeatures.push(sib)
         }
       }
     }
   }
-  return clickedFeatures
+  return relatedFeatures
 }

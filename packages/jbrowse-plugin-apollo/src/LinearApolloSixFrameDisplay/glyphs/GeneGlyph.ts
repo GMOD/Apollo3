@@ -13,11 +13,13 @@ import { alpha } from '@mui/material'
 import equal from 'fast-deep-equal/es6'
 import { getSnapshot } from 'mobx-state-tree'
 
-import { AddChildFeature, CopyFeature, DeleteFeature } from '../../components'
+import { MergeExons, SplitExon } from '../../components'
 import { FilterTranscripts } from '../../components/FilterTranscripts'
 import {
+  getContextMenuItemsForFeature,
   getMinAndMaxPx,
   getOverlappingEdge,
+  getRelatedFeatures,
   isSelectedFeature,
 } from '../../util'
 import { type LinearApolloSixFrameDisplay } from '../stateModel'
@@ -803,119 +805,124 @@ function drawTooltip(
 
 function getContextMenuItems(
   display: LinearApolloSixFrameDisplayMouseEvents,
+  mousePosition: MousePositionWithFeatureAndGlyph,
 ): MenuItem[] {
   const {
-    apolloHover,
     apolloInternetAccount: internetAccount,
+    apolloHover,
     changeManager,
     filteredTranscripts,
     regions,
     selectedFeature,
     session,
   } = display
+  const [region] = regions
+  const currentAssemblyId = display.getAssemblyId(region.assemblyName)
   const menuItems: MenuItem[] = []
+  const role = internetAccount ? internetAccount.role : 'admin'
+  const admin = role === 'admin'
   if (!apolloHover) {
     return menuItems
   }
-  const { feature: sourceFeature } = apolloHover
-  const role = internetAccount ? internetAccount.role : 'admin'
-  const admin = role === 'admin'
-  const readOnly = !(role && ['admin', 'user'].includes(role))
-  const [region] = regions
-  const sourceAssemblyId = display.getAssemblyId(region.assemblyName)
-  const currentAssemblyId = display.getAssemblyId(region.assemblyName)
-  menuItems.push(
-    {
-      label: 'Add child feature',
-      disabled: readOnly,
-      onClick: () => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            AddChildFeature,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager,
-              sourceFeature,
-              sourceAssemblyId,
-              internetAccount,
-            },
-          ],
-        )
-      },
-    },
-    {
-      label: 'Copy features and annotations',
-      disabled: readOnly,
-      onClick: () => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            CopyFeature,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager,
-              sourceFeature,
-              sourceAssemblyId: currentAssemblyId,
-            },
-          ],
-        )
-      },
-    },
-    {
-      label: 'Delete feature',
-      disabled: !admin,
-      onClick: () => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            DeleteFeature,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager,
-              sourceFeature,
-              sourceAssemblyId: currentAssemblyId,
-              selectedFeature,
-              setSelectedFeature: (feature?: AnnotationFeature) => {
-                display.setSelectedFeature(feature)
-              },
-            },
-          ],
-        )
-      },
-    },
-  )
   const { featureTypeOntology } = session.apolloDataStore.ontologyManager
   if (!featureTypeOntology) {
     throw new Error('featureTypeOntology is undefined')
   }
-  if (featureTypeOntology.isTypeOf(sourceFeature.type, 'gene')) {
-    menuItems.push({
-      label: 'Filter alternate transcripts',
-      onClick: () => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            FilterTranscripts,
-            {
-              handleClose: () => {
-                doneCallback()
-              },
-              sourceFeature,
-              filteredTranscripts: getSnapshot(filteredTranscripts),
-              onUpdate: (forms: string[]) => {
-                display.updateFilteredTranscripts(forms)
-              },
+  if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
+    const { bp, featureAndGlyphUnderMouse } = mousePosition
+    for (const feature of getRelatedFeatures(
+      featureAndGlyphUnderMouse.feature,
+      bp,
+    )) {
+      const featureID: string | undefined = feature.attributes
+        .get('gff_id')
+        ?.toString()
+      if (featureID && filteredTranscripts.includes(featureID)) {
+        continue
+      }
+      const contextMenuItemsForFeature = getContextMenuItemsForFeature(
+        display,
+        feature,
+      )
+      if (featureTypeOntology.isTypeOf(feature.type, 'exon')) {
+        contextMenuItemsForFeature.push(
+          {
+            label: 'Merge exons',
+            disabled: !admin,
+            onClick: () => {
+              ;(session as unknown as AbstractSessionModel).queueDialog(
+                (doneCallback) => [
+                  MergeExons,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                    },
+                    changeManager,
+                    sourceFeature: feature,
+                    sourceAssemblyId: currentAssemblyId,
+                    selectedFeature,
+                    setSelectedFeature: (feature?: AnnotationFeature) => {
+                      display.setSelectedFeature(feature)
+                    },
+                  },
+                ],
+              )
             },
-          ],
+          },
+          {
+            label: 'Split exon',
+            disabled: !admin,
+            onClick: () => {
+              ;(session as unknown as AbstractSessionModel).queueDialog(
+                (doneCallback) => [
+                  SplitExon,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                    },
+                    changeManager,
+                    sourceFeature: feature,
+                    sourceAssemblyId: currentAssemblyId,
+                    selectedFeature,
+                    setSelectedFeature: (feature?: AnnotationFeature) => {
+                      display.setSelectedFeature(feature)
+                    },
+                  },
+                ],
+              )
+            },
+          },
         )
-      },
-    })
+      }
+      if (featureTypeOntology.isTypeOf(feature.type, 'gene')) {
+        contextMenuItemsForFeature.push({
+          label: 'Filter alternate transcripts',
+          onClick: () => {
+            ;(session as unknown as AbstractSessionModel).queueDialog(
+              (doneCallback) => [
+                FilterTranscripts,
+                {
+                  handleClose: () => {
+                    doneCallback()
+                  },
+                  sourceFeature: feature,
+                  filteredTranscripts: getSnapshot(filteredTranscripts),
+                  onUpdate: (forms: string[]) => {
+                    display.updateFilteredTranscripts(forms)
+                  },
+                },
+              ],
+            )
+          },
+        })
+      }
+      menuItems.push({
+        label: feature.type,
+        subMenu: contextMenuItemsForFeature,
+      })
+    }
   }
   return menuItems
 }
@@ -930,6 +937,7 @@ export const geneGlyph: Glyph = {
   drawHover,
   drawTooltip,
   getContextMenuItems,
+  getContextMenuItemsForFeature,
   onMouseDown,
   onMouseLeave,
   onMouseMove,

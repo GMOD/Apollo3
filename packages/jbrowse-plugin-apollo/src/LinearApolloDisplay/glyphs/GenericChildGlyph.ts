@@ -2,11 +2,12 @@ import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
 
 import { isSelectedFeature } from '../../util'
-import { getFeaturesUnderClick } from '../../util/annotationFeatureUtils'
+import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
   type LinearApolloDisplayMouseEvents,
-  type MousePositionWithFeature,
+  type MousePositionWithFeatureAndGlyph,
+  isMousePositionWithFeatureAndGlyph,
 } from '../stateModel/mouseEvents'
 import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
 
@@ -161,18 +162,24 @@ function getContextMenuItems(
     label: hoveredFeature.type,
     subMenu: sourceFeatureMenuItems,
   })
-  for (const relative of getFeaturesUnderClick(mousePosition)) {
-    if (relative._id === hoveredFeature._id) {
-      continue
+  if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
+    const { bp, featureAndGlyphUnderMouse } = mousePosition
+    for (const relative of getRelatedFeatures(
+      featureAndGlyphUnderMouse.feature,
+      bp,
+    )) {
+      if (relative._id === hoveredFeature._id) {
+        continue
+      }
+      const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(
+        display,
+        relative,
+      )
+      menuItems.push({
+        label: relative.type,
+        subMenu: contextMenuItemsForFeature,
+      })
     }
-    const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(
-      display,
-      relative,
-    )
-    menuItems.push({
-      label: relative.type,
-      subMenu: contextMenuItemsForFeature,
-    })
   }
   return menuItems
 }
