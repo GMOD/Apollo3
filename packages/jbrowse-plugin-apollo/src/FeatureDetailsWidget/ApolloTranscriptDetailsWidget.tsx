@@ -58,7 +58,7 @@ export const ApolloTranscriptDetailsWidget = observer(
     model: ApolloTranscriptDetailsWidgetState
   }) {
     const { classes } = useStyles()
-    const DEFAULT_PANELS = ['summary', 'location', 'attrs']
+    const DEFAULT_PANELS = ['summary', 'location']
     const [panelState, setPanelState] = useState<string[]>(DEFAULT_PANELS)
 
     const { model } = props
@@ -79,6 +79,7 @@ export const ApolloTranscriptDetailsWidget = observer(
     const apolloInternetAccount = internetAccounts.find(
       (ia) => ia.type === 'ApolloInternetAccount',
     ) as ApolloInternetAccountModel | undefined
+    const token = apolloInternetAccount?.retrieveToken()
     const role = apolloInternetAccount ? apolloInternetAccount.role : 'admin'
     const editable = ['admin', 'user'].includes(role ?? '')
 
@@ -111,6 +112,34 @@ export const ApolloTranscriptDetailsWidget = observer(
       NoOpCustomComponent,
       props,
     ) as React.ElementType<CustomComponentProps>
+
+    const CustomTypesComponent = pluginManager.evaluateExtensionPoint(
+      'Apollo-TranscriptDetailsCustomTypesComponent',
+      () => null,
+      {
+        feature,
+        session,
+      },
+    ) as React.ElementType
+
+    const CustomSaveComponent = pluginManager.evaluateExtensionPoint(
+      'Apollo-TranscriptDetailsCustomSaveComponent',
+      () => null,
+      {
+        feature,
+        session,
+        token,
+      },
+    ) as React.ElementType
+
+    const CustomAttributesComponent = pluginManager.evaluateExtensionPoint(
+      'Apollo-TranscriptDetailsCustomAttributesComponent',
+      () => null,
+      {
+        feature,
+        session,
+      },
+    ) as React.ElementType
 
     return (
       <div className={classes.root}>
@@ -157,6 +186,8 @@ export const ApolloTranscriptDetailsWidget = observer(
               session={apolloSession}
               assembly={currentAssembly._id || ''}
             />
+            <CustomTypesComponent feature={feature} session={session} />
+            <CustomAttributesComponent feature={feature} session={session} />
           </AccordionDetails>
         </Accordion>
         <Accordion
@@ -218,6 +249,11 @@ export const ApolloTranscriptDetailsWidget = observer(
             )}
           </AccordionDetails>
         </Accordion>
+        <CustomSaveComponent
+          feature={feature}
+          session={session}
+          token={token}
+        />
       </div>
     )
   },
