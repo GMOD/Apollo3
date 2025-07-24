@@ -156,7 +156,7 @@ describe('Undo edits', () => {
     })
   })
 
-  it.only('Undo and redo', () => {
+  it('Undo and redo', () => {
     const assemblyName = 'onegene.fasta.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
     cy.selectAssemblyToView(assemblyName)
