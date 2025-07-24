@@ -30,7 +30,7 @@ export class ChangeManager {
   constructor(private dataStore: ClientDataStore & IAnyStateTreeNode) {}
 
   recentChanges: Change[] = []
-  historyPosition = 0
+  undoneChanges: Change[] = []
 
   async submit(change: Change, opts: SubmitOpts = {}) {
     const {
@@ -128,9 +128,8 @@ export class ChangeManager {
         session.notify(change.notification, 'success')
       }
       if (addToRecents) {
-        // Push the change into array
         this.recentChanges.push(change)
-        this.historyPosition += 1
+        this.undoneChanges = []
       }
     }
 
@@ -152,29 +151,23 @@ export class ChangeManager {
 
   async undoLastChange() {
     const session = getSession(this.dataStore)
-    if (this.historyPosition === 0) {
+    const lastChange = this.recentChanges.pop()
+    if (!lastChange) {
       session.notify('No changes to undo!', 'info')
       return
     }
-    const lastChange = this.recentChanges.at(this.historyPosition - 1)
-    if (!lastChange) {
-      throw new Error('Error retrieving the last change')
-    }
-    this.historyPosition -= 1
+    this.undoneChanges.push(lastChange)
     return this.undo(lastChange)
   }
 
   async redoLastChange() {
     const session = getSession(this.dataStore)
-    if (this.historyPosition === this.recentChanges.length) {
+    const lastChange = this.undoneChanges.pop()
+    if (!lastChange) {
       session.notify('No changes to redo!', 'info')
       return
     }
-    const nextChange = this.recentChanges.at(this.historyPosition)
-    if (!nextChange) {
-      throw new Error('Error retrieving the last change')
-    }
-    this.historyPosition += 1
-    return this.redo(nextChange)
+    this.recentChanges.push(lastChange)
+    return this.redo(lastChange)
   }
 }
