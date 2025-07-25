@@ -819,18 +819,11 @@ function getContextMenuItems(
   if (!hoveredFeature) {
     return menuItems
   }
-  if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
-    const { bp, featureAndGlyphUnderMouse } = mousePosition
-    let featuresUnderClick = getRelatedFeatures(
-      featureAndGlyphUnderMouse.feature,
-      bp,
-    )
-    if (isCDSFeature(featureAndGlyphUnderMouse.feature, session)) {
-      featuresUnderClick = getRelatedFeatures(
-        featureAndGlyphUnderMouse.feature,
-        bp,
-        true,
-      )
+  if (isMousePositionWithFeature(mousePosition)) {
+    const { bp, feature } = mousePosition
+    let featuresUnderClick = getRelatedFeatures(feature, bp)
+    if (isCDSFeature(feature, session)) {
+      featuresUnderClick = getRelatedFeatures(feature, bp, true)
     }
 
     for (const feature of featuresUnderClick) {

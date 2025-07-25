@@ -6,8 +6,8 @@ import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
 import {
   type LinearApolloDisplayMouseEvents,
-  type MousePositionWithFeatureAndGlyph,
-  isMousePositionWithFeatureAndGlyph,
+  type MousePositionWithFeature,
+  isMousePositionWithFeature,
 } from '../stateModel/mouseEvents'
 import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
 
@@ -162,12 +162,9 @@ function getContextMenuItems(
     label: hoveredFeature.type,
     subMenu: sourceFeatureMenuItems,
   })
-  if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
-    const { bp, featureAndGlyphUnderMouse } = mousePosition
-    for (const relative of getRelatedFeatures(
-      featureAndGlyphUnderMouse.feature,
-      bp,
-    )) {
+  if (isMousePositionWithFeature(mousePosition)) {
+    const { bp, feature } = mousePosition
+    for (const relative of getRelatedFeatures(feature, bp)) {
       if (relative._id === hoveredFeature._id) {
         continue
       }
