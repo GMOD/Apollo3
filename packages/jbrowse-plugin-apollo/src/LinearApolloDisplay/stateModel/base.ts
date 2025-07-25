@@ -146,6 +146,10 @@ export function baseModelFactory(
         return (self.session as unknown as ApolloSessionModel)
           .apolloSelectedFeature
       },
+      get hoveredFeature(): AnnotationFeature | undefined {
+        return (self.session as unknown as ApolloSessionModel)
+          .apolloHoveredFeature
+      },
     }))
     .actions((self) => ({
       setScrollTop(scrollTop: number) {
@@ -285,6 +289,11 @@ export function baseModelFactory(
         ;(
           self.session as unknown as ApolloSessionModel
         ).apolloSetSelectedFeature(feature)
+      },
+      setHoveredFeature(feature?: AnnotationFeature) {
+        ;(
+          self.session as unknown as ApolloSessionModel
+        ).apolloSetHoveredFeature(feature)
       },
       showFeatureDetailsWidget(
         feature: AnnotationFeature,

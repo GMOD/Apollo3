@@ -3,7 +3,7 @@ import { type MenuItem } from '@jbrowse/core/ui'
 
 import {
   type LinearApolloSixFrameDisplayMouseEvents,
-  type MousePositionWithFeatureAndGlyph,
+  type MousePositionWithFeature,
 } from '../stateModel/mouseEvents'
 import { type LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
 import { type CanvasMouseEvent } from '../types'
@@ -30,25 +30,25 @@ export interface Glyph {
 
   onMouseDown(
     display: LinearApolloSixFrameDisplayMouseEvents,
-    currentMousePosition: MousePositionWithFeatureAndGlyph,
+    currentMousePosition: MousePositionWithFeature,
     event: CanvasMouseEvent,
   ): void
 
   onMouseMove(
     display: LinearApolloSixFrameDisplayMouseEvents,
-    currentMousePosition: MousePositionWithFeatureAndGlyph,
+    currentMousePosition: MousePositionWithFeature,
     event: CanvasMouseEvent,
   ): void
 
   onMouseLeave(
     display: LinearApolloSixFrameDisplayMouseEvents,
-    currentMousePosition: MousePositionWithFeatureAndGlyph,
+    currentMousePosition: MousePositionWithFeature,
     event: CanvasMouseEvent,
   ): void
 
   onMouseUp(
     display: LinearApolloSixFrameDisplayMouseEvents,
-    currentMousePosition: MousePositionWithFeatureAndGlyph,
+    currentMousePosition: MousePositionWithFeature,
     event: CanvasMouseEvent,
   ): void
 
@@ -57,7 +57,13 @@ export interface Glyph {
     context: CanvasRenderingContext2D,
   ): void
 
+  getContextMenuItemsForFeature(
+    display: LinearApolloSixFrameDisplayMouseEvents,
+    sourceFeature: AnnotationFeature,
+  ): MenuItem[]
+
   getContextMenuItems(
     display: LinearApolloSixFrameDisplayMouseEvents,
+    currentMousePosition: MousePositionWithFeature,
   ): MenuItem[]
 }

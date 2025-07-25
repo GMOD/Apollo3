@@ -95,7 +95,7 @@ export const LinearApolloSixFrameDisplay = observer(
             } else {
               const coord: [number, number] = [event.clientX, event.clientY]
               setContextCoord(coord)
-              setContextMenuItems(getContextMenuItems(coord))
+              setContextMenuItems(getContextMenuItems(event))
             }
           }}
         >

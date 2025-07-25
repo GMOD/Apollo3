@@ -2,7 +2,13 @@ import {
   type AnnotationFeature,
   type TranscriptPartCoding,
 } from '@apollo-annotation/mst'
+import { type MenuItem } from '@jbrowse/core/ui'
+import { type AbstractSessionModel } from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+
+import { type LinearApolloDisplayMouseEvents } from '../LinearApolloDisplay/stateModel/mouseEvents'
+import { type LinearApolloSixFrameDisplayMouseEvents } from '../LinearApolloSixFrameDisplay/stateModel/mouseEvents'
+import { AddChildFeature, CopyFeature, DeleteFeature } from '../components'
 
 export function getMinAndMaxPx(
   feature: AnnotationFeature | TranscriptPartCoding,
@@ -46,4 +52,124 @@ export function getOverlappingEdge(
     return { feature, edge: 'max' }
   }
   return
+}
+
+export function isSelectedFeature(
+  feature: AnnotationFeature,
+  selectedFeature: AnnotationFeature | undefined,
+) {
+  return Boolean(selectedFeature && feature._id === selectedFeature._id)
+}
+
+function makeFeatureLabel(feature: AnnotationFeature) {
+  let name: string | undefined
+  if (feature.attributes.get('gff_name')) {
+    name = feature.attributes.get('gff_name')?.join(',')
+  } else if (feature.attributes.get('gff_id')) {
+    name = feature.attributes.get('gff_id')?.join(',')
+  } else {
+    name = feature._id
+  }
+  const coords = `(${(feature.min + 1).toLocaleString('en')}..${feature.max.toLocaleString('en')})`
+  const maxLen = 60
+  if (name && name.length + coords.length > maxLen + 5) {
+    const trim = maxLen - coords.length
+    name = trim > 0 ? name.slice(0, trim) : ''
+    name = `${name}[...]`
+  }
+  return `${name} ${coords}`
+}
+
+export function getContextMenuItemsForFeature(
+  display:
+    | LinearApolloSixFrameDisplayMouseEvents
+    | LinearApolloDisplayMouseEvents,
+  sourceFeature: AnnotationFeature,
+): MenuItem[] {
+  const {
+    apolloInternetAccount: internetAccount,
+    changeManager,
+    regions,
+    selectedFeature,
+    session,
+  } = display
+  const menuItems: MenuItem[] = []
+  const role = internetAccount ? internetAccount.role : 'admin'
+  const admin = role === 'admin'
+  const readOnly = !(role && ['admin', 'user'].includes(role))
+  const [region] = regions
+  const sourceAssemblyId = display.getAssemblyId(region.assemblyName)
+  const currentAssemblyId = display.getAssemblyId(region.assemblyName)
+  menuItems.push(
+    {
+      label: makeFeatureLabel(sourceFeature),
+      type: 'subHeader',
+    },
+    {
+      label: 'Add child feature',
+      disabled: readOnly,
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            AddChildFeature,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature,
+              sourceAssemblyId,
+              internetAccount,
+            },
+          ],
+        )
+      },
+    },
+    {
+      label: 'Copy features and annotations',
+      disabled: readOnly,
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            CopyFeature,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature,
+              sourceAssemblyId: currentAssemblyId,
+            },
+          ],
+        )
+      },
+    },
+    {
+      label: 'Delete feature',
+      disabled: !admin,
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            DeleteFeature,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature,
+              sourceAssemblyId: currentAssemblyId,
+              selectedFeature,
+              setSelectedFeature: (feature?: AnnotationFeature) => {
+                display.setSelectedFeature(feature)
+              },
+            },
+          ],
+        )
+      },
+    },
+  )
+  return menuItems
 }

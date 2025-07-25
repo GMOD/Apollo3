@@ -3,7 +3,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+import {
+  type AnnotationFeature,
+  type TranscriptPartCoding,
+} from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
@@ -140,6 +143,10 @@ export function baseModelFactory(
         return (self.session as unknown as ApolloSessionModel)
           .apolloSelectedFeature
       },
+      get hoveredFeature(): AnnotationFeature | undefined {
+        return (self.session as unknown as ApolloSessionModel)
+          .apolloHoveredFeature
+      },
     }))
     .actions((self) => ({
       setScrollTop(scrollTop: number) {
@@ -248,6 +255,17 @@ export function baseModelFactory(
         ;(
           self.session as unknown as ApolloSessionModel
         ).apolloSetSelectedFeature(feature)
+      },
+      setHoveredFeature(
+        feature?: AnnotationFeature,
+        cds?: TranscriptPartCoding,
+      ) {
+        if (feature && cds) {
+          feature.setCDS(cds)
+        }
+        ;(
+          self.session as unknown as ApolloSessionModel
+        ).apolloSetHoveredFeature(feature)
       },
       showFeatureDetailsWidget(
         feature: AnnotationFeature,
