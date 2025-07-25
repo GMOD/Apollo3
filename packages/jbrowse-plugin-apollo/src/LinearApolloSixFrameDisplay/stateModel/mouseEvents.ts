@@ -15,16 +15,13 @@ import { type Instance, addDisposer, cast } from 'mobx-state-tree'
 import { type CSSProperties } from 'react'
 
 import { type Edge, getPropagatedLocationChanges } from '../../util'
-import { type Glyph } from '../glyphs/Glyph'
 import { type CanvasMouseEvent } from '../types'
 
 import { renderingModelFactory } from './rendering'
 
-export interface FeatureAndGlyphUnderMouse {
+export interface FeatureAndCDS {
   cds: TranscriptPartCoding | null
   feature: AnnotationFeature
-  topLevelFeature: AnnotationFeature
-  glyph: Glyph
 }
 
 /** extended information about the position of the mouse on the canvas, including the refName, bp, and displayedRegion number */
@@ -34,15 +31,15 @@ export interface MousePosition {
   refName: string
   bp: number
   regionNumber: number
-  featureAndGlyphUnderMouse?: FeatureAndGlyphUnderMouse
+  featureAndCDS?: FeatureAndCDS
 }
 
-export type MousePositionWithFeatureAndGlyph = Required<MousePosition>
+export type MousePositionWithFeature = Required<MousePosition>
 
-export function isMousePositionWithFeatureAndGlyph(
+export function isMousePositionWithFeature(
   mousePosition: MousePosition,
-): mousePosition is MousePositionWithFeatureAndGlyph {
-  return 'featureAndGlyphUnderMouse' in mousePosition
+): mousePosition is MousePositionWithFeature {
+  return 'featureAndCDS' in mousePosition
 }
 
 function getMousePosition(
@@ -79,7 +76,6 @@ export function mouseEventsModelIntermediateFactory(
         shrinkParent: boolean
       } | null,
       cursor: undefined as CSSProperties['cursor'] | undefined,
-      apolloHover: undefined as FeatureAndGlyphUnderMouse | undefined,
     }))
     .views((self) => ({
       getMousePosition(event: React.MouseEvent): MousePosition {
@@ -120,11 +116,9 @@ export function mouseEventsModelIntermediateFactory(
           return mousePosition
         }
         const { feature, cds } = foundFeature
-        const { topLevelFeature } = feature
-        const glyph = self.getGlyph(feature)
         return {
           ...mousePosition,
-          featureAndGlyphUnderMouse: { cds, feature, topLevelFeature, glyph },
+          featureAndCDS: { cds, feature },
         }
       },
     }))
@@ -143,9 +137,6 @@ export function mouseEventsModelIntermediateFactory(
       },
     }))
     .actions((self) => ({
-      setApolloHover(n?: (typeof self)['apolloHover']) {
-        self.apolloHover = n
-      },
       setCursor(cursor?: CSSProperties['cursor']) {
         if (self.cursor !== cursor) {
           self.cursor = cursor
@@ -172,14 +163,14 @@ export function mouseEventsModelFactory(
 
   return LinearApolloSixFrameDisplayMouseEvents.views((self) => ({
     contextMenuItems(event: React.MouseEvent<HTMLDivElement>): MenuItem[] {
-      const { apolloHover } = self
-      if (!apolloHover) {
+      const { hoveredFeature } = self
+      if (!hoveredFeature) {
         return []
       }
       const mousePosition = self.getMousePosition(event)
-      const { topLevelFeature } = apolloHover
+      const { topLevelFeature } = hoveredFeature
       const glyph = self.getGlyph(topLevelFeature)
-      if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
+      if (isMousePositionWithFeature(mousePosition)) {
         return glyph.getContextMenuItems(self, mousePosition)
       }
       return []
@@ -189,7 +180,7 @@ export function mouseEventsModelFactory(
       // explicitly pass in a feature in case it's not the same as the one in
       // mousePosition (e.g. if features are drawn overlapping).
       startDrag(
-        mousePosition: MousePositionWithFeatureAndGlyph,
+        mousePosition: MousePositionWithFeature,
         feature: AnnotationFeature,
         edge: Edge,
         shrinkParent = false,
@@ -254,12 +245,9 @@ export function mouseEventsModelFactory(
     .actions((self) => ({
       onMouseDown(event: CanvasMouseEvent) {
         const mousePosition = self.getMousePosition(event)
-        if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
-          mousePosition.featureAndGlyphUnderMouse.glyph.onMouseDown(
-            self,
-            mousePosition,
-            event,
-          )
+        if (isMousePositionWithFeature(mousePosition)) {
+          const glyph = self.getGlyph(mousePosition.featureAndCDS.feature)
+          glyph.onMouseDown(self, mousePosition, event)
         }
       },
       onMouseMove(event: CanvasMouseEvent) {
@@ -269,38 +257,29 @@ export function mouseEventsModelFactory(
           self.continueDrag(mousePosition, event)
           return
         }
-        if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
-          mousePosition.featureAndGlyphUnderMouse.glyph.onMouseMove(
-            self,
-            mousePosition,
-            event,
-          )
+        if (isMousePositionWithFeature(mousePosition)) {
+          const glyph = self.getGlyph(mousePosition.featureAndCDS.feature)
+          glyph.onMouseMove(self, mousePosition, event)
         } else {
-          self.setApolloHover()
+          self.setHoveredFeature()
           self.setCursor()
         }
       },
       onMouseLeave(event: CanvasMouseEvent) {
         self.setDragging()
-        self.setApolloHover()
+        self.setHoveredFeature()
 
         const mousePosition = self.getMousePosition(event)
-        if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
-          mousePosition.featureAndGlyphUnderMouse.glyph.onMouseLeave(
-            self,
-            mousePosition,
-            event,
-          )
+        if (isMousePositionWithFeature(mousePosition)) {
+          const glyph = self.getGlyph(mousePosition.featureAndCDS.feature)
+          glyph.onMouseLeave(self, mousePosition, event)
         }
       },
       onMouseUp(event: CanvasMouseEvent) {
         const mousePosition = self.getMousePosition(event)
-        if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
-          mousePosition.featureAndGlyphUnderMouse.glyph.onMouseUp(
-            self,
-            mousePosition,
-            event,
-          )
+        if (isMousePositionWithFeature(mousePosition)) {
+          const glyph = self.getGlyph(mousePosition.featureAndCDS.feature)
+          glyph.onMouseUp(self, mousePosition, event)
         } else {
           self.setSelectedFeature()
         }
@@ -332,11 +311,11 @@ export function mouseEventsModelFactory(
                 self.featuresHeight,
               )
 
-              const { apolloDragging, apolloHover } = self
-              if (!apolloHover) {
+              const { apolloDragging, hoveredFeature } = self
+              if (!hoveredFeature) {
                 return
               }
-              const { glyph } = apolloHover
+              const glyph = self.getGlyph(hoveredFeature)
 
               // draw mouseover hovers
               glyph.drawHover(self, ctx)

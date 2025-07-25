@@ -26,8 +26,8 @@ import { type LinearApolloSixFrameDisplay } from '../stateModel'
 import {
   type LinearApolloSixFrameDisplayMouseEvents,
   type MousePosition,
-  type MousePositionWithFeatureAndGlyph,
-  isMousePositionWithFeatureAndGlyph,
+  type MousePositionWithFeature,
+  isMousePositionWithFeature,
 } from '../stateModel/mouseEvents'
 import { type LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
 import { type CanvasMouseEvent } from '../types'
@@ -466,7 +466,7 @@ function drawHover(
   ctx: CanvasRenderingContext2D,
 ) {
   const {
-    apolloHover,
+    hoveredFeature,
     apolloRowHeight,
     filteredTranscripts,
     lgv,
@@ -474,7 +474,7 @@ function drawHover(
     session,
     showFeatureLabels,
   } = stateModel
-  if (!apolloHover) {
+  if (!hoveredFeature) {
     return
   }
   const { apolloDataStore } = session
@@ -482,17 +482,16 @@ function drawHover(
   if (!featureTypeOntology) {
     throw new Error('featureTypeOntology is undefined')
   }
-  const { feature } = apolloHover
-  if (!featureTypeOntology.isTypeOf(feature.type, 'transcript')) {
+  if (!featureTypeOntology.isTypeOf(hoveredFeature.type, 'transcript')) {
     return
   }
-  const featureID: string | undefined = feature.attributes
+  const featureID: string | undefined = hoveredFeature.attributes
     .get('gff_id')
     ?.toString()
   if (featureID && filteredTranscripts.includes(featureID)) {
     return
   }
-  const position = stateModel.getFeatureLayoutPosition(feature)
+  const position = stateModel.getFeatureLayoutPosition(hoveredFeature)
   if (!position) {
     return
   }
@@ -503,7 +502,7 @@ function drawHover(
   const rowHeight = apolloRowHeight
   const cdsHeight = rowHeight
   const featureLabelSpacer = showFeatureLabels ? 2 : 1
-  const { cdsLocations, strand } = feature
+  const { cdsLocations, strand } = hoveredFeature
   for (const cdsRow of cdsLocations) {
     let prevCDSTop = 0
     let prevCDSEndPx = 0
@@ -554,13 +553,13 @@ function drawHover(
 
 function onMouseDown(
   stateModel: LinearApolloSixFrameDisplay,
-  currentMousePosition: MousePositionWithFeatureAndGlyph,
+  currentMousePosition: MousePositionWithFeature,
   event: CanvasMouseEvent,
 ) {
-  const { featureAndGlyphUnderMouse } = currentMousePosition
+  const { featureAndCDS } = currentMousePosition
   // swallow the mouseDown if we are on the edge of the feature so that we
   // don't start dragging the view if we try to drag the feature edge
-  const { cds, feature } = featureAndGlyphUnderMouse
+  const { cds, feature } = featureAndCDS
   const draggableFeature = getDraggableFeatureInfo(
     currentMousePosition,
     cds,
@@ -582,9 +581,9 @@ function onMouseMove(
   stateModel: LinearApolloSixFrameDisplay,
   mousePosition: MousePosition,
 ) {
-  if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
-    const { featureAndGlyphUnderMouse } = mousePosition
-    stateModel.setApolloHover(featureAndGlyphUnderMouse)
+  if (isMousePositionWithFeature(mousePosition)) {
+    const { featureAndCDS } = mousePosition
+    const { cds, feature } = featureAndCDS
     const { cds, feature } = featureAndGlyphUnderMouse
     const draggableFeature = getDraggableFeatureInfo(
       mousePosition,
@@ -607,40 +606,39 @@ function onMouseUp(
   if (stateModel.apolloDragging) {
     return
   }
-  const { featureAndGlyphUnderMouse } = mousePosition
-  const { session } = stateModel
-  const { apolloDataStore } = session
-  const { featureTypeOntology } = apolloDataStore.ontologyManager
-  if (!featureAndGlyphUnderMouse) {
-    return
-  }
-  const { feature } = featureAndGlyphUnderMouse
-  stateModel.setSelectedFeature(feature)
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
-
-  let containsCDSOrExon = false
-  for (const [, child] of feature.children ?? []) {
-    if (
-      featureTypeOntology.isTypeOf(child.type, 'CDS') ||
-      featureTypeOntology.isTypeOf(child.type, 'exon')
-    ) {
-      containsCDSOrExon = true
-      break
+  if (isMousePositionWithFeature(mousePosition)) {
+    const { featureAndCDS } = mousePosition
+    const { session } = stateModel
+    const { apolloDataStore } = session
+    const { featureTypeOntology } = apolloDataStore.ontologyManager
+    const { feature } = featureAndCDS
+    stateModel.setSelectedFeature(feature)
+    if (!featureTypeOntology) {
+      throw new Error('featureTypeOntology is undefined')
     }
-  }
-  if (
-    (featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
-      featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')) &&
-    containsCDSOrExon
-  ) {
-    stateModel.showFeatureDetailsWidget(feature, [
-      'ApolloTranscriptDetails',
-      'apolloTranscriptDetails',
-    ])
-  } else {
-    stateModel.showFeatureDetailsWidget(feature)
+
+    let containsCDSOrExon = false
+    for (const [, child] of feature.children ?? []) {
+      if (
+        featureTypeOntology.isTypeOf(child.type, 'CDS') ||
+        featureTypeOntology.isTypeOf(child.type, 'exon')
+      ) {
+        containsCDSOrExon = true
+        break
+      }
+    }
+    if (
+      (featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
+        featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')) &&
+      containsCDSOrExon
+    ) {
+      stateModel.showFeatureDetailsWidget(feature, [
+        'ApolloTranscriptDetails',
+        'apolloTranscriptDetails',
+      ])
+    } else {
+      stateModel.showFeatureDetailsWidget(feature)
+    }
   }
 }
 
@@ -720,22 +718,20 @@ function drawTooltip(
   display: LinearApolloSixFrameDisplayMouseEvents,
   context: CanvasRenderingContext2D,
 ): void {
-  const { apolloHover, apolloRowHeight, filteredTranscripts, lgv, theme } =
+  const { hoveredFeature, apolloRowHeight, filteredTranscripts, lgv, theme } =
     display
-  if (!apolloHover) {
+  if (!hoveredFeature) {
     return
   }
-  const { cds, feature } = apolloHover
+  const { attributes, cds, strand, type } = hoveredFeature
   if (!cds) {
     return
   }
-  const position = display.getFeatureLayoutPosition(feature)
+  const position = display.getFeatureLayoutPosition(hoveredFeature)
   if (!position) {
     return
   }
-  const featureID: string | undefined = feature.attributes
-    .get('gff_id')
-    ?.toString()
+  const featureID: string | undefined = attributes.get('gff_id')?.toString()
   if (featureID && filteredTranscripts.includes(featureID)) {
     return
   }
@@ -747,7 +743,6 @@ function drawTooltip(
   const cdsHeight = Math.round(0.7 * rowHeight)
   let location = 'Loc: '
 
-  const { strand } = feature
   const { max, min, phase } = cds
   location += `${min + 1}–${max}`
 
@@ -763,7 +758,6 @@ function drawTooltip(
   const cdsWidthPx = (max - min) / bpPerPx
 
   const featureType = `Type: ${cds.type}`
-  const { attributes } = feature
   const featureName = attributes.get('gff_name')?.find((name) => name !== '')
   const textWidth = [
     context.measureText(featureType).width,
@@ -771,7 +765,7 @@ function drawTooltip(
   ]
   if (featureName) {
     textWidth.push(
-      context.measureText(`Parent Type: ${feature.type}`).width,
+      context.measureText(`Parent Type: ${type}`).width,
       context.measureText(`Parent Name: ${featureName}`).width,
     )
   }
@@ -795,7 +789,7 @@ function drawTooltip(
   context.fillText(featureType, startPx + 2, textTop)
   if (featureName) {
     textTop = textTop + 12
-    context.fillText(`Parent Type: ${feature.type}`, startPx + 2, textTop)
+    context.fillText(`Parent Type: ${type}`, startPx + 2, textTop)
     textTop = textTop + 12
     context.fillText(`Parent Name: ${featureName}`, startPx + 2, textTop)
   }
@@ -805,11 +799,11 @@ function drawTooltip(
 
 function getContextMenuItems(
   display: LinearApolloSixFrameDisplayMouseEvents,
-  mousePosition: MousePositionWithFeatureAndGlyph,
+  mousePosition: MousePositionWithFeature,
 ): MenuItem[] {
   const {
     apolloInternetAccount: internetAccount,
-    apolloHover,
+    hoveredFeature,
     changeManager,
     filteredTranscripts,
     regions,
@@ -821,19 +815,16 @@ function getContextMenuItems(
   const menuItems: MenuItem[] = []
   const role = internetAccount ? internetAccount.role : 'admin'
   const admin = role === 'admin'
-  if (!apolloHover) {
+  if (!hoveredFeature) {
     return menuItems
   }
   const { featureTypeOntology } = session.apolloDataStore.ontologyManager
   if (!featureTypeOntology) {
     throw new Error('featureTypeOntology is undefined')
   }
-  if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
-    const { bp, featureAndGlyphUnderMouse } = mousePosition
-    for (const feature of getRelatedFeatures(
-      featureAndGlyphUnderMouse.feature,
-      bp,
-    )) {
+  if (isMousePositionWithFeature(mousePosition)) {
+    const { bp, featureAndCDS } = mousePosition
+    for (const feature of getRelatedFeatures(featureAndCDS.feature, bp)) {
       const featureID: string | undefined = feature.attributes
         .get('gff_id')
         ?.toString()
