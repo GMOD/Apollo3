@@ -584,7 +584,7 @@ function onMouseMove(
   if (isMousePositionWithFeature(mousePosition)) {
     const { featureAndCDS } = mousePosition
     const { cds, feature } = featureAndCDS
-    const { cds, feature } = featureAndGlyphUnderMouse
+    stateModel.setHoveredFeature(feature, cds ?? undefined)
     const draggableFeature = getDraggableFeatureInfo(
       mousePosition,
       cds,
