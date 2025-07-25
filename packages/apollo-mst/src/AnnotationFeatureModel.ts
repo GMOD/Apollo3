@@ -474,5 +474,5 @@ interface TranscriptPartCodingSnapshotRaw
   extends SnapshotIn<typeof TranscriptPartCodingModel> {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface TranscriptPartCodingSnapshot
+export interface TranscriptPartCodingSnapshot
   extends TranscriptPartCodingSnapshotRaw {}
