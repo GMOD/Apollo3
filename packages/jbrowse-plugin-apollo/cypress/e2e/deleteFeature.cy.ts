@@ -85,8 +85,7 @@ describe('Delete feature', () => {
     cy.contains('Id=exon04').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
     cy.contains('button', 'Yes').click()
-    cy.annotationTrackAppearance('Show graphical display')
-    cy.annotationTrackAppearance('Show both graphical and table display')
+    cy.refreshTableEditor()
 
     cy.contains('Id=mrna02')
       .parent()
@@ -97,8 +96,7 @@ describe('Delete feature', () => {
     cy.contains('Id=exon03').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
     cy.contains('button', 'Yes').click()
-    cy.annotationTrackAppearance('Show graphical display')
-    cy.annotationTrackAppearance('Show both graphical and table display')
+    cy.refreshTableEditor()
 
     cy.contains('Id=mrna02')
       .parent()
@@ -119,8 +117,7 @@ describe('Delete feature', () => {
     cy.contains('Id=exon_region1').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
     cy.contains('button', 'Yes').click()
-    cy.annotationTrackAppearance('Show graphical display')
-    cy.annotationTrackAppearance('Show both graphical and table display')
+    cy.refreshTableEditor()
 
     cy.contains('Id=exon08')
       .parent()
@@ -132,8 +129,7 @@ describe('Delete feature', () => {
     cy.contains('Id=cds1').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
     cy.contains('button', 'Yes').click()
-    cy.annotationTrackAppearance('Show graphical display')
-    cy.annotationTrackAppearance('Show both graphical and table display')
+    cy.refreshTableEditor()
 
     cy.contains('Id=mrna02')
       .parent()
@@ -149,8 +145,7 @@ describe('Delete feature', () => {
     cy.contains('Id=exon10').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
     cy.contains('button', 'Yes').click()
-    cy.annotationTrackAppearance('Show graphical display')
-    cy.annotationTrackAppearance('Show both graphical and table display')
+    cy.refreshTableEditor()
 
     cy.contains('Id=mrna02')
       .parent()
@@ -176,8 +171,7 @@ describe('Delete feature', () => {
     cy.contains('Id=exon03').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
     cy.contains('button', 'Yes').click()
-    cy.annotationTrackAppearance('Show graphical display')
-    cy.annotationTrackAppearance('Show both graphical and table display')
+    cy.refreshTableEditor()
 
     cy.contains('Id=cds1')
       .parent()
@@ -202,8 +196,7 @@ describe('Delete feature', () => {
     cy.contains('Id=exon01').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
     cy.contains('button', 'Yes').click()
-    cy.annotationTrackAppearance('Show graphical display')
-    cy.annotationTrackAppearance('Show both graphical and table display')
+    cy.refreshTableEditor()
 
     cy.contains('Id=cds1')
       .parent()
@@ -220,8 +213,7 @@ describe('Delete feature', () => {
     // Test UNDO
     // First undo restores only the sizes
     cy.selectFromApolloMenu('Undo')
-    cy.annotationTrackAppearance('Show graphical display')
-    cy.annotationTrackAppearance('Show both graphical and table display')
+    cy.refreshTableEditor()
     cy.contains('Id=exon01').should('not.exist')
     cy.contains('Id=cds1')
       .parent()
@@ -237,8 +229,7 @@ describe('Delete feature', () => {
 
     // Second undo restores exon deletion
     cy.selectFromApolloMenu('Undo')
-    cy.annotationTrackAppearance('Show graphical display')
-    cy.annotationTrackAppearance('Show both graphical and table display')
+    cy.refreshTableEditor()
     cy.contains('Id=exon01')
 
     cy.selectFromApolloMenu('Undo')
@@ -249,14 +240,12 @@ describe('Delete feature', () => {
     cy.contains('Id=exon06').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
     cy.contains('button', 'Yes').click()
-    cy.annotationTrackAppearance('Show graphical display')
-    cy.annotationTrackAppearance('Show both graphical and table display')
+    cy.refreshTableEditor()
     cy.contains('Id=cds2').should('not.exist')
     cy.contains('Id=exon06').should('not.exist')
 
     cy.selectFromApolloMenu('Undo')
-    cy.annotationTrackAppearance('Show graphical display')
-    cy.annotationTrackAppearance('Show both graphical and table display')
+    cy.refreshTableEditor()
     cy.contains('Id=exon06')
     cy.contains('Id=cds2')
 

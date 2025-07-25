@@ -106,19 +106,25 @@ Cypress.Commands.add(
       | 'Show graphical display'
       | 'Show table display',
   ) => {
-    cy.get('[data-testid="track_menu_icon"]').click()
-    cy.contains('Appearance').trigger('mouseover')
-    cy.contains(appearance).click()
+    cy.wrap(Cypress.$('body')).within(() => {
+      // cy.wrap() makes it work inside within() scope - see
+      // https://github.com/cypress-io/cypress/issues/6666
+      cy.get('[data-testid="track_menu_icon"]').click()
+      cy.contains('Appearance').trigger('mouseover')
+      cy.contains(appearance).click()
+    })
   },
 )
 
 Cypress.Commands.add('selectFromApolloMenu', (menuItemName) => {
-  // eslint-disable-next-line cypress/no-unnecessary-waiting
-  cy.wait(1000)
-  cy.get('button[data-testid="dropDownMenuButton"]', { timeout: 10_000 })
-    .contains('Apollo')
-    .click({ force: true, timeout: 10_000 })
-  cy.contains(menuItemName, { timeout: 10_000 }).click()
+  cy.wrap(Cypress.$('body')).within(() => {
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(1000)
+    cy.get('button[data-testid="dropDownMenuButton"]', { timeout: 10_000 })
+      .contains('Apollo')
+      .click({ force: true, timeout: 10_000 })
+    cy.contains(menuItemName, { timeout: 10_000 }).click()
+  })
 })
 
 Cypress.Commands.add(
@@ -273,3 +279,9 @@ Cypress.Commands.add(
       .should('contain', 'All operations successful')
   },
 )
+
+Cypress.Commands.add('refreshTableEditor', () => {
+  // Refresh table editor by close & re-open
+  cy.annotationTrackAppearance('Show graphical display')
+  cy.annotationTrackAppearance('Show both graphical and table display')
+})
