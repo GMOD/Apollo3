@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 
-import {
-  type AnnotationFeature,
-  type TranscriptPartCoding,
-} from '@apollo-annotation/mst'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import {
@@ -22,7 +19,6 @@ import { baseModelFactory } from './base'
 export interface LayoutRow {
   rowNum: number
   feature: AnnotationFeature
-  cds: TranscriptPartCoding | null
 }
 
 export function layoutsModelFactory(
@@ -136,7 +132,7 @@ export function layoutsModelFactory(
                 featureLayout.set(rowNum, [])
               }
               const layoutRow = featureLayout.get(rowNum)
-              layoutRow?.push({ rowNum, feature, cds: null })
+              layoutRow?.push({ rowNum, feature })
               const { children } = feature
               if (!children) {
                 continue
@@ -158,7 +154,7 @@ export function layoutsModelFactory(
                           ? self.geneTrackRowNums[0]
                           : self.geneTrackRowNums[1]
                       const layoutRow = featureLayout.get(rowNum)
-                      layoutRow?.push({ rowNum, feature: exon, cds: null })
+                      layoutRow?.push({ rowNum, feature: exon })
                     }
                   }
                   for (const cdsRow of cdsLocations) {
@@ -176,7 +172,7 @@ export function layoutsModelFactory(
                         featureLayout.set(rowNum, [])
                       }
                       const layoutRow = featureLayout.get(rowNum)
-                      layoutRow?.push({ rowNum, feature: child, cds })
+                      layoutRow?.push({ rowNum, feature: child })
                     }
                   }
                 }

@@ -1,7 +1,4 @@
-import {
-  type AnnotationFeature,
-  type TranscriptPartCoding,
-} from '@apollo-annotation/mst'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
@@ -19,11 +16,6 @@ import { type CanvasMouseEvent } from '../types'
 
 import { renderingModelFactory } from './rendering'
 
-export interface FeatureAndCDS {
-  cds: TranscriptPartCoding | null
-  feature: AnnotationFeature
-}
-
 /** extended information about the position of the mouse on the canvas, including the refName, bp, and displayedRegion number */
 export interface MousePosition {
   x: number
@@ -31,7 +23,7 @@ export interface MousePosition {
   refName: string
   bp: number
   regionNumber: number
-  featureAndCDS?: FeatureAndCDS
+  feature?: AnnotationFeature
 }
 
 export type MousePositionWithFeature = Required<MousePosition>
@@ -39,7 +31,7 @@ export type MousePositionWithFeature = Required<MousePosition>
 export function isMousePositionWithFeature(
   mousePosition: MousePosition,
 ): mousePosition is MousePositionWithFeature {
-  return 'featureAndCDS' in mousePosition
+  return 'feature' in mousePosition
 }
 
 function getMousePosition(
@@ -87,6 +79,11 @@ export function mouseEventsModelIntermediateFactory(
         if (!layoutRow) {
           return mousePosition
         }
+        const { featureTypeOntology } =
+          self.session.apolloDataStore.ontologyManager
+        if (!featureTypeOntology) {
+          throw new Error('featureTypeOntology is undefined')
+        }
         let foundFeature
         if (self.geneTrackRowNums.includes(row)) {
           foundFeature = layoutRow.find(
@@ -102,23 +99,35 @@ export function mouseEventsModelIntermediateFactory(
           }
         } else {
           foundFeature = layoutRow.find((f) => {
-            const featureID = f.feature.attributes.get('gff_id')?.toString()
-            return (
-              f.cds != null &&
-              bp >= f.cds.min &&
-              bp <= f.cds.max &&
-              (featureID === undefined ||
-                !self.filteredTranscripts.includes(featureID))
+            const { feature } = f
+            const featureID = feature.attributes.get('gff_id')?.toString()
+            const isTranscript = featureTypeOntology.isTypeOf(
+              feature.type,
+              'transcript',
             )
+            if (!isTranscript) {
+              return false
+            }
+            for (const loc of feature.cdsLocations) {
+              for (const cds of loc) {
+                if (bp >= cds.min && bp <= cds.max) {
+                  return (
+                    featureID === undefined ||
+                    !self.filteredTranscripts.includes(featureID)
+                  )
+                }
+              }
+            }
+            return false
           })
         }
         if (!foundFeature) {
           return mousePosition
         }
-        const { feature, cds } = foundFeature
+        const { feature } = foundFeature
         return {
           ...mousePosition,
-          featureAndCDS: { cds, feature },
+          feature,
         }
       },
     }))
@@ -246,7 +255,7 @@ export function mouseEventsModelFactory(
       onMouseDown(event: CanvasMouseEvent) {
         const mousePosition = self.getMousePosition(event)
         if (isMousePositionWithFeature(mousePosition)) {
-          const glyph = self.getGlyph(mousePosition.featureAndCDS.feature)
+          const glyph = self.getGlyph(mousePosition.feature)
           glyph.onMouseDown(self, mousePosition, event)
         }
       },
@@ -258,7 +267,7 @@ export function mouseEventsModelFactory(
           return
         }
         if (isMousePositionWithFeature(mousePosition)) {
-          const glyph = self.getGlyph(mousePosition.featureAndCDS.feature)
+          const glyph = self.getGlyph(mousePosition.feature)
           glyph.onMouseMove(self, mousePosition, event)
         } else {
           self.setHoveredFeature()
@@ -271,14 +280,14 @@ export function mouseEventsModelFactory(
 
         const mousePosition = self.getMousePosition(event)
         if (isMousePositionWithFeature(mousePosition)) {
-          const glyph = self.getGlyph(mousePosition.featureAndCDS.feature)
+          const glyph = self.getGlyph(mousePosition.feature)
           glyph.onMouseLeave(self, mousePosition, event)
         }
       },
       onMouseUp(event: CanvasMouseEvent) {
         const mousePosition = self.getMousePosition(event)
         if (isMousePositionWithFeature(mousePosition)) {
-          const glyph = self.getGlyph(mousePosition.featureAndCDS.feature)
+          const glyph = self.getGlyph(mousePosition.feature)
           glyph.onMouseUp(self, mousePosition, event)
         } else {
           self.setSelectedFeature()

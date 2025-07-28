@@ -556,13 +556,11 @@ function onMouseDown(
   currentMousePosition: MousePositionWithFeature,
   event: CanvasMouseEvent,
 ) {
-  const { featureAndCDS } = currentMousePosition
+  const { feature } = currentMousePosition
   // swallow the mouseDown if we are on the edge of the feature so that we
   // don't start dragging the view if we try to drag the feature edge
-  const { cds, feature } = featureAndCDS
   const draggableFeature = getDraggableFeatureInfo(
     currentMousePosition,
-    cds,
     feature,
     stateModel,
   )
@@ -582,12 +580,10 @@ function onMouseMove(
   mousePosition: MousePosition,
 ) {
   if (isMousePositionWithFeature(mousePosition)) {
-    const { featureAndCDS } = mousePosition
-    const { cds, feature } = featureAndCDS
-    stateModel.setHoveredFeature(feature, cds ?? undefined)
+    const { feature } = mousePosition
+    stateModel.setHoveredFeature(feature)
     const draggableFeature = getDraggableFeatureInfo(
       mousePosition,
-      cds,
       feature,
       stateModel,
     )
@@ -607,11 +603,10 @@ function onMouseUp(
     return
   }
   if (isMousePositionWithFeature(mousePosition)) {
-    const { featureAndCDS } = mousePosition
+    const { feature } = mousePosition
     const { session } = stateModel
     const { apolloDataStore } = session
     const { featureTypeOntology } = apolloDataStore.ontologyManager
-    const { feature } = featureAndCDS
     stateModel.setSelectedFeature(feature)
     if (!featureTypeOntology) {
       throw new Error('featureTypeOntology is undefined')
@@ -644,7 +639,6 @@ function onMouseUp(
 
 function getDraggableFeatureInfo(
   mousePosition: MousePosition,
-  cds: TranscriptPartCoding | null,
   feature: AnnotationFeature,
   stateModel: LinearApolloSixFrameDisplay,
 ): { feature: AnnotationFeature; edge: 'min' | 'max' } | undefined {
@@ -655,9 +649,6 @@ function getDraggableFeatureInfo(
     throw new Error('featureTypeOntology is undefined')
   }
   const isTranscript = featureTypeOntology.isTypeOf(feature.type, 'transcript')
-  if (cds === null) {
-    return
-  }
   const featureID: string | undefined = feature.attributes
     .get('gff_id')
     ?.toString()
@@ -697,16 +688,24 @@ function getDraggableFeatureInfo(
       }
     }
     // End of special cases, let's see if we're on the edge of this CDS or exon
-    const minMax = getMinAndMaxPx(cds, refName, regionNumber, lgv)
-    if (minMax) {
-      const overlappingCDS = cdsChildren.find((child) => {
-        const [start, end] = intersection2(bp, bp + 1, child.min, child.max)
-        return start !== undefined && end !== undefined
-      })
-      if (overlappingCDS) {
-        const overlappingEdge = getOverlappingEdge(overlappingCDS, x, minMax)
-        if (overlappingEdge) {
-          return overlappingEdge
+    for (const loc of transcript.cdsLocations) {
+      for (const cds of loc) {
+        const minMax = getMinAndMaxPx(cds, refName, regionNumber, lgv)
+        if (minMax) {
+          const overlappingCDS = cdsChildren.find((child) => {
+            const [start, end] = intersection2(bp, bp + 1, child.min, child.max)
+            return start !== undefined && end !== undefined
+          })
+          if (overlappingCDS) {
+            const overlappingEdge = getOverlappingEdge(
+              overlappingCDS,
+              x,
+              minMax,
+            )
+            if (overlappingEdge) {
+              return overlappingEdge
+            }
+          }
         }
       }
     }
@@ -823,9 +822,9 @@ function getContextMenuItems(
     throw new Error('featureTypeOntology is undefined')
   }
   if (isMousePositionWithFeature(mousePosition)) {
-    const { bp, featureAndCDS } = mousePosition
-    for (const feature of getRelatedFeatures(featureAndCDS.feature, bp)) {
-      const featureID: string | undefined = feature.attributes
+    const { bp, feature } = mousePosition
+    for (const relatedFeature of getRelatedFeatures(feature, bp)) {
+      const featureID: string | undefined = relatedFeature.attributes
         .get('gff_id')
         ?.toString()
       if (featureID && filteredTranscripts.includes(featureID)) {
@@ -833,9 +832,9 @@ function getContextMenuItems(
       }
       const contextMenuItemsForFeature = getContextMenuItemsForFeature(
         display,
-        feature,
+        relatedFeature,
       )
-      if (featureTypeOntology.isTypeOf(feature.type, 'exon')) {
+      if (featureTypeOntology.isTypeOf(relatedFeature.type, 'exon')) {
         contextMenuItemsForFeature.push(
           {
             label: 'Merge exons',
@@ -850,7 +849,7 @@ function getContextMenuItems(
                       doneCallback()
                     },
                     changeManager,
-                    sourceFeature: feature,
+                    sourceFeature: relatedFeature,
                     sourceAssemblyId: currentAssemblyId,
                     selectedFeature,
                     setSelectedFeature: (feature?: AnnotationFeature) => {
@@ -874,7 +873,7 @@ function getContextMenuItems(
                       doneCallback()
                     },
                     changeManager,
-                    sourceFeature: feature,
+                    sourceFeature: relatedFeature,
                     sourceAssemblyId: currentAssemblyId,
                     selectedFeature,
                     setSelectedFeature: (feature?: AnnotationFeature) => {
@@ -887,7 +886,7 @@ function getContextMenuItems(
           },
         )
       }
-      if (featureTypeOntology.isTypeOf(feature.type, 'gene')) {
+      if (featureTypeOntology.isTypeOf(relatedFeature.type, 'gene')) {
         contextMenuItemsForFeature.push({
           label: 'Filter alternate transcripts',
           onClick: () => {
@@ -898,7 +897,7 @@ function getContextMenuItems(
                   handleClose: () => {
                     doneCallback()
                   },
-                  sourceFeature: feature,
+                  sourceFeature: relatedFeature,
                   filteredTranscripts: getSnapshot(filteredTranscripts),
                   onUpdate: (forms: string[]) => {
                     display.updateFilteredTranscripts(forms)
@@ -910,7 +909,7 @@ function getContextMenuItems(
         })
       }
       menuItems.push({
-        label: feature.type,
+        label: relatedFeature.type,
         subMenu: contextMenuItemsForFeature,
       })
     }

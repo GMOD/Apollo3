@@ -34,13 +34,6 @@ export interface TranscriptPartCoding extends TranscriptPartLocation {
   phase: 0 | 1 | 2
 }
 
-export const TranscriptPartCodingModel = types.model('TranscriptPartCoding', {
-  min: types.number,
-  max: types.number,
-  type: types.literal('CDS'),
-  phase: types.union(types.literal(0), types.literal(1), types.literal(2)),
-})
-
 export type TranscriptPart = TranscriptPartCoding | TranscriptPartNonCoding
 
 type TranscriptParts = TranscriptPart[]
@@ -81,7 +74,6 @@ export const AnnotationFeatureModel = types
      * note, dbxref, etc.
      */
     attributes: types.map(types.array(types.string)),
-    cds: types.maybe(TranscriptPartCodingModel),
   })
   .views((self) => ({
     get length() {
@@ -369,9 +361,6 @@ export const AnnotationFeatureModel = types
     setStrand(strand?: 1 | -1) {
       self.strand = strand
     },
-    setCDS(cds: TranscriptPartCodingSnapshot) {
-      self.cds = cds
-    },
     addChild(childFeature: AnnotationFeatureSnapshot) {
       if (self.children && self.children.size > 0) {
         const existingChildren = getSnapshot<
@@ -456,7 +445,7 @@ interface AnnotationFeatureRaw
 // This type isn't exactly right, since "children" is actually an IMSTMap and
 // not a Map, but it's better than typing it as any.
 export interface AnnotationFeature
-  extends Omit<AnnotationFeatureRaw, 'children' | 'cds'> {
+  extends Omit<AnnotationFeatureRaw, 'children'> {
   children?: Map<string | number, AnnotationFeature>
   cds?: TranscriptPartCoding
 }
@@ -468,11 +457,3 @@ export interface AnnotationFeatureSnapshot
   /** Child features of this feature */
   children?: Record<string, AnnotationFeatureSnapshot>
 }
-
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface TranscriptPartCodingSnapshotRaw
-  extends SnapshotIn<typeof TranscriptPartCodingModel> {}
-
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface TranscriptPartCodingSnapshot
-  extends TranscriptPartCodingSnapshotRaw {}
