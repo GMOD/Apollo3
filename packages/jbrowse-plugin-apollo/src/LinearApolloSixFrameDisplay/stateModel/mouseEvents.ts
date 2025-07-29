@@ -6,6 +6,7 @@ import {
 import type PluginManager from '@jbrowse/core/PluginManager'
 import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import { type MenuItem } from '@jbrowse/core/ui'
+import { getFrame } from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { autorun } from 'mobx'
 import { type Instance, addDisposer, cast } from 'mobx-state-tree'
@@ -110,7 +111,16 @@ export function mouseEventsModelIntermediateFactory(
             }
             for (const loc of feature.cdsLocations) {
               for (const cds of loc) {
-                if (bp >= cds.min && bp <= cds.max) {
+                let rowNum: number = getFrame(
+                  cds.min,
+                  cds.max,
+                  feature.strand ?? 1,
+                  cds.phase,
+                )
+                rowNum = self.featureLabelSpacer(
+                  rowNum < 0 ? -1 * rowNum + 5 : rowNum,
+                )
+                if (row === rowNum && bp >= cds.min && bp <= cds.max) {
                   return (
                     featureID === undefined ||
                     !self.filteredTranscripts.includes(featureID)
