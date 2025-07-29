@@ -144,13 +144,13 @@ export const ApolloTranscriptDetailsWidget = observer(
     ) as React.ElementType<CustomComponentProps>
 
     const CustomComponentInsideSequence = pluginManager.evaluateExtensionPoint(
-      'Apollo-TranscriptDetailsCustomComponent-InsideAttributes',
+      'Apollo-TranscriptDetailsCustomComponent-InsideSequence',
       NoOpCustomComponent,
       { feature, session },
     ) as React.ElementType<CustomComponentProps>
 
     const CustomComponentAfterSequence = pluginManager.evaluateExtensionPoint(
-      'Apollo-TranscriptDetailsCustomComponent-AfterAttributes',
+      'Apollo-TranscriptDetailsCustomComponent-AfterSequence',
       NoOpCustomComponent,
       { feature, session },
     ) as React.ElementType<CustomComponentProps>
