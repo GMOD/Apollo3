@@ -187,7 +187,7 @@ export function mouseEventsModelFactory(
         return []
       }
       const mousePosition = self.getMousePosition(event)
-      const { topLevelFeature } = hoveredFeature
+      const { topLevelFeature } = hoveredFeature.feature
       const glyph = self.getGlyph(topLevelFeature)
       if (isMousePositionWithFeature(mousePosition)) {
         return glyph.getContextMenuItems(self, mousePosition)
@@ -334,7 +334,7 @@ export function mouseEventsModelFactory(
               if (!hoveredFeature) {
                 return
               }
-              const glyph = self.getGlyph(hoveredFeature)
+              const glyph = self.getGlyph(hoveredFeature.feature)
 
               // draw mouseover hovers
               glyph.drawHover(self, ctx)

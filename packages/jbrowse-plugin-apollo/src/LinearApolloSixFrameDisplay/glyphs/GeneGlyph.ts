@@ -477,21 +477,22 @@ function drawHover(
   if (!hoveredFeature) {
     return
   }
+  const { feature } = hoveredFeature
   const { apolloDataStore } = session
   const { featureTypeOntology } = apolloDataStore.ontologyManager
   if (!featureTypeOntology) {
     throw new Error('featureTypeOntology is undefined')
   }
-  if (!featureTypeOntology.isTypeOf(hoveredFeature.type, 'transcript')) {
+  if (!featureTypeOntology.isTypeOf(feature.type, 'transcript')) {
     return
   }
-  const featureID: string | undefined = hoveredFeature.attributes
+  const featureID: string | undefined = feature.attributes
     .get('gff_id')
     ?.toString()
   if (featureID && filteredTranscripts.includes(featureID)) {
     return
   }
-  const position = stateModel.getFeatureLayoutPosition(hoveredFeature)
+  const position = stateModel.getFeatureLayoutPosition(feature)
   if (!position) {
     return
   }
@@ -502,7 +503,7 @@ function drawHover(
   const rowHeight = apolloRowHeight
   const cdsHeight = rowHeight
   const featureLabelSpacer = showFeatureLabels ? 2 : 1
-  const { cdsLocations, strand } = hoveredFeature
+  const { cdsLocations, strand } = feature
   for (const cdsRow of cdsLocations) {
     let prevCDSTop = 0
     let prevCDSEndPx = 0
@@ -580,8 +581,8 @@ function onMouseMove(
   mousePosition: MousePosition,
 ) {
   if (isMousePositionWithFeature(mousePosition)) {
-    const { feature } = mousePosition
-    stateModel.setHoveredFeature(feature)
+    const { feature, bp } = mousePosition
+    stateModel.setHoveredFeature({ feature, bp })
     const draggableFeature = getDraggableFeatureInfo(
       mousePosition,
       feature,
@@ -717,16 +718,28 @@ function drawTooltip(
   display: LinearApolloSixFrameDisplayMouseEvents,
   context: CanvasRenderingContext2D,
 ): void {
-  const { hoveredFeature, apolloRowHeight, filteredTranscripts, lgv, theme } =
-    display
+  const {
+    hoveredFeature,
+    apolloRowHeight,
+    filteredTranscripts,
+    lgv,
+    session,
+    theme,
+  } = display
   if (!hoveredFeature) {
     return
   }
-  const { attributes, cds, strand, type } = hoveredFeature
-  if (!cds) {
+  const { feature, bp } = hoveredFeature
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  const isTranscript = featureTypeOntology.isTypeOf(feature.type, 'transcript')
+  if (!isTranscript) {
     return
   }
-  const position = display.getFeatureLayoutPosition(hoveredFeature)
+  const { attributes, strand, type } = feature
+  const position = display.getFeatureLayoutPosition(feature)
   if (!position) {
     return
   }
@@ -741,7 +754,18 @@ function drawTooltip(
   const rowHeight = apolloRowHeight
   const cdsHeight = Math.round(0.7 * rowHeight)
   let location = 'Loc: '
-
+  let cds: TranscriptPartCoding | undefined = undefined
+  for (const loc of feature.cdsLocations) {
+    for (const cdsLoc of loc) {
+      if (bp >= cdsLoc.min && bp <= cdsLoc.max) {
+        cds = cdsLoc
+        break
+      }
+    }
+  }
+  if (!cds) {
+    return
+  }
   const { max, min, phase } = cds
   location += `${min + 1}–${max}`
 

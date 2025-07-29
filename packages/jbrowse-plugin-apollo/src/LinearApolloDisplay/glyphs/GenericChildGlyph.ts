@@ -93,7 +93,8 @@ function drawHover(
   if (!hoveredFeature) {
     return
   }
-  const position = stateModel.getFeatureLayoutPosition(hoveredFeature)
+  const { feature } = hoveredFeature
+  const position = stateModel.getFeatureLayoutPosition(feature)
   if (!position) {
     return
   }
@@ -101,7 +102,7 @@ function drawHover(
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
-  const { length, max, min } = hoveredFeature
+  const { length, max, min } = feature
   const startPx =
     (lgv.bpToPx({
       refName,
@@ -111,12 +112,7 @@ function drawHover(
   const top = (layoutRow + featureRow) * apolloRowHeight
   const widthPx = length / bpPerPx
   ctx.fillStyle = 'rgba(0,0,0,0.2)'
-  ctx.fillRect(
-    startPx,
-    top,
-    widthPx,
-    apolloRowHeight * getRowCount(hoveredFeature),
-  )
+  ctx.fillRect(startPx, top, widthPx, apolloRowHeight * getRowCount(feature))
 }
 
 function getFeatureFromLayout(
@@ -159,13 +155,13 @@ function getContextMenuItems(
     mousePosition,
   )
   menuItems.push({
-    label: hoveredFeature.type,
+    label: hoveredFeature.feature.type,
     subMenu: sourceFeatureMenuItems,
   })
   if (isMousePositionWithFeature(mousePosition)) {
     const { bp, feature } = mousePosition
     for (const relative of getRelatedFeatures(feature, bp)) {
-      if (relative._id === hoveredFeature._id) {
+      if (relative._id === hoveredFeature.feature._id) {
         continue
       }
       const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(

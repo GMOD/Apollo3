@@ -54,6 +54,11 @@ export interface Collaborator {
   locations: UserLocation[]
 }
 
+export interface HoveredFeature {
+  feature: AnnotationFeature
+  bp: number
+}
+
 export function extendSession(
   pluginManager: PluginManager,
   sessionModel: ReturnType<typeof types.model>,
@@ -72,7 +77,7 @@ export function extendSession(
       jobsManager: types.optional(ApolloJobModel, {}),
     })
     .volatile(() => ({
-      apolloHoveredFeature: undefined as AnnotationFeature | undefined,
+      apolloHoveredFeature: undefined as HoveredFeature | undefined,
     }))
     .extend(() => {
       const collabs = observable.array<Collaborator>([])
@@ -102,7 +107,7 @@ export function extendSession(
         // @ts-expect-error Not sure why TS thinks these MST types don't match
         self.apolloSelectedFeature = feature
       },
-      apolloSetHoveredFeature(feature?: AnnotationFeature) {
+      apolloSetHoveredFeature(feature?: HoveredFeature) {
         self.apolloHoveredFeature = feature
       },
       addApolloTrackConfig(assembly: AssemblyModel, baseURL?: string) {

@@ -132,7 +132,8 @@ function drawHover(
   if (!hoveredFeature) {
     return
   }
-  const position = stateModel.getFeatureLayoutPosition(hoveredFeature)
+  const { feature } = hoveredFeature
+  const position = stateModel.getFeatureLayoutPosition(feature)
   if (!position) {
     return
   }
@@ -140,7 +141,7 @@ function drawHover(
   const { layoutIndex, layoutRow } = position
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
-  const { length, max, min } = hoveredFeature
+  const { length, max, min } = feature
   const startPx =
     (lgv.bpToPx({
       refName,
@@ -161,7 +162,8 @@ function drawTooltip(
   if (!hoveredFeature) {
     return
   }
-  const position = display.getFeatureLayoutPosition(hoveredFeature)
+  const { feature } = hoveredFeature
+  const position = display.getFeatureLayoutPosition(feature)
   if (!position) {
     return
   }
@@ -172,7 +174,7 @@ function drawTooltip(
 
   let location = 'Loc: '
 
-  const { length, max, min } = hoveredFeature
+  const { length, max, min } = feature
   location += `${min + 1}–${max}`
 
   let startPx =
@@ -184,8 +186,8 @@ function drawTooltip(
   const top = (layoutRow + featureRow) * apolloRowHeight
   const widthPx = length / bpPerPx
 
-  const featureType = `Type: ${hoveredFeature.type}`
-  const { attributes } = hoveredFeature
+  const featureType = `Type: ${feature.type}`
+  const { attributes } = feature
   const featureName = attributes.get('gff_name')?.find((name) => name !== '')
   const textWidth = [
     context.measureText(featureType).width,
@@ -247,7 +249,7 @@ function getContextMenuItems(
   if (!hoveredFeature) {
     return []
   }
-  return getContextMenuItemsForFeature(display, hoveredFeature)
+  return getContextMenuItemsForFeature(display, hoveredFeature.feature)
 }
 
 function getFeatureFromLayout(
@@ -293,8 +295,8 @@ function onMouseMove(
   mousePosition: MousePosition,
 ) {
   if (isMousePositionWithFeature(mousePosition)) {
-    const { feature } = mousePosition
-    stateModel.setHoveredFeature(feature)
+    const { feature, bp } = mousePosition
+    stateModel.setHoveredFeature({ feature, bp })
     const edge = isMouseOnFeatureEdge(mousePosition, feature, stateModel)
     if (edge) {
       stateModel.setCursor('col-resize')

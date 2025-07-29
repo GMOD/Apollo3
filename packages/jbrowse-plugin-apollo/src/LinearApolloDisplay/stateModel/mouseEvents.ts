@@ -244,6 +244,7 @@ export function mouseEventsSeqHightlightModelFactory(
             if (!hoveredFeature) {
               return
             }
+            const { feature } = hoveredFeature
 
             const { featureTypeOntology } =
               session.apolloDataStore.ontologyManager
@@ -251,15 +252,15 @@ export function mouseEventsSeqHightlightModelFactory(
               throw new Error('featureTypeOntology is undefined')
             }
             for (const [idx, region] of regions.entries()) {
-              if (featureTypeOntology.isTypeOf(hoveredFeature.type, 'CDS')) {
-                const parentFeature = hoveredFeature.parent
+              if (featureTypeOntology.isTypeOf(feature.type, 'CDS')) {
+                const parentFeature = feature.parent
                 if (!parentFeature) {
                   continue
                 }
                 const cdsLocs = parentFeature.cdsLocations.find(
                   (loc) =>
-                    hoveredFeature.min === loc.at(0)?.min &&
-                    hoveredFeature.max === loc.at(-1)?.max,
+                    feature.min === loc.at(0)?.min &&
+                    feature.max === loc.at(-1)?.max,
                 )
                 if (!cdsLocs) {
                   continue
@@ -268,7 +269,7 @@ export function mouseEventsSeqHightlightModelFactory(
                   const frame = getFrame(
                     dl.min,
                     dl.max,
-                    hoveredFeature.strand ?? 1,
+                    feature.strand ?? 1,
                     dl.phase,
                   )
                   const row = getTranslationRow(frame, lgv.bpPerPx)
@@ -293,14 +294,14 @@ export function mouseEventsSeqHightlightModelFactory(
                   )
                 }
               } else {
-                const row = getSeqRow(hoveredFeature.strand, lgv.bpPerPx)
+                const row = getSeqRow(feature.strand, lgv.bpPerPx)
                 const offset =
                   (lgv.bpToPx({
                     refName: region.refName,
-                    coord: hoveredFeature.min,
+                    coord: feature.min,
                     regionNumber: idx,
                   })?.offsetPx ?? 0) - lgv.offsetPx
-                const widthPx = hoveredFeature.length / lgv.bpPerPx
+                const widthPx = feature.length / lgv.bpPerPx
                 const startPx = lgv.displayedRegions[idx].reversed
                   ? offset - widthPx
                   : offset
@@ -339,7 +340,7 @@ export function mouseEventsModelFactory(
         return []
       }
       const mousePosition = self.getMousePosition(event)
-      const { topLevelFeature } = hoveredFeature
+      const { topLevelFeature } = hoveredFeature.feature
       const glyph = self.getGlyph(topLevelFeature)
       if (isMousePositionWithFeature(mousePosition)) {
         return glyph.getContextMenuItems(self, mousePosition)
@@ -486,7 +487,7 @@ export function mouseEventsModelFactory(
               if (!hoveredFeature) {
                 return
               }
-              const glyph = self.getGlyph(hoveredFeature)
+              const glyph = self.getGlyph(hoveredFeature.feature)
 
               // draw mouseover hovers
               glyph.drawHover(self, ctx)

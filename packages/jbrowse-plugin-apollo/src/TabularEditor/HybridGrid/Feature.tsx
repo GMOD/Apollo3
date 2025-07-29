@@ -126,7 +126,7 @@ export const Feature = observer(function Feature({
     <>
       <tr
         onMouseEnter={(_e) => {
-          displayState.setHoveredFeature(feature)
+          displayState.setHoveredFeature({ feature, bp: min })
         }}
         className={
           classes.feature +
@@ -245,7 +245,8 @@ export const Feature = observer(function Feature({
               return text.includes(filterText)
             })
             .map(([featureId, childFeature]) => {
-              const childHovered = hoveredFeature?._id === childFeature._id
+              const childHovered =
+                hoveredFeature?.feature._id === childFeature._id
               const childSelected = selectedFeature?._id === childFeature._id
               return (
                 <Feature

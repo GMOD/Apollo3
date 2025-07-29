@@ -96,7 +96,7 @@ const HybridGrid = observer(function HybridGrid({
             })
             .map(([featureId, feature]) => {
               const isSelected = selectedFeature?._id === featureId
-              const isHovered = hoveredFeature?._id === featureId
+              const isHovered = hoveredFeature?.feature._id === featureId
               return (
                 <Feature
                   key={featureId}

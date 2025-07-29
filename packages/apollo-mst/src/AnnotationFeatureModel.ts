@@ -447,7 +447,6 @@ interface AnnotationFeatureRaw
 export interface AnnotationFeature
   extends Omit<AnnotationFeatureRaw, 'children'> {
   children?: Map<string | number, AnnotationFeature>
-  cds?: TranscriptPartCoding
 }
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface AnnotationFeatureSnapshotRaw

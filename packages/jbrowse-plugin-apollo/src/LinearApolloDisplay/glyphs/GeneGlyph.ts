@@ -420,7 +420,7 @@ function drawHover(
   if (!hoveredFeature) {
     return
   }
-  const position = stateModel.getFeatureLayoutPosition(hoveredFeature)
+  const position = stateModel.getFeatureLayoutPosition(hoveredFeature.feature)
   if (!position) {
     return
   }
@@ -428,7 +428,7 @@ function drawHover(
   const { featureRow, layoutIndex, layoutRow } = position
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
-  const { length, max, min } = hoveredFeature
+  const { length, max, min } = hoveredFeature.feature
   const startPx =
     (lgv.bpToPx({
       refName,
@@ -447,7 +447,7 @@ function drawHover(
     startPx,
     top,
     widthPx,
-    apolloRowHeight * getRowCount(hoveredFeature, featureTypeOntology),
+    apolloRowHeight * getRowCount(hoveredFeature.feature, featureTypeOntology),
   )
 }
 
@@ -639,8 +639,8 @@ function onMouseMove(
   mousePosition: MousePosition,
 ) {
   if (isMousePositionWithFeature(mousePosition)) {
-    const { feature } = mousePosition
-    stateModel.setHoveredFeature(feature)
+    const { feature, bp } = mousePosition
+    stateModel.setHoveredFeature({ feature, bp })
     const draggableFeature = getDraggableFeatureInfo(
       mousePosition,
       feature,
