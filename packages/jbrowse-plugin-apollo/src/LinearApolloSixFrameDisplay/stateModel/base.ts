@@ -74,7 +74,7 @@ export function baseModelFactory(
           return 500
         }
         if (self.graphical) {
-          return 200
+          return self.showFeatureLabels ? 400 : 200
         }
         return 300
       },

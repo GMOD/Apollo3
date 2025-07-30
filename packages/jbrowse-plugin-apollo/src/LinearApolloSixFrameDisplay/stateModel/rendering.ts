@@ -27,7 +27,7 @@ export function renderingModelIntermediateFactory(
       apolloRowHeight: 20,
       detailsMinHeight: 200,
       detailsHeight: 200,
-      lastRowTooltipBufferHeight: 80,
+      lastRowTooltipBufferHeight: 120,
       isShown: true,
       filteredTranscripts: types.array(types.string),
     })

@@ -726,8 +726,14 @@ function drawTooltip(
   display: LinearApolloSixFrameDisplayMouseEvents,
   context: CanvasRenderingContext2D,
 ): void {
-  const { apolloHover, apolloRowHeight, filteredTranscripts, lgv, theme } =
-    display
+  const {
+    apolloHover,
+    apolloRowHeight,
+    filteredTranscripts,
+    lgv,
+    showFeatureLabels,
+    theme,
+  } = display
   if (!apolloHover) {
     return
   }
@@ -751,6 +757,7 @@ function drawTooltip(
   const { refName, reversed } = displayedRegion
   const rowHeight = apolloRowHeight
   const cdsHeight = Math.round(0.7 * rowHeight)
+  const featureLabelSpacer = showFeatureLabels ? 2 : 1
   let location = 'Loc: '
 
   const { strand } = feature
@@ -764,8 +771,9 @@ function drawTooltip(
       regionNumber: layoutIndex,
     })?.offsetPx ?? 0) - offsetPx
   const frame = getFrame(min, max, strand ?? 1, phase)
-  const frameAdjust = frame < 0 ? -1 * frame + 5 : frame
-  const cdsTop = (frameAdjust - 1) * rowHeight + (rowHeight - cdsHeight) / 2
+  const frameAdjust = (frame < 0 ? -1 * frame + 5 : frame) * featureLabelSpacer
+  const cdsTop =
+    (frameAdjust - featureLabelSpacer) * rowHeight + (rowHeight - cdsHeight) / 2
   const cdsWidthPx = (max - min) / bpPerPx
 
   const featureType = `Type: ${cds.type}`
