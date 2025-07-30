@@ -10,3 +10,5 @@ Monorepo for Apollo3 development
 | [apollo-schemas](./packages/apollo-schemas/)                           | MongoDB schemas                                            |
 | [apollo-shared](./packages/apollo-shared/)                             | Internal code shared between server and client             |
 | [jbrowse-plugin-apollo](./packages/jbrowse-plugin-apollo/)             | Client-side code (as a JBrowse 2 plugin)                   |
+
+See [the contribution guide](./CONTRIBUTING.md) for instructions to developers.
