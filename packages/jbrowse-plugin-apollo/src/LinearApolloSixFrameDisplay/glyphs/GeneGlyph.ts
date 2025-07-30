@@ -16,19 +16,17 @@ import { getSnapshot } from 'mobx-state-tree'
 import { MergeExons, SplitExon } from '../../components'
 import { FilterTranscripts } from '../../components/FilterTranscripts'
 import {
+  type MousePosition,
+  type MousePositionWithFeature,
   getContextMenuItemsForFeature,
   getMinAndMaxPx,
   getOverlappingEdge,
   getRelatedFeatures,
+  isMousePositionWithFeature,
   isSelectedFeature,
 } from '../../util'
 import { type LinearApolloSixFrameDisplay } from '../stateModel'
-import {
-  type LinearApolloSixFrameDisplayMouseEvents,
-  type MousePosition,
-  type MousePositionWithFeature,
-  isMousePositionWithFeature,
-} from '../stateModel/mouseEvents'
+import { type LinearApolloSixFrameDisplayMouseEvents } from '../stateModel/mouseEvents'
 import { type LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
 import { type CanvasMouseEvent } from '../types'
 

@@ -2,14 +2,15 @@ import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
 import { type Theme, alpha } from '@mui/material'
 
-import { getContextMenuItemsForFeature, isSelectedFeature } from '../../util'
-import { type LinearApolloDisplay } from '../stateModel'
 import {
-  type LinearApolloDisplayMouseEvents,
   type MousePosition,
   type MousePositionWithFeature,
+  getContextMenuItemsForFeature,
   isMousePositionWithFeature,
-} from '../stateModel/mouseEvents'
+  isSelectedFeature,
+} from '../../util'
+import { type LinearApolloDisplay } from '../stateModel'
+import { type LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
 import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
 import { type CanvasMouseEvent } from '../types'
 

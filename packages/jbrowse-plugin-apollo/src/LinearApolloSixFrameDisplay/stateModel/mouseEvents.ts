@@ -7,46 +7,21 @@ import type PluginManager from '@jbrowse/core/PluginManager'
 import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import { type MenuItem } from '@jbrowse/core/ui'
 import { getFrame } from '@jbrowse/core/util'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { autorun } from 'mobx'
 import { type Instance, addDisposer, cast } from 'mobx-state-tree'
 import { type CSSProperties } from 'react'
 
-import { type Edge, getPropagatedLocationChanges } from '../../util'
+import {
+  type Edge,
+  type MousePosition,
+  type MousePositionWithFeature,
+  getMousePosition,
+  getPropagatedLocationChanges,
+  isMousePositionWithFeature,
+} from '../../util'
 import { type CanvasMouseEvent } from '../types'
 
 import { renderingModelFactory } from './rendering'
-
-/** extended information about the position of the mouse on the canvas, including the refName, bp, and displayedRegion number */
-export interface MousePosition {
-  x: number
-  y: number
-  refName: string
-  bp: number
-  regionNumber: number
-  feature?: AnnotationFeature
-}
-
-export type MousePositionWithFeature = Required<MousePosition>
-
-export function isMousePositionWithFeature(
-  mousePosition: MousePosition,
-): mousePosition is MousePositionWithFeature {
-  return 'feature' in mousePosition
-}
-
-function getMousePosition(
-  event: React.MouseEvent,
-  lgv: LinearGenomeViewModel,
-): MousePosition {
-  const canvas = event.currentTarget
-  const { clientX, clientY } = event
-  const { left, top } = canvas.getBoundingClientRect()
-  const x = clientX - left
-  const y = clientY - top
-  const { coord: bp, index: regionNumber, refName } = lgv.pxToBp(x)
-  return { x, y, refName, bp, regionNumber }
-}
 
 export function mouseEventsModelIntermediateFactory(
   pluginManager: PluginManager,
