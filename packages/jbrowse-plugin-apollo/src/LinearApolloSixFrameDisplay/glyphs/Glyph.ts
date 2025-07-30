@@ -1,10 +1,8 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
 
-import {
-  type LinearApolloSixFrameDisplayMouseEvents,
-  type MousePositionWithFeature,
-} from '../stateModel/mouseEvents'
+import { type MousePositionWithFeature } from '../../util'
+import { type LinearApolloSixFrameDisplayMouseEvents } from '../stateModel/mouseEvents'
 import { type LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
 import { type CanvasMouseEvent } from '../types'
 

@@ -1,14 +1,14 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
 
-import { isSelectedFeature } from '../../util'
-import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
-import { type LinearApolloDisplay } from '../stateModel'
 import {
-  type LinearApolloDisplayMouseEvents,
   type MousePositionWithFeature,
   isMousePositionWithFeature,
-} from '../stateModel/mouseEvents'
+  isSelectedFeature,
+} from '../../util'
+import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
+import { type LinearApolloDisplay } from '../stateModel'
+import { type LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
 import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
 
 import { boxGlyph, drawBox } from './BoxGlyph'

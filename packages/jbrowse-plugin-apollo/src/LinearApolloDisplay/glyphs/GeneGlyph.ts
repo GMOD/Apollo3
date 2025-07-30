@@ -11,15 +11,16 @@ import { alpha } from '@mui/material'
 import { type OntologyRecord } from '../../OntologyManager'
 import { MergeExons, MergeTranscripts, SplitExon } from '../../components'
 import { type ApolloSessionModel } from '../../session'
-import { getMinAndMaxPx, getOverlappingEdge } from '../../util'
-import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
-import { type LinearApolloDisplay } from '../stateModel'
 import {
-  type LinearApolloDisplayMouseEvents,
   type MousePosition,
   type MousePositionWithFeature,
+  getMinAndMaxPx,
+  getOverlappingEdge,
   isMousePositionWithFeature,
-} from '../stateModel/mouseEvents'
+} from '../../util'
+import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
+import { type LinearApolloDisplay } from '../stateModel'
+import { type LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
 import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
 import { type CanvasMouseEvent } from '../types'
 
