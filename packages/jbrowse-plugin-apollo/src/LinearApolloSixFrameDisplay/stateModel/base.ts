@@ -22,7 +22,7 @@ import { addDisposer, cast, getRoot, getSnapshot, types } from 'mobx-state-tree'
 
 import { type ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { FilterFeatures } from '../../components/FilterFeatures'
-import { type ApolloSessionModel } from '../../session'
+import { type ApolloSessionModel, type HoveredFeature } from '../../session'
 import { type ApolloRootModel } from '../../types'
 
 const minDisplayHeight = 20
@@ -140,6 +140,10 @@ export function baseModelFactory(
         return (self.session as unknown as ApolloSessionModel)
           .apolloSelectedFeature
       },
+      get hoveredFeature(): HoveredFeature | undefined {
+        return (self.session as unknown as ApolloSessionModel)
+          .apolloHoveredFeature
+      },
     }))
     .actions((self) => ({
       setScrollTop(scrollTop: number) {
@@ -248,6 +252,11 @@ export function baseModelFactory(
         ;(
           self.session as unknown as ApolloSessionModel
         ).apolloSetSelectedFeature(feature)
+      },
+      setHoveredFeature(hoveredFeature?: HoveredFeature) {
+        ;(
+          self.session as unknown as ApolloSessionModel
+        ).apolloSetHoveredFeature(hoveredFeature)
       },
       showFeatureDetailsWidget(
         feature: AnnotationFeature,

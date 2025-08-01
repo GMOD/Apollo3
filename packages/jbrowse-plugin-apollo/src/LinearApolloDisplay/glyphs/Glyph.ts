@@ -2,10 +2,8 @@ import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
 
 import { type OntologyRecord } from '../../OntologyManager'
-import {
-  type LinearApolloDisplayMouseEvents,
-  type MousePositionWithFeatureAndGlyph,
-} from '../stateModel/mouseEvents'
+import { type MousePositionWithFeature } from '../../util'
+import { type LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
 import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
 import { type CanvasMouseEvent } from '../types'
 
@@ -49,25 +47,25 @@ export interface Glyph {
 
   onMouseDown(
     display: LinearApolloDisplayMouseEvents,
-    currentMousePosition: MousePositionWithFeatureAndGlyph,
+    currentMousePosition: MousePositionWithFeature,
     event: CanvasMouseEvent,
   ): void
 
   onMouseMove(
     display: LinearApolloDisplayMouseEvents,
-    currentMousePosition: MousePositionWithFeatureAndGlyph,
+    currentMousePosition: MousePositionWithFeature,
     event: CanvasMouseEvent,
   ): void
 
   onMouseLeave(
     display: LinearApolloDisplayMouseEvents,
-    currentMousePosition: MousePositionWithFeatureAndGlyph,
+    currentMousePosition: MousePositionWithFeature,
     event: CanvasMouseEvent,
   ): void
 
   onMouseUp(
     display: LinearApolloDisplayMouseEvents,
-    currentMousePosition: MousePositionWithFeatureAndGlyph,
+    currentMousePosition: MousePositionWithFeature,
     event: CanvasMouseEvent,
   ): void
 
@@ -83,6 +81,6 @@ export interface Glyph {
 
   getContextMenuItems(
     display: LinearApolloDisplayMouseEvents,
-    currentMousePosition: MousePositionWithFeatureAndGlyph,
+    currentMousePosition: MousePositionWithFeature,
   ): MenuItem[]
 }
