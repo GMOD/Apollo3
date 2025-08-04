@@ -63,10 +63,11 @@ export function layoutsModelFactory(
         return self.seenFeatures.get(id)
       },
       getGlyph(feature: AnnotationFeature) {
-        if (feature.looksLikeGene) {
+        const { topLevelFeature } = feature
+        if (topLevelFeature.looksLikeGene) {
           return geneGlyph
         }
-        if (feature.children?.size) {
+        if (topLevelFeature.children?.size) {
           return genericChildGlyph
         }
         return boxGlyph

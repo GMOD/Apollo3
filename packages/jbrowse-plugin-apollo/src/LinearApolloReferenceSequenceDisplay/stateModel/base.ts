@@ -10,7 +10,6 @@ import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/con
 import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
 import {
   type AbstractSessionModel,
-  type SessionWithWidgets,
   getContainingView,
   getSession,
 } from '@jbrowse/core/util'
@@ -18,10 +17,9 @@ import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { autorun } from 'mobx'
-import { addDisposer, cast, getRoot, getSnapshot, types } from 'mobx-state-tree'
+import { addDisposer, getRoot, types } from 'mobx-state-tree'
 
 import { type ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
-import { FilterFeatures } from '../../components/FilterFeatures'
 import { type ApolloSessionModel, type HoveredFeature } from '../../session'
 import { type ApolloRootModel } from '../../types'
 
@@ -31,13 +29,13 @@ export function baseModelFactory(
   _pluginManager: PluginManager,
   configSchema: AnyConfigurationSchemaType,
 ) {
-  return BaseDisplay.named('BaseLinearApolloSixFrameDisplay')
+  return BaseDisplay.named('BaseLinearApolloReferenceSequenceDisplay')
     .props({
-      type: types.literal('LinearApolloSixFrameDisplay'),
+      type: types.literal('LinearApolloReferenceSequenceDisplay'),
       configuration: ConfigurationReference(configSchema),
-      graphical: true,
-      table: false,
-      showFeatureLabels: true,
+      showStartCodons: false,
+      showStopCodons: true,
+      highContrast: false,
       heightPreConfig: types.maybe(
         types.refinement(
           'displayHeight',
@@ -45,7 +43,7 @@ export function baseModelFactory(
           (n) => n >= minDisplayHeight,
         ),
       ),
-      filteredFeatureTypes: types.array(types.string),
+      sequenceRowHeight: 15,
     })
     .views((self) => {
       const { configuration, renderProps: superRenderProps } = self
@@ -59,24 +57,9 @@ export function baseModelFactory(
         },
       }
     })
-    .volatile(() => ({
-      scrollTop: 0,
-    }))
     .views((self) => ({
       get lgv() {
         return getContainingView(self) as unknown as LinearGenomeViewModel
-      },
-      get height() {
-        if (self.heightPreConfig) {
-          return self.heightPreConfig
-        }
-        if (self.graphical && self.table) {
-          return 500
-        }
-        if (self.graphical) {
-          return self.showFeatureLabels ? 400 : 200
-        }
-        return 300
       },
     }))
     .views((self) => ({
@@ -98,8 +81,8 @@ export function baseModelFactory(
         return regions
       },
       regionCannotBeRendered(/* region */) {
-        if (self.lgv && self.lgv.bpPerPx >= 200) {
-          return 'Zoom in to see annotations'
+        if (self.lgv && self.lgv.bpPerPx >= 3) {
+          return 'Zoom in to see sequence'
         }
         return
       },
@@ -144,6 +127,15 @@ export function baseModelFactory(
         return (self.session as unknown as ApolloSessionModel)
           .apolloHoveredFeature
       },
+      get height() {
+        const { sequenceRowHeight } = self
+        return self.lgv.bpPerPx <= 1
+          ? sequenceRowHeight * 8
+          : sequenceRowHeight * 6
+      },
+    }))
+    .volatile(() => ({
+      scrollTop: 0,
     }))
     .actions((self) => ({
       setScrollTop(scrollTop: number) {
@@ -158,30 +150,21 @@ export function baseModelFactory(
         const newHeight = this.setHeight(self.height + distance)
         return newHeight - oldHeight
       },
-      showGraphicalOnly() {
-        self.graphical = true
-        self.table = false
+      toggleShowStartCodons() {
+        self.showStartCodons = !self.showStartCodons
       },
-      showTableOnly() {
-        self.graphical = false
-        self.table = true
+      toggleShowStopCodons() {
+        self.showStopCodons = !self.showStopCodons
       },
-      showGraphicalAndTable() {
-        self.graphical = true
-        self.table = true
-      },
-      toggleShowFeatureLabels() {
-        self.showFeatureLabels = !self.showFeatureLabels
-      },
-      updateFilteredFeatureTypes(types: string[]) {
-        self.filteredFeatureTypes = cast(types)
+      toggleHighContrast() {
+        self.highContrast = !self.highContrast
       },
     }))
     .views((self) => {
-      const { filteredFeatureTypes, trackMenuItems: superTrackMenuItems } = self
+      const { trackMenuItems: superTrackMenuItems } = self
       return {
         trackMenuItems() {
-          const { graphical, table, showFeatureLabels } = self
+          const { showStartCodons, showStopCodons, highContrast } = self
           return [
             ...superTrackMenuItems(),
             {
@@ -189,103 +172,36 @@ export function baseModelFactory(
               label: 'Appearance',
               subMenu: [
                 {
-                  label: 'Show graphical display',
-                  type: 'radio',
-                  checked: graphical && !table,
-                  onClick: () => {
-                    self.showGraphicalOnly()
-                  },
-                },
-                {
-                  label: 'Show table display',
-                  type: 'radio',
-                  checked: table && !graphical,
-                  onClick: () => {
-                    self.showTableOnly()
-                  },
-                },
-                {
-                  label: 'Show both graphical and table display',
-                  type: 'radio',
-                  checked: table && graphical,
-                  onClick: () => {
-                    self.showGraphicalAndTable()
-                  },
-                },
-                {
-                  label: 'Feature Labels',
+                  label: 'Show start codons',
                   type: 'checkbox',
-                  checked: showFeatureLabels,
+                  checked: showStartCodons,
                   onClick: () => {
-                    self.toggleShowFeatureLabels()
+                    self.toggleShowStartCodons()
+                  },
+                },
+                {
+                  label: 'Show stop codons',
+                  type: 'checkbox',
+                  checked: showStopCodons,
+                  onClick: () => {
+                    self.toggleShowStopCodons()
+                  },
+                },
+                {
+                  label: 'Use high contrast colors',
+                  type: 'checkbox',
+                  checked: highContrast,
+                  onClick: () => {
+                    self.toggleHighContrast()
                   },
                 },
               ],
-            },
-            {
-              label: 'Filter features by type',
-              onClick: () => {
-                const session = self.session as unknown as ApolloSessionModel
-                ;(self.session as unknown as AbstractSessionModel).queueDialog(
-                  (doneCallback) => [
-                    FilterFeatures,
-                    {
-                      session,
-                      handleClose: () => {
-                        doneCallback()
-                      },
-                      featureTypes: getSnapshot(filteredFeatureTypes),
-                      onUpdate: (types: string[]) => {
-                        self.updateFilteredFeatureTypes(types)
-                      },
-                    },
-                  ],
-                )
-              },
             },
           ]
         },
       }
     })
     .actions((self) => ({
-      setSelectedFeature(feature?: AnnotationFeature) {
-        ;(
-          self.session as unknown as ApolloSessionModel
-        ).apolloSetSelectedFeature(feature)
-      },
-      setHoveredFeature(hoveredFeature?: HoveredFeature) {
-        ;(
-          self.session as unknown as ApolloSessionModel
-        ).apolloSetHoveredFeature(hoveredFeature)
-      },
-      showFeatureDetailsWidget(
-        feature: AnnotationFeature,
-        customWidgetNameAndId?: [string, string],
-      ) {
-        const [region] = self.regions
-        const { assemblyName, refName } = region
-        const assembly = self.getAssemblyId(assemblyName)
-        if (!assembly) {
-          return
-        }
-        const { session } = self
-        const { changeManager } = session.apolloDataStore
-        const [widgetName, widgetId] = customWidgetNameAndId ?? [
-          'ApolloFeatureDetailsWidget',
-          'apolloFeatureDetailsWidget',
-        ]
-        const apolloFeatureWidget = (
-          session as unknown as SessionWithWidgets
-        ).addWidget(widgetName, widgetId, {
-          feature,
-          assembly,
-          refName,
-          changeManager,
-        })
-        ;(session as unknown as SessionWithWidgets).showWidget(
-          apolloFeatureWidget,
-        )
-      },
       afterAttach() {
         addDisposer(
           self,
@@ -294,16 +210,16 @@ export function baseModelFactory(
               if (!self.lgv.initialized || self.regionCannotBeRendered()) {
                 return
               }
-              void (
-                self.session as unknown as ApolloSessionModel
-              ).apolloDataStore.loadFeatures(self.regions)
               if (self.lgv.bpPerPx <= 3) {
                 void (
                   self.session as unknown as ApolloSessionModel
                 ).apolloDataStore.loadRefSeq(self.regions)
               }
             },
-            { name: 'LinearApolloSixFrameDisplayLoadFeatures', delay: 1000 },
+            {
+              name: 'LinearApolloReferenceSequenceDisplayLoadFeatures',
+              delay: 1000,
+            },
           ),
         )
       },

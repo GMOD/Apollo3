@@ -127,7 +127,7 @@ export function readAnnotationFeatureSnapshot(
   return JSON.parse(lines) as AnnotationFeatureSnapshot
 }
 
-const [ex1, ex2, ex3, ex4] = readFeatureFile(
+const [ex1, , ex2, , ex3, , ex4] = readFeatureFile(
   'test_data/gene_representations.gff3',
 )
 

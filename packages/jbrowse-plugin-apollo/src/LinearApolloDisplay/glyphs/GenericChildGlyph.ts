@@ -1,16 +1,17 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
 
+import {
+  type MousePositionWithFeature,
+  isMousePositionWithFeature,
+  isSelectedFeature,
+} from '../../util'
 import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
-import {
-  type LinearApolloDisplayMouseEvents,
-  type MousePositionWithFeatureAndGlyph,
-  isMousePositionWithFeatureAndGlyph,
-} from '../stateModel/mouseEvents'
+import { type LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
 import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
 
-import { boxGlyph, drawBox, isSelectedFeature } from './BoxGlyph'
+import { boxGlyph, drawBox } from './BoxGlyph'
 import { type Glyph } from './Glyph'
 
 function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
@@ -60,7 +61,7 @@ function drawFeature(
   stateModel: LinearApolloDisplayRendering,
   displayedRegionIndex: number,
 ) {
-  const { apolloRowHeight: heightPx, lgv, session } = stateModel
+  const { apolloRowHeight: heightPx, lgv, selectedFeature } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const minX =
@@ -70,12 +71,11 @@ function drawFeature(
       regionNumber: displayedRegionIndex,
     })?.offsetPx ?? 0) - offsetPx
   const { reversed } = displayedRegion
-  const { apolloSelectedFeature } = session
   const widthPx = feature.length / bpPerPx
   const startPx = reversed ? minX - widthPx : minX
   const top = row * heightPx
   const rowCount = getRowCount(feature)
-  const isSelected = isSelectedFeature(feature, apolloSelectedFeature)
+  const isSelected = isSelectedFeature(feature, selectedFeature)
   const groupingColor = isSelected ? 'rgba(130,0,0,0.45)' : 'rgba(255,0,0,0.25)'
   if (rowCount > 1) {
     // draw background that encapsulates all child features
@@ -89,11 +89,11 @@ function drawHover(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
-  const { apolloHover, apolloRowHeight, lgv } = stateModel
-  if (!apolloHover) {
+  const { hoveredFeature, apolloRowHeight, lgv } = stateModel
+  if (!hoveredFeature) {
     return
   }
-  const { feature } = apolloHover
+  const { feature } = hoveredFeature
   const position = stateModel.getFeatureLayoutPosition(feature)
   if (!position) {
     return
@@ -139,14 +139,13 @@ function getRowForFeature(
 
 function getContextMenuItems(
   display: LinearApolloDisplayMouseEvents,
-  mousePosition: MousePositionWithFeatureAndGlyph,
+  mousePosition: MousePositionWithFeature,
 ): MenuItem[] {
-  const { apolloHover, session } = display
+  const { hoveredFeature, session } = display
   const menuItems: MenuItem[] = []
-  if (!apolloHover) {
+  if (!hoveredFeature) {
     return menuItems
   }
-  const { feature: sourceFeature } = apolloHover
   const { featureTypeOntology } = session.apolloDataStore.ontologyManager
   if (!featureTypeOntology) {
     throw new Error('featureTypeOntology is undefined')
@@ -156,16 +155,13 @@ function getContextMenuItems(
     mousePosition,
   )
   menuItems.push({
-    label: sourceFeature.type,
+    label: hoveredFeature.feature.type,
     subMenu: sourceFeatureMenuItems,
   })
-  if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
-    const { bp, featureAndGlyphUnderMouse } = mousePosition
-    for (const relative of getRelatedFeatures(
-      featureAndGlyphUnderMouse.feature,
-      bp,
-    )) {
-      if (relative._id === sourceFeature._id) {
+  if (isMousePositionWithFeature(mousePosition)) {
+    const { bp, feature } = mousePosition
+    for (const relative of getRelatedFeatures(feature, bp)) {
+      if (relative._id === hoveredFeature.feature._id) {
         continue
       }
       const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(

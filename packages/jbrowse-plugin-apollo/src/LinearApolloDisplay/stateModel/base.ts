@@ -22,7 +22,7 @@ import { addDisposer, cast, getRoot, getSnapshot, types } from 'mobx-state-tree'
 
 import { type ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { FilterFeatures } from '../../components/FilterFeatures'
-import { type ApolloSessionModel } from '../../session'
+import { type ApolloSessionModel, type HoveredFeature } from '../../session'
 import { type ApolloRootModel } from '../../types'
 
 const minDisplayHeight = 20
@@ -37,9 +37,6 @@ export function baseModelFactory(
       configuration: ConfigurationReference(configSchema),
       graphical: true,
       table: false,
-      showStartCodons: false,
-      showStopCodons: true,
-      highContrast: false,
       heightPreConfig: types.maybe(
         types.refinement(
           'displayHeight',
@@ -74,12 +71,12 @@ export function baseModelFactory(
           return self.heightPreConfig
         }
         if (self.graphical && self.table) {
-          return 500
+          return 400
         }
         if (self.graphical) {
-          return 200
+          return 100
         }
-        return 300
+        return 200
       },
       get loading() {
         return self.loadingState
@@ -146,6 +143,10 @@ export function baseModelFactory(
         return (self.session as unknown as ApolloSessionModel)
           .apolloSelectedFeature
       },
+      get hoveredFeature(): HoveredFeature | undefined {
+        return (self.session as unknown as ApolloSessionModel)
+          .apolloHoveredFeature
+      },
     }))
     .actions((self) => ({
       setScrollTop(scrollTop: number) {
@@ -172,15 +173,6 @@ export function baseModelFactory(
         self.graphical = true
         self.table = true
       },
-      toggleShowStartCodons() {
-        self.showStartCodons = !self.showStartCodons
-      },
-      toggleShowStopCodons() {
-        self.showStopCodons = !self.showStopCodons
-      },
-      toggleHighContrast() {
-        self.highContrast = !self.highContrast
-      },
       updateFilteredFeatureTypes(types: string[]) {
         self.filteredFeatureTypes = cast(types)
       },
@@ -192,13 +184,7 @@ export function baseModelFactory(
       const { filteredFeatureTypes, trackMenuItems: superTrackMenuItems } = self
       return {
         trackMenuItems() {
-          const {
-            graphical,
-            table,
-            showStartCodons,
-            showStopCodons,
-            highContrast,
-          } = self
+          const { graphical, table } = self
           return [
             ...superTrackMenuItems(),
             {
@@ -227,30 +213,6 @@ export function baseModelFactory(
                   checked: table && graphical,
                   onClick: () => {
                     self.showGraphicalAndTable()
-                  },
-                },
-                {
-                  label: 'Show start codons',
-                  type: 'checkbox',
-                  checked: showStartCodons,
-                  onClick: () => {
-                    self.toggleShowStartCodons()
-                  },
-                },
-                {
-                  label: 'Show stop codons',
-                  type: 'checkbox',
-                  checked: showStopCodons,
-                  onClick: () => {
-                    self.toggleShowStopCodons()
-                  },
-                },
-                {
-                  label: 'Use high contrast colors',
-                  type: 'checkbox',
-                  checked: highContrast,
-                  onClick: () => {
-                    self.toggleHighContrast()
                   },
                 },
               ],
@@ -285,6 +247,11 @@ export function baseModelFactory(
         ;(
           self.session as unknown as ApolloSessionModel
         ).apolloSetSelectedFeature(feature)
+      },
+      setHoveredFeature(hoveredFeature?: HoveredFeature) {
+        ;(
+          self.session as unknown as ApolloSessionModel
+        ).apolloSetHoveredFeature(hoveredFeature)
       },
       showFeatureDetailsWidget(
         feature: AnnotationFeature,
@@ -332,11 +299,6 @@ export function baseModelFactory(
                     self.setLoading(false)
                   }, 1000)
                 })
-              if (self.lgv.bpPerPx <= 3) {
-                void (
-                  self.session as unknown as ApolloSessionModel
-                ).apolloDataStore.loadRefSeq(self.regions)
-              }
             },
             { name: 'LinearApolloDisplayLoadFeatures', delay: 1000 },
           ),
