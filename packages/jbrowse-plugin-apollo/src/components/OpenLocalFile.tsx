@@ -87,6 +87,13 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
       return
     }
 
+    const fileMetadata: { file?: string } = {}
+    if (isElectron) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const { webUtils } = globalThis.require('electron')
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      fileMetadata.file = webUtils.getPathForFile(file) as string
+    }
     const assemblyConfig = {
       name: assemblyId,
       aliases: [assemblyName],
@@ -95,12 +102,7 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
         trackId: `sequenceConfigId-${assemblyName}`,
         type: 'ReferenceSequenceTrack',
         adapter: { type: 'ApolloSequenceAdapter', assemblyId },
-        metadata: {
-          apollo: true,
-          ...(isElectron
-            ? { file: (file as File & { path: string }).path }
-            : {}),
-        },
+        metadata: { apollo: true, ...fileMetadata },
       },
     }
 
