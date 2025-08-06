@@ -14,7 +14,7 @@
       "max": 1012,
       "strand": 1,
       "attributes": {
-        "gff_id": ["tfbs10001"]
+        "gff_id": ["tfbs00001"]
       }
     },
     "66e049f17b9cedae9ad890fb": {
@@ -33,7 +33,7 @@
           "max": 1499,
           "strand": 1,
           "attributes": {
-            "gff_id": ["exon10002"]
+            "gff_id": ["exon00002"]
           }
         },
         "66e049f17b9cedae9ad890f7": {
@@ -44,7 +44,7 @@
           "max": 3902,
           "strand": 1,
           "attributes": {
-            "gff_id": ["exon10003"]
+            "gff_id": ["exon00003"]
           }
         },
         "66e049f17b9cedae9ad890f8": {
@@ -55,7 +55,7 @@
           "max": 5500,
           "strand": 1,
           "attributes": {
-            "gff_id": ["exon10004"]
+            "gff_id": ["exon00004"]
           }
         },
         "66e049f17b9cedae9ad890f9": {
@@ -66,7 +66,7 @@
           "max": 9000,
           "strand": 1,
           "attributes": {
-            "gff_id": ["exon10005"]
+            "gff_id": ["exon00005"]
           }
         },
         "66e049f17b9cedae9ad890fa": {
@@ -77,13 +77,13 @@
           "max": 7600,
           "strand": 1,
           "attributes": {
-            "gff_id": ["cds10001"],
+            "gff_id": ["cds00001"],
             "gff_name": ["edenprotein.1"]
           }
         }
       },
       "attributes": {
-        "gff_id": ["mRNA10001"],
+        "gff_id": ["mRNA00001"],
         "gff_name": ["EDEN.1"]
       }
     },
@@ -103,7 +103,7 @@
           "max": 1499,
           "strand": 1,
           "attributes": {
-            "gff_id": ["exon10002"]
+            "gff_id": ["exon00002"]
           }
         },
         "66e049f17b9cedae9ad890fd": {
@@ -114,7 +114,7 @@
           "max": 5500,
           "strand": 1,
           "attributes": {
-            "gff_id": ["exon10004"]
+            "gff_id": ["exon00004"]
           }
         },
         "66e049f17b9cedae9ad890fe": {
@@ -125,7 +125,7 @@
           "max": 9000,
           "strand": 1,
           "attributes": {
-            "gff_id": ["exon10005"]
+            "gff_id": ["exon00005"]
           }
         },
         "66e049f17b9cedae9ad890ff": {
@@ -136,13 +136,13 @@
           "max": 7600,
           "strand": 1,
           "attributes": {
-            "gff_id": ["cds10002"],
+            "gff_id": ["cds00002"],
             "gff_name": ["edenprotein.2"]
           }
         }
       },
       "attributes": {
-        "gff_id": ["mRNA10002"],
+        "gff_id": ["mRNA00002"],
         "gff_name": ["EDEN.2"]
       }
     },
@@ -162,7 +162,7 @@
           "max": 1499,
           "strand": 1,
           "attributes": {
-            "gff_id": ["exon10001"]
+            "gff_id": ["exon00001"]
           }
         },
         "66e049f17b9cedae9ad89102": {
@@ -173,7 +173,7 @@
           "max": 3902,
           "strand": 1,
           "attributes": {
-            "gff_id": ["exon10003"]
+            "gff_id": ["exon00003"]
           }
         },
         "66e049f17b9cedae9ad89103": {
@@ -184,7 +184,7 @@
           "max": 5500,
           "strand": 1,
           "attributes": {
-            "gff_id": ["exon10004"]
+            "gff_id": ["exon00004"]
           }
         },
         "66e049f17b9cedae9ad89104": {
@@ -195,7 +195,7 @@
           "max": 9000,
           "strand": 1,
           "attributes": {
-            "gff_id": ["exon10005"]
+            "gff_id": ["exon00005"]
           }
         },
         "66e049f17b9cedae9ad89105": {
@@ -206,7 +206,7 @@
           "max": 7600,
           "strand": 1,
           "attributes": {
-            "gff_id": ["cds10003"],
+            "gff_id": ["cds00003"],
             "gff_name": ["edenprotein.3"]
           }
         },
@@ -218,19 +218,19 @@
           "max": 7600,
           "strand": 1,
           "attributes": {
-            "gff_id": ["cds10004"],
+            "gff_id": ["cds00004"],
             "gff_name": ["edenprotein.4"]
           }
         }
       },
       "attributes": {
-        "gff_id": ["mRNA10003"],
+        "gff_id": ["mRNA00003"],
         "gff_name": ["EDEN.3"]
       }
     }
   },
   "attributes": {
-    "gff_id": ["gene10001"],
+    "gff_id": ["gene00001"],
     "gff_name": ["EDEN"]
   }
 }

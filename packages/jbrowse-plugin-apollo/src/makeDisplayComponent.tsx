@@ -19,7 +19,6 @@ const accordionControlHeight = 12
 const useStyles = makeStyles()((theme) => ({
   shading: {
     background: alpha(theme.palette.primary.main, 0.2),
-    overflowY: 'scroll',
     overflowX: 'hidden',
   },
   details: {

@@ -141,6 +141,7 @@ export class JBrowseService {
           ids[refSeq.name] = (refSeq._id as Types.ObjectId).toHexString()
         })
         this.logger.debug(`generating assembly ${assemblyId}`)
+        const trackId = `sequenceConfigId-${assembly.name}`
         return {
           name: assemblyId,
           aliases:
@@ -149,7 +150,7 @@ export class JBrowseService {
               : [assembly.name],
           displayName: assembly.displayName || assembly.name,
           sequence: {
-            trackId: `sequenceConfigId-${assembly.name}`,
+            trackId,
             type: 'ReferenceSequenceTrack',
             adapter: {
               type: 'ApolloSequenceAdapter',
@@ -159,6 +160,12 @@ export class JBrowseService {
                 locationType: 'UriLocation',
               },
             },
+            displays: [
+              {
+                type: 'LinearApolloReferenceSequenceDisplay',
+                displayId: `${trackId}-LinearApolloReferenceSequenceDisplay`,
+              },
+            ],
             metadata: {
               apollo: true,
               internetAccountConfigId: this.internetAccountId,

@@ -84,14 +84,6 @@ function makeContextMenuItems(
   )
 }
 
-function getTopLevelFeature(feature: AnnotationFeature): AnnotationFeature {
-  let cur = feature
-  while (cur.parent) {
-    cur = cur.parent
-  }
-  return cur
-}
-
 export const Feature = observer(function Feature({
   depth,
   feature,
@@ -111,8 +103,8 @@ export const Feature = observer(function Feature({
 }) {
   const { classes } = useStyles()
   const {
-    apolloHover,
     changeManager,
+    hoveredFeature,
     selectedFeature,
     session,
     tabularEditor: tabularEditorState,
@@ -134,12 +126,7 @@ export const Feature = observer(function Feature({
     <>
       <tr
         onMouseEnter={(_e) => {
-          displayState.setApolloHover({
-            feature,
-            topLevelFeature: getTopLevelFeature(feature),
-            // @ts-expect-error TODO fix in future when moving hover logic to session.
-            glyph: displayState.getGlyph(getTopLevelFeature(feature)),
-          })
+          displayState.setHoveredFeature({ feature, bp: min })
         }}
         className={
           classes.feature +
@@ -258,7 +245,8 @@ export const Feature = observer(function Feature({
               return text.includes(filterText)
             })
             .map(([featureId, childFeature]) => {
-              const childHovered = apolloHover?.feature._id === childFeature._id
+              const childHovered =
+                hoveredFeature?.feature._id === childFeature._id
               const childSelected = selectedFeature?._id === childFeature._id
               return (
                 <Feature
