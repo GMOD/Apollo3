@@ -10,7 +10,7 @@ import { type ApolloSessionModel } from '../../session'
 
 import { layoutsModelFactory } from './layouts'
 
-export function renderingModelIntermediateFactory(
+export function renderingModelFactory(
   pluginManager: PluginManager,
   configSchema: AnyConfigurationSchemaType,
 ) {
@@ -23,7 +23,6 @@ export function renderingModelIntermediateFactory(
     'LinearApolloSixFrameDisplayRendering',
   )
     .props({
-      sequenceRowHeight: 15,
       apolloRowHeight: 20,
       detailsMinHeight: 200,
       detailsHeight: 200,
@@ -70,6 +69,8 @@ export function renderingModelIntermediateFactory(
       setTheme(theme: Theme) {
         self.theme = theme
       },
+    }))
+    .actions((self) => ({
       afterAttach() {
         addDisposer(
           self,
@@ -130,69 +131,56 @@ export function renderingModelIntermediateFactory(
             { name: 'LinearApolloSixFrameDisplayRenderCollaborators' },
           ),
         )
+        addDisposer(
+          self,
+          autorun(
+            () => {
+              const { canvas, featureLayouts, featuresHeight, lgv } = self
+              if (!lgv.initialized || self.regionCannotBeRendered()) {
+                return
+              }
+              const { displayedRegions, dynamicBlocks } = lgv
+
+              const ctx = canvas?.getContext('2d')
+              if (!ctx) {
+                return
+              }
+              ctx.clearRect(0, 0, dynamicBlocks.totalWidthPx, featuresHeight)
+              for (const [idx, featureLayout] of featureLayouts.entries()) {
+                const displayedRegion = displayedRegions[idx]
+                for (const [row, featureLayoutRow] of featureLayout.entries()) {
+                  for (const { feature } of featureLayoutRow) {
+                    if (!feature.looksLikeGene) {
+                      continue
+                    }
+                    if (
+                      !doesIntersect2(
+                        displayedRegion.start,
+                        displayedRegion.end,
+                        feature.min,
+                        feature.max,
+                      )
+                    ) {
+                      continue
+                    }
+                    const { topLevelFeature } = feature
+                    const glyph = self.getGlyph(topLevelFeature)
+                    if (glyph !== undefined) {
+                      glyph.draw(ctx, topLevelFeature, row, self, idx)
+                    }
+                  }
+                }
+              }
+            },
+            { name: 'LinearApolloSixFrameDisplayRenderFeatures' },
+          ),
+        )
       },
     }))
 }
 
-export function renderingModelFactory(
-  pluginManager: PluginManager,
-  configSchema: AnyConfigurationSchemaType,
-) {
-  const LinearApolloSixFrameDisplayRendering =
-    renderingModelIntermediateFactory(pluginManager, configSchema)
-
-  return LinearApolloSixFrameDisplayRendering.actions((self) => ({
-    afterAttach() {
-      addDisposer(
-        self,
-        autorun(
-          () => {
-            const { canvas, featureLayouts, featuresHeight, lgv } = self
-            if (!lgv.initialized || self.regionCannotBeRendered()) {
-              return
-            }
-            const { displayedRegions, dynamicBlocks } = lgv
-
-            const ctx = canvas?.getContext('2d')
-            if (!ctx) {
-              return
-            }
-            ctx.clearRect(0, 0, dynamicBlocks.totalWidthPx, featuresHeight)
-            for (const [idx, featureLayout] of featureLayouts.entries()) {
-              const displayedRegion = displayedRegions[idx]
-              for (const [row, featureLayoutRow] of featureLayout.entries()) {
-                for (const { feature } of featureLayoutRow) {
-                  if (!feature.looksLikeGene) {
-                    continue
-                  }
-                  if (
-                    !doesIntersect2(
-                      displayedRegion.start,
-                      displayedRegion.end,
-                      feature.min,
-                      feature.max,
-                    )
-                  ) {
-                    continue
-                  }
-                  const { topLevelFeature } = feature
-                  const glyph = self.getGlyph(topLevelFeature)
-                  if (glyph !== undefined) {
-                    glyph.draw(ctx, topLevelFeature, row, self, idx)
-                  }
-                }
-              }
-            }
-          },
-          { name: 'LinearApolloSixFrameDisplayRenderFeatures' },
-        ),
-      )
-    },
-  }))
-}
-
 export type LinearApolloSixFrameDisplayRenderingModel = ReturnType<
-  typeof renderingModelIntermediateFactory
+  typeof renderingModelFactory
 >
 // eslint disable because of
 // https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time

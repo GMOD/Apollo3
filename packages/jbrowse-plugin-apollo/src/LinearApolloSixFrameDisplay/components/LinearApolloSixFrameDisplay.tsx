@@ -32,6 +32,10 @@ const useStyles = makeStyles()((theme) => ({
     position: 'absolute',
     left: 0,
   },
+  center: {
+    display: 'flex',
+    justifyContent: 'center',
+  },
   ellipses: {
     textOverflow: 'ellipsis',
     overflow: 'hidden',
@@ -100,7 +104,11 @@ export const LinearApolloSixFrameDisplay = observer(
           }}
         >
           {message ? (
-            <Alert severity="warning" classes={{ message: classes.ellipses }}>
+            <Alert
+              severity="warning"
+              classes={{ message: classes.ellipses }}
+              slotProps={{ root: { className: classes.center } }}
+            >
               <Tooltip title={message}>
                 <div>{message}</div>
               </Tooltip>
