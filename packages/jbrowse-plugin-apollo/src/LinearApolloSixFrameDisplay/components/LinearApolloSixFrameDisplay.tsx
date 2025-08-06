@@ -65,6 +65,7 @@ export const LinearApolloSixFrameDisplay = observer(
       setCollaboratorCanvas,
       setOverlayCanvas,
       setTheme,
+      showCheckResults,
     } = model
     const { classes } = useStyles()
     const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
@@ -153,46 +154,49 @@ export const LinearApolloSixFrameDisplay = observer(
               />
               {lgv.displayedRegions.flatMap((region, idx) => {
                 const assembly = assemblyManager.get(region.assemblyName)
-                return [...session.apolloDataStore.checkResults.values()]
-                  .filter(
-                    (checkResult) =>
-                      assembly?.isValidRefName(checkResult.refSeq) &&
-                      assembly.getCanonicalRefName(checkResult.refSeq) ===
-                        region.refName &&
-                      doesIntersect2(
-                        region.start,
-                        region.end,
-                        checkResult.start,
-                        checkResult.end,
-                      ),
-                  )
-                  .map((checkResult) => {
-                    const left =
-                      (lgv.bpToPx({
-                        refName: region.refName,
-                        coord: checkResult.start,
-                        regionNumber: idx,
-                      })?.offsetPx ?? 0) - lgv.offsetPx
-                    const [feature] = checkResult.ids
-                    if (!feature || !feature.parent?.looksLikeGene) {
-                      return null
-                    }
-                    const top = 0
-                    const height = apolloRowHeight
-                    return (
-                      <Tooltip
-                        key={checkResult._id}
-                        title={checkResult.message}
-                      >
-                        <Avatar
-                          className={classes.avatar}
-                          style={{ top, left, height, width: height }}
-                        >
-                          <ErrorIcon />
-                        </Avatar>
-                      </Tooltip>
+                if (showCheckResults) {
+                  return [...session.apolloDataStore.checkResults.values()]
+                    .filter(
+                      (checkResult) =>
+                        assembly?.isValidRefName(checkResult.refSeq) &&
+                        assembly.getCanonicalRefName(checkResult.refSeq) ===
+                          region.refName &&
+                        doesIntersect2(
+                          region.start,
+                          region.end,
+                          checkResult.start,
+                          checkResult.end,
+                        ),
                     )
-                  })
+                    .map((checkResult) => {
+                      const left =
+                        (lgv.bpToPx({
+                          refName: region.refName,
+                          coord: checkResult.start,
+                          regionNumber: idx,
+                        })?.offsetPx ?? 0) - lgv.offsetPx
+                      const [feature] = checkResult.ids
+                      if (!feature || !feature.parent?.looksLikeGene) {
+                        return null
+                      }
+                      const top = 0
+                      const height = apolloRowHeight
+                      return (
+                        <Tooltip
+                          key={checkResult._id}
+                          title={checkResult.message}
+                        >
+                          <Avatar
+                            className={classes.avatar}
+                            style={{ top, left, height, width: height }}
+                          >
+                            <ErrorIcon />
+                          </Avatar>
+                        </Tooltip>
+                      )
+                    })
+                }
+                return null
               })}
               <Menu
                 open={contextMenuItems.length > 0}
