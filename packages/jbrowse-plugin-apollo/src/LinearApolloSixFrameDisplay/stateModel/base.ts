@@ -71,12 +71,12 @@ export function baseModelFactory(
           return self.heightPreConfig
         }
         if (self.graphical && self.table) {
-          return 400
+          return 500
         }
         if (self.graphical) {
-          return self.showFeatureLabels ? 200 : 100
+          return self.showFeatureLabels ? 400 : 200
         }
-        return 200
+        return 300
       },
     }))
     .views((self) => ({
