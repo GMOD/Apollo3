@@ -55,10 +55,10 @@ export function stringifyAttributes(
         attributeName.charAt(0).toUpperCase() + attributeName.slice(1)
     }
     if (value) {
-      str.push(`${attributeName}%3D${value.join('%2C')}`)
+      str.push(`${attributeName}=${value.join(',')}`)
     } else {
       str.push(attributeName)
     }
   }
-  return str.join('%3B')
+  return encodeURIComponent(str.join(';'))
 }
