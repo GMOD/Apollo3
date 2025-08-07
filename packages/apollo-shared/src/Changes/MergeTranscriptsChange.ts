@@ -54,6 +54,10 @@ export class MergeTranscriptsChange extends FeatureChange {
     super(json, options)
     this.changes = 'changes' in json ? json.changes : [json]
   }
+  // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+  get notification() {
+    return 'Transcripts successfully merged'
+  }
 
   toJSON(): SerializedMergeTranscriptsChange {
     const { assembly, changedIds, changes, typeName } = this

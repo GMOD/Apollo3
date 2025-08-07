@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-misused-promises */
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { MergeTranscriptsChange } from '@apollo-annotation/shared'
-import { type AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Box,
   Button,
@@ -82,12 +80,11 @@ export function MergeTranscripts({
   sourceAssemblyId,
   sourceFeature,
 }: MergeTranscriptsProps) {
-  const { notify } = session as unknown as AbstractSessionModel
   const [errorMessage, setErrorMessage] = useState('')
   const [selectedTranscript, setSelectedTranscript] =
     useState<AnnotationFeature>()
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
     if (!selectedTranscript) {
@@ -109,10 +106,8 @@ export function MergeTranscripts({
       secondTranscript: getSnapshot(selectedTranscript),
       parentFeatureId: sourceFeature.parent._id,
     })
-    await changeManager.submit(change)
-    notify('Transcripts successfully merged', 'success')
+    void changeManager.submit(change)
     handleClose()
-    event.preventDefault()
   }
 
   const handleTypeChange = (e: SelectChangeEvent) => {
