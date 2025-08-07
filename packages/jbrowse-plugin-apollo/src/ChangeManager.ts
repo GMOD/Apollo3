@@ -30,6 +30,7 @@ export class ChangeManager {
   constructor(private dataStore: ClientDataStore & IAnyStateTreeNode) {}
 
   recentChanges: Change[] = []
+  undoneChanges: Change[] = []
 
   async submit(change: Change, opts: SubmitOpts = {}) {
     const {
@@ -90,7 +91,7 @@ export class ChangeManager {
     )
     if (!results2.ok) {
       // notify of invalid change and revert
-      await this.revert(change)
+      await this.undo(change)
     }
 
     if (submitToBackend) {
@@ -111,7 +112,7 @@ export class ChangeManager {
         }
         console.error(error)
         session.notify(String(error), 'error')
-        await this.revert(change, false)
+        await this.undo(change, false)
         return
       }
       if (!backendResult.ok) {
@@ -120,15 +121,15 @@ export class ChangeManager {
           jobsManager.abortJob(job.name, msg)
         }
         session.notify(msg, 'error')
-        await this.revert(change, false)
+        await this.undo(change, false)
         return
       }
       if (change.notification) {
         session.notify(change.notification, 'success')
       }
       if (addToRecents) {
-        // Push the change into array
         this.recentChanges.push(change)
+        this.undoneChanges = []
       }
     }
 
@@ -137,22 +138,36 @@ export class ChangeManager {
     }
   }
 
-  async revert(change: Change, submitToBackend = true) {
+  async undo(change: Change, submitToBackend = true) {
     const inverseChange = change.getInverse()
     const opts = { submitToBackend, addToRecents: false }
     return this.submit(inverseChange, opts)
   }
 
-  /**
-   * Undo the last change
-   */
-  async revertLastChange() {
+  async redo(change: Change, submitToBackend = true) {
+    const opts = { submitToBackend, addToRecents: false }
+    return this.submit(change, opts)
+  }
+
+  async undoLastChange() {
+    const session = getSession(this.dataStore)
     const lastChange = this.recentChanges.pop()
     if (!lastChange) {
-      const session = getSession(this.dataStore)
-      session.notify('No changes to undo!', 'warning')
+      session.notify('No changes to undo!', 'info')
       return
     }
-    return this.revert(lastChange)
+    this.undoneChanges.push(lastChange)
+    return this.undo(lastChange)
+  }
+
+  async redoLastChange() {
+    const session = getSession(this.dataStore)
+    const lastChange = this.undoneChanges.pop()
+    if (!lastChange) {
+      session.notify('No changes to redo!', 'info')
+      return
+    }
+    this.recentChanges.push(lastChange)
+    return this.redo(lastChange)
   }
 }
