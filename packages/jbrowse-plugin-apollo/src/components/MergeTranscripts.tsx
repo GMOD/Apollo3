@@ -81,15 +81,19 @@ export function MergeTranscripts({
   sourceFeature,
 }: MergeTranscriptsProps) {
   const [errorMessage, setErrorMessage] = useState('')
-  const [selectedTranscript, setSelectedTranscript] =
-    useState<AnnotationFeature>()
+  const transcripts = getTranscripts(sourceFeature, session)
+  const firstTranscript = Object.keys(transcripts).at(0)
+  const [selectedTranscriptId, setSelectedTranscriptId] = useState<
+    string | undefined
+  >(firstTranscript)
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    if (!selectedTranscript) {
+    if (!selectedTranscriptId) {
       return
     }
+    const selectedTranscript = transcripts[selectedTranscriptId]
     if (selectedFeature?._id === sourceFeature._id) {
       setSelectedFeature()
     }
@@ -113,10 +117,8 @@ export function MergeTranscripts({
   const handleTypeChange = (e: SelectChangeEvent) => {
     setErrorMessage('')
     const { value } = e.target
-    setSelectedTranscript(transcripts[value])
+    setSelectedTranscriptId(value)
   }
-
-  const transcripts = getTranscripts(sourceFeature, session)
 
   return (
     <Dialog
@@ -135,7 +137,7 @@ export function MergeTranscripts({
             <RadioGroup
               aria-labelledby="demo-radio-buttons-group-label"
               name="radio-buttons-group"
-              value={selectedTranscript}
+              value={selectedTranscriptId}
               onChange={handleTypeChange}
             >
               {Object.keys(transcripts).map((key) => (
@@ -160,7 +162,7 @@ export function MergeTranscripts({
             type="submit"
             disabled={
               Object.keys(transcripts).length === 0 ||
-              selectedTranscript === undefined
+              selectedTranscriptId === undefined
             }
           >
             Submit
