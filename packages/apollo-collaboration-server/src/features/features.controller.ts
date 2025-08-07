@@ -4,6 +4,7 @@ import {
   Logger,
   Param,
   ParseBoolPipe,
+  Post,
   Query,
 } from '@nestjs/common'
 
@@ -85,5 +86,17 @@ export class FeaturesController {
   getAll() {
     this.logger.debug('Get all features')
     return this.featuresService.findAll()
+  }
+
+  @Post('assignExternalIds/:assemblyId')
+  async assignExternalIds(@Param('assemblyId') assemblyId: string) {
+    const updatedCount =
+      await this.featuresService.assignExternalIds(assemblyId)
+    return { updatedCount }
+  }
+
+  @Get('externalId/:externalId')
+  async getGeneByExternalId(@Param('externalId') externalId: string) {
+    return this.featuresService.findGeneByExternalId(externalId)
   }
 }

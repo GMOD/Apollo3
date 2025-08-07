@@ -49,6 +49,9 @@ export class Feature
 
   @Prop()
   user: string
+
+  @Prop({ type: [String], index: true, sparse: true })
+  allExternalIds?: string[]
 }
 export const FeatureSchema = SchemaFactory.createForClass(Feature)
 

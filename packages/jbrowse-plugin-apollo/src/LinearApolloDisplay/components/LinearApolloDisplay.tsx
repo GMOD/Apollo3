@@ -2,20 +2,9 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { Menu, type MenuItem } from '@jbrowse/core/ui'
-import {
-  type AbstractSessionModel,
-  doesIntersect2,
-  getContainingView,
-} from '@jbrowse/core/util'
+import { getContainingView } from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import ErrorIcon from '@mui/icons-material/Error'
-import {
-  Alert,
-  Avatar,
-  CircularProgress,
-  Tooltip,
-  useTheme,
-} from '@mui/material'
+import { Alert, CircularProgress, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
@@ -61,8 +50,6 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const { model } = props
   const {
     loading,
-    apolloDragging,
-    apolloRowHeight,
     contextMenuItems: getContextMenuItems,
     cursor,
     featuresHeight,
@@ -72,7 +59,6 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
     onMouseMove,
     onMouseUp,
     regionCannotBeRendered,
-    session,
     setCanvas,
     setCollaboratorCanvas,
     setOverlayCanvas,
@@ -92,7 +78,6 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   if (!isShown) {
     return null
   }
-  const { assemblyManager } = session as unknown as AbstractSessionModel
   return (
     <>
       {3 / lgv.bpPerPx >= 1 ? (
@@ -193,7 +178,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
               style={{ cursor: cursor ?? 'default' }}
               data-testid="overlayCanvas"
             />
-            {lgv.displayedRegions.flatMap((region, idx) => {
+            {/* {lgv.displayedRegions.flatMap((region, idx) => {
               const assembly = assemblyManager.get(region.assemblyName)
               return [...session.apolloDataStore.checkResults.values()]
                 .filter(
@@ -243,7 +228,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
                     </Tooltip>
                   )
                 })
-            })}
+            })} */}
             <Menu
               open={contextMenuItems.length > 0}
               onMenuItemClick={(_, callback) => {

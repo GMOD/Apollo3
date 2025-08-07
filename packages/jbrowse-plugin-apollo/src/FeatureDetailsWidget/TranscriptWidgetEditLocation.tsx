@@ -149,201 +149,6 @@ export const TranscriptWidgetEditLocation = observer(
       cdsMax = sortedCDSLocations[sortedCDSLocations.length - 1].max
     }
 
-    function handleCDSLocationChange(
-      oldLocation: number,
-      newLocation: number,
-      feature: AnnotationFeature,
-      isMin: boolean,
-    ) {
-      if (!feature.children) {
-        throw new Error('Transcript should have child features')
-      }
-
-      const overlappingExon = getOverlappingExonForCDS(
-        feature,
-        featureTypeOntology,
-        oldLocation,
-        isMin,
-      )
-      if (!overlappingExon) {
-        notify('No matching exon found', 'error')
-        return
-      }
-      const oldExonLocation = isMin ? overlappingExon.min : overlappingExon.max
-      const { prevExon, nextExon } = getNeighboringExonParts(
-        feature,
-        featureTypeOntology,
-        oldExonLocation,
-        isMin,
-      )
-
-      // Start location should be less than end location
-      if (isMin && newLocation >= overlappingExon.max) {
-        notify(
-          'Start location should be less than overlapping exon end location',
-          'error',
-        )
-        return
-      }
-
-      // End location should be greater than start location
-      if (!isMin && newLocation <= overlappingExon.min) {
-        notify(
-          'End location should be greater than overlapping exon start location',
-          'error',
-        )
-        return
-      }
-      // Changed location should be greater than end location of previous exon - give 2bp buffer
-      if (prevExon && prevExon.max + 2 > newLocation) {
-        notify(
-          'Start location should be greater than previous exon end location',
-          'error',
-        )
-        return
-      }
-      // Changed location should be less than start location of next exon
-      if (nextExon && nextExon.min - 2 < newLocation) {
-        notify(
-          'End location should be less than next exon start location',
-          'error',
-        )
-        return
-      }
-
-      const cdsFeature = getMatchingCDSFeature(
-        feature,
-        featureTypeOntology,
-        oldLocation,
-        isMin,
-      )
-
-      if (!cdsFeature) {
-        notify('No matching CDS feature found', 'error')
-        return
-      }
-
-      if (!isMin && newLocation <= cdsFeature.min) {
-        notify(
-          'End location should be greater than CDS start location',
-          'error',
-        )
-        return
-      }
-      if (isMin && newLocation >= cdsFeature.max) {
-        notify('Start location should be less than CDS end location', 'error')
-        return
-      }
-
-      const overlappingExonFeature = getExonFeature(
-        feature,
-        overlappingExon.min,
-        overlappingExon.max,
-        featureTypeOntology,
-      )
-
-      if (!overlappingExonFeature) {
-        notify('No matching exon feature found', 'error')
-        return
-      }
-
-      if (isMin && newLocation !== cdsFeature.min) {
-        const startChange: LocationStartChange = new LocationStartChange({
-          typeName: 'LocationStartChange',
-          changedIds: [],
-          changes: [],
-          assembly,
-        })
-
-        if (newLocation < overlappingExon.min) {
-          if (prevExon) {
-            // update exon start location
-            appendStartLocationChange(
-              overlappingExonFeature,
-              startChange,
-              newLocation,
-            )
-            // update CDS start location
-            appendStartLocationChange(cdsFeature, startChange, newLocation)
-          } else {
-            const transcriptStart = feature.min
-            const gene = feature.parent
-            if (newLocation < transcriptStart) {
-              if (gene && newLocation < gene.min) {
-                // update gene start location
-                appendStartLocationChange(gene, startChange, newLocation)
-              }
-              // update transcript start location
-              appendStartLocationChange(feature, startChange, newLocation)
-              // update exon start location
-              appendStartLocationChange(
-                overlappingExonFeature,
-                startChange,
-                newLocation,
-              )
-              // update CDS start location
-              appendStartLocationChange(cdsFeature, startChange, newLocation)
-            }
-          }
-        } else {
-          // update CDS start location
-          appendStartLocationChange(cdsFeature, startChange, newLocation)
-        }
-
-        void changeManager.submit(startChange).catch(() => {
-          notify('Error updating feature CDS start position', 'error')
-        })
-      }
-
-      if (!isMin && newLocation !== cdsFeature.max) {
-        const endChange: LocationEndChange = new LocationEndChange({
-          typeName: 'LocationEndChange',
-          changedIds: [],
-          changes: [],
-          assembly,
-        })
-
-        if (newLocation > overlappingExon.max) {
-          if (nextExon) {
-            // update exon end location
-            appendEndLocationChange(
-              overlappingExonFeature,
-              endChange,
-              newLocation,
-            )
-            // update CDS end location
-            appendEndLocationChange(cdsFeature, endChange, newLocation)
-          } else {
-            const transcriptEnd = feature.max
-            const gene = feature.parent
-            if (newLocation > transcriptEnd) {
-              if (gene && newLocation > gene.max) {
-                // update gene end location
-                appendEndLocationChange(gene, endChange, newLocation)
-              }
-              // update transcript end location
-              appendEndLocationChange(feature, endChange, newLocation)
-              // update exon end location
-              appendEndLocationChange(
-                overlappingExonFeature,
-                endChange,
-                newLocation,
-              )
-              // update CDS end location
-              appendEndLocationChange(cdsFeature, endChange, newLocation)
-            }
-          }
-        } else {
-          // update CDS end location
-          appendEndLocationChange(cdsFeature, endChange, newLocation)
-        }
-
-        void changeManager.submit(endChange).catch(() => {
-          notify('Error updating feature CDS end position', 'error')
-        })
-      }
-    }
-
     const updateCDSLocation = (
       oldLocation: number,
       newLocation: number,
@@ -366,6 +171,35 @@ export const TranscriptWidgetEditLocation = observer(
       )
       if (!cdsFeature) {
         notify('No matching CDS feature found', 'error')
+        return
+      }
+
+      if (isMin && newLocation >= cdsFeature.max) {
+        notify('Start location should be less than CDS end location', 'error')
+        return
+      }
+
+      if (!isMin && newLocation <= cdsFeature.min) {
+        notify(
+          'End location should be greater than CDS start location',
+          'error',
+        )
+        return
+      }
+
+      // overlapping exon of new CDS location
+      const overlappingExon = getOverlappingExonForCDS(
+        feature,
+        featureTypeOntology,
+        newLocation,
+        isMin,
+      )
+
+      if (!overlappingExon) {
+        notify(
+          'There should be an overlapping exon for the new CDS location',
+          'error',
+        )
         return
       }
 
@@ -1168,12 +1002,7 @@ export const TranscriptWidgetEditLocation = observer(
                     variant="outlined"
                     value={cdsMin + 1}
                     onChangeCommitted={(newLocation: number) => {
-                      handleCDSLocationChange(
-                        cdsMin,
-                        newLocation - 1,
-                        feature,
-                        true,
-                      )
+                      updateCDSLocation(cdsMin, newLocation - 1, feature, true)
                     }}
                     style={{ border: '1px solid black', borderRadius: 5 }}
                   />
@@ -1185,12 +1014,7 @@ export const TranscriptWidgetEditLocation = observer(
                     variant="outlined"
                     value={cdsMax}
                     onChangeCommitted={(newLocation: number) => {
-                      handleCDSLocationChange(
-                        cdsMax,
-                        newLocation,
-                        feature,
-                        false,
-                      )
+                      updateCDSLocation(cdsMax, newLocation, feature, false)
                     }}
                     style={{ border: '1px solid black', borderRadius: 5 }}
                   />
@@ -1206,12 +1030,7 @@ export const TranscriptWidgetEditLocation = observer(
                     variant="outlined"
                     value={cdsMax}
                     onChangeCommitted={(newLocation: number) => {
-                      handleCDSLocationChange(
-                        cdsMax,
-                        newLocation,
-                        feature,
-                        false,
-                      )
+                      updateCDSLocation(cdsMax, newLocation, feature, false)
                     }}
                     style={{ border: '1px solid black', borderRadius: 5 }}
                   />
@@ -1223,12 +1042,7 @@ export const TranscriptWidgetEditLocation = observer(
                     variant="outlined"
                     value={cdsMin + 1}
                     onChangeCommitted={(newLocation: number) => {
-                      handleCDSLocationChange(
-                        cdsMin,
-                        newLocation - 1,
-                        feature,
-                        true,
-                      )
+                      updateCDSLocation(cdsMin, newLocation - 1, feature, true)
                     }}
                     style={{ border: '1px solid black', borderRadius: 5 }}
                   />

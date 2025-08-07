@@ -9,7 +9,7 @@ import {
 import { GetFeaturesOperation } from '@apollo-annotation/shared'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model } from 'mongoose'
+import { FilterQuery, Model, Types } from 'mongoose'
 
 import { ChecksService } from '../checks/checks.service'
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
@@ -180,5 +180,151 @@ export class FeaturesService {
     return this.featureModel
       .find({ $text: { $search: `"${term}"` }, refSeq: refSeqs })
       .exec()
+  }
+
+  getFeatureAttributeValue(
+    attributeName: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    attributes?: any,
+  ): string | undefined {
+    let attrs: Record<string, string[]> | undefined
+    if (attributes instanceof Map) {
+      attrs = Object.fromEntries(attributes.entries())
+    } else if (attributes && typeof attributes === 'object') {
+      // attributes is already a plain object
+      attrs = attributes
+    } else {
+      this.logger.warn(
+        `Attributes is not a Map or object: ${JSON.stringify(attributes)}`,
+      )
+      return undefined
+    }
+
+    if (
+      attrs?.[attributeName] &&
+      Array.isArray(attrs[attributeName]) &&
+      attrs[attributeName].length > 0
+    ) {
+      return attrs[attributeName][0]
+    }
+    return undefined
+  }
+
+  async assignExternalIds(assemblyId: string): Promise<number> {
+    const BATCH_SIZE = 250
+    let updatedCount = 0
+
+    const refSeqs = await this.refSeqModel.find({ assembly: assemblyId }).exec()
+    const refSeqIds = refSeqs.map((r) => r._id as Types.ObjectId)
+
+    if (refSeqIds.length === 0) {
+      this.logger.warn(`No refSeqs found for assemblyId: ${assemblyId}`)
+      return updatedCount
+    }
+
+    let lastId: Types.ObjectId | undefined = undefined
+
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    while (true) {
+      const query: FilterQuery<FeatureDocument> = { refSeq: { $in: refSeqIds } }
+      if (lastId) {
+        query._id = { $gt: lastId }
+      }
+
+      const features = await this.featureModel
+        // eslint-disable-next-line unicorn/no-array-callback-reference
+        .find(query)
+        .limit(BATCH_SIZE)
+        .exec()
+
+      this.logger.debug(`Processing batch of ${features.length} features`)
+
+      if (features.length === 0) {
+        break
+      }
+
+      const bulkOps = []
+      for (const feature of features) {
+        const externalIds: string[] = []
+
+        const geneId =
+          this.getFeatureAttributeValue('gene_id', feature.attributes) ??
+          this.getFeatureAttributeValue('gff_id', feature.attributes)
+        if (geneId && !feature.allExternalIds?.includes(geneId)) {
+          externalIds.push(geneId)
+        }
+
+        // update transcripts
+        for (const [, transcript] of feature.children ??
+          new Map<string, Feature>()) {
+          const transcriptId =
+            this.getFeatureAttributeValue(
+              'transcript_id',
+              transcript.attributes,
+            ) ?? this.getFeatureAttributeValue('gff_id', transcript.attributes)
+          if (transcriptId && !feature.allExternalIds?.includes(transcriptId)) {
+            externalIds.push(transcriptId)
+          }
+
+          // update exons and CDS
+          for (const [, child] of transcript.children ??
+            new Map<string, Feature>()) {
+            if (child.type === 'exon') {
+              const exonId =
+                this.getFeatureAttributeValue('exon_id', child.attributes) ??
+                this.getFeatureAttributeValue('gff_id', child.attributes)
+              if (exonId && !feature.allExternalIds?.includes(exonId)) {
+                externalIds.push(exonId)
+              }
+            }
+            if (child.type === 'CDS') {
+              const proteinId =
+                this.getFeatureAttributeValue('protein_id', child.attributes) ??
+                this.getFeatureAttributeValue('gff_id', child.attributes)
+              if (proteinId && !feature.allExternalIds?.includes(proteinId)) {
+                externalIds.push(proteinId)
+              }
+            }
+          }
+        }
+
+        if (externalIds.length > 0) {
+          feature.allExternalIds = externalIds
+          bulkOps.push({
+            updateOne: {
+              filter: { _id: feature._id },
+              update: {
+                $set: {
+                  allExternalIds: feature.allExternalIds,
+                },
+              },
+            },
+          })
+        }
+      }
+
+      if (bulkOps.length > 0) {
+        const result = await this.featureModel.bulkWrite(bulkOps)
+        updatedCount += result.modifiedCount
+      }
+
+      // eslint-disable-next-line unicorn/prefer-at
+      lastId = features[features.length - 1]._id
+      this.logger.debug(`Updated ${updatedCount} features so far`)
+    }
+
+    return updatedCount
+  }
+
+  async findGeneByExternalId(externalId: string) {
+    const feature = await this.featureModel
+      .findOne({ allExternalIds: externalId })
+      .exec()
+    if (!feature) {
+      throw new NotFoundException(
+        `Gene with externalId ${externalId} not found`,
+      )
+    }
+    return feature
   }
 }
