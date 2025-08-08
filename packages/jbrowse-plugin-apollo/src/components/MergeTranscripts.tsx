@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-misused-promises */
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { MergeTranscriptsChange } from '@apollo-annotation/shared'
-import { type AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Box,
   Button,
@@ -82,17 +80,20 @@ export function MergeTranscripts({
   sourceAssemblyId,
   sourceFeature,
 }: MergeTranscriptsProps) {
-  const { notify } = session as unknown as AbstractSessionModel
   const [errorMessage, setErrorMessage] = useState('')
-  const [selectedTranscript, setSelectedTranscript] =
-    useState<AnnotationFeature>()
+  const transcripts = getTranscripts(sourceFeature, session)
+  const firstTranscript = Object.keys(transcripts).at(0)
+  const [selectedTranscriptId, setSelectedTranscriptId] = useState<
+    string | undefined
+  >(firstTranscript)
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    if (!selectedTranscript) {
+    if (!selectedTranscriptId) {
       return
     }
+    const selectedTranscript = transcripts[selectedTranscriptId]
     if (selectedFeature?._id === sourceFeature._id) {
       setSelectedFeature()
     }
@@ -109,19 +110,15 @@ export function MergeTranscripts({
       secondTranscript: getSnapshot(selectedTranscript),
       parentFeatureId: sourceFeature.parent._id,
     })
-    await changeManager.submit(change)
-    notify('Transcripts successfully merged', 'success')
+    void changeManager.submit(change)
     handleClose()
-    event.preventDefault()
   }
 
   const handleTypeChange = (e: SelectChangeEvent) => {
     setErrorMessage('')
     const { value } = e.target
-    setSelectedTranscript(transcripts[value])
+    setSelectedTranscriptId(value)
   }
-
-  const transcripts = getTranscripts(sourceFeature, session)
 
   return (
     <Dialog
@@ -140,7 +137,7 @@ export function MergeTranscripts({
             <RadioGroup
               aria-labelledby="demo-radio-buttons-group-label"
               name="radio-buttons-group"
-              value={selectedTranscript}
+              value={selectedTranscriptId}
               onChange={handleTypeChange}
             >
               {Object.keys(transcripts).map((key) => (
@@ -165,7 +162,7 @@ export function MergeTranscripts({
             type="submit"
             disabled={
               Object.keys(transcripts).length === 0 ||
-              selectedTranscript === undefined
+              selectedTranscriptId === undefined
             }
           >
             Submit
