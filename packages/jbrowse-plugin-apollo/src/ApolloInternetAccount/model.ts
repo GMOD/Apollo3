@@ -465,7 +465,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         )
       },
       beforeDestroy() {
-        self.controller.abort()
+        self.controller.abort('internet account beforeDestroy')
         self.socket.close()
       },
     }))
