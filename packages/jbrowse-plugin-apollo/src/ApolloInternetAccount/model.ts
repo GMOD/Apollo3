@@ -300,6 +300,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         if (!token) {
           throw new Error('No Token found')
         }
+        const user = getDecodedToken(token)
+        const localSessionId = makeUserSessionId(user)
         const { socket } = self
         const { addCheckResult, changeManager, deleteCheckResult } =
           session.apolloDataStore
@@ -324,7 +326,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             'LastChangeSequence',
             String(message.changeSequence),
           )
-          if (message.userSessionId === token) {
+          if (message.userSessionId === localSessionId) {
             return // we did this change, no need to apply it again
           }
           const change = Change.fromJSON(message.changeInfo)
@@ -332,8 +334,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         })
         socket.on('USER_LOCATION', (message: UserLocationMessage) => {
           const { channel, locations, userName, userSessionId } = message
-          const user = getDecodedToken(token)
-          const localSessionId = makeUserSessionId(user)
           if (channel === 'USER_LOCATION' && userSessionId !== localSessionId) {
             const collaborator: Collaborator = {
               name: userName,
