@@ -14,6 +14,7 @@ import {
   CDSCheck,
   CoreValidation,
   ParentChildValidation,
+  TranscriptCheck,
   changes,
   operations,
   validationRegistry,
@@ -80,6 +81,9 @@ async function bootstrap() {
 
   const cdsCheck = new CDSCheck()
   checkRegistry.registerCheck(cdsCheck.name, cdsCheck)
+
+  const transcriptCheck = new TranscriptCheck()
+  checkRegistry.registerCheck(transcriptCheck.name, transcriptCheck)
 
   validationRegistry.registerValidation(new CoreValidation())
   validationRegistry.registerValidation(new AuthorizationValidation())
