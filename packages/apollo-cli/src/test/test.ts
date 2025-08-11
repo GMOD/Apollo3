@@ -1027,12 +1027,13 @@ void describe('Test CLI', () => {
     let p = new Shell(`${apollo} assembly check ${P}`)
     let out = JSON.parse(p.stdout)
     assert.ok(p.stdout.includes('CDSCheck'))
+    assert.ok(p.stdout.includes('TranscriptCheck'))
     const cdsCheckId = out.find((x: any) => x.name === 'CDSCheck')._id
 
     // Test view checks set for assembly
     p = new Shell(`${apollo} assembly check ${P} -a v1`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
+    assert.strictEqual(out.length, 2)
 
     // Test non-existant assembly
     p = new Shell(`${apollo} assembly check ${P} -a non-existant`, false)
@@ -1049,7 +1050,7 @@ void describe('Test CLI', () => {
     new Shell(`${apollo} assembly check ${P} -a v1 -c CDSCheck CDSCheck`)
     p = new Shell(`${apollo} assembly check ${P} -a v1`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
+    assert.strictEqual(out.length, 2)
     assert.deepStrictEqual(out.at(0).name, 'CDSCheck')
 
     // Works also with check id
@@ -1059,14 +1060,16 @@ void describe('Test CLI', () => {
     new Shell(`${apollo} assembly check ${P} -a v2 -c ${cdsCheckId}`)
     p = new Shell(`${apollo} assembly check ${P} -a v2`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
+    assert.strictEqual(out.length, 2)
     assert.deepStrictEqual(out.at(0).name, 'CDSCheck')
 
     // Delete check
     new Shell(`${apollo} assembly check ${P} -a v1 -d -c CDSCheck`)
     p = new Shell(`${apollo} assembly check ${P} -a v1`)
     out = JSON.parse(p.stdout)
-    assert.deepStrictEqual(p.stdout.trim(), '[]')
+    assert.strictEqual(out.length, 1)
+    assert.ok(!p.stdout.includes('CDSCheck'))
+    assert.ok(p.stdout.includes('TranscriptCheck'))
   })
 
   void globalThis.itName('Feature checks', () => {
