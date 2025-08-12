@@ -21,9 +21,10 @@ import * as crypto from 'node:crypto'
 import fs from 'node:fs'
 import { afterEach, before, beforeEach, describe } from 'node:test'
 
-import {
+// eslint-disable-next-line import/consistent-type-specifier-style
+import type {
+  AnnotationFeature,
   AnnotationFeatureSnapshot,
-  type AnnotationFeature,
 } from '@apollo-annotation/mst'
 
 import { Shell } from './utils.js'
