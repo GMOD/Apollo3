@@ -2,6 +2,7 @@ import { Assembly, AssemblySchema } from '@apollo-annotation/schemas'
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 
+import { ChecksModule } from '../checks/checks.module'
 import { OperationsModule } from '../operations/operations.module'
 
 import { AssembliesController } from './assemblies.controller'
@@ -15,6 +16,7 @@ import { AssembliesService } from './assemblies.service'
       { name: Assembly.name, schema: AssemblySchema },
     ]),
     OperationsModule,
+    ChecksModule,
   ],
   exports: [MongooseModule, AssembliesService],
 })
