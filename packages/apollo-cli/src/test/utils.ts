@@ -1,6 +1,8 @@
 import { it } from 'node:test'
 
+import { type CheckResultSnapshot } from '@apollo-annotation/mst'
 import spawn from 'cross-spawn'
+import { x } from 'joi'
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
@@ -35,4 +37,17 @@ export class Shell {
       )
     }
   }
+}
+
+export function deleteAllChecks(
+  apollo: string,
+  profile: string,
+  assembly: string,
+) {
+  const p = new Shell(`${apollo} assembly check ${profile}`)
+  const out = JSON.parse(p.stdout) as CheckResultSnapshot[]
+  const checks = out.map((chk) => chk.name)
+  new Shell(
+    `${apollo} assembly check ${profile} --assembly ${assembly} --delete --check ${checks.join(' ')}`,
+  )
 }

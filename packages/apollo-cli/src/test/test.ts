@@ -27,7 +27,7 @@ import type {
   AnnotationFeatureSnapshot,
 } from '@apollo-annotation/mst'
 
-import { Shell } from './utils.js'
+import { deleteAllChecks, Shell } from './utils.js'
 
 const apollo = 'yarn dev'
 const P = '--profile testAdmin'
@@ -1528,6 +1528,8 @@ void describe('Test CLI', () => {
       new Shell(
         `${apollo} assembly add-from-gff ${P} test_data/warningPositionReverse.gff -a vv1 -f`,
       )
+      deleteAllChecks(apollo, P, 'vv1')
+      new Shell(`${apollo} assembly check ${P} -a vv1 -c CDSCheck`)
       const p = new Shell(`${apollo} feature check ${P} -a vv1`)
       const out = JSON.parse(p.stdout)
       assert.deepStrictEqual(out.length, 2)
