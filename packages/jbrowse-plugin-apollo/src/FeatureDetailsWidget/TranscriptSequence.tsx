@@ -32,6 +32,16 @@ interface SequenceSegment {
   locs: { min: number; max: number }[]
 }
 
+function getSequenceLength(segments: SequenceSegment[]): number {
+  let length = 0
+  for (const segment of segments) {
+    for (const line of segment.sequenceLines) {
+      length += line.length
+    }
+  }
+  return length
+}
+
 function getSequenceSegments(
   segmentType: SegmentListType,
   feature: AnnotationFeature,
@@ -320,7 +330,8 @@ export const TranscriptSequence = observer(function TranscriptSequence({
               : `${interval.max}-${interval.min + 1}`,
           )
           .join(';')}
-        ({feature.strand === 1 ? '+' : '-'})
+        (strand={feature.strand === 1 ? '+' : '-'};length=
+        {getSequenceLength(sequenceSegments)})
         <br />
         {sequenceSegments.map((segment, index) => (
           <span
