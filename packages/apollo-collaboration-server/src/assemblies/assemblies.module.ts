@@ -1,6 +1,8 @@
 import { Assembly, AssemblySchema } from '@apollo-annotation/schemas'
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
+import { FeaturesModule } from 'src/features/features.module'
+import { RefSeqsModule } from 'src/refSeqs/refSeqs.module'
 
 import { ChecksModule } from '../checks/checks.module'
 import { OperationsModule } from '../operations/operations.module'
@@ -16,7 +18,9 @@ import { AssembliesService } from './assemblies.service'
       { name: Assembly.name, schema: AssemblySchema },
     ]),
     ChecksModule,
+    FeaturesModule,
     OperationsModule,
+    RefSeqsModule,
   ],
   exports: [MongooseModule, AssembliesService],
 })
