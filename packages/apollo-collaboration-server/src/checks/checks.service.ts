@@ -22,6 +22,7 @@ import { Model } from 'mongoose'
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { RefSeqsService } from '../refSeqs/refSeqs.service'
 import { SequenceService } from '../sequence/sequence.service'
+import { ObjectId } from 'mongodb'
 
 @Injectable()
 export class ChecksService {
@@ -136,6 +137,10 @@ export class ChecksService {
     return this.checkResultModel
       .deleteMany({ ids: { $in: featureDoc.allIds }, name: checkName })
       .exec()
+  }
+
+  async deleteChecks(checkIds: ObjectId[]) {
+    return this.checkResultModel.deleteMany({ _id: { $in: checkIds } }).exec()
   }
 
   /**
