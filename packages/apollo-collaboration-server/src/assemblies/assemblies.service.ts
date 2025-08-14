@@ -9,6 +9,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 
+import { ChecksService } from '../checks/checks.service'
 import { OperationsService } from '../operations/operations.service'
 
 import { CreateAssemblyDto } from './dto/create-assembly.dto'
@@ -20,6 +21,7 @@ export class AssembliesService {
     @InjectModel(Assembly.name)
     private readonly assemblyModel: Model<AssemblyDocument>,
     private readonly operationsService: OperationsService,
+    private readonly checksService: ChecksService,
   ) {}
 
   private readonly logger = new Logger(AssembliesService.name)
@@ -40,6 +42,11 @@ export class AssembliesService {
       )
       throw new UnprocessableEntityException(String(error))
     }
+    const checkResults = await this.checksService.find({ assembly: _id })
+    const obsoleteCheckIds = checkResults
+      .filter((x) => !checks.includes(x.name))
+      .map((x) => x._id)
+    await this.checksService.deleteChecks(obsoleteCheckIds)
   }
 
   findAll() {
