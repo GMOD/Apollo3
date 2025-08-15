@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
+import { type CheckResultI } from '@apollo-annotation/mst'
 import { Menu, type MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
@@ -14,6 +15,7 @@ import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
+import { clusterResultByMessage } from '../../util/displayUtils'
 import { type LinearApolloSixFrameDisplay as LinearApolloSixFrameDisplayI } from '../stateModel'
 
 import { TrackLines } from './TrackLines'
@@ -163,46 +165,52 @@ export const LinearApolloSixFrameDisplay = observer(
               {lgv.displayedRegions.flatMap((region, idx) => {
                 const assembly = assemblyManager.get(region.assemblyName)
                 if (showCheckResults) {
-                  return [...session.apolloDataStore.checkResults.values()]
-                    .filter(
-                      (checkResult) =>
-                        assembly?.isValidRefName(checkResult.refSeq) &&
-                        assembly.getCanonicalRefName(checkResult.refSeq) ===
-                          region.refName &&
-                        doesIntersect2(
-                          region.start,
-                          region.end,
-                          checkResult.start,
-                          checkResult.end,
-                        ),
-                    )
-                    .map((checkResult) => {
-                      const left =
-                        (lgv.bpToPx({
-                          refName: region.refName,
-                          coord: checkResult.start,
-                          regionNumber: idx,
-                        })?.offsetPx ?? 0) - lgv.offsetPx
-                      const [feature] = checkResult.ids
-                      if (!feature || !feature.parent?.looksLikeGene) {
-                        return null
-                      }
-                      const top = 0
-                      const height = apolloRowHeight
-                      return (
-                        <Tooltip
-                          key={checkResult._id}
-                          title={checkResult.message}
+                  const filteredCheckResults = [
+                    ...session.apolloDataStore.checkResults.values(),
+                  ].filter(
+                    (checkResult) =>
+                      assembly?.isValidRefName(checkResult.refSeq) &&
+                      assembly.getCanonicalRefName(checkResult.refSeq) ===
+                        region.refName &&
+                      doesIntersect2(
+                        region.start,
+                        region.end,
+                        checkResult.start,
+                        checkResult.end,
+                      ),
+                  )
+                  const checkResults = clusterResultByMessage<CheckResultI>(
+                    filteredCheckResults,
+                    20,
+                    true,
+                  )
+                  return checkResults.map((checkResult) => {
+                    const left =
+                      (lgv.bpToPx({
+                        refName: region.refName,
+                        coord: checkResult.start,
+                        regionNumber: idx,
+                      })?.offsetPx ?? 0) - lgv.offsetPx
+                    // const [feature] = checkResult.ids
+                    // if (!feature || !feature.parent?.looksLikeGene) {
+                    //   return null
+                    // }
+                    const top = 0
+                    const height = apolloRowHeight
+                    return (
+                      <Tooltip
+                        key={checkResult._id}
+                        title={checkResult.message}
+                      >
+                        <Avatar
+                          className={classes.avatar}
+                          style={{ top, left, height, width: height }}
                         >
-                          <Avatar
-                            className={classes.avatar}
-                            style={{ top, left, height, width: height }}
-                          >
-                            <ErrorIcon />
-                          </Avatar>
-                        </Tooltip>
-                      )
-                    })
+                          <ErrorIcon />
+                        </Avatar>
+                      </Tooltip>
+                    )
+                  })
                 }
                 return null
               })}
