@@ -17,12 +17,12 @@ import {
 } from '@apollo-annotation/schemas'
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
+import { ObjectId } from 'mongodb'
 import { Model } from 'mongoose'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { RefSeqsService } from '../refSeqs/refSeqs.service'
 import { SequenceService } from '../sequence/sequence.service'
-import { ObjectId } from 'mongodb'
 
 @Injectable()
 export class ChecksService {

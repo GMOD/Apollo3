@@ -27,7 +27,7 @@ import type {
   AnnotationFeatureSnapshot,
 } from '@apollo-annotation/mst'
 
-import { deleteAllChecks, Shell } from './utils.js'
+import { Shell, deleteAllChecks } from './utils.js'
 
 const apollo = 'yarn dev'
 const P = '--profile testAdmin'

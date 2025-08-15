@@ -2,7 +2,6 @@ import { it } from 'node:test'
 
 import { type CheckResultSnapshot } from '@apollo-annotation/mst'
 import spawn from 'cross-spawn'
-import { x } from 'joi'
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
