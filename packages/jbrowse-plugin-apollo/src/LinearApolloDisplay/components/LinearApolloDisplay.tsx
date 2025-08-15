@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
+import { type CheckResultI } from '@apollo-annotation/mst'
 import { Menu, type MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
@@ -20,6 +21,7 @@ import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
+import { clusterResultByMessage } from '../../util/displayUtils'
 import { type LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
 
 interface LinearApolloDisplayProps {
@@ -173,58 +175,61 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             {lgv.displayedRegions.flatMap((region, idx) => {
               const assembly = assemblyManager.get(region.assemblyName)
               if (showCheckResults) {
-                return [...session.apolloDataStore.checkResults.values()]
-                  .filter(
-                    (checkResult) =>
-                      assembly?.isValidRefName(checkResult.refSeq) &&
-                      assembly.getCanonicalRefName(checkResult.refSeq) ===
-                        region.refName &&
-                      doesIntersect2(
-                        region.start,
-                        region.end,
-                        checkResult.start,
-                        checkResult.end,
-                      ),
-                  )
-                  .map((checkResult) => {
-                    const left =
-                      (lgv.bpToPx({
-                        refName: region.refName,
-                        coord: checkResult.start,
-                        regionNumber: idx,
-                      })?.offsetPx ?? 0) - lgv.offsetPx
-                    const [feature] = checkResult.ids
-                    if (!feature) {
-                      return null
-                    }
-                    let row = 0
-                    const featureLayout =
-                      model.getFeatureLayoutPosition(feature)
-                    if (featureLayout) {
-                      row = featureLayout.layoutRow + featureLayout.featureRow
-                    }
-                    const top = row * apolloRowHeight
-                    const height = apolloRowHeight
-                    return (
-                      <Tooltip
-                        key={checkResult._id}
-                        title={checkResult.message}
+                const filteredCheckResults = [
+                  ...session.apolloDataStore.checkResults.values(),
+                ].filter(
+                  (checkResult) =>
+                    assembly?.isValidRefName(checkResult.refSeq) &&
+                    assembly.getCanonicalRefName(checkResult.refSeq) ===
+                      region.refName &&
+                    doesIntersect2(
+                      region.start,
+                      region.end,
+                      checkResult.start,
+                      checkResult.end,
+                    ),
+                )
+                const checkResults = clusterResultByMessage<CheckResultI>(
+                  filteredCheckResults,
+                  20,
+                  true,
+                )
+                return checkResults.map((checkResult) => {
+                  const left =
+                    (lgv.bpToPx({
+                      refName: region.refName,
+                      coord: checkResult.start,
+                      regionNumber: idx,
+                    })?.offsetPx ?? 0) - lgv.offsetPx
+                  // const [feature] = checkResult.ids
+                  // if (!feature) {
+                  //   return null
+                  // }
+                  const row = 0
+                  // const featureLayout =
+                  //   model.getFeatureLayoutPosition(feature)
+                  // if (featureLayout) {
+                  //   row = featureLayout.layoutRow + featureLayout.featureRow
+                  // }
+                  const top = row * apolloRowHeight
+                  const height = apolloRowHeight
+                  return (
+                    <Tooltip key={checkResult._id} title={checkResult.message}>
+                      <Avatar
+                        className={classes.avatar}
+                        style={{
+                          top,
+                          left,
+                          height,
+                          width: height,
+                          pointerEvents: apolloDragging ? 'none' : 'auto',
+                        }}
                       >
-                        <Avatar
-                          className={classes.avatar}
-                          style={{
-                            top,
-                            left,
-                            height,
-                            width: height,
-                            pointerEvents: apolloDragging ? 'none' : 'auto',
-                          }}
-                        >
-                          <ErrorIcon data-testid="ErrorIcon" />
-                        </Avatar>
-                      </Tooltip>
-                    )
-                  })
+                        <ErrorIcon data-testid="ErrorIcon" />
+                      </Avatar>
+                    </Tooltip>
+                  )
+                })
               }
               return null
             })}
