@@ -168,13 +168,10 @@ these checks use `apollo feature check`.'
 
     const newChecks = new Set<string>()
     if (flags.delete) {
-      const currentCheckIds = new Set<string>()
       for (const chk of currentChecks) {
-        currentCheckIds.add(chk['_id' as keyof typeof chk])
-      }
-      for (const id of inputCheckIds) {
-        if (!currentCheckIds.has(id)) {
-          newChecks.add(id)
+        const chkId = chk['_id' as keyof typeof chk]
+        if (!inputCheckIds.includes(chkId)) {
+          newChecks.add(chkId)
         }
       }
     } else {

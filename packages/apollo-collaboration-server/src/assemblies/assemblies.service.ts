@@ -8,7 +8,10 @@ import {
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
+import { FeaturesService } from 'src/features/features.service'
+import { RefSeqsService } from 'src/refSeqs/refSeqs.service'
 
+import { ChecksService } from '../checks/checks.service'
 import { OperationsService } from '../operations/operations.service'
 
 import { CreateAssemblyDto } from './dto/create-assembly.dto'
@@ -20,6 +23,9 @@ export class AssembliesService {
     @InjectModel(Assembly.name)
     private readonly assemblyModel: Model<AssemblyDocument>,
     private readonly operationsService: OperationsService,
+    private readonly checksService: ChecksService,
+    private readonly featuresService: FeaturesService,
+    private readonly refSeqsService: RefSeqsService,
   ) {}
 
   private readonly logger = new Logger(AssembliesService.name)
@@ -39,6 +45,28 @@ export class AssembliesService {
         '*** UPDATE STATUS EXCEPTION - Could not update checks in assembly document!',
       )
       throw new UnprocessableEntityException(String(error))
+    }
+
+    // Delete checks that are no longer registered
+    const checkResults = await this.checksService.find({ assembly: _id })
+    const obsoleteCheckIds = checkResults
+      .filter((x) => !checks.includes(x.name))
+      .map((x) => x._id)
+    await this.checksService.deleteChecks(obsoleteCheckIds)
+
+    // Get features in assembly and apply the new checks
+    const refSeqs = await this.refSeqsService.findAll({ assembly: _id })
+    for (const refSeq of refSeqs) {
+      const features = await this.featuresService.findByRange({
+        refSeq: refSeq._id as string,
+        start: 0,
+        end: refSeq.length,
+      })
+      for (const feature of features) {
+        for (const f of feature) {
+          await this.featuresService.checkFeature(f._id.toString(), false)
+        }
+      }
     }
   }
 

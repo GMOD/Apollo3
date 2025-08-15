@@ -21,9 +21,13 @@ import * as crypto from 'node:crypto'
 import fs from 'node:fs'
 import { afterEach, before, beforeEach, describe } from 'node:test'
 
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+// eslint-disable-next-line import/consistent-type-specifier-style
+import type {
+  AnnotationFeature,
+  AnnotationFeatureSnapshot,
+} from '@apollo-annotation/mst'
 
-import { Shell } from './utils.js'
+import { Shell, deleteAllChecks } from './utils.js'
 
 const apollo = 'yarn dev'
 const P = '--profile testAdmin'
@@ -1027,12 +1031,13 @@ void describe('Test CLI', () => {
     let p = new Shell(`${apollo} assembly check ${P}`)
     let out = JSON.parse(p.stdout)
     assert.ok(p.stdout.includes('CDSCheck'))
+    assert.ok(p.stdout.includes('TranscriptCheck'))
     const cdsCheckId = out.find((x: any) => x.name === 'CDSCheck')._id
 
     // Test view checks set for assembly
     p = new Shell(`${apollo} assembly check ${P} -a v1`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
+    assert.strictEqual(out.length, 2)
 
     // Test non-existant assembly
     p = new Shell(`${apollo} assembly check ${P} -a non-existant`, false)
@@ -1049,7 +1054,7 @@ void describe('Test CLI', () => {
     new Shell(`${apollo} assembly check ${P} -a v1 -c CDSCheck CDSCheck`)
     p = new Shell(`${apollo} assembly check ${P} -a v1`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
+    assert.strictEqual(out.length, 2)
     assert.deepStrictEqual(out.at(0).name, 'CDSCheck')
 
     // Works also with check id
@@ -1059,14 +1064,16 @@ void describe('Test CLI', () => {
     new Shell(`${apollo} assembly check ${P} -a v2 -c ${cdsCheckId}`)
     p = new Shell(`${apollo} assembly check ${P} -a v2`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
+    assert.strictEqual(out.length, 2)
     assert.deepStrictEqual(out.at(0).name, 'CDSCheck')
 
     // Delete check
     new Shell(`${apollo} assembly check ${P} -a v1 -d -c CDSCheck`)
     p = new Shell(`${apollo} assembly check ${P} -a v1`)
     out = JSON.parse(p.stdout)
-    assert.deepStrictEqual(p.stdout.trim(), '[]')
+    assert.strictEqual(out.length, 1)
+    assert.ok(!p.stdout.includes('CDSCheck'))
+    assert.ok(p.stdout.includes('TranscriptCheck'))
   })
 
   void globalThis.itName('Feature checks', () => {
@@ -1521,6 +1528,8 @@ void describe('Test CLI', () => {
       new Shell(
         `${apollo} assembly add-from-gff ${P} test_data/warningPositionReverse.gff -a vv1 -f`,
       )
+      deleteAllChecks(apollo, P, 'vv1')
+      new Shell(`${apollo} assembly check ${P} -a vv1 -c CDSCheck`)
       const p = new Shell(`${apollo} feature check ${P} -a vv1`)
       const out = JSON.parse(p.stdout)
       assert.deepStrictEqual(out.length, 2)
@@ -1585,5 +1594,104 @@ void describe('Test CLI', () => {
     p = new Shell(`${apollo} feature get-id ${P} -i ${exon_id}`)
     out = JSON.parse(p.stdout) as AnnotationFeature[]
     assert.deepStrictEqual(out.at(0)?.max, 30)
+  })
+
+  void globalThis.itName('Check splice site', () => {
+    new Shell(
+      `${apollo} assembly add-from-gff ${P} test_data/checkSplice.fasta.gff3 -f`,
+    )
+    let p = new Shell(`${apollo} feature get ${P} -a checkSplice.fasta.gff3`)
+    const features = JSON.parse(p.stdout)
+
+    const okMrnaId = []
+    let warnMrnaIdForw
+    let warnMrnaIdRev
+    for (const x of features) {
+      const children: AnnotationFeatureSnapshot[] = Object.values(x.children)
+      for (const child of children) {
+        if (!child.attributes) {
+          throw new Error('Error getting attributes')
+        }
+        if (
+          JSON.stringify(child.attributes.gff_id) ===
+            JSON.stringify(['EDEN.1']) ||
+          JSON.stringify(child.attributes.gff_id) ===
+            JSON.stringify(['EDEN2.1'])
+        ) {
+          okMrnaId.push(child._id)
+        }
+        if (
+          JSON.stringify(child.attributes.gff_id) === JSON.stringify(['EDEN.2'])
+        ) {
+          warnMrnaIdForw = child._id
+        }
+        if (
+          JSON.stringify(child.attributes.gff_id) ===
+          JSON.stringify(['EDEN2.2'])
+        ) {
+          warnMrnaIdRev = child._id
+        }
+      }
+    }
+
+    p = new Shell(
+      `${apollo} feature check ${P} -a checkSplice.fasta.gff3 -i ${okMrnaId.join(' ')}`,
+    )
+    let out = JSON.parse(p.stdout)
+    assert.deepStrictEqual(out, [])
+
+    // Check forward transcript
+    p = new Shell(
+      `${apollo} feature check ${P} -a checkSplice.fasta.gff3 -i ${warnMrnaIdForw}`,
+    )
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 4)
+    let chk = out.filter(
+      (x: any) =>
+        x.cause === 'NonCanonicalSpliceSiteAtFivePrime' && x.start === 11,
+    )
+    assert.strictEqual(chk.length, 1)
+    chk = out.filter(
+      (x: any) =>
+        x.cause === 'NonCanonicalSpliceSiteAtFivePrime' && x.start === 31,
+    )
+    assert.strictEqual(chk.length, 1)
+    chk = out.filter(
+      (x: any) =>
+        x.cause === 'NonCanonicalSpliceSiteAtThreePrime' && x.start === 17,
+    )
+    assert.strictEqual(chk.length, 1)
+    chk = out.filter(
+      (x: any) =>
+        x.cause === 'NonCanonicalSpliceSiteAtThreePrime' && x.start === 37,
+    )
+    assert.strictEqual(chk.length, 1)
+
+    // Check reverse transcript
+    p = new Shell(
+      `${apollo} feature check ${P} -a checkSplice.fasta.gff3 -i ${warnMrnaIdRev}`,
+    )
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 4)
+    chk = out.filter(
+      (x: any) =>
+        x.cause === 'NonCanonicalSpliceSiteAtThreePrime' && x.start === 11,
+    )
+    assert.strictEqual(chk.length, 1)
+    chk = out.filter(
+      (x: any) =>
+        x.cause === 'NonCanonicalSpliceSiteAtThreePrime' && x.start === 31,
+    )
+    assert.strictEqual(chk.length, 1)
+    chk = out.filter(
+      (x: any) =>
+        x.cause === 'NonCanonicalSpliceSiteAtFivePrime' && x.start === 17,
+    )
+    assert.strictEqual(chk.length, 1)
+    chk = out.filter(
+      (x: any) =>
+        x.cause === 'NonCanonicalSpliceSiteAtFivePrime' && x.start === 37,
+    )
+    assert.strictEqual(chk.length, 1)
   })
 })
