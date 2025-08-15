@@ -26,8 +26,8 @@ import { autorun, observable } from 'mobx'
 import {
   type Instance,
   type SnapshotOut,
+  addDisposer,
   applySnapshot,
-  flow,
   getRoot,
   getSnapshot,
   types,
@@ -196,129 +196,142 @@ export function extendSession(
       },
     }))
     .actions((self) => ({
-      afterCreate: flow(function* afterCreate() {
-        autorun(
-          () => {
-            // broadcastLocations() // **** This is not working and therefore we need to duplicate broadcastLocations() -method code here because autorun() does not observe changes otherwise
-            const locations: {
-              assemblyName: string
-              refName: string
-              start: number
-              end: number
-            }[] = []
-            for (const view of (self as unknown as AbstractSessionModel)
-              .views) {
-              if (view.type !== 'LinearGenomeView') {
-                return
-              }
-              const lgv = view as unknown as LinearGenomeViewModel
-              if (lgv.initialized) {
-                const { dynamicBlocks } = lgv
-                // eslint-disable-next-line unicorn/no-array-for-each
-                dynamicBlocks.forEach((block) => {
-                  if (block.regionNumber !== undefined) {
-                    const { assemblyName, end, refName, start } = block
-                    const assembly =
-                      self.apolloDataStore.assemblies.get(assemblyName)
-                    if (
-                      assembly &&
-                      assembly.backendDriverType === 'CollaborationServerDriver'
-                    ) {
-                      locations.push({ assemblyName, refName, start, end })
-                    }
-                  }
-                })
-              }
-            }
-            if (locations.length === 0) {
-              for (const internetAccount of internetAccounts) {
-                if ('baseURL' in internetAccount) {
-                  internetAccount.postUserLocation([])
-                }
-              }
-              return
-            }
-
-            const allLocations: UserLocation[] = []
-            for (const internetAccount of internetAccounts) {
-              if ('baseURL' in internetAccount) {
-                for (const location of locations) {
-                  const tmpLoc: UserLocation = {
-                    assemblyId: location.assemblyName,
-                    refSeq: location.refName,
-                    start: location.start,
-                    end: location.end,
-                  }
-                  allLocations.push(tmpLoc)
-                }
-                internetAccount.postUserLocation(allLocations)
-              }
-            }
-          },
-          { name: 'ApolloSession' },
-        )
-        // When the initial config.json loads, it doesn't include the Apollo
-        // tracks, which would result in a potentially invalid session snapshot
-        // if any tracks are open. Here we copy the session snapshot, apply an
-        // empty session snapshot, and then restore the original session
-        // snapshot after the updated config.json loads.
+      afterCreate() {
         // @ts-expect-error type is missing on ApolloRootModel
         const { internetAccounts, jbrowse, reloadPluginManagerCallback } =
           getRoot<ApolloRootModel>(self)
-        const pluginConfiguration =
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          jbrowse.configuration.ApolloPlugin as Instance<
-            typeof ApolloPluginConfigurationSchema
-          >
-        const hasRole = readConfObject(
-          pluginConfiguration,
-          'hasRole',
-        ) as boolean
-        if (hasRole) {
-          return
-        }
-        const sessionSnapshot = getSnapshot(self)
-        const { id, name } = sessionSnapshot
-        applySnapshot(self, { name, id })
+        addDisposer(
+          self,
+          autorun(
+            () => {
+              // broadcastLocations() // **** This is not working and therefore we need to duplicate broadcastLocations() -method code here because autorun() does not observe changes otherwise
+              const locations: {
+                assemblyName: string
+                refName: string
+                start: number
+                end: number
+              }[] = []
+              for (const view of (self as unknown as AbstractSessionModel)
+                .views) {
+                if (view.type !== 'LinearGenomeView') {
+                  return
+                }
+                const lgv = view as unknown as LinearGenomeViewModel
+                if (lgv.initialized) {
+                  const { dynamicBlocks } = lgv
+                  // eslint-disable-next-line unicorn/no-array-for-each
+                  dynamicBlocks.forEach((block) => {
+                    if (block.regionNumber !== undefined) {
+                      const { assemblyName, end, refName, start } = block
+                      const assembly =
+                        self.apolloDataStore.assemblies.get(assemblyName)
+                      if (
+                        assembly &&
+                        assembly.backendDriverType ===
+                          'CollaborationServerDriver'
+                      ) {
+                        locations.push({ assemblyName, refName, start, end })
+                      }
+                    }
+                  })
+                }
+              }
+              if (locations.length === 0) {
+                for (const internetAccount of internetAccounts) {
+                  if ('baseURL' in internetAccount) {
+                    internetAccount.postUserLocation([])
+                  }
+                }
+                return
+              }
 
-        // fetch and initialize assemblies for each of our Apollo internet accounts
-        for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
-          if (internetAccount.type !== 'ApolloInternetAccount') {
-            continue
-          }
+              const allLocations: UserLocation[] = []
+              for (const internetAccount of internetAccounts) {
+                if ('baseURL' in internetAccount) {
+                  for (const location of locations) {
+                    const tmpLoc: UserLocation = {
+                      assemblyId: location.assemblyName,
+                      refSeq: location.refName,
+                      start: location.start,
+                      end: location.end,
+                    }
+                    allLocations.push(tmpLoc)
+                  }
+                  internetAccount.postUserLocation(allLocations)
+                }
+              }
+            },
+            { name: 'ApolloSessionBroadcastLocations' },
+          ),
+        )
+        addDisposer(
+          self,
+          autorun(
+            async (reaction) => {
+              // When the initial config.json loads, it doesn't include the Apollo
+              // tracks, which would result in a potentially invalid session snapshot
+              // if any tracks are open. Here we copy the session snapshot, apply an
+              // empty session snapshot, and then restore the original session
+              // snapshot after the updated config.json loads.
+              const pluginConfiguration =
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                jbrowse.configuration.ApolloPlugin as Instance<
+                  typeof ApolloPluginConfigurationSchema
+                >
+              const hasRole = readConfObject(
+                pluginConfiguration,
+                'hasRole',
+              ) as boolean
+              if (hasRole) {
+                return
+              }
+              const sessionSnapshot = getSnapshot(self)
+              const { id, name } = sessionSnapshot
+              applySnapshot(self, { name, id })
 
-          const { baseURL } = internetAccount
-          const uri = new URL('jbrowse/config.json', baseURL).href
-          const fetch = internetAccount.getFetcher({
-            locationType: 'UriLocation',
-            uri,
-          })
-          let response: Response
-          try {
-            response = yield fetch(uri, { signal })
-          } catch (error) {
-            console.error(error)
-            continue
-          }
-          if (!response.ok) {
-            const errorMessage = yield createFetchErrorMessage(
-              response,
-              'Failed to fetch assemblies',
-            )
-            console.error(errorMessage)
-            continue
-          }
-          let jbrowseConfig
-          try {
-            jbrowseConfig = yield response.json()
-          } catch (error) {
-            console.error(error)
-            continue
-          }
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-          reloadPluginManagerCallback(jbrowseConfig, sessionSnapshot)
-        }
-      }),
+              // fetch and initialize assemblies for each of our Apollo internet accounts
+              for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
+                if (internetAccount.type !== 'ApolloInternetAccount') {
+                  continue
+                }
+
+                const { baseURL } = internetAccount
+                const uri = new URL('jbrowse/config.json', baseURL).href
+                const fetch = internetAccount.getFetcher({
+                  locationType: 'UriLocation',
+                  uri,
+                })
+                let response: Response
+                try {
+                  response = await fetch(uri, { signal })
+                } catch (error) {
+                  console.error(error)
+                  continue
+                }
+                if (!response.ok) {
+                  const errorMessage = await createFetchErrorMessage(
+                    response,
+                    'Failed to fetch assemblies',
+                  )
+                  console.error(errorMessage)
+                  continue
+                }
+                let jbrowseConfig
+                try {
+                  jbrowseConfig = await response.json()
+                } catch (error) {
+                  console.error(error)
+                  continue
+                }
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                reloadPluginManagerCallback(jbrowseConfig, sessionSnapshot)
+                reaction.dispose()
+              }
+            },
+            { name: 'ApolloSessionLoadConfig' },
+          ),
+        )
+      },
       beforeDestroy() {
         aborter.abort('destroying session model')
       },
