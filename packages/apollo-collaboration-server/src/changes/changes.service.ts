@@ -266,13 +266,25 @@ export class ChangesService {
     const messages: ChangeMessage[] = []
 
     const userSessionId = makeUserSessionId(user)
-    messages.push({
-      changeInfo: change.toJSON(),
-      userName: user.username,
-      userSessionId,
-      channel: 'COMMON',
-      changeSequence: changeDoc.sequence,
-    })
+    if (isFeatureChange(change)) {
+      for (const refName of refNames) {
+        messages.push({
+          changeInfo: change.toJSON(),
+          userName: user.username,
+          userSessionId,
+          channel: `${change.assembly}-${refName}`,
+          changeSequence: changeDoc.sequence,
+        })
+      }
+    } else {
+      messages.push({
+        changeInfo: change.toJSON(),
+        userName: user.username,
+        userSessionId,
+        channel: 'COMMON',
+        changeSequence: changeDoc.sequence,
+      })
+    }
 
     for (const message of messages) {
       this.logger.debug(

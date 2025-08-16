@@ -4,7 +4,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { type AssemblySpecificChange, Change } from '@apollo-annotation/common'
+import {
+  type AssemblySpecificChange,
+  Change,
+  type FeatureChange,
+  isFeatureChange,
+} from '@apollo-annotation/common'
 import {
   type AnnotationFeatureSnapshot,
   type ApolloRefSeqI,
@@ -151,10 +156,26 @@ export class CollaborationServerDriver extends BackendDriver {
         )
         if (message.userSessionId !== token && message.channel === channel) {
           const change = Change.fromJSON(message.changeInfo)
-          await changeManager.submit(change, { submitToBackend: false })
+          if (isFeatureChange(change) && this.haveDataForChange(change)) {
+            await changeManager.submit(change, { submitToBackend: false })
+          }
         }
       })
     }
+  }
+
+  private haveDataForChange(change: FeatureChange): boolean {
+    const { assembly, changedIds } = change
+    const apolloAssembly = this.clientStore.assemblies.get(assembly)
+    if (!apolloAssembly) {
+      return false
+    }
+    for (const changedId of changedIds) {
+      if (this.clientStore.getFeature(changedId)) {
+        return true
+      }
+    }
+    return false
   }
 
   /**
