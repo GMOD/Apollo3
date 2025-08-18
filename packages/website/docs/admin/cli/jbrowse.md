@@ -2,8 +2,48 @@
 
 Commands to manage the JBrowse configuration
 
+- [`apollo jbrowse desktop JBROWSEFILE`](#apollo-jbrowse-desktop-jbrowsefile)
 - [`apollo jbrowse get-config`](#apollo-jbrowse-get-config)
 - [`apollo jbrowse set-config INPUTFILE`](#apollo-jbrowse-set-config-inputfile)
+
+## `apollo jbrowse desktop JBROWSEFILE`
+
+Generate JBrowse file for use with desktop client
+
+```
+USAGE
+  $ apollo jbrowse desktop JBROWSEFILE [--profile <value>] [--config-file <value>] [-o | -w <value>]
+
+ARGUMENTS
+  JBROWSEFILE  Generated JBrowse file
+
+FLAGS
+  -o, --open                 open generated file
+  -w, --open-with=<value>    open generated file with specified application
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      Use credentials from this profile
+
+DESCRIPTION
+  Generate JBrowse file for use with desktop client
+
+  Generate JBrowse file for use with desktop client
+
+EXAMPLES
+  Generate JBrowse file:
+
+    $ apollo jbrowse desktop apollo.jbrowse
+
+  Generate JBrowse file and open with default handler:
+
+    $ apollo jbrowse desktop apollo.jbrowse --open
+
+  Generate JBrowse file and open with specified application:
+
+    $ apollo jbrowse desktop apollo.jbrowse --open-with=path/to/jbrowse.AppImage
+```
+
+_See code:
+[src/commands/jbrowse/desktop.ts](https://github.com/GMOD/Apollo3/blob/v0.3.7/packages/apollo-cli/src/commands/jbrowse/desktop.ts)_
 
 ## `apollo jbrowse get-config`
 
