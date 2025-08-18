@@ -1,4 +1,9 @@
-import { Assembly, AssemblyDocument } from '@apollo-annotation/schemas'
+import {
+  Assembly,
+  AssemblyDocument,
+  Check,
+  CheckDocument,
+} from '@apollo-annotation/schemas'
 import { GetAssembliesOperation } from '@apollo-annotation/shared'
 import {
   Injectable,
@@ -22,6 +27,8 @@ export class AssembliesService {
   constructor(
     @InjectModel(Assembly.name)
     private readonly assemblyModel: Model<AssemblyDocument>,
+    @InjectModel(Check.name)
+    private readonly checkModel: Model<CheckDocument>,
     private readonly operationsService: OperationsService,
     private readonly checksService: ChecksService,
     private readonly featuresService: FeaturesService,
@@ -30,7 +37,7 @@ export class AssembliesService {
 
   private readonly logger = new Logger(AssembliesService.name)
 
-  create(createAssemblyDto: CreateAssemblyDto) {
+  async create(createAssemblyDto: CreateAssemblyDto) {
     return this.assemblyModel.create(createAssemblyDto)
   }
 

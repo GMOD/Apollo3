@@ -24,6 +24,7 @@ enum CAUSES {
   'MissingStopCodon',
   'MultipleOfThree',
 }
+const DEFAULT = true
 
 const iupacComplements: Record<string, string | undefined> = {
   G: 'C',
@@ -167,6 +168,7 @@ async function checkMRNA(
         checkResults.push({
           _id: new ObjectID().toHexString(),
           name: CHECK_NAME,
+          isDefault: DEFAULT,
           cause: CAUSES[CAUSES.MissingStartCodon],
           ids,
           refSeq: refSeq.toString(),
@@ -184,6 +186,7 @@ async function checkMRNA(
         checkResults.push({
           _id: new ObjectID().toHexString(),
           name: CHECK_NAME,
+          isDefault: DEFAULT,
           cause: CAUSES[CAUSES.MissingStopCodon],
           ids,
           refSeq: refSeq.toString(),
@@ -196,6 +199,7 @@ async function checkMRNA(
       checkResults.push({
         _id: new ObjectID().toHexString(),
         name: CHECK_NAME,
+        isDefault: DEFAULT,
         cause: CAUSES[CAUSES.MultipleOfThree],
         ids,
         refSeq: refSeq.toString(),
@@ -215,6 +219,7 @@ async function checkMRNA(
         checkResults.push({
           _id: new ObjectID().toHexString(),
           name: CHECK_NAME,
+          isDefault: DEFAULT,
           cause: CAUSES[CAUSES.InternalStopCodon],
           ids,
           refSeq: refSeq.toString(),
@@ -285,7 +290,7 @@ export class CDSCheck extends Check {
   name = CHECK_NAME
   causes = getCauses()
   version = 1
-  default = true
+  isDefault = DEFAULT
 
   async checkFeature(
     feature: AnnotationFeatureSnapshot,
