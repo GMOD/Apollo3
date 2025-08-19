@@ -25,6 +25,7 @@ import { afterEach, before, beforeEach, describe } from 'node:test'
 import type {
   AnnotationFeature,
   AnnotationFeatureSnapshot,
+  CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 
 import { Shell, deleteAllChecks } from './utils.js'
@@ -1118,6 +1119,40 @@ void describe('Test CLI', () => {
     p = new Shell(`${apollo} feature check ${P} -i ${xid}`)
     assert.ok(p.stdout.includes('InternalStopCodon'))
   })
+
+  void globalThis.itName(
+    'Delete check results when unregistering a check',
+    () => {
+      new Shell(
+        `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a v1 -f`,
+      )
+      let p = new Shell(`${apollo} feature check ${P} -a v1`)
+      let checkResults = JSON.parse(p.stdout) as CheckResultSnapshot[]
+      assert.ok(checkResults.length > 1)
+
+      // Delete all checks and consequently delete all check results
+      p = new Shell(`${apollo} assembly check ${P} -a v1`)
+      const checkNames = (JSON.parse(p.stdout) as CheckResultSnapshot[]).map(
+        (x) => x.name,
+      )
+      new Shell(
+        `${apollo} assembly check ${P} -a v1 -d -c ${checkNames.join(' ')}`,
+      )
+      p = new Shell(`${apollo} feature check ${P} -a v1`)
+      checkResults = JSON.parse(p.stdout)
+      assert.deepEqual(checkResults.length, 0)
+
+      // Put one check back
+      new Shell(`${apollo} assembly check ${P} -a v1 -c CDSCheck`)
+      p = new Shell(`${apollo} feature check ${P} -a v1`)
+      checkResults = JSON.parse(p.stdout)
+      assert.ok(checkResults.length > 0)
+      assert.deepEqual(
+        checkResults.filter((x) => x.name === 'CDSCheck').length,
+        checkResults.length,
+      )
+    },
+  )
 
   void globalThis.itName('User', () => {
     let p = new Shell(`${apollo} user get ${P}`)
