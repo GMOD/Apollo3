@@ -1,0 +1,40 @@
+# Note: See http://song.sourceforge.net
+# multi-exon gene - several linked CDSs
+# single exon gene - one CDS only
+##gff-version 3
+ctgA	example	gene	1	50	.	+	.	ID=EDEN;Name=EDEN
+ctgA	example	mRNA	1	50	.	+	.	ID=EDEN.1;Parent=EDEN;Name=EDEN.1
+ctgA	example	exon	1	10	.	+	.	ID=exon.1;Parent=EDEN.1
+ctgA	example	exon	21	30	.	+	.	ID=exon.2;Parent=EDEN.1
+ctgA	example	exon	41	50	.	+	.	ID=exon.3;Parent=EDEN.1
+ctgA	example	mRNA	1	50	.	+	.	ID=EDEN.2;Parent=EDEN;Name=EDEN.1
+ctgA	example	exon	1	11	.	+	.	ID=exon.4;Parent=EDEN.2
+ctgA	example	exon	20	31	.	+	.	ID=exon.5;Parent=EDEN.2
+ctgA	example	exon	40	50	.	+	.	ID=exon.6;Parent=EDEN.2
+###
+ctgB	example	gene	1	50	.	-	.	ID=EDEN2;Name=EDEN2
+ctgB	example	mRNA	1	50	.	-	.	ID=EDEN2.1;Parent=EDEN2;Name=EDEN2.1
+ctgB	example	exon	1	10	.	-	.	ID=exon2.1;Parent=EDEN2.1
+ctgB	example	exon	21	30	.	-	.	ID=exon2.2;Parent=EDEN2.1
+ctgB	example	exon	41	50	.	-	.	ID=exon2.3;Parent=EDEN2.1
+ctgB	example	mRNA	1	50	.	-	.	ID=EDEN2.2;Parent=EDEN2;Name=EDEN2.1
+ctgB	example	exon	1	11	.	-	.	ID=exon2.4;Parent=EDEN2.2
+ctgB	example	exon	20	31	.	-	.	ID=exon2.5;Parent=EDEN2.2
+ctgB	example	exon	40	50	.	-	.	ID=exon2.6;Parent=EDEN2.2
+##FASTA
+>ctgA
+caatgttgcggtgttgtaagACGGCATTAGGTACACTTAGGTCTCtcacttttatacgat
+tatgattggttctttagccttggtttagattggtagtagtagcggcgctaatgctacctg
+aattgagaactcgagcgggggctaggcaaattctgattcagcctgacttctcttggaacc
+ctgcccataaatcaaagggttagtgcggccaaaacgttggacaacggtattagaagacca
+acctgaccaccaaaccgtcaattaaccggtatcttctcggaaacggcggttctctcctag
+atagcgatctgtggtctcaccatgcaatttaaacaggtgagtaaagattgctacaaatac
+gagactagctgtcaccagatgctgttcatctgttggctccttggtcgctccgttgtaccc
+>ctgB
+caatgttgcgctgttgtaacACGGCATTAGCTACACTTACGTCTCtcacttttatacgat
+tatgattggttctttagccttggtttagattggtagtagtagcggcgctaatgctacctg
+aattgagaactcgagcgggggctaggcaaattctgattcagcctgacttctcttggaacc
+ctgcccataaatcaaagggttagtgcggccaaaacgttggacaacggtattagaagacca
+acctgaccaccaaaccgtcaattaaccggtatcttctcggaaacggcggttctctcctag
+atagcgatctgtggtctcaccatgcaatttaaacaggtgagtaaagattgctacaaatac
+gagactagctgtcaccagatgctgttcatctgttggctccttggtcgctccgttgtaccc

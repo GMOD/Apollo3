@@ -18,7 +18,7 @@ export class Check {
   causes: string[]
 
   @Prop()
-  default: boolean
+  isDefault: boolean
 
   @Prop()
   version: number

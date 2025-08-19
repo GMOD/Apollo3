@@ -129,7 +129,7 @@ Cypress.Commands.add('selectFromApolloMenu', (menuItemName) => {
 
 Cypress.Commands.add(
   'addAssemblyFromGff',
-  (assemblyName, fin, launch = true) => {
+  (assemblyName, fin, launch = true, loadFeatures = true) => {
     cy.selectFromApolloMenu('Add Assembly')
     cy.get('form[data-testid="submit-form"]').within(() => {
       cy.get('input[type="TextField"]').type(assemblyName)
@@ -140,11 +140,13 @@ Cypress.Commands.add(
           cy.get('button').click()
         })
       cy.get('input[data-testid="gff3-input-file"]').selectFile(fin)
-      cy.contains('Load features from GFF3')
-        .parent()
-        .within(() => {
-          cy.get('input[type="checkbox"]').should('be.checked')
-        })
+      cy.contains('Load features from GFF3').within(() => {
+        cy.get('input[type="checkbox"]').should('be.checked')
+        if (!loadFeatures) {
+          cy.get('input[type="checkbox"]').click()
+          cy.get('input[type="checkbox"]').should('not.be.checked')
+        }
+      })
       cy.intercept('/changes').as('changes')
       cy.get('Button[data-testid="submit-button"]').click()
       cy.wait('@changes').its('response.statusCode').should('match', /2../)
@@ -153,7 +155,11 @@ Cypress.Commands.add(
     cy.contains('UploadAssemblyFile')
       .parent()
       .should('contain', 'All operations successful')
-    cy.contains('AddAssemblyAndFeaturesFromFileChange')
+    cy.contains(
+      loadFeatures
+        ? 'AddAssemblyAndFeaturesFromFileChange'
+        : 'AddAssemblyFromFileChange',
+    )
       .parent()
       .should('contain', 'All operations successful')
     cy.get('button[aria-label="Close drawer"]', { timeout: 10_000 }).click()
@@ -259,16 +265,18 @@ Cypress.Commands.add(
       })
     cy.contains('li', assemblyName, { timeout: 10_000 }).click()
 
-    cy.contains('Yes, delete existing features')
-      .parent()
-      .within(() => {
-        if (deleteExistingFeatures) {
-          cy.get('input[type="checkbox"]').click()
-          cy.get('input[type="checkbox"]').should('be.checked')
-        } else {
-          cy.get('input[type="checkbox"]').should('be.not.checked')
-        }
-      })
+    if (deleteExistingFeatures !== undefined) {
+      cy.contains('Yes, delete existing features')
+        .parent()
+        .within(() => {
+          if (deleteExistingFeatures) {
+            cy.get('input[type="checkbox"]').click()
+            cy.get('input[type="checkbox"]').should('be.checked')
+          } else {
+            cy.get('input[type="checkbox"]').should('be.not.checked')
+          }
+        })
+    }
 
     cy.contains('button', 'Submit').click()
     cy.contains('Importing features for')

@@ -7,6 +7,7 @@ export abstract class Check {
   abstract name: string
   abstract version: number
   abstract causes: string[]
+  abstract isDefault: boolean
 
   abstract checkFeature(
     feature: AnnotationFeatureSnapshot,

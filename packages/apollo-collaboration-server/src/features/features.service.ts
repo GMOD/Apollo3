@@ -163,12 +163,12 @@ export class FeaturesService {
     return [featureDocs, checkResults]
   }
 
-  async checkFeature(featureId: string) {
+  async checkFeature(featureId: string, checkTimestamps = true) {
     const topLevelFeature = await this.featureModel.findById(featureId).exec()
     if (!topLevelFeature) {
       return
     }
-    return this.checksService.checkFeature(topLevelFeature)
+    return this.checksService.checkFeature(topLevelFeature, checkTimestamps)
   }
 
   async searchFeatures(searchDto: { term: string; assemblies: string }) {
