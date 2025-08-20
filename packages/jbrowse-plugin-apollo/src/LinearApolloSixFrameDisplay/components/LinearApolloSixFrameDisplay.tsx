@@ -163,6 +163,7 @@ export const LinearApolloSixFrameDisplay = observer(
                 data-testid="overlayCanvas"
               />
               {lgv.displayedRegions.flatMap((region, idx) => {
+                const widthBp = lgv.bpPerPx * apolloRowHeight
                 const assembly = assemblyManager.get(region.assemblyName)
                 if (showCheckResults) {
                   const filteredCheckResults = [
@@ -181,7 +182,7 @@ export const LinearApolloSixFrameDisplay = observer(
                   )
                   const checkResults = clusterResultByMessage<CheckResultI>(
                     filteredCheckResults,
-                    lgv.bpPerPx * 20,
+                    widthBp,
                     true,
                   )
                   return checkResults.map((checkResult) => {
