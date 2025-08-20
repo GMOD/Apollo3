@@ -181,7 +181,7 @@ export const LinearApolloSixFrameDisplay = observer(
                   )
                   const checkResults = clusterResultByMessage<CheckResultI>(
                     filteredCheckResults,
-                    20,
+                    lgv.bpPerPx * 20,
                     true,
                   )
                   return checkResults.map((checkResult) => {
