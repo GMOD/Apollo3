@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
+import { type CheckResultI } from '@apollo-annotation/mst'
 import { Menu, type MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
   doesIntersect2,
   getContainingView,
+  getFrame,
 } from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import ErrorIcon from '@mui/icons-material/Error'
@@ -14,6 +16,7 @@ import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
+import { clusterResultByMessage } from '../../util/displayUtils'
 import { type LinearApolloSixFrameDisplay as LinearApolloSixFrameDisplayI } from '../stateModel'
 
 import { TrackLines } from './TrackLines'
@@ -58,6 +61,8 @@ export const LinearApolloSixFrameDisplay = observer(
       contextMenuItems: getContextMenuItems,
       cursor,
       featuresHeight,
+      featureLabelSpacer,
+      geneTrackRowNums,
       isShown,
       onMouseDown,
       onMouseLeave,
@@ -161,48 +166,85 @@ export const LinearApolloSixFrameDisplay = observer(
                 data-testid="overlayCanvas"
               />
               {lgv.displayedRegions.flatMap((region, idx) => {
+                const widthBp = lgv.bpPerPx * apolloRowHeight
                 const assembly = assemblyManager.get(region.assemblyName)
                 if (showCheckResults) {
-                  return [...session.apolloDataStore.checkResults.values()]
-                    .filter(
-                      (checkResult) =>
-                        assembly?.isValidRefName(checkResult.refSeq) &&
-                        assembly.getCanonicalRefName(checkResult.refSeq) ===
-                          region.refName &&
-                        doesIntersect2(
-                          region.start,
-                          region.end,
-                          checkResult.start,
-                          checkResult.end,
-                        ),
-                    )
-                    .map((checkResult) => {
-                      const left =
-                        (lgv.bpToPx({
-                          refName: region.refName,
-                          coord: checkResult.start,
-                          regionNumber: idx,
-                        })?.offsetPx ?? 0) - lgv.offsetPx
-                      const [feature] = checkResult.ids
-                      if (!feature || !feature.parent?.looksLikeGene) {
-                        return null
+                  const filteredCheckResults = [
+                    ...session.apolloDataStore.checkResults.values(),
+                  ].filter(
+                    (checkResult) =>
+                      assembly?.isValidRefName(checkResult.refSeq) &&
+                      assembly.getCanonicalRefName(checkResult.refSeq) ===
+                        region.refName &&
+                      doesIntersect2(
+                        region.start,
+                        region.end,
+                        checkResult.start,
+                        checkResult.end,
+                      ),
+                  )
+                  const checkResults = clusterResultByMessage<CheckResultI>(
+                    filteredCheckResults,
+                    widthBp,
+                    true,
+                  )
+                  return checkResults.map((checkResult) => {
+                    const left =
+                      (lgv.bpToPx({
+                        refName: region.refName,
+                        coord: checkResult.start,
+                        regionNumber: idx,
+                      })?.offsetPx ?? 0) - lgv.offsetPx
+                    const [feature] = checkResult.featureIds
+                    if (!feature || !feature.parent?.looksLikeGene) {
+                      return null
+                    }
+
+                    let row
+                    for (const loc of feature.cdsLocations) {
+                      for (const cds of loc) {
+                        let rowNum: number = getFrame(
+                          cds.min,
+                          cds.max,
+                          feature.strand ?? 1,
+                          cds.phase,
+                        )
+                        rowNum = featureLabelSpacer(
+                          rowNum < 0 ? -1 * rowNum + 5 : rowNum,
+                        )
+                        if (
+                          checkResult.start >= cds.min &&
+                          checkResult.start <= cds.max
+                        ) {
+                          row = rowNum - 1
+                          break
+                        }
                       }
-                      const top = 0
-                      const height = apolloRowHeight
-                      return (
-                        <Tooltip
-                          key={checkResult._id}
-                          title={checkResult.message}
+                    }
+                    if (row === undefined) {
+                      const rowNum =
+                        feature.strand == 1
+                          ? geneTrackRowNums[0]
+                          : geneTrackRowNums[1]
+                      row = rowNum - 1
+                    }
+
+                    const top = row * apolloRowHeight
+                    const height = apolloRowHeight
+                    return (
+                      <Tooltip
+                        key={checkResult._id}
+                        title={checkResult.message}
+                      >
+                        <Avatar
+                          className={classes.avatar}
+                          style={{ top, left, height, width: height }}
                         >
-                          <Avatar
-                            className={classes.avatar}
-                            style={{ top, left, height, width: height }}
-                          >
-                            <ErrorIcon />
-                          </Avatar>
-                        </Tooltip>
-                      )
-                    })
+                          <ErrorIcon />
+                        </Avatar>
+                      </Tooltip>
+                    )
+                  })
                 }
                 return null
               })}
