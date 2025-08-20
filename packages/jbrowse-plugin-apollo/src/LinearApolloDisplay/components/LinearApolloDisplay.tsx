@@ -202,16 +202,15 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
                       coord: checkResult.start,
                       regionNumber: idx,
                     })?.offsetPx ?? 0) - lgv.offsetPx
-                  // const [feature] = checkResult.ids
-                  // if (!feature) {
-                  //   return null
-                  // }
-                  const row = 0
-                  // const featureLayout =
-                  //   model.getFeatureLayoutPosition(feature)
-                  // if (featureLayout) {
-                  //   row = featureLayout.layoutRow + featureLayout.featureRow
-                  // }
+                  const [feature] = checkResult.featureIds
+                  if (!feature) {
+                    return null
+                  }
+                  let row = 0
+                  const featureLayout = model.getFeatureLayoutPosition(feature)
+                  if (featureLayout) {
+                    row = featureLayout.layoutRow + featureLayout.featureRow
+                  }
                   const top = row * apolloRowHeight
                   const height = apolloRowHeight
                   return (

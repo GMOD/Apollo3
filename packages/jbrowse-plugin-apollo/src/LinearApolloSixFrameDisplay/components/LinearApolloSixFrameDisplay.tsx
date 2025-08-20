@@ -7,6 +7,7 @@ import {
   type AbstractSessionModel,
   doesIntersect2,
   getContainingView,
+  getFrame,
 } from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import ErrorIcon from '@mui/icons-material/Error'
@@ -60,6 +61,8 @@ export const LinearApolloSixFrameDisplay = observer(
       contextMenuItems: getContextMenuItems,
       cursor,
       featuresHeight,
+      featureLabelSpacer,
+      geneTrackRowNums,
       isShown,
       onMouseDown,
       onMouseLeave,
@@ -192,11 +195,41 @@ export const LinearApolloSixFrameDisplay = observer(
                         coord: checkResult.start,
                         regionNumber: idx,
                       })?.offsetPx ?? 0) - lgv.offsetPx
-                    // const [feature] = checkResult.ids
-                    // if (!feature || !feature.parent?.looksLikeGene) {
-                    //   return null
-                    // }
-                    const top = 0
+                    const [feature] = checkResult.featureIds
+                    if (!feature || !feature.parent?.looksLikeGene) {
+                      return null
+                    }
+
+                    let row
+                    for (const loc of feature.cdsLocations) {
+                      for (const cds of loc) {
+                        let rowNum: number = getFrame(
+                          cds.min,
+                          cds.max,
+                          feature.strand ?? 1,
+                          cds.phase,
+                        )
+                        rowNum = featureLabelSpacer(
+                          rowNum < 0 ? -1 * rowNum + 5 : rowNum,
+                        )
+                        if (
+                          checkResult.start >= cds.min &&
+                          checkResult.start <= cds.max
+                        ) {
+                          row = rowNum - 1
+                          break
+                        }
+                      }
+                    }
+                    if (row === undefined) {
+                      const rowNum =
+                        feature.strand == 1
+                          ? geneTrackRowNums[0]
+                          : geneTrackRowNums[1]
+                      row = rowNum - 1
+                    }
+
+                    const top = row * apolloRowHeight
                     const height = apolloRowHeight
                     return (
                       <Tooltip
