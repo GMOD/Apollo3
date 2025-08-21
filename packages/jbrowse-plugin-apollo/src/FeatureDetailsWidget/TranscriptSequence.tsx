@@ -14,6 +14,7 @@ import React, { useEffect, useRef, useState } from 'react'
 
 import { type ApolloSessionModel } from '../session'
 import { copyToClipboard } from '../util/copyToClipboard'
+import { Segment } from '@mui/icons-material'
 
 const SEQUENCE_WRAP_LENGTH = 60
 
@@ -282,6 +283,38 @@ export const TranscriptSequence = observer(function TranscriptSequence({
     void copyToClipboard(seqDiv)
   }
 
+  const seqElements: React.ReactNode[] = []
+  let processedChars = 0
+  for (const [index, segment] of sequenceSegments.entries()) {
+    const singleLine = segment.sequenceLines.join('')
+    const lastLineLength = processedChars % SEQUENCE_WRAP_LENGTH
+    const segmentLineBreak =
+      processedChars > 0 && lastLineLength === 0 ? '\n' : ''
+    processedChars += singleLine.length
+    const firstLine =
+      segmentLineBreak +
+      singleLine.slice(0, SEQUENCE_WRAP_LENGTH - lastLineLength)
+    const remainingLines = splitStringIntoChunks(
+      singleLine.slice(firstLine.length),
+      SEQUENCE_WRAP_LENGTH,
+    )
+    const printLines = [firstLine, ...remainingLines]
+
+    const span = (
+      <span
+        key={`${segment.type}-${index}`}
+        style={{
+          background: getSegmentColor(segment.type),
+          color: theme.palette.getContrastText(getSegmentColor(segment.type)),
+          whiteSpace: 'pre-line',
+        }}
+      >
+        {printLines.join('\n')}
+      </span>
+    )
+    seqElements.push(span)
+  }
+
   return (
     <>
       <Select
@@ -322,7 +355,8 @@ export const TranscriptSequence = observer(function TranscriptSequence({
           .join(';')}
         ({feature.strand === 1 ? '+' : '-'})
         <br />
-        {sequenceSegments.map((segment, index) => (
+        {seqElements}
+        {/* {sequenceSegments.map((segment, index) => (
           <span
             key={`${segment.type}-${index}`}
             style={{
@@ -342,7 +376,7 @@ export const TranscriptSequence = observer(function TranscriptSequence({
               </React.Fragment>
             ))}
           </span>
-        ))}
+        ))} */}
       </Paper>
     </>
   )
