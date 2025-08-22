@@ -292,9 +292,14 @@ export const TranscriptSequence = observer(function TranscriptSequence({
         value={selectedOption}
         onChange={handleChangeSeqOption}
         size="small"
+        data-testid="sequenceOptionSelector"
       >
         {sequenceOptions.map((option) => (
-          <MenuItem key={option} value={option}>
+          <MenuItem
+            key={option}
+            value={option}
+            data-testid={`sequenceOption-${option}`}
+          >
             {option}
           </MenuItem>
         ))}
