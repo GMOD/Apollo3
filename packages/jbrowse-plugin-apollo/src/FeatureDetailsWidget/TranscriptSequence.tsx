@@ -28,16 +28,14 @@ type SegmentListType = 'CDS' | 'cDNA' | 'genomic' | 'protein'
 
 interface SequenceSegment {
   type: SegmentType
-  sequenceLines: string[]
+  sequence: string
   locs: { min: number; max: number }[]
 }
 
 function getSequenceLength(segments: SequenceSegment[]): number {
   let length = 0
   for (const segment of segments) {
-    for (const line of segment.sequenceLines) {
-      length += line.length
-    }
+    length += segment.sequence.length
   }
   return length
 }
@@ -67,51 +65,20 @@ function getSequenceSegments(
             : loc.type
         const previousSegment = segments.at(-1)
         if (!previousSegment) {
-          const sequenceLines = splitStringIntoChunks(
-            sequence,
-            SEQUENCE_WRAP_LENGTH,
-          )
           segments.push({
             type,
-            sequenceLines,
+            sequence,
             locs: [{ min: loc.min, max: loc.max }],
           })
           continue
         }
         if (previousSegment.type === type) {
-          const [previousSegmentFirstLine, ...previousSegmentFollowingLines] =
-            previousSegment.sequenceLines
-          const newSequence = previousSegmentFollowingLines.join('') + sequence
-          previousSegment.sequenceLines = [
-            previousSegmentFirstLine,
-            ...splitStringIntoChunks(newSequence, SEQUENCE_WRAP_LENGTH),
-          ]
+          previousSegment.sequence += sequence
           previousSegment.locs.push({ min: loc.min, max: loc.max })
         } else {
-          const count = segments.reduce(
-            (accumulator, currentSegment) =>
-              accumulator +
-              currentSegment.sequenceLines.reduce(
-                (subAccumulator, currentLine) =>
-                  subAccumulator + currentLine.length,
-                0,
-              ),
-            0,
-          )
-          const previousLineLength = count % SEQUENCE_WRAP_LENGTH
-          const newSegmentFirstLineLength =
-            SEQUENCE_WRAP_LENGTH - previousLineLength
-          const newSegmentFirstLine = sequence.slice(
-            0,
-            newSegmentFirstLineLength,
-          )
-          const newSegmentRemainderLines = splitStringIntoChunks(
-            sequence.slice(newSegmentFirstLineLength),
-            SEQUENCE_WRAP_LENGTH,
-          )
           segments.push({
             type,
-            sequenceLines: [newSegmentFirstLine, ...newSegmentRemainderLines],
+            sequence,
             locs: [{ min: loc.min, max: loc.max }],
           })
         }
@@ -123,17 +90,14 @@ function getSequenceSegments(
       const [firstLocation] = cdsLocations
       const locs: { min: number; max: number }[] = []
       for (const loc of firstLocation) {
-        wholeSequence += getSequence(loc.min, loc.max)
+        let locSeq = getSequence(loc.min, loc.max)
+        if (strand === -1) {
+          locSeq = revcom(locSeq)
+        }
+        wholeSequence += locSeq
         locs.push({ min: loc.min, max: loc.max })
       }
-      if (strand === -1) {
-        wholeSequence = revcom(wholeSequence)
-      }
-      const sequenceLines = splitStringIntoChunks(
-        wholeSequence,
-        SEQUENCE_WRAP_LENGTH,
-      )
-      segments.push({ type: 'CDS', sequenceLines, locs })
+      segments.push({ type: 'CDS', sequence: wholeSequence, locs })
       return segments
     }
     case 'protein': {
@@ -141,11 +105,12 @@ function getSequenceSegments(
       const [firstLocation] = cdsLocations
       const locs: { min: number; max: number }[] = []
       for (const loc of firstLocation) {
-        wholeSequence += getSequence(loc.min, loc.max)
+        let locSeq = getSequence(loc.min, loc.max)
+        if (strand === -1) {
+          locSeq = revcom(locSeq)
+        }
+        wholeSequence += locSeq
         locs.push({ min: loc.min, max: loc.max })
-      }
-      if (strand === -1) {
-        wholeSequence = revcom(wholeSequence)
       }
       let protein = ''
       for (let i = 0; i < wholeSequence.length; i += 3) {
@@ -153,8 +118,7 @@ function getSequenceSegments(
         protein +=
           defaultCodonTable[codonSeq as keyof typeof defaultCodonTable] || '&'
       }
-      const sequenceLines = splitStringIntoChunks(protein, SEQUENCE_WRAP_LENGTH)
-      segments.push({ type: 'protein', sequenceLines, locs })
+      segments.push({ type: 'protein', sequence: protein, locs })
       return segments
     }
   }
@@ -292,6 +256,43 @@ export const TranscriptSequence = observer(function TranscriptSequence({
     void copyToClipboard(seqDiv)
   }
 
+  function wrapSequence(
+    sequenceSegments: SequenceSegment[],
+    sequenceWrapLength: number,
+  ): React.ReactNode[] {
+    const seqElements: React.ReactNode[] = []
+    let processedChars = 0
+    for (const [index, segment] of sequenceSegments.entries()) {
+      const lastLineLength = processedChars % sequenceWrapLength
+      const segmentLineBreak =
+        processedChars > 0 && lastLineLength === 0 ? '\n' : ''
+      processedChars += segment.sequence.length
+      const firstLine =
+        segmentLineBreak +
+        segment.sequence.slice(0, sequenceWrapLength - lastLineLength)
+      const remainingLines = splitStringIntoChunks(
+        segment.sequence.slice(firstLine.length),
+        sequenceWrapLength,
+      )
+      const printLines = [firstLine, ...remainingLines]
+
+      const span = (
+        <span
+          key={`${segment.type}-${index}`}
+          style={{
+            background: getSegmentColor(segment.type),
+            color: theme.palette.getContrastText(getSegmentColor(segment.type)),
+            whiteSpace: 'pre-line',
+          }}
+        >
+          {printLines.join('\n')}
+        </span>
+      )
+      seqElements.push(span)
+    }
+    return seqElements
+  }
+
   return (
     <>
       <Select
@@ -299,9 +300,14 @@ export const TranscriptSequence = observer(function TranscriptSequence({
         value={selectedOption}
         onChange={handleChangeSeqOption}
         size="small"
+        data-testid="sequenceOptionSelector"
       >
         {sequenceOptions.map((option) => (
-          <MenuItem key={option} value={option}>
+          <MenuItem
+            key={option}
+            value={option}
+            data-testid={`sequenceOption-${option}`}
+          >
             {option}
           </MenuItem>
         ))}
@@ -333,27 +339,7 @@ export const TranscriptSequence = observer(function TranscriptSequence({
         (strand={feature.strand === 1 ? '+' : '-'};length=
         {getSequenceLength(sequenceSegments)})
         <br />
-        {sequenceSegments.map((segment, index) => (
-          <span
-            key={`${segment.type}-${index}`}
-            style={{
-              background: getSegmentColor(segment.type),
-              color: theme.palette.getContrastText(
-                getSegmentColor(segment.type),
-              ),
-            }}
-          >
-            {segment.sequenceLines.map((sequenceLine, idx) => (
-              <React.Fragment key={`${sequenceLine.slice(0, 5)}-${idx}`}>
-                {sequenceLine}
-                {idx === segment.sequenceLines.length - 1 &&
-                sequenceLine.length !== SEQUENCE_WRAP_LENGTH ? null : (
-                  <br />
-                )}
-              </React.Fragment>
-            ))}
-          </span>
-        ))}
+        {wrapSequence(sequenceSegments, SEQUENCE_WRAP_LENGTH)}
       </Paper>
     </>
   )
