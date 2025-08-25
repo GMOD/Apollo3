@@ -11,7 +11,7 @@ import {
 } from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import ErrorIcon from '@mui/icons-material/Error'
-import { Alert, Avatar, Tooltip, useTheme } from '@mui/material'
+import { Alert, Avatar, Badge, Box, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 
@@ -31,6 +31,7 @@ interface LinearApolloSixFrameDisplayProps {
 export const LinearApolloSixFrameDisplay = observer(
   function LinearApolloSixFrameDisplay(
     props: LinearApolloSixFrameDisplayProps,
+    apolloDragging,
   ) {
     const theme = useTheme()
     const { model } = props
@@ -214,12 +215,32 @@ export const LinearApolloSixFrameDisplay = observer(
                         key={checkResult._id}
                         title={checkResult.message}
                       >
-                        <Avatar
-                          className={classes.avatar}
-                          style={{ top, left, height, width: height }}
+                        <Box
+                          className={classes.box}
+                          style={{
+                            top,
+                            left,
+                            height,
+                            width: height,
+                            pointerEvents: apolloDragging ? 'none' : 'auto',
+                          }}
                         >
-                          <ErrorIcon />
-                        </Avatar>
+                          <Badge
+                            className={classes.badge}
+                            badgeContent={checkResult.count}
+                            color="primary"
+                            overlap="circular"
+                            anchorOrigin={{
+                              vertical: 'bottom',
+                              horizontal: 'right',
+                            }}
+                            invisible={checkResult.count <= 1}
+                          >
+                            <Avatar className={classes.avatar}>
+                              <ErrorIcon data-testid="ErrorIcon" />
+                            </Avatar>
+                          </Badge>
+                        </Box>
                       </Tooltip>
                     )
                   })

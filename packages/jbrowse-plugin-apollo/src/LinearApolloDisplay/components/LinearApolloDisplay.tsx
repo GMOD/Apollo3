@@ -13,6 +13,8 @@ import ErrorIcon from '@mui/icons-material/Error'
 import {
   Alert,
   Avatar,
+  Badge,
+  Box,
   CircularProgress,
   Tooltip,
   useTheme,
@@ -186,8 +188,8 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
                   const height = apolloRowHeight
                   return (
                     <Tooltip key={checkResult._id} title={checkResult.message}>
-                      <Avatar
-                        className={classes.avatar}
+                      <Box
+                        className={classes.box}
                         style={{
                           top,
                           left,
@@ -196,8 +198,22 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
                           pointerEvents: apolloDragging ? 'none' : 'auto',
                         }}
                       >
-                        <ErrorIcon data-testid="ErrorIcon" />
-                      </Avatar>
+                        <Badge
+                          className={classes.badge}
+                          badgeContent={checkResult.count}
+                          color="primary"
+                          overlap="circular"
+                          anchorOrigin={{
+                            vertical: 'bottom',
+                            horizontal: 'right',
+                          }}
+                          invisible={checkResult.count <= 1}
+                        >
+                          <Avatar className={classes.avatar}>
+                            <ErrorIcon data-testid="ErrorIcon" />
+                          </Avatar>
+                        </Badge>
+                      </Box>
                     </Tooltip>
                   )
                 })
