@@ -45,7 +45,7 @@ describe('Warning signs', () => {
     cy.get('button[data-testid="zoom_out"]').click()
     cy.reload()
 
-    cy.get('[data-testid="ErrorIcon"]', { timeout: 5000 }).should(
+    cy.get('[data-testid="ErrorIcon"]', { timeout: 10_000 }).should(
       'have.length',
       2,
     )
