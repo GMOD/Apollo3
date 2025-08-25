@@ -1,4 +1,48 @@
 import { type CheckResultIdsType } from '@apollo-annotation/mst'
+import { makeStyles } from 'tss-react/mui'
+
+export type Coord = [number, number]
+
+export const useStyles = makeStyles()((theme) => ({
+  canvasContainer: {
+    position: 'relative',
+    left: 0,
+  },
+  canvas: {
+    position: 'absolute',
+    left: 0,
+  },
+  center: {
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  ellipses: {
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+  },
+  avatar: {
+    position: 'static',
+    height: '100%',
+    width: '100%',
+    overflow: 'visible',
+    color: theme.palette.warning.light,
+    backgroundColor: theme.palette.warning.contrastText,
+  },
+  box: {
+    position: 'absolute',
+    overflow: 'visible',
+  },
+  badge: {
+    display: 'inline-block',
+  },
+  loading: {
+    position: 'absolute',
+    right: theme.spacing(3),
+    zIndex: 10,
+    pointerEvents: 'none',
+    textAlign: 'right',
+  },
+}))
 
 export interface CheckResultCluster<T> {
   _id: string

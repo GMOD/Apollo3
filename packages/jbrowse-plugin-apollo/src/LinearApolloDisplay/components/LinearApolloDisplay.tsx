@@ -19,46 +19,17 @@ import {
 } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
-import { makeStyles } from 'tss-react/mui'
 
-import { clusterResultByMessage } from '../../util/displayUtils'
+import {
+  type Coord,
+  clusterResultByMessage,
+  useStyles,
+} from '../../util/displayUtils'
 import { type LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
 
 interface LinearApolloDisplayProps {
   model: LinearApolloDisplayI
 }
-export type Coord = [number, number]
-
-const useStyles = makeStyles()((theme) => ({
-  canvasContainer: {
-    position: 'relative',
-    left: 0,
-  },
-  canvas: {
-    position: 'absolute',
-    left: 0,
-  },
-  center: {
-    display: 'flex',
-    justifyContent: 'center',
-  },
-  ellipses: {
-    textOverflow: 'ellipsis',
-    overflow: 'hidden',
-  },
-  avatar: {
-    position: 'absolute',
-    color: theme.palette.warning.light,
-    backgroundColor: theme.palette.warning.contrastText,
-  },
-  loading: {
-    position: 'absolute',
-    right: theme.spacing(3),
-    zIndex: 10,
-    pointerEvents: 'none',
-    textAlign: 'right',
-  },
-}))
 
 export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   props: LinearApolloDisplayProps,

@@ -14,9 +14,12 @@ import ErrorIcon from '@mui/icons-material/Error'
 import { Alert, Avatar, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
-import { makeStyles } from 'tss-react/mui'
 
-import { clusterResultByMessage } from '../../util/displayUtils'
+import {
+  type Coord,
+  clusterResultByMessage,
+  useStyles,
+} from '../../util/displayUtils'
 import { type LinearApolloSixFrameDisplay as LinearApolloSixFrameDisplayI } from '../stateModel'
 
 import { TrackLines } from './TrackLines'
@@ -24,31 +27,6 @@ import { TrackLines } from './TrackLines'
 interface LinearApolloSixFrameDisplayProps {
   model: LinearApolloSixFrameDisplayI
 }
-export type Coord = [number, number]
-
-const useStyles = makeStyles()((theme) => ({
-  canvasContainer: {
-    position: 'relative',
-    left: 0,
-  },
-  canvas: {
-    position: 'absolute',
-    left: 0,
-  },
-  center: {
-    display: 'flex',
-    justifyContent: 'center',
-  },
-  ellipses: {
-    textOverflow: 'ellipsis',
-    overflow: 'hidden',
-  },
-  avatar: {
-    position: 'absolute',
-    color: theme.palette.warning.light,
-    backgroundColor: theme.palette.warning.contrastText,
-  },
-}))
 
 export const LinearApolloSixFrameDisplay = observer(
   function LinearApolloSixFrameDisplay(
