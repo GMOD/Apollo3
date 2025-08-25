@@ -35,9 +35,7 @@ interface SequenceSegment {
 function getSequenceLength(segments: SequenceSegment[]): number {
   let length = 0
   for (const segment of segments) {
-    for (const line of segment.sequenceLines) {
-      length += line.length
-    }
+    length += segment.sequence.length
   }
   return length
 }
