@@ -107,7 +107,9 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
     }
 
     // Save assembly into session
-    await (addSessionAssembly || addAssembly)(assemblyConfig)
+    await (isElectron
+      ? addAssembly?.(assemblyConfig)
+      : (addSessionAssembly || addAssembly)(assemblyConfig))
     const a = await assemblyManager.waitForAssembly(assemblyConfig.name)
     if (a) {
       // @ts-expect-error MST type coercion problem?
