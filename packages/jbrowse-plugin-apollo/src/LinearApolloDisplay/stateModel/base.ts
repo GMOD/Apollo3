@@ -236,7 +236,7 @@ export function baseModelFactory(
                   },
                 },
                 {
-                  label: 'Change Zoom threshold',
+                  label: 'Change zoom threshold',
                   onClick: () => {
                     getSession(self).queueDialog((handleClose) => [
                       EditZoomThresholdDialog,
