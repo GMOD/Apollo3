@@ -40,7 +40,7 @@ export function baseModelFactory(
       table: false,
       showFeatureLabels: true,
       showCheckResults: true,
-      zoomThreshold: 20,
+      zoomThreshold: 200,
       heightPreConfig: types.maybe(
         types.refinement(
           'displayHeight',
