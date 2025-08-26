@@ -210,7 +210,9 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
                           invisible={checkResult.count <= 1}
                         >
                           <Avatar className={classes.avatar}>
-                            <ErrorIcon data-testid="ErrorIcon" />
+                            <ErrorIcon
+                              data-testid={`ErrorIcon-${checkResult.start}`}
+                            />
                           </Avatar>
                         </Badge>
                       </Box>

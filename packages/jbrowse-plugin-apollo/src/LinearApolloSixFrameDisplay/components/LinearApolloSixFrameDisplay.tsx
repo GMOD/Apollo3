@@ -237,7 +237,9 @@ export const LinearApolloSixFrameDisplay = observer(
                             invisible={checkResult.count <= 1}
                           >
                             <Avatar className={classes.avatar}>
-                              <ErrorIcon data-testid="ErrorIcon" />
+                              <ErrorIcon
+                                data-testid={`ErrorIcon-${checkResult.start}`}
+                              />
                             </Avatar>
                           </Badge>
                         </Box>
