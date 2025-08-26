@@ -24,6 +24,7 @@ import { type ApolloInternetAccountModel } from '../../ApolloInternetAccount/mod
 import { FilterFeatures } from '../../components/FilterFeatures'
 import { type ApolloSessionModel, type HoveredFeature } from '../../session'
 import { type ApolloRootModel } from '../../types'
+import { EditZoomThresholdDialog } from '../../util/displayUtils'
 
 const minDisplayHeight = 20
 
@@ -39,6 +40,7 @@ export function baseModelFactory(
       table: false,
       showFeatureLabels: true,
       showCheckResults: true,
+      zoomThreshold: 20,
       heightPreConfig: types.maybe(
         types.refinement(
           'displayHeight',
@@ -79,6 +81,9 @@ export function baseModelFactory(
         }
         return 300
       },
+      get zoomThresholdSetting() {
+        return self.zoomThreshold ?? getConf(self, 'zoomThreshold')
+      },
     }))
     .views((self) => ({
       get rendererTypeName() {
@@ -99,7 +104,7 @@ export function baseModelFactory(
         return regions
       },
       regionCannotBeRendered(/* region */) {
-        if (self.lgv && self.lgv.bpPerPx >= 200) {
+        if (self.lgv && self.lgv.bpPerPx >= self.zoomThreshold) {
           return 'Zoom in to see annotations'
         }
         return
@@ -180,6 +185,9 @@ export function baseModelFactory(
       updateFilteredFeatureTypes(types: string[]) {
         self.filteredFeatureTypes = cast(types)
       },
+      setZoomThresholdSetting({ zoomThreshold }: { zoomThreshold: number }) {
+        self.zoomThreshold = zoomThreshold
+      },
     }))
     .views((self) => {
       const { filteredFeatureTypes, trackMenuItems: superTrackMenuItems } = self
@@ -230,6 +238,15 @@ export function baseModelFactory(
                   checked: showCheckResults,
                   onClick: () => {
                     self.toggleShowCheckResults()
+                  },
+                },
+                {
+                  label: 'Change Zoom threshold',
+                  onClick: () => {
+                    getSession(self).queueDialog((handleClose) => [
+                      EditZoomThresholdDialog,
+                      { model: self, handleClose },
+                    ])
                   },
                 },
               ],

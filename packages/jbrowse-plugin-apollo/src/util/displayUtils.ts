@@ -1,5 +1,10 @@
 import { type CheckResultIdsType } from '@apollo-annotation/mst'
+import { lazy } from 'react'
 import { makeStyles } from 'tss-react/mui'
+
+export const EditZoomThresholdDialog = lazy(
+  () => import('../components/EditZoomThresholdDialog'),
+)
 
 export type Coord = [number, number]
 
