@@ -128,7 +128,7 @@ export class AddAssemblyFromFileChange extends FromFileBaseChange {
     if (assemblyDoc) {
       throw new Error(`Assembly "${assemblyName}" already exists`)
     }
-    const checkDocs = await checkModel.find({ default: true }).exec()
+    const checkDocs = await checkModel.find({ isDefault: true }).exec()
     const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
     const [newAssemblyDoc] = await assemblyModel.create([
       {
