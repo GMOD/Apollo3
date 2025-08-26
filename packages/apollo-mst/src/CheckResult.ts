@@ -20,3 +20,5 @@ export const CheckResult = types.model('CheckResult', {
 export interface CheckResultI extends Instance<typeof CheckResult> {}
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface CheckResultSnapshot extends SnapshotIn<typeof CheckResult> {}
+
+export type CheckResultIdsType = Instance<typeof CheckResult>['ids']
