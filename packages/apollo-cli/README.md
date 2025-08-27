@@ -933,12 +933,13 @@ Generate JBrowse file for use with desktop client
 
 ```
 USAGE
-  $ apollo jbrowse desktop JBROWSEFILE [--profile <value>] [--config-file <value>] [-o | -w <value>]
+  $ apollo jbrowse desktop JBROWSEFILE [--profile <value>] [--config-file <value>] [-o | -w <value>] [-f <value>]
 
 ARGUMENTS
   JBROWSEFILE  Generated JBrowse file
 
 FLAGS
+  -f, --gff3-file=<value>    generated session will open the specified file
   -o, --open                 open generated file
   -w, --open-with=<value>    open generated file with specified application
       --config-file=<value>  Use this config file (mostly for testing)
@@ -961,6 +962,10 @@ EXAMPLES
   Generate JBrowse file and open with specified application:
 
     $ apollo jbrowse desktop apollo.jbrowse --open-with=path/to/jbrowse.AppImage
+
+  Generate JBrowse file opening specified gff3 file:
+
+    $ apollo jbrowse desktop apollo.jbrowse --gff3-file=path/to/file.gff3
 ```
 
 _See code:

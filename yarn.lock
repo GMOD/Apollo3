@@ -343,6 +343,7 @@ __metadata:
     cross-spawn: "npm:^7.0.3"
     joi: "npm:^17.7.0"
     mocha: "npm:^10.2.0"
+    nanoid: "npm:^4.0.2"
     nyc: "npm:^15.1.0"
     oclif: "npm:^4.4.2"
     open: "npm:^10.1.0"

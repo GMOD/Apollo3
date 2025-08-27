@@ -1,9 +1,52 @@
 import fs from 'node:fs'
+import path from 'node:path'
 
 import { Args, Flags } from '@oclif/core'
+import { nanoid } from 'nanoid'
 import open from 'open'
 
 import { BaseCommand } from '../../baseCommand.js'
+
+class Gff3File {
+  filepath: string
+  stem: string
+  uid: string
+
+  constructor(filepath: string) {
+    this.stem = path.basename(filepath, path.extname(filepath))
+    this.uid = `${this.stem}-${path.basename(filepath)}-${nanoid(8)}`
+    this.filepath = path.resolve(filepath)
+  }
+
+  assemblyConfig() {
+    return {
+      name: this.uid,
+      aliases: [this.stem],
+      sequence: {
+        type: 'ReferenceSequenceTrack',
+        trackId: `sequenceConfigId-${this.stem}`,
+        adapter: {
+          type: 'ApolloSequenceAdapter',
+          assemblyId: this.uid,
+        },
+        metadata: {
+          apollo: true,
+          file: this.filepath,
+        },
+      },
+      displayName: this.stem,
+    }
+  }
+
+  trackConfig() {
+    return {
+      type: 'ApolloTrack',
+      trackId: this.uid,
+      name: `Annotations (${this.stem})`,
+      assemblyNames: [this.uid],
+    }
+  }
+}
 
 export default class Desktop extends BaseCommand<typeof Desktop> {
   static summary = 'Generate JBrowse file for use with desktop client'
@@ -22,6 +65,11 @@ export default class Desktop extends BaseCommand<typeof Desktop> {
       description: 'Generate JBrowse file and open with specified application:',
       command:
         '<%= config.bin %> <%= command.id %> apollo.jbrowse --open-with=path/to/jbrowse.AppImage',
+    },
+    {
+      description: 'Generate JBrowse file opening specified gff3 file:',
+      command:
+        '<%= config.bin %> <%= command.id %> apollo.jbrowse --gff3-file=path/to/file.gff3',
     },
   ]
 
@@ -43,6 +91,10 @@ export default class Desktop extends BaseCommand<typeof Desktop> {
       description: 'open generated file with specified application',
       exclusive: ['open'],
     }),
+    'gff3-file': Flags.string({
+      char: 'f',
+      description: 'generated session will open the specified file',
+    }),
   }
 
   public async run(): Promise<void> {
@@ -55,7 +107,8 @@ export default class Desktop extends BaseCommand<typeof Desktop> {
             'https://cdn.jsdelivr.net/npm/@apollo-annotation/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.production.min.js',
         },
       ],
-      assemblies: [],
+      assemblies: [] as unknown[],
+      tracks: [] as unknown[],
       configuration: {
         theme: {
           palette: {
@@ -106,6 +159,12 @@ export default class Desktop extends BaseCommand<typeof Desktop> {
           ],
         },
       },
+    }
+
+    if (flags['gff3-file']) {
+      const gff3 = new Gff3File(flags['gff3-file'])
+      jbrowseFileContent.assemblies.push(gff3.assemblyConfig())
+      jbrowseFileContent.tracks.push(gff3.trackConfig())
     }
 
     fs.writeFile(
