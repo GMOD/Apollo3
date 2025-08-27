@@ -15,9 +15,6 @@ export class CheckResult
   name: string
 
   @Prop()
-  isDefault: boolean
-
-  @Prop()
   cause: string
 
   @Prop({ type: [MongooseSchema.Types.ObjectId], required: true, index: true })

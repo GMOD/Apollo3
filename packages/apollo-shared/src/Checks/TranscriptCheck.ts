@@ -18,7 +18,6 @@ enum CAUSES {
   'NonCanonicalSpliceSiteAtThreePrime',
 }
 const CHECK_NAME = 'TranscriptCheck'
-const DEFAULT = true
 
 async function getSpliceSequences(
   transcript: AnnotationFeatureSnapshot,
@@ -76,7 +75,6 @@ async function checkTranscript(
       checkResults.push({
         _id: new ObjectID().toHexString(),
         name: CHECK_NAME,
-        isDefault: DEFAULT,
         cause: CAUSES[CAUSES.NonCanonicalSpliceSiteAtFivePrime],
         ids: [feature._id],
         refSeq: feature.refSeq.toString(),
@@ -89,7 +87,6 @@ async function checkTranscript(
       checkResults.push({
         _id: new ObjectID().toHexString(),
         name: CHECK_NAME,
-        isDefault: DEFAULT,
         cause: CAUSES[CAUSES.NonCanonicalSpliceSiteAtThreePrime],
         ids: [feature._id],
         refSeq: feature.refSeq.toString(),
@@ -111,7 +108,7 @@ export class TranscriptCheck extends Check {
   name = 'TranscriptCheck'
   causes = getCauses()
   version = 1
-  isDefault = DEFAULT
+  isDefault = false
 
   async checkFeature(
     feature: AnnotationFeatureSnapshot,
