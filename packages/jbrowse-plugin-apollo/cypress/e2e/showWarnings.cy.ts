@@ -115,16 +115,8 @@ describe('Warning signs', () => {
       // eslint-disable-next-line unicorn/no-useless-undefined
       undefined,
     )
-    cy.get('input[value="stopcodon.gff3"]')
-      .parent()
-      .parent()
-      .parent()
-      .parent()
-      .within(() => {
-        cy.get('[data-testid="CloseIcon"]').click()
-      })
-    cy.reload()
-    cy.contains('button', 'Launch view').click()
+    cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
+    cy.contains('button', 'Launch view', { timeout: 10_000 }).click()
     cy.selectAssemblyToView('stopcodon.gff3')
     cy.searchFeatures('gene02', 1)
     cy.get('[data-testid^="ErrorIcon-"]', { timeout: 5000 })
