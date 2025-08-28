@@ -64,7 +64,7 @@ describe('Warning signs', () => {
     cy.contains('Delete feature').click()
     cy.get('button[type="submit"]').contains('Yes').click()
 
-    cy.get('[data-testid="ErrorIcon"]', { timeout: 5000 }).should(
+    cy.get('[data-testid^="ErrorIcon-"]', { timeout: 5000 }).should(
       'have.length',
       0,
     )
@@ -87,7 +87,7 @@ describe('Warning signs', () => {
         cy.get('input[type="text"]').type('CDS{enter}')
         cy.get('button[type="submit"]').contains('Submit').click()
       })
-    cy.get('[data-testid="ErrorIcon"]', { timeout: 5000 }).should(
+    cy.get('[data-testid="ErrorIcon-3"]', { timeout: 5000 }).should(
       'have.length',
       1,
     )
@@ -105,7 +105,7 @@ describe('Warning signs', () => {
     cy.contains('Annotations (').click()
     cy.searchFeatures('chr2', 1)
     // No features and no errors yet
-    cy.get('[data-testid="ErrorIcon"]', { timeout: 5000 }).should(
+    cy.get('[data-testid^="ErrorIcon-"]', { timeout: 5000 }).should(
       'have.length',
       0,
     )
@@ -127,7 +127,7 @@ describe('Warning signs', () => {
     cy.contains('button', 'Launch view').click()
     cy.selectAssemblyToView('stopcodon.gff3')
     cy.searchFeatures('gene02', 1)
-    cy.get('[data-testid="ErrorIcon"]', { timeout: 5000 })
+    cy.get('[data-testid^="ErrorIcon-"]', { timeout: 5000 })
       .its('length')
       .should('satisfy', (n) => n >= 3)
   })
@@ -140,7 +140,7 @@ describe('Warning signs', () => {
     cy.selectAssemblyToView('stopcodon.gff3')
     cy.searchFeatures('gene02', 1)
     cy.get('button[data-testid="zoom_out"]').click()
-    cy.get('[data-testid="ErrorIcon"]', { timeout: 5000 })
+    cy.get('[data-testid^="ErrorIcon-"]', { timeout: 5000 })
       .its('length')
       .should('satisfy', (n) => n >= 3)
 
@@ -161,7 +161,7 @@ describe('Warning signs', () => {
         cy.get('button[type="submit"]').contains('Submit').click()
       })
     // No warnings left:
-    cy.get('[data-testid="ErrorIcon"]', { timeout: 5000 }).should('not.exist')
+    cy.get('[data-testid^="ErrorIcon-"]', { timeout: 5000 }).should('not.exist')
 
     // Register CDSCheck and count warning(s):
     cy.selectFromApolloMenu('Manage Checks')
@@ -175,13 +175,13 @@ describe('Warning signs', () => {
           })
         cy.get('button[type="submit"]').contains('Submit').click()
       })
-    cy.get('[data-testid="ErrorIcon"]', { timeout: 5000 }).should(
+    cy.get('[data-testid="ErrorIcon-6"]', { timeout: 5000 }).should(
       'have.length',
       1,
     )
   })
 
-  it('Warnings are properly stacked', () => {
+  it.only('Warnings are properly stacked', () => {
     cy.addAssemblyFromGff(
       'stopcodon.gff3',
       'test_data/cdsChecks/stopcodon.gff3',

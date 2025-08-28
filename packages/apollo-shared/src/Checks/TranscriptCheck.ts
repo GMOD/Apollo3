@@ -108,7 +108,7 @@ export class TranscriptCheck extends Check {
   name = 'TranscriptCheck'
   causes = getCauses()
   version = 1
-  isDefault = false
+  isDefault = true
 
   async checkFeature(
     feature: AnnotationFeatureSnapshot,
