@@ -87,7 +87,7 @@ describe('Warning signs', () => {
         cy.get('input[type="text"]').type('CDS{enter}')
         cy.get('button[type="submit"]').contains('Submit').click()
       })
-    cy.get('[data-testid="ErrorIcon-3"]', { timeout: 5000 }).should(
+    cy.get('[data-testid="ErrorIcon-26"]', { timeout: 5000 }).should(
       'have.length',
       1,
     )
@@ -181,7 +181,7 @@ describe('Warning signs', () => {
     )
   })
 
-  it.only('Warnings are properly stacked', () => {
+  it('Warnings are properly stacked', () => {
     cy.addAssemblyFromGff(
       'stopcodon.gff3',
       'test_data/cdsChecks/stopcodon.gff3',
@@ -200,17 +200,17 @@ describe('Warning signs', () => {
     let iconPos1: DOMRect
     let iconPos2: DOMRect
     let iconPos3: DOMRect
-    cy.get('[data-testid="ErrorIcon-3"]')
+    cy.get('[data-testid="ErrorIcon-6"]')
       .parent()
       .then(($icon) => {
         iconPos1 = $icon[0].getBoundingClientRect()
       })
-    cy.get('[data-testid="ErrorIcon-6"]')
+    cy.get('[data-testid="ErrorIcon-30"]')
       .parent()
       .then(($icon) => {
         iconPos2 = $icon[0].getBoundingClientRect()
       })
-    cy.get('[data-testid="ErrorIcon-30"]')
+    cy.get('[data-testid="ErrorIcon-29"]')
       .parent()
       .then(($icon) => {
         iconPos3 = $icon[0].getBoundingClientRect()
@@ -223,7 +223,7 @@ describe('Warning signs', () => {
      */
     cy.get('body').should(() => {
       expect(iconPos1.y).to.be.lessThan(iconPos3.y)
-      expect(iconPos1.y).to.be.greaterThan(iconPos2.y)
+      expect(iconPos1.y).to.be.lessThan(iconPos2.y)
       expect(iconPos3.y).to.be.greaterThan(iconPos2.y)
     })
   })

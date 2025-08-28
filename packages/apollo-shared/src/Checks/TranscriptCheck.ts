@@ -69,9 +69,11 @@ async function checkTranscript(
 ): Promise<CheckResultSnapshot[]> {
   const checkResults: CheckResultSnapshot[] = []
 
+  const VALID_FIVE_PRIME_SEQ = new Set(['GT'])
+  const VALID_THREE_PRIME_SEQ = new Set(['AG'])
   const spliceSequences = await getSpliceSequences(feature, getSequence)
   for (const spliceSequence of spliceSequences) {
-    if (!(spliceSequence.fivePrimeSeq.toUpperCase() === 'GT')) {
+    if (!VALID_FIVE_PRIME_SEQ.has(spliceSequence.fivePrimeSeq.toUpperCase())) {
       checkResults.push({
         _id: new ObjectID().toHexString(),
         name: CHECK_NAME,
@@ -80,10 +82,12 @@ async function checkTranscript(
         refSeq: feature.refSeq.toString(),
         start: spliceSequence.fivePrimeMin,
         end: spliceSequence.fivePrimeMin + 2,
-        message: `Unexpected 5' splice site in "${feature._id}" HERE: ${JSON.stringify(spliceSequence)}`,
+        message: `Unexpected 5' splice site in "${feature._id}". Expected: ${[...VALID_FIVE_PRIME_SEQ].join('|')}, got: ${spliceSequence.fivePrimeSeq}`,
       })
     }
-    if (!(spliceSequence.threePrimeSeq.toUpperCase() === 'AG')) {
+    if (
+      !VALID_THREE_PRIME_SEQ.has(spliceSequence.threePrimeSeq.toUpperCase())
+    ) {
       checkResults.push({
         _id: new ObjectID().toHexString(),
         name: CHECK_NAME,
@@ -92,7 +96,7 @@ async function checkTranscript(
         refSeq: feature.refSeq.toString(),
         start: spliceSequence.threePrimeMin,
         end: spliceSequence.threePrimeMin + 2,
-        message: `Unexpected 3' splice site in "${feature._id}" HERE: ${JSON.stringify(spliceSequence)}`,
+        message: `Unexpected 3' splice site in "${feature._id}". Expected: ${[...VALID_THREE_PRIME_SEQ].join('|')}, got: ${spliceSequence.threePrimeSeq}`,
       })
     }
   }

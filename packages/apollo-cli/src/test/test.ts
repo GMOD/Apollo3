@@ -1544,9 +1544,13 @@ void describe('Test CLI', () => {
       new Shell(
         `${apollo} assembly add-from-gff ${P} test_data/warningPositionForward.gff -a vv1 -f`,
       )
+      deleteAllChecks(apollo, P, 'vv1')
+      new Shell(`${apollo} assembly check ${P} -a vv1 -c CDSCheck`)
+
       const p = new Shell(`${apollo} feature check ${P} -a vv1`)
       const out = JSON.parse(p.stdout)
       assert.deepStrictEqual(out.length, 2)
+
       assert.deepStrictEqual(out.at(0).cause, 'InternalStopCodon')
       assert.deepStrictEqual(out.at(0).start, 9)
       assert.deepStrictEqual(out.at(0).end, 15)
@@ -1582,6 +1586,8 @@ void describe('Test CLI', () => {
     new Shell(
       `${apollo} assembly add-from-gff ${P} test_data/missingStartCodonForward.gff3 -a m1 -f`,
     )
+    deleteAllChecks(apollo, P, 'm1')
+    new Shell(`${apollo} assembly check ${P} -a m1 -c CDSCheck`)
     const p = new Shell(`${apollo} feature check ${P} -a m1`)
     const out = JSON.parse(p.stdout)
     assert.strictEqual(out.length, 1)
@@ -1595,6 +1601,8 @@ void describe('Test CLI', () => {
     new Shell(
       `${apollo} assembly add-from-gff ${P} test_data/missingStartCodonReverse.gff3 -a m1 -f`,
     )
+    deleteAllChecks(apollo, P, 'm1')
+    new Shell(`${apollo} assembly check ${P} -a m1 -c CDSCheck`)
     const p = new Shell(`${apollo} feature check ${P} -a m1`)
     const out = JSON.parse(p.stdout)
     assert.strictEqual(out.length, 1)
@@ -1635,6 +1643,11 @@ void describe('Test CLI', () => {
     new Shell(
       `${apollo} assembly add-from-gff ${P} test_data/checkSplice.fasta.gff3 -f`,
     )
+    deleteAllChecks(apollo, P, 'checkSplice.fasta.gff3')
+    new Shell(
+      `${apollo} assembly check ${P} -a checkSplice.fasta.gff3 -c TranscriptCheck`,
+    )
+
     let p = new Shell(`${apollo} feature get ${P} -a checkSplice.fasta.gff3`)
     const features = JSON.parse(p.stdout)
 

@@ -44,7 +44,7 @@ chr9	.	gene	4	30	.	+	.	ID=gene10
 chr9	.	mRNA	4	30	.	+	.	ID=mrna10.1;Parent=gene10
 chr9	.	CDS	8	30	.	+	0	ID=cds10.1;Parent=mrna10.1
 chr9	.	mRNA	10	30	.	+	.	ID=mrna10.2;Parent=gene10
-chr9	.	CDS	10	30	.	+	0	ID=cds10.2;Parent=mrna10.2
+chr9	.	CDS	10	29	.	+	0	ID=cds10.2;Parent=mrna10.2
 ##FASTA
 >chr1
 ATGGTGCCGCAAAGTACTGGTGGGGGTTAAnnnnnnnnnnnnnnnnnnnnn
