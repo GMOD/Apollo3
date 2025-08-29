@@ -9,6 +9,7 @@ import {
   isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import { type NavLocation } from '@jbrowse/plugin-linear-genome-view/dist/LinearGenomeView/types'
 import SkipNextRoundedIcon from '@mui/icons-material/SkipNextRounded'
 import SkipPreviousRoundedIcon from '@mui/icons-material/SkipPreviousRounded'
 import { alpha } from '@mui/material'
@@ -872,7 +873,8 @@ function getStreamIcon(
   isUpstream: boolean,
   isFlipped: boolean | undefined,
 ) {
-  // This is the icon you would use for strand=1, downstream, non-flipped
+  // This is the icon you would use for strand=1, downstream, straight
+  // (non-flipped) view
   let icon = SkipNextRoundedIcon
 
   if (strand === -1) {
@@ -891,6 +893,17 @@ function getStreamIcon(
         : SkipPreviousRoundedIcon
   }
   return icon
+}
+
+function navToFeatureCenter(
+  feature: AnnotationFeature,
+  paddingPct: number,
+  refSeqLength: number,
+): NavLocation {
+  const paddingBp = (feature.max - feature.min) * paddingPct
+  const start = Math.max(feature.min - paddingBp, 1)
+  const end = Math.min(feature.max + paddingBp, refSeqLength)
+  return { refName: feature.refSeq, start, end }
 }
 
 function getContextMenuItems(
@@ -937,7 +950,7 @@ function getContextMenuItems(
           display as BaseDisplayModel,
         ) as unknown as LinearGenomeViewModel
         if (adjacentExons.upstream) {
-          const start = adjacentExons.upstream.min
+          const exon = adjacentExons.upstream
           contextMenuItemsForFeature.push({
             label: 'Go to upstream exon',
             icon: getStreamIcon(
@@ -946,13 +959,13 @@ function getContextMenuItems(
               lgv.displayedRegions.at(0)?.reversed,
             ),
             onClick: () => {
-              const end = Math.min(start + lgv.coarseTotalBp, lgv.totalBp)
-              lgv.navTo({ refName: feature.refSeq, start, end })
+              lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
             },
           })
         }
         if (adjacentExons.downstream) {
-          const start = adjacentExons.downstream.min
+          // const start = adjacentExons.downstream.min
+          const exon = adjacentExons.downstream
           contextMenuItemsForFeature.push({
             label: 'Go to downstream exon',
             icon: getStreamIcon(
@@ -961,8 +974,7 @@ function getContextMenuItems(
               lgv.displayedRegions.at(0)?.reversed,
             ),
             onClick: () => {
-              const end = Math.min(start + lgv.coarseTotalBp, lgv.totalBp)
-              lgv.navTo({ refName: feature.refSeq, start, end })
+              lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
             },
           })
         }
