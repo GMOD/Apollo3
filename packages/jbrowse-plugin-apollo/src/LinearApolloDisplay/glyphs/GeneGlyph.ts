@@ -23,6 +23,7 @@ import {
   getMinAndMaxPx,
   getOverlappingEdge,
   isMousePositionWithFeature,
+  navToFeatureCenter,
 } from '../../util'
 import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
@@ -895,16 +896,16 @@ function getStreamIcon(
   return icon
 }
 
-function navToFeatureCenter(
-  feature: AnnotationFeature,
-  paddingPct: number,
-  refSeqLength: number,
-): NavLocation {
-  const paddingBp = (feature.max - feature.min) * paddingPct
-  const start = Math.max(feature.min - paddingBp, 1)
-  const end = Math.min(feature.max + paddingBp, refSeqLength)
-  return { refName: feature.refSeq, start, end }
-}
+// function navToFeatureCenter(
+//   feature: AnnotationFeature,
+//   paddingPct: number,
+//   refSeqLength: number,
+// ): NavLocation {
+//   const paddingBp = (feature.max - feature.min) * paddingPct
+//   const start = Math.max(feature.min - paddingBp, 1)
+//   const end = Math.min(feature.max + paddingBp, refSeqLength)
+//   return { refName: feature.refSeq, start, end }
+// }
 
 function getContextMenuItems(
   display: LinearApolloDisplayMouseEvents,
@@ -964,7 +965,6 @@ function getContextMenuItems(
           })
         }
         if (adjacentExons.downstream) {
-          // const start = adjacentExons.downstream.min
           const exon = adjacentExons.downstream
           contextMenuItemsForFeature.push({
             label: 'Go to downstream exon',

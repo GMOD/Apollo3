@@ -9,6 +9,7 @@ import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { type LinearApolloDisplayMouseEvents } from '../LinearApolloDisplay/stateModel/mouseEvents'
 import { type LinearApolloSixFrameDisplayMouseEvents } from '../LinearApolloSixFrameDisplay/stateModel/mouseEvents'
 import { AddChildFeature, CopyFeature, DeleteFeature } from '../components'
+import { NavLocation } from '@jbrowse/plugin-linear-genome-view/dist/LinearGenomeView/types'
 
 export function getMinAndMaxPx(
   feature: AnnotationFeature | TranscriptPartCoding,
@@ -172,4 +173,15 @@ export function getContextMenuItemsForFeature(
     },
   )
   return menuItems
+}
+
+export function navToFeatureCenter(
+  feature: AnnotationFeature,
+  paddingPct: number,
+  refSeqLength: number,
+): NavLocation {
+  const paddingBp = (feature.max - feature.min) * paddingPct
+  const start = Math.max(feature.min - paddingBp, 1)
+  const end = Math.min(feature.max + paddingBp, refSeqLength)
+  return { refName: feature.refSeq, start, end }
 }

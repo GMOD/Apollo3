@@ -2,7 +2,10 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
 import { type AnnotationFeature } from '@apollo-annotation/mst'
-import { type AbstractSessionModel } from '@jbrowse/core/util'
+import {
+  getContainingView,
+  type AbstractSessionModel,
+} from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'
@@ -21,6 +24,9 @@ import { FeatureAttributes } from './FeatureAttributes'
 import { type ContextMenuState } from './HybridGrid'
 import { NumberCell } from './NumberCell'
 import { featureContextMenuItems } from './featureContextMenuItems'
+import { BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
+import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import { navToFeatureCenter } from '../../util'
 
 const useStyles = makeStyles()((theme) => ({
   typeContent: {
@@ -84,6 +90,15 @@ function makeContextMenuItems(
   )
 }
 
+function navigateHere(
+  displayState: DisplayStateModel,
+  feature: AnnotationFeature,
+) {
+  displayState.lgv.navTo(
+    navToFeatureCenter(feature, 0.1, displayState.lgv.totalBp),
+  )
+}
+
 export const Feature = observer(function Feature({
   depth,
   feature,
@@ -139,6 +154,9 @@ export const Feature = observer(function Feature({
         onClick={(e) => {
           e.stopPropagation()
           displayState.setSelectedFeature(feature)
+        }}
+        onDoubleClick={() => {
+          navigateHere(displayState, feature)
         }}
         onContextMenu={(e) => {
           e.preventDefault()
