@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
+import { type CheckResultI } from '@apollo-annotation/mst'
 import { Menu, type MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
@@ -12,51 +13,25 @@ import ErrorIcon from '@mui/icons-material/Error'
 import {
   Alert,
   Avatar,
+  Badge,
+  Box,
   CircularProgress,
   Tooltip,
   useTheme,
 } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
-import { makeStyles } from 'tss-react/mui'
 
+import {
+  type Coord,
+  clusterResultByMessage,
+  useStyles,
+} from '../../util/displayUtils'
 import { type LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
 
 interface LinearApolloDisplayProps {
   model: LinearApolloDisplayI
 }
-export type Coord = [number, number]
-
-const useStyles = makeStyles()((theme) => ({
-  canvasContainer: {
-    position: 'relative',
-    left: 0,
-  },
-  canvas: {
-    position: 'absolute',
-    left: 0,
-  },
-  center: {
-    display: 'flex',
-    justifyContent: 'center',
-  },
-  ellipses: {
-    textOverflow: 'ellipsis',
-    overflow: 'hidden',
-  },
-  avatar: {
-    position: 'absolute',
-    color: theme.palette.warning.light,
-    backgroundColor: theme.palette.warning.contrastText,
-  },
-  loading: {
-    position: 'absolute',
-    right: theme.spacing(3),
-    zIndex: 10,
-    pointerEvents: 'none',
-    textAlign: 'right',
-  },
-}))
 
 export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   props: LinearApolloDisplayProps,
@@ -171,60 +146,79 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
               data-testid="overlayCanvas"
             />
             {lgv.displayedRegions.flatMap((region, idx) => {
+              const widthBp = lgv.bpPerPx * apolloRowHeight
               const assembly = assemblyManager.get(region.assemblyName)
               if (showCheckResults) {
-                return [...session.apolloDataStore.checkResults.values()]
-                  .filter(
-                    (checkResult) =>
-                      assembly?.isValidRefName(checkResult.refSeq) &&
-                      assembly.getCanonicalRefName(checkResult.refSeq) ===
-                        region.refName &&
-                      doesIntersect2(
-                        region.start,
-                        region.end,
-                        checkResult.start,
-                        checkResult.end,
-                      ),
-                  )
-                  .map((checkResult) => {
-                    const left =
-                      (lgv.bpToPx({
-                        refName: region.refName,
-                        coord: checkResult.start,
-                        regionNumber: idx,
-                      })?.offsetPx ?? 0) - lgv.offsetPx
-                    const [feature] = checkResult.ids
-                    if (!feature) {
-                      return null
-                    }
-                    let row = 0
-                    const featureLayout =
-                      model.getFeatureLayoutPosition(feature)
-                    if (featureLayout) {
-                      row = featureLayout.layoutRow + featureLayout.featureRow
-                    }
-                    const top = row * apolloRowHeight
-                    const height = apolloRowHeight
-                    return (
-                      <Tooltip
-                        key={checkResult._id}
-                        title={checkResult.message}
+                const filteredCheckResults = [
+                  ...session.apolloDataStore.checkResults.values(),
+                ].filter(
+                  (checkResult) =>
+                    assembly?.isValidRefName(checkResult.refSeq) &&
+                    assembly.getCanonicalRefName(checkResult.refSeq) ===
+                      region.refName &&
+                    doesIntersect2(
+                      region.start,
+                      region.end,
+                      checkResult.start,
+                      checkResult.end,
+                    ),
+                )
+                const checkResults = clusterResultByMessage<CheckResultI>(
+                  filteredCheckResults,
+                  widthBp,
+                  true,
+                )
+                return checkResults.map((checkResult) => {
+                  const left =
+                    (lgv.bpToPx({
+                      refName: region.refName,
+                      coord: checkResult.start,
+                      regionNumber: idx,
+                    })?.offsetPx ?? 0) - lgv.offsetPx
+                  const [feature] = checkResult.featureIds
+                  if (!feature) {
+                    return null
+                  }
+                  let row = 0
+                  const featureLayout = model.getFeatureLayoutPosition(feature)
+                  if (featureLayout) {
+                    row = featureLayout.layoutRow + featureLayout.featureRow
+                  }
+                  const top = row * apolloRowHeight
+                  const height = apolloRowHeight
+                  return (
+                    <Tooltip key={checkResult._id} title={checkResult.message}>
+                      <Box
+                        className={classes.box}
+                        style={{
+                          top,
+                          left,
+                          height,
+                          width: height,
+                          pointerEvents: apolloDragging ? 'none' : 'auto',
+                        }}
                       >
-                        <Avatar
-                          className={classes.avatar}
-                          style={{
-                            top,
-                            left,
-                            height,
-                            width: height,
-                            pointerEvents: apolloDragging ? 'none' : 'auto',
+                        <Badge
+                          className={classes.badge}
+                          badgeContent={checkResult.count}
+                          color="primary"
+                          overlap="circular"
+                          anchorOrigin={{
+                            vertical: 'bottom',
+                            horizontal: 'right',
                           }}
+                          invisible={checkResult.count <= 1}
                         >
-                          <ErrorIcon data-testid="ErrorIcon" />
-                        </Avatar>
-                      </Tooltip>
-                    )
-                  })
+                          <Avatar className={classes.avatar}>
+                            <ErrorIcon
+                              data-testid={`ErrorIcon-${checkResult.start}`}
+                            />
+                          </Avatar>
+                        </Badge>
+                      </Box>
+                    </Tooltip>
+                  )
+                })
               }
               return null
             })}

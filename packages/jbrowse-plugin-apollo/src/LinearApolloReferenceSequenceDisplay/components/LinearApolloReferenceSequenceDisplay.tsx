@@ -5,33 +5,13 @@ import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { Alert, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect } from 'react'
-import { makeStyles } from 'tss-react/mui'
 
+import { useStyles } from '../../util/displayUtils'
 import { type LinearApolloReferenceSequenceDisplay as LinearApolloReferenceSequenceDisplayI } from '../stateModel'
 
 interface LinearApolloReferenceSequenceDisplayProps {
   model: LinearApolloReferenceSequenceDisplayI
 }
-export type Coord = [number, number]
-
-const useStyles = makeStyles()({
-  canvasContainer: {
-    position: 'relative',
-    left: 0,
-  },
-  canvas: {
-    position: 'absolute',
-    left: 0,
-  },
-  center: {
-    display: 'flex',
-    justifyContent: 'center',
-  },
-  ellipses: {
-    textOverflow: 'ellipsis',
-    overflow: 'hidden',
-  },
-})
 
 export const LinearApolloReferenceSequenceDisplay = observer(
   function LinearApolloReferenceSequenceDisplay(
