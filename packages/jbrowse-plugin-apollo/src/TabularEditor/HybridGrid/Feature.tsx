@@ -2,10 +2,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
 import { type AnnotationFeature } from '@apollo-annotation/mst'
-import {
-  getContainingView,
-  type AbstractSessionModel,
-} from '@jbrowse/core/util'
+import { type AbstractSessionModel } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'
@@ -13,6 +10,7 @@ import { makeStyles } from 'tss-react/mui'
 import { isOntologyClass } from '../../OntologyManager'
 import type OntologyStore from '../../OntologyManager/OntologyStore'
 import { OntologyTermAutocomplete } from '../../components/OntologyTermAutocomplete'
+import { navToFeatureCenter } from '../../util'
 import { type DisplayStateModel } from '../types'
 
 import {
@@ -24,9 +22,6 @@ import { FeatureAttributes } from './FeatureAttributes'
 import { type ContextMenuState } from './HybridGrid'
 import { NumberCell } from './NumberCell'
 import { featureContextMenuItems } from './featureContextMenuItems'
-import { BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
-import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { navToFeatureCenter } from '../../util'
 
 const useStyles = makeStyles()((theme) => ({
   typeContent: {

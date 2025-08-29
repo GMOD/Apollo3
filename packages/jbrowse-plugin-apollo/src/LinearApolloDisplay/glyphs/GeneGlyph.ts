@@ -9,7 +9,6 @@ import {
   isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { type NavLocation } from '@jbrowse/plugin-linear-genome-view/dist/LinearGenomeView/types'
 import SkipNextRoundedIcon from '@mui/icons-material/SkipNextRounded'
 import SkipPreviousRoundedIcon from '@mui/icons-material/SkipPreviousRounded'
 import { alpha } from '@mui/material'
