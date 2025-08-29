@@ -5,11 +5,12 @@ import {
 import { type MenuItem } from '@jbrowse/core/ui'
 import { type AbstractSessionModel } from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { type NavLocation } from '@jbrowse/plugin-linear-genome-view/dist/LinearGenomeView/types'
 
 import { type LinearApolloDisplayMouseEvents } from '../LinearApolloDisplay/stateModel/mouseEvents'
 import { type LinearApolloSixFrameDisplayMouseEvents } from '../LinearApolloSixFrameDisplay/stateModel/mouseEvents'
 import { AddChildFeature, CopyFeature, DeleteFeature } from '../components'
+
+type NavLocation = Parameters<LinearGenomeViewModel['navTo']>[0]
 
 export function getMinAndMaxPx(
   feature: AnnotationFeature | TranscriptPartCoding,
