@@ -1,11 +1,16 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
+import { type BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
 import { type MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
+  getContainingView,
   getFrame,
   intersection2,
   isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
+import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import SkipNextRoundedIcon from '@mui/icons-material/SkipNextRounded'
+import SkipPreviousRoundedIcon from '@mui/icons-material/SkipPreviousRounded'
 import { alpha } from '@mui/material'
 
 import { type OntologyRecord } from '../../OntologyManager'
@@ -17,6 +22,7 @@ import {
   getMinAndMaxPx,
   getOverlappingEdge,
   isMousePositionWithFeature,
+  navToFeatureCenter,
 } from '../../util'
 import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
@@ -800,6 +806,106 @@ function isCDSFeature(
   return featureTypeOntology.isTypeOf(feature.type, 'CDS')
 }
 
+interface AdjacentExons {
+  upstream: AnnotationFeature | undefined
+  downstream: AnnotationFeature | undefined
+}
+
+function getAdjacentExons(
+  currentExon: AnnotationFeature,
+  display: LinearApolloDisplayMouseEvents,
+  mousePosition: MousePositionWithFeature,
+  session: ApolloSessionModel,
+): AdjacentExons {
+  const lgv = getContainingView(
+    display as BaseDisplayModel,
+  ) as unknown as LinearGenomeViewModel
+
+  // Genomic coords of current view
+  const viewGenomicLeft = mousePosition.bp - lgv.bpPerPx * mousePosition.x
+  const viewGenomicRight = viewGenomicLeft + lgv.coarseTotalBp
+  if (!currentExon.parent) {
+    return { upstream: undefined, downstream: undefined }
+  }
+  const transcript = currentExon.parent
+  if (!transcript.children) {
+    throw new Error(`Error getting children of ${transcript._id}`)
+  }
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+
+  let exons = []
+  for (const [, child] of transcript.children) {
+    if (featureTypeOntology.isTypeOf(child.type, 'exon')) {
+      exons.push(child)
+    }
+  }
+  const adjacentExons: AdjacentExons = {
+    upstream: undefined,
+    downstream: undefined,
+  }
+  exons = exons.sort((a, b) => (a.min < b.min ? -1 : 1))
+  for (const exon of exons) {
+    if (exon.min > viewGenomicRight) {
+      adjacentExons.downstream = exon
+      break
+    }
+  }
+  exons = exons.sort((a, b) => (a.min > b.min ? -1 : 1))
+  for (const exon of exons) {
+    if (exon.max < viewGenomicLeft) {
+      adjacentExons.upstream = exon
+      break
+    }
+  }
+  if (transcript.strand === -1) {
+    const newUpstream = adjacentExons.downstream
+    adjacentExons.downstream = adjacentExons.upstream
+    adjacentExons.upstream = newUpstream
+  }
+  return adjacentExons
+}
+
+function getStreamIcon(
+  strand: 1 | -1 | undefined,
+  isUpstream: boolean,
+  isFlipped: boolean | undefined,
+) {
+  // This is the icon you would use for strand=1, downstream, straight
+  // (non-flipped) view
+  let icon = SkipNextRoundedIcon
+
+  if (strand === -1) {
+    icon = SkipPreviousRoundedIcon
+  }
+  if (isUpstream) {
+    icon =
+      icon === SkipPreviousRoundedIcon
+        ? SkipNextRoundedIcon
+        : SkipPreviousRoundedIcon
+  }
+  if (isFlipped) {
+    icon =
+      icon === SkipPreviousRoundedIcon
+        ? SkipNextRoundedIcon
+        : SkipPreviousRoundedIcon
+  }
+  return icon
+}
+
+// function navToFeatureCenter(
+//   feature: AnnotationFeature,
+//   paddingPct: number,
+//   refSeqLength: number,
+// ): NavLocation {
+//   const paddingBp = (feature.max - feature.min) * paddingPct
+//   const start = Math.max(feature.min - paddingBp, 1)
+//   const end = Math.min(feature.max + paddingBp, refSeqLength)
+//   return { refName: feature.refSeq, start, end }
+// }
+
 function getContextMenuItems(
   display: LinearApolloDisplayMouseEvents,
   mousePosition: MousePositionWithFeature,
@@ -820,6 +926,7 @@ function getContextMenuItems(
   if (!hoveredFeature) {
     return menuItems
   }
+
   if (isMousePositionWithFeature(mousePosition)) {
     const { bp, feature } = mousePosition
     let featuresUnderClick = getRelatedFeatures(feature, bp)
@@ -833,6 +940,43 @@ function getContextMenuItems(
         feature,
       )
       if (isExonFeature(feature, session)) {
+        const adjacentExons = getAdjacentExons(
+          feature,
+          display,
+          mousePosition,
+          session,
+        )
+        const lgv = getContainingView(
+          display as BaseDisplayModel,
+        ) as unknown as LinearGenomeViewModel
+        if (adjacentExons.upstream) {
+          const exon = adjacentExons.upstream
+          contextMenuItemsForFeature.push({
+            label: 'Go to upstream exon',
+            icon: getStreamIcon(
+              feature.strand,
+              true,
+              lgv.displayedRegions.at(0)?.reversed,
+            ),
+            onClick: () => {
+              lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
+            },
+          })
+        }
+        if (adjacentExons.downstream) {
+          const exon = adjacentExons.downstream
+          contextMenuItemsForFeature.push({
+            label: 'Go to downstream exon',
+            icon: getStreamIcon(
+              feature.strand,
+              false,
+              lgv.displayedRegions.at(0)?.reversed,
+            ),
+            onClick: () => {
+              lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
+            },
+          })
+        }
         contextMenuItemsForFeature.push(
           {
             label: 'Merge exons',
