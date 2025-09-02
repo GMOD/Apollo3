@@ -88,7 +88,7 @@ export function CopyFeature({
 
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<
     string | undefined
-  >(assemblies.find((a) => a.name !== sourceAssemblyId)?.name)
+  >(assemblies.find((a) => a.name)?.name)
   const [refNames, setRefNames] = useState<Collection[]>([])
   const [selectedRefSeqId, setSelectedRefSeqId] = useState('')
   const [start, setStart] = useState(sourceFeature.min)
@@ -262,13 +262,11 @@ export function CopyFeature({
             value={selectedAssemblyId}
             onChange={handleChangeAssembly}
           >
-            {assemblies
-              .filter((option) => option.name !== sourceAssemblyId)
-              .map((option) => (
-                <MenuItem key={option.name} value={option.name}>
-                  {readConfObject(option, 'displayName')}
-                </MenuItem>
-              ))}
+            {assemblies.map((option) => (
+              <MenuItem key={option.name} value={option.name}>
+                {readConfObject(option, 'displayName')}
+              </MenuItem>
+            ))}
           </Select>
           <DialogContentText>Target reference sequence</DialogContentText>
           <Select
