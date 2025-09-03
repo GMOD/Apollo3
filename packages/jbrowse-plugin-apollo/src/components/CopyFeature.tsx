@@ -203,7 +203,9 @@ export function CopyFeature({
       copyFeature: true,
       allIds: featureIds,
     })
-    void changeManager.submit(change)
+    void changeManager.submit(change).then(() => {
+      session.apolloSetSelectedFeature(newFeatureLine._id)
+    })
     handleClose()
     event.preventDefault()
   }

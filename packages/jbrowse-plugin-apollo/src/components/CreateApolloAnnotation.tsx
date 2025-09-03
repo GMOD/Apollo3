@@ -420,6 +420,7 @@ export function CreateApolloAnnotation({
       },
     })
     await submitChange(change)
+    apolloSessionModel.apolloSetSelectedFeature(newGeneId)
   }
 
   const extendSelectedDestinationFeatureLocation = async (
