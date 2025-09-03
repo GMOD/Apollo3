@@ -1,6 +1,6 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
-import { type Theme, alpha } from '@mui/material'
+import { alpha } from '@mui/material'
 
 import {
   type MousePosition,
@@ -42,20 +42,6 @@ function drawBoxFill(
   drawBox(ctx, x + 1, y + 1, width - 2, height - 2, color)
 }
 
-function drawBoxText(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  color: string,
-  text: string,
-) {
-  ctx.fillStyle = color
-  const textStart = Math.max(x + 1, 0)
-  const textWidth = x - 1 + width - textStart
-  ctx.fillText(text, textStart, y + 11, textWidth)
-}
-
 function draw(
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
@@ -76,9 +62,8 @@ function draw(
   const widthPx = feature.length / bpPerPx
   const startPx = reversed ? minX - widthPx : minX
   const top = row * heightPx
-  const isSelected = isSelectedFeature(feature, selectedFeature)
-  const backgroundColor = getBackgroundColor(theme, isSelected)
-  const textColor = getTextColor(theme, isSelected)
+  const backgroundColor = theme.palette.background.default
+  const textColor = theme.palette.text.primary
   const featureBox: [number, number, number, number] = [
     startPx,
     top,
@@ -92,7 +77,9 @@ function draw(
   }
 
   drawBoxFill(ctx, startPx, top, widthPx, heightPx, backgroundColor)
-  drawBoxText(ctx, startPx, top, widthPx, textColor, feature.type)
+  if (isSelectedFeature(feature, selectedFeature)) {
+    drawHighlight(stateModel, ctx, feature, true)
+  }
 }
 
 function drawDragPreview(
@@ -118,22 +105,20 @@ function drawDragPreview(
   const rectY = row * apolloRowHeight
   const rectWidth = Math.abs(current.x - featureEdgePx)
   const rectHeight = apolloRowHeight * rowCount
-  overlayCtx.strokeStyle = theme?.palette.info.main ?? 'rgb(255,0,0)'
+  overlayCtx.strokeStyle = theme.palette.info.main
   overlayCtx.setLineDash([6])
   overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
-  overlayCtx.fillStyle = alpha(theme?.palette.info.main ?? 'rgb(255,0,0)', 0.2)
+  overlayCtx.fillStyle = alpha(theme.palette.info.main, 0.2)
   overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
 }
 
-function drawHover(
-  stateModel: LinearApolloDisplay,
+function drawHighlight(
+  stateModel: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  selected = false,
 ) {
-  const { hoveredFeature, apolloRowHeight, lgv, theme } = stateModel
-  if (!hoveredFeature) {
-    return
-  }
-  const { feature } = hoveredFeature
+  const { apolloRowHeight, lgv, theme } = stateModel
   const position = stateModel.getFeatureLayoutPosition(feature)
   if (!position) {
     return
@@ -151,8 +136,21 @@ function drawHover(
     })?.offsetPx ?? 0) - offsetPx
   const top = layoutRow * apolloRowHeight
   const widthPx = length / bpPerPx
-  ctx.fillStyle = theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
+  ctx.fillStyle = selected
+    ? theme.palette.action.disabled
+    : theme.palette.action.focus
   ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
+}
+
+function drawHover(
+  stateModel: LinearApolloDisplay,
+  ctx: CanvasRenderingContext2D,
+) {
+  const { hoveredFeature } = stateModel
+  if (!hoveredFeature) {
+    return
+  }
+  drawHighlight(stateModel, ctx, hoveredFeature.feature)
 }
 
 function drawTooltip(
@@ -200,14 +198,14 @@ function drawTooltip(
   const maxWidth = Math.max(...textWidth)
 
   startPx = startPx + widthPx + 5
-  context.fillStyle = alpha(theme?.palette.text.primary ?? 'rgb(1, 1, 1)', 0.7)
+  context.fillStyle = alpha(theme.palette.text.primary, 0.7)
   context.fillRect(startPx, top, maxWidth + 4, textWidth.length === 3 ? 45 : 35)
   context.beginPath()
   context.moveTo(startPx, top)
   context.lineTo(startPx - 5, top + 5)
   context.lineTo(startPx, top + 10)
   context.fill()
-  context.fillStyle = theme?.palette.background.default ?? 'rgba(255, 255, 255)'
+  context.fillStyle = theme.palette.background.default
   let textTop = top + 12
   context.fillText(featureType, startPx + 2, textTop)
   if (featureName) {
@@ -216,19 +214,6 @@ function drawTooltip(
   }
   textTop = textTop + 12
   context.fillText(location, startPx + 2, textTop)
-}
-
-function getBackgroundColor(theme: Theme | undefined, selected: boolean) {
-  return selected
-    ? theme?.palette.text.primary ?? 'black'
-    : theme?.palette.background.default ?? 'white'
-}
-
-function getTextColor(theme: Theme | undefined, selected: boolean) {
-  return selected
-    ? theme?.palette.getContrastText(getBackgroundColor(theme, selected)) ??
-        'white'
-    : theme?.palette.text.primary ?? 'black'
 }
 
 export function drawBox(

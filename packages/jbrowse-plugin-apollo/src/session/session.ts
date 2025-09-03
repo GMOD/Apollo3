@@ -103,7 +103,7 @@ export function extendSession(
       }
     })
     .actions((self) => ({
-      apolloSetSelectedFeature(feature?: AnnotationFeature) {
+      apolloSetSelectedFeature(feature?: AnnotationFeature | string) {
         // @ts-expect-error Not sure why TS thinks these MST types don't match
         self.apolloSelectedFeature = feature
       },

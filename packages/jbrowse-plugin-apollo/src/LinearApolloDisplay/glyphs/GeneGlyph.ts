@@ -19,6 +19,7 @@ import { type ApolloSessionModel } from '../../session'
 import {
   type MousePosition,
   type MousePositionWithFeature,
+  containsSelectedFeature,
   getMinAndMaxPx,
   getOverlappingEdge,
   isMousePositionWithFeature,
@@ -122,7 +123,7 @@ function draw(
   const topLevelFeatureHeight =
     getRowCount(feature, featureTypeOntology) * rowHeight
 
-  ctx.fillStyle = alpha(theme?.palette.background.paper ?? '#ffffff', 0.6)
+  ctx.fillStyle = alpha(theme.palette.background.paper, 0.6)
   ctx.fillRect(
     topLevelFeatureStartPx,
     topLevelFeatureTop,
@@ -175,9 +176,9 @@ function draw(
   }
 
   const forwardFill =
-    theme?.palette.mode === 'dark' ? forwardFillDark : forwardFillLight
+    theme.palette.mode === 'dark' ? forwardFillDark : forwardFillLight
   const backwardFill =
-    theme?.palette.mode === 'dark' ? backwardFillDark : backwardFillLight
+    theme.palette.mode === 'dark' ? backwardFillDark : backwardFillLight
   // Draw exon and CDS for each transcript
   currentRow = 0
   for (const [, child] of children) {
@@ -194,7 +195,7 @@ function draw(
     const cdsCount = getCDSCount(child, featureTypeOntology)
     if (cdsCount != 0) {
       for (const cdsRow of child.cdsLocations) {
-        const { _id, children: transcriptChildren } = child
+        const { children: transcriptChildren } = child
         if (!transcriptChildren) {
           continue
         }
@@ -223,7 +224,7 @@ function draw(
               regionNumber: displayedRegionIndex,
             })?.offsetPx ?? 0) - offsetPx
           const cdsStartPx = reversed ? minX - cdsWidthPx : minX
-          ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+          ctx.fillStyle = theme.palette.text.primary
           const cdsTop =
             (row + currentRow) * rowHeight + (rowHeight - cdsHeight) / 2
           ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
@@ -240,12 +241,8 @@ function draw(
               child.strand ?? 1,
               cds.phase,
             )
-            const frameColor = theme?.palette.framesCDS.at(frame)?.main
-            const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
-            ctx.fillStyle =
-              selectedFeature && _id === selectedFeature._id
-                ? 'rgb(0,0,0)'
-                : cdsColorCode
+            const frameColor = theme.palette.framesCDS.at(frame)?.main
+            ctx.fillStyle = frameColor ?? 'black'
             ctx.fillRect(
               cdsStartPx + 1,
               cdsTop + 1,
@@ -301,6 +298,9 @@ function draw(
       currentRow += 1
     }
   }
+  if (selectedFeature && containsSelectedFeature(feature, selectedFeature)) {
+    drawHighlight(stateModel, ctx, selectedFeature, true)
+  }
 }
 
 function drawExon(
@@ -314,7 +314,7 @@ function drawExon(
   forwardFill: CanvasPattern | null,
   backwardFill: CanvasPattern | null,
 ) {
-  const { apolloRowHeight, lgv, selectedFeature, theme } = stateModel
+  const { apolloRowHeight, lgv, theme } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const { refName, reversed } = displayedRegion
@@ -331,14 +331,11 @@ function drawExon(
   const top = (row + currentRow) * apolloRowHeight
   const exonHeight = Math.round(0.6 * apolloRowHeight)
   const exonTop = top + (apolloRowHeight - exonHeight) / 2
-  ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+  ctx.fillStyle = theme.palette.text.primary
   ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
   if (widthPx > 2) {
     ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
-    ctx.fillStyle =
-      selectedFeature && exon._id === selectedFeature._id
-        ? 'rgb(0,0,0)'
-        : 'rgb(211,211,211)'
+    ctx.fillStyle = 'rgb(211,211,211)'
     ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
     if (forwardFill && backwardFill && strand) {
       const reversal = reversed ? -1 : 1
@@ -381,7 +378,7 @@ function drawLine(
   const startPx = reversed ? minX - widthPx : minX
   const height =
     Math.round((currentRow + 1 / 2) * apolloRowHeight) + row * apolloRowHeight
-  ctx.strokeStyle = theme?.palette.text.primary ?? 'black'
+  ctx.strokeStyle = theme.palette.text.primary
   ctx.beginPath()
   ctx.moveTo(startPx, height)
   ctx.lineTo(startPx + widthPx, height)
@@ -410,24 +407,23 @@ function drawDragPreview(
   const rectY = row * apolloRowHeight
   const rectWidth = Math.abs(current.x - featureEdgePx)
   const rectHeight = apolloRowHeight * rowCount
-  overlayCtx.strokeStyle = theme?.palette.info.main ?? 'rgb(255,0,0)'
+  overlayCtx.strokeStyle = theme.palette.info.main
   overlayCtx.setLineDash([6])
   overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
-  overlayCtx.fillStyle = alpha(theme?.palette.info.main ?? 'rgb(255,0,0)', 0.2)
+  overlayCtx.fillStyle = alpha(theme.palette.info.main, 0.2)
   overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
 }
 
-function drawHover(
-  stateModel: LinearApolloDisplay,
+function drawHighlight(
+  stateModel: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  selected = false,
 ) {
-  const { hoveredFeature, apolloRowHeight, lgv, session, theme } = stateModel
+  const { apolloRowHeight, lgv, session, theme } = stateModel
   const { featureTypeOntology } = session.apolloDataStore.ontologyManager
 
-  if (!hoveredFeature) {
-    return
-  }
-  const position = stateModel.getFeatureLayoutPosition(hoveredFeature.feature)
+  const position = stateModel.getFeatureLayoutPosition(feature)
   if (!position) {
     return
   }
@@ -435,7 +431,7 @@ function drawHover(
   const { featureRow, layoutIndex, layoutRow } = position
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
-  const { length, max, min } = hoveredFeature.feature
+  const { length, max, min } = feature
   const startPx =
     (lgv.bpToPx({
       refName,
@@ -445,7 +441,9 @@ function drawHover(
   const row = layoutRow + featureRow
   const top = row * apolloRowHeight
   const widthPx = length / bpPerPx
-  ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,04)'
+  ctx.fillStyle = selected
+    ? theme.palette.action.disabled
+    : theme.palette.action.focus
 
   if (!featureTypeOntology) {
     throw new Error('featureTypeOntology is undefined')
@@ -454,8 +452,20 @@ function drawHover(
     startPx,
     top,
     widthPx,
-    apolloRowHeight * getRowCount(hoveredFeature.feature, featureTypeOntology),
+    apolloRowHeight * getRowCount(feature, featureTypeOntology),
   )
+}
+
+function drawHover(
+  stateModel: LinearApolloDisplay,
+  ctx: CanvasRenderingContext2D,
+) {
+  const { hoveredFeature } = stateModel
+
+  if (!hoveredFeature) {
+    return
+  }
+  drawHighlight(stateModel, ctx, hoveredFeature.feature)
 }
 
 function getFeatureFromLayout(
@@ -617,6 +627,45 @@ function getRowForFeature(
   return
 }
 
+function selectFeatureAndOpenWidget(
+  stateModel: LinearApolloDisplayMouseEvents,
+  feature: AnnotationFeature,
+) {
+  if (stateModel.apolloDragging) {
+    return
+  }
+  stateModel.setSelectedFeature(feature)
+  const { session } = stateModel
+  const { apolloDataStore } = session
+  const { featureTypeOntology } = apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+
+  let containsCDSOrExon = false
+  for (const [, child] of feature.children ?? []) {
+    if (
+      featureTypeOntology.isTypeOf(child.type, 'CDS') ||
+      featureTypeOntology.isTypeOf(child.type, 'exon')
+    ) {
+      containsCDSOrExon = true
+      break
+    }
+  }
+  if (
+    (featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
+      featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')) &&
+    containsCDSOrExon
+  ) {
+    stateModel.showFeatureDetailsWidget(feature, [
+      'ApolloTranscriptDetails',
+      'apolloTranscriptDetails',
+    ])
+  } else {
+    stateModel.showFeatureDetailsWidget(feature)
+  }
+}
+
 function onMouseDown(
   stateModel: LinearApolloDisplay,
   currentMousePosition: MousePositionWithFeature,
@@ -672,36 +721,7 @@ function onMouseUp(
   if (!feature) {
     return
   }
-  stateModel.setSelectedFeature(feature)
-  const { session } = stateModel
-  const { apolloDataStore } = session
-  const { featureTypeOntology } = apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
-
-  let containsCDSOrExon = false
-  for (const [, child] of feature.children ?? []) {
-    if (
-      featureTypeOntology.isTypeOf(child.type, 'CDS') ||
-      featureTypeOntology.isTypeOf(child.type, 'exon')
-    ) {
-      containsCDSOrExon = true
-      break
-    }
-  }
-  if (
-    (featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
-      featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')) &&
-    containsCDSOrExon
-  ) {
-    stateModel.showFeatureDetailsWidget(feature, [
-      'ApolloTranscriptDetails',
-      'apolloTranscriptDetails',
-    ])
-  } else {
-    stateModel.showFeatureDetailsWidget(feature)
-  }
+  selectFeatureAndOpenWidget(stateModel, feature)
 }
 
 function getDraggableFeatureInfo(
@@ -895,17 +915,6 @@ function getStreamIcon(
   return icon
 }
 
-// function navToFeatureCenter(
-//   feature: AnnotationFeature,
-//   paddingPct: number,
-//   refSeqLength: number,
-// ): NavLocation {
-//   const paddingBp = (feature.max - feature.min) * paddingPct
-//   const start = Math.max(feature.min - paddingBp, 1)
-//   const end = Math.min(feature.max + paddingBp, refSeqLength)
-//   return { refName: feature.refSeq, start, end }
-// }
-
 function getContextMenuItems(
   display: LinearApolloDisplayMouseEvents,
   mousePosition: MousePositionWithFeature,
@@ -960,6 +969,7 @@ function getContextMenuItems(
             ),
             onClick: () => {
               lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
+              selectFeatureAndOpenWidget(display, exon)
             },
           })
         }
@@ -974,6 +984,7 @@ function getContextMenuItems(
             ),
             onClick: () => {
               lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
+              selectFeatureAndOpenWidget(display, exon)
             },
           })
         }

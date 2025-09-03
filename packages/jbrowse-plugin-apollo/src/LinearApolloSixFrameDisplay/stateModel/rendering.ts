@@ -2,7 +2,7 @@
 import type PluginManager from '@jbrowse/core/PluginManager'
 import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import { doesIntersect2 } from '@jbrowse/core/util'
-import { type Theme } from '@mui/material'
+import { type Theme, createTheme } from '@mui/material'
 import { autorun } from 'mobx'
 import { type Instance, addDisposer, types } from 'mobx-state-tree'
 
@@ -34,7 +34,7 @@ export function renderingModelFactory(
       canvas: null as HTMLCanvasElement | null,
       overlayCanvas: null as HTMLCanvasElement | null,
       collaboratorCanvas: null as HTMLCanvasElement | null,
-      theme: undefined as Theme | undefined,
+      theme: createTheme(),
     }))
     .views((self) => ({
       get featuresHeight() {

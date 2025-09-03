@@ -151,6 +151,7 @@ export const Feature = observer(function Feature({
           displayState.setSelectedFeature(feature)
         }}
         onDoubleClick={() => {
+          displayState.setSelectedFeature(feature)
           navigateHere(displayState, feature)
         }}
         onContextMenu={(e) => {
