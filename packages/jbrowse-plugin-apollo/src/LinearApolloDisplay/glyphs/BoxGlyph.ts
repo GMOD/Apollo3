@@ -1,6 +1,6 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
-import { type Theme, alpha } from '@mui/material'
+import { alpha } from '@mui/material'
 
 import {
   type MousePosition,
@@ -42,20 +42,6 @@ function drawBoxFill(
   drawBox(ctx, x + 1, y + 1, width - 2, height - 2, color)
 }
 
-function drawBoxText(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  color: string,
-  text: string,
-) {
-  ctx.fillStyle = color
-  const textStart = Math.max(x + 1, 0)
-  const textWidth = x - 1 + width - textStart
-  ctx.fillText(text, textStart, y + 11, textWidth)
-}
-
 function draw(
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
@@ -76,9 +62,8 @@ function draw(
   const widthPx = feature.length / bpPerPx
   const startPx = reversed ? minX - widthPx : minX
   const top = row * heightPx
-  const isSelected = isSelectedFeature(feature, selectedFeature)
-  const backgroundColor = getBackgroundColor(theme, isSelected)
-  const textColor = getTextColor(theme, isSelected)
+  const backgroundColor = theme.palette.background.default
+  const textColor = theme.palette.text.primary
   const featureBox: [number, number, number, number] = [
     startPx,
     top,
@@ -92,7 +77,9 @@ function draw(
   }
 
   drawBoxFill(ctx, startPx, top, widthPx, heightPx, backgroundColor)
-  drawBoxText(ctx, startPx, top, widthPx, textColor, feature.type)
+  if (isSelectedFeature(feature, selectedFeature)) {
+    drawHighlight(stateModel, ctx, feature, true)
+  }
 }
 
 function drawDragPreview(
@@ -125,15 +112,13 @@ function drawDragPreview(
   overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
 }
 
-function drawHover(
-  stateModel: LinearApolloDisplay,
+function drawHighlight(
+  stateModel: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  selected = false,
 ) {
-  const { hoveredFeature, apolloRowHeight, lgv, theme } = stateModel
-  if (!hoveredFeature) {
-    return
-  }
-  const { feature } = hoveredFeature
+  const { apolloRowHeight, lgv, theme } = stateModel
   const position = stateModel.getFeatureLayoutPosition(feature)
   if (!position) {
     return
@@ -151,8 +136,21 @@ function drawHover(
     })?.offsetPx ?? 0) - offsetPx
   const top = layoutRow * apolloRowHeight
   const widthPx = length / bpPerPx
-  ctx.fillStyle = theme.palette.action.focus
+  ctx.fillStyle = selected
+    ? theme.palette.action.disabled
+    : theme.palette.action.focus
   ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
+}
+
+function drawHover(
+  stateModel: LinearApolloDisplay,
+  ctx: CanvasRenderingContext2D,
+) {
+  const { hoveredFeature } = stateModel
+  if (!hoveredFeature) {
+    return
+  }
+  drawHighlight(stateModel, ctx, hoveredFeature.feature)
 }
 
 function drawTooltip(
@@ -216,18 +214,6 @@ function drawTooltip(
   }
   textTop = textTop + 12
   context.fillText(location, startPx + 2, textTop)
-}
-
-function getBackgroundColor(theme: Theme, selected: boolean) {
-  return selected
-    ? theme.palette.text.primary
-    : theme.palette.background.default
-}
-
-function getTextColor(theme: Theme, selected: boolean) {
-  return selected
-    ? theme.palette.getContrastText(getBackgroundColor(theme, selected))
-    : theme.palette.text.primary
 }
 
 export function drawBox(

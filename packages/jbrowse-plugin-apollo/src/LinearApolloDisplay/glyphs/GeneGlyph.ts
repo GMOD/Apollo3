@@ -19,6 +19,7 @@ import { type ApolloSessionModel } from '../../session'
 import {
   type MousePosition,
   type MousePositionWithFeature,
+  containsSelectedFeature,
   getMinAndMaxPx,
   getOverlappingEdge,
   isMousePositionWithFeature,
@@ -194,7 +195,7 @@ function draw(
     const cdsCount = getCDSCount(child, featureTypeOntology)
     if (cdsCount != 0) {
       for (const cdsRow of child.cdsLocations) {
-        const { _id, children: transcriptChildren } = child
+        const { children: transcriptChildren } = child
         if (!transcriptChildren) {
           continue
         }
@@ -241,11 +242,7 @@ function draw(
               cds.phase,
             )
             const frameColor = theme.palette.framesCDS.at(frame)?.main
-            const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
-            ctx.fillStyle =
-              selectedFeature && _id === selectedFeature._id
-                ? 'rgb(0,0,0)'
-                : cdsColorCode
+            ctx.fillStyle = frameColor ?? 'black'
             ctx.fillRect(
               cdsStartPx + 1,
               cdsTop + 1,
@@ -301,6 +298,9 @@ function draw(
       currentRow += 1
     }
   }
+  if (selectedFeature && containsSelectedFeature(feature, selectedFeature)) {
+    drawHighlight(stateModel, ctx, selectedFeature, true)
+  }
 }
 
 function drawExon(
@@ -314,7 +314,7 @@ function drawExon(
   forwardFill: CanvasPattern | null,
   backwardFill: CanvasPattern | null,
 ) {
-  const { apolloRowHeight, lgv, selectedFeature, theme } = stateModel
+  const { apolloRowHeight, lgv, theme } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const { refName, reversed } = displayedRegion
@@ -335,10 +335,7 @@ function drawExon(
   ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
   if (widthPx > 2) {
     ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
-    ctx.fillStyle =
-      selectedFeature && exon._id === selectedFeature._id
-        ? 'rgb(0,0,0)'
-        : 'rgb(211,211,211)'
+    ctx.fillStyle = 'rgb(211,211,211)'
     ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
     if (forwardFill && backwardFill && strand) {
       const reversal = reversed ? -1 : 1
@@ -417,17 +414,16 @@ function drawDragPreview(
   overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
 }
 
-function drawHover(
-  stateModel: LinearApolloDisplay,
+function drawHighlight(
+  stateModel: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  selected = false,
 ) {
-  const { hoveredFeature, apolloRowHeight, lgv, session, theme } = stateModel
+  const { apolloRowHeight, lgv, session, theme } = stateModel
   const { featureTypeOntology } = session.apolloDataStore.ontologyManager
 
-  if (!hoveredFeature) {
-    return
-  }
-  const position = stateModel.getFeatureLayoutPosition(hoveredFeature.feature)
+  const position = stateModel.getFeatureLayoutPosition(feature)
   if (!position) {
     return
   }
@@ -435,7 +431,7 @@ function drawHover(
   const { featureRow, layoutIndex, layoutRow } = position
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
-  const { length, max, min } = hoveredFeature.feature
+  const { length, max, min } = feature
   const startPx =
     (lgv.bpToPx({
       refName,
@@ -445,7 +441,9 @@ function drawHover(
   const row = layoutRow + featureRow
   const top = row * apolloRowHeight
   const widthPx = length / bpPerPx
-  ctx.fillStyle = theme.palette.action.selected
+  ctx.fillStyle = selected
+    ? theme.palette.action.disabled
+    : theme.palette.action.focus
 
   if (!featureTypeOntology) {
     throw new Error('featureTypeOntology is undefined')
@@ -454,8 +452,20 @@ function drawHover(
     startPx,
     top,
     widthPx,
-    apolloRowHeight * getRowCount(hoveredFeature.feature, featureTypeOntology),
+    apolloRowHeight * getRowCount(feature, featureTypeOntology),
   )
+}
+
+function drawHover(
+  stateModel: LinearApolloDisplay,
+  ctx: CanvasRenderingContext2D,
+) {
+  const { hoveredFeature } = stateModel
+
+  if (!hoveredFeature) {
+    return
+  }
+  drawHighlight(stateModel, ctx, hoveredFeature.feature)
 }
 
 function getFeatureFromLayout(
@@ -894,17 +904,6 @@ function getStreamIcon(
   }
   return icon
 }
-
-// function navToFeatureCenter(
-//   feature: AnnotationFeature,
-//   paddingPct: number,
-//   refSeqLength: number,
-// ): NavLocation {
-//   const paddingBp = (feature.max - feature.min) * paddingPct
-//   const start = Math.max(feature.min - paddingBp, 1)
-//   const end = Math.min(feature.max + paddingBp, refSeqLength)
-//   return { refName: feature.refSeq, start, end }
-// }
 
 function getContextMenuItems(
   display: LinearApolloDisplayMouseEvents,
