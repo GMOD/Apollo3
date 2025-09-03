@@ -122,7 +122,7 @@ function draw(
   const topLevelFeatureHeight =
     getRowCount(feature, featureTypeOntology) * rowHeight
 
-  ctx.fillStyle = alpha(theme?.palette.background.paper ?? '#ffffff', 0.6)
+  ctx.fillStyle = alpha(theme.palette.background.paper, 0.6)
   ctx.fillRect(
     topLevelFeatureStartPx,
     topLevelFeatureTop,
@@ -175,9 +175,9 @@ function draw(
   }
 
   const forwardFill =
-    theme?.palette.mode === 'dark' ? forwardFillDark : forwardFillLight
+    theme.palette.mode === 'dark' ? forwardFillDark : forwardFillLight
   const backwardFill =
-    theme?.palette.mode === 'dark' ? backwardFillDark : backwardFillLight
+    theme.palette.mode === 'dark' ? backwardFillDark : backwardFillLight
   // Draw exon and CDS for each transcript
   currentRow = 0
   for (const [, child] of children) {
@@ -223,7 +223,7 @@ function draw(
               regionNumber: displayedRegionIndex,
             })?.offsetPx ?? 0) - offsetPx
           const cdsStartPx = reversed ? minX - cdsWidthPx : minX
-          ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+          ctx.fillStyle = theme.palette.text.primary
           const cdsTop =
             (row + currentRow) * rowHeight + (rowHeight - cdsHeight) / 2
           ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
@@ -240,7 +240,7 @@ function draw(
               child.strand ?? 1,
               cds.phase,
             )
-            const frameColor = theme?.palette.framesCDS.at(frame)?.main
+            const frameColor = theme.palette.framesCDS.at(frame)?.main
             const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
             ctx.fillStyle =
               selectedFeature && _id === selectedFeature._id
@@ -331,7 +331,7 @@ function drawExon(
   const top = (row + currentRow) * apolloRowHeight
   const exonHeight = Math.round(0.6 * apolloRowHeight)
   const exonTop = top + (apolloRowHeight - exonHeight) / 2
-  ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+  ctx.fillStyle = theme.palette.text.primary
   ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
   if (widthPx > 2) {
     ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
@@ -381,7 +381,7 @@ function drawLine(
   const startPx = reversed ? minX - widthPx : minX
   const height =
     Math.round((currentRow + 1 / 2) * apolloRowHeight) + row * apolloRowHeight
-  ctx.strokeStyle = theme?.palette.text.primary ?? 'black'
+  ctx.strokeStyle = theme.palette.text.primary
   ctx.beginPath()
   ctx.moveTo(startPx, height)
   ctx.lineTo(startPx + widthPx, height)
@@ -410,10 +410,10 @@ function drawDragPreview(
   const rectY = row * apolloRowHeight
   const rectWidth = Math.abs(current.x - featureEdgePx)
   const rectHeight = apolloRowHeight * rowCount
-  overlayCtx.strokeStyle = theme?.palette.info.main ?? 'rgb(255,0,0)'
+  overlayCtx.strokeStyle = theme.palette.info.main
   overlayCtx.setLineDash([6])
   overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
-  overlayCtx.fillStyle = alpha(theme?.palette.info.main ?? 'rgb(255,0,0)', 0.2)
+  overlayCtx.fillStyle = alpha(theme.palette.info.main, 0.2)
   overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
 }
 
@@ -445,7 +445,7 @@ function drawHover(
   const row = layoutRow + featureRow
   const top = row * apolloRowHeight
   const widthPx = length / bpPerPx
-  ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,04)'
+  ctx.fillStyle = theme.palette.action.selected
 
   if (!featureTypeOntology) {
     throw new Error('featureTypeOntology is undefined')

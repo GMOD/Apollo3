@@ -80,7 +80,7 @@ const useStyles = makeStyles()((theme) => ({
     borderTop: '1px solid rgba(0, 0, 0, .125)',
   },
   radioIcon: {
-    color: theme?.palette?.tertiary?.contrastText,
+    color: theme.palette.tertiary.contrastText,
   },
   dialog: {
     // minHeight: 500,

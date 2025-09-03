@@ -118,10 +118,10 @@ function drawDragPreview(
   const rectY = row * apolloRowHeight
   const rectWidth = Math.abs(current.x - featureEdgePx)
   const rectHeight = apolloRowHeight * rowCount
-  overlayCtx.strokeStyle = theme?.palette.info.main ?? 'rgb(255,0,0)'
+  overlayCtx.strokeStyle = theme.palette.info.main
   overlayCtx.setLineDash([6])
   overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
-  overlayCtx.fillStyle = alpha(theme?.palette.info.main ?? 'rgb(255,0,0)', 0.2)
+  overlayCtx.fillStyle = alpha(theme.palette.info.main, 0.2)
   overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
 }
 
@@ -151,7 +151,7 @@ function drawHover(
     })?.offsetPx ?? 0) - offsetPx
   const top = layoutRow * apolloRowHeight
   const widthPx = length / bpPerPx
-  ctx.fillStyle = theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
+  ctx.fillStyle = theme.palette.action.focus
   ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
 }
 
@@ -200,14 +200,14 @@ function drawTooltip(
   const maxWidth = Math.max(...textWidth)
 
   startPx = startPx + widthPx + 5
-  context.fillStyle = alpha(theme?.palette.text.primary ?? 'rgb(1, 1, 1)', 0.7)
+  context.fillStyle = alpha(theme.palette.text.primary, 0.7)
   context.fillRect(startPx, top, maxWidth + 4, textWidth.length === 3 ? 45 : 35)
   context.beginPath()
   context.moveTo(startPx, top)
   context.lineTo(startPx - 5, top + 5)
   context.lineTo(startPx, top + 10)
   context.fill()
-  context.fillStyle = theme?.palette.background.default ?? 'rgba(255, 255, 255)'
+  context.fillStyle = theme.palette.background.default
   let textTop = top + 12
   context.fillText(featureType, startPx + 2, textTop)
   if (featureName) {
@@ -218,17 +218,16 @@ function drawTooltip(
   context.fillText(location, startPx + 2, textTop)
 }
 
-function getBackgroundColor(theme: Theme | undefined, selected: boolean) {
+function getBackgroundColor(theme: Theme, selected: boolean) {
   return selected
-    ? theme?.palette.text.primary ?? 'black'
-    : theme?.palette.background.default ?? 'white'
+    ? theme.palette.text.primary
+    : theme.palette.background.default
 }
 
-function getTextColor(theme: Theme | undefined, selected: boolean) {
+function getTextColor(theme: Theme, selected: boolean) {
   return selected
-    ? theme?.palette.getContrastText(getBackgroundColor(theme, selected)) ??
-        'white'
-    : theme?.palette.text.primary ?? 'black'
+    ? theme.palette.getContrastText(getBackgroundColor(theme, selected))
+    : theme.palette.text.primary
 }
 
 export function drawBox(
