@@ -63,8 +63,6 @@ export function extendSession(
   pluginManager: PluginManager,
   sessionModel: ReturnType<typeof types.model>,
 ) {
-  const aborter = new AbortController()
-  const { signal } = aborter
   const AnnotationFeatureExtended = pluginManager.evaluateExtensionPoint(
     'Apollo-extendAnnotationFeature',
     AnnotationFeatureModel,
@@ -78,6 +76,7 @@ export function extendSession(
     })
     .volatile(() => ({
       apolloHoveredFeature: undefined as HoveredFeature | undefined,
+      abortController: new AbortController(),
     }))
     .extend(() => {
       const collabs = observable.array<Collaborator>([])
@@ -289,6 +288,7 @@ export function extendSession(
               const { id, name } = sessionSnapshot
               applySnapshot(self, { name, id })
 
+              const { signal } = self.abortController
               // fetch and initialize assemblies for each of our Apollo internet accounts
               for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
                 if (internetAccount.type !== 'ApolloInternetAccount') {
@@ -305,7 +305,9 @@ export function extendSession(
                 try {
                   response = await fetch(uri, { signal })
                 } catch (error) {
-                  console.error(error)
+                  if (!self.abortController.signal.aborted) {
+                    console.error(error)
+                  }
                   continue
                 }
                 if (!response.ok) {
@@ -324,7 +326,10 @@ export function extendSession(
                   continue
                 }
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                reloadPluginManagerCallback(jbrowseConfig, sessionSnapshot)
+                reloadPluginManagerCallback(
+                  jbrowseConfig,
+                  self.previousSnapshot,
+                )
                 reaction.dispose()
               }
             },
@@ -333,7 +338,7 @@ export function extendSession(
         )
       },
       beforeDestroy() {
-        aborter.abort('destroying session model')
+        self.abortController.abort('destroying session model')
       },
     }))
 

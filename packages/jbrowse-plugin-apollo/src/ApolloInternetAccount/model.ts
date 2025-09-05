@@ -241,10 +241,18 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             uri,
           })
 
-          const response = yield apolloFetch(uri, {
-            method: 'GET',
-            signal: self.controller.signal,
-          })
+          let response: Response
+          try {
+            response = yield apolloFetch(uri, {
+              method: 'GET',
+              signal: self.controller.signal,
+            })
+          } catch (error) {
+            if (!self.controller.signal.aborted) {
+              console.error(error)
+            }
+            return
+          }
           if (!response.ok) {
             const errorMessage = yield createFetchErrorMessage(
               response,
@@ -279,10 +287,18 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           uri,
         })
 
-        const response = yield apolloFetch(uri, {
-          method: 'GET',
-          signal: self.controller.signal,
-        })
+        let response: Response
+        try {
+          response = yield apolloFetch(uri, {
+            method: 'GET',
+            signal: self.controller.signal,
+          })
+        } catch (error) {
+          if (!self.controller.signal.aborted) {
+            console.error(error)
+          }
+          return
+        }
         if (!response.ok) {
           console.error(
             `Error when fetching the last updates to recover socket connection — ${response.status}`,
@@ -313,8 +329,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         const { socket } = self
         const { addCheckResult, changeManager, deleteCheckResult } =
           session.apolloDataStore
-        socket.on('connect', async () => {
-          await self.getMissingChanges()
+        socket.on('connect', () => {
+          void self.getMissingChanges()
         })
         socket.on('connect_error', (error) => {
           console.error(error)
