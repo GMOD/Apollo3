@@ -194,8 +194,12 @@ export function extendSession(
         }
       },
     }))
+    .volatile((self) => ({
+      previousSnapshot: getSnapshot(self),
+    }))
     .actions((self) => ({
       afterCreate() {
+        applySnapshot(self, { name: self.name, id: self.id })
         // @ts-expect-error type is missing on ApolloRootModel
         const { internetAccounts, jbrowse, reloadPluginManagerCallback } =
           getRoot<ApolloRootModel>(self)
@@ -282,11 +286,11 @@ export function extendSession(
                 'hasRole',
               ) as boolean
               if (hasRole) {
+                // @ts-expect-error not sure why snapshot type is wrong for snapshot
+                applySnapshot(self, self.previousSnapshot)
+                reaction.dispose()
                 return
               }
-              const sessionSnapshot = getSnapshot(self)
-              const { id, name } = sessionSnapshot
-              applySnapshot(self, { name, id })
 
               const { signal } = self.abortController
               // fetch and initialize assemblies for each of our Apollo internet accounts
