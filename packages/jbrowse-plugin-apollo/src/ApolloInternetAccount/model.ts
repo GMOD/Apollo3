@@ -23,7 +23,7 @@ import {
   isElectron,
 } from '@jbrowse/core/util'
 import { autorun } from 'mobx'
-import { type Instance, flow, getRoot, types } from 'mobx-state-tree'
+import { type Instance, flow, getRoot, isAlive, types } from 'mobx-state-tree'
 import { io } from 'socket.io-client'
 
 import { type Collaborator } from '../session'
@@ -61,7 +61,9 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
     }))
     .volatile(() => ({
       role: undefined as Role | undefined,
+      controller: new AbortController(),
     }))
+
     .actions((self) => {
       let roleNotificationSent = false
       return {
@@ -205,7 +207,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         const searchParams = new URLSearchParams({ type: authType })
         url.search = searchParams.toString()
         const uri = url.toString()
-        const response = await fetch(uri)
+        const response = await fetch(uri, { signal: self.controller.signal })
         if (!response.ok) {
           const errorMessage = await createFetchErrorMessage(
             response,
@@ -239,7 +241,18 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             uri,
           })
 
-          const response = yield apolloFetch(uri, { method: 'GET' })
+          let response: Response
+          try {
+            response = yield apolloFetch(uri, {
+              method: 'GET',
+              signal: self.controller.signal,
+            })
+          } catch (error) {
+            if (!self.controller.signal.aborted) {
+              console.error(error)
+            }
+            return
+          }
           if (!response.ok) {
             const errorMessage = yield createFetchErrorMessage(
               response,
@@ -274,7 +287,18 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           uri,
         })
 
-        const response = yield apolloFetch(uri, { method: 'GET' })
+        let response: Response
+        try {
+          response = yield apolloFetch(uri, {
+            method: 'GET',
+            signal: self.controller.signal,
+          })
+        } catch (error) {
+          if (!self.controller.signal.aborted) {
+            console.error(error)
+          }
+          return
+        }
         if (!response.ok) {
           console.error(
             `Error when fetching the last updates to recover socket connection — ${response.status}`,
@@ -300,11 +324,13 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         if (!token) {
           throw new Error('No Token found')
         }
+        const user = getDecodedToken(token)
+        const localSessionId = makeUserSessionId(user)
         const { socket } = self
         const { addCheckResult, changeManager, deleteCheckResult } =
           session.apolloDataStore
-        socket.on('connect', async () => {
-          await self.getMissingChanges()
+        socket.on('connect', () => {
+          void self.getMissingChanges()
         })
         socket.on('connect_error', (error) => {
           console.error(error)
@@ -324,7 +350,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             'LastChangeSequence',
             String(message.changeSequence),
           )
-          if (message.userSessionId === token) {
+          if (message.userSessionId === localSessionId) {
             return // we did this change, no need to apply it again
           }
           const change = Change.fromJSON(message.changeInfo)
@@ -332,8 +358,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         })
         socket.on('USER_LOCATION', (message: UserLocationMessage) => {
           const { channel, locations, userName, userSessionId } = message
-          const user = getDecodedToken(token)
-          const localSessionId = makeUserSessionId(user)
           if (channel === 'USER_LOCATION' && userSessionId !== localSessionId) {
             const collaborator: Collaborator = {
               name: userName,
@@ -356,7 +380,10 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
     }))
     .actions((self) => {
       async function postUserLocation(userLoc: UserLocation[]) {
-        const { baseURL } = self
+        if (!isAlive(self)) {
+          return
+        }
+        const { baseURL, controller } = self
         const url = new URL('users/userLocation', baseURL).href
         const userLocation = new URLSearchParams(JSON.stringify(userLoc))
 
@@ -368,6 +395,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           const response = await apolloFetch(url, {
             method: 'POST',
             body: userLocation,
+            signal: controller.signal,
           })
           if (!response.ok) {
             throw new Error('ignore') // ignore message, will get caught by "catch"
@@ -409,7 +437,10 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           locationType: 'UriLocation',
           uri,
         })
-        yield apolloFetch(uri, { method: 'GET' })
+        yield apolloFetch(uri, {
+          method: 'GET',
+          signal: self.controller.signal,
+        })
         window.addEventListener('beforeunload', () => {
           self.postUserLocation([])
         })
@@ -448,6 +479,10 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           },
           { name: 'ApolloInternetAccount' },
         )
+      },
+      beforeDestroy() {
+        self.controller.abort('internet account beforeDestroy')
+        self.socket.close()
       },
     }))
 }
