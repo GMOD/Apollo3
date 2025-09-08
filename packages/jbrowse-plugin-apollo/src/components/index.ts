@@ -1,4 +1,5 @@
 export * from './AddAssembly'
+export * from './AddAssemblyAliases'
 export * from './AddChildFeature'
 export * from './AddFeature'
 export * from './CopyFeature'

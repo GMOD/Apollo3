@@ -137,7 +137,7 @@ describe('Warning signs', () => {
       .should('satisfy', (n) => n >= 3)
 
     // Unregister all checks
-    cy.selectFromApolloMenu('Manage Checks')
+    cy.selectFromApolloMenu(['Admin', 'Manage Checks'])
     cy.contains('Manage Checks')
       .parent()
       .within(() => {
@@ -156,7 +156,7 @@ describe('Warning signs', () => {
     cy.get('[data-testid^="ErrorIcon-"]', { timeout: 5000 }).should('not.exist')
 
     // Register CDSCheck and count warning(s):
-    cy.selectFromApolloMenu('Manage Checks')
+    cy.selectFromApolloMenu(['Admin', 'Manage Checks'])
     cy.contains('Manage Checks')
       .parent()
       .within(() => {

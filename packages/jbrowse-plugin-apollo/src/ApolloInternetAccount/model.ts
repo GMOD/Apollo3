@@ -26,11 +26,11 @@ import { autorun } from 'mobx'
 import { type Instance, flow, getRoot, isAlive, types } from 'mobx-state-tree'
 import { io } from 'socket.io-client'
 
+import { addTopLevelAdminMenus } from '../menus/topLevelMenuAdmin'
 import { type Collaborator } from '../session'
 import { type ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
-import { addMenuItems } from './addMenuItems'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { type ApolloInternetAccountConfigModel } from './configSchema'
 
@@ -423,7 +423,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         if (role === 'admin') {
           const rootModel = getRoot(self)
           if (isAbstractMenuManager(rootModel)) {
-            addMenuItems(rootModel)
+            addTopLevelAdminMenus(rootModel)
           }
         }
         // Get and set server last change sequence into session storage

@@ -2,138 +2,139 @@ import {
   type AbstractMenuManager,
   type AbstractSessionModel,
 } from '@jbrowse/core/util'
+import DownloadIcon from '@mui/icons-material/Download'
+import FactCheckIcon from '@mui/icons-material/FactCheck'
+import FileOpenIcon from '@mui/icons-material/FileOpen'
+import LogoutIcon from '@mui/icons-material/Logout'
+import RedoIcon from '@mui/icons-material/Redo'
+import TrackChangesIcon from '@mui/icons-material/TrackChanges'
+import UndoIcon from '@mui/icons-material/Undo'
 
 import {
-  AddAssembly,
-  AddRefSeqAliases,
-  DeleteAssembly,
-  ImportFeatures,
-  ManageUsers,
+  DownloadGFF3,
+  LogOut,
+  OpenLocalFile,
+  ViewChangeLog,
+  ViewCheckResults,
 } from '../components'
-import { AddAssemblyAliases } from '../components/AddAssemblyAliases'
 import { type ApolloSessionModel } from '../session'
 
-export function addMenuItems(rootModel: AbstractMenuManager) {
+export function addTopLevelMenus(rootModel: AbstractMenuManager) {
+  rootModel.insertInMenu(
+    'Apollo',
+    {
+      label: 'Redo',
+      icon: RedoIcon,
+      onClick(session: ApolloSessionModel) {
+        const { apolloDataStore } = session
+        void apolloDataStore.changeManager.redoLastChange()
+      },
+    },
+    0,
+  )
+  rootModel.insertInMenu(
+    'Apollo',
+    {
+      label: 'Undo',
+      icon: UndoIcon,
+      onClick(session: ApolloSessionModel) {
+        const { apolloDataStore } = session
+        void apolloDataStore.changeManager.undoLastChange()
+      },
+    },
+    0,
+  )
+
   rootModel.appendToMenu('Apollo', {
-    label: 'Add Assembly',
+    label: 'Download GFF3',
+    icon: DownloadIcon,
     onClick: (session: ApolloSessionModel) => {
       ;(session as unknown as AbstractSessionModel).queueDialog(
         (doneCallback) => [
-          AddAssembly,
+          DownloadGFF3,
           {
             session,
             handleClose: () => {
               doneCallback()
             },
-            changeManager: session.apolloDataStore.changeManager,
           },
         ],
       )
     },
   })
   rootModel.appendToMenu('Apollo', {
-    label: 'Delete Assembly',
+    label: 'View Change Log',
+    icon: TrackChangesIcon,
     onClick: (session: ApolloSessionModel) => {
       ;(session as unknown as AbstractSessionModel).queueDialog(
         (doneCallback) => [
-          DeleteAssembly,
+          ViewChangeLog,
           {
             session,
             handleClose: () => {
               doneCallback()
             },
-            changeManager: session.apolloDataStore.changeManager,
           },
         ],
       )
     },
   })
   rootModel.appendToMenu('Apollo', {
-    label: 'Import Features',
+    label: 'Open local GFF3 file',
+    icon: FileOpenIcon,
     onClick: (session: ApolloSessionModel) => {
       ;(session as unknown as AbstractSessionModel).queueDialog(
         (doneCallback) => [
-          ImportFeatures,
+          OpenLocalFile,
           {
             session,
             handleClose: () => {
               doneCallback()
             },
-            changeManager: session.apolloDataStore.changeManager,
+            inMemoryFileDriver: session.apolloDataStore.inMemoryFileDriver,
           },
         ],
       )
     },
   })
   rootModel.appendToMenu('Apollo', {
-    label: 'Add reference sequence aliases',
+    label: 'View check results',
+    icon: FactCheckIcon,
     onClick: (session: ApolloSessionModel) => {
       ;(session as unknown as AbstractSessionModel).queueDialog(
         (doneCallback) => [
-          AddRefSeqAliases,
+          ViewCheckResults,
           {
             session,
             handleClose: () => {
               doneCallback()
             },
-            changeManager: session.apolloDataStore.changeManager,
           },
         ],
       )
-    },
-  })
-  rootModel.appendToMenu('Apollo', {
-    label: 'Add Assembly aliases',
-    onClick: (session: ApolloSessionModel) => {
-      ;(session as unknown as AbstractSessionModel).queueDialog(
-        (doneCallback) => [
-          AddAssemblyAliases,
-          {
-            session,
-            handleClose: () => {
-              doneCallback()
-            },
-            changeManager: session.apolloDataStore.changeManager,
-          },
-        ],
-      )
-    },
-  })
-  rootModel.appendToMenu('Apollo', {
-    label: 'Manage Users',
-    onClick: (session: ApolloSessionModel) => {
-      ;(session as unknown as AbstractSessionModel).queueDialog(
-        (doneCallback) => [
-          ManageUsers,
-          {
-            session,
-            handleClose: () => {
-              doneCallback()
-            },
-            changeManager: session.apolloDataStore.changeManager,
-          },
-        ],
-      )
-    },
-  })
-  rootModel.appendToMenu('Apollo', {
-    label: 'Undo',
-    onClick: (session: ApolloSessionModel) => {
-      const { apolloDataStore } = session
-      void apolloDataStore.changeManager.undoLastChange()
-    },
-  })
-  rootModel.appendToMenu('Apollo', {
-    label: 'Redo',
-    onClick: (session: ApolloSessionModel) => {
-      const { apolloDataStore } = session
-      void apolloDataStore.changeManager.redoLastChange()
     },
   })
   rootModel.appendToMenu('Apollo', {
     label: 'Lock/Unlock session',
     onClick: (session: ApolloSessionModel) => {
       session.toggleLocked()
+    },
+  })
+  rootModel.appendToMenu('Apollo', {
+    label: 'Log out',
+    icon: LogoutIcon,
+    onClick: (session: ApolloSessionModel) => {
+      ;(session as unknown as AbstractSessionModel).queueDialog(
+        (doneCallback) => [
+          LogOut,
+          {
+            session,
+            handleClose: () => {
+              doneCallback()
+            },
+          },
+        ],
+      )
     },
   })
 }

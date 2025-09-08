@@ -116,21 +116,35 @@ Cypress.Commands.add(
   },
 )
 
-Cypress.Commands.add('selectFromApolloMenu', (menuItemName) => {
-  cy.wrap(Cypress.$('body')).within(() => {
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(1000)
-    cy.get('button[data-testid="dropDownMenuButton"]', { timeout: 10_000 })
-      .contains('Apollo')
-      .click({ force: true, timeout: 10_000 })
-    cy.contains(menuItemName, { timeout: 10_000 }).click()
-  })
-})
+Cypress.Commands.add(
+  'selectFromApolloMenu',
+  (menuItemNameOrPath: string | string[]) => {
+    const menuItemPath = Array.isArray(menuItemNameOrPath)
+      ? menuItemNameOrPath
+      : [menuItemNameOrPath]
+    const menuItemName = menuItemPath.at(-1)
+    if (!menuItemName) {
+      return
+    }
+    const menuItemPathPrefix = menuItemPath.slice(0, -1)
+    cy.wrap(Cypress.$('body')).within(() => {
+      // eslint-disable-next-line cypress/no-unnecessary-waiting
+      cy.wait(1000)
+      cy.get('button[data-testid="dropDownMenuButton"]', { timeout: 10_000 })
+        .contains('Apollo')
+        .click({ force: true, timeout: 10_000 })
+      for (const pathPart of menuItemPathPrefix) {
+        cy.contains(pathPart, { timeout: 10_000 }).click()
+      }
+      cy.contains(menuItemName, { timeout: 10_000 }).click()
+    })
+  },
+)
 
 Cypress.Commands.add(
   'addAssemblyFromGff',
   (assemblyName, fin, launch = true, loadFeatures = true) => {
-    cy.selectFromApolloMenu('Add Assembly')
+    cy.selectFromApolloMenu(['Admin', 'Add Assembly'])
     cy.get('form[data-testid="submit-form"]').within(() => {
       cy.get('input[type="TextField"]').type(assemblyName)
       cy.contains('GFF3 input')
@@ -247,7 +261,7 @@ Cypress.Commands.add(
 Cypress.Commands.add(
   'importFeatures',
   (gffFile, assemblyName, deleteExistingFeatures) => {
-    cy.selectFromApolloMenu('Import Features')
+    cy.selectFromApolloMenu(['Admin', 'Import Features'])
     cy.contains('Import Features from GFF3 file', { matchCase: false })
       .parent()
       .within(() => {
