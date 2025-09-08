@@ -147,7 +147,9 @@ export function AddFeature({
           children,
         },
       })
-      void changeManager.submit(change)
+      void changeManager.submit(change).then(() => {
+        session.apolloSetSelectedFeature(id)
+      })
       handleClose()
       return
     }
@@ -164,7 +166,9 @@ export function AddFeature({
         assembly: region.assemblyName,
         addedFeature: mRNA,
       })
-      void changeManager.submit(change)
+      void changeManager.submit(change).then(() => {
+        session.apolloSetSelectedFeature(mRNA._id)
+      })
       handleClose()
       return
     }
@@ -187,7 +191,9 @@ export function AddFeature({
         strand,
       },
     })
-    void changeManager.submit(change)
+    void changeManager.submit(change).then(() => {
+      session.apolloSetSelectedFeature(id)
+    })
     handleClose()
     return
   }

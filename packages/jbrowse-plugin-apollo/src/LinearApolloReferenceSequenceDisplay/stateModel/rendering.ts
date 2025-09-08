@@ -7,7 +7,7 @@ import {
   getFrame,
   revcom,
 } from '@jbrowse/core/util'
-import { type Theme } from '@mui/material'
+import { type Theme, createTheme } from '@mui/material'
 import { autorun } from 'mobx'
 import { type Instance, addDisposer } from 'mobx-state-tree'
 
@@ -15,9 +15,9 @@ import { type ApolloSessionModel } from '../../session'
 
 import { baseModelFactory } from './base'
 
-function colorCode(letter: string, theme?: Theme) {
+function colorCode(letter: string, theme: Theme) {
   return (
-    theme?.palette.bases[
+    theme.palette.bases[
       letter.toUpperCase() as keyof Theme['palette']['bases']
     ].main.toString() ?? 'lightgray'
   )
@@ -131,15 +131,14 @@ function getSeqRow(
 
 function highlightSeq(
   seqTrackOverlayctx: CanvasRenderingContext2D,
-  theme: Theme | undefined,
+  theme: Theme,
   startPx: number,
   sequenceRowHeight: number,
   row: number | undefined,
   widthPx: number,
 ) {
   if (row !== undefined) {
-    seqTrackOverlayctx.fillStyle =
-      theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
+    seqTrackOverlayctx.fillStyle = theme.palette.action.focus
     seqTrackOverlayctx.fillRect(
       startPx,
       sequenceRowHeight * row,
@@ -164,7 +163,7 @@ export function renderingModelFactory(
     .volatile(() => ({
       seqTrackCanvas: null as HTMLCanvasElement | null,
       seqTrackOverlayCanvas: null as HTMLCanvasElement | null,
-      theme: undefined as Theme | undefined,
+      theme: createTheme(),
     }))
     .actions((self) => ({
       setSeqTrackCanvas(canvas: HTMLCanvasElement | null) {
