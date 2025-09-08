@@ -130,4 +130,10 @@ export function addMenuItems(rootModel: AbstractMenuManager) {
       void apolloDataStore.changeManager.redoLastChange()
     },
   })
+  rootModel.appendToMenu('Apollo', {
+    label: 'Lock/Unlock session',
+    onClick: (session: ApolloSessionModel) => {
+      session.toggleLocked()
+    },
+  })
 }

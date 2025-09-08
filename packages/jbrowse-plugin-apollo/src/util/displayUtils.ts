@@ -44,6 +44,14 @@ export const useStyles = makeStyles()((theme) => ({
     pointerEvents: 'none',
     textAlign: 'right',
   },
+  locked: {
+    position: 'absolute',
+    right: theme.spacing(3),
+    top: theme.spacing(6),
+    zIndex: 1,
+    pointerEvents: 'none',
+    textAlign: 'right',
+  },
 }))
 
 export interface CheckResultCluster<T> {
