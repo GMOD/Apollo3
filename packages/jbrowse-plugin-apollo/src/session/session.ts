@@ -73,6 +73,7 @@ export function extendSession(
       apolloDataStore: types.optional(ClientDataStore, { typeName: 'Client' }),
       apolloSelectedFeature: types.safeReference(AnnotationFeatureExtended),
       jobsManager: types.optional(ApolloJobModel, {}),
+      isLocked: types.optional(types.boolean, false),
     })
     .volatile(() => ({
       apolloHoveredFeature: undefined as HoveredFeature | undefined,
@@ -136,6 +137,9 @@ export function extendSession(
             },
           })
         }
+      },
+      toggleLocked() {
+        self.isLocked = !self.isLocked
       },
       broadcastLocations() {
         const { internetAccounts } = getRoot<ApolloRootModel>(self)

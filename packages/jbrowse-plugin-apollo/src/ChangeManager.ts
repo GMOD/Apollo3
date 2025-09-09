@@ -42,9 +42,14 @@ export class ChangeManager {
     const session = getSession(this.dataStore)
     const controller = new AbortController()
 
-    const { jobsManager } = getSession(
+    const { jobsManager, isLocked } = getSession(
       this.dataStore,
     ) as unknown as ApolloSessionModel
+
+    if (isLocked) {
+      session.notify('Cannot submit changes in locked mode')
+      return
+    }
 
     const job = {
       name: change.typeName,
