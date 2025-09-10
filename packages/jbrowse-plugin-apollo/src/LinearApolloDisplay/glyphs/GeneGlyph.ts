@@ -356,6 +356,21 @@ function drawExon(
   }
 }
 
+function* range(start: number, stop: number, step = 1): Generator<number> {
+  if (start === stop) {
+    return
+  }
+  if (start < stop) {
+    for (let i = start; i < stop; i += step) {
+      yield i
+    }
+    return
+  }
+  for (let i = start; i > stop; i -= step) {
+    yield i
+  }
+}
+
 function drawLine(
   ctx: CanvasRenderingContext2D,
   stateModel: LinearApolloDisplayRendering,
@@ -374,14 +389,33 @@ function drawLine(
       coord: transcript.min,
       regionNumber: displayedRegionIndex,
     })?.offsetPx ?? 0) - offsetPx
-  const widthPx = transcript.length / bpPerPx
+  const widthPx = Math.round(transcript.length / bpPerPx)
   const startPx = reversed ? minX - widthPx : minX
   const height =
     Math.round((currentRow + 1 / 2) * apolloRowHeight) + row * apolloRowHeight
   ctx.strokeStyle = theme.palette.text.primary
+  const { strand = 1 } = transcript
   ctx.beginPath()
-  ctx.moveTo(startPx, height)
-  ctx.lineTo(startPx + widthPx, height)
+  // Draw the transcript line, and extend it out a bit on the 3` end
+  const lineStart = startPx - (strand === -1 ? 5 : 0)
+  const lineEnd = startPx + widthPx + (strand === -1 ? 0 : 5)
+  ctx.moveTo(lineStart, height)
+  ctx.lineTo(lineEnd, height)
+  // Now to draw arrows every 20 pixels along the line
+  // Make the arrow range a bit shorter to avoid an arrow hanging off the 5` end
+  const arrowsStart = lineStart + (strand === -1 ? 0 : 3)
+  const arrowsEnd = lineEnd - (strand === -1 ? 3 : 0)
+  // Offset determines if the arrows face left or right
+  const offset = strand === -1 ? 3 : -3
+  const arrowRange =
+    strand === -1
+      ? range(arrowsStart, arrowsEnd, 20)
+      : range(arrowsEnd, arrowsStart, 20)
+  for (const arrowLocation of arrowRange) {
+    ctx.moveTo(arrowLocation + offset, height + offset)
+    ctx.lineTo(arrowLocation, height)
+    ctx.lineTo(arrowLocation + offset, height - offset)
+  }
   ctx.stroke()
 }
 
