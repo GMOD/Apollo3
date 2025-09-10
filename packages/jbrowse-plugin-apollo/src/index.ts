@@ -61,15 +61,7 @@ import {
   configSchema as linearApolloSixFrameDisplayConfigSchema,
   stateModelFactory as LinearApolloSixFrameDisplayStateModelFactory,
 } from './LinearApolloSixFrameDisplay'
-import {
-  AddFeature,
-  DownloadGFF3,
-  LogOut,
-  ManageChecks,
-  OpenLocalFile,
-  ViewChangeLog,
-  ViewCheckResults,
-} from './components'
+import { AddFeature } from './components'
 import ApolloPluginConfigurationSchema from './config'
 import {
   annotationFromJBrowseFeature,
@@ -79,6 +71,7 @@ import {
   LinearApolloDisplayComponent,
   LinearApolloSixFrameDisplayComponent,
 } from './makeDisplayComponent'
+import { addTopLevelMenus } from './menus'
 import { type ApolloSessionModel, extendSession } from './session'
 
 interface RpcHandle {
@@ -383,103 +376,7 @@ export default class ApolloPlugin extends Plugin {
 
   configure(pluginManager: PluginManager) {
     if (isAbstractMenuManager(pluginManager.rootModel)) {
-      pluginManager.rootModel.appendToMenu('Apollo', {
-        label: 'Download GFF3',
-        onClick: (session: ApolloSessionModel) => {
-          ;(session as unknown as AbstractSessionModel).queueDialog(
-            (doneCallback) => [
-              DownloadGFF3,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                },
-              },
-            ],
-          )
-        },
-      })
-      pluginManager.rootModel.appendToMenu('Apollo', {
-        label: 'Manage Checks',
-        onClick: (session: ApolloSessionModel) => {
-          ;(session as unknown as AbstractSessionModel).queueDialog(
-            (doneCallback) => [
-              ManageChecks,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                },
-              },
-            ],
-          )
-        },
-      })
-      pluginManager.rootModel.appendToMenu('Apollo', {
-        label: 'View Change Log',
-        onClick: (session: ApolloSessionModel) => {
-          ;(session as unknown as AbstractSessionModel).queueDialog(
-            (doneCallback) => [
-              ViewChangeLog,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                },
-              },
-            ],
-          )
-        },
-      })
-      pluginManager.rootModel.appendToMenu('Apollo', {
-        label: 'Open local GFF3 file',
-        onClick: (session: ApolloSessionModel) => {
-          ;(session as unknown as AbstractSessionModel).queueDialog(
-            (doneCallback) => [
-              OpenLocalFile,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                },
-                inMemoryFileDriver: session.apolloDataStore.inMemoryFileDriver,
-              },
-            ],
-          )
-        },
-      })
-      pluginManager.rootModel.appendToMenu('Apollo', {
-        label: 'View check results',
-        onClick: (session: ApolloSessionModel) => {
-          ;(session as unknown as AbstractSessionModel).queueDialog(
-            (doneCallback) => [
-              ViewCheckResults,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                },
-              },
-            ],
-          )
-        },
-      })
-      pluginManager.rootModel.appendToMenu('Apollo', {
-        label: 'Log out',
-        onClick: (session: ApolloSessionModel) => {
-          ;(session as unknown as AbstractSessionModel).queueDialog(
-            (doneCallback) => [
-              LogOut,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                },
-              },
-            ],
-          )
-        },
-      })
+      addTopLevelMenus(pluginManager.rootModel)
     }
   }
 }
