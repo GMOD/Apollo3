@@ -1,6 +1,8 @@
 import { type CheckResultIdsType } from '@apollo-annotation/mst'
 import { makeStyles } from 'tss-react/mui'
 
+export { default as EditZoomThresholdDialog } from '../components/EditZoomThresholdDialog'
+
 export type Coord = [number, number]
 
 export const useStyles = makeStyles()((theme) => ({
@@ -39,6 +41,14 @@ export const useStyles = makeStyles()((theme) => ({
     position: 'absolute',
     right: theme.spacing(3),
     zIndex: 10,
+    pointerEvents: 'none',
+    textAlign: 'right',
+  },
+  locked: {
+    position: 'absolute',
+    right: theme.spacing(3),
+    top: theme.spacing(6),
+    zIndex: 1,
     pointerEvents: 'none',
     textAlign: 'right',
   },

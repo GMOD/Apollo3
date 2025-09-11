@@ -6,6 +6,7 @@ import {
   CDSCheck,
   CoreValidation,
   ParentChildValidation,
+  TranscriptCheck,
   changes,
   validationRegistry,
 } from '@apollo-annotation/shared'
@@ -111,6 +112,10 @@ for (const [changeName, change] of Object.entries(changes)) {
 
 const cdsCheck = new CDSCheck()
 checkRegistry.registerCheck(cdsCheck.name, cdsCheck)
+
+const transcriptCheck = new TranscriptCheck()
+checkRegistry.registerCheck(transcriptCheck.name, transcriptCheck)
+
 validationRegistry.registerValidation(new CoreValidation())
 validationRegistry.registerValidation(new ParentChildValidation())
 

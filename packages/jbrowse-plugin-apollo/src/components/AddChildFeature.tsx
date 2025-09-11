@@ -64,12 +64,13 @@ export function AddChildFeature({
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
+    const _id = new ObjectID().toHexString()
     const change = new AddFeatureChange({
       changedIds: [sourceFeature._id],
       typeName: 'AddFeatureChange',
       assembly: sourceAssemblyId,
       addedFeature: {
-        _id: new ObjectID().toHexString(),
+        _id,
         refSeq: sourceFeature.refSeq,
         min: Number(start) - 1,
         max: Number(end),
@@ -77,7 +78,9 @@ export function AddChildFeature({
       },
       parentFeatureId: sourceFeature._id,
     })
-    void changeManager.submit(change)
+    void changeManager.submit(change).then(() => {
+      session.apolloSetSelectedFeature(_id)
+    })
     handleClose()
     event.preventDefault()
   }

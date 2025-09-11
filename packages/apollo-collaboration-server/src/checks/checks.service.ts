@@ -17,6 +17,7 @@ import {
 } from '@apollo-annotation/schemas'
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
+import { ObjectId } from 'mongodb'
 import { Model } from 'mongoose'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
@@ -136,6 +137,10 @@ export class ChecksService {
     return this.checkResultModel
       .deleteMany({ ids: { $in: featureDoc.allIds }, name: checkName })
       .exec()
+  }
+
+  async deleteChecks(checkIds: ObjectId[]) {
+    return this.checkResultModel.deleteMany({ _id: { $in: checkIds } }).exec()
   }
 
   /**

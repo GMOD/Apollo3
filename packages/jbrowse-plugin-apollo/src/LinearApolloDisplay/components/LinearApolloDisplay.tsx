@@ -10,6 +10,7 @@ import {
 } from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import ErrorIcon from '@mui/icons-material/Error'
+import LockIcon from '@mui/icons-material/Lock'
 import {
   Alert,
   Avatar,
@@ -32,6 +33,8 @@ import { type LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
 interface LinearApolloDisplayProps {
   model: LinearApolloDisplayI
 }
+
+// Lock icon when isLocked === true
 
 export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   props: LinearApolloDisplayProps,
@@ -91,6 +94,11 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
           }
         }}
       >
+        {session.isLocked ? (
+          <div className={classes.locked} data-testid="lock-icon">
+            <LockIcon />
+          </div>
+        ) : null}
         {loading ? (
           <div className={classes.loading}>
             <CircularProgress size="18px" />

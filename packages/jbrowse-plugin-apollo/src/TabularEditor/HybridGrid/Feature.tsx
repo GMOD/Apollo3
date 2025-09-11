@@ -10,6 +10,7 @@ import { makeStyles } from 'tss-react/mui'
 import { isOntologyClass } from '../../OntologyManager'
 import type OntologyStore from '../../OntologyManager/OntologyStore'
 import { OntologyTermAutocomplete } from '../../components/OntologyTermAutocomplete'
+import { navToFeatureCenter } from '../../util'
 import { type DisplayStateModel } from '../types'
 
 import {
@@ -84,6 +85,15 @@ function makeContextMenuItems(
   )
 }
 
+function navigateHere(
+  displayState: DisplayStateModel,
+  feature: AnnotationFeature,
+) {
+  displayState.lgv.navTo(
+    navToFeatureCenter(feature, 0.1, displayState.lgv.totalBp),
+  )
+}
+
 export const Feature = observer(function Feature({
   depth,
   feature,
@@ -139,6 +149,10 @@ export const Feature = observer(function Feature({
         onClick={(e) => {
           e.stopPropagation()
           displayState.setSelectedFeature(feature)
+        }}
+        onDoubleClick={() => {
+          displayState.setSelectedFeature(feature)
+          navigateHere(displayState, feature)
         }}
         onContextMenu={(e) => {
           e.preventDefault()

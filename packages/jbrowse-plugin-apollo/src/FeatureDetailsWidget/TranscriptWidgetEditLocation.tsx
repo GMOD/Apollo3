@@ -821,6 +821,7 @@ export const TranscriptWidgetEditLocation = observer(
           }
         }
       }
+      spliceSite = spliceSite.toUpperCase()
       return [
         {
           spliceSite,
@@ -846,6 +847,7 @@ export const TranscriptWidgetEditLocation = observer(
           }
         }
       }
+      spliceSite = spliceSite.toUpperCase()
       return [
         {
           spliceSite,

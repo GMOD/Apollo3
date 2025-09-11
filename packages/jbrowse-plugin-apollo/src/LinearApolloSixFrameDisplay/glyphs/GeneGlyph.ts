@@ -148,7 +148,7 @@ function draw(
   const cdsHeight = rowHeight
   const topLevelFeatureHeight = rowHeight
   const featureLabelSpacer = showFeatureLabels ? 2 : 1
-  const textColor = theme?.palette.text.primary ?? 'black'
+  const textColor = theme.palette.text.primary
   const { attributes, children, min, strand } = topLevelFeature
   if (!children) {
     return
@@ -173,7 +173,7 @@ function draw(
     : topLevelFeatureMinX
   const topLevelRow = (strand == 1 ? 3 : 4) * featureLabelSpacer
   const topLevelFeatureTop = topLevelRow * rowHeight
-  ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+  ctx.fillStyle = theme.palette.text.primary
   ctx.fillRect(
     topLevelFeatureStartPx,
     topLevelFeatureTop,
@@ -183,7 +183,7 @@ function draw(
 
   ctx.fillStyle = isSelectedFeature(topLevelFeature, selectedFeature)
     ? alpha('rgb(0,0,0)', 0.7)
-    : alpha(theme?.palette.background.paper ?? '#ffffff', 0.7)
+    : alpha(theme.palette.background.paper, 0.7)
   ctx.fillRect(
     topLevelFeatureStartPx + 1,
     topLevelFeatureTop + 1,
@@ -207,9 +207,9 @@ function draw(
   }
 
   const forwardFill =
-    theme?.palette.mode === 'dark' ? forwardFillDark : forwardFillLight
+    theme.palette.mode === 'dark' ? forwardFillDark : forwardFillLight
   const backwardFill =
-    theme?.palette.mode === 'dark' ? backwardFillDark : backwardFillLight
+    theme.palette.mode === 'dark' ? backwardFillDark : backwardFillLight
   const reversal = reversed ? -1 : 1
   let topFill: CanvasPattern | null = null,
     bottomFill: CanvasPattern | null = null
@@ -274,7 +274,7 @@ function draw(
       const exonTop =
         topLevelFeatureTop + (topLevelFeatureHeight - exonHeight) / 2
       const isSelected = isSelectedFeature(exon, selectedFeature)
-      ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+      ctx.fillStyle = theme.palette.text.primary
       ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
       if (widthPx > 2) {
         ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
@@ -335,7 +335,7 @@ function draw(
               regionNumber: displayedRegionIndex,
             })?.offsetPx ?? 0) - offsetPx
           cdsStartPx = reversed ? minX - cdsWidthPx : minX
-          ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+          ctx.fillStyle = theme.palette.text.primary
           const frame = getFrame(cds.min, cds.max, child.strand ?? 1, cds.phase)
           const frameAdjust =
             (frame < 0 ? -1 * frame + 5 : frame) * featureLabelSpacer
@@ -349,7 +349,7 @@ function draw(
               cdsHeight - 2,
             )
 
-            const frameColor = theme?.palette.framesCDS.at(frame)?.main
+            const frameColor = theme.palette.framesCDS.at(frame)?.main
             const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
             ctx.fillStyle = cdsColorCode
             ctx.fillStyle =
@@ -452,10 +452,10 @@ function drawDragPreview(
   const rectY = row * apolloRowHeight
   const rectWidth = Math.abs(current.x - featureEdgePx)
   const rectHeight = apolloRowHeight * rowCount
-  overlayCtx.strokeStyle = theme?.palette.info.main ?? 'rgb(255,0,0)'
+  overlayCtx.strokeStyle = theme.palette.info.main
   overlayCtx.setLineDash([6])
   overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
-  overlayCtx.fillStyle = alpha(theme?.palette.info.main ?? 'rgb(255,0,0)', 0.2)
+  overlayCtx.fillStyle = alpha(theme.palette.info.main, 0.2)
   overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
 }
 
@@ -796,7 +796,7 @@ function drawTooltip(
   const maxWidth = Math.max(...textWidth)
 
   startPx = startPx + cdsWidthPx + 5
-  context.fillStyle = alpha(theme?.palette.text.primary ?? 'rgb(1, 1, 1)', 0.7)
+  context.fillStyle = alpha(theme.palette.text.primary, 0.7)
   context.fillRect(
     startPx,
     cdsTop,
@@ -808,7 +808,7 @@ function drawTooltip(
   context.lineTo(startPx - 5, cdsTop + 5)
   context.lineTo(startPx, cdsTop + 10)
   context.fill()
-  context.fillStyle = theme?.palette.background.default ?? 'rgba(255, 255, 255)'
+  context.fillStyle = theme.palette.background.default
   let textTop = cdsTop + 12
   context.fillText(featureType, startPx + 2, textTop)
   if (featureName) {

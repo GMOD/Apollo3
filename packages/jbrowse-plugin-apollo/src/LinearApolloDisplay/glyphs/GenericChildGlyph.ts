@@ -1,10 +1,11 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
+import { alpha } from '@mui/material'
 
 import {
   type MousePositionWithFeature,
+  containsSelectedFeature,
   isMousePositionWithFeature,
-  isSelectedFeature,
 } from '../../util'
 import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
@@ -35,8 +36,12 @@ function draw(
   stateModel: LinearApolloDisplayRendering,
   displayedRegionIndex: number,
 ) {
+  const { selectedFeature } = stateModel
   for (let i = 0; i < getRowCount(feature); i++) {
     drawRow(ctx, feature, row + i, row, stateModel, displayedRegionIndex)
+  }
+  if (selectedFeature && containsSelectedFeature(feature, selectedFeature)) {
+    drawHighlight(stateModel, ctx, selectedFeature)
   }
 }
 
@@ -61,7 +66,7 @@ function drawFeature(
   stateModel: LinearApolloDisplayRendering,
   displayedRegionIndex: number,
 ) {
-  const { apolloRowHeight: heightPx, lgv, selectedFeature } = stateModel
+  const { apolloRowHeight: heightPx, lgv, theme } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const minX =
@@ -75,8 +80,7 @@ function drawFeature(
   const startPx = reversed ? minX - widthPx : minX
   const top = row * heightPx
   const rowCount = getRowCount(feature)
-  const isSelected = isSelectedFeature(feature, selectedFeature)
-  const groupingColor = isSelected ? 'rgba(130,0,0,0.45)' : 'rgba(255,0,0,0.25)'
+  const groupingColor = alpha(theme.palette.background.paper, 0.6)
   if (rowCount > 1) {
     // draw background that encapsulates all child features
     const featureHeight = rowCount * heightPx
@@ -85,15 +89,14 @@ function drawFeature(
   boxGlyph.draw(ctx, feature, row, stateModel, displayedRegionIndex)
 }
 
-function drawHover(
-  stateModel: LinearApolloDisplay,
+function drawHighlight(
+  stateModel: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  selected = false,
 ) {
-  const { hoveredFeature, apolloRowHeight, lgv } = stateModel
-  if (!hoveredFeature) {
-    return
-  }
-  const { feature } = hoveredFeature
+  const { apolloRowHeight, lgv, theme } = stateModel
+
   const position = stateModel.getFeatureLayoutPosition(feature)
   if (!position) {
     return
@@ -111,8 +114,21 @@ function drawHover(
     })?.offsetPx ?? 0) - offsetPx
   const top = (layoutRow + featureRow) * apolloRowHeight
   const widthPx = length / bpPerPx
-  ctx.fillStyle = 'rgba(0,0,0,0.2)'
+  ctx.fillStyle = selected
+    ? theme.palette.action.disabled
+    : theme.palette.action.focus
   ctx.fillRect(startPx, top, widthPx, apolloRowHeight * getRowCount(feature))
+}
+
+function drawHover(
+  stateModel: LinearApolloDisplay,
+  ctx: CanvasRenderingContext2D,
+) {
+  const { hoveredFeature } = stateModel
+  if (!hoveredFeature) {
+    return
+  }
+  drawHighlight(stateModel, ctx, hoveredFeature.feature)
 }
 
 function getFeatureFromLayout(

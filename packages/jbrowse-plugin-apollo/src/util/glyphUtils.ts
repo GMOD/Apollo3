@@ -10,6 +10,8 @@ import { type LinearApolloDisplayMouseEvents } from '../LinearApolloDisplay/stat
 import { type LinearApolloSixFrameDisplayMouseEvents } from '../LinearApolloSixFrameDisplay/stateModel/mouseEvents'
 import { AddChildFeature, CopyFeature, DeleteFeature } from '../components'
 
+type NavLocation = Parameters<LinearGenomeViewModel['navTo']>[0]
+
 export function getMinAndMaxPx(
   feature: AnnotationFeature | TranscriptPartCoding,
   refName: string,
@@ -59,6 +61,19 @@ export function isSelectedFeature(
   selectedFeature: AnnotationFeature | undefined,
 ) {
   return Boolean(selectedFeature && feature._id === selectedFeature._id)
+}
+
+export function containsSelectedFeature(
+  feature: AnnotationFeature,
+  selectedFeature: AnnotationFeature | undefined,
+): boolean {
+  if (!selectedFeature) {
+    return false
+  }
+  if (feature._id === selectedFeature._id) {
+    return true
+  }
+  return feature.hasDescendant(selectedFeature._id)
 }
 
 function makeFeatureLabel(feature: AnnotationFeature) {
@@ -172,4 +187,15 @@ export function getContextMenuItemsForFeature(
     },
   )
   return menuItems
+}
+
+export function navToFeatureCenter(
+  feature: AnnotationFeature,
+  paddingPct: number,
+  refSeqLength: number,
+): NavLocation {
+  const paddingBp = (feature.max - feature.min) * paddingPct
+  const start = Math.max(feature.min - paddingBp, 1)
+  const end = Math.min(feature.max + paddingBp, refSeqLength)
+  return { refName: feature.refSeq, start, end }
 }

@@ -22,7 +22,6 @@ enum CAUSES {
   'InternalStopCodon',
   'MissingStartCodon',
   'MissingStopCodon',
-  'MultipleOfThree',
 }
 
 const iupacComplements: Record<string, string | undefined> = {
@@ -156,6 +155,10 @@ async function checkMRNA(
   for (const cdsLocation of cdsLocations) {
     const sequence = await getCDSSequence(cdsLocation, strand, getSequence)
     const codons = splitSequenceInCodons(sequence)
+    const cdsEnd =
+      strand === -1
+        ? cdsLocation.at(0)?.min ?? min
+        : cdsLocation.at(-1)?.max ?? max
     if (sequence.length % 3 === 0) {
       const start_codon = codons.at(0)
       if (start_codon && !(start_codon.toUpperCase() in START_CODONS)) {
@@ -175,12 +178,9 @@ async function checkMRNA(
           message: `Unexpected start codon in feature "${_id}": ${start_codon}`,
         })
       }
+
       const lastCodon = codons.at(-1) // Last codon is supposed to be a stop
       if (lastCodon && !(lastCodon.toUpperCase() in STOP_CODONS)) {
-        const cdsEnd =
-          strand === -1
-            ? cdsLocation.at(0)?.min ?? min
-            : cdsLocation.at(-1)?.max ?? max
         checkResults.push({
           _id: new ObjectID().toHexString(),
           name: CHECK_NAME,
@@ -196,12 +196,12 @@ async function checkMRNA(
       checkResults.push({
         _id: new ObjectID().toHexString(),
         name: CHECK_NAME,
-        cause: CAUSES[CAUSES.MultipleOfThree],
+        cause: CAUSES[CAUSES.MissingStopCodon],
         ids,
         refSeq: refSeq.toString(),
-        start: min,
-        end: max,
-        message: `The coding sequence for feature "${_id}" is not a multiple of three`,
+        start: cdsEnd,
+        end: cdsEnd,
+        message: `Missing stop codon: The coding sequence for feature "${_id}" is not a multiple of three`,
       })
     }
     for (const [idx, codon] of codons.entries()) {
@@ -285,7 +285,7 @@ export class CDSCheck extends Check {
   name = CHECK_NAME
   causes = getCauses()
   version = 1
-  default = true
+  isDefault = true
 
   async checkFeature(
     feature: AnnotationFeatureSnapshot,

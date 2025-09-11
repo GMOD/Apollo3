@@ -16,6 +16,7 @@ declare namespace Cypress {
       assemblyName: string,
       fin: string,
       launch?: boolean,
+      loadFeatures?: boolean,
     ): Chainable<void>
     selectAssemblyToView(assemblyName: string): Chainable<void>
     searchFeatures(query: string, expectedNumOfHits: number): Chainable<void>
@@ -28,7 +29,7 @@ declare namespace Cypress {
     importFeatures(
       gffFile: string,
       assemblyName: string,
-      deleteExistingFeatures: boolean,
+      deleteExistingFeatures: boolean | undefined,
     ): Chainable<void>
     closeSearchBox(): Chainable<void>
     refreshTableEditor(): Chainable<void>
