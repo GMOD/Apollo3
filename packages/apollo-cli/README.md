@@ -948,7 +948,8 @@ FLAGS
 DESCRIPTION
   Generate JBrowse file for use with desktop client
 
-  Generate JBrowse file for use with desktop client
+  Generates a file that can be opened with JBrowse Desktop. This file has Apollo already configured and, optionally, a
+  GFF3 for local editing configured as well.
 
 EXAMPLES
   Generate JBrowse file:

@@ -1,4 +1,4 @@
-import fs from 'node:fs'
+import fsPromises from 'node:fs/promises'
 import path from 'node:path'
 
 import { Args, Flags } from '@oclif/core'
@@ -50,7 +50,8 @@ class Gff3File {
 
 export default class Desktop extends BaseCommand<typeof Desktop> {
   static summary = 'Generate JBrowse file for use with desktop client'
-  static description = 'Generate JBrowse file for use with desktop client'
+  static description =
+    'Generates a file that can be opened with JBrowse Desktop. This file has Apollo already configured and, optionally, a GFF3 for local editing configured as well.'
 
   static examples = [
     {
@@ -167,15 +168,9 @@ export default class Desktop extends BaseCommand<typeof Desktop> {
       jbrowseFileContent.tracks.push(gff3.trackConfig())
     }
 
-    fs.writeFile(
+    await fsPromises.writeFile(
       args.jbrowseFile,
       JSON.stringify(jbrowseFileContent),
-      (err) => {
-        if (err) {
-          console.error('Error writing', args.jbrowseFile, ':', err)
-          throw new Error(err.message)
-        }
-      },
     )
 
     if (flags.open || flags['open-with']) {
