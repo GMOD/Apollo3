@@ -16,7 +16,7 @@ $ npm install -g @apollo-annotation/cli
 $ apollo COMMAND
 running command...
 $ apollo (--version)
-@apollo-annotation/cli/0.3.7 linux-x64 node-v24.2.0
+@apollo-annotation/cli/0.3.7 linux-x64 node-v24.6.0
 $ apollo --help [COMMAND]
 USAGE
   $ apollo COMMAND
@@ -55,6 +55,7 @@ USAGE
 - [`apollo file get`](#apollo-file-get)
 - [`apollo file upload INPUT-FILE`](#apollo-file-upload-input-file)
 - [`apollo help [COMMANDS]`](#apollo-help-commands)
+- [`apollo jbrowse desktop JBROWSEFILE`](#apollo-jbrowse-desktop-jbrowsefile)
 - [`apollo jbrowse get-config`](#apollo-jbrowse-get-config)
 - [`apollo jbrowse set-config INPUTFILE`](#apollo-jbrowse-set-config-inputfile)
 - [`apollo login`](#apollo-login)
@@ -925,6 +926,51 @@ DESCRIPTION
 
 _See code:
 [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.8/src/commands/help.ts)_
+
+## `apollo jbrowse desktop JBROWSEFILE`
+
+Generate JBrowse file for use with desktop client
+
+```
+USAGE
+  $ apollo jbrowse desktop JBROWSEFILE [--profile <value>] [--config-file <value>] [-o | -w <value>] [-f <value>]
+
+ARGUMENTS
+  JBROWSEFILE  Generated JBrowse file
+
+FLAGS
+  -f, --gff3-file=<value>    generated session will open the specified file
+  -o, --open                 open generated file
+  -w, --open-with=<value>    open generated file with specified application
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      Use credentials from this profile
+
+DESCRIPTION
+  Generate JBrowse file for use with desktop client
+
+  Generates a file that can be opened with JBrowse Desktop. This file has Apollo already configured and, optionally, a
+  GFF3 for local editing configured as well.
+
+EXAMPLES
+  Generate JBrowse file:
+
+    $ apollo jbrowse desktop apollo.jbrowse
+
+  Generate JBrowse file and open with default handler:
+
+    $ apollo jbrowse desktop apollo.jbrowse --open
+
+  Generate JBrowse file and open with specified application:
+
+    $ apollo jbrowse desktop apollo.jbrowse --open-with=path/to/jbrowse.AppImage
+
+  Generate JBrowse file opening specified gff3 file:
+
+    $ apollo jbrowse desktop apollo.jbrowse --gff3-file=path/to/file.gff3
+```
+
+_See code:
+[src/commands/jbrowse/desktop.ts](https://github.com/GMOD/Apollo3/blob/v0.3.7/packages/apollo-cli/src/commands/jbrowse/desktop.ts)_
 
 ## `apollo jbrowse get-config`
 
