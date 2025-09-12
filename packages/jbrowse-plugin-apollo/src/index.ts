@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { changeRegistry, checkRegistry } from '@apollo-annotation/common'
+import { type AnnotationFeature } from '@apollo-annotation/mst'
 import {
   CDSCheck,
   CoreValidation,
@@ -31,6 +32,7 @@ import {
 } from '@jbrowse/core/util'
 import { type LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
+import { alpha } from '@mui/material'
 
 import { version } from '../package.json'
 
@@ -383,6 +385,33 @@ export default class ApolloPlugin extends Plugin {
 
   configure(pluginManager: PluginManager) {
     if (isAbstractMenuManager(pluginManager.rootModel)) {
+      pluginManager.jexl.addFunction(
+        'colorFeature',
+        (feature: AnnotationFeature) => {
+          const { type } = feature
+          if (type === 'CDS') {
+            return 'red'
+          }
+          if (type === 'exon') {
+            return 'green'
+          }
+          return 'purple'
+        },
+      )
+
+      pluginManager.jexl.addFunction(
+        'colorFeature',
+        (featureType: 'pseudogenic_transcript' | 'nonCodingTranscript') => {
+          if (featureType === 'pseudogenic_transcript') {
+            return alpha('rgb(148, 203, 236)', 0.6)
+          }
+          if (featureType === 'nonCodingTranscript') {
+            return alpha('rgb(194, 106, 119)', 0.6)
+          }
+          throw new Error('Invalid type')
+        },
+      )
+
       pluginManager.rootModel.appendToMenu('Apollo', {
         label: 'Download GFF3',
         onClick: (session: ApolloSessionModel) => {
