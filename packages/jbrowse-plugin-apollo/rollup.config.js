@@ -21,9 +21,23 @@ const includeCJS = stringToBoolean(process.env.JB_CJS)
 const includeESMBundle = stringToBoolean(process.env.JB_ESM_BUNDLE)
 const includeNPM = stringToBoolean(process.env.JB_NPM)
 
-export default createRollupConfig(globals, {
+const rollupConfig = createRollupConfig(globals, {
   includeUMD,
   includeCJS,
   includeESMBundle,
   includeNPM,
 })
+
+for (const config of rollupConfig) {
+  config.onwarn = (warning, warn) => {
+    if (
+      warning.code === 'MODULE_LEVEL_DIRECTIVE' &&
+      warning.message.includes(`'use client'`)
+    ) {
+      return
+    }
+    warn(warning)
+  }
+}
+
+export default rollupConfig

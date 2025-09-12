@@ -127,7 +127,7 @@ export function ViewCheckResults({
       >
         {assemblies.map((option) => (
           <MenuItem key={option.name} value={option.name}>
-            {option.displayName ?? option.name}
+            {option.displayName}
           </MenuItem>
         ))}
       </Select>

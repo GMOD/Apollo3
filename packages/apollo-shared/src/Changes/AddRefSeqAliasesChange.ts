@@ -36,9 +36,8 @@ export class AddRefSeqAliasesChange extends AssemblySpecificChange {
       throw new Error(`assembly ${this.assembly} not found`)
     }
     const sessionAliases = assembly.refNameAliases
-    const sessionLCAliases = assembly.lowerCaseRefNameAliases
 
-    if (!sessionAliases || !sessionLCAliases) {
+    if (!sessionAliases) {
       throw new Error('Session refNameAliases not found in assembly')
     }
 
@@ -46,10 +45,9 @@ export class AddRefSeqAliasesChange extends AssemblySpecificChange {
       const { aliases, refName } = refSeqAlias
       for (const alias of aliases) {
         sessionAliases[alias] = refName
-        sessionLCAliases[alias.toLowerCase()] = refName
       }
     }
-    assembly.setRefNameAliases(sessionAliases, sessionLCAliases)
+    assembly.setRefNameAliases(sessionAliases)
     return Promise.resolve()
   }
 

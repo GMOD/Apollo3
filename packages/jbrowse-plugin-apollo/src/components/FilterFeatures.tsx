@@ -4,7 +4,7 @@ import {
   Chip,
   DialogContent,
   DialogContentText,
-  Grid2,
+  Grid,
   TextField,
 } from '@mui/material'
 import { observer } from 'mobx-react'
@@ -62,8 +62,8 @@ export const FilterFeatures = observer(function FilterFeatures({
         <DialogContentText>
           Select the feature types you want to display in the apollo track
         </DialogContentText>
-        <Grid2 container spacing={2}>
-          <Grid2 size={8}>
+        <Grid container spacing={2}>
+          <Grid size={8}>
             <OntologyTermAutocomplete
               session={session}
               ontologyName="Sequence Ontology"
@@ -84,8 +84,8 @@ export const FilterFeatures = observer(function FilterFeatures({
                 }
               }}
             />
-          </Grid2>
-          <Grid2 size={4}>
+          </Grid>
+          <Grid size={4}>
             <Button
               variant="contained"
               onClick={handleAddFeatureType}
@@ -95,8 +95,8 @@ export const FilterFeatures = observer(function FilterFeatures({
             >
               Add
             </Button>
-          </Grid2>
-        </Grid2>
+          </Grid>
+        </Grid>
         {selectedFeatureTypes.length > 0 && (
           <div>
             <hr />
