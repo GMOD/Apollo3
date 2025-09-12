@@ -57,7 +57,7 @@ export function AddAssemblyAliases({
   const rows: AssemblyAlias[] = assemblies.map((assembly) => {
     return {
       id: assembly.name,
-      name: assembly.displayName ?? assembly.name,
+      name: assembly.displayName,
       aliases: assembly.aliases.join(', '),
     } as AssemblyAlias
   })
