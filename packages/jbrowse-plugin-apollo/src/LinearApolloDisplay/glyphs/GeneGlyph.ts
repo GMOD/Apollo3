@@ -1,4 +1,5 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
+import { readConfObject } from '@jbrowse/core/configuration'
 import { type BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
 import { type MenuItem } from '@jbrowse/core/ui'
 import {
@@ -85,6 +86,59 @@ if (canvas?.getContext) {
   }
 }
 
+function drawBackground(
+  ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  stateModel: LinearApolloDisplayRendering,
+  displayedRegionIndex: number,
+  row: number,
+  color: string,
+) {
+  const { apolloRowHeight, lgv, session } = stateModel
+  const { bpPerPx, displayedRegions, offsetPx } = lgv
+  const displayedRegion = displayedRegions[displayedRegionIndex]
+  const { refName, reversed } = displayedRegion
+  const { apolloDataStore } = session
+  const { featureTypeOntology } = apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+
+  const topLevelFeatureMinX =
+    (lgv.bpToPx({
+      refName,
+      coord: feature.min,
+      regionNumber: displayedRegionIndex,
+    })?.offsetPx ?? 0) - offsetPx
+  const topLevelFeatureWidthPx = feature.length / bpPerPx
+  const topLevelFeatureStartPx = reversed
+    ? topLevelFeatureMinX - topLevelFeatureWidthPx
+    : topLevelFeatureMinX
+  const topLevelFeatureTop = row * apolloRowHeight
+  const topLevelFeatureHeight =
+    getRowCount(feature, featureTypeOntology) * apolloRowHeight
+
+  ctx.fillStyle = color
+  ctx.fillRect(
+    topLevelFeatureStartPx,
+    topLevelFeatureTop,
+    topLevelFeatureWidthPx,
+    topLevelFeatureHeight,
+  )
+}
+
+function backgroundColorForFeature(
+  session: ApolloSessionModel,
+  featureType: string,
+): string {
+  const color = readConfObject(
+    session.getPluginConfiguration(),
+    'backgroundColorForFeature',
+    { featureType },
+  ) as string
+  return color
+}
+
 function draw(
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
@@ -98,7 +152,7 @@ function draw(
   const { refName, reversed } = displayedRegion
   const rowHeight = apolloRowHeight
   const cdsHeight = Math.round(0.9 * rowHeight)
-  const { children, min, strand } = feature
+  const { children, strand } = feature
   if (!children) {
     return
   }
@@ -109,27 +163,25 @@ function draw(
   }
 
   // Draw background for gene
-  const topLevelFeatureMinX =
-    (lgv.bpToPx({
-      refName,
-      coord: min,
-      regionNumber: displayedRegionIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const topLevelFeatureWidthPx = feature.length / bpPerPx
-  const topLevelFeatureStartPx = reversed
-    ? topLevelFeatureMinX - topLevelFeatureWidthPx
-    : topLevelFeatureMinX
-  const topLevelFeatureTop = row * rowHeight
-  const topLevelFeatureHeight =
-    getRowCount(feature, featureTypeOntology) * rowHeight
-
-  ctx.fillStyle = alpha(theme.palette.background.paper, 0.6)
-  ctx.fillRect(
-    topLevelFeatureStartPx,
-    topLevelFeatureTop,
-    topLevelFeatureWidthPx,
-    topLevelFeatureHeight,
+  drawBackground(
+    ctx,
+    feature,
+    stateModel,
+    displayedRegionIndex,
+    row,
+    alpha(theme.palette.background.paper, 0.6),
   )
+
+  if (featureTypeOntology.isTypeOf(feature.type, 'pseudogene')) {
+    drawBackground(
+      ctx,
+      feature,
+      stateModel,
+      displayedRegionIndex,
+      row,
+      backgroundColorForFeature(session, 'pseudogenic_transcript'),
+    )
+  }
 
   // Draw lines on different rows for each transcript
   let currentRow = 0
@@ -147,6 +199,29 @@ function draw(
     }
 
     const cdsCount = getCDSCount(transcript, featureTypeOntology)
+    if (cdsCount === 0) {
+      drawBackground(
+        ctx,
+        transcript,
+        stateModel,
+        displayedRegionIndex,
+        currentRow,
+        backgroundColorForFeature(session, 'nonCodingTranscript'),
+      )
+    }
+    if (
+      featureTypeOntology.isTypeOf(transcript.type, 'pseudogenic_transcript')
+    ) {
+      drawBackground(
+        ctx,
+        transcript,
+        stateModel,
+        displayedRegionIndex,
+        currentRow,
+        backgroundColorForFeature(session, 'pseudogenic_transcript'),
+      )
+    }
+
     for (const [, childFeature] of transcriptChildren) {
       if (!featureTypeOntology.isTypeOf(childFeature.type, 'CDS')) {
         continue
