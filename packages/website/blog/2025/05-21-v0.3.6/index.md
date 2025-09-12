@@ -20,7 +20,7 @@ Right-click on a feature such as a gene in a JBrowse 2 evidence track and select
 "Create Apollo annotation" to create a new Apollo annotation from that feature.
 Attributes on the feature are also copied into the new Apollo annotation.
 
-![alt text](add_annotation_from_gene_track.png)
+!["Create Apollo annotation" menu item](add_annotation_from_gene_track.png)
 
 ### Filter visible features in the display
 
@@ -28,7 +28,7 @@ From the track menu, select "Filter features by type" to filter what features
 are available in the Apollo track. This could be used, for example, when you
 want to focus on a subset of all your annotations, such as pseudogenes.
 
-![alt text](filter_features.png)
+!["Filter features by type" dialog box](filter_features.png)
 
 ### Export GFF3 using Apollo CLI
 
@@ -44,7 +44,7 @@ apollo export gff3 myAssembly > out.gff3
 The "Sequence" section of a transcript's details widget now includes the option
 to view the protein sequence.
 
-![alt text](transcript_protein_sequence.png)
+!["protein" option in sequence type select box](transcript_protein_sequence.png)
 
 :::tip
 
@@ -62,28 +62,28 @@ transcript. It also includes the transcript's protein translation with start and
 stop codons highlighted as well as the ability to "trim" the CDS to match the
 nearest start and stop codons if needed with a single click.
 
-![alt text](improved_transcript_details.png)
+![Transcript details widget with translation display](improved_transcript_details.png)
 
 ### More options available in "Add new assembly" in the UI
 
 The "Add new assembly" dialog in the UI has been improved to add functionality
 that was previously only available in the Apollo CLI.
 
-![alt text](add_new_assembly_ui.png)
+!["Add new assembly" dialog](add_new_assembly_ui.png)
 
 ### Shortcuts in "Add a feature"
 
 When adding a new feature from scratch, there is now a shortcut to add a gene or
 transcript with all the necessary subfeatures in a single action.
 
-![alt text](add_feature_shortcut.png)
+!["Add new feature" dialog](add_feature_shortcut.png)
 
 :::tip
 
 Access the "Add a feature" dialog by selecting an area in the view ruler track
 and choosing "Add new feature" from the menu.
 
-![alt text](add_feature_rubberband.png)
+!["Add new feature" menu item in track ruler menu](add_feature_rubberband.png)
 
 :::
 
@@ -96,7 +96,7 @@ This type of view is inspired by the
 [Artemis](https://sanger-pathogens.github.io/Artemis/Artemis/) genome annotation
 tool and will continue to be updated with more functionality.
 
-![alt text](six_frame_display.png)
+![Linear six frame display](six_frame_display.png)
 
 ## Improved functionality
 
