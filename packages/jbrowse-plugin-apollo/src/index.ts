@@ -31,6 +31,7 @@ import {
 } from '@jbrowse/core/util'
 import { type LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
+import { alpha } from '@mui/material'
 
 import { version } from '../package.json'
 
@@ -376,6 +377,19 @@ export default class ApolloPlugin extends Plugin {
 
   configure(pluginManager: PluginManager) {
     if (isAbstractMenuManager(pluginManager.rootModel)) {
+      pluginManager.jexl.addFunction(
+        'colorFeature',
+        (featureType: 'pseudogenic_transcript' | 'nonCodingTranscript') => {
+          if (featureType === 'pseudogenic_transcript') {
+            return alpha('rgb(148, 203, 236)', 0.6)
+          }
+          if (featureType === 'nonCodingTranscript') {
+            return alpha('rgb(194, 106, 119)', 0.6)
+          }
+          throw new Error('Invalid type')
+        },
+      )
+
       addTopLevelMenus(pluginManager.rootModel)
     }
   }

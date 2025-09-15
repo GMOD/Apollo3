@@ -141,6 +141,15 @@ export function extendSession(
       toggleLocked() {
         self.isLocked = !self.isLocked
       },
+      getPluginConfiguration() {
+        const { jbrowse } = getRoot<ApolloRootModel>(self)
+        const pluginConfiguration =
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          jbrowse.configuration.ApolloPlugin as Instance<
+            typeof ApolloPluginConfigurationSchema
+          >
+        return pluginConfiguration
+      },
       broadcastLocations() {
         const { internetAccounts } = getRoot<ApolloRootModel>(self)
         const locations: {
