@@ -108,6 +108,15 @@ completely from the track menu.
 
 ![Clustered check results](check_result_cluster.png)
 
+### Background colors for noncoding transcripts
+
+Features with the type "pseudogene" or transcripts with the type
+"pseudogenic_transcript" are now rendered with a blue background so they can be
+easily visually identified. Similarly, any other transcripts that do not have a
+CDS (such as those of type "lncRNA") are rendered with a red background.
+
+![Feature type backgrounds](feature_type_backgrounds.png)
+
 ### Selection, select when adding a feature
 
 When you add a new feature, whether top-level or a child feature (i.e. a
