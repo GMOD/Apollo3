@@ -5,7 +5,7 @@ import {
   DialogContentText,
   FormControlLabel,
   FormGroup,
-  Grid2,
+  Grid,
 } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
@@ -59,8 +59,8 @@ export const FilterTranscripts = observer(function FilterTranscripts({
           Select the alternate transcripts you want to display in the apollo
           track
         </DialogContentText>
-        <Grid2 container spacing={2}>
-          <Grid2 size={8}>
+        <Grid container spacing={2}>
+          <Grid size={8}>
             <FormGroup>
               {allTranscripts.map((item) => (
                 // eslint-disable-next-line react/jsx-key
@@ -71,15 +71,15 @@ export const FilterTranscripts = observer(function FilterTranscripts({
                       onChange={() => {
                         handleChange(item)
                       }}
-                      inputProps={{ 'aria-label': 'controlled' }}
+                      slotProps={{ input: { 'aria-label': 'controlled' } }}
                     />
                   }
                   label={item}
                 />
               ))}
             </FormGroup>
-          </Grid2>
-        </Grid2>
+          </Grid>
+        </Grid>
       </DialogContent>
     </Dialog>
   )

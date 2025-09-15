@@ -25,7 +25,7 @@ import RemoveIcon from '@mui/icons-material/Remove'
 import {
   Accordion,
   AccordionDetails,
-  Grid2,
+  Grid,
   Tooltip,
   Typography,
 } from '@mui/material'
@@ -1156,15 +1156,15 @@ export const TranscriptWidgetEditLocation = observer(
                 </div>
               </AccordionDetails>
             </Accordion>
-            <Grid2
+            <Grid
               container
               justifyContent="center"
               alignItems="center"
               style={{ textAlign: 'center', marginTop: 10 }}
             >
-              <Grid2 size={1} />
+              <Grid size={1} />
               {strand === 1 ? (
-                <Grid2 size={4}>
+                <Grid size={4}>
                   <StyledTextField
                     margin="dense"
                     variant="outlined"
@@ -1179,9 +1179,9 @@ export const TranscriptWidgetEditLocation = observer(
                     }}
                     style={{ border: '1px solid black', borderRadius: 5 }}
                   />
-                </Grid2>
+                </Grid>
               ) : (
-                <Grid2 size={4}>
+                <Grid size={4}>
                   <StyledTextField
                     margin="dense"
                     variant="outlined"
@@ -1196,13 +1196,13 @@ export const TranscriptWidgetEditLocation = observer(
                     }}
                     style={{ border: '1px solid black', borderRadius: 5 }}
                   />
-                </Grid2>
+                </Grid>
               )}
-              <Grid2 size={2}>
+              <Grid size={2}>
                 <Typography component={'span'}>CDS</Typography>
-              </Grid2>
+              </Grid>
               {strand === 1 ? (
-                <Grid2 size={4}>
+                <Grid size={4}>
                   <StyledTextField
                     margin="dense"
                     variant="outlined"
@@ -1217,9 +1217,9 @@ export const TranscriptWidgetEditLocation = observer(
                     }}
                     style={{ border: '1px solid black', borderRadius: 5 }}
                   />
-                </Grid2>
+                </Grid>
               ) : (
-                <Grid2 size={4}>
+                <Grid size={4}>
                   <StyledTextField
                     margin="dense"
                     variant="outlined"
@@ -1234,10 +1234,10 @@ export const TranscriptWidgetEditLocation = observer(
                     }}
                     style={{ border: '1px solid black', borderRadius: 5 }}
                   />
-                </Grid2>
+                </Grid>
               )}
-              <Grid2 size={1} />
-            </Grid2>
+              <Grid size={1} />
+            </Grid>
           </div>
         )}
         <div style={{ marginTop: 5 }}>
@@ -1245,13 +1245,13 @@ export const TranscriptWidgetEditLocation = observer(
             return (
               <div key={index}>
                 {loc.type === 'exon' && (
-                  <Grid2
+                  <Grid
                     container
                     justifyContent="center"
                     alignItems="center"
                     style={{ textAlign: 'center' }}
                   >
-                    <Grid2 size={1}>
+                    <Grid size={1}>
                       {index !== 0 &&
                         getFivePrimeSpliceSite(loc, index).map((site, idx) => (
                           <Typography
@@ -1262,9 +1262,9 @@ export const TranscriptWidgetEditLocation = observer(
                             {site.spliceSite}
                           </Typography>
                         ))}
-                    </Grid2>
+                    </Grid>
                     {strand === 1 ? (
-                      <Grid2 size={4} style={{ padding: 0 }}>
+                      <Grid size={4} style={{ padding: 0 }}>
                         <StyledTextField
                           margin="dense"
                           variant="outlined"
@@ -1278,9 +1278,9 @@ export const TranscriptWidgetEditLocation = observer(
                             )
                           }}
                         />
-                      </Grid2>
+                      </Grid>
                     ) : (
-                      <Grid2 size={4} style={{ padding: 0 }}>
+                      <Grid size={4} style={{ padding: 0 }}>
                         <StyledTextField
                           margin="dense"
                           variant="outlined"
@@ -1294,13 +1294,13 @@ export const TranscriptWidgetEditLocation = observer(
                             )
                           }}
                         />
-                      </Grid2>
+                      </Grid>
                     )}
-                    <Grid2 size={2}>
+                    <Grid size={2}>
                       <Strand strand={feature.strand} />
-                    </Grid2>
+                    </Grid>
                     {strand === 1 ? (
-                      <Grid2 size={4} style={{ padding: 0 }}>
+                      <Grid size={4} style={{ padding: 0 }}>
                         <StyledTextField
                           margin="dense"
                           variant="outlined"
@@ -1314,9 +1314,9 @@ export const TranscriptWidgetEditLocation = observer(
                             )
                           }}
                         />
-                      </Grid2>
+                      </Grid>
                     ) : (
-                      <Grid2 size={4} style={{ padding: 0 }}>
+                      <Grid size={4} style={{ padding: 0 }}>
                         <StyledTextField
                           margin="dense"
                           variant="outlined"
@@ -1330,9 +1330,9 @@ export const TranscriptWidgetEditLocation = observer(
                             )
                           }}
                         />
-                      </Grid2>
+                      </Grid>
                     )}
-                    <Grid2 size={1}>
+                    <Grid size={1}>
                       {index !== transcriptExonParts.length - 1 &&
                         getThreePrimeSpliceSite(loc, index).map((site, idx) => (
                           <Typography
@@ -1343,8 +1343,8 @@ export const TranscriptWidgetEditLocation = observer(
                             {site.spliceSite}
                           </Typography>
                         ))}
-                    </Grid2>
-                  </Grid2>
+                    </Grid>
+                  </Grid>
                 )}
               </div>
             )
