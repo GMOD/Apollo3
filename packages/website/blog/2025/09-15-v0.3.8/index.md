@@ -20,15 +20,15 @@ improvements that require JBrowse 2 to be updated to take effect.
 
 Prior to this release, Apollo would draw the sequence directly on the
 "Annotations" track if you were zoomed in close enough. However, this could
-cause the annotations to jump around at depending on the zoom level, and there
-was no way to hide it for users who didn't want to see it.
+cause the annotations to jump around depending on the zoom level, and there was
+no way to hide the sequence for users who didn't want to see it.
 
 In this release, instead of being drawn directly in the "Annotations" track, the
 sequence is available as the default display in the built-in "Reference
 sequence" track, allowing it to have its own dedicated space. The interactions
 with the "Annotations" track, such as highlighting the currently hovered CDS,
-still work the same, and if needed the default JBrowse display can be toggled on
-from the track menu.
+still work the same, and if needed the default JBrowse sequence display can be
+toggled on from the track menu.
 
 ![Apollo sequence track](sequence_track.png)
 
@@ -56,7 +56,7 @@ from the top-level Apollo menu.
 
 ### Go to neighboring exons
 
-A new method of navigation is available in the form of new menu items "Go to
+A new method of navigation is available in the form of the menu items "Go to
 upstream/downstream exon". This is especially useful when navigating at a high
 zoom level in genes with large introns.
 
@@ -96,7 +96,7 @@ the being able to create a new gene.
 ### Right-click menu lists all features for a location
 
 The right-click (a.k.a. context) menu for gene glyphs has been updated to show
-actions for any feature that overlap the current location.
+actions for any features that overlap the current location.
 
 ![Context menu for multiple features](feature_context_menu.png)
 
@@ -117,7 +117,7 @@ CDS (such as those of type "lncRNA") are rendered with a red background.
 
 ![Feature type backgrounds](feature_type_backgrounds.png)
 
-### Selection, select when adding a feature
+### Selection of added features
 
 When you add a new feature, whether top-level or a child feature (i.e. a
 transcript), the feature is now selected in the UI allowing you to more easily
@@ -126,7 +126,7 @@ identify it.
 ## For more information
 
 For more details on any of the changes mentioned as well as many more changes
-that have been made, you can reference the related GitHub issues.
+that have been made, please reference the associated GitHub issues.
 
 - Improve click and drag actions by @garrettjstevens in
   https://github.com/GMOD/Apollo3/pull/595
@@ -228,6 +228,10 @@ that have been made, you can reference the related GitHub issues.
   https://github.com/GMOD/Apollo3/pull/677
 - apollo-cli: new `desktop` cmd generates/opens jbrowse files by @amorison in
   https://github.com/GMOD/Apollo3/pull/666
+- Background color for non coding transcripts #660 by @dariober in
+  https://github.com/GMOD/Apollo3/pull/678
+- Update JBrowse and MUI dependencies by @garrettjstevens in
+  https://github.com/GMOD/Apollo3/pull/679
 
 ### New Contributors
 
