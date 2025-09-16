@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { createReadStream } from 'node:fs'
 import path from 'node:path'
 import {
@@ -12,7 +11,6 @@ import {
   TransformOptions,
   pipeline,
 } from 'node:stream'
-import { ReadableStream } from 'node:stream/web'
 import { createGunzip } from 'node:zlib'
 
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'

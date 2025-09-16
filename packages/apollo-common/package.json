@@ -20,7 +20,7 @@
     "@apollo-annotation/mst": "workspace:^",
     "@nestjs/common": "^10.1.0",
     "@nestjs/core": "^10.1.0",
-    "@types/node": "^18.14.2",
+    "@types/node": "^20.19.15",
     "generic-filehandle": "^3.0.0",
     "mongoose": "^6.12.0",
     "typescript": "^5.5.3"
