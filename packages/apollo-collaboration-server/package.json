@@ -43,7 +43,7 @@
     "@apollo-annotation/shared": "workspace:^",
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
-    "@gmod/gff": "1.2.0",
+    "@gmod/gff": "^2.0.0",
     "@gmod/indexedfasta": "^2.0.4",
     "@jbrowse/core": "^3.6.5",
     "@mui/material": "^7.0.0",

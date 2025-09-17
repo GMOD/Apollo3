@@ -115,7 +115,7 @@ function convertFeatureAttributes(
   if (attributesCollections.length > 0) {
     for (const attributesCollection of attributesCollections) {
       for (const [key, val] of Object.entries(attributesCollection)) {
-        if (!val || key === 'Parent') {
+        if (key === 'Parent') {
           continue
         }
         const newKey = isGFFReservedAttribute(key) ? gffToInternal[key] : key

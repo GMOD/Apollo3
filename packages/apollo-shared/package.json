@@ -13,7 +13,7 @@
     "@apollo-annotation/common": "workspace:^",
     "@apollo-annotation/mst": "workspace:^",
     "@apollo-annotation/schemas": "workspace:^",
-    "@gmod/gff": "1.2.0",
+    "@gmod/gff": "^2.0.0",
     "@gmod/indexedfasta": "^2.0.4",
     "@jbrowse/core": "^3.6.5",
     "bson-objectid": "^2.0.4",

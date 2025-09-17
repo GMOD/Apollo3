@@ -117,6 +117,8 @@ export class AddAssemblyAndFeaturesFromFileChange extends FromFileBaseChange {
       const featureStream = filesService.parseGFF3(
         filesService.getFileStream(fileDoc),
       )
+      // @ts-expect-error type is wrong here
+      // eslint-disable-next-line @typescript-eslint/await-thenable
       for await (const f of featureStream) {
         const gff3Feature = f as GFF3Feature
         logger.verbose?.(`ENTRY=${JSON.stringify(gff3Feature)}`)
