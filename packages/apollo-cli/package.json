@@ -99,7 +99,7 @@
     "@types/cross-spawn": "^6.0.6",
     "@types/inquirer": "^9.0.7",
     "@types/mocha": "^10",
-    "@types/node": "^18.14.2",
+    "@types/node": "^20.19.15",
     "babel-plugin-istanbul": "^6.1.1",
     "cross-spawn": "^7.0.3",
     "mocha": "^10.2.0",

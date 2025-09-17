@@ -43,7 +43,6 @@ export default [
           allowDefaultProject: ['packages/jbrowse-plugin-apollo/*.js'],
         },
         defaultProject: 'tsconfig.json',
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         tsconfigRootDir: import.meta.dirname,
       },
     },

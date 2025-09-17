@@ -1,7 +1,4 @@
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
   AssemblySpecificChange,
@@ -38,8 +35,11 @@ export abstract class FromFileBaseChange extends AssemblySpecificChange {
     let parsingStarted = false
     logger.debug?.('starting sequence stream')
     let lineCount = 0
+    const decoder = new TextDecoder()
+    // @ts-expect-error type is wrong here
+    // eslint-disable-next-line @typescript-eslint/await-thenable
     for await (const data of sequenceStream) {
-      const chunk = data.toString()
+      const chunk = decoder.decode(data)
       lastLineIsIncomplete = !chunk.endsWith('\n')
       // chunk is small enough that you can split the whole thing into lines without having to make it into smaller chunks first.
       const lines = chunk.split(/\r?\n/)
@@ -48,9 +48,9 @@ export abstract class FromFileBaseChange extends AssemblySpecificChange {
         incompleteLine = ''
       }
       if (lastLineIsIncomplete) {
-        incompleteLine = lines.pop() || ''
+        incompleteLine = lines.pop() ?? ''
       }
-      for await (const line of lines) {
+      for (const line of lines) {
         lineCount++
         if (lineCount % 1_000_000 === 0) {
           logger.debug?.(`Processed ${lineCount} lines`)

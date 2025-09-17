@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@apollo-annotation/mst": "workspace:^",
-    "@types/node": "^18.14.2",
+    "@types/node": "^20.19.15",
     "typescript": "^5.5.3"
   },
   "publishConfig": {

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { describe, it } from 'node:test'
 
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import gff, { type GFF3Feature } from '@gmod/gff'
+import { type GFF3Feature, parseStringSync } from '@gmod/gff'
 import { assert, use } from 'chai'
 import chaiExclude from 'chai-exclude'
 
@@ -116,7 +116,7 @@ function readFeatureFile(fn: string): GFF3Feature[] {
       feature.push(line)
     }
   }
-  const inGff = gff.parseStringSync(feature.join('\n')) as GFF3Feature[]
+  const inGff = parseStringSync(feature.join('\n')) as GFF3Feature[]
   return inGff
 }
 
@@ -232,7 +232,7 @@ describe('gff3ToAnnotationFeature', () => {
   for (const testCase of testCases) {
     const [description, featureLine, convertedFeature] = testCase
     it(`converts ${description}`, () => {
-      const gff3Feature = gff.parseStringSync(featureLine, {
+      const gff3Feature = parseStringSync(featureLine, {
         parseSequences: false,
       })
       const feature = gff3ToAnnotationFeature(gff3Feature[0])

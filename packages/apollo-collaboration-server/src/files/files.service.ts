@@ -1,10 +1,11 @@
-import { ReadStream, createReadStream } from 'node:fs'
+import { createReadStream } from 'node:fs'
 import { unlink } from 'node:fs/promises'
 import path from 'node:path'
-import { Gunzip, createGunzip } from 'node:zlib'
+import { Readable } from 'node:stream'
+import { ReadableStream, TransformStream } from 'node:stream/web'
 
 import { File, FileDocument } from '@apollo-annotation/schemas'
-import gff from '@gmod/gff'
+import { type GFF3Feature, GFFTransformer } from '@gmod/gff'
 import {
   Injectable,
   InternalServerErrorException,
@@ -67,23 +68,21 @@ export class FilesService {
     return file
   }
 
-  getFileStream<T extends boolean>(
+  getFileStream(
     file: FileDocument,
-    compressed: T,
-  ): T extends true ? Gunzip : ReadStream
-  getFileStream(file: FileDocument): ReadStream
-  getFileStream(file: FileDocument, compressed = false) {
+    compressed = false,
+  ): ReadableStream<Uint8Array> {
     const fileUploadFolder = this.configService.get('FILE_UPLOAD_FOLDER', {
       infer: true,
     })
-    const fileStream = createReadStream(
-      path.join(fileUploadFolder, file.checksum),
-    )
+    const fileStream = Readable.toWeb(
+      createReadStream(path.join(fileUploadFolder, file.checksum)),
+    ) as ReadableStream<Uint8Array>
     if (compressed) {
       return fileStream
     }
-    const gunzip = createGunzip()
-    return fileStream.pipe(gunzip)
+    const gunzip = new DecompressionStream('gzip')
+    return fileStream.pipeThrough(gunzip) as ReadableStream<Uint8Array>
   }
 
   getFileHandle(file: FileDocument): GenericFilehandle {
@@ -104,15 +103,16 @@ export class FilesService {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  parseGFF3(stream: ReadStream): any {
-    return stream.pipe(
-      gff.parseStream({
-        parseSequences: false,
-        parseComments: false,
-        parseDirectives: false,
-        parseFeatures: true,
-      }),
+  parseGFF3(stream: ReadableStream<Uint8Array>): ReadableStream<GFF3Feature> {
+    return stream.pipeThrough(
+      new TransformStream(
+        new GFFTransformer({
+          parseSequences: false,
+          parseComments: false,
+          parseDirectives: false,
+          parseFeatures: true,
+        }),
+      ),
     )
   }
 

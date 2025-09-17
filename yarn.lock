@@ -335,7 +335,7 @@ __metadata:
     "@types/cross-spawn": "npm:^6.0.6"
     "@types/inquirer": "npm:^9.0.7"
     "@types/mocha": "npm:^10"
-    "@types/node": "npm:^18.14.2"
+    "@types/node": "npm:^20.19.15"
     babel-plugin-istanbul: "npm:^6.1.1"
     bson: "npm:^6.3.0"
     cli-progress: "npm:^3.12.0"
@@ -395,13 +395,14 @@ __metadata:
     "@types/express-session": "npm:^1"
     "@types/jest": "npm:^27.0.1"
     "@types/multer": "npm:^1.4.7"
-    "@types/node": "npm:^18.14.2"
+    "@types/node": "npm:^20.19.15"
     "@types/node-fetch": "npm:^2.6.2"
     "@types/passport-google-oauth20": "npm:^2.0.11"
     "@types/passport-jwt": "npm:^3.0.6"
     "@types/passport-local": "npm:^1.0.34"
     "@types/passport-microsoft": "npm:^0.0.0"
     "@types/react": "npm:^18.3.4"
+    "@types/stream-concat": "npm:^2.0.0"
     "@types/supertest": "npm:^2.0.11"
     connect-mongodb-session: "npm:^3.1.1"
     deepmerge: "npm:^4.3.1"
@@ -456,7 +457,7 @@ __metadata:
     "@jbrowse/core": "npm:^3.6.5"
     "@nestjs/common": "npm:^10.1.0"
     "@nestjs/core": "npm:^10.1.0"
-    "@types/node": "npm:^18.14.2"
+    "@types/node": "npm:^20.19.15"
     bson-objectid: "npm:^2.0.4"
     generic-filehandle: "npm:^3.0.0"
     mongoose: "npm:^6.12.0"
@@ -498,7 +499,7 @@ __metadata:
     "@types/autosuggest-highlight": "npm:^3"
     "@types/file-saver": "npm:^2"
     "@types/jsonpath": "npm:^0.2.0"
-    "@types/node": "npm:^18.14.2"
+    "@types/node": "npm:^20.19.15"
     "@types/prop-types": "npm:^15"
     "@types/react": "npm:^18.3.4"
     "@types/react-dom": "npm:^18"
@@ -574,7 +575,7 @@ __metadata:
     "@nestjs/common": "npm:^10.1.0"
     "@nestjs/core": "npm:^10.1.0"
     "@nestjs/mongoose": "npm:^10.0.0"
-    "@types/node": "npm:^18.14.2"
+    "@types/node": "npm:^20.19.15"
     mongoose: "npm:^6.12.0"
     reflect-metadata: "npm:^0.1.13"
     rxjs: "npm:^7.4.0"
@@ -596,7 +597,7 @@ __metadata:
     "@nestjs/common": "npm:^10.1.0"
     "@nestjs/core": "npm:^10.1.0"
     "@types/chai": "npm:^4.3.19"
-    "@types/node": "npm:^18.14.2"
+    "@types/node": "npm:^20.19.15"
     bson-objectid: "npm:^2.0.4"
     chai: "npm:^5.1.1"
     chai-exclude: "npm:^3.0.0"
@@ -637,7 +638,7 @@ __metadata:
     "@docusaurus/tsconfig": "npm:^3.5.2"
     "@docusaurus/types": "npm:^3.5.2"
     "@mdx-js/react": "npm:^3.0.0"
-    "@types/node": "npm:^18.14.2"
+    "@types/node": "npm:^20.19.15"
     "@types/react": "npm:^18.3.4"
     clsx: "npm:^1.1.1"
     prism-react-renderer: "npm:^2.3.0"
@@ -10021,10 +10022,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^18.14.2":
-  version: 18.18.4
-  resolution: "@types/node@npm:18.18.4"
-  checksum: 10c0/17891f8b8fd107813eaea0dce58d2008173f3c90df4f5998da3d01d6b225e9908922156ac83240b0230d3813f1a29b5f7e065a2aa993285af062e3a3779f88dd
+"@types/node@npm:^20.19.15":
+  version: 20.19.16
+  resolution: "@types/node@npm:20.19.16"
+  dependencies:
+    undici-types: "npm:~6.21.0"
+  checksum: 10c0/434dfbe476ef28c72173042c28ca48d7ab668521db250674a5a2deb8e23d2d8b1087ae80928f0c59629b315c4980b6f575ed9621a137c8b4c7f454c551cbcee8
   languageName: node
   linkType: hard
 
@@ -10393,6 +10396,15 @@ __metadata:
   version: 2.0.1
   resolution: "@types/stack-utils@npm:2.0.1"
   checksum: 10c0/3327ee919a840ffe907bbd5c1d07dfd79137dd9732d2d466cf717ceec5bb21f66296173c53bb56cff95fae4185b9cd6770df3e9745fe4ba528bbc4975f54d13f
+  languageName: node
+  linkType: hard
+
+"@types/stream-concat@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@types/stream-concat@npm:2.0.0"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/2bb47b586be4928c04a5cfc39d196c6a3aa1416581f760aaa3153f5695d48f751c2c67ee98d73534790c33aaf7a55868697e927920a82bee4ea4a14a308e854c
   languageName: node
   linkType: hard
 
@@ -11385,7 +11397,7 @@ __metadata:
   dependencies:
     "@eslint/js": "npm:^9.21.0"
     "@types/cross-spawn": "npm:^6.0.6"
-    "@types/node": "npm:^18.14.2"
+    "@types/node": "npm:^20.19.15"
     "@types/semver": "npm:^7"
     "@types/yargs": "npm:^17.0.32"
     "@typescript-eslint/parser": "npm:^8.25.0"
@@ -30815,6 +30827,13 @@ __metadata:
   version: 5.26.5
   resolution: "undici-types@npm:5.26.5"
   checksum: 10c0/bb673d7876c2d411b6eb6c560e0c571eef4a01c1c19925175d16e3a30c4c428181fb8d7ae802a261f283e4166a0ac435e2f505743aa9e45d893f9a3df017b501
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~6.21.0":
+  version: 6.21.0
+  resolution: "undici-types@npm:6.21.0"
+  checksum: 10c0/c01ed51829b10aa72fc3ce64b747f8e74ae9b60eafa19a7b46ef624403508a54c526ffab06a14a26b3120d055e1104d7abe7c9017e83ced038ea5cf52f8d5e04
   languageName: node
   linkType: hard
 
