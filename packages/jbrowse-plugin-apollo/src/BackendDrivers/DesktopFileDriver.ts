@@ -13,7 +13,7 @@ import {
   annotationFeatureToGFF3,
   splitStringIntoChunks,
 } from '@apollo-annotation/shared'
-import gff, { type GFF3Item } from '@gmod/gff'
+import { type GFF3Item, formatSync } from '@gmod/gff'
 import { getConf } from '@jbrowse/core/configuration'
 import { type Region, getSession } from '@jbrowse/core/util'
 import { getSnapshot } from 'mobx-state-tree'
@@ -165,7 +165,7 @@ export class DesktopFileDriver extends BackendDriver {
       })
     }
 
-    const gff3Contents = gff.formatSync(gff3Items)
+    const gff3Contents = formatSync(gff3Items)
 
     // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/consistent-type-imports
     const fs = require('node:fs') as typeof import('fs')

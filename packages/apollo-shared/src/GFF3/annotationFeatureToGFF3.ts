@@ -101,7 +101,10 @@ export function annotationFeatureToGFF3(
     score,
     strand: feature.strand ? (feature.strand === 1 ? '+' : '-') : null,
     phase: null,
-    attributes: Object.keys(attributes).length > 0 ? attributes : null,
+    attributes:
+      Object.keys(attributes).length > 0
+        ? (attributes as Record<string, string[]>)
+        : null,
     derived_features: [],
     child_features: prepareChildFeatures(
       feature,

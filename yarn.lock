@@ -373,7 +373,7 @@ __metadata:
     "@apollo-annotation/shared": "workspace:^"
     "@emotion/react": "npm:^11.10.6"
     "@emotion/styled": "npm:^11.10.6"
-    "@gmod/gff": "npm:1.2.0"
+    "@gmod/gff": "npm:^2.0.0"
     "@gmod/indexedfasta": "npm:^2.0.4"
     "@jbrowse/core": "npm:^3.6.5"
     "@mui/material": "npm:^7.0.0"
@@ -454,6 +454,7 @@ __metadata:
   dependencies:
     "@apollo-annotation/mst": "workspace:^"
     "@apollo-annotation/schemas": "workspace:^"
+    "@gmod/gff": "npm:^2.0.0"
     "@jbrowse/core": "npm:^3.6.5"
     "@nestjs/common": "npm:^10.1.0"
     "@nestjs/core": "npm:^10.1.0"
@@ -486,7 +487,7 @@ __metadata:
     "@apollo-annotation/shared": "workspace:^"
     "@emotion/react": "npm:^11.10.6"
     "@emotion/styled": "npm:^11.10.6"
-    "@gmod/gff": "npm:1.2.0"
+    "@gmod/gff": "npm:^2.0.0"
     "@jbrowse/cli": "npm:^3.6.5"
     "@jbrowse/core": "npm:^3.6.5"
     "@jbrowse/development-tools": "npm:^2.2.1"
@@ -591,7 +592,7 @@ __metadata:
     "@apollo-annotation/common": "workspace:^"
     "@apollo-annotation/mst": "workspace:^"
     "@apollo-annotation/schemas": "workspace:^"
-    "@gmod/gff": "npm:1.2.0"
+    "@gmod/gff": "npm:^2.0.0"
     "@gmod/indexedfasta": "npm:^2.0.4"
     "@jbrowse/core": "npm:^3.6.5"
     "@nestjs/common": "npm:^10.1.0"
@@ -5869,12 +5870,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gmod/gff@npm:1.2.0":
-  version: 1.2.0
-  resolution: "@gmod/gff@npm:1.2.0"
-  bin:
-    gff-to-json: dist/gff-to-json.js
-  checksum: 10c0/ec4ad0c57d69c824c1465ef44c6737bf2b396c434d7124b6ca8d7db5d1ff82bcb75d7a6b940518a0d140bda5ca181576baa6a441a456ffd19e916d0685369eb7
+"@gmod/gff@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@gmod/gff@npm:2.0.0"
+  checksum: 10c0/f8a40c0eb84eeffcea49aa65e0656a12e8810fb0525b61272be443c9d45790a00ae84ad19808c5f30acd8a69714b04bcaacd5c469a65e8f6ae36920bf6ccca00
   languageName: node
   linkType: hard
 
