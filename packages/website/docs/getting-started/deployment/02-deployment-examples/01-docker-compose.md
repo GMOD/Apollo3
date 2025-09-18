@@ -423,4 +423,5 @@ We are now ready to access Apollo. Open a web browser and got the URL you
 entered in the `apollo.env` file above. You should see a JBrowse instance with a
 prompt to log in as a guest. You should see a view with an assembly selector,
 but there aren't any assemblies yet. You're now ready to head over to our
-[Admin guide](../../../category/admin) to learn how to load data into Apollo.
+[Admin guide](../../../category/administrators) to learn how to load data into
+Apollo.

@@ -18,10 +18,10 @@ Docker you can get up and running with a local demo of Apollo in a few minutes.
 Are you ready to deploy a multi-user Apollo installation? See our full
 [deployment guide](./getting-started/deployment/01-background.md).
 
-## Administration
+## Administrators
 
-Once you have Apollo set up, see our [admin guide](./category/admin) to learn
-how to add your genomes and annotations.
+Once you have Apollo set up, see our [admin guide](./category/administrators) to
+learn how to add your genomes and annotations.
 
 <!-- TODO: User guide section -->
 
