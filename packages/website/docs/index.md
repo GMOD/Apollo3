@@ -16,7 +16,7 @@ Docker you can get up and running with a local demo of Apollo in a few minutes.
 ## Deployment
 
 Are you ready to deploy a multi-user Apollo installation? See our full
-[deployment guide](./getting-started/deployment/01-background.md).
+[deployment guide](./administrators/deployment/01-background.md).
 
 ## Administrators
 
