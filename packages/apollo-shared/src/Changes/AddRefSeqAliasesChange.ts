@@ -40,9 +40,6 @@ export class AddRefSeqAliasesChange extends AssemblySpecificChange {
     for (const refSeqAlias of this.refSeqAliases) {
       const { aliases, refName } = refSeqAlias
       for (const alias of aliases) {
-        if (alias in sessionAliases) {
-          continue
-        }
         sessionAliases[alias] = refName
       }
     }
