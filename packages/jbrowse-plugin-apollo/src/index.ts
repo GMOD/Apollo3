@@ -377,19 +377,15 @@ export default class ApolloPlugin extends Plugin {
 
   configure(pluginManager: PluginManager) {
     if (isAbstractMenuManager(pluginManager.rootModel)) {
-      pluginManager.jexl.addFunction(
-        'colorFeature',
-        (featureType: 'pseudogenic_transcript' | 'nonCodingTranscript') => {
-          if (featureType === 'pseudogenic_transcript') {
-            return alpha('rgb(148, 203, 236)', 0.6)
-          }
-          if (featureType === 'nonCodingTranscript') {
-            return alpha('rgb(194, 106, 119)', 0.6)
-          }
-          throw new Error('Invalid type')
-        },
-      )
-
+      pluginManager.jexl.addFunction('colorFeature', (featureType: string) => {
+        if (featureType === 'pseudogene') {
+          return alpha('rgb(148, 203, 236)', 0.6)
+        }
+        if (featureType === 'ncRNA_gene') {
+          return alpha('rgb(194, 106, 119)', 0.6)
+        }
+        return
+      })
       addTopLevelMenus(pluginManager.rootModel)
     }
   }
