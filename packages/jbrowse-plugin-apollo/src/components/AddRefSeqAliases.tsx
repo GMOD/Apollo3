@@ -90,7 +90,8 @@ export const AddRefSeqAliases = observer(function AddRefSeqAliases({
           initializeRefNameAliasMap(refNameAliases)
         })
         .catch(() => {
-          // error
+          setRefNameAliasMap(new Map())
+          setErrorMessage('Error fetching refName aliases for assembly')
         })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
