@@ -15,7 +15,7 @@ interface NumberTextFieldProps
     | 'error'
     | 'helperText'
   > {
-  onChangeCommitted(newValue: number): void
+  onChangeCommitted(newValue: number): boolean
   value: unknown
 }
 
@@ -65,7 +65,10 @@ export const NumberTextField = observer(function NumberTextField({
           if (Number.isNaN(valueAsNumber)) {
             setValue(String(initialValue))
           } else {
-            onChangeCommitted(valueAsNumber)
+            const success = onChangeCommitted(valueAsNumber)
+            if (!success) {
+              setValue(String(initialValue))
+            }
           }
         }
       }}
