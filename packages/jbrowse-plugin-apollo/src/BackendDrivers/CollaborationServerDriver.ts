@@ -302,7 +302,7 @@ export class CollaborationServerDriver extends BackendDriver {
     return refSeqs.map((refSeq) => {
       return {
         refName: refSeq.name,
-        aliases: [refSeq._id, ...refSeq.aliases],
+        aliases: [...new Set([refSeq._id, ...refSeq.aliases])],
         uniqueId: `alias-${refSeq._id}`,
       }
     }) as RefNameAliases[]

@@ -16,12 +16,19 @@ import {
   Select,
   type SelectChangeEvent,
 } from '@mui/material'
-import { DataGrid, type GridColDef, type GridRowModel } from '@mui/x-data-grid'
+import {
+  DataGrid,
+  type GridColDef,
+  type GridRowModel,
+  type GridRowSelectionModel,
+} from '@mui/x-data-grid'
+import { observer } from 'mobx-react'
 import React, { useEffect, useRef, useState } from 'react'
 
 import {
   type ApolloInternetAccount,
   type CollaborationServerDriver,
+  type RefNameAliases,
 } from '../BackendDrivers'
 import { type ChangeManager } from '../ChangeManager'
 import { type ApolloSessionModel } from '../session'
@@ -30,7 +37,7 @@ import { Dialog } from './Dialog'
 
 const columns: GridColDef[] = [
   { field: 'refName', headerName: 'Ref Name' },
-  { field: 'aliases', headerName: 'Aliases', editable: true },
+  { field: 'aliases', headerName: 'Aliases', editable: true, flex: 1 },
 ]
 
 interface AddChildFeatureProps {
@@ -44,7 +51,7 @@ const isGeneratedObjectId = (key: string): boolean => {
   return pattern.test(key)
 }
 
-export function AddRefSeqAliases({
+export const AddRefSeqAliases = observer(function AddRefSeqAliases({
   changeManager,
   handleClose,
   session,
@@ -75,44 +82,50 @@ export function AddRefSeqAliases({
   const assemblies = collaborationServerDriver.getAssemblies()
 
   useEffect(() => {
-    let retry = 0
-    const maxRetries = 2
-    const initializeRefNameAliasMap = () => {
-      if (!selectedAssembly) {
-        return
-      }
-      const initialMap = new Map<string, string[]>()
-      if (retry < maxRetries && !selectedAssembly.refNames) {
-        retry++
-        setTimeout(initializeRefNameAliasMap, 50)
-      }
-      if (!selectedAssembly.refNames) {
-        return
-      }
-      const refNameAliasess = selectedAssembly.refNameAliases
-      for (const key in refNameAliasess) {
-        const value = refNameAliasess[key]
-        if (!value || isGeneratedObjectId(key)) {
-          continue
-        }
-        if (initialMap.has(value)) {
-          const aliases = initialMap.get(value) ?? []
-          initialMap.set(value, [...aliases, key])
-        } else {
-          initialMap.set(value, [key])
-        }
-      }
-      setRefNameAliasMap(initialMap)
+    if (assemblies.length > 0) {
+      setSelectedAssembly(assemblies[0])
+      collaborationServerDriver
+        .getRefNameAliases(assemblies[0].name)
+        .then((refNameAliases) => {
+          initializeRefNameAliasMap(refNameAliases)
+        })
+        .catch(() => {
+          setRefNameAliasMap(new Map())
+          setErrorMessage('Error fetching refName aliases for assembly')
+        })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-    initializeRefNameAliasMap()
-  }, [selectedAssembly])
+  const initializeRefNameAliasMap = (refNameAliasesList: RefNameAliases[]) => {
+    const initialMap = new Map<string, string[]>()
+    for (const refNameAliases of refNameAliasesList) {
+      const key = refNameAliases.refName
+      if (isGeneratedObjectId(key)) {
+        continue
+      }
+      initialMap.set(key, refNameAliases.aliases)
+    }
+    setRefNameAliasMap(initialMap)
+  }
 
   const handleChangeAssembly = (e: SelectChangeEvent) => {
     const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
     setSelectedAssembly(newAssembly)
+    if (!newAssembly?.name) {
+      return
+    }
+    collaborationServerDriver
+      .getRefNameAliases(newAssembly.name)
+      .then((refNameAliases) => {
+        initializeRefNameAliasMap(refNameAliases)
+        setErrorMessage('')
+      })
+      .catch(() => {
+        setRefNameAliasMap(new Map())
+        setErrorMessage('Error fetching refName aliases for assembly')
+      })
     setEnableSubmit(false)
-    setErrorMessage('')
     if (fileRef.current) {
       fileRef.current.value = ''
     }
@@ -145,11 +158,12 @@ export function AddRefSeqAliases({
     })
   }
 
-  const rowSelectionChange = (ids: number[]) => {
-    if (ids.length > 0) {
+  const rowSelectionChange = (gridRowSelectionModel: GridRowSelectionModel) => {
+    const { ids } = gridRowSelectionModel
+    if (ids.size > 0) {
       setEnableSubmit(true)
-      const selectedRows = ids.flatMap((id) =>
-        getTableRows().filter((row) => row.id === id),
+      const selectedRows = [...ids.values()].flatMap((id) =>
+        getTableRows().filter((row) => String(row.id) === String(id)),
       )
       setSelectedRows(selectedRows)
     } else {
@@ -222,6 +236,7 @@ export function AddRefSeqAliases({
                 label="Assembly"
                 value={selectedAssembly?.name ?? ''}
                 onChange={handleChangeAssembly}
+                style={{ minWidth: 150 }}
               >
                 {assemblies.map((option) => (
                   <MenuItem key={option.name} value={option.name}>
@@ -255,11 +270,10 @@ export function AddRefSeqAliases({
                 },
               }}
               pageSizeOptions={[5, 10]}
-              onRowSelectionModelChange={(ids) => {
-                rowSelectionChange(ids as unknown as number[])
-              }}
+              onRowSelectionModelChange={rowSelectionChange}
               processRowUpdate={processRowUpdate}
               checkboxSelection
+              disableRowSelectionExcludeModel
             ></DataGrid>
           </div>
         ) : null}
@@ -284,4 +298,4 @@ export function AddRefSeqAliases({
       ) : null}
     </Dialog>
   )
-}
+})

@@ -35,11 +35,7 @@ export class AddRefSeqAliasesChange extends AssemblySpecificChange {
     if (!assembly) {
       throw new Error(`assembly ${this.assembly} not found`)
     }
-    const sessionAliases = assembly.refNameAliases
-
-    if (!sessionAliases) {
-      throw new Error('Session refNameAliases not found in assembly')
-    }
+    const sessionAliases = assembly.refNameAliases ?? {}
 
     for (const refSeqAlias of this.refSeqAliases) {
       const { aliases, refName } = refSeqAlias
