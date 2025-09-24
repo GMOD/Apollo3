@@ -155,12 +155,12 @@ export const TranscriptWidgetEditLocation = observer(
       feature: AnnotationFeature,
       isMin: boolean,
       onComplete?: () => void,
-    ) => {
+    ): boolean => {
       if (!feature.children) {
         throw new Error('Transcript should have child features')
       }
       if (oldLocation === newLocation) {
-        return
+        return true
       }
 
       const cdsFeature = getMatchingCDSFeature(
@@ -171,12 +171,12 @@ export const TranscriptWidgetEditLocation = observer(
       )
       if (!cdsFeature) {
         notify('No matching CDS feature found', 'error')
-        return
+        return false
       }
 
       if (isMin && newLocation >= cdsFeature.max) {
         notify('Start location should be less than CDS end location', 'error')
-        return
+        return false
       }
 
       if (!isMin && newLocation <= cdsFeature.min) {
@@ -184,7 +184,7 @@ export const TranscriptWidgetEditLocation = observer(
           'End location should be greater than CDS start location',
           'error',
         )
-        return
+        return false
       }
 
       // overlapping exon of new CDS location
@@ -200,7 +200,7 @@ export const TranscriptWidgetEditLocation = observer(
           'There should be an overlapping exon for the new CDS location',
           'error',
         )
-        return
+        return false
       }
 
       const change = isMin
@@ -231,6 +231,7 @@ export const TranscriptWidgetEditLocation = observer(
         .catch(() => {
           notify('Error updating feature CDS position', 'error')
         })
+      return true
     }
 
     function handleExonLocationChange(
@@ -238,7 +239,7 @@ export const TranscriptWidgetEditLocation = observer(
       newLocation: number,
       feature: AnnotationFeature,
       isMin: boolean,
-    ) {
+    ): boolean {
       if (!feature.children) {
         throw new Error('Transcript should have child features')
       }
@@ -251,28 +252,28 @@ export const TranscriptWidgetEditLocation = observer(
 
       if (!matchingExon) {
         notify('No matching exon found', 'error')
-        return
+        return false
       }
 
       // Start location should be less than end location
       if (isMin && newLocation >= matchingExon.max) {
         notify(`Start location should be less than end location`, 'error')
-        return
+        return false
       }
       // End location should be greater than start location
       if (!isMin && newLocation <= matchingExon.min) {
         notify(`End location should be greater than start location`, 'error')
-        return
+        return false
       }
       // Changed location should be greater than end location of previous exon - give 2bp buffer
       if (prevExon && prevExon.max + 2 > newLocation) {
         notify(`Error while changing start location`, 'error')
-        return
+        return false
       }
       // Changed location should be less than start location of next exon - give 2bp buffer
       if (nextExon && nextExon.min - 2 < newLocation) {
         notify(`Error while changing end location`, 'error')
-        return
+        return false
       }
 
       const exonFeature = getExonFeature(
@@ -283,7 +284,7 @@ export const TranscriptWidgetEditLocation = observer(
       )
       if (!exonFeature) {
         notify('No matching exon feature found', 'error')
-        return
+        return false
       }
 
       const cdsFeature = getFirstCDSFeature(feature, featureTypeOntology)
@@ -411,6 +412,7 @@ export const TranscriptWidgetEditLocation = observer(
           notify('Error updating feature exon end position', 'error')
         })
       }
+      return true
     }
 
     const appendEndLocationChange = (
@@ -1004,7 +1006,12 @@ export const TranscriptWidgetEditLocation = observer(
                     variant="outlined"
                     value={cdsMin + 1}
                     onChangeCommitted={(newLocation: number) => {
-                      updateCDSLocation(cdsMin, newLocation - 1, feature, true)
+                      return updateCDSLocation(
+                        cdsMin,
+                        newLocation - 1,
+                        feature,
+                        true,
+                      )
                     }}
                     style={{ border: '1px solid black', borderRadius: 5 }}
                   />
@@ -1016,7 +1023,12 @@ export const TranscriptWidgetEditLocation = observer(
                     variant="outlined"
                     value={cdsMax}
                     onChangeCommitted={(newLocation: number) => {
-                      updateCDSLocation(cdsMax, newLocation, feature, false)
+                      return updateCDSLocation(
+                        cdsMax,
+                        newLocation,
+                        feature,
+                        false,
+                      )
                     }}
                     style={{ border: '1px solid black', borderRadius: 5 }}
                   />
@@ -1032,7 +1044,12 @@ export const TranscriptWidgetEditLocation = observer(
                     variant="outlined"
                     value={cdsMax}
                     onChangeCommitted={(newLocation: number) => {
-                      updateCDSLocation(cdsMax, newLocation, feature, false)
+                      return updateCDSLocation(
+                        cdsMax,
+                        newLocation,
+                        feature,
+                        false,
+                      )
                     }}
                     style={{ border: '1px solid black', borderRadius: 5 }}
                   />
@@ -1044,7 +1061,12 @@ export const TranscriptWidgetEditLocation = observer(
                     variant="outlined"
                     value={cdsMin + 1}
                     onChangeCommitted={(newLocation: number) => {
-                      updateCDSLocation(cdsMin, newLocation - 1, feature, true)
+                      return updateCDSLocation(
+                        cdsMin,
+                        newLocation - 1,
+                        feature,
+                        true,
+                      )
                     }}
                     style={{ border: '1px solid black', borderRadius: 5 }}
                   />
@@ -1084,7 +1106,7 @@ export const TranscriptWidgetEditLocation = observer(
                           variant="outlined"
                           value={loc.min + 1}
                           onChangeCommitted={(newLocation: number) => {
-                            handleExonLocationChange(
+                            return handleExonLocationChange(
                               loc.min,
                               newLocation - 1,
                               feature,
@@ -1100,7 +1122,7 @@ export const TranscriptWidgetEditLocation = observer(
                           variant="outlined"
                           value={loc.max}
                           onChangeCommitted={(newLocation: number) => {
-                            handleExonLocationChange(
+                            return handleExonLocationChange(
                               loc.max,
                               newLocation,
                               feature,
@@ -1120,7 +1142,7 @@ export const TranscriptWidgetEditLocation = observer(
                           variant="outlined"
                           value={loc.max}
                           onChangeCommitted={(newLocation: number) => {
-                            handleExonLocationChange(
+                            return handleExonLocationChange(
                               loc.max,
                               newLocation,
                               feature,
@@ -1136,7 +1158,7 @@ export const TranscriptWidgetEditLocation = observer(
                           variant="outlined"
                           value={loc.min + 1}
                           onChangeCommitted={(newLocation: number) => {
-                            handleExonLocationChange(
+                            return handleExonLocationChange(
                               loc.min,
                               newLocation - 1,
                               feature,
