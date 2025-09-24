@@ -189,7 +189,7 @@ async function checkMRNA(
           refSeq: refSeq.toString(),
           start: cdsEnd,
           end: cdsEnd,
-          message: `Missing stop codon for feature "${_id}"`,
+          message: `Missing stop codon in feature "${_id}"`,
         })
       }
     } else {
@@ -201,7 +201,7 @@ async function checkMRNA(
         refSeq: refSeq.toString(),
         start: cdsEnd,
         end: cdsEnd,
-        message: `Missing stop codon: The coding sequence for feature "${_id}" is not a multiple of three`,
+        message: `Missing stop codon in feature "${_id}"`,
       })
     }
     for (const [idx, codon] of codons.entries()) {
@@ -220,7 +220,7 @@ async function checkMRNA(
           refSeq: refSeq.toString(),
           start: codonStart,
           end: codonEnd,
-          message: `The coding sequence for feature "${_id}" has an internal stop codon`,
+          message: `Internal stop codon in feature "${_id}"`,
         })
       }
     }
