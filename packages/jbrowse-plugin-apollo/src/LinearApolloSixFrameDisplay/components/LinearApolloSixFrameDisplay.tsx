@@ -11,6 +11,7 @@ import {
 } from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import ErrorIcon from '@mui/icons-material/Error'
+import LockIcon from '@mui/icons-material/Lock'
 import { Alert, Avatar, Badge, Box, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
@@ -88,6 +89,11 @@ export const LinearApolloSixFrameDisplay = observer(
             }
           }}
         >
+          {session.isLocked ? (
+            <div className={classes.locked} data-testid="lock-icon">
+              <LockIcon />
+            </div>
+          ) : null}
           {message ? (
             <Alert
               severity="warning"
