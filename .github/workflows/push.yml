@@ -46,7 +46,7 @@ jobs:
         run: yarn build
         working-directory: packages/apollo-shared
       - name: Lint codebase
-        run: yarn eslint
+        run: yarn eslint --max-warnings 0
   docker:
     if: ${{ github.ref == 'refs/heads/main' }}
     uses: ./.github/workflows/docker.yml
