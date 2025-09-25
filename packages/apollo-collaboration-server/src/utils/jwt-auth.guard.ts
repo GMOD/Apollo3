@@ -3,6 +3,8 @@ import { JWTPayload } from '@apollo-annotation/shared'
 import { ExecutionContext, Injectable } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 
+import { Role } from './role/role.enum'
+
 export const IS_PUBLIC_KEY = 'isPublic'
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -17,7 +19,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       throw err
     }
     if (!user) {
-      return { role: 'none' }
+      return { role: Role.None }
     }
     return super.handleRequest(err, user, info, context, status)
   }

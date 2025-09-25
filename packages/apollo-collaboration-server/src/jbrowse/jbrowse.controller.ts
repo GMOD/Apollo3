@@ -10,12 +10,12 @@ export interface RequestWithUser extends Request {
   user?: { role: Role }
 }
 
-@Validations(Role.None)
 @Controller('jbrowse')
 export class JBrowseController {
   constructor(private readonly jbrowseService: JBrowseService) {}
   private readonly logger = new Logger(JBrowseController.name)
 
+  @Validations(Role.None)
   @Get('config.json')
   config(@Req() request: RequestWithUser) {
     const { user } = request
