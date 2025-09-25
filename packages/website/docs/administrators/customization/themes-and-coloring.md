@@ -12,18 +12,17 @@ First retrieve the jbrowse configuration file:
 apollo jbrowse get-config > config.json
 ```
 
-Then add to the `ApolloPlugin` slot the key `backgroundColorForFeature`. The
-value of this key is a string representing a
-[jexl](https://www.npmjs.com/package/jexl) expression that assign a color to a
-toplevel feature. The configuration file produced by `apollo jbrowse` should
-already contain the `ApolloPlugin` slot, but if it doesn't make sure to create
-it within the `configuration` key. For example, the `ApolloPlugin` slot may look
-like:
+Then add to the `ApolloPlugin` slot the key `geneBackgroundColor`. The value of
+this key is a string representing a [jexl](https://www.npmjs.com/package/jexl)
+expression that assigns a color to a toplevel feature. The configuration file
+produced by `apollo jbrowse` should already contain the `ApolloPlugin` slot, but
+if it doesn't make sure to create it within the `configuration` key. For
+example, the `ApolloPlugin` slot may look like:
 
 ```json
 "configuration": {
   "ApolloPlugin": {
-    "backgroundColorForFeature": "jexl: featureType == 'pseudogene' ? 'rgba(148, 203, 236, 0.6)' : featureType == 'ncRNA_gene' ? 'rgba(194, 106, 119, 0.6)': undefined"
+    "geneBackgroundColor": "jexl: featureType == 'pseudogene' ? 'rgba(148, 203, 236, 0.6)' : featureType == 'ncRNA_gene' ? 'rgba(194, 106, 119, 0.6)': undefined"
     ...
   },
   "theme": {...}
@@ -38,17 +37,20 @@ rm config.json # optional
 ```
 
 The expression should start with `jexl:` and contain valid jexl syntax. Note
-that `if-else` and loop statements are not allowed and they should be replaced
-with nested ternary operators as in the example above. The expression should be
-written on a single line to comply with the JSON format.
+that:
+
+- `if-else` and loop statements are not allowed and they should be replaced with
+  nested ternary operators as in the example above
+- The expression should be written on a single line to comply with the JSON
+  format.
+- The color string should be a valid
+  [CSS color](https://developer.mozilla.org/en-US/docs/Web/CSS/color)
 
 The example above assigns custom colors to features of type _pseudogene_ and
-_ncRNA_gene_ and leaves all the other feature types to as default color (since
-the ternary operators fall back to `undefined`). The color string should be a
-valid [CSS color](https://developer.mozilla.org/en-US/docs/Web/CSS/color). Most
-likely, you want to make the background color to be slightly transparent by
-setting, for example, the forth argument of the `rgba` function (0.6 in the
-example).
+_ncRNA_gene_ and leaves all the other feature types as default color (since the
+ternary operators fall back to `undefined`). Most likely, you want to make the
+background color to be slightly transparent by setting, for example, the forth
+argument of the `rgba` function (0.6 in the example).
 
 For more information see also the documentation for using
 [jexl in jbrowse](https://jbrowse.org/jb2/docs/config_guides/jexl/).

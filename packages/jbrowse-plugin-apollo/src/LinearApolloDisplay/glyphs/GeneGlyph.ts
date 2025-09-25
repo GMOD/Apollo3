@@ -124,7 +124,7 @@ function drawBackground(
   } else {
     selectedColor = readConfObject(
       session.getPluginConfiguration(),
-      'backgroundColorForFeature',
+      'geneBackgroundColor',
       { featureType: feature.type },
     ) as string
     if (!selectedColor) {
