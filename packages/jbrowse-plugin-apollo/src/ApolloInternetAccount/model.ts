@@ -64,32 +64,20 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       controller: new AbortController(),
     }))
 
-    .actions((self) => {
-      let roleNotificationSent = false
-      return {
-        setRole() {
-          const token = self.retrieveToken()
-          if (!token) {
-            self.role = undefined
-            return
-          }
-          const dec = getDecodedToken(token)
-          const { role } = dec
-          if (!role && !roleNotificationSent) {
-            const { session } = getRoot<ApolloRootModel>(self)
-            ;(session as unknown as AbstractSessionModel).notify(
-              'You have registered as a user but have not been given access. Ask your administrator to enable access for your account.',
-              'warning',
-            )
-            // notify
-            roleNotificationSent = true
-          }
-          if (self.role !== role) {
-            self.role = role
-          }
-        },
-      }
-    })
+    .actions((self) => ({
+      setRole() {
+        const token = self.retrieveToken()
+        if (!token) {
+          self.role = undefined
+          return
+        }
+        const dec = getDecodedToken(token)
+        const { role } = dec
+        if (self.role !== role) {
+          self.role = role
+        }
+      },
+    }))
     .actions((self) => {
       let listener: (event: MessageEvent) => void
       return {
@@ -380,7 +368,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
     }))
     .actions((self) => {
       async function postUserLocation(userLoc: UserLocation[]) {
-        if (!isAlive(self)) {
+        if (!isAlive(self) || self.role === 'none') {
           return
         }
         const { baseURL, controller } = self
@@ -418,8 +406,20 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       }
       return { postUserLocation: debouncePostUserLocation(postUserLocation) }
     })
+    .volatile(() => ({ roleNotificationSent: false }))
     .actions((self) => ({
       initialize: flow(function* initialize(role: Role) {
+        if (role === 'none') {
+          if (!self.roleNotificationSent) {
+            const { session } = getRoot<ApolloRootModel>(self)
+            ;(session as unknown as AbstractSessionModel).notify(
+              'You have registered as an Apollo user but have not been given access. Ask your administrator to enable access for your account.',
+              'warning',
+            )
+            self.roleNotificationSent = true
+          }
+          return
+        }
         if (role === 'admin') {
           const rootModel = getRoot(self)
           if (isAbstractMenuManager(rootModel)) {

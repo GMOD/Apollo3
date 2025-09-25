@@ -12,7 +12,7 @@ import {
 import { Logger } from '@nestjs/common'
 import { type Request } from 'express'
 
-import { type Role, RoleInheritance } from '../role/role.enum'
+import { Role, RoleInheritance } from '../role/role.enum'
 
 import { getRequiredRoleForChange } from './validatation.changeTypePermissions'
 import { ROLE_KEY } from './validatation.decorator'
@@ -27,14 +27,14 @@ export class AuthorizationValidation extends Validation {
     }
     const context = changeOrContext
     const logger = new Logger(AuthorizationValidation.name)
-    const requiredRole = context.reflector.getAllAndOverride<Role>(ROLE_KEY, [
+    let requiredRole = context.reflector.getAllAndOverride<Role>(ROLE_KEY, [
       context.context.getHandler(),
       context.context.getClass(),
     ])
 
-    // If no role was required in endpoint then return true
+    // If endpoint does not require role, for security assume it needs Role.Admin
     if (!requiredRole) {
-      return { validationName: this.name }
+      requiredRole = Role.Admin
     }
     logger.debug(`Required role is '${requiredRole}'`)
 

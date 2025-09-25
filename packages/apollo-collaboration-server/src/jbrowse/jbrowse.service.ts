@@ -38,7 +38,7 @@ export class JBrowseService {
     return `${name}-apolloInternetAccount`
   }
 
-  getConfiguration(role: Role) {
+  getConfiguration(role?: Role) {
     const feature_type_ontology_location =
       this.configService.get('FEATURE_TYPE_ONTOLOGY_LOCATION', {
         infer: true,
@@ -71,8 +71,16 @@ export class JBrowseService {
       },
       ApolloPlugin: { hasRole: false },
     }
-    if (role === Role.None) {
+    if (!role) {
       return configuration
+    }
+    if (role === Role.None) {
+      return {
+        ...configuration,
+        ApolloPlugin: {
+          hasRole: true,
+        },
+      }
     }
     return {
       ...configuration,
@@ -215,8 +223,8 @@ export class JBrowseService {
     return document?.toJSON()
   }
 
-  async getConfig(role: Role) {
-    if (role === Role.None) {
+  async getConfig(role?: Role) {
+    if (!role || role === Role.None) {
       return {
         configuration: this.getConfiguration(role),
         plugins: this.getPlugins(),
