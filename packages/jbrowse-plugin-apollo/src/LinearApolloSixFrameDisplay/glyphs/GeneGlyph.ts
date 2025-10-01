@@ -2,13 +2,16 @@ import {
   type AnnotationFeature,
   type TranscriptPartCoding,
 } from '@apollo-annotation/mst'
+import { type BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
 import { type MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
+  getContainingView,
   getFrame,
   intersection2,
   measureText,
 } from '@jbrowse/core/util'
+import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material'
 import equal from 'fast-deep-equal/es6'
 import { getSnapshot } from 'mobx-state-tree'
@@ -18,12 +21,19 @@ import { FilterTranscripts } from '../../components/FilterTranscripts'
 import {
   type MousePosition,
   type MousePositionWithFeature,
+  getAdjacentExons,
   getContextMenuItemsForFeature,
   getMinAndMaxPx,
   getOverlappingEdge,
   getRelatedFeatures,
+  getStreamIcon,
+  isCDSFeature,
+  isExonFeature,
   isMousePositionWithFeature,
+  // isTranscriptFeature,
   isSelectedFeature,
+  navToFeatureCenter,
+  selectFeatureAndOpenWidget,
 } from '../../util'
 import { type LinearApolloSixFrameDisplay } from '../stateModel'
 import { type LinearApolloSixFrameDisplayMouseEvents } from '../stateModel/mouseEvents'
@@ -848,8 +858,13 @@ function getContextMenuItems(
   }
   if (isMousePositionWithFeature(mousePosition)) {
     const { bp, feature } = mousePosition
-    for (const relatedFeature of getRelatedFeatures(feature, bp)) {
-      const featureID: string | undefined = relatedFeature.attributes
+    let featuresUnderClick = getRelatedFeatures(feature, bp)
+    if (isCDSFeature(feature, session)) {
+      featuresUnderClick = getRelatedFeatures(feature, bp, true)
+    }
+
+    for (const feature of featuresUnderClick) {
+      const featureID: string | undefined = feature.attributes
         .get('gff_id')
         ?.toString()
       if (featureID && filteredTranscripts.includes(featureID)) {
@@ -857,9 +872,48 @@ function getContextMenuItems(
       }
       const contextMenuItemsForFeature = getContextMenuItemsForFeature(
         display,
-        relatedFeature,
+        feature,
       )
-      if (featureTypeOntology.isTypeOf(relatedFeature.type, 'exon')) {
+      if (isExonFeature(feature, session)) {
+        const adjacentExons = getAdjacentExons(
+          feature,
+          display,
+          mousePosition,
+          session,
+        )
+        const lgv = getContainingView(
+          display as BaseDisplayModel,
+        ) as unknown as LinearGenomeViewModel
+        if (adjacentExons.upstream) {
+          const exon = adjacentExons.upstream
+          contextMenuItemsForFeature.push({
+            label: 'Go to upstream exon',
+            icon: getStreamIcon(
+              feature.strand,
+              true,
+              lgv.displayedRegions.at(0)?.reversed,
+            ),
+            onClick: () => {
+              lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
+              selectFeatureAndOpenWidget(display, exon)
+            },
+          })
+        }
+        if (adjacentExons.downstream) {
+          const exon = adjacentExons.downstream
+          contextMenuItemsForFeature.push({
+            label: 'Go to downstream exon',
+            icon: getStreamIcon(
+              feature.strand,
+              false,
+              lgv.displayedRegions.at(0)?.reversed,
+            ),
+            onClick: () => {
+              lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
+              selectFeatureAndOpenWidget(display, exon)
+            },
+          })
+        }
         contextMenuItemsForFeature.push(
           {
             label: 'Merge exons',
@@ -874,7 +928,7 @@ function getContextMenuItems(
                       doneCallback()
                     },
                     changeManager,
-                    sourceFeature: relatedFeature,
+                    sourceFeature: feature,
                     sourceAssemblyId: currentAssemblyId,
                     selectedFeature,
                     setSelectedFeature: (feature?: AnnotationFeature) => {
@@ -898,7 +952,7 @@ function getContextMenuItems(
                       doneCallback()
                     },
                     changeManager,
-                    sourceFeature: relatedFeature,
+                    sourceFeature: feature,
                     sourceAssemblyId: currentAssemblyId,
                     selectedFeature,
                     setSelectedFeature: (feature?: AnnotationFeature) => {
@@ -911,7 +965,7 @@ function getContextMenuItems(
           },
         )
       }
-      if (featureTypeOntology.isTypeOf(relatedFeature.type, 'gene')) {
+      if (featureTypeOntology.isTypeOf(feature.type, 'gene')) {
         contextMenuItemsForFeature.push({
           label: 'Filter alternate transcripts',
           onClick: () => {
@@ -922,7 +976,7 @@ function getContextMenuItems(
                   handleClose: () => {
                     doneCallback()
                   },
-                  sourceFeature: relatedFeature,
+                  sourceFeature: feature,
                   filteredTranscripts: getSnapshot(filteredTranscripts),
                   onUpdate: (forms: string[]) => {
                     display.updateFilteredTranscripts(forms)
@@ -934,7 +988,7 @@ function getContextMenuItems(
         })
       }
       menuItems.push({
-        label: relatedFeature.type,
+        label: feature.type,
         subMenu: contextMenuItemsForFeature,
       })
     }
