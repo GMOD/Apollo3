@@ -10,8 +10,6 @@ import {
   isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import SkipNextRoundedIcon from '@mui/icons-material/SkipNextRounded'
-import SkipPreviousRoundedIcon from '@mui/icons-material/SkipPreviousRounded'
 import { alpha } from '@mui/material'
 
 import { type OntologyRecord } from '../../OntologyManager'
@@ -21,10 +19,16 @@ import {
   type MousePosition,
   type MousePositionWithFeature,
   containsSelectedFeature,
+  getAdjacentExons,
   getMinAndMaxPx,
   getOverlappingEdge,
+  getStreamIcon,
+  isCDSFeature,
+  isExonFeature,
   isMousePositionWithFeature,
+  isTranscriptFeature,
   navToFeatureCenter,
+  selectFeatureAndOpenWidget,
 } from '../../util'
 import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
 import { type LinearApolloDisplay } from '../stateModel'
@@ -736,45 +740,6 @@ function getRowForFeature(
   return
 }
 
-function selectFeatureAndOpenWidget(
-  stateModel: LinearApolloDisplayMouseEvents,
-  feature: AnnotationFeature,
-) {
-  if (stateModel.apolloDragging) {
-    return
-  }
-  stateModel.setSelectedFeature(feature)
-  const { session } = stateModel
-  const { apolloDataStore } = session
-  const { featureTypeOntology } = apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
-
-  let containsCDSOrExon = false
-  for (const [, child] of feature.children ?? []) {
-    if (
-      featureTypeOntology.isTypeOf(child.type, 'CDS') ||
-      featureTypeOntology.isTypeOf(child.type, 'exon')
-    ) {
-      containsCDSOrExon = true
-      break
-    }
-  }
-  if (
-    (featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
-      featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')) &&
-    containsCDSOrExon
-  ) {
-    stateModel.showFeatureDetailsWidget(feature, [
-      'ApolloTranscriptDetails',
-      'apolloTranscriptDetails',
-    ])
-  } else {
-    stateModel.showFeatureDetailsWidget(feature)
-  }
-}
-
 function onMouseDown(
   stateModel: LinearApolloDisplay,
   currentMousePosition: MousePositionWithFeature,
@@ -897,131 +862,6 @@ function getDraggableFeatureInfo(
     }
   }
   return
-}
-
-function isTranscriptFeature(
-  feature: AnnotationFeature,
-  session: ApolloSessionModel,
-): boolean {
-  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
-  return (
-    featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
-    featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')
-  )
-}
-
-function isExonFeature(
-  feature: AnnotationFeature,
-  session: ApolloSessionModel,
-): boolean {
-  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
-  return featureTypeOntology.isTypeOf(feature.type, 'exon')
-}
-
-function isCDSFeature(
-  feature: AnnotationFeature,
-  session: ApolloSessionModel,
-): boolean {
-  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
-  return featureTypeOntology.isTypeOf(feature.type, 'CDS')
-}
-
-interface AdjacentExons {
-  upstream: AnnotationFeature | undefined
-  downstream: AnnotationFeature | undefined
-}
-
-function getAdjacentExons(
-  currentExon: AnnotationFeature,
-  display: LinearApolloDisplayMouseEvents,
-  mousePosition: MousePositionWithFeature,
-  session: ApolloSessionModel,
-): AdjacentExons {
-  const lgv = getContainingView(
-    display as BaseDisplayModel,
-  ) as unknown as LinearGenomeViewModel
-
-  // Genomic coords of current view
-  const viewGenomicLeft = mousePosition.bp - lgv.bpPerPx * mousePosition.x
-  const viewGenomicRight = viewGenomicLeft + lgv.coarseTotalBp
-  if (!currentExon.parent) {
-    return { upstream: undefined, downstream: undefined }
-  }
-  const transcript = currentExon.parent
-  if (!transcript.children) {
-    throw new Error(`Error getting children of ${transcript._id}`)
-  }
-  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
-
-  let exons = []
-  for (const [, child] of transcript.children) {
-    if (featureTypeOntology.isTypeOf(child.type, 'exon')) {
-      exons.push(child)
-    }
-  }
-  const adjacentExons: AdjacentExons = {
-    upstream: undefined,
-    downstream: undefined,
-  }
-  exons = exons.sort((a, b) => (a.min < b.min ? -1 : 1))
-  for (const exon of exons) {
-    if (exon.min > viewGenomicRight) {
-      adjacentExons.downstream = exon
-      break
-    }
-  }
-  exons = exons.sort((a, b) => (a.min > b.min ? -1 : 1))
-  for (const exon of exons) {
-    if (exon.max < viewGenomicLeft) {
-      adjacentExons.upstream = exon
-      break
-    }
-  }
-  if (transcript.strand === -1) {
-    const newUpstream = adjacentExons.downstream
-    adjacentExons.downstream = adjacentExons.upstream
-    adjacentExons.upstream = newUpstream
-  }
-  return adjacentExons
-}
-
-function getStreamIcon(
-  strand: 1 | -1 | undefined,
-  isUpstream: boolean,
-  isFlipped: boolean | undefined,
-) {
-  // This is the icon you would use for strand=1, downstream, straight
-  // (non-flipped) view
-  let icon = SkipNextRoundedIcon
-
-  if (strand === -1) {
-    icon = SkipPreviousRoundedIcon
-  }
-  if (isUpstream) {
-    icon =
-      icon === SkipPreviousRoundedIcon
-        ? SkipNextRoundedIcon
-        : SkipPreviousRoundedIcon
-  }
-  if (isFlipped) {
-    icon =
-      icon === SkipPreviousRoundedIcon
-        ? SkipNextRoundedIcon
-        : SkipPreviousRoundedIcon
-  }
-  return icon
 }
 
 function getContextMenuItems(
