@@ -1,4 +1,4 @@
-# Installation
+# Background
 
 A full deployment of a collaborative Apollo instance is made up of several
 different components. When setting up Apollo, you'll have to decide how you want
@@ -63,4 +63,4 @@ settings and guest user access. You'll most likely want to then configure user
 logins, which we cover in our [Login Management](login-management) guide.
 
 We also cover more options for customizing Apollo in our
-[Configuration options](../category/customization) guide.
+[Configuration options](./configuration-options) guide.

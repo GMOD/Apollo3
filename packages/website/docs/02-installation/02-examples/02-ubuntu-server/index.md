@@ -48,7 +48,7 @@ sudo systemctl restart apache2.service
 Now open the URL of your server. You should see a screen that says "It worked!".
 If so, JBrowse has been successfully installed.
 
-![Screen showing "It worked!" message](img/jbrowse_it_worked.png)
+![Screen showing "It worked!" message](jbrowse_it_worked.png)
 
 ## Set up Apollo JBrowse plugin
 
@@ -95,12 +95,12 @@ To save the file, press <kbd>Ctrl</kbd> + <kbd>O</kbd> and then
 Now open the same link as before (or refresh the page). You should now see the
 JBrowse start screen. Choose an "Empty" session.
 
-![JBrowse start screen](img/jbrowse_start_screen.png)
+![JBrowse start screen](jbrowse_start_screen.png)
 
 If Apollo has been installed successfully, you'll see a menu called "Apollo" at
 the top of the page.
 
-![Menu bar of JBrowse with an "Apollo" menu](img/apollo_top_menu.png)
+![Menu bar of JBrowse with an "Apollo" menu](apollo_top_menu.png)
 
 You can use some basic Apollo functionality like editing annotations small local
 GFF3 files with just the plugin, but to enable the full functionality of Apollo
@@ -291,6 +291,6 @@ yarn start:prod
 Open the URL of your server. Open an "Empty" session, and then choose "Continue
 as Guest" in the dialog that appears.
 
-![Login dialog](img/apollo_login.png)
+![Login dialog](apollo_login.png)
 
 Congratulations, Apollo is now ready to use!

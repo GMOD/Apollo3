@@ -1,4 +1,4 @@
-# Configuration options
+# Server configuration
 
 ```sh
 ##############

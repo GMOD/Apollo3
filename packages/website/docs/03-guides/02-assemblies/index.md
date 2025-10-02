@@ -1,4 +1,4 @@
-# Upload assembly
+# Assemblies
 
 This guide will walk you through the process of uploading an assembly file to
 Apollo3.
