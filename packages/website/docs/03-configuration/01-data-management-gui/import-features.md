@@ -1,7 +1,3 @@
----
-sidebar_position: 2
----
-
 # Import features
 
 This guide will walk you through the process of importing features/annotations
@@ -9,8 +5,8 @@ to Apollo3 using GFF3 file.
 
 There are two ways to import features to Apollo3:
 
-- Follow steps mentioned in [Upload assembly](./upload-assembly.md) guide to
-  upload the GFF3 file containing features and sequence.
+- Follow steps mentioned in [Upload assembly](upload-assembly) guide to upload
+  the GFF3 file containing features and sequence.
 - Use the `Import features` button in the `Apollo` dropdown from top navigation
   bar to import features to an existing assembly.
 

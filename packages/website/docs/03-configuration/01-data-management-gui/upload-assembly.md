@@ -1,7 +1,3 @@
----
-sidebar_position: 2
----
-
 # Upload assembly
 
 This guide will walk you through the process of uploading an assembly file to

@@ -1,4 +1,4 @@
-# Setting up
+# Setting up a local demo
 
 To run this demo, you'll need to have
 [Docker](//docs.docker.com/engine/install/) (minimum version 27) and
