@@ -1,4 +1,4 @@
-# Configuration
+# Administrators
 
 In Apollo, users who are given the role of `Admin` are allowed to do more than
 users with a `User` role. This includes adding new assemblies, importing
@@ -21,13 +21,15 @@ default this user is disable, but can be enabled with the `ALLOW_ROOT_USER` and
 There are two ways to administer Apollo. The first is through the menus in the
 user interface. The top-level "Apollo" menu has a sub-menu called "Admin" that
 appears for `Admin` users. These menu items include operations like adding
-assemblies and importing annotations. More about using these menus to administer
-Apollo 3 can be found in the [GUI section](../category/data-management-gui).
+assemblies and importing annotations.
 
 The second way of administering Apollo is by using the Apollo CLI. The CLI
 provides the same options as using the GUI, but may be more useful for users who
 want to automate some of the administration tasks or who want to keep a log of
 what commands were run to set up Apollo.
+
+Each guide in this section will give instructions for both the GUI and the CLI,
+if applicable.
 
 ## Basic administration
 
@@ -57,8 +59,3 @@ plots, RNA-seq alignments, or any number of other track types.
 
 Instructions for performing these basic administration tasks can be found in
 both the GUI and CLI guides.
-
-## Customization
-
-There are also other ways to customize Apollo to suit your needs. Please see the
-[customization](../category/customization) section for more details.

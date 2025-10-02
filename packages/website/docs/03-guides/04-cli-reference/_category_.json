@@ -1,5 +1,5 @@
 {
-  "label": "CLI Reference",
+  "label": "CLI (Command Line Interface)",
   "link": {
     "type": "generated-index",
     "description": "Apollo 3 Command Line Interface (CLI)"
