@@ -1,7 +1,3 @@
----
-sidebar_position: 2
----
-
 # Delete assembly
 
 This guide will walk you through the process of deleting an assembly from

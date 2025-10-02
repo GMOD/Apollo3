@@ -1,4 +1,4 @@
-# Background
+# Installation
 
 A full deployment of a collaborative Apollo instance is made up of several
 different components. When setting up Apollo, you'll have to decide how you want
@@ -53,14 +53,14 @@ collaboration server, or it can be external.
 
 ## Deployment examples
 
-- [Deploying with Docker](./02-deployment-examples/01-docker-compose.md)
-- Other examples coming soon
+- [Deploying with Docker](../installation/examples/docker-compose)
+- [Deploying on Ubuntu](../installation/examples/ubuntu-server)
 
 ## Customizing your deployment
 
 Our deployment examples cover setting up Apollo with the most common default
 settings and guest user access. You'll most likely want to then configure user
-logins, which we cover in our [Login Management](03-login-management.md) guide.
+logins, which we cover in our [Login Management](login-management) guide.
 
 We also cover more options for customizing Apollo in our
-[Configuration options](04-configuration-options.md) guide.
+[Configuration options](../category/customization) guide.
