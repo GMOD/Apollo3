@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { type ApolloAssembly } from '@apollo-annotation/mst'
 import { annotationFeatureToGFF3 } from '@apollo-annotation/shared'
-import gff, { type GFF3Item } from '@gmod/gff'
+import { type GFF3Item, formatSync } from '@gmod/gff'
 import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import {
@@ -169,7 +169,7 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
       const { refName, seq } = sequenceFeature
       gff3Items.push({ id: refName, description: '', sequence: seq })
     }
-    const gff3 = gff.formatSync(gff3Items)
+    const gff3 = formatSync(gff3Items)
     const gff3Blob = new Blob([gff3], { type: 'text/plain;charset=utf-8' })
     saveAs(
       gff3Blob,

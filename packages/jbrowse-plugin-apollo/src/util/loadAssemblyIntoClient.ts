@@ -4,10 +4,11 @@ import {
   type CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 import { gff3ToAnnotationFeature } from '@apollo-annotation/shared'
-import gff, {
+import {
   type GFF3Comment,
   type GFF3Feature,
   type GFF3Sequence,
+  parseStringSync,
 } from '@gmod/gff'
 import { getSnapshot } from 'mobx-state-tree'
 
@@ -17,7 +18,7 @@ export async function loadAssemblyIntoClient(
   apolloDataStore: ClientDataStore,
 ) {
   const featuresAndSequences: (GFF3Feature | GFF3Sequence | GFF3Comment)[] =
-    gff.parseStringSync(gff3FileText, {
+    parseStringSync(gff3FileText, {
       parseSequences: true,
       parseComments: true,
       parseDirectives: false,

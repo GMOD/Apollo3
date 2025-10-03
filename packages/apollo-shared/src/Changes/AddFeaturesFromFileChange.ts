@@ -93,6 +93,8 @@ export class AddFeaturesFromFileChange extends FromFileBaseChange {
         filesService.getFileStream(fileDoc),
       )
       let featureCount = 0
+      // @ts-expect-error type is wrong here
+      // eslint-disable-next-line @typescript-eslint/await-thenable
       for await (const f of featureStream) {
         const gff3Feature = f as GFF3Feature
 

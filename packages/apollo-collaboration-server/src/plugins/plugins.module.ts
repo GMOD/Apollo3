@@ -61,7 +61,7 @@ export class PluginsModule {
           __dirname,
           pluginLocation,
         )}`
-        await new Promise((resolve, reject) => {
+        await new Promise<void>((resolve, reject) => {
           const file = fs.createWriteStream(pluginLocation)
           fetch(url)
             .then((response) => {

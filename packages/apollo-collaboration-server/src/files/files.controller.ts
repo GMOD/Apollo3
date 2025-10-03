@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
+import { Readable } from 'node:stream'
+
 import {
   Controller,
   Delete,
@@ -95,9 +97,13 @@ export class FilesController {
     })
     if (acceptGzip) {
       res.set({ 'Content-Encoding': 'gzip' })
-      return new StreamableFile(this.filesService.getFileStream(file, true))
+      return new StreamableFile(
+        Readable.fromWeb(this.filesService.getFileStream(file, true)),
+      )
     }
-    return new StreamableFile(this.filesService.getFileStream(file))
+    return new StreamableFile(
+      Readable.fromWeb(this.filesService.getFileStream(file)),
+    )
   }
 
   /**
