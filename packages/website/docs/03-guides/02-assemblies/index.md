@@ -1,39 +1,89 @@
 # Assemblies
 
-This guide will walk you through the process of uploading an assembly file to
-Apollo3.
+Learn about assemblies in Apollo and how to manage them
 
-1. Navigate to the [Apollo3](https://apollo.jbrowse.org/demo) and log in to your
-   account.
-2. Click on the `Add Assembly` button under the `Apollo` dropdown from top
-   navigation bar. ![alt text](image.png)
-3. Now we have 3 options to upload the assembly:
+## What is an assembly?
 
-   - Upload fasta file containing sequence
+In Apollo, we use the term assembly to refer to the genomic sequence that
+underlies the annotations that Apollo stores. This could be, for example, a
+reference sequence you obtain from a public resource, or a sequence you
+assembled using your own read data.
 
-   ![alt text](image-1.png)
+## What do I need to add an assembly in Apollo?
 
-   - Upload gff3 file containing annotation along with sequence. If we want to
-     upload annotations along with the sequence, we need to select
-     `Also load features from GFF3 file`.
+To add an assembly in Apollo, you'll need the sequence in
+[FASTA](//www.ncbi.nlm.nih.gov/genbank/fastaformat/) format. You'll also need to
+index (and optionally compress) the file. A full description of indexing FASTA
+files is outside the scope of this guide, but in general you will want to use
+the tool `samtools` to index the FASTA file. For example:
 
-   ![alt text](image-2.png)
+For example, if I have a file called my_genome.fa, I would run
 
-   - Instead of uploading the files, we can also provide the URL of the files
-     and query the data on the fly.
+```sh
+# I have a FASTA file named my_genome.fa
+samtools faidx my_genome.fa
+# This generates a file called my_genome.fa.fai
+# I would provide both these files to Apollo
+```
 
-   ![alt text](image-3.png)
+To save disk space on your server, you can compress the FASTA file with a tool
+called `bgzip` (provided by the `htslib` tool suite) before indexing it.
 
-4. After selecting appropriate option and providing the necessary files, click
-   on the `Submit` button. We can see the progress of the upload in the
-   `Jobs list` widget and once the upload is complete we get a success message.
+```sh
+# I have a FASTA file named my_genome.fa
+bgzip my_genome.fa
+# This compresses my file and renames it to my_genome.fa.gz
+samtools faidx my_genome.fa.gz
+# This generates two files called my_genome.fa.gz.fai and my_genome.fa.gz.gzi
+# I would provide all three of these files to Apollo
+```
 
-![alt text](image-4.png)
+When you add the assembly to Apollo, it will store a copy of these files on its
+server to use when needed.
 
-5. Now click on `Launch view' button to view the uploaded assembly in Apollo3
-   (If its not visible please refresh the page).
+## Advanced options
 
-![alt text](image-5.png)
+### Using externally hosted files
 
-Now we have successfully uploaded the assembly to Apollo3 and can start
-browsing/annotating the genome.
+If you already have a copy of your sequence files stored at a URL your server
+can access, you can opt to point your server at those files instead. This could,
+for example, be the case if you work in a lab that has a shared static file
+server that hosts lab resources.
+
+Make sure this file is always available to the server, since if it gets deleted
+or otherwise becomes unaccesible, that assembly in Apollo will no longer work.
+
+### Storing the sequence in the database
+
+Instead of uploading a copy of the sequence files and using those to query for
+the sequence, Apollo can store the sequence directly in its database. This comes
+with performance impacts, especially for larger assemblies, and so is not
+typically recommend.
+
+There are plans to support editing the assembly's sequence in Apollo someday,
+and at that time this option may becomre more commonly used, but for now it
+should probably be avoided.
+
+### Providing the sequence in a GFF3 file
+
+You can also provide the sequence as a FASTA sequence
+[embedded in a GFF3 file](//github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md#other-syntax).
+This also stores the sequence in the database (see
+[above](#storing-the-sequence-in-the-database)), and so is not typically
+recommended unless you are working with a very small assembly.
+
+When providing the sequence in a GFF3 file, you also have the option to import
+the annotation features in the GFF3 file at the same time. See
+[annotation features](annotation-features) for more information on importing
+features.
+
+## How to add an assembly
+
+### Adding an assembly in the GUI
+
+### Adding an assembly with the CLI
+
+For instructions on logging in before running these commands, see the
+[CLI guide](cli-reference).
+
+## How to delete an assembly
