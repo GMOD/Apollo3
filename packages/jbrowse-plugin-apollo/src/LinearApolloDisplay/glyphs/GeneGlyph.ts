@@ -14,7 +14,6 @@ import { alpha } from '@mui/material'
 
 import { type OntologyRecord } from '../../OntologyManager'
 import { MergeExons, MergeTranscripts, SplitExon } from '../../components'
-import { type ApolloSessionModel } from '../../session'
 import {
   type MousePosition,
   type MousePositionWithFeature,
@@ -96,9 +95,9 @@ function drawBackground(
   stateModel: LinearApolloDisplayRendering,
   displayedRegionIndex: number,
   row: number,
-  color: string,
+  color?: string,
 ) {
-  const { apolloRowHeight, lgv, session } = stateModel
+  const { apolloRowHeight, lgv, session, theme } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const { refName, reversed } = displayedRegion
@@ -122,25 +121,26 @@ function drawBackground(
   const topLevelFeatureHeight =
     getRowCount(feature, featureTypeOntology) * apolloRowHeight
 
-  ctx.fillStyle = color
+  let selectedColor
+  if (color) {
+    selectedColor = color
+  } else {
+    selectedColor = readConfObject(
+      session.getPluginConfiguration(),
+      'geneBackgroundColor',
+      { featureType: feature.type },
+    ) as string
+    if (!selectedColor) {
+      selectedColor = alpha(theme.palette.background.paper, 0.6)
+    }
+  }
+  ctx.fillStyle = selectedColor
   ctx.fillRect(
     topLevelFeatureStartPx,
     topLevelFeatureTop,
     topLevelFeatureWidthPx,
     topLevelFeatureHeight,
   )
-}
-
-function backgroundColorForFeature(
-  session: ApolloSessionModel,
-  featureType: string,
-): string {
-  const color = readConfObject(
-    session.getPluginConfiguration(),
-    'backgroundColorForFeature',
-    { featureType },
-  ) as string
-  return color
 }
 
 function draw(
@@ -167,25 +167,7 @@ function draw(
   }
 
   // Draw background for gene
-  drawBackground(
-    ctx,
-    feature,
-    stateModel,
-    displayedRegionIndex,
-    row,
-    alpha(theme.palette.background.paper, 0.6),
-  )
-
-  if (featureTypeOntology.isTypeOf(feature.type, 'pseudogene')) {
-    drawBackground(
-      ctx,
-      feature,
-      stateModel,
-      displayedRegionIndex,
-      row,
-      backgroundColorForFeature(session, 'pseudogenic_transcript'),
-    )
-  }
+  drawBackground(ctx, feature, stateModel, displayedRegionIndex, row)
 
   // Draw lines on different rows for each transcript
   let currentRow = 0
@@ -201,30 +183,7 @@ function draw(
     if (!transcriptChildren) {
       continue
     }
-
     const cdsCount = getCDSCount(transcript, featureTypeOntology)
-    if (cdsCount === 0) {
-      drawBackground(
-        ctx,
-        transcript,
-        stateModel,
-        displayedRegionIndex,
-        currentRow,
-        backgroundColorForFeature(session, 'nonCodingTranscript'),
-      )
-    }
-    if (
-      featureTypeOntology.isTypeOf(transcript.type, 'pseudogenic_transcript')
-    ) {
-      drawBackground(
-        ctx,
-        transcript,
-        stateModel,
-        displayedRegionIndex,
-        currentRow,
-        backgroundColorForFeature(session, 'pseudogenic_transcript'),
-      )
-    }
 
     for (const [, childFeature] of transcriptChildren) {
       if (!featureTypeOntology.isTypeOf(childFeature.type, 'CDS')) {

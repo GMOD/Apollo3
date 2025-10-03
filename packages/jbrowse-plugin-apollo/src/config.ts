@@ -15,10 +15,10 @@ const ApolloPluginConfigurationSchema = ConfigurationSchema('ApolloPlugin', {
     type: 'boolean',
     defaultValue: false,
   },
-  backgroundColorForFeature: {
-    description: 'Color ',
+  geneBackgroundColor: {
+    description: 'Color for feature background',
     type: 'string',
-    defaultValue: 'jexl:colorFeature(featureType)',
+    defaultValue: 'jexl:geneBackgroundColor(featureType)',
     contextVariable: ['featureType'],
   },
 })

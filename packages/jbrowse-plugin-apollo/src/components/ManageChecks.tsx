@@ -111,7 +111,7 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
         return
       }
       const { baseURL, getFetcher } = selectedInternetAccount
-      const uri = new URL(`/assemblies/${selectedAssembly.name}`, baseURL).href
+      const uri = new URL(`assemblies/${selectedAssembly.name}`, baseURL).href
       const apolloFetch = getFetcher({ locationType: 'UriLocation', uri })
       const response = await apolloFetch(uri, { method: 'GET' })
       if (!response.ok) {

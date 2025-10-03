@@ -18,15 +18,11 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express/multer'
 import { Request, Response } from 'express'
 
-import { Role } from '../utils/role/role.enum'
-import { Validations } from '../utils/validation/validatation.decorator'
-
 import { FileStorageEngine } from './FileStorageEngine'
 import { FilesInterceptor as StreamingFileInterceptor } from './files.interceptor'
 import { FilesService } from './files.service'
 import { UploadedFile as UploadedApolloFile } from './filesUtil'
 
-@Validations(Role.ReadOnly)
 @Controller('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
@@ -37,7 +33,6 @@ export class FilesController {
     return this.filesService.findAll()
   }
 
-  @Validations(Role.Admin)
   @Head()
   filesHead() {
     return ''
@@ -49,7 +44,6 @@ export class FilesController {
    * @returns Return ....  if save was successful
    * or in case of error return throw exception
    */
-  @Validations(Role.Admin)
   @Post()
   @UseInterceptors(
     FileInterceptor('file', { storage: new FileStorageEngine() }),
