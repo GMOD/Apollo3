@@ -1,9 +1,5 @@
 # Assemblies
 
-Learn about assemblies in Apollo and how to manage them
-
-## What is an assembly?
-
 In Apollo, we use the term assembly to refer to the genomic sequence that
 underlies the annotations that Apollo stores. This could be, for example, a
 reference sequence you obtain from a public resource, or a sequence you
@@ -81,9 +77,57 @@ features.
 
 ### Adding an assembly in the GUI
 
+From the Apollo menu, choose the "Admin -> Add assembly" menu item.
+
+![Apollo -> Admin -> Add assembly menu](add_assembly_menu_item.png)
+
+Give the assembly a name and select the FASTA and index files (see
+[above](#what-do-i-need-to-add-an-assembly-in-apollo)).
+
+![Add new assembly dialog](add_new_assembly_dialog.png)
+
+Adding an assembly may take some time. When it has finished being added, a
+notification will appear at the bottom of the screen. To see the newly added
+assembly, refresh the page.
+
+![Assembly added notification](assembly_added_notification.png)
+
 ### Adding an assembly with the CLI
 
 For instructions on logging in before running these commands, see the
 [CLI guide](cli).
 
+You can add an assembly by running the following command. The FASTA index files
+will also need to exist, but if they use the standard file naming convention the
+CLI will automatically find them. The indexes can also be explicitly provided by
+passing the correct flags to the command. See more options in the
+[CLI docs for this command](cli/assembly#apollo-assembly-add-from-fasta-input).
+
+```sh
+apollo assembly \
+  add-from-fasta \
+  /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz \
+  --assembly 'Schistosoma haematobium'
+```
+
 ## How to delete an assembly
+
+### Deleting an assembly in the GUI
+
+From the Apollo menu, choose the "Admin -> Delete assembly" menu item.
+
+![Apollo -> Admin -> Delete assembly menu](delete_assembly_menu_item.png)
+
+Select the box confirming that you understand all data related to this assembly
+and its annotations will be deleted and click "Delete".
+
+![Delete assembly dialog](delete_assembly_dialog.png)
+
+### Deleting an assembly with the CLI
+
+For instructions on logging in before running these commands, see the
+[CLI guide](cli).
+
+```sh
+apollo assembly delete --assembly 'Schistosoma haematobium'
+```
