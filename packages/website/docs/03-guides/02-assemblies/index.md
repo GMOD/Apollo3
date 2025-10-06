@@ -84,6 +84,6 @@ features.
 ### Adding an assembly with the CLI
 
 For instructions on logging in before running these commands, see the
-[CLI guide](cli-reference).
+[CLI guide](cli).
 
 ## How to delete an assembly

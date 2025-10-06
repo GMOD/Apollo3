@@ -30,7 +30,7 @@
     "posttest": "yarn lint",
     "test:ci": "nyc mocha 'src/**/*.test.ts'",
     "test:cli": "yarn tsx src/test/test.ts",
-    "version": "oclif readme --multi --dir ../website/docs/admin/cli/ && oclif readme && git add README.md"
+    "version": "oclif readme --multi --dir ../website/docs/03-guides/04-cli/ && oclif readme && git add README.md"
   },
   "oclif": {
     "bin": "apollo",
