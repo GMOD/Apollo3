@@ -58,7 +58,11 @@ export function gff3ToAnnotationFeature(
     feature.children = convertedChildren
   }
   if (convertedAttributes) {
-    feature.attributes = convertedAttributes
+    const [att, id] = convertedAttributes
+    feature.attributes = att
+    if (id) {
+      feature.featureId = id
+    }
   }
   return feature
 }
@@ -76,7 +80,7 @@ function getFeatureMinMax(gff3Feature: GFF3Feature): [number, number] {
 
 function convertFeatureAttributes(
   gff3Feature: GFF3Feature,
-): Record<string, string[] | undefined> | undefined {
+): [Record<string, string[] | undefined>, string | undefined] | undefined {
   const convertedAttributes: Record<string, string[] | undefined> | undefined =
     {}
   const scores = gff3Feature
@@ -108,10 +112,15 @@ function convertFeatureAttributes(
     }
     convertedAttributes.gff_source = [source]
   }
+  let id: string | undefined
   if (attributesCollections.length > 0) {
     for (const attributesCollection of attributesCollections) {
       for (const [key, val] of Object.entries(attributesCollection)) {
         if (key === 'Parent') {
+          continue
+        }
+        if (key === 'ID') {
+          ;[id] = attributesCollection[key]
           continue
         }
         const newKey = isGFFReservedAttribute(key) ? gffToInternal[key] : key
@@ -129,7 +138,7 @@ function convertFeatureAttributes(
     }
   }
   if (Object.keys(convertedAttributes).length > 0) {
-    return convertedAttributes
+    return [convertedAttributes, id]
   }
   return
 }
