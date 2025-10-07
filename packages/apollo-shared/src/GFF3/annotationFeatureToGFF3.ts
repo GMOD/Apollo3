@@ -24,8 +24,10 @@ export function annotationFeatureToGFF3(
   if (parentId) {
     attributes.Parent = [parentId]
   }
+  if (feature.featureId) {
+    attributes.ID = [feature.featureId]
+  }
   if (attributes.gff_id) {
-    attributes.ID = attributes.gff_id
     delete attributes.gff_id
   } else if (feature.children) {
     attributes.ID = [feature._id]

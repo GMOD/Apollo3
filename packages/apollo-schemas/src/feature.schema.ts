@@ -25,6 +25,9 @@ export class Feature
   @Prop({ type: [String], required: true, index: true })
   allIds: string[]
 
+  @Prop()
+  featureId?: string
+
   @Prop({ required: true })
   type: string
 

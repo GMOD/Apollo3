@@ -36,6 +36,7 @@ ctgA	est	match_part	3000	3202	.	+	.	Parent=Match1;Name=agt830.5;Target=agt830.5 
 `,
     {
       _id: '66cf9fbb4e947fa2c27d3d6a',
+      featureId: 'Match1',
       refSeq: 'ctgA',
       type: 'EST_match',
       min: 1049,
@@ -71,7 +72,6 @@ ctgA	est	match_part	3000	3202	.	+	.	Parent=Match1;Name=agt830.5;Target=agt830.5 
       },
       attributes: {
         gff_source: ['est'],
-        gff_id: ['Match1'],
         gff_name: ['agt830.5'],
         gff_target: ['agt830.5 1 654'],
       },
