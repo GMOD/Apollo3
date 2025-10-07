@@ -28,6 +28,9 @@ export class Feature
   @Prop()
   featureId?: string
 
+  @Prop({ type: [String], index: true, sparse: true })
+  indexedIds: string[]
+
   @Prop({ required: true })
   type: string
 
