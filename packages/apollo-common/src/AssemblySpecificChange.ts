@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
+import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+
 import {
   Change,
   type ChangeOptions,
@@ -25,5 +27,28 @@ export abstract class AssemblySpecificChange extends Change {
   constructor(json: SerializedAssemblySpecificChange, options?: ChangeOptions) {
     super(json, options)
     this.assembly = json.assembly
+  }
+
+  getIndexedIds(
+    feature: AnnotationFeatureSnapshot,
+    additionalIds: string[] | undefined,
+  ): string[] {
+    const indexedIds: string[] = []
+    if (feature.featureId) {
+      indexedIds.push(feature.featureId)
+    }
+    for (const additionalId of additionalIds ?? []) {
+      const idValue = feature.attributes?.[additionalId]
+      if (idValue) {
+        indexedIds.push(idValue[0])
+      }
+    }
+    if (feature.children) {
+      for (const child of Object.values(feature.children)) {
+        const childIndexedIds = this.getIndexedIds(child, additionalIds)
+        indexedIds.push(...childIndexedIds)
+      }
+    }
+    return indexedIds
   }
 }
