@@ -451,8 +451,15 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           }
           // fires when app transitions from prerender, user returns to the app / tab.
           if (document.visibilityState === 'visible') {
-            const { session } = getRoot<ApolloRootModel>(self)
-            session.broadcastLocations()
+            try {
+              const { session } = getRoot<ApolloRootModel>(self)
+              if (session && !session.isDestroyed) {
+                session.broadcastLocations()
+              }
+            } catch (error) {
+              // Silently handle the error to prevent crashes
+              console.warn('Failed to broadcast locations:', error)
+            }
           }
         })
       }),
