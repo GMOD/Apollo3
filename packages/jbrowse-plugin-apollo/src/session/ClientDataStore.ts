@@ -87,17 +87,23 @@ export function clientDataStoreFactory(
         return self.assemblies.put(assemblySnapshot)
       },
       addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot) {
-        const assembly = self.assemblies.get(assemblyId)
+        let assembly = self.assemblies.get(assemblyId)
         if (!assembly) {
-          throw new Error(
-            `Could not find assembly "${assemblyId}" to add feature "${feature._id}"`,
-          )
+          // Auto-create the assembly if it doesn't exist in client state
+          // This handles the race condition where assembly exists on server but not in client state
+          assembly = self.assemblies.put({
+            _id: assemblyId,
+            refSeqs: {},
+          })
         }
-        const ref = assembly.refSeqs.get(feature.refSeq)
+        let ref = assembly.refSeqs.get(feature.refSeq)
         if (!ref) {
-          throw new Error(
-            `Could not find refSeq "${feature.refSeq}" to add feature "${feature._id}"`,
-          )
+          // Auto-create the refSeq if it doesn't exist
+          ref = assembly.refSeqs.put({
+            _id: feature.refSeq,
+            name: feature.refSeq,
+            features: {},
+          })
         }
         ref.features.put(feature)
       },
