@@ -99,8 +99,8 @@ export function CopyFeature({
   }
 
   useEffect(() => {
-    setSelectedRefSeqId('')
     async function getRefNames() {
+      setSelectedRefSeqId('')
       if (!selectedAssemblyId) {
         setErrorMessage('No assemblies to copy to')
         return

@@ -4,7 +4,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import {
   Button,
   DialogActions,
@@ -49,7 +48,6 @@ export function ViewCheckResults({
   }
   const { baseURL } = apolloInternetAccount
   const [errorMessage, setErrorMessage] = useState<string>()
-  const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
   const [displayGridData, setDisplayGridData] = useState<GridRowsProp[]>([])
 
   const gridColumns: GridColDef[] = [
@@ -65,11 +63,7 @@ export function ViewCheckResults({
   ]
 
   const assemblies = collaborationServerDriver.getAssemblies()
-  useEffect(() => {
-    if (!selectedAssembly && assemblies.length > 0) {
-      setSelectedAssembly(assemblies[0])
-    }
-  }, [assemblies, selectedAssembly])
+  const [selectedAssembly, setSelectedAssembly] = useState(assemblies.at(0))
 
   useEffect(() => {
     async function getGridData() {

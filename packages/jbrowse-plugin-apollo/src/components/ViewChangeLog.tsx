@@ -26,6 +26,10 @@ import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import {
+  type ApolloInternetAccount,
+  type CollaborationServerDriver,
+} from '../BackendDrivers'
 import { type ApolloSessionModel } from '../session'
 import { type ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
@@ -35,11 +39,6 @@ import { Dialog } from './Dialog'
 interface ViewChangeLogProps {
   session: ApolloSessionModel
   handleClose(): void
-}
-
-interface AssemblyDocument {
-  _id: string
-  name: string
 }
 
 const useStyles = makeStyles()((theme) => ({
@@ -63,11 +62,17 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
   const { baseURL } = apolloInternetAccount
   const { classes } = useStyles()
   const [errorMessage, setErrorMessage] = useState<string>()
-  const [assemblyCollection, setAssemblyCollection] = useState<
-    AssemblyDocument[]
-  >([])
-  const [assemblyId, setAssemblyId] = useState<string>('')
   const [displayGridData, setDisplayGridData] = useState<GridRowsProp[]>([])
+
+  const { collaborationServerDriver } = session.apolloDataStore as {
+    collaborationServerDriver: CollaborationServerDriver
+    getInternetAccount(
+      assemblyName?: string,
+      internetAccountId?: string,
+    ): ApolloInternetAccount
+  }
+  const assemblies = collaborationServerDriver.getAssemblies()
+  const [selectedAssembly, setSelectedAssembly] = useState(assemblies.at(0))
 
   const gridColumns: GridColDef[] = [
     { field: 'sequence' },
@@ -90,7 +95,6 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
           readOnly
         />
       ),
-      valueFormatter: ({ value }) => JSON.stringify(value),
     },
     { field: 'user', headerName: 'User', width: 140 },
     {
@@ -103,46 +107,16 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
   ]
 
   useEffect(() => {
-    async function getAssemblies() {
-      const uri = new URL('assemblies', baseURL).href
-      const apolloFetch = apolloInternetAccount?.getFetcher({
-        locationType: 'UriLocation',
-        uri,
-      })
-      if (apolloFetch) {
-        const response = await apolloFetch(uri, { method: 'GET' })
-        if (!response.ok) {
-          const newErrorMessage = await createFetchErrorMessage(
-            response,
-            'Error when retrieving assemblies from server',
-          )
-          setErrorMessage(newErrorMessage)
-          return
-        }
-        const data = (await response.json()) as AssemblyDocument[]
-        setAssemblyCollection(data)
-      }
-    }
-    getAssemblies().catch((error) => {
-      setErrorMessage(String(error))
-    })
-  }, [apolloInternetAccount, baseURL])
-
-  useEffect(() => {
-    if (!assemblyId && assemblyCollection.length > 0) {
-      setAssemblyId(assemblyCollection[0]._id)
-    }
-  }, [assemblyId, assemblyCollection])
-
-  useEffect(() => {
     async function getGridData() {
-      if (!assemblyId) {
+      if (!selectedAssembly) {
         return
       }
 
       // Get changes
       const url = new URL('changes', baseURL)
-      const searchParams = new URLSearchParams({ assembly: assemblyId })
+      const searchParams = new URLSearchParams({
+        assembly: selectedAssembly.name,
+      })
       url.search = searchParams.toString()
       const uri = url.toString()
       const apolloFetch = apolloInternetAccount?.getFetcher({
@@ -168,10 +142,11 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
     getGridData().catch((error) => {
       setErrorMessage(String(error))
     })
-  }, [assemblyId, apolloInternetAccount, baseURL])
+  }, [apolloInternetAccount, baseURL, selectedAssembly])
 
   function handleChangeAssembly(e: SelectChangeEvent) {
-    setAssemblyId(e.target.value)
+    const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
+    setSelectedAssembly(newAssembly)
   }
 
   return (
@@ -184,12 +159,12 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
     >
       <Select
         style={{ width: 200, marginLeft: 40 }}
-        value={assemblyId}
+        value={selectedAssembly?.name ?? ''}
         onChange={handleChangeAssembly}
       >
-        {assemblyCollection.map((option) => (
-          <MenuItem key={option._id} value={option._id}>
-            {option.name}
+        {assemblies.map((option) => (
+          <MenuItem key={option.name} value={option.name}>
+            {option.displayName || option.name}
           </MenuItem>
         ))}
       </Select>

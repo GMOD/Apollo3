@@ -73,21 +73,14 @@ export function OntologyTermAutocomplete({
     [filterTermsProp, includeDeprecated],
   )
 
-  // effect for clearing choices when not open
-  useEffect(() => {
-    if (!open) {
-      setTermChoices(undefined)
-    }
-  }, [open])
-
   // effect for matching the current value with an ontology term
   useEffect(() => {
     const controller = new AbortController()
     const { signal } = controller
     if (needToLoadCurrentTerm) {
-      setCurrentOntologyTermInvalid('')
       getCurrentTerm(ontologyStore, valueString, filterTerms, signal).then(
         (term) => {
+          setCurrentOntologyTermInvalid('')
           if (!signal.aborted) {
             setCurrentOntologyTerm(term)
           }
