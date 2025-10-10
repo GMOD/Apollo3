@@ -121,9 +121,7 @@ export default [
       'packages/jbrowse-plugin-apollo/src/**/*.{jsx,tsx}',
       'packages/website/src/**/*.{jsx,tsx}',
     ],
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     plugins: { 'react-hooks': pluginReactHooks },
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     rules: { ...pluginReactHooks.configs.recommended.rules },
   },
   // Don't enforce tsdoc syntax in JS files

@@ -96,7 +96,7 @@ export function AddFeature({
   const [end, setEnd] = useState(String(region.end))
   const [start, setStart] = useState(String(region.start + 1))
   const [type, setType] = useState<NewFeature>(NewFeature.GENE_AND_SUBFEATURES)
-  const [customType, setCustomType] = useState<string>()
+  const [customType, setCustomType] = useState<string>('')
   const [strand, setStrand] = useState<1 | -1 | undefined>()
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -344,7 +344,7 @@ export function AddFeature({
               session={session}
               ontologyName="Sequence Ontology"
               style={{ width: 170 }}
-              value=""
+              value={customType}
               filterTerms={isOntologyClass}
               renderInput={(params) => (
                 <TextField

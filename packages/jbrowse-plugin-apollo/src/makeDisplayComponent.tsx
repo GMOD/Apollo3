@@ -87,25 +87,21 @@ const ResizeHandle = ({
     },
     [onResize],
   )
-  const cancelDrag: (event: MouseEvent) => void = useCallback(
-    (event: MouseEvent) => {
-      event.stopPropagation()
-      event.preventDefault()
-      globalThis.removeEventListener('mousemove', mouseMove)
-      globalThis.removeEventListener('mouseup', cancelDrag)
-      globalThis.removeEventListener('mouseleave', cancelDrag)
-    },
-    [mouseMove],
-  )
+
   return (
     // TODO: a11y
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
       onMouseDown={(event: React.MouseEvent) => {
         event.stopPropagation()
-        globalThis.addEventListener('mousemove', mouseMove)
-        globalThis.addEventListener('mouseup', cancelDrag)
-        globalThis.addEventListener('mouseleave', cancelDrag)
+        const controller = new AbortController()
+        const { signal } = controller
+        function abortDrag() {
+          controller.abort()
+        }
+        globalThis.addEventListener('mousemove', mouseMove, { signal })
+        globalThis.addEventListener('mouseup', abortDrag, { signal })
+        globalThis.addEventListener('mouseleave', abortDrag, { signal })
       }}
       onClick={(e) => {
         e.stopPropagation()

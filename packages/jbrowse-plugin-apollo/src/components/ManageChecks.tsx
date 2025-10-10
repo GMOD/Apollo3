@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { type AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
@@ -52,7 +51,6 @@ interface CheckDocument {
 
 export function ManageChecks({ handleClose, session }: ManageChecksProps) {
   const { internetAccounts } = getRoot<ApolloRootModel>(session)
-  const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
   const [errorMessage, setErrorMessage] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const apolloInternetAccounts = internetAccounts.filter(
@@ -76,6 +74,7 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
   }
 
   const assemblies = collaborationServerDriver.getAssemblies()
+  const [selectedAssembly, setSelectedAssembly] = useState(assemblies.at(0))
 
   useEffect(() => {
     async function getChecks() {
@@ -98,12 +97,6 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
       setErrorMessage(String(error))
     })
   }, [selectedInternetAccount])
-
-  useEffect(() => {
-    if (assemblies.length > 0 && selectedAssembly === undefined) {
-      setSelectedAssembly(assemblies[0])
-    }
-  }, [assemblies, selectedAssembly])
 
   useEffect(() => {
     async function getChecks() {

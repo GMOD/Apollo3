@@ -39,7 +39,7 @@ import {
 } from '@mui/material'
 import ObjectID from 'bson-objectid'
 import { getRoot } from 'mobx-state-tree'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
@@ -149,25 +149,8 @@ export function AddAssembly({
   const [fastaGziIndexUrl, setFastaGziIndexUrl] = useState<string>('')
 
   const [loading, setLoading] = useState(false)
-  const [isGzip, setIsGzip] = useState<boolean>(false)
-
-  useEffect(() => {
-    setFastaIndexUrl(fastaUrl ? `${fastaUrl}.fai` : '')
-  }, [fastaUrl])
-
-  useEffect(() => {
-    setFastaGziIndexUrl(fastaUrl ? `${fastaUrl}.gzi` : '')
-  }, [fastaUrl])
-
-  useEffect(() => {
-    if (sequenceIsEditable || fileType === FileType.GFF3) {
-      setIsGzip(
-        fastaFile?.name.toLocaleLowerCase().endsWith('.gz') ? true : false,
-      )
-    } else {
-      setIsGzip(true)
-    }
-  }, [fastaFile, sequenceIsEditable, fileType])
+  const [fastaGzipChecked, setFastaGzipChecked] = useState<boolean>(false)
+  const [gff3GzipChecked, setGff3GzipChecked] = useState<boolean>(false)
 
   function checkAssemblyName(assembly: string) {
     const { assemblies } = session as unknown as AbstractSessionModel
@@ -194,6 +177,10 @@ export function AddAssembly({
     const uri = url.href
     const formData = new FormData()
     let filename = file.name
+    const isGzip =
+      (fileType === FileType.FAI &&
+        (!sequenceIsEditable || fastaGzipChecked)) ||
+      (fileType === FileType.GFF3 && gff3GzipChecked)
 
     if (fileType === FileType.FAI || fileType === FileType.GZI) {
       filename = `${filename}.txt`
@@ -370,11 +357,6 @@ export function AddAssembly({
       if (newExpanded) {
         setExpanded(panel)
       }
-      if (panel === 'panelGffInput') {
-        setIsGzip(false)
-      } else {
-        setIsGzip(true)
-      }
     }
 
   return (
@@ -497,12 +479,12 @@ export function AddAssembly({
                   data-testid="fasta-is-gzip-checkbox"
                   control={
                     <Checkbox
-                      checked={isGzip}
+                      checked={!sequenceIsEditable || fastaGzipChecked}
                       onChange={() => {
                         if (sequenceIsEditable) {
-                          setIsGzip(!isGzip)
+                          setFastaGzipChecked(!fastaGzipChecked)
                         } else {
-                          setIsGzip(true)
+                          setFastaGzipChecked(true)
                         }
                       }}
                       disabled={!sequenceIsEditable}
@@ -606,7 +588,10 @@ export function AddAssembly({
                             onChange={(
                               e: React.ChangeEvent<HTMLInputElement>,
                             ) => {
-                              setFastaUrl(e.target.value)
+                              const { value } = e.target
+                              setFastaUrl(value)
+                              setFastaIndexUrl(value ? `${value}.fai` : '')
+                              setFastaGziIndexUrl(value ? `${value}.gzi` : '')
                             }}
                             disabled={submitted && !errorMessage}
                             slotProps={{
@@ -748,9 +733,9 @@ export function AddAssembly({
                     data-testid="gff3-is-gzip-checkbox"
                     control={
                       <Checkbox
-                        checked={isGzip}
+                        checked={gff3GzipChecked}
                         onChange={() => {
-                          setIsGzip(!isGzip)
+                          setGff3GzipChecked(!gff3GzipChecked)
                         }}
                         disabled={submitted && !errorMessage}
                       />

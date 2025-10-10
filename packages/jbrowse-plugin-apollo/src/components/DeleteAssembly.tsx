@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { DeleteAssemblyChange } from '@apollo-annotation/shared'
-import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import {
   Button,
   Checkbox,
@@ -15,7 +14,7 @@ import {
   type SelectChangeEvent,
 } from '@mui/material'
 import { getRoot } from 'mobx-state-tree'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
 import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import {
@@ -40,7 +39,6 @@ export function DeleteAssembly({
   session,
 }: DeleteAssemblyProps) {
   const { internetAccounts } = getRoot<ApolloRootModel>(session)
-  const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
   const [errorMessage, setErrorMessage] = useState('')
   const [confirmDelete, setconfirmDelete] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -63,12 +61,7 @@ export function DeleteAssembly({
   }
 
   const assemblies = collaborationServerDriver.getAssemblies()
-
-  useEffect(() => {
-    if (assemblies.length > 0 && selectedAssembly === undefined) {
-      setSelectedAssembly(assemblies[0])
-    }
-  }, [assemblies, selectedAssembly])
+  const [selectedAssembly, setSelectedAssembly] = useState(assemblies.at(0))
 
   function handleChangeInternetAccount(e: SelectChangeEvent) {
     setSubmitted(false)

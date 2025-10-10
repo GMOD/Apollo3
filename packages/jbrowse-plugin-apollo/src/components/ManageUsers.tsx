@@ -28,7 +28,7 @@ import {
   GridToolbar,
 } from '@mui/x-data-grid'
 import { getRoot } from 'mobx-state-tree'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { type ChangeManager } from '../ChangeManager'
@@ -72,33 +72,34 @@ export function ManageUsers({
   )
   const [users, setUsers] = useState<UserResponse[]>([])
 
-  const getUsers = useCallback(async () => {
-    const { baseURL } = selectedInternetAccount
-    const uri = new URL('users', baseURL).href
-    const apolloFetch = selectedInternetAccount.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
-    if (apolloFetch) {
-      const response = await apolloFetch(uri, { method: 'GET' })
-      if (!response.ok) {
-        const newErrorMessage = await createFetchErrorMessage(
-          response,
-          'Error when getting user data from db',
-        )
-        setErrorMessage(newErrorMessage)
-        return
-      }
-      const data = (await response.json()) as UserResponse[]
-      setUsers(data.map((u) => (u.role === undefined ? { ...u, role: '' } : u)))
-    }
-  }, [selectedInternetAccount])
-
   useEffect(() => {
+    async function getUsers() {
+      const { baseURL } = selectedInternetAccount
+      const uri = new URL('users', baseURL).href
+      const apolloFetch = selectedInternetAccount.getFetcher({
+        locationType: 'UriLocation',
+        uri,
+      })
+      if (apolloFetch) {
+        const response = await apolloFetch(uri, { method: 'GET' })
+        if (!response.ok) {
+          const newErrorMessage = await createFetchErrorMessage(
+            response,
+            'Error when getting user data from db',
+          )
+          setErrorMessage(newErrorMessage)
+          return
+        }
+        const data = (await response.json()) as UserResponse[]
+        setUsers(
+          data.map((u) => (u.role === undefined ? { ...u, role: '' } : u)),
+        )
+      }
+    }
     getUsers().catch((error) => {
       setErrorMessage(String(error))
     })
-  }, [getUsers])
+  }, [selectedInternetAccount])
 
   async function deleteUser(id: GridRowId) {
     const change = new DeleteUserChange({
