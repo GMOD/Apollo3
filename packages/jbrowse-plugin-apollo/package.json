@@ -27,7 +27,7 @@
     "start:watch": "JB_NPM=false NODE_ENV=development rollup --config --watch",
     "start:server": "serve --no-request-logging --cors --listen 9000 --no-port-switching .",
     "build": "yarn build:shared && yarn clean && rollup --config",
-    "browse": "serve --no-request-logging --listen 8999 --no-port-switching .jbrowse",
+    "browse": "serve --no-request-logging --listen 8999 --no-port-switching --symlinks .jbrowse",
     "test": "jest",
     "test:ci": "jest --coverage",
     "start:collab-cypress": "yarn workspace @apollo-annotation/collaboration-server run cypress:start",
