@@ -407,56 +407,72 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       return { postUserLocation: debouncePostUserLocation(postUserLocation) }
     })
     .volatile(() => ({ roleNotificationSent: false }))
-    .actions((self) => ({
-      initialize: flow(function* initialize(role: Role) {
-        if (role === 'none') {
-          if (!self.roleNotificationSent) {
-            const { session } = getRoot<ApolloRootModel>(self)
-            ;(session as unknown as AbstractSessionModel).notify(
-              'You have registered as an Apollo user but have not been given access. Ask your administrator to enable access for your account.',
-              'warning',
-            )
-            self.roleNotificationSent = true
-          }
-          return
-        }
-        if (role === 'admin') {
-          const rootModel = getRoot(self)
-          if (isAbstractMenuManager(rootModel)) {
-            addTopLevelAdminMenus(rootModel)
-          }
-        }
-        // Get and set server last change sequence into session storage
-        yield self.updateLastChangeSequenceNumber()
-        // Open socket listeners
-        self.addSocketListeners()
-        // request user locations
-        const { baseURL } = self
-        const uri = new URL('users/locations', baseURL).href
-        const apolloFetch = self.getFetcher({
-          locationType: 'UriLocation',
-          uri,
-        })
-        yield apolloFetch(uri, {
-          method: 'GET',
-          signal: self.controller.signal,
-        })
-        window.addEventListener('beforeunload', () => {
+    .actions((self) => {
+      function beforeUnloadListener() {
+        self.postUserLocation([])
+      }
+      function visibilityChangeListener() {
+        // fires when user switches tabs, apps, goes to homescreen, etc.
+        if (document.visibilityState === 'hidden') {
           self.postUserLocation([])
-        })
-        document.addEventListener('visibilitychange', () => {
-          // fires when user switches tabs, apps, goes to homescreen, etc.
-          if (document.visibilityState === 'hidden') {
-            self.postUserLocation([])
+        }
+        // fires when app transitions from prerender, user returns to the app / tab.
+        if (document.visibilityState === 'visible') {
+          const { session } = getRoot<ApolloRootModel>(self)
+          session.broadcastLocations()
+        }
+      }
+      return {
+        initialize: flow(function* initialize(role: Role) {
+          if (role === 'none') {
+            if (!self.roleNotificationSent) {
+              const { session } = getRoot<ApolloRootModel>(self)
+              ;(session as unknown as AbstractSessionModel).notify(
+                'You have registered as an Apollo user but have not been given access. Ask your administrator to enable access for your account.',
+                'warning',
+              )
+              self.roleNotificationSent = true
+            }
+            return
           }
-          // fires when app transitions from prerender, user returns to the app / tab.
-          if (document.visibilityState === 'visible') {
-            const { session } = getRoot<ApolloRootModel>(self)
-            session.broadcastLocations()
+          if (role === 'admin') {
+            const rootModel = getRoot(self)
+            if (isAbstractMenuManager(rootModel)) {
+              addTopLevelAdminMenus(rootModel)
+            }
           }
-        })
-      }),
-    }))
+          // Get and set server last change sequence into session storage
+          yield self.updateLastChangeSequenceNumber()
+          // Open socket listeners
+          self.addSocketListeners()
+          // request user locations
+          const { baseURL } = self
+          const uri = new URL('users/locations', baseURL).href
+          const apolloFetch = self.getFetcher({
+            locationType: 'UriLocation',
+            uri,
+          })
+          yield apolloFetch(uri, {
+            method: 'GET',
+            signal: self.controller.signal,
+          })
+          window.addEventListener('beforeunload', beforeUnloadListener)
+          document.addEventListener(
+            'visibilitychange',
+            visibilityChangeListener,
+          )
+        }),
+        removeBeforeUnloadListener() {
+          window.removeEventListener('beforeunload', beforeUnloadListener)
+        },
+        removeVisibilityChangeListener() {
+          document.removeEventListener(
+            'visibilitychange',
+            visibilityChangeListener,
+          )
+        },
+      }
+    })
     .actions((self) => ({
       afterAttach() {
         self.setRole()
@@ -481,6 +497,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         )
       },
       beforeDestroy() {
+        self.removeBeforeUnloadListener()
+        self.removeVisibilityChangeListener()
         self.controller.abort('internet account beforeDestroy')
         self.socket.close()
       },
