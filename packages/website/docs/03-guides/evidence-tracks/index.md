@@ -60,9 +60,77 @@ evidence by in JBrowse's linear synteny view.
 
 ## How to add evidence tracks
 
+Adding evidence tracks involves modifying the [JBrowse configuration](jbrowse)
+served by Apollo. It can be done from the GUI or the CLI.
+
+You'll need to provide a URL for the track data files when adding a track. It's
+common to serve these files from the same server you use to serve the JBrowse
+app files. See the
+[deployment examples](../installation/background#deployment-examples) in the
+installation guide for more information.
+
 ### Adding evidence tracks in the GUI
+
+From the File menu, choose the "Open track..." menu item.
+
+![File -> Open track menu](open_track_menu_item.png)
+
+Enter the URL of the track (and optionally its index file) in the "Add a track"
+widget and click "Next." Note that local files will not work when saving to
+Apollo.
+
+![Open track widget enter track data page](enter_track_data.png)
+
+Confirm the track type and assembly, and optionally change the track name, in
+the "Add a track" widget and click "Add."
+
+![Open track widget confirm track type page](confirm_track_type.png)
+
+Now that the track is visible as a session track in JBrowes, open the track menu
+and select "Save track to Apollo." This will move the track out of the session
+tracks and store it in Apollo's JBrowse configuration.
+
+![Track menu -> Save track to Apollo menu](save_track_to_apollo_menu_item.png)
 
 ### Adding evidence tracks with the CLI
 
 For instructions on logging in before running these commands, see the
 [CLI guide](cli).
+
+If you have more than one assembly, you'll first need to figure out the assembly
+name that JBrowse uses internally for your assembly. One way to find this out is
+to run this command.
+
+```sh
+apollo assembly get
+```
+
+In the output, you want the `_id` field of the assembly. You can get this
+programaticallyi using `jq` like this.
+
+```sh
+MANSONI_ID=$(
+  apollo assembly get |
+    jq --raw-output '.[] | select(.name=="Schistosoma mansoni")._id'
+)
+```
+
+You'll then need to retrieve a copy of the JBrowse `config.json` from Apollo.
+See the [JBrowse guide](jbrowse#how-to-edit-the-jbrowse-configjson) for how to
+do that. Once you have the `config.json`, you can use the
+[JBrowse CLI](https://jbrowse.org/jb2/docs/cli/) to add the evidence tracks.
+
+```sh
+jbrowse add-track \
+  https://mysite.com/genes.gff.gz \
+  --name "Gene models" \
+  --assemblyNames "${MANSONI_ID}"
+```
+
+See the
+[docs for the `add-track` command](https://jbrowse.org/jb2/docs/cli/#jbrowse-add-track)
+for more options.
+
+After adding the evidence tracks, follow the steps in the
+[JBrowse guide](jbrowse#how-to-edit-the-jbrowse-configjson) to load the updated
+configuration into Apollo.
