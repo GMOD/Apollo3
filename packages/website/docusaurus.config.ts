@@ -101,9 +101,9 @@ const config: Config = {
       copyright: `Copyright © ${new Date().getFullYear()} Evolutionary Software Foundation, Inc. Built with Docusaurus.`,
     },
     prism: {
-      theme: prismThemes.github,
-      darkTheme: prismThemes.dracula,
-      additionalLanguages: ['docker', 'shell-session'],
+      theme: prismThemes.vsLight,
+      darkTheme: prismThemes.vsDark,
+      additionalLanguages: ['docker', 'shell-session', 'bash'],
     },
   } satisfies Preset.ThemeConfig,
 }
