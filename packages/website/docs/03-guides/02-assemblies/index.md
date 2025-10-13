@@ -47,17 +47,17 @@ for example, be the case if you work in a lab that has a shared static file
 server that hosts lab resources.
 
 Make sure this file is always available to the server, since if it gets deleted
-or otherwise becomes unaccesible, that assembly in Apollo will no longer work.
+or otherwise becomes inaccesible, that assembly in Apollo will no longer work.
 
 ### Storing the sequence in the database
 
 Instead of uploading a copy of the sequence files and using those to query for
 the sequence, Apollo can store the sequence directly in its database. This comes
 with performance impacts, especially for larger assemblies, and so is not
-typically recommend.
+typically recommended.
 
 There are plans to support editing the assembly's sequence in Apollo someday,
-and at that time this option may becomre more commonly used, but for now it
+and at that time this option may become more commonly used, but for now it
 should probably be avoided.
 
 ### Providing the sequence in a GFF3 file

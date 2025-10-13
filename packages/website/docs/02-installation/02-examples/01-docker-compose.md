@@ -201,7 +201,7 @@ Docker command outputs.
 
 Next we're going to skip to the bottom section called `volumes`. In this compose
 file, we're using volumes to keep certain kinds of data around even if one of
-the containers needs to be rebuild. For example, let's say you're using a
+the containers needs to be rebuilt. For example, let's say you're using a
 MongoDB container that uses v7.0.6 of MongoDB, but you want to upgrade to
 v7.0.7. With Docker, instead of upgrading the running container, you usually
 build a brand new container based on a Docker image that has the new version you
@@ -381,7 +381,7 @@ mongo-node-1:
 
 This uses the official MongoDB image, runs on port 27017, and uses two volumes
 to store data and configuration in. The second node is almost identical, with a
-different and and port and without the `healthcheck` section.
+different port and without the `healthcheck` section.
 
 The `healthcheck` section is there to initialize the replica set the first time
 the container runs, and then to provide a way for the collaboration server to
@@ -419,7 +419,7 @@ And, you can stop Apollo by running
 docker compose down
 ```
 
-We are now ready to access Apollo. Open a web browser and got the URL you
+We are now ready to access Apollo. Open a web browser and get the URL you
 entered in the `apollo.env` file above. You should see a JBrowse instance with a
 prompt to log in as a guest. You should see a view with an assembly selector,
 but there aren't any assemblies yet. You're now ready to head over to our

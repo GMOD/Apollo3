@@ -4,7 +4,7 @@ Apollo is built on top of JBrowse, so users often need to configure the JBrowse
 instance in which Apollo is running. For information about JBrowse and its
 various configurations, see the [JBrowse docs](https://jbrowse.org/jb2/docs/).
 
-The biggest different between administering a typical non-Apollo JBrowse
+The biggest difference between administering a typical non-Apollo JBrowse
 installation and JBrowse with Apollo is where the configuration is stored. In a
 non-Apollo JBrowse installation, the JBrowse configuration is stored in a file
 usually called `config.json`. This file is where the configuration for the
@@ -20,7 +20,7 @@ Collaboration Server, there is no `config.json` file to edit to configure
 JBrowse. However, there needs to be some way to edit this configuration. To
 enable this, the Apollo CLI is able to retrieve a `config.json` from the Apollo
 Collaboration Server and write it to a file, which can be edited. This edited
-`config.json` is then re-uploade to Apollo. Apollo will store a copy of this
+`config.json` is then re-uploaded to Apollo. Apollo will store a copy of this
 `config.json` and then merge it with the dynamically created `config.json` when
 serving it.
 

@@ -6,7 +6,7 @@ To run this demo, you'll need to have
 installed, as well as [`jq`](https://jqlang.github.io/jq/).
 
 We also recommend a Node.js package manager (such as `npm` or `yarn`) to make
-things a easier, but we will provide directions for doing everything without one
+things easier, but we will provide directions for doing everything without one
 that you can follow if you prefer.
 
 ## Getting the data

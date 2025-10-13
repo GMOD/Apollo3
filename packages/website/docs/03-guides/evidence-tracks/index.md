@@ -21,7 +21,7 @@ Some examples of using a gene track for annotation evidence include
   annotation features to look for missing genes.
 - Showing genes lifted over from another species to compare to existing
   annotation features.
-- Displaying an set of genes curated by someone else to look for missing
+- Displaying a set of genes curated by someone else to look for missing
   transcripts in the existing annotation features.
 
 Any transcripts in these tracks can be added to a new or existing gene in
@@ -56,7 +56,7 @@ genome. This could be:
 
 If you have two or more assemblies in Apollo, you can load data that relates
 positions in two assemblies as a PAF file. This can then be visualized as
-evidence by in JBrowse's linear synteny view.
+evidence with JBrowse's linear synteny view.
 
 ## How to add evidence tracks
 
@@ -106,7 +106,7 @@ apollo assembly get
 ```
 
 In the output, you want the `_id` field of the assembly. You can get this
-programaticallyi using `jq` like this.
+programmatically using `jq` like this.
 
 ```sh
 MANSONI_ID=$(

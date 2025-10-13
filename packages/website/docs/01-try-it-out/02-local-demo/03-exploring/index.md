@@ -31,7 +31,7 @@ the CDS is missing a stop codon.
 ![CDS warning](cds-warning.png)
 
 Click and drag in the ruler the area around the end of the CDS and then select
-"Zoom to region". We can see that the CDS stop short of the stop codon. Click
+"Zoom to region". We can see that the CDS stops short of the stop codon. Click
 and drag the right side of the CDS 3 bases to the right to fix it. Zoom back out
 so you can see the whole gene again, and you will see the warning about the stop
 codon is gone as well.
@@ -43,7 +43,7 @@ Now click the checkbox to open the RNA-seq track. It looks like this feature's
 track menu (the three dots next to the track name label) and select "Appearance
 -> Show both graphical and table display. A table showing the information about
 the current annotation is now shown at the bottom of the track. In the "gene"
-row, change then "end" value to `9659388`, and then do the same for the "mRNA"
+row, change the "end" value to `9659388`, and then do the same for the "mRNA"
 column.
 
 ![RNA-seq table editor](rnaseq-table-editor.png)
@@ -72,7 +72,7 @@ track and select "Track order -> Move track up".
 
 ![Synteny tracks](synteny-tracks.png)
 
-If you wanted to share this particular view, you can click the "Share" button at
+If you want to share this particular view, you can click the "Share" button at
 the top and copy the link. You can also use this for coming back to the same
 view later.
 
@@ -84,9 +84,9 @@ matches for that term. The one we're working on is the first match.
 ![Text search](search-text.png)
 
 Somewhere to the side of the existing gene, click and drag an area in the ruler
-and then select "Add new feature". Look a the possible ontology types suggested,
-and then choose "match". On the new feature, click "Add child feature" and
-choose the coordinates and "Match part" as the type.
+and then select "Add new feature". Look at the possible ontology types
+suggested, and then choose "match". On the new feature, click "Add child
+feature" and choose the coordinates and "Match part" as the type.
 
 Now right-click on the "match" feature and select "Delete feature".
 

@@ -3,7 +3,7 @@
 There are a few different ways you can try out Apollo, ranging from taking a
 quick look to provisioning a full multi-user installation.
 
-## Check out out quick-look demo
+## Check out our quick-look demo
 
 To quickly see what Apollo looks like and get a basic idea of its functionality,
 visit this link:

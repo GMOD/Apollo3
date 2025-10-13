@@ -102,10 +102,10 @@ the top of the page.
 
 ![Menu bar of JBrowse with an "Apollo" menu](apollo_top_menu.png)
 
-You can use some basic Apollo functionality like editing annotations small local
-GFF3 files with just the plugin, but to enable the full functionality of Apollo
-we'll need to add the last two components. Delete the `config.json` for now, as
-we won't need it anymore.
+You can use some basic Apollo functionality like editing annotations in small
+local GFF3 files with just the plugin, but to enable the full functionality of
+Apollo we'll need to add the last two components. Delete the `config.json` for
+now, as we won't need it anymore.
 
 ```sh
 rm config.json
@@ -216,7 +216,7 @@ sudo systemctl restart apache2
 ```
 
 The next thing we need to do is add a file that defines feature types for
-Apollo. This is usally the Sequence Ontology.
+Apollo. This is usually the Sequence Ontology.
 
 ```sh
 cd /var/www/html/

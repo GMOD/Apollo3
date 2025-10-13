@@ -42,7 +42,7 @@ The server requires Node.js 20 or higher to run as well as at least two CPU
 cores and 2GB Memory for basic usage. More memory will likely be required for
 larger assemblies or several concurrent users. The server also needs access to a
 location on its file system to save uploaded files. The size of hard drive it
-needs is dependant on how many files will need to be uploaded.
+needs is dependent on how many files will need to be uploaded.
 
 ### MongoDB Database
 

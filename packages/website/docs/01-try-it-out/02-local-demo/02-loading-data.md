@@ -131,7 +131,7 @@ If you need to log in again, run `apollo logout` first, or use
 
 ## Adding assemblies and annotations
 
-The next step is to add an assembly. We're going to use trimmed-down assembly
+The next step is to add an assembly. We're going to use a trimmed-down assembly
 that only includes a single chromosome. This is so that the data is small enough
 to be self-contained inside this repository, without the need for any external
 data.
@@ -215,7 +215,7 @@ apollo jbrowse get-config > data/config.json
 
 Now that we have the configuration, we can use the `jbrowse` CLI tool to add the
 evidence tracks. We are using the `inPlace` value for the `--load` flag because
-we know how these files are going to be visible in to JBrowse, and we don't want
+we know how these files are going to be visible in JBrowse, and we don't want
 the CLI to try and copy or alter any files.
 
 ```sh
