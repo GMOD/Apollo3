@@ -178,7 +178,7 @@ export function AddAssembly({
     const formData = new FormData()
     let filename = file.name
     const isGzip =
-      (fileType === FileType.FAI &&
+      (fileType === FileType.FASTA &&
         (!sequenceIsEditable || fastaGzipChecked)) ||
       (fileType === FileType.GFF3 && gff3GzipChecked)
 
@@ -515,7 +515,13 @@ export function AddAssembly({
                             onChange={(
                               e: React.ChangeEvent<HTMLInputElement>,
                             ) => {
-                              setFastaFile(e.target.files?.item(0) ?? null)
+                              const file = e.target.files?.item(0)
+                              if (file) {
+                                setFastaFile(file)
+                                if (file.name.endsWith('.gz')) {
+                                  setFastaGzipChecked(true)
+                                }
+                              }
                             }}
                             disabled={submitted && !errorMessage}
                           />
@@ -712,8 +718,14 @@ export function AddAssembly({
                   type="file"
                   disabled={submitted && !errorMessage}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setFastaFile(e.target.files?.item(0) ?? null)
-                    setFileType(FileType.GFF3)
+                    const file = e.target.files?.item(0)
+                    if (file) {
+                      setFastaFile(file)
+                      setFileType(FileType.GFF3)
+                      if (file.name.endsWith('.gz')) {
+                        setGff3GzipChecked(true)
+                      }
+                    }
                   }}
                 />
                 <FormGroup style={{ display: 'grid' }}>
