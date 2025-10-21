@@ -434,19 +434,21 @@ function drawLine(
   ctx.strokeStyle = theme.palette.text.primary
   const { strand = 1 } = transcript
   ctx.beginPath()
+  // If view is reversed, draw forward as reverse and vice versa
+  const effectiveStrand = strand * (reversed ? -1 : 1)
   // Draw the transcript line, and extend it out a bit on the 3` end
-  const lineStart = startPx - (strand === -1 ? 5 : 0)
-  const lineEnd = startPx + widthPx + (strand === -1 ? 0 : 5)
+  const lineStart = startPx - (effectiveStrand === -1 ? 5 : 0)
+  const lineEnd = startPx + widthPx + (effectiveStrand === -1 ? 0 : 5)
   ctx.moveTo(lineStart, height)
   ctx.lineTo(lineEnd, height)
   // Now to draw arrows every 20 pixels along the line
   // Make the arrow range a bit shorter to avoid an arrow hanging off the 5` end
-  const arrowsStart = lineStart + (strand === -1 ? 0 : 3)
-  const arrowsEnd = lineEnd - (strand === -1 ? 3 : 0)
+  const arrowsStart = lineStart + (effectiveStrand === -1 ? 0 : 3)
+  const arrowsEnd = lineEnd - (effectiveStrand === -1 ? 3 : 0)
   // Offset determines if the arrows face left or right
-  const offset = strand === -1 ? 3 : -3
+  const offset = effectiveStrand === -1 ? 3 : -3
   const arrowRange =
-    strand === -1
+    effectiveStrand === -1
       ? range(arrowsStart, arrowsEnd, 20)
       : range(arrowsEnd, arrowsStart, 20)
   for (const arrowLocation of arrowRange) {
