@@ -370,7 +370,7 @@ export function CreateApolloAnnotation({
       })
     }
 
-    await submitChange(change)
+    await submitChange(change, annotationFeature._id)
   }
 
   const copyTranscriptsToDestinationGene = async (
@@ -397,7 +397,8 @@ export function CreateApolloAnnotation({
         assembly: assembly.name,
         addedFeature: transcript,
       })
-      await submitChange(change)
+      // selects the last added transcript
+      await submitChange(change, transcriptId)
     }
   }
 
@@ -425,8 +426,7 @@ export function CreateApolloAnnotation({
         },
       },
     })
-    await submitChange(change)
-    apolloSessionModel.apolloSetSelectedFeature(newGeneId)
+    await submitChange(change, newGeneId)
   }
 
   const extendSelectedDestinationFeatureLocation = async (
@@ -468,8 +468,14 @@ export function CreateApolloAnnotation({
 
   const submitChange = async (
     change: AddFeatureChange | LocationStartChange | LocationEndChange,
+    selectedFeatureId?: string,
   ) => {
-    await apolloSessionModel.apolloDataStore.changeManager.submit(change)
+    await apolloSessionModel.apolloDataStore.changeManager
+      .submit(change)
+      .then(() => {
+        // Selects the newly added/modified feature
+        apolloSessionModel.apolloSetSelectedFeature(selectedFeatureId)
+      })
   }
 
   const handleCreateNewGeneChange = (
