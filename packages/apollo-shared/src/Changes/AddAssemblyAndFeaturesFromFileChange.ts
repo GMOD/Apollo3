@@ -19,6 +19,7 @@ export interface SerializedAddAssemblyAndFeaturesFromFileChangeBase
 export interface AddAssemblyAndFeaturesFromFileChangeDetails {
   assemblyName: string
   fileIds: { fa: string }
+  parseOptions?: { bufferSize: number }
 }
 
 export interface SerializedAddAssemblyAndFeaturesFromFileChangeSingle
@@ -68,7 +69,7 @@ export class AddAssemblyAndFeaturesFromFileChange extends FromFileBaseChange {
     const { assemblyModel, checkModel, fileModel, filesService, user } = backend
     const { assembly, changes, logger } = this
     for (const change of changes) {
-      const { assemblyName, fileIds } = change
+      const { assemblyName, fileIds, parseOptions } = change
       const fileId = fileIds.fa
 
       const { FILE_UPLOAD_FOLDER } = process.env
@@ -110,12 +111,10 @@ export class AddAssemblyAndFeaturesFromFileChange extends FromFileBaseChange {
         backend,
       )
 
-      // Loop all features
-      logger.debug?.(
-        `**************** LOOPATAAN KAIKKI FEATURET SEURAAVAKSI File type: "${fileDoc.type}"`,
-      )
+      const { bufferSize = 10_000 } = parseOptions ?? {}
       const featureStream = filesService.parseGFF3(
         filesService.getFileStream(fileDoc),
+        { bufferSize },
       )
       // @ts-expect-error type is wrong here
       // eslint-disable-next-line @typescript-eslint/await-thenable

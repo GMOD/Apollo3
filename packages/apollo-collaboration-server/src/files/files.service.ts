@@ -103,7 +103,10 @@ export class FilesService {
     }
   }
 
-  parseGFF3(stream: ReadableStream<Uint8Array>): ReadableStream<GFF3Feature> {
+  parseGFF3(
+    stream: ReadableStream<Uint8Array>,
+    options?: { bufferSize?: number },
+  ): ReadableStream<GFF3Feature> {
     return stream.pipeThrough(
       new TransformStream(
         new GFFTransformer({
@@ -111,6 +114,7 @@ export class FilesService {
           parseComments: false,
           parseDirectives: false,
           parseFeatures: true,
+          ...options,
         }),
       ),
     )

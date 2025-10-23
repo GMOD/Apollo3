@@ -18,6 +18,7 @@ export interface SerializedAddFeaturesFromFileChangeBase
 
 export interface AddFeaturesFromFileChangeDetails {
   fileId: string
+  parseOptions?: { bufferSize: number }
 }
 
 export interface SerializedAddFeaturesFromFileChangeSingle
@@ -75,7 +76,7 @@ export class AddFeaturesFromFileChange extends FromFileBaseChange {
     }
 
     for (const change of changes) {
-      const { fileId } = change
+      const { fileId, parseOptions } = change
 
       const { FILE_UPLOAD_FOLDER } = process.env
       if (!FILE_UPLOAD_FOLDER) {
@@ -89,8 +90,10 @@ export class AddFeaturesFromFileChange extends FromFileBaseChange {
       logger.debug?.(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
 
       // Read data from compressed file and parse the content
+      const { bufferSize = 10_000 } = parseOptions ?? {}
       const featureStream = filesService.parseGFF3(
         filesService.getFileStream(fileDoc),
+        { bufferSize },
       )
       let featureCount = 0
       // @ts-expect-error type is wrong here
