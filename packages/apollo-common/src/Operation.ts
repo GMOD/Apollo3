@@ -45,7 +45,10 @@ export interface ServerDataStore {
   filesService: {
     getFileStream(file: FileDocument): ReadableStream<Uint8Array>
     getFileHandle(file: FileDocument): GenericFilehandle
-    parseGFF3(stream: ReadableStream<Uint8Array>): ReadableStream<GFF3Feature>
+    parseGFF3(
+      stream: ReadableStream<Uint8Array>,
+      parseOptions?: { bufferSize?: number },
+    ): ReadableStream<GFF3Feature>
     create(createFileDto: CreateFileDto): void
     remove(id: string): void
   }
