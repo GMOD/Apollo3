@@ -21,7 +21,10 @@
           "min": 1200,
           "max": 1500,
           "strand": 1,
-          "attributes": { "gff_source": ["example"], "gff_id": ["exon1"] }
+          "attributes": {
+            "gff_source": ["example"]
+          },
+          "featureId": "exon1"
         },
         "67581b7d5890a8eb1bedab67": {
           "_id": "67581b7d5890a8eb1bedab67",
@@ -30,7 +33,10 @@
           "min": 1210,
           "max": 1710,
           "strand": 1,
-          "attributes": { "gff_source": ["example"], "gff_id": ["cds2"] }
+          "attributes": {
+            "gff_source": ["example"]
+          },
+          "featureId": "cds2"
         },
         "67581b7d5890a8eb1bedab68": {
           "_id": "67581b7d5890a8eb1bedab68",
@@ -39,7 +45,10 @@
           "min": 1200,
           "max": 1700,
           "strand": 1,
-          "attributes": { "gff_source": ["example"], "gff_id": ["cds1"] }
+          "attributes": {
+            "gff_source": ["example"]
+          },
+          "featureId": "cds1"
         },
         "67581b7d5890a8eb1bedab69": {
           "_id": "67581b7d5890a8eb1bedab69",
@@ -58,7 +67,10 @@
           "strand": 1
         }
       },
-      "attributes": { "gff_source": ["example"], "gff_id": ["eden.1"] }
+      "attributes": {
+        "gff_source": ["example"]
+      },
+      "featureId": "eden.1"
     },
     "67581b7d5890a8eb1bedab6d": {
       "_id": "67581b7d5890a8eb1bedab6d",
@@ -67,8 +79,13 @@
       "min": 1049,
       "max": 1100,
       "strand": 1,
-      "attributes": { "gff_source": ["example"] }
+      "attributes": {
+        "gff_source": ["example"]
+      }
     }
   },
-  "attributes": { "gff_source": ["example"], "gff_id": ["eden"] }
+  "attributes": {
+    "gff_source": ["example"]
+  },
+  "featureId": "eden"
 }

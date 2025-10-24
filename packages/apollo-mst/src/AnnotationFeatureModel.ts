@@ -41,6 +41,11 @@ type TranscriptParts = TranscriptPart[]
 export const AnnotationFeatureModel = types
   .model('AnnotationFeatureModel', {
     _id: types.identifier,
+    /**
+     * User-facing identifier for this feature (where _id is the internal
+     * identifier)
+     */
+    featureId: types.maybe(types.string),
     /** Unique ID of the reference sequence on which this feature is located */
     refSeq: types.string,
     /**
