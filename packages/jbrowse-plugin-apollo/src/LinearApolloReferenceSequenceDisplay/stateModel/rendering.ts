@@ -208,10 +208,12 @@ export function renderingModelFactory(
                 for (const frame of frames) {
                   let frameColor = theme.palette.framesCDS.at(frame)?.main
                   if (frameColor) {
-                    let offsetPx = 0
+                    const { offsetPx } = self.lgv.dynamicBlocks
+                    const horizontalOffsetPx = Math.max(0, -offsetPx)
+                    let verticalOffsetPx = 0
                     if (self.highContrast) {
                       frameColor = 'white'
-                      offsetPx = 1
+                      verticalOffsetPx += 1
                       // eslint-disable-next-line prefer-destructuring
                       seqTrackCtx.fillStyle = theme.palette.grey[200]
                       seqTrackCtx.fillRect(
@@ -223,15 +225,22 @@ export function renderingModelFactory(
                     }
                     seqTrackCtx.fillStyle = frameColor
                     seqTrackCtx.fillRect(
-                      0 + offsetPx,
-                      height + offsetPx,
-                      self.lgv.dynamicBlocks.totalWidthPx - 2 * offsetPx,
-                      self.sequenceRowHeight - 2 * offsetPx,
+                      0 + horizontalOffsetPx,
+                      height + verticalOffsetPx,
+                      self.lgv.dynamicBlocks.totalWidthPxWithoutBorders,
+                      self.sequenceRowHeight - 2 * verticalOffsetPx,
                     )
                   }
                   height += self.sequenceRowHeight
                 }
               }
+              // eslint-disable-next-line unicorn/no-array-for-each
+              self.lgv.dynamicBlocks.forEach((block) => {
+                if (block.type === 'InterRegionPaddingBlock') {
+                  const left = block.offsetPx - self.lgv.dynamicBlocks.offsetPx
+                  seqTrackCtx.clearRect(left, 0, block.widthPx, self.height)
+                }
+              })
 
               for (const [idx, region] of self.regions.entries()) {
                 const { apolloDataStore } =
