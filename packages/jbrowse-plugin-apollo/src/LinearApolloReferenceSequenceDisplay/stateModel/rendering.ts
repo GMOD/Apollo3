@@ -188,12 +188,12 @@ export function renderingModelFactory(
               if (trnslWidthPx < 1) {
                 return
               }
-              const seqTrackctx = self.seqTrackCanvas?.getContext('2d')
-              if (!seqTrackctx) {
+              const seqTrackCtx = self.seqTrackCanvas?.getContext('2d')
+              if (!seqTrackCtx) {
                 return
               }
 
-              seqTrackctx.clearRect(
+              seqTrackCtx.clearRect(
                 0,
                 0,
                 self.lgv.dynamicBlocks.totalWidthPx,
@@ -213,16 +213,16 @@ export function renderingModelFactory(
                       frameColor = 'white'
                       offsetPx = 1
                       // eslint-disable-next-line prefer-destructuring
-                      seqTrackctx.fillStyle = theme.palette.grey[200]
-                      seqTrackctx.fillRect(
+                      seqTrackCtx.fillStyle = theme.palette.grey[200]
+                      seqTrackCtx.fillRect(
                         0,
                         height,
                         self.lgv.dynamicBlocks.totalWidthPx,
                         self.sequenceRowHeight,
                       )
                     }
-                    seqTrackctx.fillStyle = frameColor
-                    seqTrackctx.fillRect(
+                    seqTrackCtx.fillStyle = frameColor
+                    seqTrackCtx.fillRect(
                       0 + offsetPx,
                       height + offsetPx,
                       self.lgv.dynamicBlocks.totalWidthPx - 2 * offsetPx,
@@ -261,7 +261,7 @@ export function renderingModelFactory(
                   for (let j = 2; j >= 0; j--) {
                     if ((region.start + i) % 3 === j) {
                       drawTranslation(
-                        seqTrackctx,
+                        seqTrackCtx,
                         self.lgv.bpPerPx,
                         trnslStartPx,
                         self.sequenceRowHeight * (2 - j),
@@ -290,19 +290,19 @@ export function renderingModelFactory(
                       : xOffset
 
                     // Draw forward
-                    seqTrackctx.beginPath()
-                    seqTrackctx.fillStyle = colorCode(letter, self.theme)
-                    seqTrackctx.rect(
+                    seqTrackCtx.beginPath()
+                    seqTrackCtx.fillStyle = colorCode(letter, self.theme)
+                    seqTrackCtx.rect(
                       startPx,
                       self.sequenceRowHeight * 3,
                       widthPx,
                       self.sequenceRowHeight,
                     )
-                    seqTrackctx.fill()
+                    seqTrackCtx.fill()
                     if (self.lgv.bpPerPx <= 0.1) {
-                      seqTrackctx.stroke()
+                      seqTrackCtx.stroke()
                       drawLetter(
-                        seqTrackctx,
+                        seqTrackCtx,
                         startPx,
                         widthPx,
                         letter,
@@ -312,19 +312,19 @@ export function renderingModelFactory(
 
                     // Draw reverse
                     const revLetter = revcom(letter)
-                    seqTrackctx.beginPath()
-                    seqTrackctx.fillStyle = colorCode(revLetter, self.theme)
-                    seqTrackctx.rect(
+                    seqTrackCtx.beginPath()
+                    seqTrackCtx.fillStyle = colorCode(revLetter, self.theme)
+                    seqTrackCtx.rect(
                       startPx,
                       self.sequenceRowHeight * 4,
                       widthPx,
                       self.sequenceRowHeight,
                     )
-                    seqTrackctx.fill()
+                    seqTrackCtx.fill()
                     if (self.lgv.bpPerPx <= 0.1) {
-                      seqTrackctx.stroke()
+                      seqTrackCtx.stroke()
                       drawLetter(
-                        seqTrackctx,
+                        seqTrackCtx,
                         startPx,
                         widthPx,
                         revLetter,
@@ -338,7 +338,7 @@ export function renderingModelFactory(
                     const rowOffset = self.lgv.bpPerPx <= 1 ? 5 : 3
                     if ((region.start + i) % 3 === k) {
                       drawTranslation(
-                        seqTrackctx,
+                        seqTrackCtx,
                         self.lgv.bpPerPx,
                         trnslStartPx,
                         self.sequenceRowHeight * (rowOffset + k),
