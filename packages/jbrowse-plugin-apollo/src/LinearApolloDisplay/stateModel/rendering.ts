@@ -143,28 +143,34 @@ export function renderingModelFactory(
                 return
               }
               ctx.clearRect(0, 0, dynamicBlocks.totalWidthPx, featuresHeight)
-              for (const [idx, featureLayout] of featureLayouts.entries()) {
-                const displayedRegion = displayedRegions[idx]
-                for (const [row, featureLayoutRow] of featureLayout.entries()) {
-                  for (const [featureRow, featureId] of featureLayoutRow) {
-                    const feature = self.getAnnotationFeatureById(featureId)
-                    if (featureRow > 0 || !feature) {
-                      continue
-                    }
-                    if (
-                      !doesIntersect2(
-                        displayedRegion.start,
-                        displayedRegion.end,
-                        feature.min,
-                        feature.max,
-                      )
-                    ) {
-                      continue
-                    }
-                    self.getGlyph(feature).draw(ctx, feature, row, self, idx)
-                  }
+              // eslint-disable-next-line unicorn/no-array-for-each
+              displayedRegions.forEach((displayedRegion, idx) => {
+                const tree = featureLayouts.get(displayedRegion.refName)
+                if (!tree) {
+                  return
                 }
-              }
+                for (const layoutFeature of tree.all()) {
+                  if (
+                    !doesIntersect2(
+                      displayedRegion.start,
+                      displayedRegion.end,
+                      layoutFeature.min,
+                      layoutFeature.max,
+                    )
+                  ) {
+                    continue
+                  }
+                  const feature = self.getAnnotationFeatureById(
+                    layoutFeature.id,
+                  )
+                  if (!feature) {
+                    continue
+                  }
+                  self
+                    .getGlyph(feature)
+                    .draw(ctx, feature, layoutFeature.row, self, idx)
+                }
+              })
             },
             { name: 'LinearApolloDisplayRenderFeatures' },
           ),

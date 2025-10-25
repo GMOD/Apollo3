@@ -47,7 +47,7 @@ export function baseModelFactory(
           (n) => n >= minDisplayHeight,
         ),
       ),
-      filteredFeatureTypes: types.array(types.string),
+      displayedFeatureTypes: types.array(types.string),
       loadingState: false,
     })
     .views((self) => {
@@ -183,7 +183,7 @@ export function baseModelFactory(
         self.showCheckResults = !self.showCheckResults
       },
       updateFilteredFeatureTypes(types: string[]) {
-        self.filteredFeatureTypes = cast(types)
+        self.displayedFeatureTypes = cast(types)
       },
       setLoading(loading: boolean) {
         self.loadingState = loading
@@ -193,7 +193,10 @@ export function baseModelFactory(
       },
     }))
     .views((self) => {
-      const { filteredFeatureTypes, trackMenuItems: superTrackMenuItems } = self
+      const {
+        displayedFeatureTypes: filteredFeatureTypes,
+        trackMenuItems: superTrackMenuItems,
+      } = self
       return {
         trackMenuItems() {
           const { graphical, table, showCheckResults } = self
