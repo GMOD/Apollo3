@@ -6,43 +6,32 @@ import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/con
 import { type AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
 import { autorun, observable } from 'mobx'
 import { addDisposer, isAlive } from 'mobx-state-tree'
+import RBush from 'rbush'
 
 import { type ApolloSessionModel } from '../../session'
 import { boxGlyph, geneGlyph, genericChildGlyph } from '../glyphs'
 
 import { baseModelFactory } from './base'
 
-function getRowsForFeature(
-  startingRow: number,
-  rowCount: number,
-  filledRowLocations: Map<number, [number, number][]>,
-) {
-  const rowsForFeature = []
-  for (let i = startingRow; i < startingRow + rowCount; i++) {
-    const row = filledRowLocations.get(i)
-    if (row) {
-      rowsForFeature.push(row)
-    }
-  }
-  return rowsForFeature
+export interface LayoutFeature {
+  min: number
+  max: number
+  row: number
+  height: number
+  id: string
 }
 
-function canPlaceFeatureInRows(
-  rowsForFeature: [number, number][][],
-  feature: AnnotationFeature,
-) {
-  for (const rowForFeature of rowsForFeature) {
-    for (const [rowStart, rowEnd] of rowForFeature) {
-      if (
-        doesIntersect2(feature.min, feature.max, rowStart, rowEnd) ||
-        doesIntersect2(rowStart, rowEnd, feature.min, feature.max)
-      ) {
-        return false
-      }
-    }
+class FeatureRBush extends RBush<LayoutFeature> {
+  toBBox(layoutFeature: LayoutFeature) {
+    const { min, max, row, height } = layoutFeature
+    return { minX: min, minY: row, maxX: max, maxY: row + height - 1 }
   }
-
-  return true
+  compareMinX(a: LayoutFeature, b: LayoutFeature) {
+    return a.min - b.min
+  }
+  compareMinY(a: LayoutFeature, b: LayoutFeature) {
+    return a.row - b.row
+  }
 }
 
 export function layoutsModelFactory(
@@ -83,113 +72,124 @@ export function layoutsModelFactory(
     }))
     .views((self) => ({
       get featureLayouts() {
+        const layoutByRefName = new Map<string, FeatureRBush>()
         const { assemblyManager } =
           self.session as unknown as AbstractSessionModel
-        return self.lgv.displayedRegions.map((region) => {
-          const assembly = assemblyManager.get(region.assemblyName)
-          const featureLayout = new Map<number, [number, string][]>()
-          // Track the occupied coordinates in each row
-          const filledRowLocations = new Map<number, [number, number][]>()
-          const { end, refName, start } = region
-          for (const [id, feature] of self.seenFeatures.entries()) {
-            if (!isAlive(feature)) {
-              self.deleteSeenFeature(id)
-              continue
-            }
-            if (
-              refName !== assembly?.getCanonicalRefName(feature.refSeq) ||
-              !doesIntersect2(start, end, feature.min, feature.max) ||
-              (self.filteredFeatureTypes.length > 0 &&
-                !self.filteredFeatureTypes.includes(feature.type))
-            ) {
-              continue
-            }
-            const { featureTypeOntology } =
-              self.session.apolloDataStore.ontologyManager
-            if (!featureTypeOntology) {
-              throw new Error('featureTypeOntology is undefined')
-            }
-            const rowCount = self
-              .getGlyph(feature)
-              .getRowCount(feature, featureTypeOntology, self.lgv.bpPerPx)
-            let startingRow = 0
-            let placed = false
-            while (!placed) {
-              let rowsForFeature = getRowsForFeature(
-                startingRow,
-                rowCount,
-                filledRowLocations,
-              )
-              if (rowsForFeature.length < rowCount) {
-                for (let i = 0; i < rowCount - rowsForFeature.length; i++) {
-                  const newRowNumber = filledRowLocations.size
-                  filledRowLocations.set(newRowNumber, [])
-                  featureLayout.set(newRowNumber, [])
-                }
-                rowsForFeature = getRowsForFeature(
-                  startingRow,
-                  rowCount,
-                  filledRowLocations,
-                )
-              }
-              if (!canPlaceFeatureInRows(rowsForFeature, feature)) {
-                startingRow += 1
-                continue
-              }
-              for (
-                let rowNum = startingRow;
-                rowNum < startingRow + rowCount;
-                rowNum++
-              ) {
-                filledRowLocations.get(rowNum)?.push([feature.min, feature.max])
-                const layoutRow = featureLayout.get(rowNum)
-                layoutRow?.push([rowNum - startingRow, feature._id])
-              }
-              placed = true
-            }
+        const { featureTypeOntology } =
+          self.session.apolloDataStore.ontologyManager
+        if (!featureTypeOntology) {
+          throw new Error('featureTypeOntology is undefined')
+        }
+        for (const [id, feature] of self.seenFeatures.entries()) {
+          if (!isAlive(feature)) {
+            self.deleteSeenFeature(id)
+            continue
           }
-          return featureLayout
-        })
+          const assembly = assemblyManager.get(feature.assemblyId)
+          if (!assembly) {
+            throw new Error('no assembly in layout')
+          }
+          const canonicalRefName = assembly.getCanonicalRefName(feature.refSeq)
+          if (!canonicalRefName) {
+            throw new Error('no canonical refName in layout')
+          }
+          const isDisplayed = self.lgv.displayedRegions.some((region) => {
+            const { end, refName, start } = region
+            const hasDisplayedFeatureTypes =
+              self.displayedFeatureTypes.length > 0
+            if (
+              (!hasDisplayedFeatureTypes ||
+                self.displayedFeatureTypes.includes(feature.type)) &&
+              canonicalRefName === refName &&
+              doesIntersect2(start, end, feature.min, feature.max)
+            ) {
+              return true
+            }
+            return false
+          })
+          if (!isDisplayed) {
+            continue
+          }
+          const rowCount = self
+            .getGlyph(feature)
+            .getRowCount(feature, featureTypeOntology, self.lgv.bpPerPx)
+          const tree = layoutByRefName.get(canonicalRefName)
+          if (!tree) {
+            const newTree = new FeatureRBush()
+            newTree.insert({
+              min: feature.min,
+              max: feature.max,
+              row: 0,
+              height: rowCount,
+              id: feature._id,
+            })
+            layoutByRefName.set(canonicalRefName, newTree)
+            continue
+          }
+          let startingRowIndex = 0
+          while (
+            tree.collides({
+              minX: feature.min,
+              maxX: feature.max,
+              minY: startingRowIndex,
+              maxY: startingRowIndex + rowCount - 1,
+            })
+          ) {
+            startingRowIndex += 1
+          }
+          tree.insert({
+            min: feature.min,
+            max: feature.max,
+            row: startingRowIndex,
+            height: rowCount,
+            id: feature._id,
+          })
+        }
+        return layoutByRefName
       },
       getFeatureLayoutPosition(feature: AnnotationFeature) {
         const { featureLayouts } = this
         const { featureTypeOntology } =
           self.session.apolloDataStore.ontologyManager
-        for (const [idx, layout] of featureLayouts.entries()) {
-          for (const [layoutRowNum, layoutRow] of layout) {
-            for (const [featureRowNum, layoutFeatureId] of layoutRow) {
-              if (featureRowNum !== 0) {
-                // Same top-level feature in all feature rows, so only need to
-                // check the first one
-                continue
+        if (!featureTypeOntology) {
+          throw new Error('featureTypeOntology is undefined')
+        }
+        const { assemblyManager } =
+          self.session as unknown as AbstractSessionModel
+        const assembly = assemblyManager.get(feature.assemblyId)
+        if (!assembly) {
+          throw new Error('no assembly in layoutPosition')
+        }
+        const canonicalRefName = assembly.getCanonicalRefName(feature.refSeq)
+        if (!canonicalRefName) {
+          throw new Error('no canonicalRefName in layoutPosition')
+        }
+        const tree = featureLayouts.get(canonicalRefName)
+        if (!tree) {
+          return
+        }
+        const annotationFeature = self.getAnnotationFeatureById(feature._id)
+        if (!annotationFeature) {
+          return
+        }
+        const { topLevelFeature } = annotationFeature
+        for (const layoutFeature of tree.all()) {
+          if (layoutFeature.id === topLevelFeature._id) {
+            if (feature._id === topLevelFeature._id) {
+              return {
+                layoutRowIndex: layoutFeature.row,
+                featureRowIndex: layoutFeature.row,
               }
-              const layoutFeature =
-                self.getAnnotationFeatureById(layoutFeatureId)
-              if (!layoutFeature) {
-                continue
-              }
-              if (feature._id === layoutFeature._id) {
-                return {
-                  layoutIndex: idx,
-                  layoutRow: layoutRowNum,
-                  featureRow: featureRowNum,
-                }
-              }
-              if (layoutFeature.hasDescendant(feature._id)) {
-                if (!featureTypeOntology) {
-                  throw new Error('featureTypeOntology is undefined')
-                }
-                const row = self
-                  .getGlyph(layoutFeature)
-                  .getRowForFeature(layoutFeature, feature, featureTypeOntology)
-                if (row !== undefined) {
-                  return {
-                    layoutIndex: idx,
-                    layoutRow: layoutRowNum,
-                    featureRow: row,
-                  }
-                }
-              }
+            }
+            const featureRow = self
+              .getGlyph(topLevelFeature)
+              .getRowForFeature(topLevelFeature, feature, featureTypeOntology)
+            if (!featureRow) {
+              return
+            }
+            return {
+              layoutRowIndex: layoutFeature.row,
+              featureRowIndex: layoutFeature.row + featureRow,
             }
           }
         }
@@ -198,10 +198,11 @@ export function layoutsModelFactory(
     }))
     .views((self) => ({
       get highestRow() {
-        return Math.max(
-          0,
-          ...self.featureLayouts.map((layout) => Math.max(...layout.keys())),
-        )
+        return 8
+        // return Math.max(
+        //   0,
+        //   ...self.featureLayouts.map((layout) => Math.max(...layout.keys())),
+        // )
       },
     }))
     .actions((self) => ({

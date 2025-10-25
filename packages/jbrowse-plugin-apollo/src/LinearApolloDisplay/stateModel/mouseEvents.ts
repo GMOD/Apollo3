@@ -47,19 +47,24 @@ export function mouseEventsModelIntermediateFactory(
         const mousePosition = getMousePosition(event, self.lgv)
         const { bp, regionNumber, y } = mousePosition
         const row = Math.floor(y / self.apolloRowHeight)
-        const featureLayout = self.featureLayouts[regionNumber]
-        const layoutRow = featureLayout.get(row)
-        if (!layoutRow) {
+        const { displayedRegions } = self.lgv
+        const region = displayedRegions[regionNumber]
+        const tree = self.featureLayouts.get(region.refName)
+        if (!tree) {
           return mousePosition
         }
-        const foundFeature = layoutRow.find((f) => {
-          const feature = self.getAnnotationFeatureById(f[1])
-          return feature && bp >= feature.min && bp <= feature.max
-        })
-        if (!foundFeature) {
+        const layoutFeature = tree
+          .search({
+            minX: bp,
+            maxX: bp,
+            minY: row,
+            maxY: row,
+          })
+          .at(0)
+        if (!layoutFeature) {
           return mousePosition
         }
-        const [featureRow, topLevelFeatureId] = foundFeature
+        const topLevelFeatureId = layoutFeature.id
         const topLevelFeature = self.getAnnotationFeatureById(topLevelFeatureId)
         if (!topLevelFeature) {
           return mousePosition
@@ -73,7 +78,7 @@ export function mouseEventsModelIntermediateFactory(
         const feature = glyph.getFeatureFromLayout(
           topLevelFeature,
           bp,
-          featureRow,
+          layoutFeature.row,
           featureTypeOntology,
         )
         if (!feature) {

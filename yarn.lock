@@ -502,6 +502,7 @@ __metadata:
     "@types/jsonpath": "npm:^0.2.0"
     "@types/node": "npm:^20.19.15"
     "@types/prop-types": "npm:^15"
+    "@types/rbush": "npm:^4.0.0"
     "@types/react": "npm:^18.3.4"
     "@types/react-dom": "npm:^18"
     autosuggest-highlight: "npm:^3.3.4"
@@ -526,6 +527,7 @@ __metadata:
     nanoid: "npm:^4.0.2"
     npm-run-all: "npm:^4.1.5"
     prop-types: "npm:^15.8.1"
+    rbush: "npm:^4.0.1"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     rimraf: "npm:^3.0.2"
@@ -10419,6 +10421,13 @@ __metadata:
   version: 1.2.5
   resolution: "@types/range-parser@npm:1.2.5"
   checksum: 10c0/fe4bbbbfb19f0765ea15e66e2c58e29e04f4e52055c0d348b08dbfb161c2d2a363cc21b8a6071936a0cab3f02d0f5f362a3f752b37b05ff868000dcfe9120581
+  languageName: node
+  linkType: hard
+
+"@types/rbush@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "@types/rbush@npm:4.0.0"
+  checksum: 10c0/15a4da94a2591aedf7915061ce07a85d99ba762b89b25f46dd8b8c09a3cd6087335839773ba99a5159d3db3e97a98856bc94c1eb8e0f93b89edc19bc608998c9
   languageName: node
   linkType: hard
 
@@ -27043,6 +27052,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"quickselect@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "quickselect@npm:3.0.0"
+  checksum: 10c0/3a0d33b0ec06841d953accdfd735aa3d8b7922cddd12970544a2c4b0278871280d8f5ba496803600693c1e7b7b2fb57c31d2b14d99132f478888006a1be6e6b7
+  languageName: node
+  linkType: hard
+
 "random-bytes@npm:~1.0.0":
   version: 1.0.0
   resolution: "random-bytes@npm:1.0.0"
@@ -27115,6 +27131,15 @@ __metadata:
   dependencies:
     quickselect: "npm:^2.0.0"
   checksum: 10c0/55311586c30cdedaa2220de6f1da45fe1fa806263afbf7b6f4c0078983830c2abc7771187896d68bfc9078cb279079fb4c84971831da4b74384aab2c2c417758
+  languageName: node
+  linkType: hard
+
+"rbush@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "rbush@npm:4.0.1"
+  dependencies:
+    quickselect: "npm:^3.0.0"
+  checksum: 10c0/1d3c2e2c8b8111a6bcac0b36348ef55c977bc533a7a7bef44c423e24de531e43749bcf5b939008de69d97d3c6e7cf0e9040cecb4492358e6d562ea85165a1620
   languageName: node
   linkType: hard
 
