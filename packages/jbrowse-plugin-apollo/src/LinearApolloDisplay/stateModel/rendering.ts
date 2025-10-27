@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import type PluginManager from '@jbrowse/core/PluginManager'
 import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
-import { doesIntersect2 } from '@jbrowse/core/util'
 import { type Theme, createTheme } from '@mui/material'
 import { autorun } from 'mobx'
 import { type Instance, addDisposer, types } from 'mobx-state-tree'
@@ -132,34 +131,21 @@ export function renderingModelFactory(
           self,
           autorun(
             () => {
-              const { canvas, featureLayouts, featuresHeight, lgv } = self
-              if (!lgv.initialized || self.regionCannotBeRendered()) {
+              const { canvas, featureLayouts, lgv } = self
+              if (
+                !lgv.initialized ||
+                self.regionCannotBeRendered() ||
+                !canvas
+              ) {
                 return
               }
-              const { displayedRegions, dynamicBlocks } = lgv
-
-              const ctx = canvas?.getContext('2d')
+              const ctx = canvas.getContext('2d')
               if (!ctx) {
                 return
               }
-              ctx.clearRect(0, 0, dynamicBlocks.totalWidthPx, featuresHeight)
-              // eslint-disable-next-line unicorn/no-array-for-each
-              displayedRegions.forEach((displayedRegion, idx) => {
-                const tree = featureLayouts.get(displayedRegion.refName)
-                if (!tree) {
-                  return
-                }
+              ctx.clearRect(0, 0, canvas.width, canvas.height)
+              for (const [, tree] of featureLayouts) {
                 for (const layoutFeature of tree.all()) {
-                  if (
-                    !doesIntersect2(
-                      displayedRegion.start,
-                      displayedRegion.end,
-                      layoutFeature.min,
-                      layoutFeature.max,
-                    )
-                  ) {
-                    continue
-                  }
                   const feature = self.getAnnotationFeatureById(
                     layoutFeature.id,
                   )
@@ -168,9 +154,9 @@ export function renderingModelFactory(
                   }
                   self
                     .getGlyph(feature)
-                    .draw(ctx, feature, layoutFeature.row, self, idx)
+                    .draw(ctx, feature, layoutFeature.row, self)
                 }
-              })
+              }
             },
             { name: 'LinearApolloDisplayRenderFeatures' },
           ),

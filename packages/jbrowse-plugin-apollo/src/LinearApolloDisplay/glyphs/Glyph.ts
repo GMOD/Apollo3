@@ -20,7 +20,6 @@ export interface Glyph {
     feature: AnnotationFeature,
     row: number,
     stateModel: LinearApolloDisplayRendering,
-    displayedRegionIndex: number,
   ): void
   /** @returns the feature or subfeature at the given bp and row number in this glyph's layout */
   getFeatureFromLayout(
