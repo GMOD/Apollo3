@@ -49,16 +49,27 @@ function draw(
   stateModel: LinearApolloDisplayRendering,
   displayedRegionIndex: number,
 ) {
-  const { apolloRowHeight: heightPx, lgv, selectedFeature, theme } = stateModel
+  const {
+    apolloRowHeight: heightPx,
+    lgv,
+    selectedFeature,
+    theme,
+    featuresHeight,
+  } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
-  const minX =
+  const displayedRegionStartPx =
     (lgv.bpToPx({
       refName: displayedRegion.refName,
-      coord: feature.min,
+      coord: displayedRegion.start,
       regionNumber: displayedRegionIndex,
     })?.offsetPx ?? 0) - offsetPx
   const { reversed } = displayedRegion
+  const bpOffsetFromStart = reversed
+    ? displayedRegion.start - feature.min
+    : feature.min - displayedRegion.start
+  const pxOffsetFromStart = bpOffsetFromStart / bpPerPx
+  const minX = displayedRegionStartPx + pxOffsetFromStart
   const widthPx = feature.length / bpPerPx
   const startPx = reversed ? minX - widthPx : minX
   const top = row * heightPx
@@ -70,6 +81,15 @@ function draw(
     widthPx,
     heightPx,
   ]
+  const displayedRegionWidthPx =
+    (displayedRegion.end - displayedRegion.start) / bpPerPx
+  const displayedRegionMinPx = reversed
+    ? displayedRegionStartPx - displayedRegionWidthPx
+    : displayedRegionStartPx
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(displayedRegionMinPx, 0, displayedRegionWidthPx, featuresHeight)
+  ctx.clip()
   drawBoxOutline(ctx, ...featureBox, textColor)
   if (widthPx <= 2) {
     // Don't need to add details if the feature is too small to see them
@@ -80,6 +100,7 @@ function draw(
   if (isSelectedFeature(feature, selectedFeature)) {
     drawHighlight(stateModel, ctx, feature, true)
   }
+  ctx.restore()
 }
 
 function drawDragPreview(
