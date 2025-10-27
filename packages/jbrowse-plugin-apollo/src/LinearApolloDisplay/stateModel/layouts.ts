@@ -198,11 +198,14 @@ export function layoutsModelFactory(
     }))
     .views((self) => ({
       get highestRow() {
-        return 8
-        // return Math.max(
-        //   0,
-        //   ...self.featureLayouts.map((layout) => Math.max(...layout.keys())),
-        // )
+        const { featureLayouts } = self
+        const highestForEachRefName = [...featureLayouts.values()].map(
+          (tree) => {
+            const data = tree.toJSON() as { height: number }
+            return data.height
+          },
+        )
+        return Math.max(0, ...highestForEachRefName) + 1
       },
     }))
     .actions((self) => ({
