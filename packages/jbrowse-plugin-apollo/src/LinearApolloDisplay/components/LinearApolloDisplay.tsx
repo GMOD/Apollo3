@@ -190,7 +190,9 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
                   let row = 0
                   const featureLayout = model.getFeatureLayoutPosition(feature)
                   if (featureLayout) {
-                    row = featureLayout.layoutRow + featureLayout.featureRow
+                    row =
+                      featureLayout.layoutRowIndex +
+                      featureLayout.featureRowIndex
                   }
                   const top = row * apolloRowHeight
                   const height = apolloRowHeight

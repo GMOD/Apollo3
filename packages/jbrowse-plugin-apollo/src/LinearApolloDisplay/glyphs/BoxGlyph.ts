@@ -45,7 +45,7 @@ function drawBoxFill(
 
 export function getLeftPx(
   display: LinearApolloDisplayRendering,
-  feature: AnnotationFeature,
+  feature: { max: number; min: number },
   block: ContentBlock,
 ) {
   const { lgv } = display
@@ -150,13 +150,13 @@ function drawHighlight(
 }
 
 function drawHover(
-  stateModel: LinearApolloDisplay,
+  display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
   block: ContentBlock,
 ) {
-  drawHighlight(stateModel, ctx, feature, row, block)
+  drawHighlight(display, ctx, feature, row, block)
 }
 
 function drawTooltip(

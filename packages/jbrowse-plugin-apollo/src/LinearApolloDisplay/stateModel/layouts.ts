@@ -180,7 +180,7 @@ export function layoutsModelFactory(
             const featureRow = self
               .getGlyph(topLevelFeature)
               .getRowForFeature(topLevelFeature, feature, featureTypeOntology)
-            if (!featureRow) {
+            if (featureRow === undefined) {
               return
             }
             return {

@@ -9,6 +9,7 @@ import {
   intersection2,
   isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
+import { type ContentBlock } from '@jbrowse/core/util/blockTypes'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material'
 
@@ -19,6 +20,7 @@ import {
   type MousePositionWithFeature,
   containsSelectedFeature,
   getAdjacentExons,
+  getContextMenuItemsForFeature,
   getMinAndMaxPx,
   getOverlappingEdge,
   getStreamIcon,
@@ -35,7 +37,7 @@ import { type LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
 import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
 import { type CanvasMouseEvent } from '../types'
 
-import { boxGlyph } from './BoxGlyph'
+import { boxGlyph, getLeftPx } from './BoxGlyph'
 import { type Glyph } from './Glyph'
 
 let forwardFillLight: CanvasPattern | null = null
@@ -90,33 +92,23 @@ if (canvas?.getContext) {
 }
 
 function drawBackground(
+  display: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
-  stateModel: LinearApolloDisplayRendering,
-  displayedRegionIndex: number,
   row: number,
+  block: ContentBlock,
   color?: string,
 ) {
-  const { apolloRowHeight, lgv, session, theme } = stateModel
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[displayedRegionIndex]
-  const { refName, reversed } = displayedRegion
+  const { apolloRowHeight, lgv, session, theme } = display
+  const { bpPerPx } = lgv
   const { apolloDataStore } = session
   const { featureTypeOntology } = apolloDataStore.ontologyManager
   if (!featureTypeOntology) {
     throw new Error('featureTypeOntology is undefined')
   }
 
-  const topLevelFeatureMinX =
-    (lgv.bpToPx({
-      refName,
-      coord: feature.min,
-      regionNumber: displayedRegionIndex,
-    })?.offsetPx ?? 0) - offsetPx
+  const topLevelFeatureStartPx = getLeftPx(display, feature, block)
   const topLevelFeatureWidthPx = feature.length / bpPerPx
-  const topLevelFeatureStartPx = reversed
-    ? topLevelFeatureMinX - topLevelFeatureWidthPx
-    : topLevelFeatureMinX
   const topLevelFeatureTop = row * apolloRowHeight
   const topLevelFeatureHeight =
     getRowCount(feature, featureTypeOntology) * apolloRowHeight
@@ -144,16 +136,15 @@ function drawBackground(
 }
 
 function draw(
+  display: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
-  stateModel: LinearApolloDisplayRendering,
-  displayedRegionIndex: number,
+  block: ContentBlock,
 ): void {
-  const { apolloRowHeight, lgv, selectedFeature, session, theme } = stateModel
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[displayedRegionIndex]
-  const { refName, reversed } = displayedRegion
+  const { apolloRowHeight, lgv, selectedFeature, session, theme } = display
+  const { bpPerPx } = lgv
+  const { reversed } = block
   const rowHeight = apolloRowHeight
   const cdsHeight = Math.round(0.9 * rowHeight)
   const { children, strand } = feature
@@ -167,7 +158,7 @@ function draw(
   }
 
   // Draw background for gene
-  drawBackground(ctx, feature, stateModel, displayedRegionIndex, row)
+  drawBackground(display, ctx, feature, row, block)
 
   // Draw lines on different rows for each transcript
   let currentRow = 0
@@ -189,26 +180,12 @@ function draw(
       if (!featureTypeOntology.isTypeOf(childFeature.type, 'CDS')) {
         continue
       }
-      drawLine(
-        ctx,
-        stateModel,
-        displayedRegionIndex,
-        row,
-        transcript,
-        currentRow,
-      )
+      drawLine(display, ctx, transcript, row, currentRow, block)
       currentRow += 1
     }
 
     if (cdsCount === 0) {
-      drawLine(
-        ctx,
-        stateModel,
-        displayedRegionIndex,
-        row,
-        transcript,
-        currentRow,
-      )
+      drawLine(display, ctx, transcript, row, currentRow, block)
       currentRow += 1
     }
   }
@@ -226,7 +203,7 @@ function draw(
         featureTypeOntology.isTypeOf(child.type, 'pseudogenic_transcript')
       )
     ) {
-      boxGlyph.draw(ctx, child, row, stateModel, displayedRegionIndex)
+      boxGlyph.draw(display, ctx, child, row, block)
       currentRow += 1
       continue
     }
@@ -242,12 +219,12 @@ function draw(
             continue
           }
           drawExon(
+            display,
             ctx,
-            stateModel,
-            displayedRegionIndex,
-            row,
             exon,
+            row,
             currentRow,
+            block,
             strand,
             forwardFill,
             backwardFill,
@@ -255,13 +232,7 @@ function draw(
         }
         for (const cds of cdsRow) {
           const cdsWidthPx = (cds.max - cds.min) / bpPerPx
-          const minX =
-            (lgv.bpToPx({
-              refName,
-              coord: cds.min,
-              regionNumber: displayedRegionIndex,
-            })?.offsetPx ?? 0) - offsetPx
-          const cdsStartPx = reversed ? minX - cdsWidthPx : minX
+          const cdsStartPx = getLeftPx(display, cds, block)
           ctx.fillStyle = theme.palette.text.primary
           const cdsTop =
             (row + currentRow) * rowHeight + (rowHeight - cdsHeight) / 2
@@ -322,12 +293,12 @@ function draw(
           continue
         }
         drawExon(
+          display,
           ctx,
-          stateModel,
-          displayedRegionIndex,
-          row,
           exon,
+          row,
           currentRow,
+          block,
           strand,
           forwardFill,
           backwardFill,
@@ -337,34 +308,27 @@ function draw(
     }
   }
   if (selectedFeature && containsSelectedFeature(feature, selectedFeature)) {
-    drawHighlight(stateModel, ctx, selectedFeature, true)
+    drawHighlight(display, ctx, selectedFeature, row, block, true)
   }
 }
 
 function drawExon(
+  display: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
-  stateModel: LinearApolloDisplayRendering,
-  displayedRegionIndex: number,
-  row: number,
   exon: AnnotationFeature,
+  row: number,
   currentRow: number,
+  block: ContentBlock,
   strand: number | undefined,
   forwardFill: CanvasPattern | null,
   backwardFill: CanvasPattern | null,
 ) {
-  const { apolloRowHeight, lgv, theme } = stateModel
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[displayedRegionIndex]
-  const { refName, reversed } = displayedRegion
+  const { apolloRowHeight, lgv, theme } = display
+  const { bpPerPx } = lgv
+  const { reversed } = block
 
-  const minX =
-    (lgv.bpToPx({
-      refName,
-      coord: exon.min,
-      regionNumber: displayedRegionIndex,
-    })?.offsetPx ?? 0) - offsetPx
+  const startPx = getLeftPx(display, exon, block)
   const widthPx = exon.length / bpPerPx
-  const startPx = reversed ? minX - widthPx : minX
 
   const top = (row + currentRow) * apolloRowHeight
   const exonHeight = Math.round(0.6 * apolloRowHeight)
@@ -410,25 +374,18 @@ function* range(start: number, stop: number, step = 1): Generator<number> {
 }
 
 function drawLine(
+  display: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
-  stateModel: LinearApolloDisplayRendering,
-  displayedRegionIndex: number,
-  row: number,
   transcript: AnnotationFeature,
+  row: number,
   currentRow: number,
+  block: ContentBlock,
 ) {
-  const { apolloRowHeight, lgv, theme } = stateModel
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[displayedRegionIndex]
-  const { refName, reversed } = displayedRegion
-  const minX =
-    (lgv.bpToPx({
-      refName,
-      coord: transcript.min,
-      regionNumber: displayedRegionIndex,
-    })?.offsetPx ?? 0) - offsetPx
+  const { apolloRowHeight, lgv, theme } = display
+  const { bpPerPx } = lgv
+  const { reversed } = block
+  const startPx = getLeftPx(display, transcript, block)
   const widthPx = Math.round(transcript.length / bpPerPx)
-  const startPx = reversed ? minX - widthPx : minX
   const height =
     Math.round((currentRow + 1 / 2) * apolloRowHeight) + row * apolloRowHeight
   ctx.strokeStyle = theme.palette.text.primary
@@ -460,10 +417,10 @@ function drawLine(
 }
 
 function drawDragPreview(
-  stateModel: LinearApolloDisplay,
+  display: LinearApolloDisplay,
   overlayCtx: CanvasRenderingContext2D,
 ) {
-  const { apolloDragging, apolloRowHeight, lgv, theme } = stateModel
+  const { apolloDragging, apolloRowHeight, lgv, theme } = display
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   if (!apolloDragging) {
     return
@@ -489,30 +446,19 @@ function drawDragPreview(
 }
 
 function drawHighlight(
-  stateModel: LinearApolloDisplayRendering,
+  display: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
   selected = false,
 ) {
-  const { apolloRowHeight, lgv, session, theme } = stateModel
+  const { apolloRowHeight, lgv, session, theme } = display
   const { featureTypeOntology } = session.apolloDataStore.ontologyManager
 
-  const position = stateModel.getFeatureLayoutPosition(feature)
-  if (!position) {
-    return
-  }
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const { featureRow, layoutIndex, layoutRow } = position
-  const displayedRegion = displayedRegions[layoutIndex]
-  const { refName, reversed } = displayedRegion
-  const { length, max, min } = feature
-  const startPx =
-    (lgv.bpToPx({
-      refName,
-      coord: reversed ? max : min,
-      regionNumber: layoutIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const row = layoutRow + featureRow
+  const { bpPerPx } = lgv
+  const { length } = feature
+  const startPx = getLeftPx(display, feature, block)
   const top = row * apolloRowHeight
   const widthPx = length / bpPerPx
   ctx.fillStyle = selected
@@ -531,15 +477,13 @@ function drawHighlight(
 }
 
 function drawHover(
-  stateModel: LinearApolloDisplay,
+  display: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
 ) {
-  const { hoveredFeature } = stateModel
-
-  if (!hoveredFeature) {
-    return
-  }
-  drawHighlight(stateModel, ctx, hoveredFeature.feature)
+  drawHighlight(display, ctx, feature, row, block)
 }
 
 function getFeatureFromLayout(
@@ -702,7 +646,7 @@ function getRowForFeature(
 }
 
 function onMouseDown(
-  stateModel: LinearApolloDisplay,
+  display: LinearApolloDisplay,
   currentMousePosition: MousePositionWithFeature,
   event: CanvasMouseEvent,
 ) {
@@ -712,11 +656,11 @@ function onMouseDown(
   const draggableFeature = getDraggableFeatureInfo(
     currentMousePosition,
     feature,
-    stateModel,
+    display,
   )
   if (draggableFeature) {
     event.stopPropagation()
-    stateModel.startDrag(
+    display.startDrag(
       currentMousePosition,
       draggableFeature.feature,
       draggableFeature.edge,
@@ -726,45 +670,42 @@ function onMouseDown(
 }
 
 function onMouseMove(
-  stateModel: LinearApolloDisplay,
+  display: LinearApolloDisplay,
   mousePosition: MousePosition,
 ) {
   if (isMousePositionWithFeature(mousePosition)) {
     const { feature, bp } = mousePosition
-    stateModel.setHoveredFeature({ feature, bp })
+    display.setHoveredFeature({ feature, bp })
     const draggableFeature = getDraggableFeatureInfo(
       mousePosition,
       feature,
-      stateModel,
+      display,
     )
     if (draggableFeature) {
-      stateModel.setCursor('col-resize')
+      display.setCursor('col-resize')
       return
     }
   }
-  stateModel.setCursor()
+  display.setCursor()
 }
 
-function onMouseUp(
-  stateModel: LinearApolloDisplay,
-  mousePosition: MousePosition,
-) {
-  if (stateModel.apolloDragging) {
+function onMouseUp(display: LinearApolloDisplay, mousePosition: MousePosition) {
+  if (display.apolloDragging) {
     return
   }
   const { feature } = mousePosition
   if (!feature) {
     return
   }
-  selectFeatureAndOpenWidget(stateModel, feature)
+  selectFeatureAndOpenWidget(display, feature)
 }
 
 function getDraggableFeatureInfo(
   mousePosition: MousePosition,
   feature: AnnotationFeature,
-  stateModel: LinearApolloDisplay,
+  disply: LinearApolloDisplay,
 ): { feature: AnnotationFeature; edge: 'min' | 'max' } | undefined {
-  const { session } = stateModel
+  const { session } = disply
   const { apolloDataStore } = session
   const { featureTypeOntology } = apolloDataStore.ontologyManager
   if (!featureTypeOntology) {
@@ -786,7 +727,7 @@ function getDraggableFeatureInfo(
   // are in the same place, we want to prioritize dragging the exon. If the
   // feature we're on is a CDS, let's find any exon it may overlap.
   const { bp, refName, regionNumber, x } = mousePosition
-  const { lgv } = stateModel
+  const { lgv } = disply
   if (isCDS) {
     const transcript = feature.parent
     if (!transcript?.children) {
@@ -854,7 +795,7 @@ function getContextMenuItems(
     }
 
     for (const feature of featuresUnderClick) {
-      const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(
+      const contextMenuItemsForFeature = getContextMenuItemsForFeature(
         display,
         feature,
       )
@@ -1003,7 +944,7 @@ function getContextMenuItems(
 
 // False positive here, none of these functions use "this"
 /* eslint-disable @typescript-eslint/unbound-method */
-const { drawTooltip, getContextMenuItemsForFeature, onMouseLeave } = boxGlyph
+const { drawTooltip, onMouseLeave } = boxGlyph
 /* eslint-enable @typescript-eslint/unbound-method */
 
 export const geneGlyph: Glyph = {
@@ -1012,7 +953,6 @@ export const geneGlyph: Glyph = {
   drawHover,
   drawTooltip,
   getContextMenuItems,
-  getContextMenuItemsForFeature,
   getFeatureFromLayout,
   getRowCount,
   getRowForFeature,
