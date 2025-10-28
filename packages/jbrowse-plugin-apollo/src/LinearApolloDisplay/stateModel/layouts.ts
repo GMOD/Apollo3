@@ -18,7 +18,7 @@ export interface LayoutFeature {
   max: number
   row: number
   height: number
-  id: string
+  feature: AnnotationFeature
 }
 
 class FeatureRBush extends RBush<LayoutFeature> {
@@ -121,7 +121,7 @@ export function layoutsModelFactory(
               max: feature.max,
               row: 0,
               height: rowCount,
-              id: feature._id,
+              feature,
             })
             layoutByRefName.set(canonicalRefName, newTree)
             continue
@@ -142,7 +142,7 @@ export function layoutsModelFactory(
             max: feature.max,
             row: startingRowIndex,
             height: rowCount,
-            id: feature._id,
+            feature,
           })
         }
         return layoutByRefName
@@ -174,7 +174,7 @@ export function layoutsModelFactory(
         }
         const { topLevelFeature } = annotationFeature
         for (const layoutFeature of tree.all()) {
-          if (layoutFeature.id === topLevelFeature._id) {
+          if (layoutFeature.feature._id === topLevelFeature._id) {
             if (feature._id === topLevelFeature._id) {
               return {
                 layoutRowIndex: layoutFeature.row,

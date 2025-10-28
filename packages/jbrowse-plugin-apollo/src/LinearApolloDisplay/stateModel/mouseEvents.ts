@@ -64,11 +64,7 @@ export function mouseEventsModelIntermediateFactory(
         if (!layoutFeature) {
           return mousePosition
         }
-        const topLevelFeatureId = layoutFeature.id
-        const topLevelFeature = self.getAnnotationFeatureById(topLevelFeatureId)
-        if (!topLevelFeature) {
-          return mousePosition
-        }
+        const topLevelFeature = layoutFeature.feature
         const glyph = self.getGlyph(topLevelFeature)
         const { featureTypeOntology } =
           self.session.apolloDataStore.ontologyManager

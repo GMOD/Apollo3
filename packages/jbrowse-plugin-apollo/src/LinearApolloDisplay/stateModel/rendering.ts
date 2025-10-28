@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import type PluginManager from '@jbrowse/core/PluginManager'
 import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
+import { doesIntersect2 } from '@jbrowse/core/util'
 import { type Theme, createTheme } from '@mui/material'
 import { autorun } from 'mobx'
 import { type Instance, addDisposer, types } from 'mobx-state-tree'
@@ -132,6 +133,7 @@ export function renderingModelFactory(
           autorun(
             () => {
               const { canvas, featureLayouts, lgv } = self
+              const { dynamicBlocks, offsetPx } = lgv
               if (
                 !lgv.initialized ||
                 self.regionCannotBeRendered() ||
@@ -144,18 +146,38 @@ export function renderingModelFactory(
                 return
               }
               ctx.clearRect(0, 0, canvas.width, canvas.height)
-              for (const [, tree] of featureLayouts) {
+              for (const block of dynamicBlocks.contentBlocks) {
+                const tree = featureLayouts.get(block.refName)
+                if (!tree) {
+                  return
+                }
+                const blockLeftPx = block.offsetPx - offsetPx
+                ctx.save()
+                ctx.beginPath()
+                ctx.rect(blockLeftPx, 0, block.widthPx, canvas.height)
+                ctx.clip()
                 for (const layoutFeature of tree.all()) {
-                  const feature = self.getAnnotationFeatureById(
-                    layoutFeature.id,
-                  )
-                  if (!feature) {
+                  if (
+                    !doesIntersect2(
+                      block.start,
+                      block.end,
+                      layoutFeature.min,
+                      layoutFeature.max,
+                    )
+                  ) {
                     continue
                   }
                   self
-                    .getGlyph(feature)
-                    .draw(ctx, feature, layoutFeature.row, self)
+                    .getGlyph(layoutFeature.feature)
+                    .draw(
+                      ctx,
+                      layoutFeature.feature,
+                      layoutFeature.row,
+                      self,
+                      block,
+                    )
                 }
+                ctx.restore()
               }
             },
             { name: 'LinearApolloDisplayRenderFeatures' },

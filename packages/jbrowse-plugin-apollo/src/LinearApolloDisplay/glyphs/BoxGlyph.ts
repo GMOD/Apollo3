@@ -1,6 +1,6 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
-import { doesIntersect2 } from '@jbrowse/core/util'
+import { type ContentBlock } from '@jbrowse/core/util/blockTypes'
 import { alpha } from '@mui/material'
 
 import {
@@ -48,51 +48,36 @@ function draw(
   feature: AnnotationFeature,
   row: number,
   stateModel: LinearApolloDisplayRendering,
+  block: ContentBlock,
 ) {
-  const {
-    apolloRowHeight: heightPx,
-    lgv,
-    selectedFeature,
-    theme,
-    featuresHeight,
-  } = stateModel
-  const { bpPerPx, offsetPx, dynamicBlocks } = lgv
-  for (const block of dynamicBlocks.contentBlocks) {
-    if (!doesIntersect2(block.start, block.end, feature.min, feature.max)) {
-      continue
-    }
-    const blockLeftPx = block.offsetPx - offsetPx
-    const featureLeftBpDistanceFromBlockLeftBp = block.reversed
-      ? block.end - feature.max
-      : feature.min - block.start
-    const featureLeftPxDistanceFromBlockLeftPx =
-      featureLeftBpDistanceFromBlockLeftBp / bpPerPx
-    const startPx = blockLeftPx + featureLeftPxDistanceFromBlockLeftPx
-    const widthPx = feature.length / bpPerPx
-    const top = row * heightPx
-    const backgroundColor = theme.palette.background.default
-    const textColor = theme.palette.text.primary
-    const featureBox: [number, number, number, number] = [
-      startPx,
-      top,
-      widthPx,
-      heightPx,
-    ]
-    ctx.save()
-    ctx.beginPath()
-    ctx.rect(blockLeftPx, 0, block.widthPx, featuresHeight)
-    ctx.clip()
-    drawBoxOutline(ctx, ...featureBox, textColor)
-    if (widthPx <= 2) {
-      // Don't need to add details if the feature is too small to see them
-      return
-    }
+  const { apolloRowHeight: heightPx, lgv, selectedFeature, theme } = stateModel
+  const { bpPerPx, offsetPx } = lgv
+  const blockLeftPx = block.offsetPx - offsetPx
+  const featureLeftBpDistanceFromBlockLeftBp = block.reversed
+    ? block.end - feature.max
+    : feature.min - block.start
+  const featureLeftPxDistanceFromBlockLeftPx =
+    featureLeftBpDistanceFromBlockLeftBp / bpPerPx
+  const startPx = blockLeftPx + featureLeftPxDistanceFromBlockLeftPx
+  const widthPx = feature.length / bpPerPx
+  const top = row * heightPx
+  const backgroundColor = theme.palette.background.default
+  const textColor = theme.palette.text.primary
+  const featureBox: [number, number, number, number] = [
+    startPx,
+    top,
+    widthPx,
+    heightPx,
+  ]
+  drawBoxOutline(ctx, ...featureBox, textColor)
+  if (widthPx <= 2) {
+    // Don't need to add details if the feature is too small to see them
+    return
+  }
 
-    drawBoxFill(ctx, startPx, top, widthPx, heightPx, backgroundColor)
-    if (isSelectedFeature(feature, selectedFeature)) {
-      drawHighlight(stateModel, ctx, feature, true)
-    }
-    ctx.restore()
+  drawBoxFill(ctx, startPx, top, widthPx, heightPx, backgroundColor)
+  if (isSelectedFeature(feature, selectedFeature)) {
+    drawHighlight(stateModel, ctx, feature, true)
   }
 }
 

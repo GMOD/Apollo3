@@ -1,5 +1,6 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
+import { type ContentBlock } from '@jbrowse/core/util/blockTypes'
 
 import { type OntologyRecord } from '../../OntologyManager'
 import { type MousePositionWithFeature } from '../../util'
@@ -20,6 +21,7 @@ export interface Glyph {
     feature: AnnotationFeature,
     row: number,
     stateModel: LinearApolloDisplayRendering,
+    block: ContentBlock,
   ): void
   /** @returns the feature or subfeature at the given bp and row number in this glyph's layout */
   getFeatureFromLayout(
