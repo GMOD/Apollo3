@@ -43,14 +43,12 @@ function drawBoxFill(
   drawBox(ctx, x + 1, y + 1, width - 2, height - 2, color)
 }
 
-function draw(
-  ctx: CanvasRenderingContext2D,
+function getLeftPx(
+  display: LinearApolloDisplayRendering,
   feature: AnnotationFeature,
-  row: number,
-  stateModel: LinearApolloDisplayRendering,
   block: ContentBlock,
 ) {
-  const { apolloRowHeight: heightPx, lgv, selectedFeature, theme } = stateModel
+  const { lgv } = display
   const { bpPerPx, offsetPx } = lgv
   const blockLeftPx = block.offsetPx - offsetPx
   const featureLeftBpDistanceFromBlockLeftBp = block.reversed
@@ -58,13 +56,25 @@ function draw(
     : feature.min - block.start
   const featureLeftPxDistanceFromBlockLeftPx =
     featureLeftBpDistanceFromBlockLeftBp / bpPerPx
-  const startPx = blockLeftPx + featureLeftPxDistanceFromBlockLeftPx
+  return blockLeftPx + featureLeftPxDistanceFromBlockLeftPx
+}
+
+function draw(
+  display: LinearApolloDisplayRendering,
+  ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
+) {
+  const { apolloRowHeight: heightPx, lgv, selectedFeature, theme } = display
+  const { bpPerPx } = lgv
+  const leftPx = getLeftPx(display, feature, block)
   const widthPx = feature.length / bpPerPx
   const top = row * heightPx
   const backgroundColor = theme.palette.background.default
   const textColor = theme.palette.text.primary
   const featureBox: [number, number, number, number] = [
-    startPx,
+    leftPx,
     top,
     widthPx,
     heightPx,
@@ -75,9 +85,9 @@ function draw(
     return
   }
 
-  drawBoxFill(ctx, startPx, top, widthPx, heightPx, backgroundColor)
+  drawBoxFill(ctx, leftPx, top, widthPx, heightPx, backgroundColor)
   if (isSelectedFeature(feature, selectedFeature)) {
-    drawHighlight(stateModel, ctx, feature, true)
+    drawHighlight(display, ctx, feature, row, block, true)
   }
 }
 
@@ -112,46 +122,37 @@ function drawDragPreview(
 }
 
 function drawHighlight(
-  stateModel: LinearApolloDisplayRendering,
+  display: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
   selected = false,
 ) {
-  const { apolloRowHeight, lgv, theme } = stateModel
-  const position = stateModel.getFeatureLayoutPosition(feature)
-  if (!position) {
-    return
-  }
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const { layoutRowIndex } = position
-  // eslint-disable-next-line unicorn/no-array-for-each
-  displayedRegions.forEach((displayedRegion, regionNumber) => {
-    const { refName, reversed } = displayedRegion
-    const { length, max, min } = feature
-    const startPx =
-      (lgv.bpToPx({
-        refName,
-        coord: reversed ? max : min,
-        regionNumber,
-      })?.offsetPx ?? 0) - offsetPx
-    const top = layoutRowIndex * apolloRowHeight
-    const widthPx = length / bpPerPx
-    ctx.fillStyle = selected
-      ? theme.palette.action.disabled
-      : theme.palette.action.focus
-    ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
-  })
+  const { apolloRowHeight, lgv, theme } = display
+  const { bpPerPx } = lgv
+  const { length } = feature
+  const leftPx = getLeftPx(display, feature, block)
+  const top = row * apolloRowHeight
+  const widthPx = length / bpPerPx
+  drawBox(
+    ctx,
+    leftPx,
+    top,
+    widthPx,
+    apolloRowHeight,
+    selected ? theme.palette.action.disabled : theme.palette.action.focus,
+  )
 }
 
 function drawHover(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
 ) {
-  const { hoveredFeature } = stateModel
-  if (!hoveredFeature) {
-    return
-  }
-  drawHighlight(stateModel, ctx, hoveredFeature.feature)
+  drawHighlight(stateModel, ctx, feature, row, block)
 }
 
 function drawTooltip(

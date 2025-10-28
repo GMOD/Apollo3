@@ -170,10 +170,10 @@ export function renderingModelFactory(
                   self
                     .getGlyph(layoutFeature.feature)
                     .draw(
+                      self,
                       ctx,
                       layoutFeature.feature,
                       layoutFeature.row,
-                      self,
                       block,
                     )
                 }

@@ -17,10 +17,10 @@ export interface Glyph {
   ): number
   /** draw the feature's primary rendering on the canvas */
   draw(
+    display: LinearApolloDisplayRendering,
     ctx: CanvasRenderingContext2D,
     feature: AnnotationFeature,
     row: number,
-    stateModel: LinearApolloDisplayRendering,
     block: ContentBlock,
   ): void
   /** @returns the feature or subfeature at the given bp and row number in this glyph's layout */
@@ -39,6 +39,9 @@ export interface Glyph {
   drawHover(
     display: LinearApolloDisplayMouseEvents,
     overlayCtx: CanvasRenderingContext2D,
+    feature: AnnotationFeature,
+    row: number,
+    block: ContentBlock,
   ): void
 
   drawDragPreview(
