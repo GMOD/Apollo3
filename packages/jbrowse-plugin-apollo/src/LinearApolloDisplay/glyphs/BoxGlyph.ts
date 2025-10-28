@@ -310,18 +310,16 @@ function isMouseOnFeatureEdge(
   const { offsetPx } = lgv
   const minPxInfo = lgv.bpToPx({ refName, coord: feature.min, regionNumber })
   const maxPxInfo = lgv.bpToPx({ refName, coord: feature.max, regionNumber })
-  if (minPxInfo !== undefined && maxPxInfo !== undefined) {
-    const minPx = minPxInfo.offsetPx - offsetPx
-    const maxPx = maxPxInfo.offsetPx - offsetPx
-    if (Math.abs(maxPx - minPx) < 8) {
-      return
-    }
-    if (Math.abs(minPx - x) < 4) {
-      return 'min'
-    }
-    if (Math.abs(maxPx - x) < 4) {
-      return 'max'
-    }
+  const minPx = minPxInfo && minPxInfo.offsetPx - offsetPx
+  const maxPx = maxPxInfo && maxPxInfo.offsetPx - offsetPx
+  if (minPx && Math.abs(minPx - x) < 4) {
+    return 'min'
+  }
+  if (maxPx && Math.abs(maxPx - x) < 4) {
+    return 'max'
+  }
+  if (maxPx && minPx && Math.abs(maxPx - minPx) < 8) {
+    return
   }
   return
 }

@@ -55,12 +55,7 @@ export function mouseEventsModelIntermediateFactory(
           return mousePosition
         }
         const layoutFeature = tree
-          .search({
-            minX: bp,
-            maxX: bp,
-            minY: row,
-            maxY: row,
-          })
+          .search({ minX: bp, maxX: bp, minY: row, maxY: row })
           .at(0)
         if (!layoutFeature) {
           return mousePosition
