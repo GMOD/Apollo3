@@ -133,7 +133,6 @@ export function renderingModelFactory(
           autorun(
             () => {
               const { canvas, featureLayouts, lgv } = self
-              const { dynamicBlocks, offsetPx } = lgv
               if (
                 !lgv.initialized ||
                 self.regionCannotBeRendered() ||
@@ -141,6 +140,7 @@ export function renderingModelFactory(
               ) {
                 return
               }
+              const { dynamicBlocks, offsetPx } = lgv
               const ctx = canvas.getContext('2d')
               if (!ctx) {
                 return

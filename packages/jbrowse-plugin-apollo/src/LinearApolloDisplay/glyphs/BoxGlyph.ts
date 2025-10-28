@@ -92,24 +92,28 @@ function draw(
 }
 
 function drawDragPreview(
-  stateModel: LinearApolloDisplay,
+  display: LinearApolloDisplayMouseEvents,
   overlayCtx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
 ) {
-  const { apolloDragging, apolloRowHeight, lgv, theme } = stateModel
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
+  const { apolloDragging, apolloRowHeight, lgv, theme } = display
+  const { bpPerPx } = lgv
   if (!apolloDragging) {
     return
   }
-  const { current, edge, feature, start } = apolloDragging
+  const { current, edge } = apolloDragging
 
-  const row = Math.floor(start.y / apolloRowHeight)
-  const region = displayedRegions[start.regionNumber]
   const rowCount = getRowCount(feature)
 
-  const featureEdgeBp = region.reversed
-    ? region.end - feature[edge]
-    : feature[edge] - region.start
-  const featureEdgePx = featureEdgeBp / bpPerPx - offsetPx
+  const leftPx = getLeftPx(display, feature, block)
+  let featureEdgePx
+  if (block.reversed) {
+    featureEdgePx = edge === 'min' ? leftPx + feature.length / bpPerPx : leftPx
+  } else {
+    featureEdgePx = edge === 'min' ? leftPx : leftPx + feature.length / bpPerPx
+  }
   const rectX = Math.min(current.x, featureEdgePx)
   const rectY = row * apolloRowHeight
   const rectWidth = Math.abs(current.x - featureEdgePx)

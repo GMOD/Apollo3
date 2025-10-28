@@ -55,6 +55,9 @@ export interface Glyph {
   drawDragPreview(
     display: LinearApolloDisplayMouseEvents,
     ctx: CanvasRenderingContext2D,
+    feature: AnnotationFeature,
+    row: number,
+    block: ContentBlock,
   ): void
 
   onMouseDown(

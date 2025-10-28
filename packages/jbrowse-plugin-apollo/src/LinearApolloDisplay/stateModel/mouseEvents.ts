@@ -264,7 +264,6 @@ export function mouseEventsModelFactory(
           autorun(
             () => {
               const { lgv, overlayCanvas } = self
-              const { dynamicBlocks, offsetPx } = lgv
               if (
                 !lgv.initialized ||
                 // This type is wrong in @jbrowse/core
@@ -274,6 +273,7 @@ export function mouseEventsModelFactory(
               ) {
                 return
               }
+              const { dynamicBlocks, offsetPx } = lgv
               const ctx = overlayCanvas.getContext('2d')
               if (!ctx) {
                 return
@@ -316,12 +316,21 @@ export function mouseEventsModelFactory(
 
                 // dragging previews
                 if (apolloDragging) {
-                  // NOTE: the glyph where the drag started is responsible for drawing the preview.
-                  // it can call methods in other glyphs to help with this though.
-                  const glyph = self.getGlyph(
-                    apolloDragging.feature.topLevelFeature,
-                  )
-                  glyph.drawDragPreview(self, ctx)
+                  const { start } = apolloDragging
+                  if (start.regionNumber === block.regionNumber) {
+                    // NOTE: the glyph where the drag started is responsible for drawing the preview.
+                    // it can call methods in other glyphs to help with this though.
+                    const glyph = self.getGlyph(
+                      apolloDragging.feature.topLevelFeature,
+                    )
+                    glyph.drawDragPreview(
+                      self,
+                      ctx,
+                      feature,
+                      featureRowIndex,
+                      block,
+                    )
+                  }
                 }
                 ctx.restore()
               }
