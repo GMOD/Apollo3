@@ -6,6 +6,7 @@ import {
 import type PluginManager from '@jbrowse/core/PluginManager'
 import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import { type MenuItem } from '@jbrowse/core/ui'
+import { doesIntersect2 } from '@jbrowse/core/util'
 import { autorun } from 'mobx'
 import { type Instance, addDisposer } from 'mobx-state-tree'
 import { type CSSProperties } from 'react'
@@ -290,6 +291,16 @@ export function mouseEventsModelFactory(
               const { featureRowIndex } = position
 
               for (const block of dynamicBlocks.contentBlocks) {
+                if (
+                  !doesIntersect2(
+                    block.start,
+                    block.end,
+                    feature.min,
+                    feature.max,
+                  )
+                ) {
+                  continue
+                }
                 const blockLeftPx = block.offsetPx - offsetPx
                 ctx.save()
                 ctx.beginPath()
@@ -301,7 +312,7 @@ export function mouseEventsModelFactory(
                 glyph.drawHover(self, ctx, feature, featureRowIndex, block)
 
                 // draw tooltip on hover
-                glyph.drawTooltip(self, ctx)
+                glyph.drawTooltip(self, ctx, feature, featureRowIndex, block)
 
                 // dragging previews
                 if (apolloDragging) {

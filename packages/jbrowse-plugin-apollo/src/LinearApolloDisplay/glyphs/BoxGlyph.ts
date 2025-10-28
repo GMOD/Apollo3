@@ -157,72 +157,51 @@ function drawHover(
 
 function drawTooltip(
   display: LinearApolloDisplayMouseEvents,
-  context: CanvasRenderingContext2D,
+  ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
 ): void {
-  const { hoveredFeature, apolloRowHeight, lgv, theme } = display
-  if (!hoveredFeature) {
-    return
+  const { apolloRowHeight, lgv, theme } = display
+  const { bpPerPx } = lgv
+  let leftPx = getLeftPx(display, feature, block)
+
+  let location = 'Loc: '
+
+  const { length, max, min } = feature
+  location += `${min + 1}–${max}`
+  const top = row * apolloRowHeight
+  const widthPx = length / bpPerPx
+
+  const featureType = `Type: ${feature.type}`
+  const { attributes } = feature
+  const featureName = attributes.get('gff_name')?.find((name) => name !== '')
+  const textWidth = [
+    ctx.measureText(featureType).width,
+    ctx.measureText(location).width,
+  ]
+  if (featureName) {
+    textWidth.push(ctx.measureText(`Name: ${featureName}`).width)
   }
-  const { feature } = hoveredFeature
-  const position = display.getFeatureLayoutPosition(feature)
-  if (!position) {
-    return
-  }
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const { layoutRowIndex, featureRowIndex } = position
-  // eslint-disable-next-line unicorn/no-array-for-each
-  displayedRegions.forEach((displayedRegion, regionNumber) => {
-    const { refName, reversed } = displayedRegion
+  const maxWidth = Math.max(...textWidth)
 
-    let location = 'Loc: '
-
-    const { length, max, min } = feature
-    location += `${min + 1}–${max}`
-
-    let startPx =
-      (lgv.bpToPx({
-        refName,
-        coord: reversed ? max : min,
-        regionNumber,
-      })?.offsetPx ?? 0) - offsetPx
-    const top = (layoutRowIndex + featureRowIndex) * apolloRowHeight
-    const widthPx = length / bpPerPx
-
-    const featureType = `Type: ${feature.type}`
-    const { attributes } = feature
-    const featureName = attributes.get('gff_name')?.find((name) => name !== '')
-    const textWidth = [
-      context.measureText(featureType).width,
-      context.measureText(location).width,
-    ]
-    if (featureName) {
-      textWidth.push(context.measureText(`Name: ${featureName}`).width)
-    }
-    const maxWidth = Math.max(...textWidth)
-
-    startPx = startPx + widthPx + 5
-    context.fillStyle = alpha(theme.palette.text.primary, 0.7)
-    context.fillRect(
-      startPx,
-      top,
-      maxWidth + 4,
-      textWidth.length === 3 ? 45 : 35,
-    )
-    context.beginPath()
-    context.moveTo(startPx, top)
-    context.lineTo(startPx - 5, top + 5)
-    context.lineTo(startPx, top + 10)
-    context.fill()
-    context.fillStyle = theme.palette.background.default
-    let textTop = top + 12
-    context.fillText(featureType, startPx + 2, textTop)
-    if (featureName) {
-      textTop = textTop + 12
-      context.fillText(`Name: ${featureName}`, startPx + 2, textTop)
-    }
+  leftPx = leftPx + widthPx + 5
+  ctx.fillStyle = alpha(theme.palette.text.primary, 0.7)
+  ctx.fillRect(leftPx, top, maxWidth + 4, textWidth.length === 3 ? 45 : 35)
+  ctx.beginPath()
+  ctx.moveTo(leftPx, top)
+  ctx.lineTo(leftPx - 5, top + 5)
+  ctx.lineTo(leftPx, top + 10)
+  ctx.fill()
+  ctx.fillStyle = theme.palette.background.default
+  let textTop = top + 12
+  ctx.fillText(featureType, leftPx + 2, textTop)
+  if (featureName) {
     textTop = textTop + 12
-    context.fillText(location, startPx + 2, textTop)
-  })
+    ctx.fillText(`Name: ${featureName}`, leftPx + 2, textTop)
+  }
+  textTop = textTop + 12
+  ctx.fillText(location, leftPx + 2, textTop)
 }
 
 export function drawBox(

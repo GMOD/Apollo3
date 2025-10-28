@@ -44,6 +44,14 @@ export interface Glyph {
     block: ContentBlock,
   ): void
 
+  drawTooltip(
+    display: LinearApolloDisplayMouseEvents,
+    overlayCtx: CanvasRenderingContext2D,
+    feature: AnnotationFeature,
+    row: number,
+    block: ContentBlock,
+  ): void
+
   drawDragPreview(
     display: LinearApolloDisplayMouseEvents,
     ctx: CanvasRenderingContext2D,
@@ -71,11 +79,6 @@ export interface Glyph {
     display: LinearApolloDisplayMouseEvents,
     currentMousePosition: MousePositionWithFeature,
     event: CanvasMouseEvent,
-  ): void
-
-  drawTooltip(
-    display: LinearApolloDisplayMouseEvents,
-    context: CanvasRenderingContext2D,
   ): void
 
   getContextMenuItemsForFeature(
