@@ -43,7 +43,7 @@ function drawBoxFill(
   drawBox(ctx, x + 1, y + 1, width - 2, height - 2, color)
 }
 
-function getLeftPx(
+export function getLeftPx(
   display: LinearApolloDisplayRendering,
   feature: AnnotationFeature,
   block: ContentBlock,
@@ -250,17 +250,17 @@ function getRowForFeature(
 }
 
 function onMouseDown(
-  stateModel: LinearApolloDisplay,
+  display: LinearApolloDisplay,
   currentMousePosition: MousePositionWithFeature,
   event: CanvasMouseEvent,
 ) {
   const { feature } = currentMousePosition
   // swallow the mouseDown if we are on the edge of the feature so that we
   // don't start dragging the view if we try to drag the feature edge
-  const edge = isMouseOnFeatureEdge(currentMousePosition, feature, stateModel)
+  const edge = isMouseOnFeatureEdge(currentMousePosition, feature, display)
   if (edge) {
     event.stopPropagation()
-    stateModel.startDrag(currentMousePosition, feature, edge)
+    display.startDrag(currentMousePosition, feature, edge)
   }
 }
 
@@ -269,44 +269,41 @@ function onMouseLeave(): void {
 }
 
 function onMouseMove(
-  stateModel: LinearApolloDisplay,
+  display: LinearApolloDisplay,
   mousePosition: MousePosition,
 ) {
   if (isMousePositionWithFeature(mousePosition)) {
     const { feature, bp } = mousePosition
-    stateModel.setHoveredFeature({ feature, bp })
-    const edge = isMouseOnFeatureEdge(mousePosition, feature, stateModel)
+    display.setHoveredFeature({ feature, bp })
+    const edge = isMouseOnFeatureEdge(mousePosition, feature, display)
     if (edge) {
-      stateModel.setCursor('col-resize')
+      display.setCursor('col-resize')
       return
     }
   }
-  stateModel.setCursor()
+  display.setCursor()
 }
 
-function onMouseUp(
-  stateModel: LinearApolloDisplay,
-  mousePosition: MousePosition,
-) {
-  if (stateModel.apolloDragging) {
+function onMouseUp(display: LinearApolloDisplay, mousePosition: MousePosition) {
+  if (display.apolloDragging) {
     return
   }
   const { feature } = mousePosition
   if (!feature) {
     return
   }
-  stateModel.setSelectedFeature(feature)
-  stateModel.showFeatureDetailsWidget(feature)
+  display.setSelectedFeature(feature)
+  display.showFeatureDetailsWidget(feature)
 }
 
 /** @returns undefined if mouse not on the edge of this feature, otherwise 'start' or 'end' depending on which edge */
 function isMouseOnFeatureEdge(
   mousePosition: MousePosition,
   feature: AnnotationFeature,
-  stateModel: LinearApolloDisplay,
+  display: LinearApolloDisplay,
 ) {
   const { refName, regionNumber, x } = mousePosition
-  const { lgv } = stateModel
+  const { lgv } = display
   const { offsetPx } = lgv
   const minPxInfo = lgv.bpToPx({ refName, coord: feature.min, regionNumber })
   const maxPxInfo = lgv.bpToPx({ refName, coord: feature.max, regionNumber })
@@ -329,7 +326,6 @@ export const boxGlyph: Glyph = {
   drawDragPreview,
   drawHover,
   drawTooltip,
-  getContextMenuItemsForFeature,
   getContextMenuItems,
   getFeatureFromLayout,
   getRowCount,

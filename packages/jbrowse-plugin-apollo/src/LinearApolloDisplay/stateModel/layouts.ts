@@ -168,11 +168,7 @@ export function layoutsModelFactory(
         if (!tree) {
           return
         }
-        const annotationFeature = self.getAnnotationFeatureById(feature._id)
-        if (!annotationFeature) {
-          return
-        }
-        const { topLevelFeature } = annotationFeature
+        const { topLevelFeature } = feature
         for (const layoutFeature of tree.all()) {
           if (layoutFeature.feature._id === topLevelFeature._id) {
             if (feature._id === topLevelFeature._id) {

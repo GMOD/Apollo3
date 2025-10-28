@@ -192,8 +192,8 @@ export function layoutsModelFactory(
               if (feature._id === layoutFeature._id) {
                 return {
                   layoutIndex: idx,
-                  layoutRow: 0,
-                  featureRow: 0,
+                  layoutRowIndex: 0,
+                  featureRowIndex: 0,
                 }
               }
             }

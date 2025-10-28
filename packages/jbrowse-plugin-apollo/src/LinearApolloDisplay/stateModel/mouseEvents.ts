@@ -70,7 +70,7 @@ export function mouseEventsModelIntermediateFactory(
         const feature = glyph.getFeatureFromLayout(
           topLevelFeature,
           bp,
-          layoutFeature.row,
+          row - layoutFeature.row,
           featureTypeOntology,
         )
         if (!feature) {

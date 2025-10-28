@@ -1,10 +1,12 @@
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type MenuItem } from '@jbrowse/core/ui'
+import { type ContentBlock } from '@jbrowse/core/util/blockTypes'
 import { alpha } from '@mui/material'
 
 import {
   type MousePositionWithFeature,
   containsSelectedFeature,
+  getContextMenuItemsForFeature,
   isMousePositionWithFeature,
 } from '../../util'
 import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
@@ -12,7 +14,7 @@ import { type LinearApolloDisplay } from '../stateModel'
 import { type LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
 import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
 
-import { boxGlyph, drawBox } from './BoxGlyph'
+import { boxGlyph, drawBox, getLeftPx } from './BoxGlyph'
 import { type Glyph } from './Glyph'
 
 function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
@@ -30,105 +32,89 @@ function getRowCount(feature: AnnotationFeature) {
 }
 
 function draw(
+  display: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
-  stateModel: LinearApolloDisplayRendering,
-  displayedRegionIndex: number,
+  block: ContentBlock,
 ) {
-  const { selectedFeature } = stateModel
+  const { selectedFeature } = display
   for (let i = 0; i < getRowCount(feature); i++) {
-    drawRow(ctx, feature, row + i, row, stateModel, displayedRegionIndex)
+    drawRow(display, ctx, feature, row + i, row, block)
   }
   if (selectedFeature && containsSelectedFeature(feature, selectedFeature)) {
-    drawHighlight(stateModel, ctx, selectedFeature)
+    drawHighlight(display, ctx, feature, row, block, true)
   }
 }
 
 function drawRow(
+  display: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
   topLevelFeature: AnnotationFeature,
   row: number,
   topRow: number,
-  stateModel: LinearApolloDisplayRendering,
-  displayedRegionIndex: number,
+  block: ContentBlock,
 ) {
   const features = featuresForRow(topLevelFeature)[row - topRow]
   for (const feature of features) {
-    drawFeature(ctx, feature, row, stateModel, displayedRegionIndex)
+    drawFeature(display, ctx, feature, row, block)
   }
 }
 
 function drawFeature(
+  display: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
-  stateModel: LinearApolloDisplayRendering,
-  displayedRegionIndex: number,
+  block: ContentBlock,
 ) {
-  const { apolloRowHeight: heightPx, lgv, theme } = stateModel
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[displayedRegionIndex]
-  const minX =
-    (lgv.bpToPx({
-      refName: displayedRegion.refName,
-      coord: feature.min,
-      regionNumber: displayedRegionIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const { reversed } = displayedRegion
-  const widthPx = feature.length / bpPerPx
-  const startPx = reversed ? minX - widthPx : minX
-  const top = row * heightPx
+  const { apolloRowHeight: heightPx, lgv, theme } = display
   const rowCount = getRowCount(feature)
-  const groupingColor = alpha(theme.palette.background.paper, 0.6)
   if (rowCount > 1) {
     // draw background that encapsulates all child features
+    const { bpPerPx } = lgv
+    const leftPx = getLeftPx(display, feature, block)
+    const widthPx = feature.length / bpPerPx
+    const top = row * heightPx
+    const groupingColor = alpha(theme.palette.background.paper, 0.6)
     const featureHeight = rowCount * heightPx
-    drawBox(ctx, startPx, top, widthPx, featureHeight, groupingColor)
+    drawBox(ctx, leftPx, top, widthPx, featureHeight, groupingColor)
   }
-  boxGlyph.draw(ctx, feature, row, stateModel, displayedRegionIndex)
+  boxGlyph.draw(display, ctx, feature, row, block)
 }
 
 function drawHighlight(
-  stateModel: LinearApolloDisplayRendering,
+  display: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
   selected = false,
 ) {
-  const { apolloRowHeight, lgv, theme } = stateModel
-
-  const position = stateModel.getFeatureLayoutPosition(feature)
-  if (!position) {
-    return
-  }
-  const { featureRow, layoutIndex, layoutRow } = position
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[layoutIndex]
-  const { refName, reversed } = displayedRegion
-  const { length, max, min } = feature
-  const startPx =
-    (lgv.bpToPx({
-      refName,
-      coord: reversed ? max : min,
-      regionNumber: layoutIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const top = (layoutRow + featureRow) * apolloRowHeight
+  const { apolloRowHeight, lgv, theme } = display
+  const { bpPerPx } = lgv
+  const { length } = feature
+  const leftPx = getLeftPx(display, feature, block)
+  const top = row * apolloRowHeight
   const widthPx = length / bpPerPx
-  ctx.fillStyle = selected
-    ? theme.palette.action.disabled
-    : theme.palette.action.focus
-  ctx.fillRect(startPx, top, widthPx, apolloRowHeight * getRowCount(feature))
+  drawBox(
+    ctx,
+    leftPx,
+    top,
+    widthPx,
+    apolloRowHeight * getRowCount(feature),
+    selected ? theme.palette.action.disabled : theme.palette.action.focus,
+  )
 }
 
 function drawHover(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
 ) {
-  const { hoveredFeature } = stateModel
-  if (!hoveredFeature) {
-    return
-  }
-  drawHighlight(stateModel, ctx, hoveredFeature.feature)
+  drawHighlight(stateModel, ctx, feature, row, block)
 }
 
 function getFeatureFromLayout(
@@ -180,7 +166,7 @@ function getContextMenuItems(
       if (relative._id === hoveredFeature.feature._id) {
         continue
       }
-      const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(
+      const contextMenuItemsForFeature = getContextMenuItemsForFeature(
         display,
         relative,
       )
@@ -198,7 +184,6 @@ function getContextMenuItems(
 const {
   drawDragPreview,
   drawTooltip,
-  getContextMenuItemsForFeature,
   onMouseDown,
   onMouseLeave,
   onMouseMove,
@@ -211,7 +196,6 @@ export const genericChildGlyph: Glyph = {
   drawDragPreview,
   drawHover,
   drawTooltip,
-  getContextMenuItemsForFeature,
   getContextMenuItems,
   getFeatureFromLayout,
   getRowCount,
