@@ -38,6 +38,14 @@ export interface ApolloRefSeqResponse {
   assembly: string
 }
 
+interface RefSeq {
+  refName: string
+  id: string
+  aliases: string[]
+}
+
+type RefSeqMap = Map<string, RefSeq>
+
 export interface ApolloInternetAccount extends BaseInternetAccountModel {
   baseURL: string
   socket: Socket
@@ -47,6 +55,8 @@ export interface ApolloInternetAccount extends BaseInternetAccountModel {
 
 export class CollaborationServerDriver extends BackendDriver {
   private inFlight = new Map<string, Promise<string>>()
+
+  private refSeqMaps = new Map<string, RefSeqMap>()
 
   private async fetch(
     internetAccount: ApolloInternetAccount,
@@ -97,13 +107,12 @@ export class CollaborationServerDriver extends BackendDriver {
     if (!assembly) {
       throw new Error(`Could not find assembly with name "${assemblyName}"`)
     }
-    const { ids } = getConf(assembly, ['sequence', 'metadata']) as {
-      ids: Record<string, string>
-    }
-    const refSeq = ids[refName]
-    if (!refSeq) {
+    const refSeqMap = await this.getRefSeqMapping(assemblyName)
+    const refSeqEntry = refSeqMap.get(refName)
+    if (!refSeqEntry) {
       throw new Error(`Could not find refSeq "${refName}"`)
     }
+    const refSeq = refSeqEntry.id
     const internetAccount = this.clientStore.getInternetAccount(
       assemblyName,
     ) as ApolloInternetAccount
@@ -192,13 +201,12 @@ export class CollaborationServerDriver extends BackendDriver {
     if (!assembly) {
       throw new Error(`Could not find assembly with name "${assemblyName}"`)
     }
-    const { ids } = getConf(assembly, ['sequence', 'metadata']) as {
-      ids: Record<string, string>
-    }
-    const refSeq = ids[refName]
-    if (!refSeq) {
+    const refSeqMap = await this.getRefSeqMapping(assemblyName)
+    const refSeqEntry = refSeqMap.get(refName)
+    if (!refSeqEntry) {
       throw new Error(`Could not find refSeq "${refName}"`)
     }
+    const refSeq = refSeqEntry.id
     if (inFlightPromise) {
       const seq = await inFlightPromise
       return { seq, refSeq }
@@ -269,7 +277,11 @@ export class CollaborationServerDriver extends BackendDriver {
     return seq
   }
 
-  async getRefNameAliases(assemblyName: string): Promise<RefNameAliases[]> {
+  async getRefSeqMapping(assemblyName: string): Promise<RefSeqMap> {
+    const cachedRefSeqMap = this.refSeqMaps.get(assemblyName)
+    if (cachedRefSeqMap) {
+      return cachedRefSeqMap
+    }
     const { assemblyManager } = getSession(this.clientStore)
     const assembly = assemblyManager.get(assemblyName)
     if (!assembly) {
@@ -299,13 +311,32 @@ export class CollaborationServerDriver extends BackendDriver {
       )
     }
     const refSeqs = (await response.json()) as ApolloRefSeqResponse[]
-    return refSeqs.map((refSeq) => {
-      return {
-        refName: refSeq.name,
-        aliases: [...new Set([refSeq._id, ...refSeq.aliases])],
-        uniqueId: `alias-${refSeq._id}`,
-      }
-    }) as RefNameAliases[]
+    const refSeqMap = new Map<string, RefSeq>(
+      refSeqs.map((refSeq) => [
+        refSeq.name,
+        { refName: refSeq.name, id: refSeq._id, aliases: refSeq.aliases },
+      ]),
+    )
+    this.refSeqMaps.set(assemblyName, refSeqMap)
+    return refSeqMap
+  }
+
+  async getRefNameAliases(assemblyName: string): Promise<RefNameAliases[]> {
+    const refSeqMap = await this.getRefSeqMapping(assemblyName)
+    return [...refSeqMap.values()].map((refSeq) => ({
+      refName: refSeq.refName,
+      aliases: [...new Set([refSeq.id, ...refSeq.aliases])],
+      uniqueId: `alias-${refSeq.id}`,
+    }))
+  }
+
+  async getRefSeqId(assemblyName: string, refName: string) {
+    const refSeqMap = await this.getRefSeqMapping(assemblyName)
+    if (!refSeqMap) {
+      return
+    }
+    const refSeq = refSeqMap.get(refName)
+    return refSeq?.id
   }
 
   async getRegions(assemblyName: string): Promise<Region[]> {
