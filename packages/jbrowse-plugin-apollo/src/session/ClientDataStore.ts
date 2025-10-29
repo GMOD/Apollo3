@@ -33,6 +33,7 @@ import {
 
 import {
   type ApolloInternetAccount,
+  type BackendDriver,
   CollaborationServerDriver,
   DesktopFileDriver,
   InMemoryFileDriver,
@@ -212,15 +213,12 @@ export function clientDataStoreFactory(
       },
     }))
     .views((self) => ({
-      getBackendDriver(assemblyId: string) {
-        if (!assemblyId) {
-          return self.collaborationServerDriver
-        }
+      getBackendDriver(assemblyId: string): BackendDriver | undefined {
         const session = getSession(self)
         const { assemblyManager } = session
         const assembly = assemblyManager.get(assemblyId)
         if (!assembly) {
-          return self.collaborationServerDriver
+          return
         }
         const { file, internetAccountConfigId } = getConf(assembly, [
           'sequence',
