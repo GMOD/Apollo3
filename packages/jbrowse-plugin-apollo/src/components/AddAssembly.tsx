@@ -178,7 +178,8 @@ export function AddAssembly({
     const formData = new FormData()
     let filename = file.name
     const isGzip =
-      (fileType === FileType.BGZIP_FASTA &&
+      fileType === FileType.BGZIP_FASTA ||
+      (fileType === FileType.FASTA &&
         (!sequenceIsEditable || fastaGzipChecked)) ||
       (fileType === FileType.GFF3 && gff3GzipChecked)
 
