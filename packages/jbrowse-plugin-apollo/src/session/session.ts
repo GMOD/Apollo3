@@ -165,20 +165,16 @@ export function extendSession(
           const lgv = view as unknown as LinearGenomeViewModel
           if (lgv.initialized) {
             const { dynamicBlocks } = lgv
-            // eslint-disable-next-line unicorn/no-array-for-each
-            dynamicBlocks.forEach((block) => {
-              if (block.regionNumber !== undefined) {
-                const { assemblyName, end, refName, start } = block
-                const assembly =
-                  self.apolloDataStore.assemblies.get(assemblyName)
-                if (
-                  assembly &&
-                  assembly.backendDriverType === 'CollaborationServerDriver'
-                ) {
-                  locations.push({ assemblyName, refName, start, end })
-                }
+            for (const block of dynamicBlocks.contentBlocks) {
+              const { assemblyName, end, refName, start } = block
+              const assembly = self.apolloDataStore.assemblies.get(assemblyName)
+              if (
+                assembly &&
+                assembly.backendDriverType === 'CollaborationServerDriver'
+              ) {
+                locations.push({ assemblyName, refName, start, end })
               }
-            })
+            }
           }
         }
         if (locations.length === 0) {
@@ -235,21 +231,17 @@ export function extendSession(
                 const lgv = view as unknown as LinearGenomeViewModel
                 if (lgv.initialized) {
                   const { dynamicBlocks } = lgv
-                  // eslint-disable-next-line unicorn/no-array-for-each
-                  dynamicBlocks.forEach((block) => {
-                    if (block.regionNumber !== undefined) {
-                      const { assemblyName, end, refName, start } = block
-                      const assembly =
-                        self.apolloDataStore.assemblies.get(assemblyName)
-                      if (
-                        assembly &&
-                        assembly.backendDriverType ===
-                          'CollaborationServerDriver'
-                      ) {
-                        locations.push({ assemblyName, refName, start, end })
-                      }
+                  for (const block of dynamicBlocks.contentBlocks) {
+                    const { assemblyName, end, refName, start } = block
+                    const assembly =
+                      self.apolloDataStore.assemblies.get(assemblyName)
+                    if (
+                      assembly &&
+                      assembly.backendDriverType === 'CollaborationServerDriver'
+                    ) {
+                      locations.push({ assemblyName, refName, start, end })
                     }
-                  })
+                  }
                 }
               }
               if (locations.length === 0) {
