@@ -180,76 +180,77 @@ export function renderingModelFactory(
           self,
           autorun(
             () => {
-              const { theme } = self
-              if (!self.lgv.initialized || self.regionCannotBeRendered()) {
+              const { lgv, seqTrackCanvas, theme } = self
+              if (
+                !lgv.initialized ||
+                self.regionCannotBeRendered() ||
+                !seqTrackCanvas
+              ) {
                 return
               }
-              const trnslWidthPx = 3 / self.lgv.bpPerPx
-              if (trnslWidthPx < 1) {
-                return
-              }
-              const seqTrackCtx = self.seqTrackCanvas?.getContext('2d')
+              const seqTrackCtx = seqTrackCanvas.getContext('2d')
               if (!seqTrackCtx) {
+                return
+              }
+              const trnslWidthPx = 3 / lgv.bpPerPx
+              if (trnslWidthPx < 1) {
                 return
               }
 
               seqTrackCtx.clearRect(
                 0,
                 0,
-                self.lgv.dynamicBlocks.totalWidthPx,
-                self.height,
+                seqTrackCanvas.width,
+                seqTrackCanvas.height,
               )
               const frames =
-                self.lgv.bpPerPx <= 1
+                lgv.bpPerPx <= 1
                   ? [3, 2, 1, 0, 0, -1, -2, -3]
                   : [3, 2, 1, -1, -2, -3]
               let height = 0
-              if (theme) {
-                for (const frame of frames) {
-                  let frameColor = theme.palette.framesCDS.at(frame)?.main
-                  if (frameColor) {
-                    const { offsetPx } = self.lgv.dynamicBlocks
-                    const horizontalOffsetPx = Math.max(0, -offsetPx)
-                    let verticalOffsetPx = 0
-                    if (self.highContrast) {
-                      frameColor = 'white'
-                      verticalOffsetPx += 1
-                      // eslint-disable-next-line prefer-destructuring
-                      seqTrackCtx.fillStyle = theme.palette.grey[200]
-                      seqTrackCtx.fillRect(
-                        0,
-                        height,
-                        self.lgv.dynamicBlocks.totalWidthPx,
-                        self.sequenceRowHeight,
-                      )
-                    }
-                    seqTrackCtx.fillStyle = frameColor
+              for (const frame of frames) {
+                let frameColor = theme.palette.framesCDS.at(frame)?.main
+                if (frameColor) {
+                  const { offsetPx } = lgv.dynamicBlocks
+                  const horizontalOffsetPx = Math.max(0, -offsetPx)
+                  let verticalOffsetPx = 0
+                  if (self.highContrast) {
+                    frameColor = 'white'
+                    verticalOffsetPx += 1
+                    // eslint-disable-next-line prefer-destructuring
+                    seqTrackCtx.fillStyle = theme.palette.grey[200]
                     seqTrackCtx.fillRect(
-                      0 + horizontalOffsetPx,
-                      height + verticalOffsetPx,
-                      self.lgv.dynamicBlocks.totalWidthPxWithoutBorders,
-                      self.sequenceRowHeight - 2 * verticalOffsetPx,
+                      0,
+                      height,
+                      lgv.dynamicBlocks.totalWidthPx,
+                      self.sequenceRowHeight,
                     )
                   }
-                  height += self.sequenceRowHeight
+                  seqTrackCtx.fillStyle = frameColor
+                  seqTrackCtx.fillRect(
+                    0 + horizontalOffsetPx,
+                    height + verticalOffsetPx,
+                    lgv.dynamicBlocks.totalWidthPxWithoutBorders,
+                    self.sequenceRowHeight - 2 * verticalOffsetPx,
+                  )
                 }
+                height += self.sequenceRowHeight
               }
-              // eslint-disable-next-line unicorn/no-array-for-each
-              self.lgv.dynamicBlocks.forEach((block) => {
+              for (const block of lgv.dynamicBlocks.getBlocks()) {
                 if (block.type === 'InterRegionPaddingBlock') {
-                  const left = block.offsetPx - self.lgv.dynamicBlocks.offsetPx
+                  const left = block.offsetPx - lgv.dynamicBlocks.offsetPx
                   seqTrackCtx.clearRect(left, 0, block.widthPx, self.height)
                 }
-              })
+              }
 
-              for (const [idx, region] of self.regions.entries()) {
+              for (const block of lgv.roundedDynamicBlocks) {
                 const { apolloDataStore } =
                   self.session as unknown as ApolloSessionModel
                 const assembly = apolloDataStore.assemblies.get(
-                  region.assemblyName,
+                  block.assemblyName,
                 )
-                const ref = assembly?.getByRefName(region.refName)
-                const seq = ref?.getSequence(region.start, region.end)
+                const ref = assembly?.getByRefName(block.refName)
+                const seq = ref?.getSequence(block.start, block.end)
                 if (!seq) {
                   return
                 }
@@ -257,21 +258,21 @@ export function renderingModelFactory(
                 // eslint-disable-next-line @typescript-eslint/no-misused-spread
                 for (const [i, letter] of [...seq].entries()) {
                   const trnslXOffset =
-                    (self.lgv.bpToPx({
-                      refName: region.refName,
-                      coord: region.start + i,
-                      regionNumber: idx,
-                    })?.offsetPx ?? 0) - self.lgv.offsetPx
-                  const trnslStartPx = self.lgv.displayedRegions[idx].reversed
+                    (lgv.bpToPx({
+                      refName: block.refName,
+                      coord: block.start + i,
+                      regionNumber: block.regionNumber,
+                    })?.offsetPx ?? 0) - lgv.offsetPx
+                  const trnslStartPx = block.reversed
                     ? trnslXOffset - trnslWidthPx
                     : trnslXOffset
 
                   // Draw translation forward
                   for (let j = 2; j >= 0; j--) {
-                    if ((region.start + i) % 3 === j) {
+                    if ((block.start + i) % 3 === j) {
                       drawTranslation(
                         seqTrackCtx,
-                        self.lgv.bpPerPx,
+                        lgv.bpPerPx,
                         trnslStartPx,
                         self.sequenceRowHeight * (2 - j),
                         trnslWidthPx,
@@ -286,17 +287,15 @@ export function renderingModelFactory(
                     }
                   }
 
-                  if (self.lgv.bpPerPx <= 1) {
+                  if (lgv.bpPerPx <= 1) {
                     const xOffset =
-                      (self.lgv.bpToPx({
-                        refName: region.refName,
-                        coord: region.start + i,
-                        regionNumber: idx,
-                      })?.offsetPx ?? 0) - self.lgv.offsetPx
-                    const widthPx = 1 / self.lgv.bpPerPx
-                    const startPx = self.lgv.displayedRegions[idx].reversed
-                      ? xOffset - widthPx
-                      : xOffset
+                      (lgv.bpToPx({
+                        refName: block.refName,
+                        coord: block.start + i,
+                        regionNumber: block.regionNumber,
+                      })?.offsetPx ?? 0) - lgv.offsetPx
+                    const widthPx = 1 / lgv.bpPerPx
+                    const startPx = block.reversed ? xOffset - widthPx : xOffset
 
                     // Draw forward
                     seqTrackCtx.beginPath()
@@ -308,7 +307,7 @@ export function renderingModelFactory(
                       self.sequenceRowHeight,
                     )
                     seqTrackCtx.fill()
-                    if (self.lgv.bpPerPx <= 0.1) {
+                    if (lgv.bpPerPx <= 0.1) {
                       seqTrackCtx.stroke()
                       drawLetter(
                         seqTrackCtx,
@@ -330,7 +329,7 @@ export function renderingModelFactory(
                       self.sequenceRowHeight,
                     )
                     seqTrackCtx.fill()
-                    if (self.lgv.bpPerPx <= 0.1) {
+                    if (lgv.bpPerPx <= 0.1) {
                       seqTrackCtx.stroke()
                       drawLetter(
                         seqTrackCtx,
@@ -344,11 +343,11 @@ export function renderingModelFactory(
 
                   // Draw translation reverse
                   for (let k = 0; k <= 2; k++) {
-                    const rowOffset = self.lgv.bpPerPx <= 1 ? 5 : 3
-                    if ((region.start + i) % 3 === k) {
+                    const rowOffset = lgv.bpPerPx <= 1 ? 5 : 3
+                    if ((block.start + i) % 3 === k) {
                       drawTranslation(
                         seqTrackCtx,
-                        self.lgv.bpPerPx,
+                        lgv.bpPerPx,
                         trnslStartPx,
                         self.sequenceRowHeight * (rowOffset + k),
                         trnslWidthPx,
