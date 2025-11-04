@@ -38,6 +38,7 @@ import type { CanvasMouseEvent } from '../types'
 
 import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
+import { transcriptGlyph } from './TranscriptGlyph'
 
 let forwardFillLight: CanvasPattern | null = null
 let backwardFillLight: CanvasPattern | null = null
@@ -328,72 +329,8 @@ function drawExon(
   }
 }
 
-function* range(start: number, stop: number, step = 1): Generator<number> {
-  if (start === stop) {
-    return
-  }
-  if (start < stop) {
-    for (let i = start; i < stop; i += step) {
-      yield i
-    }
-    return
-  }
-  for (let i = start; i > stop; i -= step) {
-    yield i
-  }
-}
-
-function drawLine(
-  display: LinearApolloDisplayRendering,
-  ctx: CanvasRenderingContext2D,
-  feature: AnnotationFeature,
-  row: number,
-  currentRow: number,
-  block: ContentBlock,
-) {
-  const { apolloRowHeight, lgv, theme } = display
-  const { bpPerPx, offsetPx } = lgv
-  const { refName, reversed } = block
-  const minX =
-    (lgv.bpToPx({
-      refName,
-      coord: feature.min,
-      regionNumber: block.regionNumber,
-    })?.offsetPx ?? 0) - offsetPx
-  const widthPx = Math.round(feature.length / bpPerPx)
-  const startPx = reversed ? minX - widthPx : minX
-  const height =
-    Math.round((currentRow + 1 / 2) * apolloRowHeight) + row * apolloRowHeight
-  ctx.strokeStyle = theme.palette.text.primary
-  const { strand = 1 } = feature
-  ctx.beginPath()
-  // If view is reversed, draw forward as reverse and vice versa
-  const effectiveStrand = strand * (reversed ? -1 : 1)
-  // Draw the transcript line, and extend it out a bit on the 3` end
-  const lineStart = startPx - (effectiveStrand === -1 ? 5 : 0)
-  const lineEnd = startPx + widthPx + (effectiveStrand === -1 ? 0 : 5)
-  ctx.moveTo(lineStart, height)
-  ctx.lineTo(lineEnd, height)
-  // Now to draw arrows every 20 pixels along the line
-  // Make the arrow range a bit shorter to avoid an arrow hanging off the 5` end
-  const arrowsStart = lineStart + (effectiveStrand === -1 ? 0 : 3)
-  const arrowsEnd = lineEnd - (effectiveStrand === -1 ? 3 : 0)
-  // Offset determines if the arrows face left or right
-  const offset = effectiveStrand === -1 ? 3 : -3
-  const arrowRange =
-    effectiveStrand === -1
-      ? range(arrowsStart, arrowsEnd, 20)
-      : range(arrowsEnd, arrowsStart, 20)
-  for (const arrowLocation of arrowRange) {
-    ctx.moveTo(arrowLocation + offset, height + offset)
-    ctx.lineTo(arrowLocation, height)
-    ctx.lineTo(arrowLocation + offset, height - offset)
-  }
-  ctx.stroke()
-}
-
 function drawHighlight(
-  stateModel: LinearApolloDisplayRendering,
+  stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   selected = false,
@@ -462,31 +399,14 @@ function draw(
   // Draw lines on different rows for each transcript
   let currentRow = 0
   for (const [, transcript] of children) {
-    const isTranscript =
-      featureTypeOntology.isTypeOf(transcript.type, 'transcript') ||
-      featureTypeOntology.isTypeOf(transcript.type, 'pseudogenic_transcript')
+    const isTranscript = isTranscriptFeature(transcript, session)
     if (!isTranscript) {
       currentRow += 1
       continue
     }
-    const { children: transcriptChildren } = transcript
-    if (!transcriptChildren) {
-      continue
-    }
-    const cdsCount = getCDSCount(transcript, featureTypeOntology)
-
-    for (const [, childFeature] of transcriptChildren) {
-      if (!featureTypeOntology.isTypeOf(childFeature.type, 'CDS')) {
-        continue
-      }
-      drawLine(display, ctx, transcript, row, currentRow, block)
-      currentRow += 1
-    }
-
-    if (cdsCount === 0) {
-      drawLine(display, ctx, transcript, row, currentRow, block)
-      currentRow += 1
-    }
+    const transcriptRowCount = transcriptGlyph.getRowCount(display, transcript)
+    transcriptGlyph.draw(display, ctx, transcript, row + currentRow, block)
+    currentRow += transcriptRowCount
   }
 
   const forwardFill =
