@@ -41,6 +41,49 @@ export function renderingModelFactory(
           self.lastRowTooltipBufferHeight
         )
       },
+      get canvasPatterns(): Record<
+        'forward' | 'backward',
+        CanvasPattern | null
+      > {
+        const patterns: Record<'forward' | 'backward', CanvasPattern | null> = {
+          forward: null,
+          backward: null,
+        }
+        const canvas = document.createElement('canvas')
+        const ctx = canvas?.getContext('2d')
+        if (!ctx) {
+          return patterns
+        }
+        const canvasSize = 10
+        canvas.width = canvas.height = canvasSize
+        const { theme } = self
+        const stripeColor1 =
+          theme.palette.mode === 'light' ? 'rgba(0,0,0,0)' : 'rgba(0,0,0,0.75)'
+        const stripeColor2 =
+          theme.palette.mode === 'light'
+            ? 'rgba(255,255,255,0.25)'
+            : 'rgba(0,0,0,0.50)'
+        const directions = ['forward', 'backward'] as const
+        for (const direction of directions) {
+          const gradient =
+            direction === 'forward'
+              ? ctx.createLinearGradient(0, canvasSize, canvasSize, 0)
+              : ctx.createLinearGradient(0, 0, canvasSize, canvasSize)
+          gradient.addColorStop(0, stripeColor1)
+          gradient.addColorStop(0.25, stripeColor1)
+          gradient.addColorStop(0.25, stripeColor2)
+          gradient.addColorStop(0.5, stripeColor2)
+          gradient.addColorStop(0.5, stripeColor1)
+          gradient.addColorStop(0.75, stripeColor1)
+          gradient.addColorStop(0.75, stripeColor2)
+          gradient.addColorStop(1, stripeColor2)
+          ctx.fillStyle = gradient
+          ctx.clearRect(0, 0, canvasSize, canvasSize)
+          ctx.fillRect(0, 0, canvasSize, canvasSize)
+          patterns[direction] = ctx.createPattern(canvas, 'repeat')
+        }
+        return patterns
+      },
     }))
     .actions((self) => ({
       toggleShown() {
