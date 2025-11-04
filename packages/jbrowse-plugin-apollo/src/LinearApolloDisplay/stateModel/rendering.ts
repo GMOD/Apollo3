@@ -173,6 +173,7 @@ export function renderingModelFactory(
                     ctx.beginPath()
                     ctx.rect(blockLeftPx, 0, block.widthPx, canvas.height)
                     ctx.clip()
+                    // @ts-expect-error ts doesn't understand mst extension
                     self.getGlyph(feature).draw(self, ctx, feature, row, block)
                     ctx.restore()
                   }

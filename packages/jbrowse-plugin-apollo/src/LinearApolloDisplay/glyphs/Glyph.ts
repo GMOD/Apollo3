@@ -4,25 +4,19 @@ import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
 import type { OntologyRecord } from '../../OntologyManager'
 import type { MousePositionWithFeature } from '../../util'
+import type { LinearApolloDisplay } from '../stateModel'
 import type { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
-import type { LinearApolloDisplayRendering } from '../stateModel/rendering'
 import type { CanvasMouseEvent } from '../types'
 
 export interface Glyph {
   /** draw the feature's primary rendering on the canvas */
   draw(
-    display: LinearApolloDisplayRendering,
+    display: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
     feature: AnnotationFeature,
     row: number,
     block: ContentBlock,
   ): void
-  /** @returns number of layout rows used by this glyph with this feature and zoom level */
-  getRowCount(
-    feature: AnnotationFeature,
-    featureTypeOntology: OntologyRecord,
-    bpPerPx: number,
-  ): number
   /** @returns the feature or subfeature at the given bp and row number in this glyph's layout */
   getFeatureFromLayout(
     feature: AnnotationFeature,
@@ -45,6 +39,9 @@ export interface Glyph {
     display: LinearApolloDisplayMouseEvents,
     ctx: CanvasRenderingContext2D,
   ): void
+
+  /** @returns number of layout rows used by this glyph with this feature and zoom level */
+  getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature): number
 
   onMouseDown(
     display: LinearApolloDisplayMouseEvents,

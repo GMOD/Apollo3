@@ -111,7 +111,8 @@ export function layoutsModelFactory(
             }
             const rowCount = self
               .getGlyph(feature)
-              .getRowCount(feature, featureTypeOntology, self.lgv.bpPerPx)
+              // @ts-expect-error ts doesn't understand mst extension
+              .getRowCount(self, feature)
             let startingRow = 0
             let placed = false
             while (!placed) {

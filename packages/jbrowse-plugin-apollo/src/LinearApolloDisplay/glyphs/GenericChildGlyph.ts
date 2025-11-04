@@ -11,7 +11,6 @@ import {
 import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
 import type { LinearApolloDisplay } from '../stateModel'
 import type { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
-import type { LinearApolloDisplayRendering } from '../stateModel/rendering'
 
 import { boxGlyph, drawBox } from './BoxGlyph'
 import type { Glyph } from './Glyph'
@@ -27,7 +26,7 @@ function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
 }
 
 function drawHighlight(
-  stateModel: LinearApolloDisplayRendering,
+  stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   selected = false,
@@ -54,11 +53,16 @@ function drawHighlight(
   ctx.fillStyle = selected
     ? theme.palette.action.disabled
     : theme.palette.action.focus
-  ctx.fillRect(startPx, top, widthPx, apolloRowHeight * getRowCount(feature))
+  ctx.fillRect(
+    startPx,
+    top,
+    widthPx,
+    apolloRowHeight * getRowCount(stateModel, feature),
+  )
 }
 
 function drawRow(
-  display: LinearApolloDisplayRendering,
+  display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
@@ -72,7 +76,7 @@ function drawRow(
 }
 
 function drawFeature(
-  display: LinearApolloDisplayRendering,
+  display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
@@ -90,7 +94,7 @@ function drawFeature(
   const widthPx = feature.length / bpPerPx
   const startPx = reversed ? minX - widthPx : minX
   const top = row * heightPx
-  const rowCount = getRowCount(feature)
+  const rowCount = getRowCount(display, feature)
   const groupingColor = alpha(theme.palette.background.paper, 0.6)
   if (rowCount > 1) {
     // draw background that encapsulates all child features
@@ -101,14 +105,14 @@ function drawFeature(
 }
 
 function draw(
-  display: LinearApolloDisplayRendering,
+  display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
   block: ContentBlock,
 ) {
   const { selectedFeature } = display
-  for (let i = 0; i < getRowCount(feature); i++) {
+  for (let i = 0; i < getRowCount(display, feature); i++) {
     drawRow(display, ctx, feature, row + i, row, block)
   }
   if (selectedFeature && containsSelectedFeature(feature, selectedFeature)) {
@@ -127,7 +131,10 @@ function drawHover(
   drawHighlight(stateModel, ctx, hoveredFeature.feature)
 }
 
-function getRowCount(feature: AnnotationFeature) {
+function getRowCount(
+  _display: LinearApolloDisplay,
+  feature: AnnotationFeature,
+) {
   return featuresForRow(feature).length
 }
 

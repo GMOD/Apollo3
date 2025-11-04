@@ -230,7 +230,7 @@ function getCDSCount(
 }
 
 function drawBackground(
-  display: LinearApolloDisplayRendering,
+  display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
@@ -240,11 +240,6 @@ function drawBackground(
   const { apolloRowHeight, lgv, session, theme } = display
   const { bpPerPx, offsetPx } = lgv
   const { refName, reversed } = block
-  const { apolloDataStore } = session
-  const { featureTypeOntology } = apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
 
   const topLevelFeatureMinX =
     (lgv.bpToPx({
@@ -257,8 +252,7 @@ function drawBackground(
     ? topLevelFeatureMinX - topLevelFeatureWidthPx
     : topLevelFeatureMinX
   const topLevelFeatureTop = row * apolloRowHeight
-  const topLevelFeatureHeight =
-    getRowCount(feature, featureTypeOntology) * apolloRowHeight
+  const topLevelFeatureHeight = getRowCount(display, feature) * apolloRowHeight
 
   let selectedColor
   if (color) {
@@ -436,12 +430,12 @@ function drawHighlight(
     startPx,
     top,
     widthPx,
-    apolloRowHeight * getRowCount(feature, featureTypeOntology),
+    apolloRowHeight * getRowCount(stateModel, feature),
   )
 }
 
 function draw(
-  display: LinearApolloDisplayRendering,
+  display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
@@ -708,21 +702,19 @@ function getFeatureFromLayout(
 }
 
 function getRowCount(
+  display: LinearApolloDisplay,
   feature: AnnotationFeature,
-  featureTypeOntology: OntologyRecord,
-  _bpPerPx?: number,
 ): number {
-  const { children, type } = feature
+  const { children } = feature
   if (!children) {
     return 1
   }
-  const isTranscript =
-    featureTypeOntology.isTypeOf(type, 'transcript') ||
-    featureTypeOntology.isTypeOf(type, 'pseudogenic_transcript')
+  const { session } = display
+  const isTranscript = isTranscriptFeature(feature, session)
   let rowCount = 0
   if (isTranscript) {
     for (const [, child] of children) {
-      if (featureTypeOntology.isTypeOf(child.type, 'CDS')) {
+      if (isCDSFeature(child, session)) {
         rowCount += 1
       }
     }
@@ -731,7 +723,7 @@ function getRowCount(
     return rowCount === 0 ? 1 : rowCount
   }
   for (const [, child] of children) {
-    rowCount += getRowCount(child, featureTypeOntology)
+    rowCount += getRowCount(display, child)
   }
   return rowCount
 }
