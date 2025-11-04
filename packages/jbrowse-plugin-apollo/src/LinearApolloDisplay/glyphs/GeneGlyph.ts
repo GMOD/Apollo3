@@ -33,63 +33,11 @@ import {
 import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
 import type { LinearApolloDisplay } from '../stateModel'
 import type { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
-import type { LinearApolloDisplayRendering } from '../stateModel/rendering'
 import type { CanvasMouseEvent } from '../types'
 
 import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
 import { transcriptGlyph } from './TranscriptGlyph'
-
-let forwardFillLight: CanvasPattern | null = null
-let backwardFillLight: CanvasPattern | null = null
-let forwardFillDark: CanvasPattern | null = null
-let backwardFillDark: CanvasPattern | null = null
-const canvas = globalThis.document.createElement('canvas')
-// @ts-expect-error getContext is undefined in the web worker
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-if (canvas?.getContext) {
-  for (const direction of ['forward', 'backward']) {
-    for (const themeMode of ['light', 'dark']) {
-      const canvas = document.createElement('canvas')
-      const canvasSize = 10
-      canvas.width = canvas.height = canvasSize
-      const ctx = canvas.getContext('2d')
-      if (ctx) {
-        const stripeColor1 =
-          themeMode === 'light' ? 'rgba(0,0,0,0)' : 'rgba(0,0,0,0.75)'
-        const stripeColor2 =
-          themeMode === 'light' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.50)'
-        const gradient =
-          direction === 'forward'
-            ? ctx.createLinearGradient(0, canvasSize, canvasSize, 0)
-            : ctx.createLinearGradient(0, 0, canvasSize, canvasSize)
-        gradient.addColorStop(0, stripeColor1)
-        gradient.addColorStop(0.25, stripeColor1)
-        gradient.addColorStop(0.25, stripeColor2)
-        gradient.addColorStop(0.5, stripeColor2)
-        gradient.addColorStop(0.5, stripeColor1)
-        gradient.addColorStop(0.75, stripeColor1)
-        gradient.addColorStop(0.75, stripeColor2)
-        gradient.addColorStop(1, stripeColor2)
-        ctx.fillStyle = gradient
-        ctx.fillRect(0, 0, 10, 10)
-        if (direction === 'forward') {
-          if (themeMode === 'light') {
-            forwardFillLight = ctx.createPattern(canvas, 'repeat')
-          } else {
-            forwardFillDark = ctx.createPattern(canvas, 'repeat')
-          }
-        } else {
-          if (themeMode === 'light') {
-            backwardFillLight = ctx.createPattern(canvas, 'repeat')
-          } else {
-            backwardFillDark = ctx.createPattern(canvas, 'repeat')
-          }
-        }
-      }
-    }
-  }
-}
 
 function getDraggableFeatureInfo(
   mousePosition: MousePosition,
@@ -277,58 +225,6 @@ function drawBackground(
   )
 }
 
-function drawExon(
-  display: LinearApolloDisplayRendering,
-  ctx: CanvasRenderingContext2D,
-  exon: AnnotationFeature,
-  row: number,
-  currentRow: number,
-  block: ContentBlock,
-  strand: number | undefined,
-  forwardFill: CanvasPattern | null,
-  backwardFill: CanvasPattern | null,
-) {
-  const { apolloRowHeight, lgv, theme } = display
-  const { bpPerPx, offsetPx } = lgv
-  const { refName, reversed } = block
-
-  const minX =
-    (lgv.bpToPx({
-      refName,
-      coord: exon.min,
-      regionNumber: block.regionNumber,
-    })?.offsetPx ?? 0) - offsetPx
-  const widthPx = exon.length / bpPerPx
-  const startPx = reversed ? minX - widthPx : minX
-
-  const top = (row + currentRow) * apolloRowHeight
-  const exonHeight = Math.round(0.6 * apolloRowHeight)
-  const exonTop = top + (apolloRowHeight - exonHeight) / 2
-  ctx.fillStyle = theme.palette.text.primary
-  ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
-  if (widthPx > 2) {
-    ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
-    ctx.fillStyle = 'rgb(211,211,211)'
-    ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
-    if (forwardFill && backwardFill && strand) {
-      const reversal = reversed ? -1 : 1
-      const [topFill, bottomFill] =
-        strand * reversal === 1
-          ? [forwardFill, backwardFill]
-          : [backwardFill, forwardFill]
-      ctx.fillStyle = topFill
-      ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, (exonHeight - 2) / 2)
-      ctx.fillStyle = bottomFill
-      ctx.fillRect(
-        startPx + 1,
-        exonTop + 1 + (exonHeight - 2) / 2,
-        widthPx - 2,
-        (exonHeight - 2) / 2,
-      )
-    }
-  }
-}
-
 function drawHighlight(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
@@ -378,7 +274,14 @@ function draw(
   row: number,
   block: ContentBlock,
 ): void {
-  const { apolloRowHeight, lgv, selectedFeature, session, theme } = display
+  const {
+    apolloRowHeight,
+    canvasPatterns,
+    lgv,
+    selectedFeature,
+    session,
+    theme,
+  } = display
   const { bpPerPx, offsetPx } = lgv
   const { refName, reversed } = block
   const rowHeight = apolloRowHeight
@@ -409,10 +312,9 @@ function draw(
     currentRow += transcriptRowCount
   }
 
-  const forwardFill =
-    theme.palette.mode === 'dark' ? forwardFillDark : forwardFillLight
-  const backwardFill =
-    theme.palette.mode === 'dark' ? backwardFillDark : backwardFillLight
+  const forwardFill = canvasPatterns.forward
+  const backwardFill = canvasPatterns.backward
+
   // Draw exon and CDS for each transcript
   currentRow = 0
   for (const [, child] of children) {
@@ -432,22 +334,6 @@ function draw(
         const { children: transcriptChildren } = child
         if (!transcriptChildren) {
           continue
-        }
-        for (const [, exon] of transcriptChildren) {
-          if (!featureTypeOntology.isTypeOf(exon.type, 'exon')) {
-            continue
-          }
-          drawExon(
-            display,
-            ctx,
-            exon,
-            row,
-            currentRow,
-            block,
-            strand,
-            forwardFill,
-            backwardFill,
-          )
         }
         for (const cds of cdsRow) {
           const cdsWidthPx = (cds.max - cds.min) / bpPerPx
@@ -508,28 +394,6 @@ function draw(
         }
         currentRow += 1
       }
-    }
-
-    const { children: transcriptChildren } = child
-    // Draw exons for non-coding genes
-    if (cdsCount === 0 && transcriptChildren) {
-      for (const [, exon] of transcriptChildren) {
-        if (!featureTypeOntology.isTypeOf(exon.type, 'exon')) {
-          continue
-        }
-        drawExon(
-          display,
-          ctx,
-          exon,
-          row,
-          currentRow,
-          block,
-          strand,
-          forwardFill,
-          backwardFill,
-        )
-      }
-      currentRow += 1
     }
   }
   if (selectedFeature && containsSelectedFeature(feature, selectedFeature)) {

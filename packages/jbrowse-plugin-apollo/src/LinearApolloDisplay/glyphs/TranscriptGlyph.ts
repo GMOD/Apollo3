@@ -2,9 +2,12 @@ import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type { MenuItem } from '@jbrowse/core/ui'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
-import { isExonFeature } from '../../util/glyphUtils'
+import { isCDSFeature, isExonFeature } from '../../util/glyphUtils'
 import type { LinearApolloDisplay } from '../stateModel'
 
+
+import { boxGlyph } from './BoxGlyph'
+import { exonGlyph } from './ExonGlyph'
 import type { Glyph } from './Glyph'
 import { getLeftPx } from './util'
 
@@ -64,6 +67,18 @@ function drawTranscriptLine(
   ctx.stroke()
 }
 
+function getExonChildren(
+  display: LinearApolloDisplay,
+  transcript: AnnotationFeature,
+): AnnotationFeature[] {
+  const { children } = transcript
+  if (!children) {
+    return []
+  }
+  const { session } = display
+  return [...children.values()].filter((child) => isExonFeature(child, session))
+}
+
 function getNonExonChildren(
   display: LinearApolloDisplay,
   transcript: AnnotationFeature,
@@ -85,9 +100,29 @@ function draw(
   row: number,
   block: ContentBlock,
 ) {
+  const { session } = display
+  const exons = getExonChildren(display, transcript)
   const nonExonChildren = getNonExonChildren(display, transcript)
-  for (const [idx] of nonExonChildren.entries()) {
+  // Usually non-coding (no CDS) transcript
+  if (nonExonChildren.length === 0) {
+    drawTranscriptLine(display, ctx, transcript, row, block)
+    for (const exon of exons) {
+      exonGlyph.draw(display, ctx, exon, row, block)
+    }
+    return
+  }
+  let extraOffset = 0
+  for (const [idx, child] of nonExonChildren.entries()) {
     drawTranscriptLine(display, ctx, transcript, row + idx, block)
+    if (isCDSFeature(child, session)) {
+      for (const exon of exons) {
+        exonGlyph.draw(display, ctx, exon, row + idx + extraOffset, block)
+      }
+    } else {
+      const extra = boxGlyph.getRowCount(display, child) - 1
+      boxGlyph.draw(display, ctx, child, row + idx + extraOffset, block)
+      extraOffset += extra
+    }
   }
 }
 
