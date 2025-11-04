@@ -7,6 +7,7 @@ import { autorun } from 'mobx'
 import { type Instance, addDisposer, types } from 'mobx-state-tree'
 
 import { type ApolloSessionModel } from '../../session'
+import { looksLikeGene } from '../../util/glyphUtils'
 
 import { layoutsModelFactory } from './layouts'
 
@@ -150,7 +151,7 @@ export function renderingModelFactory(
                 const displayedRegion = displayedRegions[idx]
                 for (const [row, featureLayoutRow] of featureLayout.entries()) {
                   for (const { feature } of featureLayoutRow) {
-                    if (!feature.looksLikeGene) {
+                    if (!looksLikeGene(feature, self.session)) {
                       continue
                     }
                     if (
