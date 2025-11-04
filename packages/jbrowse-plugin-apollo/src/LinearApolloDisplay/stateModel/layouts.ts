@@ -8,8 +8,13 @@ import { autorun, observable } from 'mobx'
 import { addDisposer, isAlive } from 'mobx-state-tree'
 
 import { type ApolloSessionModel } from '../../session'
-import { looksLikeGene } from '../../util/glyphUtils'
-import { boxGlyph, geneGlyph, genericChildGlyph } from '../glyphs'
+import { isTranscriptFeature, looksLikeGene } from '../../util/glyphUtils'
+import {
+  boxGlyph,
+  geneGlyph,
+  genericChildGlyph,
+  transcriptGlyph,
+} from '../glyphs'
 
 import { baseModelFactory } from './base'
 
@@ -67,6 +72,9 @@ export function layoutsModelFactory(
         const { topLevelFeature } = feature
         if (looksLikeGene(topLevelFeature, self.session)) {
           return geneGlyph
+        }
+        if (isTranscriptFeature(topLevelFeature, self.session)) {
+          return transcriptGlyph
         }
         if (topLevelFeature.children?.size) {
           return genericChildGlyph
