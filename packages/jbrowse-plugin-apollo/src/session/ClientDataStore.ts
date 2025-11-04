@@ -33,6 +33,7 @@ import {
 
 import {
   type ApolloInternetAccount,
+  type BackendDriver,
   CollaborationServerDriver,
   DesktopFileDriver,
   InMemoryFileDriver,
@@ -86,18 +87,38 @@ export function clientDataStoreFactory(
         }
         return self.assemblies.put(assemblySnapshot)
       },
+    }))
+    .actions((self) => ({
       addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot) {
-        const assembly = self.assemblies.get(assemblyId)
-        if (!assembly) {
-          throw new Error(
-            `Could not find assembly "${assemblyId}" to add feature "${feature._id}"`,
-          )
+        const session = getSession(self)
+        const { assemblyManager } = session
+        let apolloAssembly = self.assemblies.get(assemblyId)
+        if (!apolloAssembly) {
+          // maybe it's a valid assembly that we haven't loaded yet
+          const assembly = assemblyManager.get(assemblyId)
+          if (!assembly) {
+            throw new Error(
+              `Could not find assembly "${assemblyId}" to add feature "${feature._id}"`,
+            )
+          }
+          apolloAssembly = self.addAssembly(assemblyId)
         }
-        const ref = assembly.refSeqs.get(feature.refSeq)
+        let ref = apolloAssembly.refSeqs.get(feature.refSeq)
         if (!ref) {
-          throw new Error(
-            `Could not find refSeq "${feature.refSeq}" to add feature "${feature._id}"`,
-          )
+          // maybe it's a valid refName that we haven't loaded yet
+          const assembly = assemblyManager.get(assemblyId)
+          if (!assembly) {
+            throw new Error(
+              `Could not find assembly "${assemblyId}" to add feature "${feature._id}"`,
+            )
+          }
+          const canonicalRefName = assembly.getCanonicalRefName(feature.refSeq)
+          if (!canonicalRefName) {
+            throw new Error(
+              `Could not find refSeq "${feature.refSeq}" to add feature "${feature._id}"`,
+            )
+          }
+          ref = apolloAssembly.addRefSeq(feature.refSeq, canonicalRefName)
         }
         ref.features.put(feature)
       },
@@ -212,15 +233,12 @@ export function clientDataStoreFactory(
       },
     }))
     .views((self) => ({
-      getBackendDriver(assemblyId: string) {
-        if (!assemblyId) {
-          return self.collaborationServerDriver
-        }
+      getBackendDriver(assemblyId: string): BackendDriver | undefined {
         const session = getSession(self)
         const { assemblyManager } = session
         const assembly = assemblyManager.get(assemblyId)
         if (!assembly) {
-          return self.collaborationServerDriver
+          return
         }
         const { file, internetAccountConfigId } = getConf(assembly, [
           'sequence',

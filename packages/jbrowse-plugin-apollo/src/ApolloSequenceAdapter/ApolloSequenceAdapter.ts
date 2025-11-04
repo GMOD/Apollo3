@@ -10,7 +10,6 @@ import SimpleFeature, { type Feature } from '@jbrowse/core/util/simpleFeature'
 import { type NoAssemblyRegion, type Region } from '@jbrowse/core/util/types'
 import { nanoid } from 'nanoid'
 
-import { type BackendDriver } from '../BackendDrivers'
 import { type ApolloSessionModel } from '../session'
 
 // declare global {
@@ -62,9 +61,10 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
       if (!dataStore) {
         throw new Error('No Apollo data store found')
       }
-      const backendDriver = dataStore.getBackendDriver(
-        assemblyId,
-      ) as BackendDriver
+      const backendDriver = dataStore.getBackendDriver(assemblyId)
+      if (!backendDriver) {
+        throw new Error('No backend driver found')
+      }
       const regions = await backendDriver.getRegions(assemblyId)
       this.regions = regions
       return regions
@@ -124,9 +124,11 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
           observer.error('No Apollo data store found')
           return
         }
-        const backendDriver = dataStore.getBackendDriver(
-          assemblyId,
-        ) as BackendDriver
+        const backendDriver = dataStore.getBackendDriver(assemblyId)
+        if (!backendDriver) {
+          observer.error('No backend driver found')
+          return
+        }
         const regions = await backendDriver.getRegions(
           regionWithAssemblyName.assemblyName,
         )

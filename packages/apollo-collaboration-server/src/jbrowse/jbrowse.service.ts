@@ -6,7 +6,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
 import merge from 'deepmerge'
-import { Model, Types } from 'mongoose'
+import { Model } from 'mongoose'
 
 import { AssembliesService } from '../assemblies/assemblies.service'
 import { RefSeqsService } from '../refSeqs/refSeqs.service'
@@ -138,58 +138,45 @@ export class JBrowseService {
   async getAssemblies() {
     const url = this.configService.get('URL', { infer: true })
     const assemblies = await this.assembliesService.findAll()
-    return Promise.all(
-      assemblies.map(async (assembly) => {
-        const assemblyId = assembly._id.toHexString()
-        const refSeqs = await this.refSeqsService.findAll({
-          assembly: assemblyId,
-        })
-        const ids: Record<string, string> = {}
-        refSeqs.map((refSeq) => {
-          ids[refSeq.name] = (refSeq._id as Types.ObjectId).toHexString()
-        })
-        this.logger.debug(`generating assembly ${assemblyId}`)
-        const trackId = `sequenceConfigId-${assembly.name}`
-        return {
-          name: assemblyId,
-          aliases:
-            assembly.aliases.length > 0
-              ? [...assembly.aliases]
-              : [assembly.name],
-          displayName: assembly.displayName || assembly.name,
-          sequence: {
-            trackId,
-            type: 'ReferenceSequenceTrack',
-            adapter: {
-              type: 'ApolloSequenceAdapter',
-              assemblyId,
-              baseURL: {
-                uri: url,
-                locationType: 'UriLocation',
-              },
-            },
-            displays: [
-              {
-                type: 'LinearApolloReferenceSequenceDisplay',
-                displayId: `${trackId}-LinearApolloReferenceSequenceDisplay`,
-              },
-            ],
-            metadata: {
-              apollo: true,
-              internetAccountConfigId: this.internetAccountId,
-              ids,
+    return assemblies.map((assembly) => {
+      const assemblyId = assembly._id.toHexString()
+      const trackId = `sequenceConfigId-${assembly.name}`
+      return {
+        name: assemblyId,
+        aliases:
+          assembly.aliases.length > 0 ? [...assembly.aliases] : [assembly.name],
+        displayName: assembly.displayName || assembly.name,
+        sequence: {
+          trackId,
+          type: 'ReferenceSequenceTrack',
+          adapter: {
+            type: 'ApolloSequenceAdapter',
+            assemblyId,
+            baseURL: {
+              uri: url,
+              locationType: 'UriLocation',
             },
           },
-          refNameAliases: {
-            adapter: {
-              type: 'ApolloRefNameAliasAdapter',
-              assemblyId,
-              baseURL: { uri: url, locationType: 'UriLocation' },
+          displays: [
+            {
+              type: 'LinearApolloReferenceSequenceDisplay',
+              displayId: `${trackId}-LinearApolloReferenceSequenceDisplay`,
             },
+          ],
+          metadata: {
+            apollo: true,
+            internetAccountConfigId: this.internetAccountId,
           },
-        }
-      }),
-    )
+        },
+        refNameAliases: {
+          adapter: {
+            type: 'ApolloRefNameAliasAdapter',
+            assemblyId,
+            baseURL: { uri: url, locationType: 'UriLocation' },
+          },
+        },
+      }
+    })
   }
 
   async getTracks() {

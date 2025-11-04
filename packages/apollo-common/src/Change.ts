@@ -27,7 +27,7 @@ export interface ClientDataStore {
     assemblyName?: string,
     internetAccountId?: string,
   ): AppRootModel['internetAccounts'][0]
-  loadFeatures(regions: Region[]): void
+  loadFeatures(regions: Region[]): Promise<void>
   loadRefSeq(regions: Region[]): void
   getFeature(featureId: string): AnnotationFeature | undefined
   addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot): void

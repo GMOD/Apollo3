@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
@@ -26,6 +25,7 @@ import {
 import ObjectID from 'bson-objectid'
 import React, { useState } from 'react'
 
+import { CollaborationServerDriver } from '../BackendDrivers'
 import { type ChangeManager } from '../ChangeManager'
 import { isOntologyClass } from '../OntologyManager'
 import { type ApolloSessionModel } from '../session'
@@ -100,26 +100,28 @@ export function AddFeature({
   const [strand, setStrand] = useState<1 | -1 | undefined>()
   const [errorMessage, setErrorMessage] = useState('')
 
-  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
 
-    let refSeqId
-    for (const [, asm] of session.apolloDataStore.assemblies ?? new Map()) {
-      if (asm._id === region.assemblyName) {
-        for (const [, refseq] of asm.refSeqs ?? new Map()) {
-          if (refseq.name === region.refName) {
-            refSeqId = refseq._id
-          }
-        }
-      }
-    }
-
-    if (!refSeqId) {
-      setErrorMessage(
-        'Invalid refseq id. Make sure you have the Apollo annotation track open',
-      )
+    const backendDriver = session.apolloDataStore.getBackendDriver(
+      region.assemblyName,
+    )
+    if (!backendDriver) {
+      setErrorMessage('No backend driver found')
       return
+    }
+    let refSeqId = region.refName
+    if (backendDriver instanceof CollaborationServerDriver) {
+      const backendRefSeqId = await backendDriver.getRefSeqId(
+        region.assemblyName,
+        region.refName,
+      )
+      if (!backendRefSeqId) {
+        setErrorMessage(`Could not find refSeq for "${region.refName}"`)
+        return
+      }
+      refSeqId = backendRefSeqId
     }
 
     if (type === NewFeature.GENE_AND_SUBFEATURES) {
@@ -248,6 +250,7 @@ export function AddFeature({
       maxWidth={false}
       data-testid="add-feature-dialog"
     >
+      {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
       <form onSubmit={onSubmit} data-testid="submit-form">
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <TextField

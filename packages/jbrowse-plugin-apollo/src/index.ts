@@ -42,7 +42,6 @@ import {
 import { installApolloRefNameAliasAdapter } from './ApolloRefNameAliasAdapter'
 import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
 import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
-import { type BackendDriver } from './BackendDrivers'
 import {
   ApolloFeatureDetailsWidget,
   ApolloFeatureDetailsWidgetModel,
@@ -309,9 +308,10 @@ export default class ApolloPlugin extends Plugin {
                 if (!dataStore) {
                   break
                 }
-                const backendDriver = dataStore.getBackendDriver(
-                  assemblyName,
-                ) as BackendDriver
+                const backendDriver = dataStore.getBackendDriver(assemblyName)
+                if (!backendDriver) {
+                  break
+                }
                 const { seq: sequence } =
                   await backendDriver.getSequence(region)
                 handle.workers[0].postMessage({
@@ -331,9 +331,10 @@ export default class ApolloPlugin extends Plugin {
                 if (!dataStore) {
                   break
                 }
-                const backendDriver = dataStore.getBackendDriver(
-                  assembly,
-                ) as BackendDriver
+                const backendDriver = dataStore.getBackendDriver(assembly)
+                if (!backendDriver) {
+                  break
+                }
                 const regions = await backendDriver.getRegions(assembly)
                 handle.workers[0].postMessage({
                   apollo,
@@ -352,9 +353,10 @@ export default class ApolloPlugin extends Plugin {
                 if (!dataStore) {
                   break
                 }
-                const backendDriver = dataStore.getBackendDriver(
-                  assembly,
-                ) as BackendDriver
+                const backendDriver = dataStore.getBackendDriver(assembly)
+                if (!backendDriver) {
+                  break
+                }
                 const refNameAliases =
                   await backendDriver.getRefNameAliases(assembly)
                 handle.workers[0].postMessage({

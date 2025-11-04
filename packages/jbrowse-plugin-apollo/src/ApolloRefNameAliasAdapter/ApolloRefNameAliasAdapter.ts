@@ -6,7 +6,6 @@ import {
 import type RpcServer from 'librpc-web-mod/dist/server'
 import { nanoid } from 'nanoid'
 
-import { type BackendDriver } from '../BackendDrivers'
 import { type ApolloSessionModel } from '../session'
 
 import { type RefNameAliases } from './../BackendDrivers/BackendDriver'
@@ -50,9 +49,10 @@ export default class RefNameAliasAdapter
       if (!dataStore) {
         throw new Error('No Apollo data store found')
       }
-      const backendDriver = dataStore.getBackendDriver(
-        assemblyId,
-      ) as BackendDriver
+      const backendDriver = dataStore.getBackendDriver(assemblyId)
+      if (!backendDriver) {
+        throw new Error('No backend driver found')
+      }
       const refNameAliases = await backendDriver.getRefNameAliases(assemblyId)
       return refNameAliases
     }

@@ -167,9 +167,23 @@ export class AddFeatureChange extends FeatureChange {
     for (const change of changes) {
       const { addedFeature, parentFeatureId } = change
       if (parentFeatureId) {
-        const parentFeature = dataStore.getFeature(parentFeatureId)
+        let parentFeature = dataStore.getFeature(parentFeatureId)
+        // maybe the parent feature hasn't been loaded yet
         if (!parentFeature) {
-          throw new Error(`Could not find parent feature "${parentFeatureId}"`)
+          await dataStore.loadFeatures([
+            {
+              assemblyName: assembly,
+              refName: addedFeature.refSeq,
+              start: addedFeature.min,
+              end: addedFeature.max,
+            },
+          ])
+          parentFeature = dataStore.getFeature(parentFeatureId)
+          if (!parentFeature) {
+            throw new Error(
+              `Could not find parent feature "${parentFeatureId}"`,
+            )
+          }
         }
         // create an ID for the parent feature if it does not have one
         if (!parentFeature.attributes.get('_id')) {
