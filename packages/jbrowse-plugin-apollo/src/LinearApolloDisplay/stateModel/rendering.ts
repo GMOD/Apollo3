@@ -132,19 +132,26 @@ export function renderingModelFactory(
           self,
           autorun(
             () => {
-              const { canvas, featureLayouts, featuresHeight, lgv } = self
-              if (!lgv.initialized || self.regionCannotBeRendered()) {
+              const { canvas, featureLayouts, lgv } = self
+              if (
+                !lgv.initialized ||
+                self.regionCannotBeRendered() ||
+                !canvas
+              ) {
                 return
               }
-              const { displayedRegions, dynamicBlocks } = lgv
+              const { dynamicBlocks } = lgv
 
-              const ctx = canvas?.getContext('2d')
+              const ctx = canvas.getContext('2d')
               if (!ctx) {
                 return
               }
-              ctx.clearRect(0, 0, dynamicBlocks.totalWidthPx, featuresHeight)
+              ctx.clearRect(0, 0, canvas.width, canvas.height)
               for (const [idx, featureLayout] of featureLayouts.entries()) {
-                const displayedRegion = displayedRegions[idx]
+                const block = dynamicBlocks.contentBlocks.at(idx)
+                if (!block) {
+                  continue
+                }
                 for (const [row, featureLayoutRow] of featureLayout.entries()) {
                   for (const [featureRow, featureId] of featureLayoutRow) {
                     const feature = self.getAnnotationFeatureById(featureId)
@@ -153,15 +160,15 @@ export function renderingModelFactory(
                     }
                     if (
                       !doesIntersect2(
-                        displayedRegion.start,
-                        displayedRegion.end,
+                        block.start,
+                        block.end,
                         feature.min,
                         feature.max,
                       )
                     ) {
                       continue
                     }
-                    self.getGlyph(feature).draw(ctx, feature, row, self, idx)
+                    self.getGlyph(feature).draw(self, ctx, feature, row, block)
                   }
                 }
               }
