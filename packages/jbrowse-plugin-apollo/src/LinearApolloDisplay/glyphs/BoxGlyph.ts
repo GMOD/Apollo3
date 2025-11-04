@@ -1,5 +1,6 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type { MenuItem } from '@jbrowse/core/ui'
+import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 import { alpha } from '@mui/material'
 
 import {
@@ -42,23 +43,91 @@ function drawBoxFill(
   drawBox(ctx, x + 1, y + 1, width - 2, height - 2, color)
 }
 
+export function drawBox(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  color: string,
+) {
+  ctx.fillStyle = color
+  ctx.fillRect(x, y, width, height)
+}
+
+/** @returns undefined if mouse not on the edge of this feature, otherwise 'start' or 'end' depending on which edge */
+function isMouseOnFeatureEdge(
+  mousePosition: MousePosition,
+  feature: AnnotationFeature,
+  stateModel: LinearApolloDisplay,
+) {
+  const { refName, regionNumber, x } = mousePosition
+  const { lgv } = stateModel
+  const { offsetPx } = lgv
+  const minPxInfo = lgv.bpToPx({ refName, coord: feature.min, regionNumber })
+  const maxPxInfo = lgv.bpToPx({ refName, coord: feature.max, regionNumber })
+  if (minPxInfo !== undefined && maxPxInfo !== undefined) {
+    const minPx = minPxInfo.offsetPx - offsetPx
+    const maxPx = maxPxInfo.offsetPx - offsetPx
+    if (Math.abs(maxPx - minPx) < 8) {
+      return
+    }
+    if (Math.abs(minPx - x) < 4) {
+      return 'min'
+    }
+    if (Math.abs(maxPx - x) < 4) {
+      return 'max'
+    }
+  }
+  return
+}
+
+function drawHighlight(
+  stateModel: LinearApolloDisplayRendering,
+  ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  selected = false,
+) {
+  const { apolloRowHeight, lgv, theme } = stateModel
+  const position = stateModel.getFeatureLayoutPosition(feature)
+  if (!position) {
+    return
+  }
+  const { bpPerPx, displayedRegions, offsetPx } = lgv
+  const { layoutIndex, layoutRow } = position
+  const displayedRegion = displayedRegions[layoutIndex]
+  const { refName, reversed } = displayedRegion
+  const { length, max, min } = feature
+  const startPx =
+    (lgv.bpToPx({
+      refName,
+      coord: reversed ? max : min,
+      regionNumber: layoutIndex,
+    })?.offsetPx ?? 0) - offsetPx
+  const top = layoutRow * apolloRowHeight
+  const widthPx = length / bpPerPx
+  ctx.fillStyle = selected
+    ? theme.palette.action.disabled
+    : theme.palette.action.focus
+  ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
+}
+
 function draw(
+  display: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
-  stateModel: LinearApolloDisplayRendering,
-  displayedRegionIndex: number,
+  block: ContentBlock,
 ) {
-  const { apolloRowHeight: heightPx, lgv, selectedFeature, theme } = stateModel
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[displayedRegionIndex]
+  const { apolloRowHeight: heightPx, lgv, selectedFeature, theme } = display
+  const { bpPerPx, offsetPx } = lgv
   const minX =
     (lgv.bpToPx({
-      refName: displayedRegion.refName,
+      refName: block.refName,
       coord: feature.min,
-      regionNumber: displayedRegionIndex,
+      regionNumber: block.regionNumber,
     })?.offsetPx ?? 0) - offsetPx
-  const { reversed } = displayedRegion
+  const { reversed } = block
   const widthPx = feature.length / bpPerPx
   const startPx = reversed ? minX - widthPx : minX
   const top = row * heightPx
@@ -78,7 +147,7 @@ function draw(
 
   drawBoxFill(ctx, startPx, top, widthPx, heightPx, backgroundColor)
   if (isSelectedFeature(feature, selectedFeature)) {
-    drawHighlight(stateModel, ctx, feature, true)
+    drawHighlight(display, ctx, feature, true)
   }
 }
 
@@ -110,36 +179,6 @@ function drawDragPreview(
   overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
   overlayCtx.fillStyle = alpha(theme.palette.info.main, 0.2)
   overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
-}
-
-function drawHighlight(
-  stateModel: LinearApolloDisplayRendering,
-  ctx: CanvasRenderingContext2D,
-  feature: AnnotationFeature,
-  selected = false,
-) {
-  const { apolloRowHeight, lgv, theme } = stateModel
-  const position = stateModel.getFeatureLayoutPosition(feature)
-  if (!position) {
-    return
-  }
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const { layoutIndex, layoutRow } = position
-  const displayedRegion = displayedRegions[layoutIndex]
-  const { refName, reversed } = displayedRegion
-  const { length, max, min } = feature
-  const startPx =
-    (lgv.bpToPx({
-      refName,
-      coord: reversed ? max : min,
-      regionNumber: layoutIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const top = layoutRow * apolloRowHeight
-  const widthPx = length / bpPerPx
-  ctx.fillStyle = selected
-    ? theme.palette.action.disabled
-    : theme.palette.action.focus
-  ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
 }
 
 function drawHover(
@@ -214,18 +253,6 @@ function drawTooltip(
   }
   textTop = textTop + 12
   context.fillText(location, startPx + 2, textTop)
-}
-
-export function drawBox(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  color: string,
-) {
-  ctx.fillStyle = color
-  ctx.fillRect(x, y, width, height)
 }
 
 function getContextMenuItems(
@@ -305,33 +332,6 @@ function onMouseUp(
   }
   stateModel.setSelectedFeature(feature)
   stateModel.showFeatureDetailsWidget(feature)
-}
-
-/** @returns undefined if mouse not on the edge of this feature, otherwise 'start' or 'end' depending on which edge */
-function isMouseOnFeatureEdge(
-  mousePosition: MousePosition,
-  feature: AnnotationFeature,
-  stateModel: LinearApolloDisplay,
-) {
-  const { refName, regionNumber, x } = mousePosition
-  const { lgv } = stateModel
-  const { offsetPx } = lgv
-  const minPxInfo = lgv.bpToPx({ refName, coord: feature.min, regionNumber })
-  const maxPxInfo = lgv.bpToPx({ refName, coord: feature.max, regionNumber })
-  if (minPxInfo !== undefined && maxPxInfo !== undefined) {
-    const minPx = minPxInfo.offsetPx - offsetPx
-    const maxPx = maxPxInfo.offsetPx - offsetPx
-    if (Math.abs(maxPx - minPx) < 8) {
-      return
-    }
-    if (Math.abs(minPx - x) < 4) {
-      return 'min'
-    }
-    if (Math.abs(maxPx - x) < 4) {
-      return 'max'
-    }
-  }
-  return
 }
 
 export const boxGlyph: Glyph = {

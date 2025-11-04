@@ -9,6 +9,7 @@ import {
   intersection2,
   isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
+import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material'
 
@@ -89,18 +90,156 @@ if (canvas?.getContext) {
   }
 }
 
+function getDraggableFeatureInfo(
+  mousePosition: MousePosition,
+  feature: AnnotationFeature,
+  stateModel: LinearApolloDisplay,
+): { feature: AnnotationFeature; edge: 'min' | 'max' } | undefined {
+  const { session } = stateModel
+  const { apolloDataStore } = session
+  const { featureTypeOntology } = apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  const isGene =
+    featureTypeOntology.isTypeOf(feature.type, 'gene') ||
+    featureTypeOntology.isTypeOf(feature.type, 'pseudogene')
+  const isTranscript =
+    featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
+    featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')
+  const isCDS = featureTypeOntology.isTypeOf(feature.type, 'CDS')
+  if (isGene || isTranscript) {
+    // For gene glyphs, the sizes of genes and transcripts are determined by
+    // their child exons, so we don't make them draggable
+    return
+  }
+  // So now the type of feature is either CDS or exon. If an exon and CDS edge
+  // are in the same place, we want to prioritize dragging the exon. If the
+  // feature we're on is a CDS, let's find any exon it may overlap.
+  const { bp, refName, regionNumber, x } = mousePosition
+  const { lgv } = stateModel
+  if (isCDS) {
+    const transcript = feature.parent
+    if (!transcript?.children) {
+      return
+    }
+    const exonChildren: AnnotationFeature[] = []
+    for (const child of transcript.children.values()) {
+      const childIsExon = featureTypeOntology.isTypeOf(child.type, 'exon')
+      if (childIsExon) {
+        exonChildren.push(child)
+      }
+    }
+    const overlappingExon = exonChildren.find((child) => {
+      const [start, end] = intersection2(bp - 1, bp, child.min, child.max)
+      return start !== undefined && end !== undefined
+    })
+    if (overlappingExon) {
+      // We are on an exon, are we on the edge of it?
+      const minMax = getMinAndMaxPx(overlappingExon, refName, regionNumber, lgv)
+      if (minMax) {
+        const overlappingEdge = getOverlappingEdge(overlappingExon, x, minMax)
+        if (overlappingEdge) {
+          return overlappingEdge
+        }
+      }
+    }
+  }
+  // End of special cases, let's see if we're on the edge of this CDS or exon
+  const minMax = getMinAndMaxPx(feature, refName, regionNumber, lgv)
+  if (minMax) {
+    const overlappingEdge = getOverlappingEdge(feature, x, minMax)
+    if (overlappingEdge) {
+      return overlappingEdge
+    }
+  }
+  return
+}
+
+/**
+ * A list of all the subfeatures for each row for a given feature, as well as
+ * the feature itself.
+ * If the row contains a transcript, the order is CDS -\> exon -\> transcript -\> gene
+ * If the row does not contain an transcript, the order is subfeature -\> gene
+ */
+function featuresForRow(
+  feature: AnnotationFeature,
+  featureTypeOntology: OntologyRecord,
+): AnnotationFeature[][] {
+  const isGene =
+    featureTypeOntology.isTypeOf(feature.type, 'gene') ||
+    featureTypeOntology.isTypeOf(feature.type, 'pseudogene')
+  if (!isGene) {
+    throw new Error('Top level feature for GeneGlyph must have type "gene"')
+  }
+  const { children } = feature
+  if (!children) {
+    return [[feature]]
+  }
+  const features: AnnotationFeature[][] = []
+  for (const [, child] of children) {
+    if (
+      !(
+        featureTypeOntology.isTypeOf(child.type, 'transcript') ||
+        featureTypeOntology.isTypeOf(child.type, 'pseudogenic_transcript')
+      )
+    ) {
+      features.push([child, feature])
+      continue
+    }
+    if (!child.children) {
+      continue
+    }
+    const cdss: AnnotationFeature[] = []
+    const exons: AnnotationFeature[] = []
+    for (const [, grandchild] of child.children) {
+      if (featureTypeOntology.isTypeOf(grandchild.type, 'CDS')) {
+        cdss.push(grandchild)
+      } else if (featureTypeOntology.isTypeOf(grandchild.type, 'exon')) {
+        exons.push(grandchild)
+      }
+    }
+    for (const cds of cdss) {
+      features.push([cds, ...exons, child, feature])
+    }
+    if (cdss.length === 0) {
+      features.push([...exons, child, feature])
+    }
+  }
+  return features
+}
+
+function getCDSCount(
+  feature: AnnotationFeature,
+  featureTypeOntology: OntologyRecord,
+): number {
+  const { children, type } = feature
+  if (!children) {
+    return 0
+  }
+  const isMrna = featureTypeOntology.isTypeOf(type, 'transcript')
+  let cdsCount = 0
+  if (isMrna) {
+    for (const [, child] of children) {
+      if (featureTypeOntology.isTypeOf(child.type, 'CDS')) {
+        cdsCount += 1
+      }
+    }
+  }
+  return cdsCount
+}
+
 function drawBackground(
+  display: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
-  stateModel: LinearApolloDisplayRendering,
-  displayedRegionIndex: number,
   row: number,
+  block: ContentBlock,
   color?: string,
 ) {
-  const { apolloRowHeight, lgv, session, theme } = stateModel
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[displayedRegionIndex]
-  const { refName, reversed } = displayedRegion
+  const { apolloRowHeight, lgv, session, theme } = display
+  const { bpPerPx, offsetPx } = lgv
+  const { refName, reversed } = block
   const { apolloDataStore } = session
   const { featureTypeOntology } = apolloDataStore.ontologyManager
   if (!featureTypeOntology) {
@@ -111,7 +250,7 @@ function drawBackground(
     (lgv.bpToPx({
       refName,
       coord: feature.min,
-      regionNumber: displayedRegionIndex,
+      regionNumber: block.regionNumber,
     })?.offsetPx ?? 0) - offsetPx
   const topLevelFeatureWidthPx = feature.length / bpPerPx
   const topLevelFeatureStartPx = reversed
@@ -143,17 +282,174 @@ function drawBackground(
   )
 }
 
-function draw(
+function drawExon(
+  display: LinearApolloDisplayRendering,
+  ctx: CanvasRenderingContext2D,
+  exon: AnnotationFeature,
+  row: number,
+  currentRow: number,
+  block: ContentBlock,
+  strand: number | undefined,
+  forwardFill: CanvasPattern | null,
+  backwardFill: CanvasPattern | null,
+) {
+  const { apolloRowHeight, lgv, theme } = display
+  const { bpPerPx, offsetPx } = lgv
+  const { refName, reversed } = block
+
+  const minX =
+    (lgv.bpToPx({
+      refName,
+      coord: exon.min,
+      regionNumber: block.regionNumber,
+    })?.offsetPx ?? 0) - offsetPx
+  const widthPx = exon.length / bpPerPx
+  const startPx = reversed ? minX - widthPx : minX
+
+  const top = (row + currentRow) * apolloRowHeight
+  const exonHeight = Math.round(0.6 * apolloRowHeight)
+  const exonTop = top + (apolloRowHeight - exonHeight) / 2
+  ctx.fillStyle = theme.palette.text.primary
+  ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
+  if (widthPx > 2) {
+    ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
+    ctx.fillStyle = 'rgb(211,211,211)'
+    ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
+    if (forwardFill && backwardFill && strand) {
+      const reversal = reversed ? -1 : 1
+      const [topFill, bottomFill] =
+        strand * reversal === 1
+          ? [forwardFill, backwardFill]
+          : [backwardFill, forwardFill]
+      ctx.fillStyle = topFill
+      ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, (exonHeight - 2) / 2)
+      ctx.fillStyle = bottomFill
+      ctx.fillRect(
+        startPx + 1,
+        exonTop + 1 + (exonHeight - 2) / 2,
+        widthPx - 2,
+        (exonHeight - 2) / 2,
+      )
+    }
+  }
+}
+
+function* range(start: number, stop: number, step = 1): Generator<number> {
+  if (start === stop) {
+    return
+  }
+  if (start < stop) {
+    for (let i = start; i < stop; i += step) {
+      yield i
+    }
+    return
+  }
+  for (let i = start; i > stop; i -= step) {
+    yield i
+  }
+}
+
+function drawLine(
+  display: LinearApolloDisplayRendering,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
+  currentRow: number,
+  block: ContentBlock,
+) {
+  const { apolloRowHeight, lgv, theme } = display
+  const { bpPerPx, offsetPx } = lgv
+  const { refName, reversed } = block
+  const minX =
+    (lgv.bpToPx({
+      refName,
+      coord: feature.min,
+      regionNumber: block.regionNumber,
+    })?.offsetPx ?? 0) - offsetPx
+  const widthPx = Math.round(feature.length / bpPerPx)
+  const startPx = reversed ? minX - widthPx : minX
+  const height =
+    Math.round((currentRow + 1 / 2) * apolloRowHeight) + row * apolloRowHeight
+  ctx.strokeStyle = theme.palette.text.primary
+  const { strand = 1 } = feature
+  ctx.beginPath()
+  // If view is reversed, draw forward as reverse and vice versa
+  const effectiveStrand = strand * (reversed ? -1 : 1)
+  // Draw the transcript line, and extend it out a bit on the 3` end
+  const lineStart = startPx - (effectiveStrand === -1 ? 5 : 0)
+  const lineEnd = startPx + widthPx + (effectiveStrand === -1 ? 0 : 5)
+  ctx.moveTo(lineStart, height)
+  ctx.lineTo(lineEnd, height)
+  // Now to draw arrows every 20 pixels along the line
+  // Make the arrow range a bit shorter to avoid an arrow hanging off the 5` end
+  const arrowsStart = lineStart + (effectiveStrand === -1 ? 0 : 3)
+  const arrowsEnd = lineEnd - (effectiveStrand === -1 ? 3 : 0)
+  // Offset determines if the arrows face left or right
+  const offset = effectiveStrand === -1 ? 3 : -3
+  const arrowRange =
+    effectiveStrand === -1
+      ? range(arrowsStart, arrowsEnd, 20)
+      : range(arrowsEnd, arrowsStart, 20)
+  for (const arrowLocation of arrowRange) {
+    ctx.moveTo(arrowLocation + offset, height + offset)
+    ctx.lineTo(arrowLocation, height)
+    ctx.lineTo(arrowLocation + offset, height - offset)
+  }
+  ctx.stroke()
+}
+
+function drawHighlight(
   stateModel: LinearApolloDisplayRendering,
-  displayedRegionIndex: number,
-): void {
-  const { apolloRowHeight, lgv, selectedFeature, session, theme } = stateModel
+  ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  selected = false,
+) {
+  const { apolloRowHeight, lgv, session, theme } = stateModel
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+
+  const position = stateModel.getFeatureLayoutPosition(feature)
+  if (!position) {
+    return
+  }
   const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[displayedRegionIndex]
+  const { featureRow, layoutIndex, layoutRow } = position
+  const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
+  const { length, max, min } = feature
+  const startPx =
+    (lgv.bpToPx({
+      refName,
+      coord: reversed ? max : min,
+      regionNumber: layoutIndex,
+    })?.offsetPx ?? 0) - offsetPx
+  const row = layoutRow + featureRow
+  const top = row * apolloRowHeight
+  const widthPx = length / bpPerPx
+  ctx.fillStyle = selected
+    ? theme.palette.action.disabled
+    : theme.palette.action.focus
+
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  ctx.fillRect(
+    startPx,
+    top,
+    widthPx,
+    apolloRowHeight * getRowCount(feature, featureTypeOntology),
+  )
+}
+
+function draw(
+  display: LinearApolloDisplayRendering,
+  ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
+): void {
+  const { apolloRowHeight, lgv, selectedFeature, session, theme } = display
+  const { bpPerPx, offsetPx } = lgv
+  const { refName, reversed } = block
   const rowHeight = apolloRowHeight
   const cdsHeight = Math.round(0.9 * rowHeight)
   const { children, strand } = feature
@@ -167,7 +463,7 @@ function draw(
   }
 
   // Draw background for gene
-  drawBackground(ctx, feature, stateModel, displayedRegionIndex, row)
+  drawBackground(display, ctx, feature, row, block)
 
   // Draw lines on different rows for each transcript
   let currentRow = 0
@@ -189,26 +485,12 @@ function draw(
       if (!featureTypeOntology.isTypeOf(childFeature.type, 'CDS')) {
         continue
       }
-      drawLine(
-        ctx,
-        stateModel,
-        displayedRegionIndex,
-        row,
-        transcript,
-        currentRow,
-      )
+      drawLine(display, ctx, transcript, row, currentRow, block)
       currentRow += 1
     }
 
     if (cdsCount === 0) {
-      drawLine(
-        ctx,
-        stateModel,
-        displayedRegionIndex,
-        row,
-        transcript,
-        currentRow,
-      )
+      drawLine(display, ctx, transcript, row, currentRow, block)
       currentRow += 1
     }
   }
@@ -226,7 +508,7 @@ function draw(
         featureTypeOntology.isTypeOf(child.type, 'pseudogenic_transcript')
       )
     ) {
-      boxGlyph.draw(ctx, child, row, stateModel, displayedRegionIndex)
+      boxGlyph.draw(display, ctx, child, row, block)
       currentRow += 1
       continue
     }
@@ -242,12 +524,12 @@ function draw(
             continue
           }
           drawExon(
+            display,
             ctx,
-            stateModel,
-            displayedRegionIndex,
-            row,
             exon,
+            row,
             currentRow,
+            block,
             strand,
             forwardFill,
             backwardFill,
@@ -259,7 +541,7 @@ function draw(
             (lgv.bpToPx({
               refName,
               coord: cds.min,
-              regionNumber: displayedRegionIndex,
+              regionNumber: block.regionNumber,
             })?.offsetPx ?? 0) - offsetPx
           const cdsStartPx = reversed ? minX - cdsWidthPx : minX
           ctx.fillStyle = theme.palette.text.primary
@@ -322,12 +604,12 @@ function draw(
           continue
         }
         drawExon(
+          display,
           ctx,
-          stateModel,
-          displayedRegionIndex,
-          row,
           exon,
+          row,
           currentRow,
+          block,
           strand,
           forwardFill,
           backwardFill,
@@ -337,126 +619,8 @@ function draw(
     }
   }
   if (selectedFeature && containsSelectedFeature(feature, selectedFeature)) {
-    drawHighlight(stateModel, ctx, selectedFeature, true)
+    drawHighlight(display, ctx, selectedFeature, true)
   }
-}
-
-function drawExon(
-  ctx: CanvasRenderingContext2D,
-  stateModel: LinearApolloDisplayRendering,
-  displayedRegionIndex: number,
-  row: number,
-  exon: AnnotationFeature,
-  currentRow: number,
-  strand: number | undefined,
-  forwardFill: CanvasPattern | null,
-  backwardFill: CanvasPattern | null,
-) {
-  const { apolloRowHeight, lgv, theme } = stateModel
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[displayedRegionIndex]
-  const { refName, reversed } = displayedRegion
-
-  const minX =
-    (lgv.bpToPx({
-      refName,
-      coord: exon.min,
-      regionNumber: displayedRegionIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const widthPx = exon.length / bpPerPx
-  const startPx = reversed ? minX - widthPx : minX
-
-  const top = (row + currentRow) * apolloRowHeight
-  const exonHeight = Math.round(0.6 * apolloRowHeight)
-  const exonTop = top + (apolloRowHeight - exonHeight) / 2
-  ctx.fillStyle = theme.palette.text.primary
-  ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
-  if (widthPx > 2) {
-    ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
-    ctx.fillStyle = 'rgb(211,211,211)'
-    ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
-    if (forwardFill && backwardFill && strand) {
-      const reversal = reversed ? -1 : 1
-      const [topFill, bottomFill] =
-        strand * reversal === 1
-          ? [forwardFill, backwardFill]
-          : [backwardFill, forwardFill]
-      ctx.fillStyle = topFill
-      ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, (exonHeight - 2) / 2)
-      ctx.fillStyle = bottomFill
-      ctx.fillRect(
-        startPx + 1,
-        exonTop + 1 + (exonHeight - 2) / 2,
-        widthPx - 2,
-        (exonHeight - 2) / 2,
-      )
-    }
-  }
-}
-
-function* range(start: number, stop: number, step = 1): Generator<number> {
-  if (start === stop) {
-    return
-  }
-  if (start < stop) {
-    for (let i = start; i < stop; i += step) {
-      yield i
-    }
-    return
-  }
-  for (let i = start; i > stop; i -= step) {
-    yield i
-  }
-}
-
-function drawLine(
-  ctx: CanvasRenderingContext2D,
-  stateModel: LinearApolloDisplayRendering,
-  displayedRegionIndex: number,
-  row: number,
-  transcript: AnnotationFeature,
-  currentRow: number,
-) {
-  const { apolloRowHeight, lgv, theme } = stateModel
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[displayedRegionIndex]
-  const { refName, reversed } = displayedRegion
-  const minX =
-    (lgv.bpToPx({
-      refName,
-      coord: transcript.min,
-      regionNumber: displayedRegionIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const widthPx = Math.round(transcript.length / bpPerPx)
-  const startPx = reversed ? minX - widthPx : minX
-  const height =
-    Math.round((currentRow + 1 / 2) * apolloRowHeight) + row * apolloRowHeight
-  ctx.strokeStyle = theme.palette.text.primary
-  const { strand = 1 } = transcript
-  ctx.beginPath()
-  // If view is reversed, draw forward as reverse and vice versa
-  const effectiveStrand = strand * (reversed ? -1 : 1)
-  // Draw the transcript line, and extend it out a bit on the 3` end
-  const lineStart = startPx - (effectiveStrand === -1 ? 5 : 0)
-  const lineEnd = startPx + widthPx + (effectiveStrand === -1 ? 0 : 5)
-  ctx.moveTo(lineStart, height)
-  ctx.lineTo(lineEnd, height)
-  // Now to draw arrows every 20 pixels along the line
-  // Make the arrow range a bit shorter to avoid an arrow hanging off the 5` end
-  const arrowsStart = lineStart + (effectiveStrand === -1 ? 0 : 3)
-  const arrowsEnd = lineEnd - (effectiveStrand === -1 ? 3 : 0)
-  // Offset determines if the arrows face left or right
-  const offset = effectiveStrand === -1 ? 3 : -3
-  const arrowRange =
-    effectiveStrand === -1
-      ? range(arrowsStart, arrowsEnd, 20)
-      : range(arrowsEnd, arrowsStart, 20)
-  for (const arrowLocation of arrowRange) {
-    ctx.moveTo(arrowLocation + offset, height + offset)
-    ctx.lineTo(arrowLocation, height)
-    ctx.lineTo(arrowLocation + offset, height - offset)
-  }
-  ctx.stroke()
 }
 
 function drawDragPreview(
@@ -486,48 +650,6 @@ function drawDragPreview(
   overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
   overlayCtx.fillStyle = alpha(theme.palette.info.main, 0.2)
   overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
-}
-
-function drawHighlight(
-  stateModel: LinearApolloDisplayRendering,
-  ctx: CanvasRenderingContext2D,
-  feature: AnnotationFeature,
-  selected = false,
-) {
-  const { apolloRowHeight, lgv, session, theme } = stateModel
-  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
-
-  const position = stateModel.getFeatureLayoutPosition(feature)
-  if (!position) {
-    return
-  }
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const { featureRow, layoutIndex, layoutRow } = position
-  const displayedRegion = displayedRegions[layoutIndex]
-  const { refName, reversed } = displayedRegion
-  const { length, max, min } = feature
-  const startPx =
-    (lgv.bpToPx({
-      refName,
-      coord: reversed ? max : min,
-      regionNumber: layoutIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const row = layoutRow + featureRow
-  const top = row * apolloRowHeight
-  const widthPx = length / bpPerPx
-  ctx.fillStyle = selected
-    ? theme.palette.action.disabled
-    : theme.palette.action.focus
-
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
-  ctx.fillRect(
-    startPx,
-    top,
-    widthPx,
-    apolloRowHeight * getRowCount(feature, featureTypeOntology),
-  )
 }
 
 function drawHover(
@@ -585,26 +707,6 @@ function getFeatureFromLayout(
   return feature
 }
 
-function getCDSCount(
-  feature: AnnotationFeature,
-  featureTypeOntology: OntologyRecord,
-): number {
-  const { children, type } = feature
-  if (!children) {
-    return 0
-  }
-  const isMrna = featureTypeOntology.isTypeOf(type, 'transcript')
-  let cdsCount = 0
-  if (isMrna) {
-    for (const [, child] of children) {
-      if (featureTypeOntology.isTypeOf(child.type, 'CDS')) {
-        cdsCount += 1
-      }
-    }
-  }
-  return cdsCount
-}
-
 function getRowCount(
   feature: AnnotationFeature,
   featureTypeOntology: OntologyRecord,
@@ -632,59 +734,6 @@ function getRowCount(
     rowCount += getRowCount(child, featureTypeOntology)
   }
   return rowCount
-}
-
-/**
- * A list of all the subfeatures for each row for a given feature, as well as
- * the feature itself.
- * If the row contains a transcript, the order is CDS -\> exon -\> transcript -\> gene
- * If the row does not contain an transcript, the order is subfeature -\> gene
- */
-function featuresForRow(
-  feature: AnnotationFeature,
-  featureTypeOntology: OntologyRecord,
-): AnnotationFeature[][] {
-  const isGene =
-    featureTypeOntology.isTypeOf(feature.type, 'gene') ||
-    featureTypeOntology.isTypeOf(feature.type, 'pseudogene')
-  if (!isGene) {
-    throw new Error('Top level feature for GeneGlyph must have type "gene"')
-  }
-  const { children } = feature
-  if (!children) {
-    return [[feature]]
-  }
-  const features: AnnotationFeature[][] = []
-  for (const [, child] of children) {
-    if (
-      !(
-        featureTypeOntology.isTypeOf(child.type, 'transcript') ||
-        featureTypeOntology.isTypeOf(child.type, 'pseudogenic_transcript')
-      )
-    ) {
-      features.push([child, feature])
-      continue
-    }
-    if (!child.children) {
-      continue
-    }
-    const cdss: AnnotationFeature[] = []
-    const exons: AnnotationFeature[] = []
-    for (const [, grandchild] of child.children) {
-      if (featureTypeOntology.isTypeOf(grandchild.type, 'CDS')) {
-        cdss.push(grandchild)
-      } else if (featureTypeOntology.isTypeOf(grandchild.type, 'exon')) {
-        exons.push(grandchild)
-      }
-    }
-    for (const cds of cdss) {
-      features.push([cds, ...exons, child, feature])
-    }
-    if (cdss.length === 0) {
-      features.push([...exons, child, feature])
-    }
-  }
-  return features
 }
 
 function getRowForFeature(
@@ -757,72 +806,6 @@ function onMouseUp(
     return
   }
   selectFeatureAndOpenWidget(stateModel, feature)
-}
-
-function getDraggableFeatureInfo(
-  mousePosition: MousePosition,
-  feature: AnnotationFeature,
-  stateModel: LinearApolloDisplay,
-): { feature: AnnotationFeature; edge: 'min' | 'max' } | undefined {
-  const { session } = stateModel
-  const { apolloDataStore } = session
-  const { featureTypeOntology } = apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
-  const isGene =
-    featureTypeOntology.isTypeOf(feature.type, 'gene') ||
-    featureTypeOntology.isTypeOf(feature.type, 'pseudogene')
-  const isTranscript =
-    featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
-    featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')
-  const isCDS = featureTypeOntology.isTypeOf(feature.type, 'CDS')
-  if (isGene || isTranscript) {
-    // For gene glyphs, the sizes of genes and transcripts are determined by
-    // their child exons, so we don't make them draggable
-    return
-  }
-  // So now the type of feature is either CDS or exon. If an exon and CDS edge
-  // are in the same place, we want to prioritize dragging the exon. If the
-  // feature we're on is a CDS, let's find any exon it may overlap.
-  const { bp, refName, regionNumber, x } = mousePosition
-  const { lgv } = stateModel
-  if (isCDS) {
-    const transcript = feature.parent
-    if (!transcript?.children) {
-      return
-    }
-    const exonChildren: AnnotationFeature[] = []
-    for (const child of transcript.children.values()) {
-      const childIsExon = featureTypeOntology.isTypeOf(child.type, 'exon')
-      if (childIsExon) {
-        exonChildren.push(child)
-      }
-    }
-    const overlappingExon = exonChildren.find((child) => {
-      const [start, end] = intersection2(bp - 1, bp, child.min, child.max)
-      return start !== undefined && end !== undefined
-    })
-    if (overlappingExon) {
-      // We are on an exon, are we on the edge of it?
-      const minMax = getMinAndMaxPx(overlappingExon, refName, regionNumber, lgv)
-      if (minMax) {
-        const overlappingEdge = getOverlappingEdge(overlappingExon, x, minMax)
-        if (overlappingEdge) {
-          return overlappingEdge
-        }
-      }
-    }
-  }
-  // End of special cases, let's see if we're on the edge of this CDS or exon
-  const minMax = getMinAndMaxPx(feature, refName, regionNumber, lgv)
-  if (minMax) {
-    const overlappingEdge = getOverlappingEdge(feature, x, minMax)
-    if (overlappingEdge) {
-      return overlappingEdge
-    }
-  }
-  return
 }
 
 function getContextMenuItems(

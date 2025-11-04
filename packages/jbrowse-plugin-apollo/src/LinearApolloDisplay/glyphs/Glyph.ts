@@ -1,5 +1,6 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type { MenuItem } from '@jbrowse/core/ui'
+import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
 import type { OntologyRecord } from '../../OntologyManager'
 import type { MousePositionWithFeature } from '../../util'
@@ -8,20 +9,20 @@ import type { LinearApolloDisplayRendering } from '../stateModel/rendering'
 import type { CanvasMouseEvent } from '../types'
 
 export interface Glyph {
+  /** draw the feature's primary rendering on the canvas */
+  draw(
+    display: LinearApolloDisplayRendering,
+    ctx: CanvasRenderingContext2D,
+    feature: AnnotationFeature,
+    row: number,
+    block: ContentBlock,
+  ): void
   /** @returns number of layout rows used by this glyph with this feature and zoom level */
   getRowCount(
     feature: AnnotationFeature,
     featureTypeOntology: OntologyRecord,
     bpPerPx: number,
   ): number
-  /** draw the feature's primary rendering on the canvas */
-  draw(
-    ctx: CanvasRenderingContext2D,
-    feature: AnnotationFeature,
-    row: number,
-    stateModel: LinearApolloDisplayRendering,
-    displayedRegionIndex: number,
-  ): void
   /** @returns the feature or subfeature at the given bp and row number in this glyph's layout */
   getFeatureFromLayout(
     feature: AnnotationFeature,

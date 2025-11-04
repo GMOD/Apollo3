@@ -1,5 +1,6 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type { MenuItem } from '@jbrowse/core/ui'
+import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 import { alpha } from '@mui/material'
 
 import {
@@ -23,70 +24,6 @@ function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
     }
   }
   return features
-}
-
-function getRowCount(feature: AnnotationFeature) {
-  return featuresForRow(feature).length
-}
-
-function draw(
-  ctx: CanvasRenderingContext2D,
-  feature: AnnotationFeature,
-  row: number,
-  stateModel: LinearApolloDisplayRendering,
-  displayedRegionIndex: number,
-) {
-  const { selectedFeature } = stateModel
-  for (let i = 0; i < getRowCount(feature); i++) {
-    drawRow(ctx, feature, row + i, row, stateModel, displayedRegionIndex)
-  }
-  if (selectedFeature && containsSelectedFeature(feature, selectedFeature)) {
-    drawHighlight(stateModel, ctx, selectedFeature)
-  }
-}
-
-function drawRow(
-  ctx: CanvasRenderingContext2D,
-  topLevelFeature: AnnotationFeature,
-  row: number,
-  topRow: number,
-  stateModel: LinearApolloDisplayRendering,
-  displayedRegionIndex: number,
-) {
-  const features = featuresForRow(topLevelFeature)[row - topRow]
-  for (const feature of features) {
-    drawFeature(ctx, feature, row, stateModel, displayedRegionIndex)
-  }
-}
-
-function drawFeature(
-  ctx: CanvasRenderingContext2D,
-  feature: AnnotationFeature,
-  row: number,
-  stateModel: LinearApolloDisplayRendering,
-  displayedRegionIndex: number,
-) {
-  const { apolloRowHeight: heightPx, lgv, theme } = stateModel
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[displayedRegionIndex]
-  const minX =
-    (lgv.bpToPx({
-      refName: displayedRegion.refName,
-      coord: feature.min,
-      regionNumber: displayedRegionIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const { reversed } = displayedRegion
-  const widthPx = feature.length / bpPerPx
-  const startPx = reversed ? minX - widthPx : minX
-  const top = row * heightPx
-  const rowCount = getRowCount(feature)
-  const groupingColor = alpha(theme.palette.background.paper, 0.6)
-  if (rowCount > 1) {
-    // draw background that encapsulates all child features
-    const featureHeight = rowCount * heightPx
-    drawBox(ctx, startPx, top, widthPx, featureHeight, groupingColor)
-  }
-  boxGlyph.draw(ctx, feature, row, stateModel, displayedRegionIndex)
 }
 
 function drawHighlight(
@@ -120,6 +57,65 @@ function drawHighlight(
   ctx.fillRect(startPx, top, widthPx, apolloRowHeight * getRowCount(feature))
 }
 
+function drawRow(
+  display: LinearApolloDisplayRendering,
+  ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  row: number,
+  topRow: number,
+  block: ContentBlock,
+) {
+  const features = featuresForRow(feature)[row - topRow]
+  for (const feature of features) {
+    drawFeature(display, ctx, feature, row, block)
+  }
+}
+
+function drawFeature(
+  display: LinearApolloDisplayRendering,
+  ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
+) {
+  const { apolloRowHeight: heightPx, lgv, theme } = display
+  const { bpPerPx, offsetPx } = lgv
+  const minX =
+    (lgv.bpToPx({
+      refName: block.refName,
+      coord: feature.min,
+      regionNumber: block.regionNumber,
+    })?.offsetPx ?? 0) - offsetPx
+  const { reversed } = block
+  const widthPx = feature.length / bpPerPx
+  const startPx = reversed ? minX - widthPx : minX
+  const top = row * heightPx
+  const rowCount = getRowCount(feature)
+  const groupingColor = alpha(theme.palette.background.paper, 0.6)
+  if (rowCount > 1) {
+    // draw background that encapsulates all child features
+    const featureHeight = rowCount * heightPx
+    drawBox(ctx, startPx, top, widthPx, featureHeight, groupingColor)
+  }
+  boxGlyph.draw(display, ctx, feature, row, block)
+}
+
+function draw(
+  display: LinearApolloDisplayRendering,
+  ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
+) {
+  const { selectedFeature } = display
+  for (let i = 0; i < getRowCount(feature); i++) {
+    drawRow(display, ctx, feature, row + i, row, block)
+  }
+  if (selectedFeature && containsSelectedFeature(feature, selectedFeature)) {
+    drawHighlight(display, ctx, selectedFeature)
+  }
+}
+
 function drawHover(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
@@ -129,6 +125,10 @@ function drawHover(
     return
   }
   drawHighlight(stateModel, ctx, hoveredFeature.feature)
+}
+
+function getRowCount(feature: AnnotationFeature) {
+  return featuresForRow(feature).length
 }
 
 function getFeatureFromLayout(
