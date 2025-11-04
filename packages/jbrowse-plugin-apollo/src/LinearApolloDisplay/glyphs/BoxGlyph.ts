@@ -164,7 +164,7 @@ function drawDragPreview(
 
   const row = Math.floor(start.y / apolloRowHeight)
   const region = displayedRegions[start.regionNumber]
-  const rowCount = getRowCount(feature)
+  const rowCount = getRowCount()
 
   const featureEdgeBp = region.reversed
     ? region.end - feature[edge]
@@ -273,7 +273,7 @@ function getFeatureFromLayout(
   return feature
 }
 
-function getRowCount(_feature: AnnotationFeature) {
+function getRowCount() {
   return 1
 }
 
