@@ -140,7 +140,7 @@ export function renderingModelFactory(
               ) {
                 return
               }
-              const { dynamicBlocks } = lgv
+              const { dynamicBlocks, offsetPx } = lgv
 
               const ctx = canvas.getContext('2d')
               if (!ctx) {
@@ -152,6 +152,7 @@ export function renderingModelFactory(
                 if (!block) {
                   continue
                 }
+                const blockLeftPx = block.offsetPx - offsetPx
                 for (const [row, featureLayoutRow] of featureLayout.entries()) {
                   for (const [featureRow, featureId] of featureLayoutRow) {
                     const feature = self.getAnnotationFeatureById(featureId)
@@ -168,7 +169,12 @@ export function renderingModelFactory(
                     ) {
                       continue
                     }
+                    ctx.save()
+                    ctx.beginPath()
+                    ctx.rect(blockLeftPx, 0, block.widthPx, canvas.height)
+                    ctx.clip()
                     self.getGlyph(feature).draw(self, ctx, feature, row, block)
+                    ctx.restore()
                   }
                 }
               }
