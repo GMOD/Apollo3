@@ -6,6 +6,7 @@ import { isCDSFeature, isExonFeature } from '../../util/glyphUtils'
 import { type LinearApolloDisplay } from '../stateModel'
 
 import { boxGlyph } from './BoxGlyph'
+import { cdsGlyph } from './CDSGlyph'
 import { exonGlyph } from './ExonGlyph'
 import { type Glyph } from './Glyph'
 import { getLeftPx } from './util'
@@ -117,6 +118,7 @@ function draw(
       for (const exon of exons) {
         exonGlyph.draw(display, ctx, exon, row + idx + extraOffset, block)
       }
+      cdsGlyph.draw(display, ctx, child, row + idx + extraOffset, block)
     } else {
       const extra = boxGlyph.getRowCount(display, child) - 1
       boxGlyph.draw(display, ctx, child, row + idx + extraOffset, block)
