@@ -37,6 +37,7 @@ import type { CanvasMouseEvent } from '../types'
 import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
 import { transcriptGlyph } from './TranscriptGlyph'
+import { getLeftPx, strokeRectInner } from './util'
 
 function getDraggableFeatureInfo(
   mousePosition: MousePosition,
@@ -157,53 +158,6 @@ function featuresForRow(
   return features
 }
 
-function drawBackground(
-  display: LinearApolloDisplay,
-  ctx: CanvasRenderingContext2D,
-  feature: AnnotationFeature,
-  row: number,
-  block: ContentBlock,
-  color?: string,
-) {
-  const { apolloRowHeight, lgv, session, theme } = display
-  const { bpPerPx, offsetPx } = lgv
-  const { refName, reversed } = block
-
-  const topLevelFeatureMinX =
-    (lgv.bpToPx({
-      refName,
-      coord: feature.min,
-      regionNumber: block.regionNumber,
-    })?.offsetPx ?? 0) - offsetPx
-  const topLevelFeatureWidthPx = feature.length / bpPerPx
-  const topLevelFeatureStartPx = reversed
-    ? topLevelFeatureMinX - topLevelFeatureWidthPx
-    : topLevelFeatureMinX
-  const topLevelFeatureTop = row * apolloRowHeight
-  const topLevelFeatureHeight = getRowCount(display, feature) * apolloRowHeight
-
-  let selectedColor
-  if (color) {
-    selectedColor = color
-  } else {
-    selectedColor = readConfObject(
-      session.getPluginConfiguration(),
-      'geneBackgroundColor',
-      { featureType: feature.type },
-    ) as string
-    if (!selectedColor) {
-      selectedColor = alpha(theme.palette.background.paper, 0.6)
-    }
-  }
-  ctx.fillStyle = selectedColor
-  ctx.fillRect(
-    topLevelFeatureStartPx,
-    topLevelFeatureTop,
-    topLevelFeatureWidthPx,
-    topLevelFeatureHeight,
-  )
-}
-
 function drawHighlight(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
@@ -249,52 +203,43 @@ function drawHighlight(
 function draw(
   display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
-  feature: AnnotationFeature,
+  gene: AnnotationFeature,
   row: number,
   block: ContentBlock,
 ): void {
-  const { selectedFeature, session } = display
-  const { children } = feature
+  const { apolloRowHeight, lgv, theme, selectedFeature, session } = display
+  const { bpPerPx } = lgv
+  const left = Math.round(getLeftPx(display, gene, block))
+  const width = Math.round(gene.length / bpPerPx)
+  const top = row * apolloRowHeight
+  const height = getRowCount(display, gene) * apolloRowHeight
+  if (width > 2) {
+    let selectedColor = readConfObject(
+      session.getPluginConfiguration(),
+      'geneBackgroundColor',
+      { featureType: gene.type },
+    ) as string
+    selectedColor = alpha(theme.palette.background.paper, 0.6)
+    ctx.fillStyle = selectedColor
+    ctx.fillRect(left, top, width, height)
+  }
+  strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
+  const { children } = gene
   if (!children) {
     return
   }
-  const { apolloDataStore } = session
-  const { featureTypeOntology } = apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
-
-  // Draw background for gene
-  drawBackground(display, ctx, feature, row, block)
 
   // Draw lines on different rows for each transcript
   let currentRow = 0
-  for (const [, transcript] of children) {
-    const isTranscript = isTranscriptFeature(transcript, session)
-    if (!isTranscript) {
-      currentRow += 1
-      continue
-    }
-    const transcriptRowCount = transcriptGlyph.getRowCount(display, transcript)
-    transcriptGlyph.draw(display, ctx, transcript, row + currentRow, block)
-    currentRow += transcriptRowCount
+  for (const [, child] of children) {
+    const isTranscript = isTranscriptFeature(child, session)
+    const glyph = isTranscript ? transcriptGlyph : boxGlyph
+    const rowCount = glyph.getRowCount(display, child)
+    glyph.draw(display, ctx, child, row + currentRow, block)
+    currentRow += rowCount
   }
 
-  // Draw exon and CDS for each transcript
-  currentRow = 0
-  for (const [, child] of children) {
-    if (
-      !(
-        featureTypeOntology.isTypeOf(child.type, 'transcript') ||
-        featureTypeOntology.isTypeOf(child.type, 'pseudogenic_transcript')
-      )
-    ) {
-      boxGlyph.draw(display, ctx, child, row, block)
-      currentRow += 1
-      continue
-    }
-  }
-  if (selectedFeature && containsSelectedFeature(feature, selectedFeature)) {
+  if (selectedFeature && containsSelectedFeature(gene, selectedFeature)) {
     drawHighlight(display, ctx, selectedFeature, true)
   }
 }
@@ -392,20 +337,11 @@ function getRowCount(
     return 1
   }
   const { session } = display
-  const isTranscript = isTranscriptFeature(feature, session)
   let rowCount = 0
-  if (isTranscript) {
-    for (const [, child] of children) {
-      if (isCDSFeature(child, session)) {
-        rowCount += 1
-      }
-    }
-
-    // return 1 if there are no CDSs for non coding genes
-    return rowCount === 0 ? 1 : rowCount
-  }
   for (const [, child] of children) {
-    rowCount += getRowCount(display, child)
+    const isTranscript = isTranscriptFeature(child, session)
+    const glyph = isTranscript ? transcriptGlyph : boxGlyph
+    rowCount += glyph.getRowCount(display, child)
   }
   return rowCount
 }
