@@ -16,32 +16,7 @@ import type { LinearApolloDisplayRendering } from '../stateModel/rendering'
 import type { CanvasMouseEvent } from '../types'
 
 import type { Glyph } from './Glyph'
-
-function drawBoxOutline(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  color: string,
-) {
-  drawBox(ctx, x, y, width, height, color)
-  if (width <= 2) {
-    return
-  }
-  ctx.clearRect(x + 1, y + 1, width - 2, height - 2)
-}
-
-function drawBoxFill(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  color: string,
-) {
-  drawBox(ctx, x + 1, y + 1, width - 2, height - 2, color)
-}
+import { getLeftPx, strokeRectInner } from './util'
 
 export function drawBox(
   ctx: CanvasRenderingContext2D,
@@ -113,39 +88,24 @@ function drawHighlight(
 }
 
 function draw(
-  display: LinearApolloDisplayRendering,
+  display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
   block: ContentBlock,
 ) {
-  const { apolloRowHeight: heightPx, lgv, selectedFeature, theme } = display
-  const { bpPerPx, offsetPx } = lgv
-  const minX =
-    (lgv.bpToPx({
-      refName: block.refName,
-      coord: feature.min,
-      regionNumber: block.regionNumber,
-    })?.offsetPx ?? 0) - offsetPx
-  const { reversed } = block
-  const widthPx = feature.length / bpPerPx
-  const startPx = reversed ? minX - widthPx : minX
-  const top = row * heightPx
-  const backgroundColor = theme.palette.background.default
-  const textColor = theme.palette.text.primary
-  const featureBox: [number, number, number, number] = [
-    startPx,
-    top,
-    widthPx,
-    heightPx,
-  ]
-  drawBoxOutline(ctx, ...featureBox, textColor)
-  if (widthPx <= 2) {
-    // Don't need to add details if the feature is too small to see them
-    return
+  const { apolloRowHeight, lgv, selectedFeature, theme } = display
+  const { bpPerPx } = lgv
+  const left = Math.round(getLeftPx(display, feature, block))
+  const top = row * apolloRowHeight
+  const width = Math.round(feature.length / bpPerPx)
+  const height = apolloRowHeight
+  if (width > 2) {
+    ctx.fillStyle = theme.palette.background.default
+    ctx.fillRect(left, top, width, apolloRowHeight)
   }
+  strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
 
-  drawBoxFill(ctx, startPx, top, widthPx, heightPx, backgroundColor)
   if (isSelectedFeature(feature, selectedFeature)) {
     drawHighlight(display, ctx, feature, true)
   }
