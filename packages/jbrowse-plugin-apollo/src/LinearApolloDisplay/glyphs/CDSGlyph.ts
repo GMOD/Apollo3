@@ -1,5 +1,9 @@
-import type { AnnotationFeature } from '@apollo-annotation/mst'
+import type {
+  AnnotationFeature,
+  TranscriptPartCoding,
+} from '@apollo-annotation/mst'
 import type { MenuItem } from '@jbrowse/core/ui'
+import { getFrame } from '@jbrowse/core/util'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
 import type { LinearApolloDisplay } from '../stateModel'
@@ -7,26 +11,32 @@ import type { LinearApolloDisplay } from '../stateModel'
 import type { Glyph } from './Glyph'
 import { getLeftPx, strokeRectInner } from './util'
 
-function draw(
+function drawCDSLocation(
   display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
-  exon: AnnotationFeature,
+  cdsLocation: TranscriptPartCoding,
+  strand: 1 | -1 | undefined,
   row: number,
   block: ContentBlock,
 ) {
   const { apolloRowHeight, canvasPatterns, lgv, theme } = display
   const { bpPerPx } = lgv
-  const left = Math.round(getLeftPx(display, exon, block))
-  const width = Math.round(exon.length / bpPerPx)
-  const height = Math.round(0.6 * apolloRowHeight)
-  const halfHeight = Math.round(height / 2)
-  const top = Math.round(halfHeight / 2) + row * apolloRowHeight
+  const left = Math.round(getLeftPx(display, cdsLocation, block))
+  const width = Math.round((cdsLocation.max - cdsLocation.min) / bpPerPx)
+  const halfHeight = Math.round(apolloRowHeight / 2)
+  const top = row * apolloRowHeight
   if (width > 2) {
-    ctx.fillStyle = 'rgb(211,211,211)'
-    ctx.fillRect(left, top, width, height)
+    const frame = getFrame(
+      cdsLocation.min,
+      cdsLocation.max,
+      strand ?? 1,
+      cdsLocation.phase,
+    )
+    const frameColor = theme.palette.framesCDS.at(frame)?.main
+    ctx.fillStyle = frameColor ?? 'black'
+    ctx.fillRect(left, top, width, apolloRowHeight)
     const forwardFill = canvasPatterns.forward
     const backwardFill = canvasPatterns.backward
-    const { strand } = exon
     if (forwardFill && backwardFill && strand) {
       const { reversed } = block
       const reversal = reversed ? -1 : 1
@@ -40,7 +50,39 @@ function draw(
       ctx.fillRect(left, top + halfHeight, width, halfHeight)
     }
   }
-  strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
+  strokeRectInner(
+    ctx,
+    left,
+    top,
+    width,
+    apolloRowHeight,
+    theme.palette.text.primary,
+  )
+}
+
+function draw(
+  display: LinearApolloDisplay,
+  ctx: CanvasRenderingContext2D,
+  cds: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
+) {
+  const transcript = cds.parent
+  if (!transcript) {
+    return
+  }
+  const { cdsLocations } = transcript
+  const thisCDSLocations = cdsLocations.find((loc) => {
+    const min = loc.at(cds.strand === 1 ? 0 : -1)?.min
+    const max = loc.at(cds.strand === 1 ? -1 : 0)?.max
+    return cds.min === min && cds.max === max
+  })
+  if (!thisCDSLocations) {
+    return
+  }
+  for (const cdsLocation of thisCDSLocations) {
+    drawCDSLocation(display, ctx, cdsLocation, cds.strand, row, block)
+  }
 }
 
 function getRowCount(): number {
@@ -123,7 +165,7 @@ function getContextMenuItems(): MenuItem[] {
 // display: LinearApolloDisplayMouseEvents,
 // currentMousePosition: MousePositionWithFeature,
 
-export const exonGlyph: Glyph = {
+export const cdsGlyph: Glyph = {
   draw,
   drawDragPreview,
   drawHover,

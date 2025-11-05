@@ -5,7 +5,6 @@ import type { MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
   getContainingView,
-  getFrame,
   intersection2,
   isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
@@ -158,26 +157,6 @@ function featuresForRow(
   return features
 }
 
-function getCDSCount(
-  feature: AnnotationFeature,
-  featureTypeOntology: OntologyRecord,
-): number {
-  const { children, type } = feature
-  if (!children) {
-    return 0
-  }
-  const isMrna = featureTypeOntology.isTypeOf(type, 'transcript')
-  let cdsCount = 0
-  if (isMrna) {
-    for (const [, child] of children) {
-      if (featureTypeOntology.isTypeOf(child.type, 'CDS')) {
-        cdsCount += 1
-      }
-    }
-  }
-  return cdsCount
-}
-
 function drawBackground(
   display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
@@ -274,19 +253,8 @@ function draw(
   row: number,
   block: ContentBlock,
 ): void {
-  const {
-    apolloRowHeight,
-    canvasPatterns,
-    lgv,
-    selectedFeature,
-    session,
-    theme,
-  } = display
-  const { bpPerPx, offsetPx } = lgv
-  const { refName, reversed } = block
-  const rowHeight = apolloRowHeight
-  const cdsHeight = Math.round(0.9 * rowHeight)
-  const { children, strand } = feature
+  const { selectedFeature, session } = display
+  const { children } = feature
   if (!children) {
     return
   }
@@ -312,9 +280,6 @@ function draw(
     currentRow += transcriptRowCount
   }
 
-  const forwardFill = canvasPatterns.forward
-  const backwardFill = canvasPatterns.backward
-
   // Draw exon and CDS for each transcript
   currentRow = 0
   for (const [, child] of children) {
@@ -327,73 +292,6 @@ function draw(
       boxGlyph.draw(display, ctx, child, row, block)
       currentRow += 1
       continue
-    }
-    const cdsCount = getCDSCount(child, featureTypeOntology)
-    if (cdsCount != 0) {
-      for (const cdsRow of child.cdsLocations) {
-        const { children: transcriptChildren } = child
-        if (!transcriptChildren) {
-          continue
-        }
-        for (const cds of cdsRow) {
-          const cdsWidthPx = (cds.max - cds.min) / bpPerPx
-          const minX =
-            (lgv.bpToPx({
-              refName,
-              coord: cds.min,
-              regionNumber: block.regionNumber,
-            })?.offsetPx ?? 0) - offsetPx
-          const cdsStartPx = reversed ? minX - cdsWidthPx : minX
-          ctx.fillStyle = theme.palette.text.primary
-          const cdsTop =
-            (row + currentRow) * rowHeight + (rowHeight - cdsHeight) / 2
-          ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
-          if (cdsWidthPx > 2) {
-            ctx.clearRect(
-              cdsStartPx + 1,
-              cdsTop + 1,
-              cdsWidthPx - 2,
-              cdsHeight - 2,
-            )
-            const frame = getFrame(
-              cds.min,
-              cds.max,
-              child.strand ?? 1,
-              cds.phase,
-            )
-            const frameColor = theme.palette.framesCDS.at(frame)?.main
-            ctx.fillStyle = frameColor ?? 'black'
-            ctx.fillRect(
-              cdsStartPx + 1,
-              cdsTop + 1,
-              cdsWidthPx - 2,
-              cdsHeight - 2,
-            )
-            if (forwardFill && backwardFill && strand) {
-              const reversal = reversed ? -1 : 1
-              const [topFill, bottomFill] =
-                strand * reversal === 1
-                  ? [forwardFill, backwardFill]
-                  : [backwardFill, forwardFill]
-              ctx.fillStyle = topFill
-              ctx.fillRect(
-                cdsStartPx + 1,
-                cdsTop + 1,
-                cdsWidthPx - 2,
-                (cdsHeight - 2) / 2,
-              )
-              ctx.fillStyle = bottomFill
-              ctx.fillRect(
-                cdsStartPx + 1,
-                cdsTop + (cdsHeight - 2) / 2,
-                cdsWidthPx - 2,
-                (cdsHeight - 2) / 2,
-              )
-            }
-          }
-        }
-        currentRow += 1
-      }
     }
   }
   if (selectedFeature && containsSelectedFeature(feature, selectedFeature)) {
