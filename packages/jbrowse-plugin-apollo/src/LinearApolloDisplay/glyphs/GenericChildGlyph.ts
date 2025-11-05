@@ -12,8 +12,9 @@ import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
 import type { LinearApolloDisplay } from '../stateModel'
 import type { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
 
-import { boxGlyph, drawBox } from './BoxGlyph'
+import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
+import { getLeftPx, strokeRectInner } from './util'
 
 function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
   const features = [[feature]]
@@ -61,49 +62,6 @@ function drawHighlight(
   )
 }
 
-function drawRow(
-  display: LinearApolloDisplay,
-  ctx: CanvasRenderingContext2D,
-  feature: AnnotationFeature,
-  row: number,
-  topRow: number,
-  block: ContentBlock,
-) {
-  const features = featuresForRow(feature)[row - topRow]
-  for (const feature of features) {
-    drawFeature(display, ctx, feature, row, block)
-  }
-}
-
-function drawFeature(
-  display: LinearApolloDisplay,
-  ctx: CanvasRenderingContext2D,
-  feature: AnnotationFeature,
-  row: number,
-  block: ContentBlock,
-) {
-  const { apolloRowHeight: heightPx, lgv, theme } = display
-  const { bpPerPx, offsetPx } = lgv
-  const minX =
-    (lgv.bpToPx({
-      refName: block.refName,
-      coord: feature.min,
-      regionNumber: block.regionNumber,
-    })?.offsetPx ?? 0) - offsetPx
-  const { reversed } = block
-  const widthPx = feature.length / bpPerPx
-  const startPx = reversed ? minX - widthPx : minX
-  const top = row * heightPx
-  const rowCount = getRowCount(display, feature)
-  const groupingColor = alpha(theme.palette.background.paper, 0.6)
-  if (rowCount > 1) {
-    // draw background that encapsulates all child features
-    const featureHeight = rowCount * heightPx
-    drawBox(ctx, startPx, top, widthPx, featureHeight, groupingColor)
-  }
-  boxGlyph.draw(display, ctx, feature, row, block)
-}
-
 function draw(
   display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
@@ -111,10 +69,32 @@ function draw(
   row: number,
   block: ContentBlock,
 ) {
-  const { selectedFeature } = display
-  for (let i = 0; i < getRowCount(display, feature); i++) {
-    drawRow(display, ctx, feature, row + i, row, block)
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  const { apolloRowHeight, getGlyph, lgv, selectedFeature, theme } = display
+  const { bpPerPx } = lgv
+  const left = Math.round(getLeftPx(display, feature, block))
+  const top = row * apolloRowHeight
+  const width = Math.round(feature.length / bpPerPx)
+  const height = getRowCount(display, feature) * apolloRowHeight
+  if (width > 2) {
+    ctx.fillStyle = alpha(theme.palette.background.paper, 0.6)
+    ctx.fillRect(left, top, width, height)
   }
+  strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
+  boxGlyph.draw(display, ctx, feature, row, block)
+  strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
+  const { children } = feature
+  if (!children) {
+    return
+  }
+  let rowOffset = 1
+  for (const [, child] of children) {
+    const glyph = getGlyph(child)
+    const rowCount = glyph.getRowCount(display, child)
+    glyph.draw(display, ctx, child, row + rowOffset, block)
+    rowOffset += rowCount
+  }
+
   if (selectedFeature && containsSelectedFeature(feature, selectedFeature)) {
     drawHighlight(display, ctx, selectedFeature)
   }
@@ -131,11 +111,19 @@ function drawHover(
   drawHighlight(stateModel, ctx, hoveredFeature.feature)
 }
 
-function getRowCount(
-  _display: LinearApolloDisplay,
-  feature: AnnotationFeature,
-) {
-  return featuresForRow(feature).length
+function getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature) {
+  const { children } = feature
+  if (!children) {
+    return 1
+  }
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  const { getGlyph } = display
+  let rowCount = 1
+  for (const [, child] of children) {
+    const glyph = getGlyph(feature)
+    rowCount += glyph.getRowCount(display, child)
+  }
+  return rowCount
 }
 
 function getFeatureFromLayout(

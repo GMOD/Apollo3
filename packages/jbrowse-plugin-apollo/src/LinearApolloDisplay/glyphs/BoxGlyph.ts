@@ -18,18 +18,6 @@ import type { CanvasMouseEvent } from '../types'
 import type { Glyph } from './Glyph'
 import { getLeftPx, strokeRectInner } from './util'
 
-export function drawBox(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  color: string,
-) {
-  ctx.fillStyle = color
-  ctx.fillRect(x, y, width, height)
-}
-
 /** @returns undefined if mouse not on the edge of this feature, otherwise 'start' or 'end' depending on which edge */
 function isMouseOnFeatureEdge(
   mousePosition: MousePosition,
