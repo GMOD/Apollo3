@@ -517,43 +517,42 @@ function drawHover(
     let counter = 1
     for (const cds of cdsRow.sort((a, b) => a.max - b.max)) {
       const cdsWidthPx = (cds.max - cds.min) / bpPerPx
+      const minX =
+        (lgv.bpToPx({
+          refName,
+          coord: cds.min,
+          regionNumber: layoutIndex,
+        })?.offsetPx ?? 0) - offsetPx
+      const cdsStartPx = reversed ? minX - cdsWidthPx : minX
+      const frame = getFrame(cds.min, cds.max, strand ?? 1, cds.phase)
+      const frameAdjust =
+        (frame < 0 ? -1 * frame + 5 : frame) * featureLabelSpacer
+      const cdsTop = (frameAdjust - featureLabelSpacer) * rowHeight
+      if (counter > 1) {
+        // Mid-point for intron line "hat"
+        const midPoint: [number, number] = [
+          (cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx,
+          Math.max(
+            frame < 0 ? rowHeight * featureLabelSpacer * highestRow + 1 : 1, // Avoid render ceiling
+            Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
+          ),
+        ]
+        ctx.strokeStyle = 'rgb(0, 0, 0)'
+        ctx.lineWidth = 2
+        ctx.beginPath()
+        ctx.moveTo(prevCDSEndPx, prevCDSTop)
+        ctx.lineTo(...midPoint)
+        ctx.stroke()
+        ctx.moveTo(...midPoint)
+        ctx.lineTo(cdsStartPx, cdsTop + rowHeight / 2)
+        ctx.stroke()
+      }
+      prevCDSEndPx = cdsStartPx + cdsWidthPx
+      prevCDSTop = cdsTop + rowHeight / 2
+      counter += 1
       if (cdsWidthPx > 2) {
-        const minX =
-          (lgv.bpToPx({
-            refName,
-            coord: cds.min,
-            regionNumber: layoutIndex,
-          })?.offsetPx ?? 0) - offsetPx
-        const cdsStartPx = reversed ? minX - cdsWidthPx : minX
-        const frame = getFrame(cds.min, cds.max, strand ?? 1, cds.phase)
-        const frameAdjust =
-          (frame < 0 ? -1 * frame + 5 : frame) * featureLabelSpacer
-        const cdsTop = (frameAdjust - featureLabelSpacer) * rowHeight
         ctx.fillStyle = 'rgba(255,0,0,0.6)'
         ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
-
-        if (counter > 1) {
-          // Mid-point for intron line "hat"
-          const midPoint: [number, number] = [
-            (cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx,
-            Math.max(
-              frame < 0 ? rowHeight * featureLabelSpacer * highestRow + 1 : 1, // Avoid render ceiling
-              Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
-            ),
-          ]
-          ctx.strokeStyle = 'rgb(0, 0, 0)'
-          ctx.lineWidth = 2
-          ctx.beginPath()
-          ctx.moveTo(prevCDSEndPx, prevCDSTop)
-          ctx.lineTo(...midPoint)
-          ctx.stroke()
-          ctx.moveTo(...midPoint)
-          ctx.lineTo(cdsStartPx, cdsTop + rowHeight / 2)
-          ctx.stroke()
-        }
-        prevCDSEndPx = cdsStartPx + cdsWidthPx
-        prevCDSTop = cdsTop + rowHeight / 2
-        counter += 1
       }
     }
   }
