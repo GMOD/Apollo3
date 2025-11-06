@@ -119,14 +119,14 @@ function drawTextLabels(
   for (let i = labelArray.length - 1; i >= 0; --i) {
     const label = labelArray[i]
     ctx.fillStyle = label.color
-    const labelRowX = Math.max(label.x + 1, 0)
+    const labelRowX = label.x + 1
     const labelRowY = label.y + label.h
     const textWidth = measureText(label.text, 10)
     if (label.isSelected) {
-      ctx.clearRect(labelRowX - 5, labelRowY, textWidth + 10, label.h)
       ctx.font = 'bold '.concat(font)
     }
     if (label.text) {
+      ctx.clearRect(labelRowX - 5, labelRowY, textWidth + 10, label.h)
       ctx.fillText(label.text, labelRowX, labelRowY + 11, textWidth)
       ctx.font = font
     }
