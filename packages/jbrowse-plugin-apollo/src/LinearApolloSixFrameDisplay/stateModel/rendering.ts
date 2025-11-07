@@ -204,6 +204,33 @@ export function renderingModelFactory(
                 return
               }
               ctx.clearRect(0, 0, dynamicBlocks.totalWidthPx, featuresHeight)
+
+              for (const [idx, featureLayout] of featureLayouts.entries()) {
+                const displayedRegion = displayedRegions[idx]
+                for (const [row, featureLayoutRow] of featureLayout.entries()) {
+                  for (const { feature } of featureLayoutRow) {
+                    if (!feature.looksLikeGene) {
+                      continue
+                    }
+                    if (
+                      !doesIntersect2(
+                        displayedRegion.start,
+                        displayedRegion.end,
+                        feature.min,
+                        feature.max,
+                      )
+                    ) {
+                      continue
+                    }
+                    const { topLevelFeature } = feature
+                    const glyph = self.getGlyph(topLevelFeature)
+                    if (glyph !== undefined) {
+                      glyph.draw(ctx, topLevelFeature, row, self, idx)
+                    }
+                  }
+                }
+              }
+
               if (showStartCodons || showStopCodons) {
                 const { apolloDataStore } = session
                 for (const block of dynamicBlocks.contentBlocks) {
@@ -239,31 +266,6 @@ export function renderingModelFactory(
                       showStartCodons,
                       showStopCodons,
                     )
-                  }
-                }
-              }
-              for (const [idx, featureLayout] of featureLayouts.entries()) {
-                const displayedRegion = displayedRegions[idx]
-                for (const [row, featureLayoutRow] of featureLayout.entries()) {
-                  for (const { feature } of featureLayoutRow) {
-                    if (!feature.looksLikeGene) {
-                      continue
-                    }
-                    if (
-                      !doesIntersect2(
-                        displayedRegion.start,
-                        displayedRegion.end,
-                        feature.min,
-                        feature.max,
-                      )
-                    ) {
-                      continue
-                    }
-                    const { topLevelFeature } = feature
-                    const glyph = self.getGlyph(topLevelFeature)
-                    if (glyph !== undefined) {
-                      glyph.draw(ctx, topLevelFeature, row, self, idx)
-                    }
                   }
                 }
               }
