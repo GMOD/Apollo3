@@ -357,7 +357,7 @@ export function baseModelFactory(
               void (
                 self.session as unknown as ApolloSessionModel
               ).apolloDataStore.loadFeatures(self.regions)
-              if (self.lgv.bpPerPx <= 3) {
+              if (self.lgv.bpPerPx <= self.zoomThreshold) {
                 void (
                   self.session as unknown as ApolloSessionModel
                 ).apolloDataStore.loadRefSeq(self.regions)
