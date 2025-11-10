@@ -6,6 +6,8 @@ import {
 import { revcom } from '@jbrowse/core/util'
 import ObjectID from 'bson-objectid'
 
+import { getPrintableId } from './util'
+
 interface SpliceSequence {
   fivePrimeSeq: string
   fivePrimeMin: number
@@ -79,7 +81,7 @@ async function checkTranscript(
         refSeq: feature.refSeq.toString(),
         start: spliceSequence.fivePrimeMin,
         end: spliceSequence.fivePrimeMin + 2,
-        message: `Unexpected 5' splice site in "${feature._id}". Expected: ${[...VALID_FIVE_PRIME_SEQ].join('|')}, got: ${spliceSequence.fivePrimeSeq}`,
+        message: `Unexpected 5′ splice site in "${getPrintableId(feature)}". Expected: ${[...VALID_FIVE_PRIME_SEQ].join('|')}, got: ${spliceSequence.fivePrimeSeq}`,
       })
     }
     if (
@@ -93,7 +95,7 @@ async function checkTranscript(
         refSeq: feature.refSeq.toString(),
         start: spliceSequence.threePrimeMin,
         end: spliceSequence.threePrimeMin + 2,
-        message: `Unexpected 3' splice site in "${feature._id}". Expected: ${[...VALID_THREE_PRIME_SEQ].join('|')}, got: ${spliceSequence.threePrimeSeq}`,
+        message: `Unexpected 3′ splice site in "${getPrintableId(feature)}". Expected: ${[...VALID_THREE_PRIME_SEQ].join('|')}, got: ${spliceSequence.threePrimeSeq}`,
       })
     }
   }

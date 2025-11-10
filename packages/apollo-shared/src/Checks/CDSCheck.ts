@@ -6,6 +6,8 @@ import {
 import { intersection2 } from '@jbrowse/core/util'
 import ObjectID from 'bson-objectid'
 
+import { getPrintableId } from './util'
+
 enum STOP_CODONS {
   'TAG',
   'TAA',
@@ -175,7 +177,7 @@ async function checkMRNA(
           refSeq: refSeq.toString(),
           start: cdsStart,
           end: cdsStart,
-          message: `Unexpected start codon in feature "${_id}": ${start_codon}`,
+          message: `Unexpected start codon "${start_codon}" in feature "${getPrintableId(feature)}": `,
         })
       }
 
@@ -189,7 +191,7 @@ async function checkMRNA(
           refSeq: refSeq.toString(),
           start: cdsEnd,
           end: cdsEnd,
-          message: `Missing stop codon in feature "${_id}"`,
+          message: `Missing stop codon in feature "${getPrintableId(feature)}"`,
         })
       }
     } else {
@@ -201,7 +203,7 @@ async function checkMRNA(
         refSeq: refSeq.toString(),
         start: cdsEnd,
         end: cdsEnd,
-        message: `Missing stop codon in feature "${_id}"`,
+        message: `Missing stop codon in feature "${getPrintableId(feature)}"`,
       })
     }
     for (const [idx, codon] of codons.entries()) {
@@ -220,7 +222,7 @@ async function checkMRNA(
           refSeq: refSeq.toString(),
           start: codonStart,
           end: codonEnd,
-          message: `Internal stop codon in feature "${_id}"`,
+          message: `Internal stop codon in feature "${getPrintableId(feature)}"`,
         })
       }
     }
