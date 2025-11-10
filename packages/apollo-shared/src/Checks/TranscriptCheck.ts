@@ -35,15 +35,17 @@ async function getSpliceSequences(
   if (exons.length < 2) {
     return []
   }
+  exons.sort((a, b) => (a.min < b.min ? -1 : 1))
 
   const spliceSeq: SpliceSequence[] = []
   for (let i = 0; i < exons.length - 1; i++) {
     let fivePrimeMin = exons[i].max
-    let threePrimeMin = exons[i + 1].min - 2
+    let threePrimeMin = exons[i + 1].min
     if (transcript.strand === -1) {
-      const _fivePrimeMin = fivePrimeMin
-      fivePrimeMin = threePrimeMin
-      threePrimeMin = _fivePrimeMin
+      ;[threePrimeMin, fivePrimeMin] = [fivePrimeMin, threePrimeMin]
+      fivePrimeMin -= 2
+    } else {
+      threePrimeMin -= 2
     }
 
     let fivePrimeSeq = await getSequence(fivePrimeMin, fivePrimeMin + 2)
@@ -53,12 +55,7 @@ async function getSpliceSequences(
       fivePrimeSeq = revcom(fivePrimeSeq)
     }
 
-    spliceSeq.push({
-      fivePrimeSeq,
-      fivePrimeMin,
-      threePrimeSeq,
-      threePrimeMin,
-    })
+    spliceSeq.push({ fivePrimeSeq, fivePrimeMin, threePrimeSeq, threePrimeMin })
   }
   return spliceSeq
 }
