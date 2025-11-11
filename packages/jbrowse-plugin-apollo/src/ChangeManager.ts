@@ -13,6 +13,7 @@ import {
 import { getSession } from '@jbrowse/core/util'
 import { type IAnyStateTreeNode } from 'mobx-state-tree'
 
+import { ConfirmChangeDialog } from './ConfirmChangeDialog'
 import { type ApolloSessionModel } from './session'
 
 export interface SubmitOpts {
@@ -42,12 +43,27 @@ export class ChangeManager {
     const session = getSession(this.dataStore)
     const controller = new AbortController()
 
+    const confirmation = new Promise<() => void>((resolve, reject) => {
+      session.queueDialog((handleClose) => [
+        ConfirmChangeDialog,
+        { handleClose, resolve, reject },
+      ])
+    })
+
+    let closeDialogCallback: () => void
+    try {
+      closeDialogCallback = await confirmation
+    } catch {
+      return
+    }
+
     const { jobsManager, isLocked } = getSession(
       this.dataStore,
     ) as unknown as ApolloSessionModel
 
     if (isLocked) {
       session.notify('Cannot submit changes in locked mode')
+      closeDialogCallback()
       return
     }
 
@@ -71,6 +87,7 @@ export class ChangeManager {
         jobsManager.abortJob(job.name, msg)
       }
       session.notify(msg, 'error')
+      closeDialogCallback()
       return
     }
 
@@ -86,6 +103,7 @@ export class ChangeManager {
         `Error encountered in client: ${String(error)}. Data may be out of sync, please refresh the page`,
         'error',
       )
+      closeDialogCallback()
       return
     }
 
@@ -120,6 +138,7 @@ export class ChangeManager {
         console.error(error)
         session.notify(String(error), 'error')
         await this.undo(change, false)
+        closeDialogCallback()
         return
       }
       if (!backendResult.ok) {
@@ -129,6 +148,7 @@ export class ChangeManager {
         }
         session.notify(msg, 'error')
         await this.undo(change, false)
+        closeDialogCallback()
         return
       }
       if (change.notification) {
@@ -143,6 +163,7 @@ export class ChangeManager {
     if (updateJobsManager) {
       jobsManager.done(job)
     }
+    closeDialogCallback()
   }
 
   async undo(change: Change, submitToBackend = true) {
