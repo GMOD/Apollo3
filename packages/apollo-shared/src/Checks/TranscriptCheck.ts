@@ -6,6 +6,8 @@ import {
 import { revcom } from '@jbrowse/core/util'
 import ObjectID from 'bson-objectid'
 
+import { getPrintableId } from './util'
+
 interface SpliceSequence {
   fivePrimeSeq: string
   fivePrimeMin: number
@@ -35,15 +37,17 @@ async function getSpliceSequences(
   if (exons.length < 2) {
     return []
   }
+  exons.sort((a, b) => (a.min < b.min ? -1 : 1))
 
   const spliceSeq: SpliceSequence[] = []
   for (let i = 0; i < exons.length - 1; i++) {
     let fivePrimeMin = exons[i].max
-    let threePrimeMin = exons[i + 1].min - 2
+    let threePrimeMin = exons[i + 1].min
     if (transcript.strand === -1) {
-      const _fivePrimeMin = fivePrimeMin
-      fivePrimeMin = threePrimeMin
-      threePrimeMin = _fivePrimeMin
+      ;[threePrimeMin, fivePrimeMin] = [fivePrimeMin, threePrimeMin]
+      fivePrimeMin -= 2
+    } else {
+      threePrimeMin -= 2
     }
 
     let fivePrimeSeq = await getSequence(fivePrimeMin, fivePrimeMin + 2)
@@ -53,12 +57,7 @@ async function getSpliceSequences(
       fivePrimeSeq = revcom(fivePrimeSeq)
     }
 
-    spliceSeq.push({
-      fivePrimeSeq,
-      fivePrimeMin,
-      threePrimeSeq,
-      threePrimeMin,
-    })
+    spliceSeq.push({ fivePrimeSeq, fivePrimeMin, threePrimeSeq, threePrimeMin })
   }
   return spliceSeq
 }
@@ -82,7 +81,7 @@ async function checkTranscript(
         refSeq: feature.refSeq.toString(),
         start: spliceSequence.fivePrimeMin,
         end: spliceSequence.fivePrimeMin + 2,
-        message: `Unexpected 5' splice site in "${feature._id}". Expected: ${[...VALID_FIVE_PRIME_SEQ].join('|')}, got: ${spliceSequence.fivePrimeSeq}`,
+        message: `Unexpected 5′ splice site in "${getPrintableId(feature)}". Expected: ${[...VALID_FIVE_PRIME_SEQ].join('|')}, got: ${spliceSequence.fivePrimeSeq}`,
       })
     }
     if (
@@ -96,7 +95,7 @@ async function checkTranscript(
         refSeq: feature.refSeq.toString(),
         start: spliceSequence.threePrimeMin,
         end: spliceSequence.threePrimeMin + 2,
-        message: `Unexpected 3' splice site in "${feature._id}". Expected: ${[...VALID_THREE_PRIME_SEQ].join('|')}, got: ${spliceSequence.threePrimeSeq}`,
+        message: `Unexpected 3′ splice site in "${getPrintableId(feature)}". Expected: ${[...VALID_THREE_PRIME_SEQ].join('|')}, got: ${spliceSequence.threePrimeSeq}`,
       })
     }
   }

@@ -10,15 +10,12 @@ describe('Delete feature', () => {
   it('Delete and resize', () => {
     const assemblyName = 'deleteFeature.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
-    cy.selectAssemblyToView(assemblyName)
+    cy.selectAssemblyToView(assemblyName, 'chr2:1..250')
 
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
     cy.get('button[aria-label="Minimize drawer"]').click()
     cy.annotationTrackAppearance('Show both graphical and table display')
-    cy.get('input[placeholder="Search for location"]').type(
-      'chr2:1..250{enter}',
-    )
 
     // Delete this exon and check features are updated accordingly
     cy.contains('Id=exon01').rightclick({ force: true })
@@ -158,15 +155,12 @@ describe('Delete feature', () => {
   it('Delete internal exon', () => {
     const assemblyName = 'deleteFeature.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
-    cy.selectAssemblyToView(assemblyName)
+    cy.selectAssemblyToView(assemblyName, 'chr2:1..250')
 
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
     cy.get('button[aria-label="Minimize drawer"]').click()
     cy.annotationTrackAppearance('Show both graphical and table display')
-    cy.get('input[placeholder="Search for location"]').type(
-      'chr2:1..250{enter}',
-    )
 
     cy.contains('Id=exon03').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
@@ -183,15 +177,12 @@ describe('Delete feature', () => {
   it('Undo multiple ops', () => {
     const assemblyName = 'deleteFeature.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
-    cy.selectAssemblyToView(assemblyName)
+    cy.selectAssemblyToView(assemblyName, 'chr2:1..250')
 
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
     cy.get('button[aria-label="Minimize drawer"]').click()
     cy.annotationTrackAppearance('Show both graphical and table display')
-    cy.get('input[placeholder="Search for location"]').type(
-      'chr2:1..250{enter}',
-    )
 
     cy.contains('Id=exon01').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()

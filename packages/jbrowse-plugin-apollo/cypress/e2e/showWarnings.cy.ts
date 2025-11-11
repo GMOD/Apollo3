@@ -11,8 +11,7 @@ describe('Warning signs', () => {
       'stopcodon.gff3',
       'test_data/cdsChecks/stopcodon.gff3',
     )
-    cy.selectAssemblyToView('stopcodon.gff3')
-    cy.searchFeatures('gene07', 1)
+    cy.selectAssemblyToView('stopcodon.gff3', 'gene07')
 
     // Here it would be nice to check that there are no ErrorIcons yet.
     // For this we need to make sure that the gene model is actually on the canvas,
@@ -57,8 +56,7 @@ describe('Warning signs', () => {
       'stopcodon.gff3',
       'test_data/cdsChecks/stopcodon.gff3',
     )
-    cy.selectAssemblyToView('stopcodon.gff3')
-    cy.searchFeatures('gene07', 1)
+    cy.selectAssemblyToView('stopcodon.gff3', 'gene07')
     cy.annotationTrackAppearance('Show both graphical and table display')
     cy.contains('cds07').rightclick()
     cy.contains('Delete feature').click()
@@ -100,10 +98,9 @@ describe('Warning signs', () => {
       true,
       false,
     )
-    cy.selectAssemblyToView('stopcodon.gff3')
+    cy.selectAssemblyToView('stopcodon.gff3', 'chr2')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
-    cy.searchFeatures('chr2', 1)
     // No features and no errors yet
     cy.get('[data-testid^="ErrorIcon-"]', { timeout: 5000 }).should(
       'have.length',
@@ -117,8 +114,7 @@ describe('Warning signs', () => {
     )
     cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
     cy.contains('button', 'Launch view', { timeout: 10_000 }).click()
-    cy.selectAssemblyToView('stopcodon.gff3')
-    cy.searchFeatures('gene02', 1)
+    cy.selectAssemblyToView('stopcodon.gff3', 'gene02')
     cy.get('[data-testid^="ErrorIcon-"]', { timeout: 5000 })
       .its('length')
       .should('satisfy', (n) => n >= 3)
@@ -129,8 +125,7 @@ describe('Warning signs', () => {
       'stopcodon.gff3',
       'test_data/cdsChecks/stopcodon.gff3',
     )
-    cy.selectAssemblyToView('stopcodon.gff3')
-    cy.searchFeatures('gene02', 1)
+    cy.selectAssemblyToView('stopcodon.gff3', 'gene02')
     cy.get('button[data-testid="zoom_out"]').click()
     cy.get('[data-testid^="ErrorIcon-"]', { timeout: 5000 })
       .its('length')
@@ -178,8 +173,7 @@ describe('Warning signs', () => {
       'stopcodon.gff3',
       'test_data/cdsChecks/stopcodon.gff3',
     )
-    cy.selectAssemblyToView('stopcodon.gff3')
-    cy.searchFeatures('gene09', 1)
+    cy.selectAssemblyToView('stopcodon.gff3', 'gene09')
 
     cy.get('button[data-testid="zoom_out"]').click()
     // eslint-disable-next-line cypress/no-unnecessary-waiting

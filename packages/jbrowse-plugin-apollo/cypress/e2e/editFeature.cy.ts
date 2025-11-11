@@ -24,17 +24,13 @@ describe('Different ways of editing features', () => {
   it('Edit feature via table editor', () => {
     const assemblyName = 'space.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
-    cy.selectAssemblyToView(assemblyName)
+    cy.selectAssemblyToView(assemblyName, 'ctgA:9400..9600')
 
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
     cy.get('button[aria-label="Minimize drawer"]').click()
 
     cy.annotationTrackAppearance('Show both graphical and table display')
-
-    cy.get('input[placeholder="Search for location"]').type(
-      'ctgA:9400..9600{enter}',
-    )
 
     cy.get('tbody', { timeout: 10_000 })
       .contains('tr', 'Match5')
@@ -64,8 +60,7 @@ describe('Different ways of editing features', () => {
 
   it('FIXME: Can delete feature with checks', () => {
     cy.addAssemblyFromGff('stopcodon', 'test_data/cdsChecks/stopcodon.gff3')
-    cy.selectAssemblyToView('stopcodon')
-    cy.searchFeatures('gene02', 1)
+    cy.selectAssemblyToView('stopcodon', 'gene02')
     cy.annotationTrackAppearance('Show both graphical and table display')
     cy.contains('td', '=cds02.1').rightclick()
     cy.contains('Delete feature').click()
@@ -83,8 +78,7 @@ describe('Different ways of editing features', () => {
 
   it('FIXME: Can delete single CDS mRNA with checks', () => {
     cy.addAssemblyFromGff('stopcodon', 'test_data/cdsChecks/stopcodon.gff3')
-    cy.selectAssemblyToView('stopcodon')
-    cy.searchFeatures('gene04', 1)
+    cy.selectAssemblyToView('stopcodon', 'gene04')
     cy.annotationTrackAppearance('Show both graphical and table display')
     cy.contains('td', '=cds04.1').rightclick()
     cy.contains('Delete feature').click()
@@ -103,8 +97,7 @@ describe('Different ways of editing features', () => {
 
   it('Can delete feature', () => {
     cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
-    cy.selectAssemblyToView('onegene.fasta.gff3')
-    cy.searchFeatures('gx1', 1)
+    cy.selectAssemblyToView('onegene.fasta.gff3', 'gx1')
     cy.annotationTrackAppearance('Show both graphical and table display')
     cy.contains('td', '=CDS1')
     cy.contains('td', '=tx1').rightclick()
@@ -122,8 +115,7 @@ describe('Different ways of editing features', () => {
 
   it('Suggest only valid SO terms from dropdown', () => {
     cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
-    cy.selectAssemblyToView('onegene.fasta.gff3')
-    cy.searchFeatures('gx1', 1)
+    cy.selectAssemblyToView('onegene.fasta.gff3', 'gx1')
     cy.annotationTrackAppearance('Show both graphical and table display')
     // In headless mode it seems to take a long time for menus to be populated
     cy.get('input[type="text"][value="CDS"]', { timeout: 60_000 }).click({
@@ -141,8 +133,7 @@ describe('Different ways of editing features', () => {
 
   it('Can add child feature via table editor', () => {
     cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
-    cy.selectAssemblyToView('onegene.fasta.gff3')
-    cy.searchFeatures('gx1', 1)
+    cy.selectAssemblyToView('onegene.fasta.gff3', 'gx1')
     cy.annotationTrackAppearance('Show both graphical and table display')
     // In headless mode it seems to take a long time for menus to be populated
     cy.get('input[type="text"][value="CDS"]', { timeout: 60_000 }).rightclick({
@@ -187,10 +178,7 @@ describe('Different ways of editing features', () => {
   it.skip('Can select region on rubber-band and zoom into it', () => {
     const assemblyName = 'space.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
-    cy.selectAssemblyToView(assemblyName)
-    cy.get('input[placeholder="Search for location"]').type(
-      'ctgA:1..10000{enter}',
-    )
+    cy.selectAssemblyToView(assemblyName, 'ctgA:1..10000')
     cy.get('[data-testid="rubberband_controls"]').trigger('mouseover')
     cy.get('[data-testid="rubberband_controls"]').trigger('mousedown', 100, 5)
     cy.get('[data-testid="rubberband_controls"]').trigger('mousemove', 200, 5)
@@ -206,13 +194,10 @@ describe('Different ways of editing features', () => {
   it.skip('Can drag and move position', () => {
     const assemblyName = 'space.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
-    cy.selectAssemblyToView(assemblyName)
+    cy.selectAssemblyToView(assemblyName, 'ctgA:9400..9600')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
     cy.get('[data-testid="MinimizeIcon"]').eq(1).click()
-    cy.get('input[placeholder="Search for location"]').type(
-      'ctgA:9400..9600{enter}',
-    )
     // cy.contains('Table').click()
     // cy.contains('Match5').click()
     // cy.get('[data-testid="MoreVertIcon"]').click()

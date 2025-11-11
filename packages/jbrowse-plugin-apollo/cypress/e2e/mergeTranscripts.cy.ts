@@ -10,13 +10,12 @@ describe('Delete feature', () => {
   it('Merge multiple exons', () => {
     const assemblyName = 'mergeTranscripts.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
-    cy.selectAssemblyToView(assemblyName)
+    cy.selectAssemblyToView(assemblyName, 'chr2:1..60')
 
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
     cy.get('button[aria-label="Minimize drawer"]').click()
     cy.annotationTrackAppearance('Show both graphical and table display')
-    cy.get('input[placeholder="Search for location"]').type('chr2:1..60{enter}')
 
     cy.contains('Id=mrna03,')
     cy.contains('Id=mrna02').rightclick({ force: true })
@@ -80,12 +79,11 @@ describe('Delete feature', () => {
     cy.contains('Launch view', { timeout: 10_000 }).click()
     cy.contains('Select assembly to view', { timeout: 10_000 })
 
-    cy.selectAssemblyToView(assemblyName)
+    cy.selectAssemblyToView(assemblyName, 'chr2:1..60')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
     cy.get('button[aria-label="Minimize drawer"]').click()
     cy.annotationTrackAppearance('Show both graphical and table display')
-    cy.get('input[placeholder="Search for location"]').type('chr2:1..60{enter}')
 
     cy.contains(
       'Id=mrna02, Name=x, merged_with=Id%3Dmrna03%3BName%3Dy, Id%3Dmrna05',

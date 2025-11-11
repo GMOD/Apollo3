@@ -8,9 +8,7 @@ describe('Simple tests for visuals', () => {
   })
   it('Shows correct gene model', () => {
     cy.addAssemblyFromGff('so_types.gff3', 'test_data/so_types.gff3')
-    cy.selectAssemblyToView('so_types.gff3')
-    cy.searchFeatures('TGGT1_200010', 1)
-    cy.wait(5000) // Wait for gene model to render
+    cy.selectAssemblyToView('so_types.gff3', 'TGGT1_200010')
 
     cy.get('body').then(($body) => {
       if ($body.find('button[aria-label="Close drawer"]').length > 0) {
@@ -18,7 +16,6 @@ describe('Simple tests for visuals', () => {
       }
     })
 
-    cy.searchFeatures('TGGT1_200010', 1)
     cy.wait(5000)
 
     // NB: The size of the image differs between headless and interactive execution of cypress.

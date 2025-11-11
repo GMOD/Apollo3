@@ -10,8 +10,7 @@ describe('Warning signs', () => {
       'SM_V10_3.fasta.gff3.gz',
       'test_data/SM_V10_3.fasta.gff3.gz',
     )
-    cy.selectAssemblyToView('SM_V10_3.fasta.gff3.gz')
-    cy.searchFeatures('gene:Smp_313440', 1)
+    cy.selectAssemblyToView('SM_V10_3.fasta.gff3.gz', 'gene:Smp_313440')
     cy.annotationTrackAppearance('Show both graphical and table display')
     cy.get('input[type="text"][value="192150"]')
       .first()
