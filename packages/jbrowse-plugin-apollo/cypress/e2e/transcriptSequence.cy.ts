@@ -11,8 +11,7 @@ describe('Warning signs', () => {
       'SM_V10_3.fasta.gff3.gz',
       'test_data/SM_V10_3.fasta.gff3.gz',
     )
-    cy.selectAssemblyToView('SM_V10_3.fasta.gff3.gz')
-    cy.searchFeatures('transcript:Smp_309950.1', 1)
+    cy.selectAssemblyToView('SM_V10_3.fasta.gff3.gz', 'transcript:Smp_309950.1')
     cy.annotationTrackAppearance('Show both graphical and table display')
     cy.contains('transcript:Smp_309950.1', { timeout: 10_000 }).rightclick()
     cy.contains('Edit transcript details').click()

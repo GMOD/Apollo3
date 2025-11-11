@@ -10,15 +10,12 @@ describe('Undo edits', () => {
   it('Undo chain of edits', () => {
     const assemblyName = 'onegene.fasta.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
-    cy.selectAssemblyToView(assemblyName)
+    cy.selectAssemblyToView(assemblyName, 'ctgA:1..200')
 
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
     cy.get('button[aria-label="Minimize drawer"]').click()
     cy.annotationTrackAppearance('Show both graphical and table display')
-    cy.get('input[placeholder="Search for location"]').type(
-      'ctgA:1..200{enter}',
-    )
 
     cy.get('tbody', { timeout: 10_000 })
       .contains('tr', 'CDS1')
@@ -81,15 +78,12 @@ describe('Undo edits', () => {
   it('Undo attribute changes', () => {
     const assemblyName = 'onegene.fasta.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
-    cy.selectAssemblyToView(assemblyName)
+    cy.selectAssemblyToView(assemblyName, 'ctgA:1..200')
 
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
     cy.get('button[aria-label="Minimize drawer"]').click()
     cy.annotationTrackAppearance('Show both graphical and table display')
-    cy.get('input[placeholder="Search for location"]').type(
-      'ctgA:1..200{enter}',
-    )
 
     cy.get('tbody', { timeout: 10_000 }).contains('tr', 'CDS1').rightclick()
     cy.contains('Edit feature details', { timeout: 10_000 }).click()
@@ -159,15 +153,12 @@ describe('Undo edits', () => {
   it('Undo and redo', () => {
     const assemblyName = 'onegene.fasta.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
-    cy.selectAssemblyToView(assemblyName)
+    cy.selectAssemblyToView(assemblyName, 'ctgA:1..200')
 
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
     cy.get('button[aria-label="Minimize drawer"]').click()
     cy.annotationTrackAppearance('Show both graphical and table display')
-    cy.get('input[placeholder="Search for location"]').type(
-      'ctgA:1..200{enter}',
-    )
 
     cy.get('tbody', { timeout: 10_000 })
       .contains('tr', 'CDS1')

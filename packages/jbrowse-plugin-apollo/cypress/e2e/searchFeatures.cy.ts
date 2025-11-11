@@ -32,15 +32,13 @@ describe('Search features', () => {
 
   it('One hit with no children', () => {
     cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
-    cy.selectAssemblyToView('volvox.fasta.gff3')
-    cy.searchFeatures('Match6', 1)
+    cy.selectAssemblyToView('volvox.fasta.gff3', 'Match6')
     cy.currentLocationEquals('ctgA', 7800, 9200, 10)
   })
 
   it('Match is not case sensitive', () => {
     cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
-    cy.selectAssemblyToView('volvox.fasta.gff3')
-    cy.searchFeatures('match6', 1)
+    cy.selectAssemblyToView('volvox.fasta.gff3', 'match6')
     cy.currentLocationEquals('ctgA', 7800, 9200, 10)
   })
 
@@ -54,8 +52,7 @@ describe('Search features', () => {
 
   it('One matching parent and multiple matching children', () => {
     cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
-    cy.selectAssemblyToView('volvox.fasta.gff3')
-    cy.searchFeatures('EDEN', 1)
+    cy.selectAssemblyToView('volvox.fasta.gff3', 'EDEN')
     cy.currentLocationEquals('ctgA', 1, 10_590, 10)
   })
 
@@ -67,8 +64,7 @@ describe('Search features', () => {
       false,
     )
 
-    cy.selectAssemblyToView('volvox2.fasta.gff3')
-    cy.searchFeatures('SpamGene', 1)
+    cy.selectAssemblyToView('volvox2.fasta.gff3', 'SpamGene')
     cy.currentLocationEquals('ctgA', 80, 220, 10)
 
     cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
@@ -94,8 +90,7 @@ describe('Search features', () => {
 
   it.only('Can handle regex and space in attribute values', () => {
     cy.addAssemblyFromGff('space.gff3', 'test_data/space.gff3')
-    cy.selectAssemblyToView('space.gff3')
-    cy.searchFeatures('Ma.*1', 0)
+    cy.selectAssemblyToView('space.gff3', 'Ma.*1')
 
     cy.searchFeatures('agt 2', 1)
     cy.currentLocationEquals('ctgA', 1, 8410, 10)

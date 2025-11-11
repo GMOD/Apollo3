@@ -18,7 +18,10 @@ declare namespace Cypress {
       launch?: boolean,
       loadFeatures?: boolean,
     ): Chainable<void>
-    selectAssemblyToView(assemblyName: string): Chainable<void>
+    selectAssemblyToView(
+      assemblyName: string,
+      locationOrSearch?: string,
+    ): Chainable<void>
     searchFeatures(query: string, expectedNumOfHits: number): Chainable<void>
     currentLocationEquals(
       contig: string,

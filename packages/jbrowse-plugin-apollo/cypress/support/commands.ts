@@ -187,21 +187,30 @@ Cypress.Commands.add(
   },
 )
 
-Cypress.Commands.add('selectAssemblyToView', (assemblyName) => {
-  cy.contains('Select assembly to view', { timeout: 10_000 })
+Cypress.Commands.add(
+  'selectAssemblyToView',
+  (assemblyName, locationOrSearch) => {
+    cy.contains('Select assembly to view', { timeout: 10_000 })
 
-  cy.get('input[data-testid="assembly-selector"]')
-    .parent()
-    .then((el) => {
-      if (!el.text().includes(assemblyName)) {
-        cy.get('input[data-testid="assembly-selector"]').parent().click()
-        cy.get('li').contains(assemblyName).click()
-      }
-    })
-  cy.intercept('POST', '/users/userLocation').as('selectAssemblyToViewDone')
-  cy.contains('button', /^Open$/, { matchCase: false }).click()
-  cy.wait('@selectAssemblyToViewDone')
-})
+    cy.get('input[data-testid="assembly-selector"]')
+      .parent()
+      .then((el) => {
+        if (!el.text().includes(assemblyName)) {
+          cy.get('input[data-testid="assembly-selector"]').parent().click()
+          cy.get('li').contains(assemblyName).click()
+        }
+      })
+    cy.intercept('POST', '/users/userLocation').as('selectAssemblyToViewDone')
+    if (locationOrSearch) {
+      cy.get('input[placeholder="Search for location"]').type(
+        `{selectall}{backspace}${locationOrSearch}{enter}`,
+      )
+    } else {
+      cy.contains('button', /^Open$/, { matchCase: false }).click()
+    }
+    cy.wait('@selectAssemblyToViewDone')
+  },
+)
 
 Cypress.Commands.add('searchFeatures', (query, expectedNumOfHits) => {
   if (expectedNumOfHits < 0) {
