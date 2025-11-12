@@ -13,6 +13,7 @@ jobs:
   publish-npm:
     name: Publish to NPM
     runs-on: ubuntu-latest
+    environment: publish
     steps:
       - name: Check out
         uses: actions/checkout@v5
