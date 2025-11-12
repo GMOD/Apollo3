@@ -1,14 +1,61 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import type PluginManager from '@jbrowse/core/PluginManager'
 import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
-import { doesIntersect2 } from '@jbrowse/core/util'
+import {
+  defaultCodonTable,
+  doesIntersect2,
+  getFrame,
+  revcom,
+} from '@jbrowse/core/util'
 import { type Theme, createTheme } from '@mui/material'
 import { autorun } from 'mobx'
 import { type Instance, addDisposer, types } from 'mobx-state-tree'
 
 import { type ApolloSessionModel } from '../../session'
+import { codonColorCode } from '../../util/displayUtils'
 
 import { layoutsModelFactory } from './layouts'
+
+function drawCodon(
+  ctx: CanvasRenderingContext2D,
+  codon: string,
+  leftPx: number,
+  index: number,
+  theme: Theme,
+  highContrast: boolean,
+  bpPerPx: number,
+  bp: number,
+  rowHeight: number,
+  showFeatureLabels: boolean,
+  showStartCodons: boolean,
+  showStopCodons: boolean,
+) {
+  const frameOffsets = (
+    showFeatureLabels ? [0, 4, 2, 0, 14, 12, 10] : [0, 2, 1, 0, 7, 6, 5]
+  ).map((b) => b * rowHeight)
+  const strands = [-1, 1] as const
+  for (const strand of strands) {
+    const frame = getFrame(bp, bp + 3, strand, 0)
+    const top = frameOffsets.at(frame)
+    if (top === undefined) {
+      continue
+    }
+    const left = Math.round(leftPx + index / bpPerPx)
+    const width = Math.round(3 / bpPerPx) === 0 ? 1 : Math.round(3 / bpPerPx)
+    const codonCode = strand === 1 ? codon : revcom(codon)
+    const aminoAcidCode =
+      defaultCodonTable[codonCode as keyof typeof defaultCodonTable]
+    const fillColor = codonColorCode(aminoAcidCode, theme, highContrast)
+    if (
+      fillColor &&
+      ((showStopCodons && aminoAcidCode == '*') ||
+        (showStartCodons && aminoAcidCode != '*'))
+    ) {
+      ctx.fillStyle = fillColor
+      ctx.fillRect(left, top, width, rowHeight)
+    }
+  }
+}
 
 export function renderingModelFactory(
   pluginManager: PluginManager,
@@ -135,17 +182,29 @@ export function renderingModelFactory(
           self,
           autorun(
             () => {
-              const { canvas, featureLayouts, featuresHeight, lgv } = self
+              const {
+                apolloRowHeight,
+                canvas,
+                featureLayouts,
+                featuresHeight,
+                lgv,
+                session,
+                theme,
+                showFeatureLabels,
+                showStartCodons,
+                showStopCodons,
+              } = self
               if (!lgv.initialized || self.regionCannotBeRendered()) {
                 return
               }
-              const { displayedRegions, dynamicBlocks } = lgv
+              const { bpPerPx, offsetPx, displayedRegions, dynamicBlocks } = lgv
 
               const ctx = canvas?.getContext('2d')
               if (!ctx) {
                 return
               }
               ctx.clearRect(0, 0, dynamicBlocks.totalWidthPx, featuresHeight)
+
               for (const [idx, featureLayout] of featureLayouts.entries()) {
                 const displayedRegion = displayedRegions[idx]
                 for (const [row, featureLayoutRow] of featureLayout.entries()) {
@@ -168,6 +227,45 @@ export function renderingModelFactory(
                     if (glyph !== undefined) {
                       glyph.draw(ctx, topLevelFeature, row, self, idx)
                     }
+                  }
+                }
+              }
+
+              if (showStartCodons || showStopCodons) {
+                const { apolloDataStore } = session
+                for (const block of dynamicBlocks.contentBlocks) {
+                  const assembly = apolloDataStore.assemblies.get(
+                    block.assemblyName,
+                  )
+                  const ref = assembly?.getByRefName(block.refName)
+                  const roundedStart = Math.floor(block.start)
+                  const roundedEnd = Math.ceil(block.end)
+                  let seq = ref?.getSequence(roundedStart, roundedEnd)
+                  if (!seq) {
+                    break
+                  }
+                  seq = seq.toUpperCase()
+                  const baseOffsetPx = (block.start - roundedStart) / bpPerPx
+                  const seqLeftPx = Math.round(
+                    block.offsetPx - offsetPx - baseOffsetPx,
+                  )
+                  for (let i = 0; i < seq.length; i++) {
+                    const bp = roundedStart + i
+                    const codon = seq.slice(i, i + 3)
+                    drawCodon(
+                      ctx,
+                      codon,
+                      seqLeftPx,
+                      i,
+                      theme,
+                      true,
+                      bpPerPx,
+                      bp,
+                      apolloRowHeight,
+                      showFeatureLabels,
+                      showStartCodons,
+                      showStopCodons,
+                    )
                   }
                 }
               }

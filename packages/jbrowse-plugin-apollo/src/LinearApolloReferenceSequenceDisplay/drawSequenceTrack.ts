@@ -3,29 +3,7 @@ import { type BlockSet } from '@jbrowse/core/util/blockTypes'
 import { type Theme } from '@mui/material'
 
 import { type ApolloSessionModel } from '../session'
-
-function colorCode(letter: string, theme: Theme) {
-  const letterUpper = letter.toUpperCase()
-  if (
-    letterUpper === 'A' ||
-    letterUpper === 'C' ||
-    letterUpper === 'G' ||
-    letterUpper === 'T'
-  ) {
-    return theme.palette.bases[letterUpper].main.toString()
-  }
-  return 'lightgray'
-}
-
-function codonColorCode(letter: string, theme: Theme, highContrast?: boolean) {
-  if (letter === 'M') {
-    return theme.palette.startCodon
-  }
-  if (letter === '*') {
-    return highContrast ? theme.palette.text.primary : theme.palette.stopCodon
-  }
-  return
-}
+import { codonColorCode, colorCode } from '../util/displayUtils'
 
 function drawLetter(
   seqTrackctx: CanvasRenderingContext2D,

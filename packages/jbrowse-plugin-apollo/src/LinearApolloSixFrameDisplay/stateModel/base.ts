@@ -39,6 +39,8 @@ export function baseModelFactory(
       graphical: true,
       table: false,
       showFeatureLabels: true,
+      showStartCodons: false,
+      showStopCodons: true,
       showCheckResults: true,
       zoomThreshold: 200,
       heightPreConfig: types.maybe(
@@ -179,6 +181,12 @@ export function baseModelFactory(
       toggleShowFeatureLabels() {
         self.showFeatureLabels = !self.showFeatureLabels
       },
+      toggleShowStartCodons() {
+        self.showStartCodons = !self.showStartCodons
+      },
+      toggleShowStopCodons() {
+        self.showStopCodons = !self.showStopCodons
+      },
       toggleShowCheckResults() {
         self.showCheckResults = !self.showCheckResults
       },
@@ -193,7 +201,14 @@ export function baseModelFactory(
       const { filteredFeatureTypes, trackMenuItems: superTrackMenuItems } = self
       return {
         trackMenuItems() {
-          const { graphical, table, showFeatureLabels, showCheckResults } = self
+          const {
+            graphical,
+            table,
+            showFeatureLabels,
+            showStartCodons,
+            showStopCodons,
+            showCheckResults,
+          } = self
           return [
             ...superTrackMenuItems(),
             {
@@ -230,6 +245,22 @@ export function baseModelFactory(
                   checked: showFeatureLabels,
                   onClick: () => {
                     self.toggleShowFeatureLabels()
+                  },
+                },
+                {
+                  label: 'Show start codons',
+                  type: 'checkbox',
+                  checked: showStartCodons,
+                  onClick: () => {
+                    self.toggleShowStartCodons()
+                  },
+                },
+                {
+                  label: 'Show stop codons',
+                  type: 'checkbox',
+                  checked: showStopCodons,
+                  onClick: () => {
+                    self.toggleShowStopCodons()
                   },
                 },
                 {
@@ -326,7 +357,7 @@ export function baseModelFactory(
               void (
                 self.session as unknown as ApolloSessionModel
               ).apolloDataStore.loadFeatures(self.regions)
-              if (self.lgv.bpPerPx <= 3) {
+              if (self.lgv.bpPerPx <= self.zoomThreshold) {
                 void (
                   self.session as unknown as ApolloSessionModel
                 ).apolloDataStore.loadRefSeq(self.regions)
