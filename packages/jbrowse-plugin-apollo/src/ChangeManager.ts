@@ -42,20 +42,22 @@ export class ChangeManager {
     // pre-validate
     const session = getSession(this.dataStore)
     const controller = new AbortController()
+    const apolloSession = session as unknown as ApolloSessionModel
+    apolloSession.setChangeInProgress(true)
 
-    const confirmation = new Promise<() => void>((resolve, reject) => {
-      session.queueDialog((handleClose) => [
-        ConfirmChangeDialog,
-        { handleClose, resolve, reject },
-      ])
-    })
+    // const confirmation = new Promise<() => void>((resolve, reject) => {
+    //   session.queueDialog((handleClose) => [
+    //     ConfirmChangeDialog,
+    //     { handleClose, resolve, reject },
+    //   ])
+    // })
 
-    let closeDialogCallback: () => void
-    try {
-      closeDialogCallback = await confirmation
-    } catch {
-      return
-    }
+    // let closeDialogCallback: () => void
+    // try {
+    //   closeDialogCallback = await confirmation
+    // } catch {
+    //   return
+    // }
 
     const { jobsManager, isLocked } = getSession(
       this.dataStore,
@@ -63,7 +65,8 @@ export class ChangeManager {
 
     if (isLocked) {
       session.notify('Cannot submit changes in locked mode')
-      closeDialogCallback()
+      // closeDialogCallback()
+      apolloSession.setChangeInProgress(false)
       return
     }
 
@@ -87,7 +90,8 @@ export class ChangeManager {
         jobsManager.abortJob(job.name, msg)
       }
       session.notify(msg, 'error')
-      closeDialogCallback()
+      // closeDialogCallback()
+      apolloSession.setChangeInProgress(false)
       return
     }
 
@@ -103,7 +107,8 @@ export class ChangeManager {
         `Error encountered in client: ${String(error)}. Data may be out of sync, please refresh the page`,
         'error',
       )
-      closeDialogCallback()
+      // closeDialogCallback()
+      apolloSession.setChangeInProgress(false)
       return
     }
 
@@ -138,7 +143,8 @@ export class ChangeManager {
         console.error(error)
         session.notify(String(error), 'error')
         await this.undo(change, false)
-        closeDialogCallback()
+        // closeDialogCallback()
+        apolloSession.setChangeInProgress(false)
         return
       }
       if (!backendResult.ok) {
@@ -148,7 +154,8 @@ export class ChangeManager {
         }
         session.notify(msg, 'error')
         await this.undo(change, false)
-        closeDialogCallback()
+        // closeDialogCallback()
+        apolloSession.setChangeInProgress(false)
         return
       }
       if (change.notification) {
@@ -163,7 +170,8 @@ export class ChangeManager {
     if (updateJobsManager) {
       jobsManager.done(job)
     }
-    closeDialogCallback()
+    // closeDialogCallback()
+    apolloSession.setChangeInProgress(false)
   }
 
   async undo(change: Change, submitToBackend = true) {
