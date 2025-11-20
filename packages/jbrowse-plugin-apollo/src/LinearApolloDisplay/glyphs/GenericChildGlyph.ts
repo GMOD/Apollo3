@@ -16,14 +16,33 @@ import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
 import { getLeftPx, strokeRectInner } from './util'
 
-function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
-  const features = [[feature]]
-  if (feature.children) {
-    for (const [, child] of feature.children) {
-      features.push(...featuresForRow(child))
+interface LayoutRow {
+  feature: AnnotationFeature
+  glyph: Glyph
+  rowInFeature: number
+}
+
+function getLayoutRows(
+  display: LinearApolloDisplay,
+  feature: AnnotationFeature,
+): LayoutRow[] {
+  const rows: LayoutRow[] = [
+    { feature, glyph: genericChildGlyph, rowInFeature: 0 },
+  ]
+  const { children } = feature
+  if (!children) {
+    return rows
+  }
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  const { getGlyph } = display
+  for (const [, child] of children) {
+    const glyph = getGlyph(child)
+    const newRowCount = glyph.getRowCount(display, child)
+    for (let i = 0; i < newRowCount; i++) {
+      rows.push({ feature: child, glyph, rowInFeature: i })
     }
   }
-  return features
+  return rows
 }
 
 function drawHighlight(
@@ -69,8 +88,7 @@ function draw(
   row: number,
   block: ContentBlock,
 ) {
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  const { apolloRowHeight, getGlyph, lgv, selectedFeature, theme } = display
+  const { apolloRowHeight, lgv, selectedFeature, theme } = display
   const { bpPerPx } = lgv
   const left = Math.round(getLeftPx(display, feature, block))
   const top = row * apolloRowHeight
@@ -87,12 +105,16 @@ function draw(
   if (!children) {
     return
   }
+  const childRows = getLayoutRows(display, feature).slice(1)
   let rowOffset = 1
-  for (const [, child] of children) {
-    const glyph = getGlyph(child)
-    const rowCount = glyph.getRowCount(display, child)
-    glyph.draw(display, ctx, child, row + rowOffset, block)
-    rowOffset += rowCount
+  for (const childRow of childRows) {
+    const { feature: childFeature, glyph, rowInFeature } = childRow
+    if (rowInFeature > 0) {
+      rowOffset += 1
+      continue
+    }
+    glyph.draw(display, ctx, childFeature, row + rowOffset, block)
+    rowOffset += 1
   }
 
   if (selectedFeature && containsSelectedFeature(feature, selectedFeature)) {
@@ -112,36 +134,40 @@ function drawHover(
 }
 
 function getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature) {
-  const { children } = feature
-  if (!children) {
-    return 1
-  }
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  const { getGlyph } = display
-  let rowCount = 1
-  for (const [, child] of children) {
-    const glyph = getGlyph(feature)
-    rowCount += glyph.getRowCount(display, child)
-  }
-  return rowCount
+  const rows = getLayoutRows(display, feature)
+  return rows.length
 }
 
 function getFeatureFromLayout(
+  display: LinearApolloDisplay,
   feature: AnnotationFeature,
   bp: number,
   row: number,
 ) {
-  const layoutRow = featuresForRow(feature)[row]
-  return layoutRow.find((f) => bp >= f.min && bp <= f.max)
+  const layoutRows = getLayoutRows(display, feature)
+  const layoutRow = layoutRows.at(row)
+  if (!layoutRow) {
+    return
+  }
+  const { feature: rowFeature, glyph, rowInFeature } = layoutRow
+  if (rowInFeature === 0) {
+    if (bp >= rowFeature.min && bp <= rowFeature.max) {
+      return rowFeature
+    }
+    return
+  }
+  return glyph.getFeatureFromLayout(display, rowFeature, bp, rowInFeature)
 }
 
 function getRowForFeature(
+  display: LinearApolloDisplay,
   feature: AnnotationFeature,
   childFeature: AnnotationFeature,
 ) {
-  const rows = featuresForRow(feature)
+  const rows = getLayoutRows(display, feature)
   for (const [idx, row] of rows.entries()) {
-    if (row.some((feature) => feature._id === childFeature._id)) {
+    const { feature: rowFeature } = row
+    if (rowFeature._id === childFeature._id) {
       return idx
     }
   }

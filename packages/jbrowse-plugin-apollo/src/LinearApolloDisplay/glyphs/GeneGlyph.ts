@@ -12,7 +12,6 @@ import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material'
 
-import type { OntologyRecord } from '../../OntologyManager'
 import { MergeExons, MergeTranscripts, SplitExon } from '../../components'
 import {
   type MousePosition,
@@ -105,57 +104,32 @@ function getDraggableFeatureInfo(
   return
 }
 
-/**
- * A list of all the subfeatures for each row for a given feature, as well as
- * the feature itself.
- * If the row contains a transcript, the order is CDS -\> exon -\> transcript -\> gene
- * If the row does not contain an transcript, the order is subfeature -\> gene
- */
-function featuresForRow(
+interface LayoutRow {
+  feature: AnnotationFeature
+  glyph: Glyph
+  rowInFeature: number
+}
+
+function getLayoutRows(
+  display: LinearApolloDisplay,
   feature: AnnotationFeature,
-  featureTypeOntology: OntologyRecord,
-): AnnotationFeature[][] {
-  const isGene =
-    featureTypeOntology.isTypeOf(feature.type, 'gene') ||
-    featureTypeOntology.isTypeOf(feature.type, 'pseudogene')
-  if (!isGene) {
-    throw new Error('Top level feature for GeneGlyph must have type "gene"')
-  }
+): LayoutRow[] {
   const { children } = feature
   if (!children) {
-    return [[feature]]
+    return []
   }
-  const features: AnnotationFeature[][] = []
+  const rows: LayoutRow[] = []
+  const { session } = display
   for (const [, child] of children) {
-    if (
-      !(
-        featureTypeOntology.isTypeOf(child.type, 'transcript') ||
-        featureTypeOntology.isTypeOf(child.type, 'pseudogenic_transcript')
-      )
-    ) {
-      features.push([child, feature])
-      continue
-    }
-    if (!child.children) {
-      continue
-    }
-    const cdss: AnnotationFeature[] = []
-    const exons: AnnotationFeature[] = []
-    for (const [, grandchild] of child.children) {
-      if (featureTypeOntology.isTypeOf(grandchild.type, 'CDS')) {
-        cdss.push(grandchild)
-      } else if (featureTypeOntology.isTypeOf(grandchild.type, 'exon')) {
-        exons.push(grandchild)
-      }
-    }
-    for (const cds of cdss) {
-      features.push([cds, ...exons, child, feature])
-    }
-    if (cdss.length === 0) {
-      features.push([...exons, child, feature])
+    const isTranscript = isTranscriptFeature(child, session)
+    const glyph = isTranscript ? transcriptGlyph : boxGlyph
+    const newRowCount = glyph.getRowCount(display, child)
+    for (let i = 0; i < newRowCount; i++) {
+      rows.push({ feature: child, glyph, rowInFeature: i })
     }
   }
-  return features
+
+  return rows
 }
 
 function drawHighlight(
@@ -164,8 +138,7 @@ function drawHighlight(
   feature: AnnotationFeature,
   selected = false,
 ) {
-  const { apolloRowHeight, lgv, session, theme } = stateModel
-  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  const { apolloRowHeight, lgv, theme } = stateModel
 
   const position = stateModel.getFeatureLayoutPosition(feature)
   if (!position) {
@@ -189,9 +162,6 @@ function drawHighlight(
     ? theme.palette.action.disabled
     : theme.palette.action.focus
 
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
   ctx.fillRect(
     startPx,
     top,
@@ -230,13 +200,13 @@ function draw(
   }
 
   // Draw lines on different rows for each transcript
-  let currentRow = 0
-  for (const [, child] of children) {
-    const isTranscript = isTranscriptFeature(child, session)
-    const glyph = isTranscript ? transcriptGlyph : boxGlyph
-    const rowCount = glyph.getRowCount(display, child)
-    glyph.draw(display, ctx, child, row + currentRow, block)
-    currentRow += rowCount
+  const rows = getLayoutRows(display, gene)
+  for (const [idx, layoutRow] of rows.entries()) {
+    const { feature: rowFeature, glyph, rowInFeature } = layoutRow
+    if (rowInFeature > 1) {
+      continue
+    }
+    glyph.draw(display, ctx, rowFeature, row + idx, block)
   }
 
   if (selectedFeature && containsSelectedFeature(gene, selectedFeature)) {
@@ -285,76 +255,60 @@ function drawHover(
   drawHighlight(stateModel, ctx, hoveredFeature.feature)
 }
 
-function getFeatureFromLayout(
-  feature: AnnotationFeature,
-  bp: number,
-  row: number,
-  featureTypeOntology: OntologyRecord,
-): AnnotationFeature | undefined {
-  const featureInThisRow: AnnotationFeature[] =
-    featuresForRow(feature, featureTypeOntology)[row] || []
-  for (const f of featureInThisRow) {
-    let featureObj
-    if (bp >= f.min && bp <= f.max && f.parent) {
-      featureObj = f
-    }
-    if (!featureObj) {
-      continue
-    }
-    if (
-      featureTypeOntology.isTypeOf(featureObj.type, 'CDS') &&
-      featureObj.parent &&
-      (featureTypeOntology.isTypeOf(featureObj.parent.type, 'transcript') ||
-        featureTypeOntology.isTypeOf(
-          featureObj.parent.type,
-          'pseudogenic_transcript',
-        ))
-    ) {
-      const { cdsLocations } = featureObj.parent
-      for (const cdsLoc of cdsLocations) {
-        for (const loc of cdsLoc) {
-          if (bp >= loc.min && bp <= loc.max) {
-            return featureObj
-          }
-        }
-      }
-
-      // If mouse position is in the intron region, return the transcript
-      return featureObj.parent
-    }
-    // If mouse position is in a feature that is not a CDS, return the feature
-    return featureObj
-  }
-  return feature
-}
-
 function getRowCount(
   display: LinearApolloDisplay,
   feature: AnnotationFeature,
 ): number {
-  const { children } = feature
-  if (!children) {
+  const layoutRows = getLayoutRows(display, feature)
+  if (layoutRows.length === 0) {
     return 1
   }
-  const { session } = display
-  let rowCount = 0
-  for (const [, child] of children) {
-    const isTranscript = isTranscriptFeature(child, session)
-    const glyph = isTranscript ? transcriptGlyph : boxGlyph
-    rowCount += glyph.getRowCount(display, child)
+  return layoutRows.length
+}
+
+function getFeatureFromLayout(
+  display: LinearApolloDisplay,
+  feature: AnnotationFeature,
+  bp: number,
+  row: number,
+) {
+  const layoutRow = getLayoutRows(display, feature).at(row)
+  if (!layoutRow) {
+    return
   }
-  return rowCount
+  const { feature: rowFeature, glyph, rowInFeature } = layoutRow
+  const subFeature = glyph.getFeatureFromLayout(
+    display,
+    rowFeature,
+    bp,
+    rowInFeature,
+  )
+  if (subFeature) {
+    return subFeature
+  }
+  if (bp >= feature.min && bp <= feature.max) {
+    return feature
+  }
+  return
 }
 
 function getRowForFeature(
+  display: LinearApolloDisplay,
   feature: AnnotationFeature,
   childFeature: AnnotationFeature,
-  featureTypeOntology: OntologyRecord,
 ) {
-  const rows = featuresForRow(feature, featureTypeOntology)
+  const rows = getLayoutRows(display, feature)
   for (const [idx, row] of rows.entries()) {
-    if (row.some((feature) => feature._id === childFeature._id)) {
+    if (row.feature._id === childFeature._id) {
       return idx
+    }
+    const subFeatureRow = row.glyph.getRowForFeature(
+      display,
+      row.feature,
+      childFeature,
+    )
+    if (subFeatureRow !== undefined) {
+      return subFeatureRow + idx
     }
   }
   return
