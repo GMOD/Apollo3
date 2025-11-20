@@ -8,13 +8,20 @@ import { addDisposer, isAlive } from '@jbrowse/mobx-state-tree'
 import { autorun, observable } from 'mobx'
 
 import type { ApolloSessionModel } from '../../session'
-import { isTranscriptFeature, looksLikeGene } from '../../util/glyphUtils'
+import {
+  isCDSFeature,
+  isExonFeature,
+  isGeneFeature,
+  isTranscriptFeature,
+} from '../../util/glyphUtils'
 import {
   boxGlyph,
   geneGlyph,
   genericChildGlyph,
   transcriptGlyph,
 } from '../glyphs'
+import { cdsGlyph } from '../glyphs/CDSGlyph'
+import { exonGlyph } from '../glyphs/ExonGlyph'
 
 import { baseModelFactory } from './base'
 
@@ -70,11 +77,17 @@ export function layoutsModelFactory(
       },
       getGlyph(feature: AnnotationFeature) {
         const { topLevelFeature } = feature
-        if (looksLikeGene(topLevelFeature, self.session)) {
+        if (isGeneFeature(topLevelFeature, self.session)) {
           return geneGlyph
         }
         if (isTranscriptFeature(topLevelFeature, self.session)) {
           return transcriptGlyph
+        }
+        if (isExonFeature(topLevelFeature, self.session)) {
+          return exonGlyph
+        }
+        if (isCDSFeature(topLevelFeature, self.session)) {
+          return cdsGlyph
         }
         if (topLevelFeature.children?.size) {
           return genericChildGlyph
@@ -163,8 +176,6 @@ export function layoutsModelFactory(
       },
       getFeatureLayoutPosition(feature: AnnotationFeature) {
         const { featureLayouts } = this
-        const { featureTypeOntology } =
-          self.session.apolloDataStore.ontologyManager
         for (const [idx, layout] of featureLayouts.entries()) {
           for (const [layoutRowNum, layoutRow] of layout) {
             for (const [featureRowNum, layoutFeatureId] of layoutRow) {
@@ -186,12 +197,10 @@ export function layoutsModelFactory(
                 }
               }
               if (layoutFeature.hasDescendant(feature._id)) {
-                if (!featureTypeOntology) {
-                  throw new Error('featureTypeOntology is undefined')
-                }
                 const row = self
                   .getGlyph(layoutFeature)
-                  .getRowForFeature(layoutFeature, feature, featureTypeOntology)
+                  // @ts-expect-error ts doesn't understand mst extension
+                  .getRowForFeature(self, layoutFeature, feature)
                 if (row !== undefined) {
                   return {
                     layoutIndex: idx,

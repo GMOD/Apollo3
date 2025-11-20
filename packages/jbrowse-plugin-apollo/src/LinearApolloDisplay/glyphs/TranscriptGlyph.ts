@@ -2,11 +2,11 @@ import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type { MenuItem } from '@jbrowse/core/ui'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
+import { type MousePositionWithFeature } from '../../util'
 import { isCDSFeature, isExonFeature } from '../../util/glyphUtils'
 import type { LinearApolloDisplay } from '../stateModel'
 
 
-import { boxGlyph } from './BoxGlyph'
 import { cdsGlyph } from './CDSGlyph'
 import { exonGlyph } from './ExonGlyph'
 import type { Glyph } from './Glyph'
@@ -94,6 +94,65 @@ function getNonExonChildren(
   )
 }
 
+interface LayoutRowFeature {
+  feature: AnnotationFeature
+  glyph: Glyph
+  rowInFeature: number
+}
+
+type LayoutRow = LayoutRowFeature[]
+
+function getLayoutRows(
+  display: LinearApolloDisplay,
+  transcript: AnnotationFeature,
+): LayoutRow[] {
+  const { children } = transcript
+  if (!children) {
+    return []
+  }
+  const rows: LayoutRow[] = []
+  const exons = getExonChildren(display, transcript)
+  const nonExonChildren = getNonExonChildren(display, transcript)
+  // Usually non-coding (no CDS) transcript
+  if (nonExonChildren.length === 0) {
+    const row: LayoutRow = []
+    for (const exon of exons) {
+      row.push({ feature: exon, glyph: exonGlyph, rowInFeature: 0 })
+    }
+    rows.push(row)
+    return rows
+  }
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  const { getGlyph, session } = display
+  let extraOffset = 0
+  for (const [idx, child] of nonExonChildren.entries()) {
+    const row: LayoutRow = []
+    if (isCDSFeature(child, session)) {
+      for (const exon of exons) {
+        row.push({
+          feature: exon,
+          glyph: exonGlyph,
+          rowInFeature: idx + extraOffset,
+        })
+      }
+      row.push({
+        feature: child,
+        glyph: cdsGlyph,
+        rowInFeature: idx + extraOffset,
+      })
+    } else {
+      const glyph = getGlyph(child)
+      const rowCount = glyph.getRowCount(display, child)
+      for (let i = 0; i < rowCount; i++) {
+        row.push({ feature: child, glyph, rowInFeature: i })
+      }
+      extraOffset += rowCount - 1
+    }
+    rows.push(row)
+  }
+  return rows
+}
+
 function draw(
   display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
@@ -101,59 +160,89 @@ function draw(
   row: number,
   block: ContentBlock,
 ) {
-  const { session } = display
-  const exons = getExonChildren(display, transcript)
-  const nonExonChildren = getNonExonChildren(display, transcript)
-  // Usually non-coding (no CDS) transcript
-  if (nonExonChildren.length === 0) {
+  const rows = getLayoutRows(display, transcript)
+  if (rows.length === 0) {
     drawTranscriptLine(display, ctx, transcript, row, block)
-    for (const exon of exons) {
-      exonGlyph.draw(display, ctx, exon, row, block)
-    }
     return
   }
-  let extraOffset = 0
-  for (const [idx, child] of nonExonChildren.entries()) {
+  for (const [idx, layoutRow] of rows.entries()) {
     drawTranscriptLine(display, ctx, transcript, row + idx, block)
-    if (isCDSFeature(child, session)) {
-      for (const exon of exons) {
-        exonGlyph.draw(display, ctx, exon, row + idx + extraOffset, block)
+    for (const layoutFeature of layoutRow) {
+      const { feature, glyph, rowInFeature } = layoutFeature
+      if (rowInFeature > 1) {
+        continue
       }
-      cdsGlyph.draw(display, ctx, child, row + idx + extraOffset, block)
-    } else {
-      const extra = boxGlyph.getRowCount(display, child) - 1
-      boxGlyph.draw(display, ctx, child, row + idx + extraOffset, block)
-      extraOffset += extra
+      glyph.draw(display, ctx, feature, row + rowInFeature, block)
     }
   }
 }
 
-function getRowCount(
-  display: LinearApolloDisplay,
-  feature: AnnotationFeature,
-): number {
-  const nonExonChildren = getNonExonChildren(display, feature)
-  if (nonExonChildren.length === 0) {
+function getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature) {
+  const rows = getLayoutRows(display, feature)
+  if (rows.length === 0) {
     return 1
   }
-  return nonExonChildren.length
+  return rows.length
 }
 
-function getFeatureFromLayout(): AnnotationFeature | undefined {
-  return undefined
-  // Not implemented
+function getFeatureFromLayout(
+  display: LinearApolloDisplay,
+  transcript: AnnotationFeature,
+  bp: number,
+  row: number,
+) {
+  const layoutRow = getLayoutRows(display, transcript).at(row)
+  if (!layoutRow) {
+    return
+  }
+  // If it's in an intron, return the transcript
+  // Then if it's in an exon and the CDS, return the CDS
+  // Then if it's in an exon, return the exon
+  const isInTranscript = bp >= transcript.min && bp <= transcript.max
+  if (!isInTranscript) {
+    return
+  }
+  const { session } = display
+  const matchingExonLayout = layoutRow.find((layoutRowFeature) => {
+    const { feature } = layoutRowFeature
+    const isExon = isExonFeature(feature, session)
+    if (!isExon) {
+      return false
+    }
+    return bp >= feature.min && bp <= feature.max
+  })
+  if (!matchingExonLayout) {
+    return transcript
+  }
+  const matchingCDSLayout = layoutRow.find((layoutRowFeature) => {
+    const { feature } = layoutRowFeature
+    const isCDS = isCDSFeature(feature, session)
+    if (!isCDS) {
+      return false
+    }
+    return bp >= feature.min && bp <= feature.max
+  })
+  if (matchingCDSLayout) {
+    return matchingCDSLayout.feature
+  }
+  return matchingExonLayout.feature
 }
-// feature: AnnotationFeature,
-// bp: number,
-// row: number,
-// featureTypeOntology: OntologyRecord,
-function getRowForFeature(): number | undefined {
-  // Not implemented
-  return undefined
+
+function getRowForFeature(
+  display: LinearApolloDisplay,
+  feature: AnnotationFeature,
+  childFeature: AnnotationFeature,
+) {
+  const rows = getLayoutRows(display, feature)
+  for (const [idx, row] of rows.entries()) {
+    for (const rowFeature of row) {
+      if (rowFeature.feature._id === childFeature._id) {
+        return idx
+      }
+    }
+  }
+  return
 }
-// feature: AnnotationFeature,
-// childFeature: AnnotationFeature,
-// featureTypeOntology: OntologyRecord,
 
 function drawHover() {
   // Not implemented
@@ -174,12 +263,13 @@ function onMouseDown() {
 // currentMousePosition: MousePositionWithFeature,
 // event: CanvasMouseEvent,
 
-function onMouseMove() {
-  // Not implemented
+function onMouseMove(
+  display: LinearApolloDisplay,
+  mousePosition: MousePositionWithFeature,
+) {
+  const { feature, bp } = mousePosition
+  display.setHoveredFeature({ feature, bp })
 }
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
 
 function onMouseLeave() {
   // Not implemented

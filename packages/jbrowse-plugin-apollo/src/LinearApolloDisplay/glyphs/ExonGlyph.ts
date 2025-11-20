@@ -43,25 +43,35 @@ function draw(
   strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
 }
 
-function getRowCount(): number {
+function getRowCount() {
   return 1
 }
 
-function getFeatureFromLayout(): AnnotationFeature | undefined {
-  return undefined
-  // Not implemented
+function getFeatureFromLayout(
+  _display: LinearApolloDisplay,
+  feature: AnnotationFeature,
+  bp: number,
+  row: number,
+) {
+  if (row > 0) {
+    return
+  }
+  if (bp >= feature.min && bp <= feature.max) {
+    return feature
+  }
+  return
 }
-// feature: AnnotationFeature,
-// bp: number,
-// row: number,
-// featureTypeOntology: OntologyRecord,
-function getRowForFeature(): number | undefined {
-  // Not implemented
-  return undefined
+
+function getRowForFeature(
+  _display: LinearApolloDisplay,
+  feature: AnnotationFeature,
+  childFeature: AnnotationFeature,
+) {
+  if (feature._id === childFeature._id) {
+    return 0
+  }
+  return
 }
-// feature: AnnotationFeature,
-// childFeature: AnnotationFeature,
-// featureTypeOntology: OntologyRecord,
 
 function drawHover() {
   // Not implemented

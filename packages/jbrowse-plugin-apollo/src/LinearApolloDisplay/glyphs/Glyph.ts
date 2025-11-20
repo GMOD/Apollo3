@@ -2,7 +2,6 @@ import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type { MenuItem } from '@jbrowse/core/ui'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
-import type { OntologyRecord } from '../../OntologyManager'
 import type { MousePositionWithFeature } from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
 import type { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
@@ -17,18 +16,6 @@ export interface Glyph {
     row: number,
     block: ContentBlock,
   ): void
-  /** @returns the feature or subfeature at the given bp and row number in this glyph's layout */
-  getFeatureFromLayout(
-    feature: AnnotationFeature,
-    bp: number,
-    row: number,
-    featureTypeOntology: OntologyRecord,
-  ): AnnotationFeature | undefined
-  getRowForFeature(
-    feature: AnnotationFeature,
-    childFeature: AnnotationFeature,
-    featureTypeOntology: OntologyRecord,
-  ): number | undefined
 
   drawHover(
     display: LinearApolloDisplayMouseEvents,
@@ -42,6 +29,25 @@ export interface Glyph {
 
   /** @returns number of layout rows used by this glyph with this feature and zoom level */
   getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature): number
+  /**
+   * @returns the feature or subfeature at the given bp and row number in this
+   * glyph's layout, or undefined if one does not exist
+   */
+  getFeatureFromLayout(
+    display: LinearApolloDisplay,
+    feature: AnnotationFeature,
+    bp: number,
+    row: number,
+  ): AnnotationFeature | undefined
+  /**
+   * @returns the row in this glyph where a child feature appears, or undefined
+   * if the feature does not appear
+   */
+  getRowForFeature(
+    display: LinearApolloDisplay,
+    feature: AnnotationFeature,
+    childFeature: AnnotationFeature,
+  ): number | undefined
 
   onMouseDown(
     display: LinearApolloDisplayMouseEvents,
