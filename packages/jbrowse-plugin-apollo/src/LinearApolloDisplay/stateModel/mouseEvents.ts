@@ -71,10 +71,11 @@ export function mouseEventsModelIntermediateFactory(
           throw new Error('featureTypeOntology is undefined')
         }
         const feature = glyph.getFeatureFromLayout(
+          // @ts-expect-error ts doesn't understand mst extension
+          self,
           topLevelFeature,
           bp,
           featureRow,
-          featureTypeOntology,
         )
         if (!feature) {
           return mousePosition

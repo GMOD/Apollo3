@@ -213,23 +213,34 @@ function getContextMenuItems(
   return getContextMenuItemsForFeature(display, hoveredFeature.feature)
 }
 
-function getFeatureFromLayout(
-  feature: AnnotationFeature,
-  _bp: number,
-  _row: number,
-): AnnotationFeature {
-  return feature
-}
-
 function getRowCount() {
   return 1
 }
 
+function getFeatureFromLayout(
+  _display: LinearApolloDisplay,
+  feature: AnnotationFeature,
+  bp: number,
+  row: number,
+) {
+  if (row > 0) {
+    return
+  }
+  if (bp >= feature.min && bp <= feature.max) {
+    return feature
+  }
+  return
+}
+
 function getRowForFeature(
-  _feature: AnnotationFeature,
-  _childFeature: AnnotationFeature,
-): number | undefined {
-  return 0
+  _display: LinearApolloDisplay,
+  feature: AnnotationFeature,
+  childFeature: AnnotationFeature,
+) {
+  if (feature._id === childFeature._id) {
+    return 0
+  }
+  return
 }
 
 function onMouseDown(
