@@ -2,6 +2,7 @@ import { defaultCodonTable, getFrame, revcom } from '@jbrowse/core/util'
 import { type BlockSet } from '@jbrowse/core/util/blockTypes'
 import { type Theme } from '@mui/material'
 
+import { strokeRectInner } from '../LinearApolloDisplay/glyphs/util'
 import { type ApolloSessionModel } from '../session'
 import { codonColorCode, colorCode } from '../util/displayUtils'
 
@@ -16,7 +17,7 @@ function drawLetter(
   seqTrackctx.fillStyle = '#000'
   seqTrackctx.font = `${fontSize}px`
   const textWidth = seqTrackctx.measureText(letter).width
-  const textX = left + (width - textWidth) / 2
+  const textX = Math.round(left + (width - textWidth) / 2)
   seqTrackctx.fillText(letter, textX, top + 10)
 }
 
@@ -39,19 +40,19 @@ function drawTranslationFrameBackgrounds(
     const top = idx * sequenceRowHeight
     const { offsetPx } = dynamicBlocks
     const left = Math.max(0, -offsetPx)
-    const width = dynamicBlocks.totalWidthPx
+    const width = Math.round(dynamicBlocks.totalWidthPx)
     ctx.fillStyle = highContrast ? theme.palette.background.default : frameColor
     ctx.fillRect(left, top, width, sequenceRowHeight)
     if (highContrast) {
       // eslint-disable-next-line prefer-destructuring
-      ctx.strokeStyle = theme.palette.grey[200]
-      ctx.strokeRect(left, top, width, sequenceRowHeight)
+      const strokeStyle = theme.palette.grey[200]
+      strokeRectInner(ctx, left, top, width, sequenceRowHeight, strokeStyle)
     }
   }
   // allows inter-region padding lines to show through
   for (const block of dynamicBlocks.getBlocks()) {
     if (block.type === 'InterRegionPaddingBlock') {
-      const left = block.offsetPx - dynamicBlocks.offsetPx
+      const left = Math.round(block.offsetPx - dynamicBlocks.offsetPx)
       ctx.clearRect(left, 0, block.widthPx, canvas.height)
     }
   }
@@ -66,11 +67,12 @@ function drawBase(
   rowHeight: number,
   theme: Theme,
 ) {
-  const width = 1 / bpPerPx
-  if (width < 1) {
+  if (1 / bpPerPx < 1) {
     return
   }
-  const left = leftPx + index / bpPerPx
+  const left = Math.round(leftPx + index / bpPerPx)
+  const nextLeft = Math.round(leftPx + (index + 1) / bpPerPx)
+  const width = nextLeft - left
   const strands = [-1, 1] as const
   for (const strand of strands) {
     const top = (strand === 1 ? 3 : 4) * rowHeight
@@ -78,8 +80,8 @@ function drawBase(
     ctx.fillStyle = colorCode(baseCode, theme)
     ctx.fillRect(left, top, width, rowHeight)
     if (1 / bpPerPx >= 12) {
-      ctx.strokeStyle = theme.palette.text.disabled
-      ctx.strokeRect(left, top, width, rowHeight)
+      const strokeStyle = theme.palette.text.disabled
+      strokeRectInner(ctx, left, top, width, rowHeight, strokeStyle)
       drawLetter(ctx, left, top, width, baseCode)
     }
   }
@@ -109,7 +111,8 @@ function drawCodon(
       continue
     }
     const left = Math.round(leftPx + index / bpPerPx)
-    const width = Math.round(3 / bpPerPx)
+    const nextLeft = Math.round(leftPx + (index + 3) / bpPerPx)
+    const width = nextLeft - left
     const codonCode = strand === 1 ? codon : revcom(codon)
     const aminoAcidCode =
       defaultCodonTable[codonCode as keyof typeof defaultCodonTable]
@@ -123,8 +126,8 @@ function drawCodon(
       ctx.fillRect(left, top, width, rowHeight)
     }
     if (1 / bpPerPx >= 4) {
-      ctx.strokeStyle = theme.palette.text.disabled
-      ctx.strokeRect(left, top, width, rowHeight)
+      const strokeStyle = theme.palette.text.disabled
+      strokeRectInner(ctx, left, top, width, rowHeight, strokeStyle)
       drawLetter(ctx, left, top, width, aminoAcidCode)
     }
   }
@@ -170,7 +173,7 @@ export function drawSequenceTrack(
     }
     seq = seq.toUpperCase()
     const baseOffsetPx = (block.start - roundedStart) / bpPerPx
-    const seqLeftPx = Math.round(block.offsetPx - offsetPx - baseOffsetPx)
+    const seqLeftPx = block.offsetPx - offsetPx - baseOffsetPx
     for (let i = 0; i < seq.length; i++) {
       const bp = roundedStart + i
       const codon = seq.slice(i, i + 3)
