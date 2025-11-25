@@ -18,6 +18,7 @@ import {
 import {
   type ChangeMessage,
   ValidationResultSet,
+  makeUserSessionId,
 } from '@apollo-annotation/shared'
 import { getConf } from '@jbrowse/core/configuration'
 import { type BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
@@ -154,6 +155,10 @@ export class CollaborationServerDriver extends BackendDriver {
   ) {
     const { socket } = internetAccount
     const token = internetAccount.retrieveToken()
+    if (!token) {
+      return
+    }
+    const localSessionId = makeUserSessionId(token)
     const channel = `${assembly}-${refSeq}`
     const changeManager = new ChangeManager(this.clientStore)
 
@@ -163,11 +168,12 @@ export class CollaborationServerDriver extends BackendDriver {
         internetAccount.setLastChangeSequenceNumber(
           Number(message.changeSequence),
         )
-        if (message.userSessionId !== token && message.channel === channel) {
-          const change = Change.fromJSON(message.changeInfo)
-          if (isFeatureChange(change) && this.haveDataForChange(change)) {
-            await changeManager.submit(change, { submitToBackend: false })
-          }
+        if (message.userSessionId === localSessionId) {
+          return // we did this change, no need to apply it again
+        }
+        const change = Change.fromJSON(message.changeInfo)
+        if (isFeatureChange(change) && this.haveDataForChange(change)) {
+          await changeManager.submit(change, { submitToBackend: false })
         }
       })
     }
