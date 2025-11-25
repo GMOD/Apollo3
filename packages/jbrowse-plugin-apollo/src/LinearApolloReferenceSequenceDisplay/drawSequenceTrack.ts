@@ -22,38 +22,32 @@ function drawLetter(
 }
 
 function drawTranslationFrameBackgrounds(
-  canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
   bpPerPx: number,
   theme: Theme,
-  dynamicBlocks: BlockSet,
   highContrast: boolean,
+  left: number,
+  width: number,
   sequenceRowHeight: number,
+  reversed?: boolean,
 ) {
   const frames =
     bpPerPx <= 1 ? [3, 2, 1, 0, 0, -1, -2, -3] : [3, 2, 1, -1, -2, -3]
+  if (reversed) {
+    frames.reverse()
+  }
   for (const [idx, frame] of frames.entries()) {
     const frameColor = theme.palette.framesCDS.at(frame)?.main
     if (!frameColor) {
       continue
     }
     const top = idx * sequenceRowHeight
-    const { offsetPx } = dynamicBlocks
-    const left = Math.max(0, -offsetPx)
-    const width = Math.round(dynamicBlocks.totalWidthPx)
     ctx.fillStyle = highContrast ? theme.palette.background.default : frameColor
     ctx.fillRect(left, top, width, sequenceRowHeight)
     if (highContrast) {
       // eslint-disable-next-line prefer-destructuring
       const strokeStyle = theme.palette.grey[200]
       strokeRectInner(ctx, left, top, width, sequenceRowHeight, strokeStyle)
-    }
-  }
-  // allows inter-region padding lines to show through
-  for (const block of dynamicBlocks.getBlocks()) {
-    if (block.type === 'InterRegionPaddingBlock') {
-      const left = Math.round(block.offsetPx - dynamicBlocks.offsetPx)
-      ctx.clearRect(left, 0, block.widthPx, canvas.height)
     }
   }
 }
@@ -151,18 +145,20 @@ export function drawSequenceTrack(
   }
   ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-  drawTranslationFrameBackgrounds(
-    canvas,
-    ctx,
-    bpPerPx,
-    theme,
-    dynamicBlocks,
-    highContrast,
-    sequenceRowHeight,
-  )
-
   const { apolloDataStore } = session
   for (const block of dynamicBlocks.contentBlocks) {
+    const totalOffsetPx = block.offsetPx - offsetPx
+
+    drawTranslationFrameBackgrounds(
+      ctx,
+      bpPerPx,
+      theme,
+      highContrast,
+      totalOffsetPx,
+      block.widthPx,
+      sequenceRowHeight,
+      block.reversed,
+    )
     const assembly = apolloDataStore.assemblies.get(block.assemblyName)
     const ref = assembly?.getByRefName(block.refName)
     const roundedStart = Math.floor(block.start)
@@ -172,10 +168,15 @@ export function drawSequenceTrack(
       return
     }
     seq = seq.toUpperCase()
-    const baseOffsetPx = (block.start - roundedStart) / bpPerPx
-    const seqLeftPx = block.offsetPx - offsetPx - baseOffsetPx
+    if (block.reversed) {
+      seq = revcom(seq)
+    }
+    const baseOffsetPx =
+      (block.reversed ? roundedEnd - block.end : block.start - roundedStart) /
+      bpPerPx
+    const seqLeftPx = totalOffsetPx - baseOffsetPx
     for (let i = 0; i < seq.length; i++) {
-      const bp = roundedStart + i
+      const bp = block.reversed ? roundedEnd - i : roundedStart + i
       const codon = seq.slice(i, i + 3)
       drawBase(ctx, seq[i], i, seqLeftPx, bpPerPx, sequenceRowHeight, theme)
       if (codon.length !== 3) {
