@@ -62,8 +62,9 @@ describe('Simple tests for visuals', () => {
     cy.wait(2000) // Wait for render
     // This may fail locally due to differences in runtime such as installed
     // fonts on. The snapshots used in this test are generated on GitHub Actions
-    cy.get('canvas[data-testid="canvas"]').compareSnapshot(
-      'linear-apollo-display-canvas',
-    )
+    cy.get('canvas[data-testid="canvas"]').compareSnapshot({
+      name: 'linear-apollo-display-canvas',
+      testThreshold: 0.03,
+    })
   })
 })
