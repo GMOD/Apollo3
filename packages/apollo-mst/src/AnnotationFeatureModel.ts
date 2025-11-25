@@ -291,40 +291,6 @@ export const AnnotationFeatureModel = types
         transcript.filter((transcriptPart) => transcriptPart.type === 'CDS'),
       )
     },
-    get looksLikeGene(): boolean {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const session = getSession(self) as any
-      const { apolloDataStore } = session
-      const { featureTypeOntology } = apolloDataStore.ontologyManager
-      if (!featureTypeOntology) {
-        return false
-      }
-      const children = self.children as Children
-      if (!children?.size) {
-        return false
-      }
-      const isGene =
-        featureTypeOntology.isTypeOf(self.type, 'gene') ||
-        featureTypeOntology.isTypeOf(self.type, 'pseudogene')
-      if (!isGene) {
-        return false
-      }
-      for (const [, child] of children) {
-        if (
-          featureTypeOntology.isTypeOf(child.type, 'transcript') ||
-          featureTypeOntology.isTypeOf(child.type, 'pseudogenic_transcript')
-        ) {
-          const { children: grandChildren } = child
-          if (!grandChildren?.size) {
-            return false
-          }
-          return [...grandChildren.values()].some((grandchild) =>
-            featureTypeOntology.isTypeOf(grandchild.type, 'exon'),
-          )
-        }
-      }
-      return false
-    },
   }))
   .actions((self) => ({
     setAttributes(attributes: Map<string, string[]>) {
