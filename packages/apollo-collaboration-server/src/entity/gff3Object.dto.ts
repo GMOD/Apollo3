@@ -28,3 +28,8 @@ export interface FeatureRangeSearchDto {
   start: number
   end: number
 }
+
+export interface FeatureIdsSearchDto {
+  featureIds: string[]
+  topLevel?: boolean
+}
