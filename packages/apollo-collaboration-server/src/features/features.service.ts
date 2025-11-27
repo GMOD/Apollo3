@@ -127,11 +127,18 @@ export class FeaturesService {
         this.logger.debug(`FeatureId ${featureId} already fetched, skipping...`)
         continue
       }
-      const feature = await this.findById(featureId, topLevel)
-      foundFeatures.push(feature)
 
-      for (const id of feature.allIds) {
-        fetchedFeatureIds.add(id)
+      try {
+        const feature = await this.findById(featureId, topLevel)
+        foundFeatures.push(feature)
+        for (const id of feature.allIds) {
+          fetchedFeatureIds.add(id)
+        }
+      } catch (error) {
+        this.logger.error(
+          `Error occurred while fetching feature ${featureId}`,
+          error instanceof Error ? error.stack : String(error),
+        )
       }
     }
     return foundFeatures
