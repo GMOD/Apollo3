@@ -86,7 +86,9 @@ export default class Get extends BaseCommand<typeof Get> {
     start: number,
     end: number,
   ): Promise<Response> {
-    const url = new URL(localhostToAddress(`${address}/features/getFeatures`))
+    const url = new URL(
+      localhostToAddress(`${address}/features/getFeaturesByRange`),
+    )
     const searchParams = new URLSearchParams({
       refSeq,
       start: start.toString(),

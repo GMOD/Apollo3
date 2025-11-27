@@ -119,7 +119,7 @@ export class CollaborationServerDriver extends BackendDriver {
     ) as ApolloInternetAccount
     const { baseURL } = internetAccount
 
-    const url = new URL('features/getFeatures', baseURL)
+    const url = new URL('features/getFeaturesByRange', baseURL)
     const searchParams = new URLSearchParams({
       refSeq,
       start: String(start),
