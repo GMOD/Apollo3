@@ -129,7 +129,7 @@ Cypress.Commands.add(
     const menuItemPathPrefix = menuItemPath.slice(0, -1)
     cy.wrap(Cypress.$('body')).within(() => {
       // eslint-disable-next-line cypress/no-unnecessary-waiting
-      cy.wait(1000)
+      cy.wait(3000)
       cy.get('button[data-testid="dropDownMenuButton"]', { timeout: 10_000 })
         .contains('Apollo')
         .click({ force: true, timeout: 10_000 })
@@ -223,7 +223,7 @@ Cypress.Commands.add('searchFeatures', (query, expectedNumOfHits) => {
     `{selectall}{backspace}${query}{enter}`,
   )
   if (expectedNumOfHits === 0) {
-    cy.contains(`Error: Unknown reference sequence "${query}"`)
+    cy.contains(`Error: Unknown feature or sequence "${query}"`)
   } else if (expectedNumOfHits === 1) {
     cy.wait(`@search ${query}`)
   } else {

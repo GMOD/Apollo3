@@ -489,8 +489,12 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
               return
             }
             if (self.role) {
-              await self.initialize(self.role)
-              reaction.dispose()
+              try {
+                await self.initialize(self.role)
+                reaction.dispose()
+              } catch {
+                // if initialize fails, do nothing so the autorun runs again
+              }
             }
           },
           { name: 'ApolloInternetAccount' },

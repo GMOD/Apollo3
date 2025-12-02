@@ -75,6 +75,8 @@ describe('Delete feature', () => {
     // Close and reload to check that the server also has correct data
     cy.get('button[data-testid="close_view"]').click()
     cy.contains('Launch view') // To ensure that we reload after closing
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(2000)
     cy.reload()
     cy.contains('Launch view', { timeout: 10_000 }).click()
     cy.contains('Select assembly to view', { timeout: 10_000 })

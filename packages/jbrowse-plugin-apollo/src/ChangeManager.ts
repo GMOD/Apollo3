@@ -56,7 +56,7 @@ export class ChangeManager {
       statusMessage: 'Pre-validating',
       progressPct: 0,
       cancelCallback: () => {
-        controller.abort()
+        controller.abort('ChangeManager')
       },
     }
 

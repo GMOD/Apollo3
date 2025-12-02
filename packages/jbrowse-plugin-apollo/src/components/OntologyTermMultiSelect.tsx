@@ -89,7 +89,7 @@ function TermTagWithTooltip({
     })
 
     return () => {
-      controller.abort()
+      controller.abort('TermTagWithTooltip ')
     }
   }, [termId, ontology, manager])
 
@@ -211,7 +211,7 @@ export function OntologyTermMultiSelect({
     })
 
     return () => {
-      aborter.abort()
+      aborter.abort('OntologyTermMultiSelect')
     }
   }, [getOntologyTerms, ontology, includeDeprecated, inputValue, value])
 

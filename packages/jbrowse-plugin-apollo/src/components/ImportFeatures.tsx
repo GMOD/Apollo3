@@ -182,7 +182,7 @@ export function ImportFeatures({
       statusMessage: 'Uploading file, this may take awhile',
       progressPct: 0,
       cancelCallback: () => {
-        controller.abort()
+        controller.abort('ImportFeatures')
         jobsManager.abortJob(job.name)
       },
     }

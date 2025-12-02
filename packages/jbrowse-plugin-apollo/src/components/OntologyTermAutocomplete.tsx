@@ -93,7 +93,7 @@ export function OntologyTermAutocomplete({
       )
     }
     return () => {
-      controller.abort()
+      controller.abort('OntologyTermAutocomplete matcher')
     }
   }, [session, valueString, filterTerms, ontologyStore, needToLoadCurrentTerm])
 
@@ -119,7 +119,7 @@ export function OntologyTermAutocomplete({
       )
     }
     return () => {
-      controller.abort()
+      controller.abort('OntologyTermAutocomplete loader')
     }
   }, [
     needToLoadTermChoices,
