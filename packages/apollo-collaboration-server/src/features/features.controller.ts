@@ -1,13 +1,18 @@
 import {
+  Body,
   Controller,
   Get,
   Logger,
   Param,
   ParseBoolPipe,
+  Post,
   Query,
 } from '@nestjs/common'
 
-import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
+import {
+  FeatureIdsSearchDto,
+  FeatureRangeSearchDto,
+} from '../entity/gff3Object.dto'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 
@@ -36,13 +41,24 @@ export class FeaturesController {
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
    * or if search data was not found or in case of error throw exception
    */
-  @Get('getFeatures')
-  getFeatures(@Query() request: FeatureRangeSearchDto) {
+  @Get('getFeaturesByRange')
+  getFeaturesByRange(@Query() request: FeatureRangeSearchDto) {
     this.logger.debug(
-      `getFeaturesByCriteria -method: refSeq: ${request.refSeq}, start: ${request.start}, end: ${request.end}`,
+      `getFeaturesByRange -method: refSeq: ${request.refSeq}, start: ${request.start}, end: ${request.end}`,
     )
 
     return this.featuresService.findByRange(request)
+  }
+
+  @Post('getFeatures')
+  getFeatures(@Body() request: FeatureIdsSearchDto) {
+    this.logger.debug(
+      `getFeatures -method: featureIds: ${JSON.stringify(request.featureIds)}`,
+    )
+    return this.featuresService.findByFeatureIds(
+      request.featureIds,
+      request.topLevel,
+    )
   }
 
   @Get('count')
