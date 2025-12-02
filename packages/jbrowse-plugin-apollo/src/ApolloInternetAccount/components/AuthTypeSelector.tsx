@@ -57,7 +57,7 @@ export const AuthTypeSelector = ({
       }
     })
     return () => {
-      controller.abort()
+      controller.abort('AuthTypeSelector')
     }
   }, [baseURL])
 

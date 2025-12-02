@@ -200,7 +200,7 @@ export function AddAssembly({
         statusMessage: 'Pre-validating',
         progressPct: 0,
         cancelCallback: () => {
-          controller.abort()
+          controller.abort('AddAssembly')
           jobsManager.abortJob(job.name)
         },
       }
