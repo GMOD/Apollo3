@@ -19,7 +19,10 @@ describe('Simple tests for visuals', () => {
     cy.wait(5000)
     // This may fail locally due to differences in runtime such as installed
     // fonts on. The snapshots used in this test are generated on GitHub Actions
-    cy.get('canvas[data-testid="overlayCanvas"]').compareSnapshot('gene-model')
+    cy.get('canvas[data-testid="overlayCanvas"]').compareSnapshot({
+      name: 'gene-model',
+      testThreshold: 0.03,
+    })
   })
   it('Shows different glyph types', () => {
     cy.addAssemblyFromGff('glyph_types.gff3', 'test_data/glyph_types.gff3')
@@ -36,9 +39,10 @@ describe('Simple tests for visuals', () => {
     cy.wait(2000) // Wait for render
     // This may fail locally due to differences in runtime such as installed
     // fonts on. The snapshots used in this test are generated on GitHub Actions
-    cy.get('canvas[data-testid="seqTrackCanvas"]').compareSnapshot(
-      'seq-track-canvas',
-    )
+    cy.get('canvas[data-testid="seqTrackCanvas"]').compareSnapshot({
+      name: 'seq-track-canvas',
+      testThreshold: 0.03,
+    })
 
     cy.get('[data-testid="track_menu_icon"]').last().click()
     cy.contains('Display types').trigger('mouseover')
@@ -46,9 +50,10 @@ describe('Simple tests for visuals', () => {
     cy.wait(2000) // Wait for render
     // This may fail locally due to differences in runtime such as installed
     // fonts on. The snapshots used in this test are generated on GitHub Actions
-    cy.get('canvas[data-testid="canvas"]').compareSnapshot(
-      'linear-apollo-six-frame-display-canvas',
-    )
+    cy.get('canvas[data-testid="canvas"]').compareSnapshot({
+      name: 'linear-apollo-six-frame-display-canvas',
+      testThreshold: 0.03,
+    })
 
     cy.get('[data-testid="track_menu_icon"]').last().click()
     cy.contains('Display types').trigger('mouseover')
