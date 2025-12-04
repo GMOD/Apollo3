@@ -1,12 +1,38 @@
 /* eslint-disable prefer-destructuring */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { readFileSync, writeFileSync } from 'node:fs'
 import { describe, it } from 'node:test'
 
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { assert } from 'chai'
+import { formatSync } from '@gmod/gff'
+import { assert, expect } from 'chai'
 
 import { annotationFeatureToGFF3 } from './annotationFeatureToGFF3'
 import { readAnnotationFeatureSnapshot } from './gff3ToAnnotationFeature.test'
+import { testCases } from './testUtil'
+
+describe('Converts AnnotationFeatureSnapshot JSON to GFF3 when', () => {
+  for (const testCase of testCases) {
+    const { filenameStem, description } = testCase
+    it(description, () => {
+      const annotationFeatures = JSON.parse(
+        readFileSync(`test_data/${filenameStem}.json`, 'utf8'),
+      ) as AnnotationFeatureSnapshot[]
+      const expectedGFF3 = readFileSync(
+        `test_data/${filenameStem}.gff3`,
+        'utf8',
+      )
+      const gffFeatures = annotationFeatures.map((annotationFeature) =>
+        annotationFeatureToGFF3(annotationFeature),
+      )
+      const gff3 = formatSync(gffFeatures)
+      if (gff3 !== expectedGFF3) {
+        writeFileSync(`test_data/${filenameStem}.tmp.gff3`, gff3)
+      }
+      expect(gff3).to.equal(expectedGFF3)
+    })
+  }
+})
 
 describe('annotationFeatureToGFF3', () => {
   it('Test mandatory columns', () => {
