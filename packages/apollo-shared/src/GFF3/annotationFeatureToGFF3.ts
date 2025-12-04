@@ -29,7 +29,8 @@ export function annotationFeatureToGFF3(
   }
   if (attributes.gff_id) {
     delete attributes.gff_id
-  } else if (feature.children) {
+  }
+  if (feature.children && !attributes.ID) {
     attributes.ID = [feature._id]
   }
   if (attributes.gff_name) {
