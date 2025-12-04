@@ -19,7 +19,7 @@ jobs:
         run: yarn --immutable
 
       - name: Get latest JBrowse
-        run: yarn run jbrowse create --nightly .jbrowse
+        run: yarn run jbrowse create --branch frozen_tracks4 .jbrowse
         working-directory: packages/jbrowse-plugin-apollo
 
       - name: Start MongoDB
