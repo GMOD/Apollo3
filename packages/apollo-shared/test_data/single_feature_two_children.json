@@ -1,0 +1,44 @@
+[
+  {
+    "_id": "6931fc4f88722ca882ba334c",
+    "refSeq": "ctgA",
+    "type": "EST_match",
+    "min": 1049,
+    "max": 3202,
+    "strand": 1,
+    "children": {
+      "6931fc4f88722ca882ba334a": {
+        "_id": "6931fc4f88722ca882ba334a",
+        "refSeq": "ctgA",
+        "type": "match_part",
+        "min": 1049,
+        "max": 1500,
+        "strand": 1,
+        "attributes": {
+          "gff_source": ["est"],
+          "gff_name": ["agt830.5"],
+          "gff_target": ["agt830.5 1 451"]
+        }
+      },
+      "6931fc4f88722ca882ba334b": {
+        "_id": "6931fc4f88722ca882ba334b",
+        "refSeq": "ctgA",
+        "type": "match_part",
+        "min": 2999,
+        "max": 3202,
+        "strand": 1,
+        "attributes": {
+          "gff_source": ["est"],
+          "gff_name": ["agt830.5"],
+          "gff_target": ["agt830.5 452 654"]
+        }
+      }
+    },
+    "attributes": {
+      "gff_source": ["est"],
+      "gff_name": ["agt830.5"],
+      "gff_target": ["agt830.5 1 654"]
+    },
+    "featureId": "Match1"
+  }
+]

@@ -123,15 +123,11 @@ export function getGeneNameOrId(feature: AnnotationFeatureSnapshot) {
 }
 
 export function getFeatureId(feature: AnnotationFeatureSnapshot) {
+  if (feature.featureId) {
+    return feature.featureId
+  }
   const { attributes } = feature
-  const keys = [
-    'id',
-    'gff_id',
-    'transcript_id',
-    'gene_id',
-    'gene_stable_id',
-    'stable_id',
-  ]
+  const keys = ['id', 'transcript_id', 'gene_id', 'gene_stable_id', 'stable_id']
   for (const key of keys) {
     const value = attributes?.[key]
     if (value?.[0]) {

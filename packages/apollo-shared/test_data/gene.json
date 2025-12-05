@@ -6,7 +6,6 @@
   "max": 9000,
   "strand": 1,
   "attributes": {
-    "gff_id": ["gene10001"],
     "gff_name": ["EDEN"],
     "gff_score": ["123"],
     "gff_source": ["test_data"],
@@ -31,7 +30,6 @@
       "max": 9000,
       "strand": 1,
       "attributes": {
-        "gff_id": ["mRNA10001"],
         "gff_name": ["EDEN.1"],
         "testid": ["t004", "t001", "t004"]
       },
@@ -44,9 +42,9 @@
           "max": 1500,
           "strand": 1,
           "attributes": {
-            "gff_id": ["exon10001"],
             "testid": ["t007"]
-          }
+          },
+          "featureId": "exon10001"
         },
         "66d70e4ccc30b55b65e5f616": {
           "_id": "66d70e4ccc30b55b65e5f616",
@@ -56,7 +54,6 @@
           "max": 5500,
           "strand": 1,
           "attributes": {
-            "gff_id": ["exon10004"],
             "testid": ["t010"]
           },
           "children": {
@@ -67,11 +64,10 @@
               "min": 5300,
               "max": 5400,
               "strand": 1,
-              "attributes": {
-                "gff_id": ["exon_region10001"]
-              }
+              "featureId": "exon_region10001"
             }
-          }
+          },
+          "featureId": "exon10004"
         },
         "66d70e4ccc30b55b65e5f617": {
           "_id": "66d70e4ccc30b55b65e5f617",
@@ -81,7 +77,6 @@
           "max": 5100,
           "strand": 1,
           "attributes": {
-            "gff_id": ["cds10001"],
             "gff_name": ["edenprotein.1"],
             "testid": ["t012", "t013", "t014", "t015"]
           },
@@ -93,11 +88,10 @@
               "min": "1350",
               "max": "1400",
               "strand": 1,
-              "attributes": {
-                "gff_id": ["cds_region10001"]
-              }
+              "featureId": "cds_region10001"
             }
-          }
+          },
+          "featureId": "cds10001"
         },
         "66e049f17b9cedae9ad89106": {
           "_id": "66e049f17b9cedae9ad89106",
@@ -107,11 +101,13 @@
           "max": 5200,
           "strand": 1,
           "attributes": {
-            "gff_id": ["cds10004"],
             "gff_name": ["edenprotein.4"]
-          }
+          },
+          "featureId": "cds10004"
         }
-      }
+      },
+      "featureId": "mRNA10001"
     }
-  }
+  },
+  "featureId": "gene10001"
 }

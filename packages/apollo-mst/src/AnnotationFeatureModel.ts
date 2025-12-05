@@ -41,6 +41,11 @@ type TranscriptParts = TranscriptPart[]
 export const AnnotationFeatureModel = types
   .model('AnnotationFeatureModel', {
     _id: types.identifier,
+    /**
+     * User-facing identifier for this feature (where _id is the internal
+     * identifier)
+     */
+    featureId: types.maybe(types.string),
     /** Unique ID of the reference sequence on which this feature is located */
     refSeq: types.string,
     /**
@@ -78,9 +83,6 @@ export const AnnotationFeatureModel = types
   .views((self) => ({
     get length() {
       return self.max - self.min
-    },
-    get featureId() {
-      return self.attributes.get('id')
     },
     /**
      * Possibly different from `min` because "The GFF3 format does not enforce a

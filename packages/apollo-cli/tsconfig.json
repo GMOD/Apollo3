@@ -10,6 +10,7 @@
     "skipLibCheck": true,
   },
   "include": ["./src"],
+  "references": [{ "path": "../apollo-mst" }, { "path": "../apollo-shared" }],
   "ts-node": {
     "esm": true,
   },

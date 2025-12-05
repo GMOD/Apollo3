@@ -21,9 +21,7 @@
           "min": 61049,
           "max": 61499,
           "strand": 1,
-          "attributes": {
-            "gff_id": ["exon60001"]
-          }
+          "featureId": "exon60001"
         },
         "66e0555fae0bd7cfcd69911c": {
           "_id": "66e0555fae0bd7cfcd69911c",
@@ -32,9 +30,7 @@
           "min": 62999,
           "max": 63902,
           "strand": 1,
-          "attributes": {
-            "gff_id": ["exon60003"]
-          }
+          "featureId": "exon60003"
         },
         "66e0555fae0bd7cfcd69911d": {
           "_id": "66e0555fae0bd7cfcd69911d",
@@ -43,9 +39,7 @@
           "min": 64999,
           "max": 65500,
           "strand": 1,
-          "attributes": {
-            "gff_id": ["exon60004"]
-          }
+          "featureId": "exon60004"
         },
         "66e0555fae0bd7cfcd69911e": {
           "_id": "66e0555fae0bd7cfcd69911e",
@@ -54,9 +48,7 @@
           "min": 66999,
           "max": 69000,
           "strand": 1,
-          "attributes": {
-            "gff_id": ["exon60005"]
-          }
+          "featureId": "exon60005"
         },
         "66e0555fae0bd7cfcd69911f": {
           "_id": "66e0555fae0bd7cfcd69911f",
@@ -66,15 +58,15 @@
           "max": 67600,
           "strand": 1,
           "attributes": {
-            "gff_id": ["cds60001"],
             "gff_name": ["edenprotein.1"]
-          }
+          },
+          "featureId": "cds60001"
         }
       },
       "attributes": {
-        "gff_id": ["mRNA60001"],
         "gff_name": ["EDEN.1"]
-      }
+      },
+      "featureId": "mRNA60001"
     },
     "66e0555fae0bd7cfcd699125": {
       "_id": "66e0555fae0bd7cfcd699125",
@@ -91,9 +83,7 @@
           "min": 61049,
           "max": 61499,
           "strand": 1,
-          "attributes": {
-            "gff_id": ["exon60001"]
-          }
+          "featureId": "exon60001"
         },
         "66e0555fae0bd7cfcd699122": {
           "_id": "66e0555fae0bd7cfcd699122",
@@ -102,9 +92,7 @@
           "min": 64999,
           "max": 65500,
           "strand": 1,
-          "attributes": {
-            "gff_id": ["exon60004"]
-          }
+          "featureId": "exon60004"
         },
         "66e0555fae0bd7cfcd699123": {
           "_id": "66e0555fae0bd7cfcd699123",
@@ -113,9 +101,7 @@
           "min": 66999,
           "max": 69000,
           "strand": 1,
-          "attributes": {
-            "gff_id": ["exon60005"]
-          }
+          "featureId": "exon60005"
         },
         "66e0555fae0bd7cfcd699124": {
           "_id": "66e0555fae0bd7cfcd699124",
@@ -125,15 +111,15 @@
           "max": 67600,
           "strand": 1,
           "attributes": {
-            "gff_id": ["cds60002"],
             "gff_name": ["edenprotein.2"]
-          }
+          },
+          "featureId": "cds60002"
         }
       },
       "attributes": {
-        "gff_id": ["mRNA60002"],
         "gff_name": ["EDEN.2"]
-      }
+      },
+      "featureId": "mRNA60002"
     },
     "66e0555fae0bd7cfcd69912c": {
       "_id": "66e0555fae0bd7cfcd69912c",
@@ -150,9 +136,7 @@
           "min": 61299,
           "max": 61499,
           "strand": 1,
-          "attributes": {
-            "gff_id": ["exon60002"]
-          }
+          "featureId": "exon60002"
         },
         "66e0555fae0bd7cfcd699127": {
           "_id": "66e0555fae0bd7cfcd699127",
@@ -161,9 +145,7 @@
           "min": 62999,
           "max": 63902,
           "strand": 1,
-          "attributes": {
-            "gff_id": ["exon60003"]
-          }
+          "featureId": "exon60003"
         },
         "66e0555fae0bd7cfcd699128": {
           "_id": "66e0555fae0bd7cfcd699128",
@@ -172,9 +154,7 @@
           "min": 64999,
           "max": 65500,
           "strand": 1,
-          "attributes": {
-            "gff_id": ["exon60004"]
-          }
+          "featureId": "exon60004"
         },
         "66e0555fae0bd7cfcd699129": {
           "_id": "66e0555fae0bd7cfcd699129",
@@ -183,9 +163,7 @@
           "min": 66999,
           "max": 69000,
           "strand": 1,
-          "attributes": {
-            "gff_id": ["exon60005"]
-          }
+          "featureId": "exon60005"
         },
         "66e0555fae0bd7cfcd69912a": {
           "_id": "66e0555fae0bd7cfcd69912a",
@@ -195,9 +173,9 @@
           "max": 67600,
           "strand": 1,
           "attributes": {
-            "gff_id": ["cds60003"],
             "gff_name": ["edenprotein.3"]
-          }
+          },
+          "featureId": "cds60003"
         },
         "66e0555fae0bd7cfcd69912b": {
           "_id": "66e0555fae0bd7cfcd69912b",
@@ -207,19 +185,19 @@
           "max": 67600,
           "strand": 1,
           "attributes": {
-            "gff_id": ["cds60004"],
             "gff_name": ["edenprotein.4"]
-          }
+          },
+          "featureId": "cds60004"
         }
       },
       "attributes": {
-        "gff_id": ["mRNA60003"],
         "gff_name": ["EDEN.3"]
-      }
+      },
+      "featureId": "mRNA60003"
     }
   },
   "attributes": {
-    "gff_id": ["gene60001"],
     "gff_name": ["EDEN"]
-  }
+  },
+  "featureId": "gene60001"
 }

@@ -8,7 +8,6 @@ import { gffToInternal, isGFFReservedAttribute } from './gffReservedKeys'
 export function gff3ToAnnotationFeature(
   gff3Feature: GFF3Feature,
   refSeq?: string,
-  featureIds?: string[],
 ): AnnotationFeatureSnapshot {
   const [firstFeature] = gff3Feature
   const { end, seq_id: refName, start, strand, type } = firstFeature
@@ -35,7 +34,7 @@ export function gff3ToAnnotationFeature(
 
   const [min, max] = getFeatureMinMax(gff3Feature)
 
-  const convertedChildren = convertChildren(gff3Feature, refSeq, featureIds)
+  const convertedChildren = convertChildren(gff3Feature, refSeq)
 
   const convertedAttributes = convertFeatureAttributes(gff3Feature)
 
@@ -59,10 +58,13 @@ export function gff3ToAnnotationFeature(
     feature.children = convertedChildren
   }
   if (convertedAttributes) {
-    feature.attributes = convertedAttributes
-  }
-  if (featureIds) {
-    featureIds.push(feature._id)
+    const [att, id] = convertedAttributes
+    if (Object.keys(att).length > 0) {
+      feature.attributes = att
+    }
+    if (id) {
+      feature.featureId = id
+    }
   }
   return feature
 }
@@ -80,7 +82,7 @@ function getFeatureMinMax(gff3Feature: GFF3Feature): [number, number] {
 
 function convertFeatureAttributes(
   gff3Feature: GFF3Feature,
-): Record<string, string[] | undefined> | undefined {
+): [Record<string, string[] | undefined>, string | undefined] | undefined {
   const convertedAttributes: Record<string, string[] | undefined> | undefined =
     {}
   const scores = gff3Feature
@@ -112,10 +114,15 @@ function convertFeatureAttributes(
     }
     convertedAttributes.gff_source = [source]
   }
+  let id: string | undefined
   if (attributesCollections.length > 0) {
     for (const attributesCollection of attributesCollections) {
       for (const [key, val] of Object.entries(attributesCollection)) {
         if (key === 'Parent') {
+          continue
+        }
+        if (key === 'ID') {
+          ;[id] = attributesCollection[key]
           continue
         }
         const newKey = isGFFReservedAttribute(key) ? gffToInternal[key] : key
@@ -132,8 +139,8 @@ function convertFeatureAttributes(
       }
     }
   }
-  if (Object.keys(convertedAttributes).length > 0) {
-    return convertedAttributes
+  if (id || Object.keys(convertedAttributes).length > 0) {
+    return [convertedAttributes, id]
   }
   return
 }
@@ -182,13 +189,13 @@ function convertChildren(
     if (firstChildFeatureLocation.type === 'CDS') {
       cdsFeatures.push(childFeature)
     } else {
-      const child = gff3ToAnnotationFeature(childFeature, refSeq, featureIds)
+      const child = gff3ToAnnotationFeature(childFeature, refSeq)
       convertedChildren[child._id] = child
     }
   }
 
   if (cdsFeatures.length > 0) {
-    const processedCDS = processCDS(cdsFeatures, refSeq, featureIds)
+    const processedCDS = processCDS(cdsFeatures, refSeq)
 
     for (const cds of processedCDS) {
       convertedChildren[cds._id] = cds
@@ -372,16 +379,13 @@ function mergeAnnotationFeatures(
 function processCDS(
   cdsFeatures: GFF3Feature[],
   refSeq?: string,
-  featureIds?: string[],
 ): AnnotationFeatureSnapshot[] {
   const locationCounts = cdsFeatures.map((cds) => cds.length)
   // If any CDS have multiple locations, assume it really is multiple CDS
   // (e.g. the mRNA has multiple alternative translational start sites)
   // and process normally.
   if (locationCounts.some((count) => count > 1)) {
-    return cdsFeatures.map((cds) =>
-      gff3ToAnnotationFeature(cds, refSeq, featureIds),
-    )
+    return cdsFeatures.map((cds) => gff3ToAnnotationFeature(cds, refSeq))
   }
   // If all CDS have a single location, we guess that this GFF3 represented CDS
   // as multiple features instead of a single feature with multiple locations.
@@ -402,7 +406,7 @@ function processCDS(
   })
   // If no overlaps, assume it's a single CDS feature
   if (!overlapping) {
-    return [gff3ToAnnotationFeature(sortedCDSLocations, refSeq, featureIds)]
+    return [gff3ToAnnotationFeature(sortedCDSLocations, refSeq)]
   }
   // Some CDS locations overlap, the best we can do is use the original order to
   // guess how to group the locations into features
@@ -430,7 +434,5 @@ function processCDS(
       lastGroup.push(location)
     }
   }
-  return groupedLocations.map((group) =>
-    gff3ToAnnotationFeature(group, refSeq, featureIds),
-  )
+  return groupedLocations.map((group) => gff3ToAnnotationFeature(group, refSeq))
 }

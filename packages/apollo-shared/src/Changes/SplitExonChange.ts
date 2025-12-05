@@ -229,8 +229,6 @@ export class SplitExonChange extends FeatureChange {
     const exon = JSON.parse(JSON.stringify(exonToBeSplit))
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     delete exon.attributes._id
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    delete exon.attributes.gff_id
 
     const leftExon = structuredClone(
       exon,

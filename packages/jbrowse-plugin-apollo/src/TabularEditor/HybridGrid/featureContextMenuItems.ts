@@ -35,7 +35,7 @@ export function featureContextMenuItems(
   const readOnly = !(role && ['admin', 'user'].includes(role))
   const menuItems: MenuItem[] = []
   if (feature) {
-    const featureID = feature.attributes.get('gff_id')?.toString()
+    const { featureId } = feature
     const sourceAssemblyId = getAssemblyId(region.assemblyName)
     const currentAssemblyId = getAssemblyId(region.assemblyName)
     menuItems.push(
@@ -218,12 +218,12 @@ export function featureContextMenuItems(
           label: 'Visible',
           type: 'checkbox',
           checked:
-            featureID && filteredTranscripts.includes(featureID) ? false : true,
+            featureId && filteredTranscripts.includes(featureId) ? false : true,
           onClick: () => {
-            if (featureID) {
-              const newForms = filteredTranscripts.includes(featureID)
-                ? filteredTranscripts.filter((form) => form !== featureID)
-                : [...filteredTranscripts, featureID]
+            if (featureId) {
+              const newForms = filteredTranscripts.includes(featureId)
+                ? filteredTranscripts.filter((form) => form !== featureId)
+                : [...filteredTranscripts, featureId]
               updateFilteredTranscripts(newForms)
             }
           },

@@ -11,7 +11,7 @@ export function getFeatureName(feature: AnnotationFeature) {
 
 export function getFeatureId(feature: AnnotationFeature) {
   const { attributes } = feature
-  const id = attributes.get('gff_id')
+  const id = feature.featureId
   const transcript_id = attributes.get('transcript_id')
   const exon_id = attributes.get('exon_id')
   const protein_id = attributes.get('protein_id')

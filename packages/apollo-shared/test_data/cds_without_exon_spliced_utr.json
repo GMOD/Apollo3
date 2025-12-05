@@ -21,9 +21,7 @@
           "min": 3300,
           "max": 7600,
           "strand": 1,
-          "attributes": {
-            "gff_id": ["cds00003"]
-          }
+          "featureId": "cds00003"
         },
         "675ad4e6a5abb3a5087c064a": {
           "_id": "675ad4e6a5abb3a5087c064a",
@@ -66,8 +64,8 @@
           "strand": 1
         }
       },
-      "attributes": { "gff_id": ["mRNA00003"] }
+      "featureId": "mRNA00003"
     }
   },
-  "attributes": { "gff_id": ["gene00001"] }
+  "featureId": "gene00001"
 }
