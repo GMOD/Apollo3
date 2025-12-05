@@ -159,7 +159,7 @@ function draw(
   const topLevelFeatureHeight = rowHeight
   const featureLabelSpacer = showFeatureLabels ? 2 : 1
   const textColor = theme.palette.text.primary
-  const { attributes, children, min, strand } = topLevelFeature
+  const { children, min, strand } = topLevelFeature
   if (!children) {
     return
   }
