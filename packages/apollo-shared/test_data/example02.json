@@ -20,7 +20,8 @@
           "type": "exon",
           "min": 21049,
           "max": 21499,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon20001"
         },
         "66e049609048deab4117a32d": {
           "_id": "66e049609048deab4117a32d",
@@ -28,7 +29,8 @@
           "type": "exon",
           "min": 22999,
           "max": 23902,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon20004"
         },
         "66e049609048deab4117a32e": {
           "_id": "66e049609048deab4117a32e",
@@ -36,7 +38,8 @@
           "type": "exon",
           "min": 24999,
           "max": 25500,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon20006"
         },
         "66e049609048deab4117a32f": {
           "_id": "66e049609048deab4117a32f",
@@ -44,7 +47,8 @@
           "type": "exon",
           "min": 26999,
           "max": 29000,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon20009"
         },
         "66e049609048deab4117a330": {
           "_id": "66e049609048deab4117a330",
@@ -78,7 +82,8 @@
           "type": "exon",
           "min": 21049,
           "max": 21499,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon20002"
         },
         "66e049609048deab4117a333": {
           "_id": "66e049609048deab4117a333",
@@ -86,7 +91,8 @@
           "type": "exon",
           "min": 24999,
           "max": 25500,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon20007"
         },
         "66e049609048deab4117a334": {
           "_id": "66e049609048deab4117a334",
@@ -94,7 +100,8 @@
           "type": "exon",
           "min": 26999,
           "max": 29000,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon20010"
         },
         "66e049609048deab4117a335": {
           "_id": "66e049609048deab4117a335",
@@ -128,7 +135,8 @@
           "type": "exon",
           "min": 21299,
           "max": 21499,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon20003"
         },
         "66e049609048deab4117a338": {
           "_id": "66e049609048deab4117a338",
@@ -136,7 +144,8 @@
           "type": "exon",
           "min": 22999,
           "max": 23902,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon20005"
         },
         "66e049609048deab4117a339": {
           "_id": "66e049609048deab4117a339",
@@ -144,7 +153,8 @@
           "type": "exon",
           "min": 24999,
           "max": 25500,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon20008"
         },
         "66e049609048deab4117a33a": {
           "_id": "66e049609048deab4117a33a",
@@ -152,7 +162,8 @@
           "type": "exon",
           "min": 26999,
           "max": 29000,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon20011"
         },
         "66e049609048deab4117a33b": {
           "_id": "66e049609048deab4117a33b",

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { describe, it } from 'node:test'
 
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
@@ -8,7 +8,7 @@ import { assert, use } from 'chai'
 import chaiExclude from 'chai-exclude'
 
 import { gff3ToAnnotationFeature } from './gff3ToAnnotationFeature'
-import { testCases } from './testUtil'
+import { readAnnotationFeatureSnapshot, testCases } from './testUtil'
 
 use(chaiExclude)
 
@@ -53,10 +53,6 @@ describe('Converts GFF3 to AnnotationFeatureSnapshot JSON when', () => {
       const annotationFeaturesExpected = JSON.parse(
         readFileSync(`test_data/${filenameStem}.json`, 'utf8'),
       ) as AnnotationFeatureSnapshot[]
-      writeFileSync(
-        `test_data/${filenameStem}.tmp.json`,
-        JSON.stringify(annotationFeatures, null, 2),
-      )
       for (const [
         i,
         annotationFeatureExpected,
@@ -78,13 +74,6 @@ function readFeatureFile(fn: string): GFF3Feature[] {
   }
   const inGff = parseStringSync(feature.join('\n')) as GFF3Feature[]
   return inGff
-}
-
-export function readAnnotationFeatureSnapshot(
-  fn: string,
-): AnnotationFeatureSnapshot {
-  const lines = readFileSync(fn).toString()
-  return JSON.parse(lines) as AnnotationFeatureSnapshot
 }
 
 const [ex1, , ex2, , ex3, , ex4] = readFeatureFile(

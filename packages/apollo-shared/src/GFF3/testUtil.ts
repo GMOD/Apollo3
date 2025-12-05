@@ -1,3 +1,14 @@
+import { readFileSync } from 'node:fs'
+
+import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+
+export function readAnnotationFeatureSnapshot(
+  fn: string,
+): AnnotationFeatureSnapshot {
+  const lines = readFileSync(fn).toString()
+  return JSON.parse(lines) as AnnotationFeatureSnapshot
+}
+
 export const testCases: { filenameStem: string; description: string }[] = [
   {
     filenameStem: 'single_feature_no_children',

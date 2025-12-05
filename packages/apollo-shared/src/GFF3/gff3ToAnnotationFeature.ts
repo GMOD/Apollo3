@@ -59,7 +59,9 @@ export function gff3ToAnnotationFeature(
   }
   if (convertedAttributes) {
     const [att, id] = convertedAttributes
-    feature.attributes = att
+    if (Object.keys(att).length > 0) {
+      feature.attributes = att
+    }
     if (id) {
       feature.featureId = id
     }

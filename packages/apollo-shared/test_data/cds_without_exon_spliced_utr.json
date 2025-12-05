@@ -20,7 +20,8 @@
           "type": "CDS",
           "min": 3300,
           "max": 7600,
-          "strand": 1
+          "strand": 1,
+          "featureId": "cds00003"
         },
         "675ad4e6a5abb3a5087c064a": {
           "_id": "675ad4e6a5abb3a5087c064a",
@@ -62,7 +63,9 @@
           "max": 8900,
           "strand": 1
         }
-      }
+      },
+      "featureId": "mRNA00003"
     }
-  }
+  },
+  "featureId": "gene00001"
 }

@@ -1,6 +1,6 @@
 /* eslint-disable prefer-destructuring */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { describe, it } from 'node:test'
 
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
@@ -8,8 +8,7 @@ import { formatSync } from '@gmod/gff'
 import { assert, expect } from 'chai'
 
 import { annotationFeatureToGFF3 } from './annotationFeatureToGFF3'
-import { readAnnotationFeatureSnapshot } from './gff3ToAnnotationFeature.test'
-import { testCases } from './testUtil'
+import { readAnnotationFeatureSnapshot, testCases } from './testUtil'
 
 describe('Converts AnnotationFeatureSnapshot JSON to GFF3 when', () => {
   for (const testCase of testCases) {
@@ -26,9 +25,6 @@ describe('Converts AnnotationFeatureSnapshot JSON to GFF3 when', () => {
         annotationFeatureToGFF3(annotationFeature),
       )
       const gff3 = formatSync(gffFeatures)
-      if (gff3 !== expectedGFF3) {
-        writeFileSync(`test_data/${filenameStem}.tmp.gff3`, gff3)
-      }
       expect(gff3).to.equal(expectedGFF3)
     })
   }

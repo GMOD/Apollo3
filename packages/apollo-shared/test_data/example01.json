@@ -12,7 +12,8 @@
       "type": "TF_binding_site",
       "min": 999,
       "max": 1012,
-      "strand": 1
+      "strand": 1,
+      "featureId": "tfbs00001"
     },
     "66e049f17b9cedae9ad890fb": {
       "_id": "66e049f17b9cedae9ad890fb",
@@ -28,7 +29,8 @@
           "type": "exon",
           "min": 1049,
           "max": 1499,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon00002"
         },
         "66e049f17b9cedae9ad890f7": {
           "_id": "66e049f17b9cedae9ad890f7",
@@ -36,7 +38,8 @@
           "type": "exon",
           "min": 2999,
           "max": 3902,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon00003"
         },
         "66e049f17b9cedae9ad890f8": {
           "_id": "66e049f17b9cedae9ad890f8",
@@ -44,7 +47,8 @@
           "type": "exon",
           "min": 4999,
           "max": 5500,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon00004"
         },
         "66e049f17b9cedae9ad890f9": {
           "_id": "66e049f17b9cedae9ad890f9",
@@ -52,7 +56,8 @@
           "type": "exon",
           "min": 6999,
           "max": 9000,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon00005"
         },
         "66e049f17b9cedae9ad890fa": {
           "_id": "66e049f17b9cedae9ad890fa",
@@ -86,7 +91,8 @@
           "type": "exon",
           "min": 1049,
           "max": 1499,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon00002"
         },
         "66e049f17b9cedae9ad890fd": {
           "_id": "66e049f17b9cedae9ad890fd",
@@ -94,7 +100,8 @@
           "type": "exon",
           "min": 4999,
           "max": 5500,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon00004"
         },
         "66e049f17b9cedae9ad890fe": {
           "_id": "66e049f17b9cedae9ad890fe",
@@ -102,7 +109,8 @@
           "type": "exon",
           "min": 6999,
           "max": 9000,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon00005"
         },
         "66e049f17b9cedae9ad890ff": {
           "_id": "66e049f17b9cedae9ad890ff",
@@ -136,7 +144,8 @@
           "type": "exon",
           "min": 1299,
           "max": 1499,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon00001"
         },
         "66e049f17b9cedae9ad89102": {
           "_id": "66e049f17b9cedae9ad89102",
@@ -144,7 +153,8 @@
           "type": "exon",
           "min": 2999,
           "max": 3902,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon00003"
         },
         "66e049f17b9cedae9ad89103": {
           "_id": "66e049f17b9cedae9ad89103",
@@ -152,7 +162,8 @@
           "type": "exon",
           "min": 4999,
           "max": 5500,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon00004"
         },
         "66e049f17b9cedae9ad89104": {
           "_id": "66e049f17b9cedae9ad89104",
@@ -160,7 +171,8 @@
           "type": "exon",
           "min": 6999,
           "max": 9000,
-          "strand": 1
+          "strand": 1,
+          "featureId": "exon00005"
         },
         "66e049f17b9cedae9ad89105": {
           "_id": "66e049f17b9cedae9ad89105",
