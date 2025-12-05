@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'
+import { HttpsProxyAgent } from 'https-proxy-agent'
 import { Profile, Strategy } from 'passport-google-oauth20'
 
 import { AuthenticationService } from '../../authentication/authentication.service'
@@ -62,6 +63,22 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       scope: ['email', 'profile'],
       store: true,
     })
+
+    // Apply proxy to OAuth2 instance
+    const proxy = process.env.HTTPS_PROXY ?? process.env.HTTP_PROXY
+    if (proxy) {
+      const agent = new HttpsProxyAgent(proxy)
+
+      // Access the internal OAuth2 instance and set the agent
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+      const oauth2 = (this as any)._oauth2
+      if (oauth2) {
+        // https://github.com/ciaranj/node-oauth/blob/master/lib/oauth2.js#L20
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        oauth2._agent = agent
+        this.logger.debug(`GoogleStrategy configured to use proxy: ${proxy}`)
+      }
+    }
   }
 
   async validate(accessToken: string, refreshToken: string, profile: Profile) {
