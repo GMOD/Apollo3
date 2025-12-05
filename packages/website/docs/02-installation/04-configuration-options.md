@@ -64,6 +64,11 @@ MICROSOFT_CLIENT_SECRET=client_secret_here
 # Defaults to relative URL 'sequence_ontology.json'
 # FEATURE_TYPE_ONTOLOGY_LOCATION=sequence_ontology.json
 
+# Comma-separated list of additional attributes in features to treat as ids
+# These will be added to feature documents' "indexedIds"
+# Defaults to gff_id
+# ADDITIONAL_IDS=gff_id,gene_id,transcript_id,exon_id
+
 # Application port, defaults to 3999
 # PORT=3999
 
