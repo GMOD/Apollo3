@@ -1,0 +1,14 @@
+[
+  {
+    "_id": "6931ef3bf5c33f70085c3a7b",
+    "refSeq": "ctgA",
+    "type": "remark",
+    "min": 999,
+    "max": 2000,
+    "attributes": {
+      "gff_source": ["example"],
+      "gff_name": ["Remark:hga"],
+      "gff_alias": ["hga"]
+    }
+  }
+]

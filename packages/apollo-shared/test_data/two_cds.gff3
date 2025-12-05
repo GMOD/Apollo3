@@ -1,9 +1,0 @@
-##gff-version 3
-##sequence-region   chr1 1000 9000
-#example01
-chr1	.	gene	1000	9000	.	+	.	ID=gene10001;Name=EDEN;testid=t003
-chr1	.	mRNA	1050	9000	.	+	.	ID=mRNA10001;Parent=gene10001;Name=EDEN.1;testid=t004,t001,t004
-chr1	.	exon	1050	1500	.	+	.	ID=exon10001;Parent=mRNA10001;testid=t007
-chr1	.	exon	5000	5500	.	+	.	ID=exon10004;Parent=mRNA10001;testid=t010
-chr1	.	CDS	1201	1500	.	+	0	ID=cds10001;Parent=mRNA10001;Name=edenprotein.1;testid=t012,t013,t014
-chr1	.	CDS	5000	5000	.	+	0	ID=cds10001;Parent=mRNA10001;Name=edenprotein.1;testid=t014

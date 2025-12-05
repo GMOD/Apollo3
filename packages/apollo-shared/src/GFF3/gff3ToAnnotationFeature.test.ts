@@ -8,76 +8,9 @@ import { assert, use } from 'chai'
 import chaiExclude from 'chai-exclude'
 
 import { gff3ToAnnotationFeature } from './gff3ToAnnotationFeature'
+import { readAnnotationFeatureSnapshot, testCases } from './testUtil'
 
 use(chaiExclude)
-
-const testCases: [string, string, AnnotationFeatureSnapshot][] = [
-  [
-    'a feature with no children',
-    'ctgA	example	remark	1000	2000	.	.	.	Name=Remark:hga;Alias=hga\n',
-    {
-      _id: '66c51f3e002c683eaf98a223',
-      refSeq: 'ctgA',
-      type: 'remark',
-      min: 999,
-      max: 2000,
-      attributes: {
-        gff_source: ['example'],
-        gff_name: ['Remark:hga'],
-        gff_alias: ['hga'],
-      },
-    },
-  ],
-  [
-    'a feature with two children',
-    `ctgA	est	EST_match	1050	3202	.	+	.	ID=Match1;Name=agt830.5;Target=agt830.5 1 654
-ctgA	est	match_part	1050	1500	.	+	.	Parent=Match1;Name=agt830.5;Target=agt830.5 1 451
-ctgA	est	match_part	3000	3202	.	+	.	Parent=Match1;Name=agt830.5;Target=agt830.5 452 654
-`,
-    {
-      _id: '66cf9fbb4e947fa2c27d3d6a',
-      refSeq: 'ctgA',
-      type: 'EST_match',
-      min: 1049,
-      max: 3202,
-      strand: 1,
-      children: {
-        '66cf9fbb4e947fa2c27d3d68': {
-          _id: '66cf9fbb4e947fa2c27d3d68',
-          refSeq: 'ctgA',
-          type: 'match_part',
-          min: 1049,
-          max: 1500,
-          strand: 1,
-          attributes: {
-            gff_source: ['est'],
-            gff_name: ['agt830.5'],
-            gff_target: ['agt830.5 1 451'],
-          },
-        },
-        '66cf9fbb4e947fa2c27d3d69': {
-          _id: '66cf9fbb4e947fa2c27d3d69',
-          refSeq: 'ctgA',
-          type: 'match_part',
-          min: 2999,
-          max: 3202,
-          strand: 1,
-          attributes: {
-            gff_source: ['est'],
-            gff_name: ['agt830.5'],
-            gff_target: ['agt830.5 452 654'],
-          },
-        },
-      },
-      attributes: {
-        gff_source: ['est'],
-        gff_id: ['Match1'],
-        gff_name: ['agt830.5'],
-        gff_target: ['agt830.5 1 654'],
-      },
-    },
-  ],
-]
 
 interface AnnotationFeatureSnapshotWithChildrenArray
   extends Omit<AnnotationFeatureSnapshot, 'children'> {
@@ -108,6 +41,29 @@ function compareFeatures(
   )
 }
 
+describe('Converts GFF3 to AnnotationFeatureSnapshot JSON when', () => {
+  for (const testCase of testCases) {
+    const { filenameStem, description } = testCase
+    it(description, () => {
+      const fileText = readFileSync(`test_data/${filenameStem}.gff3`, 'utf8')
+      const gffFeatures = parseStringSync(fileText, { parseSequences: false })
+      const annotationFeatures = gffFeatures.map((gff3Feature) =>
+        gff3ToAnnotationFeature(gff3Feature),
+      )
+      const annotationFeaturesExpected = JSON.parse(
+        readFileSync(`test_data/${filenameStem}.json`, 'utf8'),
+      ) as AnnotationFeatureSnapshot[]
+      for (const [
+        i,
+        annotationFeatureExpected,
+      ] of annotationFeaturesExpected.entries()) {
+        const annotationFeature = annotationFeatures[i]
+        compareFeatures(annotationFeature, annotationFeatureExpected)
+      }
+    })
+  }
+})
+
 function readFeatureFile(fn: string): GFF3Feature[] {
   const lines = readFileSync(fn).toString().split('\n')
   const feature: string[] = []
@@ -120,13 +76,6 @@ function readFeatureFile(fn: string): GFF3Feature[] {
   return inGff
 }
 
-export function readAnnotationFeatureSnapshot(
-  fn: string,
-): AnnotationFeatureSnapshot {
-  const lines = readFileSync(fn).toString()
-  return JSON.parse(lines) as AnnotationFeatureSnapshot
-}
-
 const [ex1, , ex2, , ex3, , ex4] = readFeatureFile(
   'test_data/gene_representations.gff3',
 )
@@ -137,13 +86,6 @@ describe('gff3ToAnnotationFeature examples', () => {
       readFeatureFile('test_data/one_cds.gff3')[0],
     )
     const expected = readAnnotationFeatureSnapshot('test_data/one_cds.json')
-    compareFeatures(actual, expected)
-  })
-  it('Convert two CDSs', () => {
-    const actual = gff3ToAnnotationFeature(
-      readFeatureFile('test_data/two_cds.gff3')[0],
-    )
-    const expected = readAnnotationFeatureSnapshot('test_data/two_cds.json')
     compareFeatures(actual, expected)
   })
   it('Convert example 1', () => {
@@ -226,19 +168,6 @@ describe('CDS without exons', () => {
     )
     compareFeatures(actual, expected)
   })
-})
-
-describe('gff3ToAnnotationFeature', () => {
-  for (const testCase of testCases) {
-    const [description, featureLine, convertedFeature] = testCase
-    it(`converts ${description}`, () => {
-      const gff3Feature = parseStringSync(featureLine, {
-        parseSequences: false,
-      })
-      const feature = gff3ToAnnotationFeature(gff3Feature[0])
-      compareFeatures(convertedFeature, feature)
-    })
-  }
 })
 
 describe('Source and score', () => {
