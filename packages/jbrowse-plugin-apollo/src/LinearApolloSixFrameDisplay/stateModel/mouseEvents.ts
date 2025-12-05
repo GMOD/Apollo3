@@ -76,7 +76,7 @@ export function mouseEventsModelIntermediateFactory(
         } else {
           foundFeature = layoutRow.find((f) => {
             const { feature } = f
-            const featureID = feature.attributes.get('gff_id')?.toString()
+            const featureID = feature.featureId?.toString()
             const isTranscript = featureTypeOntology.isTypeOf(
               feature.type,
               'transcript',

@@ -84,9 +84,6 @@ export const AnnotationFeatureModel = types
     get length() {
       return self.max - self.min
     },
-    get featureId() {
-      return self.attributes.get('id')
-    },
     /**
      * Possibly different from `min` because "The GFF3 format does not enforce a
      * rule in which features must be wholly contained within the location of

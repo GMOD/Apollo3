@@ -95,9 +95,9 @@ describe('annotationFeatureToGFF3', () => {
       "max": 9000,
       "strand": 1,
       "attributes": {
-        "gff_id": ["gene10001"],
         "gff_score": ["123", "345"]
-      }
+      },
+      "featureId": "gene10001"
     }`) as AnnotationFeatureSnapshot
     const [gff3Feature] = annotationFeatureToGFF3(annotationFeature)
     assert.deepEqual(gff3Feature.score, 123)
@@ -111,9 +111,9 @@ describe('annotationFeatureToGFF3', () => {
       "max": 9000,
       "strand": 1,
       "attributes": {
-        "gff_id": ["gene10001"],
         "gff_score": ["xyz"]
-      }
+      },
+      "featureId": "gene10001"
     }`) as AnnotationFeatureSnapshot
     const [gff3Feature] = annotationFeatureToGFF3(annotationFeature)
     assert.deepEqual(gff3Feature.score, null)

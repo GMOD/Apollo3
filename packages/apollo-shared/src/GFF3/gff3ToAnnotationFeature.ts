@@ -137,7 +137,7 @@ function convertFeatureAttributes(
       }
     }
   }
-  if (Object.keys(convertedAttributes).length > 0) {
+  if (id || Object.keys(convertedAttributes).length > 0) {
     return [convertedAttributes, id]
   }
   return

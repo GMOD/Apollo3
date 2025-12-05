@@ -339,13 +339,10 @@ void describe('Test CLI', () => {
     assert.deepStrictEqual(p.stdout.trim(), '[]') // No failing check
 
     // Get the ID of the CDS. We need need it to modify the CDS coordinates
-    const gene = out.filter(
-      (x: any) =>
-        JSON.stringify(x.attributes.gff_id) === JSON.stringify(['gene01']),
-    )
+    const gene = out.filter((x: any) => x.featureId === 'gene01')
     const mrna = Object.values(gene.at(0).children).at(0) as any
     const cds = Object.values(mrna.children).find(
-      (x: any) => x.attributes.gff_id.at(0) === 'cds01',
+      (x: any) => x.featureId === 'cds01',
     ) as any
     const cds_id = cds._id
 
@@ -377,12 +374,11 @@ void describe('Test CLI', () => {
 
     // Get the ID of the CDS. We need need it to modify the CDS coordinates
     const gene = out.filter(
-      (x: any) =>
-        JSON.stringify(x.attributes.gff_id) === JSON.stringify(['gene01']),
+      (x: any) => x.featureId === JSON.stringify(['gene01']),
     )
     const mrna = Object.values(gene.at(0).children).at(0) as any
     const cds = Object.values(mrna.children).find(
-      (x: any) => x.attributes.gff_id.at(0) === 'cds01',
+      (x: any) => x.featureId === 'cds01',
     ) as any
     const cds_id = cds._id
 
@@ -1660,23 +1656,13 @@ void describe('Test CLI', () => {
         if (!child.attributes) {
           throw new Error('Error getting attributes')
         }
-        if (
-          JSON.stringify(child.attributes.gff_id) ===
-            JSON.stringify(['EDEN.1']) ||
-          JSON.stringify(child.attributes.gff_id) ===
-            JSON.stringify(['EDEN2.1'])
-        ) {
+        if (child.featureId === 'EDEN.1' || child.featureId === 'EDEN2.1') {
           okMrnaId.push(child._id)
         }
-        if (
-          JSON.stringify(child.attributes.gff_id) === JSON.stringify(['EDEN.2'])
-        ) {
+        if (child.featureId === 'EDEN.2') {
           warnMrnaIdForw = child._id
         }
-        if (
-          JSON.stringify(child.attributes.gff_id) ===
-          JSON.stringify(['EDEN2.2'])
-        ) {
+        if (child.featureId === 'EDEN2.2') {
           warnMrnaIdRev = child._id
         }
       }

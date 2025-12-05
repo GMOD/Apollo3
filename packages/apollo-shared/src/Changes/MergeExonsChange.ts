@@ -166,36 +166,4 @@ export class MergeExonsChange extends FeatureChange {
       { logger },
     )
   }
-
-  // mergeAttributes(
-  //   firstExon: AnnotationFeatureSnapshot,
-  //   secondExon: AnnotationFeatureSnapshot,
-  // ): Record<string, string[]> {
-  //   let mergedAttrs: Record<string, string[]> = {}
-  //   if (firstExon.attributes) {
-  //     // eslint-disable-next-line unicorn/prefer-structured-clone
-  //     mergedAttrs = JSON.parse(JSON.stringify(firstExon.attributes))
-  //   }
-
-  //   if (secondExon.attributes) {
-  //     // eslint-disable-next-line unicorn/prefer-structured-clone
-  //     const attrs: Record<string, string[]> = JSON.parse(
-  //       JSON.stringify(secondExon.attributes),
-  //     )
-  //     for (const key of Object.keys(attrs)) {
-  //       if (key === '_id' || key === 'gff_id') {
-  //         continue
-  //       }
-  //       if (!Object.keys(mergedAttrs).includes(key)) {
-  //         mergedAttrs[key] = []
-  //       }
-  //       attrs[key].map((x) => {
-  //         if (!mergedAttrs[key].includes(x)) {
-  //           mergedAttrs[key].push(x)
-  //         }
-  //       })
-  //     }
-  //   }
-  //   return mergedAttrs
-  // }
 }

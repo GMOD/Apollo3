@@ -63,8 +63,8 @@ function makeRadioButtonName(transcript: AnnotationFeature): string {
   let id
   if (transcript.attributes.get('gff_name')) {
     id = transcript.attributes.get('gff_name')?.join(',')
-  } else if (transcript.attributes.get('gff_id')) {
-    id = transcript.attributes.get('gff_id')?.join(',')
+  } else if (transcript.featureId) {
+    id = transcript.featureId
   } else {
     id = transcript._id
   }

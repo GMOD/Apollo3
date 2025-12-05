@@ -16,9 +16,9 @@ export function splitStringIntoChunks(
 
 export function getPrintableId(feature: Feature): string {
   const ff = feature as unknown as AnnotationFeature
-  const gff_id = ff.attributes.get('gff_id')?.join(',')
-  if (gff_id) {
-    return `ID=${gff_id} (_id: ${feature._id.toString()})`
+  const { featureId } = feature
+  if (featureId) {
+    return `ID=${featureId} (_id: ${feature._id.toString()})`
   }
   const gff_name = ff.attributes.get('gff_name')?.join(',')
   if (gff_name) {

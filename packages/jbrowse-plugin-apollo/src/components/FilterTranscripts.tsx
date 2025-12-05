@@ -28,9 +28,7 @@ export const FilterTranscripts = observer(function FilterTranscripts({
   const allTranscripts: string[] = []
   if (sourceFeature.children) {
     for (const [, child] of sourceFeature.children) {
-      const childID: string | undefined = child.attributes
-        .get('gff_id')
-        ?.toString()
+      const childID: string | undefined = child.featureId?.toString()
       if (childID) {
         allTranscripts.push(childID)
       }

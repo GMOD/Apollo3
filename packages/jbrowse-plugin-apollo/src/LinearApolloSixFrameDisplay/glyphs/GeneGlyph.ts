@@ -206,7 +206,7 @@ function draw(
     x: topLevelFeatureStartPx,
     y: topLevelFeatureTop,
     h: topLevelFeatureHeight,
-    text: attributes.get('gff_id')?.toString(),
+    text: topLevelFeature.featureId,
     color: textColor,
     isSelected,
   }
@@ -262,9 +262,7 @@ function draw(
     if (!childrenOfmRNA) {
       continue
     }
-    const childID: string | undefined = child.attributes
-      .get('gff_id')
-      ?.toString()
+    const childID: string | undefined = child.featureId?.toString()
     if (childID && filteredTranscripts.includes(childID)) {
       continue
     }
@@ -311,7 +309,7 @@ function draw(
           x: startPx,
           y: exonTop,
           h: exonHeight,
-          text: exon.attributes.get('gff_id')?.toString(),
+          text: exon.featureId,
           color: textColor,
           isSelected,
         }
@@ -424,7 +422,7 @@ function draw(
       x: cdsStartPx,
       y: cdsTop,
       h: cdsHeight,
-      text: child.attributes.get('gff_id')?.toString(),
+      text: child.featureId?.toString(),
       color: textColor,
       isSelected,
     }
@@ -493,9 +491,7 @@ function drawHover(
   if (!featureTypeOntology.isTypeOf(feature.type, 'transcript')) {
     return
   }
-  const featureID: string | undefined = feature.attributes
-    .get('gff_id')
-    ?.toString()
+  const featureID: string | undefined = feature.featureId?.toString()
   if (featureID && filteredTranscripts.includes(featureID)) {
     return
   }
@@ -656,9 +652,7 @@ function getDraggableFeatureInfo(
     throw new Error('featureTypeOntology is undefined')
   }
   const isTranscript = featureTypeOntology.isTypeOf(feature.type, 'transcript')
-  const featureID: string | undefined = feature.attributes
-    .get('gff_id')
-    ?.toString()
+  const featureID: string | undefined = feature.featureId?.toString()
   if (featureID && filteredTranscripts.includes(featureID)) {
     return
   }
@@ -750,7 +744,7 @@ function drawTooltip(
   if (!position) {
     return
   }
-  const featureID: string | undefined = attributes.get('gff_id')?.toString()
+  const featureID: string | undefined = feature.featureId?.toString()
   if (featureID && filteredTranscripts.includes(featureID)) {
     return
   }
@@ -862,9 +856,7 @@ function getContextMenuItems(
     }
 
     for (const feature of featuresUnderClick) {
-      const featureID: string | undefined = feature.attributes
-        .get('gff_id')
-        ?.toString()
+      const featureID: string | undefined = feature.featureId?.toString()
       if (featureID && filteredTranscripts.includes(featureID)) {
         continue
       }
