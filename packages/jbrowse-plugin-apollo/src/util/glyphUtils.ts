@@ -62,6 +62,20 @@ export function selectFeatureAndOpenWidget(
   }
 }
 
+export function isGeneFeature(
+  feature: AnnotationFeature,
+  session: ApolloSessionModel,
+): boolean {
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  return (
+    featureTypeOntology.isTypeOf(feature.type, 'gene') ||
+    featureTypeOntology.isTypeOf(feature.type, 'pseudogene')
+  )
+}
+
 export function isTranscriptFeature(
   feature: AnnotationFeature,
   session: ApolloSessionModel,

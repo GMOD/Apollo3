@@ -24,6 +24,7 @@ import {
   getStreamIcon,
   isCDSFeature,
   isExonFeature,
+  isGeneFeature,
   isMousePositionWithFeature,
   isTranscriptFeature,
   navToFeatureCenter,
@@ -949,6 +950,28 @@ function getContextMenuItems(
           },
         )
       }
+
+      if (
+        isGeneFeature(feature, session) &&
+        isSessionModelWithWidgets(session)
+      ) {
+        contextMenuItemsForFeature.push({
+          label: 'Open gene details',
+          onClick: () => {
+            const apolloGeneWidget = session.addWidget(
+              'ApolloFeatureDetailsWidget',
+              'apolloFeatureDetailsWidget',
+              {
+                feature,
+                assembly: currentAssemblyId,
+                refName: region.refName,
+              },
+            )
+            session.showWidget(apolloGeneWidget)
+          },
+        })
+      }
+
       if (isTranscriptFeature(feature, session)) {
         contextMenuItemsForFeature.push({
           label: 'Merge transcript',
