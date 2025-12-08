@@ -19,7 +19,7 @@
 import assert from 'node:assert'
 import * as crypto from 'node:crypto'
 import fs from 'node:fs'
-import { afterEach, before, beforeEach, describe } from 'node:test'
+import { after, afterEach, before, beforeEach, describe } from 'node:test'
 
 // eslint-disable-next-line import/consistent-type-specifier-style
 import type {
@@ -27,16 +27,22 @@ import type {
   AnnotationFeatureSnapshot,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
+import { MongoClient } from 'mongodb'
 
 import { Shell, deleteAllChecks } from './utils.js'
 
 const apollo = 'yarn dev'
 const P = '--profile testAdmin'
+// let client = MongoClient
+let client: MongoClient
 let configFile = ''
 let configFileBak = ''
 
 void describe('Test CLI', () => {
   before(() => {
+    const uri =
+      'mongodb://localhost:27017/apolloTestCliDb?directConnection=true'
+    client = new MongoClient(uri)
     configFile = new Shell(`${apollo} config --get-config-file`).stdout.trim()
     configFileBak = `${configFile}.bak`
     if (fs.existsSync(configFileBak)) {
@@ -50,12 +56,18 @@ void describe('Test CLI', () => {
     new Shell(`${apollo} login ${P} -f`)
   })
 
+  after(async () => {
+    await client.close()
+  })
+
   beforeEach(() => {
     // Backup starting config file
     fs.copyFileSync(configFile, configFileBak)
   })
 
-  afterEach(() => {
+  afterEach(async () => {
+    const database = client.db('apolloTestCliDb')
+    await database.dropDatabase()
     // Put back starting config file
     fs.renameSync(configFileBak, configFile)
   })

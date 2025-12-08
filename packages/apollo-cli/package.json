@@ -103,6 +103,7 @@
     "babel-plugin-istanbul": "^6.1.1",
     "cross-spawn": "^7.0.3",
     "mocha": "^10.2.0",
+    "mongodb": "^4.7.0",
     "nyc": "^15.1.0",
     "oclif": "^4.4.2",
     "prettier": "^3.3.2",
