@@ -200,7 +200,12 @@ export function AddAssembly({
         statusMessage: 'Pre-validating',
         progressPct: 0,
         cancelCallback: () => {
-          controller.abort('AddAssembly')
+          controller.abort(
+            new DOMException(
+              `Canceling adding of assembly "${assemblyName}"`,
+              'AbortError',
+            ),
+          )
           jobsManager.abortJob(job.name)
         },
       }

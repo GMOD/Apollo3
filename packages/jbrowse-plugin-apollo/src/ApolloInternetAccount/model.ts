@@ -503,7 +503,9 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       beforeDestroy() {
         self.removeBeforeUnloadListener()
         self.removeVisibilityChangeListener()
-        self.controller.abort('internet account beforeDestroy')
+        self.controller.abort(
+          new DOMException('Cleaning up Apollo connection', 'AbortError'),
+        )
         self.socket.close()
       },
     }))

@@ -204,7 +204,12 @@ export function clientDataStoreFactory(
                   statusMessage: `Loading ontology "${name}", version "${version}", this may take a while`,
                   progressPct: 0,
                   cancelCallback: () => {
-                    controller.abort('ClientDataStore')
+                    controller.abort(
+                      new DOMException(
+                        `Canceling loading of ontology "${name}"`,
+                        'AbortError',
+                      ),
+                    )
                     jobsManager.abortJob(job.name)
                   },
                 }

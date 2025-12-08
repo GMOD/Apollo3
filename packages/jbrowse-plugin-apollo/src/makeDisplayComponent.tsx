@@ -97,7 +97,9 @@ const ResizeHandle = ({
         const controller = new AbortController()
         const { signal } = controller
         function abortDrag() {
-          controller.abort('makeDisplayComponent')
+          controller.abort(
+            new DOMException('Canceling drag event listener', 'AbortError'),
+          )
         }
         globalThis.addEventListener('mousemove', mouseMove, { signal })
         globalThis.addEventListener('mouseup', abortDrag, { signal })
