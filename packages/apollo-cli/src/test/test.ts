@@ -67,7 +67,17 @@ void describe('Test CLI', () => {
 
   afterEach(async () => {
     const database = client.db('apolloTestCliDb')
-    await database.dropDatabase()
+    await Promise.all(
+      [
+        'assemblies',
+        'changes',
+        'counters',
+        'features',
+        'files',
+        'refseqchunks',
+        'refseqs',
+      ].map((collectionName) => database.dropCollection(collectionName)),
+    )
     // Put back starting config file
     fs.renameSync(configFileBak, configFile)
   })
