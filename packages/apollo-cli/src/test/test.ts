@@ -774,6 +774,56 @@ void describe('Test CLI', () => {
     assert.ok(p.stdout.includes('"Q"'))
   })
 
+  void globalThis.itName('Get feature by indexed ID', () => {
+    new Shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
+    )
+    new Shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv2 -f`,
+    )
+
+    // Search multiple assemblies
+    let p = new Shell(`${apollo} feature get-indexed-id ${P} MyGene -a vv1 vv2`)
+    let out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 2)
+    assert.ok(p.stdout.includes('MyGene'))
+
+    // Specifying no assembly defaults to searching all assemblies
+    p = new Shell(`${apollo} feature get-indexed-id ${P} MyGene`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 2)
+    assert.ok(p.stdout.includes('MyGene'))
+
+    // Search single assembly
+    p = new Shell(`${apollo} feature get-indexed-id ${P} MyGene -a vv1`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.ok(p.stdout.includes('MyGene'))
+
+    // Warn on unknown assembly
+    p = new Shell(`${apollo} feature get-indexed-id ${P} EDEN -a foobar`)
+    assert.strictEqual('[]', p.stdout.trim())
+    assert.ok(p.stderr.includes('Warning'))
+
+    // Return empty array with no matches
+    p = new Shell(`${apollo} feature get-indexed-id ${P} foobarspam -a vv1`)
+    assert.deepStrictEqual(p.stdout.trim(), '[]')
+
+    // Gets subfeature
+    p = new Shell(`${apollo} feature get-indexed-id ${P} myCDS.1 -a vv1`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.ok(out.at(0)?.type === 'CDS')
+
+    // Gets top-level feature from subfeature id
+    p = new Shell(
+      `${apollo} feature get-indexed-id ${P} myCDS.1 -a vv1 --topLevel`,
+    )
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.ok(out.at(0)?.type === 'gene')
+  })
+
   void globalThis.itName('Delete features', () => {
     new Shell(
       `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,

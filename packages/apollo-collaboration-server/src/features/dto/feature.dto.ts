@@ -4,3 +4,9 @@ export interface FeatureCountRequest {
   start?: number
   end?: number
 }
+
+export interface GetByIndexedIdRequest {
+  id: string
+  assemblies?: string
+  topLevel?: boolean
+}

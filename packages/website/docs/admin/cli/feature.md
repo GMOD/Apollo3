@@ -12,6 +12,7 @@ Commands to manage features
 - [`apollo feature edit-type`](#apollo-feature-edit-type)
 - [`apollo feature get`](#apollo-feature-get)
 - [`apollo feature get-id`](#apollo-feature-get-id)
+- [`apollo feature get-indexed-id ID`](#apollo-feature-get-indexed-id-id)
 - [`apollo feature import INPUT-FILE`](#apollo-feature-import-input-file)
 - [`apollo feature search`](#apollo-feature-search)
 
@@ -335,6 +336,38 @@ EXAMPLES
 
 _See code:
 [src/commands/feature/get-id.ts](https://github.com/GMOD/Apollo3/blob/v0.3.9/packages/apollo-cli/src/commands/feature/get-id.ts)_
+
+## `apollo feature get-indexed-id ID`
+
+Get features given an indexed identifier
+
+```
+USAGE
+  $ apollo feature get-indexed-id ID [--profile <value>] [--config-file <value>] [-a <value>] [--topLevel]
+
+ARGUMENTS
+  ID  Indexed identifier to search for
+
+FLAGS
+  -a, --assembly=<value>...  Assembly names or IDs to search; use "-" to read it from stdin. If omitted search all
+                             assemblies
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      Use credentials from this profile
+      --topLevel             Return the top-level parent of the feature instead of the feature itself
+
+DESCRIPTION
+  Get features given an indexed identifier
+
+  Get features that match a given indexed identifier, such as the ID of a feature from an imported GFF3 file
+
+EXAMPLES
+  Get features for this indexed identifier:
+
+    $ apollo feature get-indexed-id -i abc...zyz def...foo
+```
+
+_See code:
+[src/commands/feature/get-indexed-id.ts](https://github.com/GMOD/Apollo3/blob/v0.3.9/packages/apollo-cli/src/commands/feature/get-indexed-id.ts)_
 
 ## `apollo feature import INPUT-FILE`
 

@@ -11,7 +11,7 @@ import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 
-import { FeatureCountRequest } from './dto/feature.dto'
+import { FeatureCountRequest, GetByIndexedIdRequest } from './dto/feature.dto'
 import { FeaturesService } from './features.service'
 
 @Validations(Role.ReadOnly)
@@ -53,6 +53,11 @@ export class FeaturesController {
     const count =
       await this.featuresService.getFeatureCount(featureCountRequest)
     return { count }
+  }
+
+  @Get('getByIndexedId')
+  async getById(@Query() getByIndexedIdRequest: GetByIndexedIdRequest) {
+    return this.featuresService.getByIndexedId(getByIndexedIdRequest)
   }
 
   /**
