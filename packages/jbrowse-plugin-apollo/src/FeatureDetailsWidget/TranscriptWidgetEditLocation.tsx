@@ -228,7 +228,6 @@ export const TranscriptWidgetEditLocation = observer(
           if (onComplete) {
             onComplete()
           }
-          notify('CDS location updated', 'success')
         })
         .catch(() => {
           notify('Error updating feature CDS position', 'error')
@@ -348,14 +347,9 @@ export const TranscriptWidgetEditLocation = observer(
           appendStartLocationChange(cdsFeature, startChange, newLocation)
         }
 
-        void changeManager
-          .submit(startChange)
-          .then(() => {
-            notify('Start exon location updated', 'success')
-          })
-          .catch(() => {
-            notify('Error updating feature exon start position', 'error')
-          })
+        void changeManager.submit(startChange).catch(() => {
+          notify('Error updating feature exon start position', 'error')
+        })
       }
 
       // END LOCATION CHANGE
@@ -415,14 +409,9 @@ export const TranscriptWidgetEditLocation = observer(
           appendEndLocationChange(cdsFeature, endChange, newLocation)
         }
 
-        void changeManager
-          .submit(endChange)
-          .then(() => {
-            notify('End exon location updated', 'success')
-          })
-          .catch(() => {
-            notify('Error updating feature exon end position', 'error')
-          })
+        void changeManager.submit(endChange).catch(() => {
+          notify('Error updating feature exon end position', 'error')
+        })
       }
       return true
     }
