@@ -15,6 +15,7 @@ interface ConfigValues {
   GOOGLE_CLIENT_SECRET_FILE?: string
   URL: string
   PORT: number
+  OAUTH_HTTP_PROXY?: string
 }
 
 @Injectable()
@@ -65,7 +66,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     })
 
     // Apply proxy to OAuth2 instance
-    const proxy = process.env.HTTPS_PROXY ?? process.env.HTTP_PROXY
+    const proxy = configService.get('OAUTH_HTTP_PROXY', { infer: true })
     if (proxy) {
       const agent = new HttpsProxyAgent(proxy)
 
@@ -73,9 +74,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
       const oauth2 = (this as any)._oauth2
       if (oauth2) {
-        // https://github.com/ciaranj/node-oauth/blob/master/lib/oauth2.js#L20
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        oauth2._agent = agent
+        oauth2.setAgent = agent
         this.logger.debug(`GoogleStrategy configured to use proxy: ${proxy}`)
       }
     }
