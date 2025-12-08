@@ -89,7 +89,12 @@ function TermTagWithTooltip({
     })
 
     return () => {
-      controller.abort('TermTagWithTooltip ')
+      controller.abort(
+        new DOMException(
+          'Cancel fetching term description from ontology store',
+          'AbortError',
+        ),
+      )
     }
   }, [termId, ontology, manager])
 
@@ -211,7 +216,9 @@ export function OntologyTermMultiSelect({
     })
 
     return () => {
-      aborter.abort('OntologyTermMultiSelect')
+      aborter.abort(
+        new DOMException('Cancel getting ontology terms', 'AbortError'),
+      )
     }
   }, [getOntologyTerms, ontology, includeDeprecated, inputValue, value])
 

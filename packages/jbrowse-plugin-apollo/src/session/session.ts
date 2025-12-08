@@ -351,7 +351,9 @@ export function extendSession(
         )
       },
       beforeDestroy() {
-        self.abortController.abort('destroying session model')
+        self.abortController.abort(
+          new DOMException('Clean up Apollo session', 'AbortError'),
+        )
       },
     }))
 

@@ -66,7 +66,12 @@ export class ChangeManager {
       statusMessage: 'Pre-validating',
       progressPct: 0,
       cancelCallback: () => {
-        controller.abort('ChangeManager')
+        controller.abort(
+          new DOMException(
+            `Cancelling change "${change.typeName}"`,
+            'AbortError',
+          ),
+        )
       },
     }
 
