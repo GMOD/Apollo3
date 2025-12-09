@@ -8,35 +8,28 @@ import { type ApolloSessionModel, type HoveredFeature } from '../session'
 function getSeqRow(
   strand: 1 | -1 | undefined,
   bpPerPx: number,
+  reversed?: boolean,
 ): number | undefined {
   if (bpPerPx > 1 || strand === undefined) {
     return
   }
+  if (reversed) {
+    return strand === 1 ? 4 : 3
+  }
   return strand === 1 ? 3 : 4
 }
 
-function getTranslationRow(frame: Frame, bpPerPx: number) {
-  const offset = bpPerPx <= 1 ? 2 : 0
-  switch (frame) {
-    case 3: {
-      return 0
-    }
-    case 2: {
-      return 1
-    }
-    case 1: {
-      return 2
-    }
-    case -1: {
-      return 3 + offset
-    }
-    case -2: {
-      return 4 + offset
-    }
-    case -3: {
-      return 5 + offset
-    }
+function getTranslationRow(frame: Frame, bpPerPx: number, reversed?: boolean) {
+  const frameRows = bpPerPx <= 1 ? [2, 1, 0, 7, 6, 5] : [2, 1, 0, 5, 4, 3]
+  if (reversed) {
+    frameRows.reverse()
   }
+  frameRows.unshift(0)
+  const row = frameRows.at(frame)
+  if (row === undefined) {
+    throw new Error('could not find row')
+  }
+  return row
 }
 
 function getLeftPx(
@@ -84,7 +77,7 @@ function drawHighlight(
   theme: Theme,
   selected = false,
 ) {
-  const row = getSeqRow(feature.strand, bpPerPx)
+  const row = getSeqRow(feature.strand, bpPerPx, block.reversed)
   if (!row) {
     return
   }
@@ -118,7 +111,7 @@ function drawCDSHighlight(
   }
   for (const loc of cdsLocs) {
     const frame = getFrame(loc.min, loc.max, feature.strand ?? 1, loc.phase)
-    const row = getTranslationRow(frame, bpPerPx)
+    const row = getTranslationRow(frame, bpPerPx, block.reversed)
     const left = getLeftPx(loc, bpPerPx, offsetPx, block)
     const top = row * rowHeight
     const width = (loc.max - loc.min) / bpPerPx
@@ -161,7 +154,7 @@ export function drawSequenceOverlay(
           rowHeight,
           block,
           theme,
-          true,
+          feature._id === selectedFeature?._id,
         )
       } else {
         drawHighlight(
@@ -172,7 +165,7 @@ export function drawSequenceOverlay(
           rowHeight,
           block,
           theme,
-          true,
+          feature._id === selectedFeature?._id,
         )
       }
     }
