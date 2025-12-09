@@ -31,10 +31,10 @@ export abstract class AssemblySpecificChange extends Change {
 
   getIndexedIds(
     feature: AnnotationFeatureSnapshot,
-    additionalIds: string[] | undefined,
+    idsToIndex: string[] | undefined,
   ): string[] {
     const indexedIds: string[] = []
-    for (const additionalId of additionalIds ?? []) {
+    for (const additionalId of idsToIndex ?? []) {
       const idValue = feature.attributes?.[additionalId]
       if (idValue) {
         indexedIds.push(idValue[0])
@@ -42,7 +42,7 @@ export abstract class AssemblySpecificChange extends Change {
     }
     if (feature.children) {
       for (const child of Object.values(feature.children)) {
-        const childIndexedIds = this.getIndexedIds(child, additionalIds)
+        const childIndexedIds = this.getIndexedIds(child, idsToIndex)
         indexedIds.push(...childIndexedIds)
       }
     }

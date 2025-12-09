@@ -184,10 +184,10 @@ export abstract class FromFileBaseChange extends AssemblySpecificChange {
   }
 
   async addFeatureIntoDb(gff3Feature: GFF3Feature, backend: ServerDataStore) {
-    const { ADDITIONAL_IDS } = process.env
-    let additionalIds: string[] | undefined
-    if (ADDITIONAL_IDS) {
-      additionalIds = ADDITIONAL_IDS.split(',')
+    const { INDEXED_IDS } = process.env
+    let idsToIndex: string[] | undefined
+    if (INDEXED_IDS) {
+      idsToIndex = INDEXED_IDS.split(',')
     }
     const { assembly, refSeqCache } = this
     const { featureModel, refSeqModel, user } = backend
@@ -214,7 +214,7 @@ export abstract class FromFileBaseChange extends AssemblySpecificChange {
     }
     const newFeature = gff3ToAnnotationFeature(gff3Feature, refSeqDoc._id)
     const allIds = this.getAllIds(newFeature)
-    const indexedIds = this.getIndexedIds(newFeature, additionalIds)
+    const indexedIds = this.getIndexedIds(newFeature, idsToIndex)
 
     // Add into Mongo
     // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction

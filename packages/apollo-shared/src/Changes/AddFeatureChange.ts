@@ -89,10 +89,10 @@ export class AddFeatureChange extends FeatureChange {
     let featureCnt = 0
     logger.debug?.(`changes: ${JSON.stringify(changes)}`)
 
-    const { ADDITIONAL_IDS } = process.env
-    let additionalIds: string[] | undefined
-    if (ADDITIONAL_IDS) {
-      additionalIds = ADDITIONAL_IDS.split(',')
+    const { INDEXED_IDS } = process.env
+    let idsToIndex: string[] | undefined
+    if (INDEXED_IDS) {
+      idsToIndex = INDEXED_IDS.split(',')
     }
 
     // Loop the changes
@@ -112,7 +112,7 @@ export class AddFeatureChange extends FeatureChange {
 
       // CopyFeature is called from CopyFeature.tsx
       if (copyFeature) {
-        const indexedIds = this.getIndexedIds(addedFeature, additionalIds)
+        const indexedIds = this.getIndexedIds(addedFeature, idsToIndex)
         // Add into Mongo
         const [newFeatureDoc] = await featureModel.create(
           [{ ...addedFeature, allIds, indexedIds, status: -1, user }],
@@ -150,7 +150,7 @@ export class AddFeatureChange extends FeatureChange {
         } else {
           const childIds = this.getChildFeatureIds(addedFeature)
           const allIdsV2 = [_id, ...childIds]
-          const indexedIds = this.getIndexedIds(addedFeature, additionalIds)
+          const indexedIds = this.getIndexedIds(addedFeature, idsToIndex)
           const [newFeatureDoc] = await featureModel.create(
             [{ allIds: allIdsV2, indexedIds, status: 0, ...addedFeature }],
             { session },
