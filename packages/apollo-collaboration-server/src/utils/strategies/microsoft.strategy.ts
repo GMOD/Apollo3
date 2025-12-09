@@ -84,8 +84,8 @@ export class MicrosoftStrategy extends PassportStrategy(Strategy) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
       const oauth2 = (this as any)._oauth2
       if (oauth2) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        oauth2.setAgent = agent
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        oauth2.setAgent(agent)
         this.logger.debug(
           `Microsoft Strategy configured to use proxy: ${proxy}`,
         )
