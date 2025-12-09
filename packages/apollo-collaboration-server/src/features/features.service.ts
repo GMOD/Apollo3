@@ -15,7 +15,7 @@ import { ChecksService } from '../checks/checks.service'
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { OperationsService } from '../operations/operations.service'
 
-import { FeatureCountRequest } from './dto/feature.dto'
+import { FeatureCountRequest, GetByIndexedIdRequest } from './dto/feature.dto'
 
 @Injectable()
 export class FeaturesService {
@@ -68,6 +68,53 @@ export class FeaturesService {
 
     this.logger.debug(`Number of features is ${count}`)
     return count
+  }
+
+  async getByIndexedId(getByIndexedIdRequest: GetByIndexedIdRequest) {
+    const { assemblies, id, topLevel } = getByIndexedIdRequest
+    const refSeqsQuery: { refSeq?: RefSeqDocument[] } = {}
+    if (assemblies) {
+      const assemblyIds = assemblies.split(',')
+      const refSeqs = await this.refSeqModel
+        .find({ assembly: assemblyIds })
+        .exec()
+      refSeqsQuery.refSeq = refSeqs
+    }
+    const topLevelFeatures = await this.featureModel
+      .find({ indexedIds: id, ...refSeqsQuery })
+      .exec()
+    if (topLevelFeatures.length === 0) {
+      return []
+    }
+    if (topLevel) {
+      return topLevelFeatures
+    }
+    return topLevelFeatures
+      .map((topLevelFeature) => this.findIndexedId(id, topLevelFeature))
+      .filter((feature): feature is Feature => feature !== undefined)
+  }
+
+  findIndexedId(id: string, feature: FeatureDocument): Feature | undefined {
+    const { attributes } = feature.toObject({
+      flattenMaps: true,
+    })
+    if (attributes) {
+      for (const attributeValue of Object.values(attributes)) {
+        if (attributeValue.includes(id)) {
+          return feature
+        }
+      }
+    }
+    if (!feature.children) {
+      return
+    }
+    for (const [, childFeature] of feature.children) {
+      const subFeature = this.findIndexedId(id, childFeature as FeatureDocument)
+      if (subFeature) {
+        return subFeature
+      }
+    }
+    return
   }
 
   /**

@@ -19,7 +19,7 @@
 import assert from 'node:assert'
 import * as crypto from 'node:crypto'
 import fs from 'node:fs'
-import { afterEach, before, beforeEach, describe } from 'node:test'
+import { after, afterEach, before, beforeEach, describe } from 'node:test'
 
 // eslint-disable-next-line import/consistent-type-specifier-style
 import type {
@@ -27,16 +27,22 @@ import type {
   AnnotationFeatureSnapshot,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
+import { MongoClient } from 'mongodb'
 
 import { Shell, deleteAllChecks } from './utils.js'
 
 const apollo = 'yarn dev'
 const P = '--profile testAdmin'
+// let client = MongoClient
+let client: MongoClient
 let configFile = ''
 let configFileBak = ''
 
 void describe('Test CLI', () => {
   before(() => {
+    const uri =
+      'mongodb://localhost:27017/apolloTestCliDb?directConnection=true'
+    client = new MongoClient(uri)
     configFile = new Shell(`${apollo} config --get-config-file`).stdout.trim()
     configFileBak = `${configFile}.bak`
     if (fs.existsSync(configFileBak)) {
@@ -50,12 +56,30 @@ void describe('Test CLI', () => {
     new Shell(`${apollo} login ${P} -f`)
   })
 
+  after(async () => {
+    await client.close()
+  })
+
   beforeEach(() => {
     // Backup starting config file
     fs.copyFileSync(configFile, configFileBak)
   })
 
-  afterEach(() => {
+  afterEach(async () => {
+    const database = client.db('apolloTestCliDb')
+    await Promise.all(
+      [
+        'assemblies',
+        'changes',
+        'counters',
+        'features',
+        'files',
+        'refseqchunks',
+        'refseqs',
+      ].map((collectionName) =>
+        database.collection(collectionName).deleteMany({}),
+      ),
+    )
     // Put back starting config file
     fs.renameSync(configFileBak, configFile)
   })
@@ -772,6 +796,56 @@ void describe('Test CLI', () => {
     // ...or a single unusual letter
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t Q`)
     assert.ok(p.stdout.includes('"Q"'))
+  })
+
+  void globalThis.itName('Get feature by indexed ID', () => {
+    new Shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
+    )
+    new Shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv2 -f`,
+    )
+
+    // Search multiple assemblies
+    let p = new Shell(`${apollo} feature get-indexed-id ${P} MyGene -a vv1 vv2`)
+    let out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 2)
+    assert.ok(p.stdout.includes('MyGene'))
+
+    // Specifying no assembly defaults to searching all assemblies
+    p = new Shell(`${apollo} feature get-indexed-id ${P} MyGene`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 2)
+    assert.ok(p.stdout.includes('MyGene'))
+
+    // Search single assembly
+    p = new Shell(`${apollo} feature get-indexed-id ${P} MyGene -a vv1`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.ok(p.stdout.includes('MyGene'))
+
+    // Warn on unknown assembly
+    p = new Shell(`${apollo} feature get-indexed-id ${P} EDEN -a foobar`)
+    assert.strictEqual('[]', p.stdout.trim())
+    assert.ok(p.stderr.includes('Warning'))
+
+    // Return empty array with no matches
+    p = new Shell(`${apollo} feature get-indexed-id ${P} foobarspam -a vv1`)
+    assert.deepStrictEqual(p.stdout.trim(), '[]')
+
+    // Gets subfeature
+    p = new Shell(`${apollo} feature get-indexed-id ${P} myCDS.1 -a vv1`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.ok(out.at(0)?.type === 'CDS')
+
+    // Gets top-level feature from subfeature id
+    p = new Shell(
+      `${apollo} feature get-indexed-id ${P} myCDS.1 -a vv1 --topLevel`,
+    )
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.ok(out.at(0)?.type === 'gene')
   })
 
   void globalThis.itName('Delete features', () => {

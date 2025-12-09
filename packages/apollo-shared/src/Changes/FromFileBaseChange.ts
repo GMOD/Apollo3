@@ -4,6 +4,7 @@ import {
   AssemblySpecificChange,
   type ServerDataStore,
 } from '@apollo-annotation/common'
+import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import {
   type FileDocument,
   type RefSeqDocument,
@@ -183,8 +184,13 @@ export abstract class FromFileBaseChange extends AssemblySpecificChange {
   }
 
   async addFeatureIntoDb(gff3Feature: GFF3Feature, backend: ServerDataStore) {
-    const { featureModel, refSeqModel, user } = backend
+    const { INDEXED_IDS } = process.env
+    let idsToIndex: string[] | undefined
+    if (INDEXED_IDS) {
+      idsToIndex = INDEXED_IDS.split(',')
+    }
     const { assembly, refSeqCache } = this
+    const { featureModel, refSeqModel, user } = backend
 
     const [{ seq_id: refName }] = gff3Feature
     if (!refName) {
@@ -206,19 +212,25 @@ export abstract class FromFileBaseChange extends AssemblySpecificChange {
         `RefSeq was not found by assembly "${assembly}" and seq_id "${refName}" not found`,
       )
     }
-    // Let's add featureId to parent feature
-    const featureIds: string[] = []
-
-    const newFeature = gff3ToAnnotationFeature(
-      gff3Feature,
-      refSeqDoc._id,
-      featureIds,
-    )
+    const newFeature = gff3ToAnnotationFeature(gff3Feature, refSeqDoc._id)
+    const allIds = this.getAllIds(newFeature)
+    const indexedIds = this.getIndexedIds(newFeature, idsToIndex)
 
     // Add into Mongo
     // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
     await featureModel.create([
-      { allIds: featureIds, ...newFeature, user, status: -1 },
+      { allIds, indexedIds, ...newFeature, user, status: -1 },
     ])
+  }
+
+  getAllIds(feature: AnnotationFeatureSnapshot): string[] {
+    const allIds = [feature._id]
+    if (feature.children) {
+      for (const child of Object.values(feature.children)) {
+        const childIds = this.getAllIds(child)
+        allIds.push(...childIds)
+      }
+    }
+    return allIds
   }
 }
