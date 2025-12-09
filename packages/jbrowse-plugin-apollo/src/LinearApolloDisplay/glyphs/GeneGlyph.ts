@@ -974,8 +974,8 @@ function getContextMenuItems(
           },
         })
         if (isSessionModelWithWidgets(session)) {
-          contextMenuItemsForFeature.push({
-            label: 'Open transcript details',
+          contextMenuItemsForFeature.splice(1, 0, {
+            label: 'Open transcript editor',
             onClick: () => {
               const apolloTranscriptWidget = session.addWidget(
                 'ApolloTranscriptDetails',
