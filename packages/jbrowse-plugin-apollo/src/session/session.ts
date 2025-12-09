@@ -74,6 +74,7 @@ export function extendSession(
       apolloSelectedFeature: types.safeReference(AnnotationFeatureExtended),
       jobsManager: types.optional(ApolloJobModel, {}),
       isLocked: types.optional(types.boolean, false),
+      changeInProgress: types.optional(types.boolean, false),
     })
     .volatile(() => ({
       apolloHoveredFeature: undefined as HoveredFeature | undefined,
@@ -140,6 +141,9 @@ export function extendSession(
       },
       toggleLocked() {
         self.isLocked = !self.isLocked
+      },
+      setChangeInProgress(changeInProgress: boolean) {
+        self.changeInProgress = changeInProgress
       },
       getPluginConfiguration() {
         const { jbrowse } = getRoot<ApolloRootModel>(self)
