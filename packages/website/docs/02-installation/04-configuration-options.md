@@ -105,4 +105,7 @@ MICROSOFT_CLIENT_SECRET=client_secret_here
 # Alternatively, can be a path to a file with a list of plugin URLs, one URL per
 # line
 # PLUGIN_URLS_FILE=/data/plugin-urls
+
+# HTTP/HTTPS proxy for OAuth requests, if your server is behind a proxy
+# OAUTH_HTTP_PROXY=http://proxy.example.com:8080
 ```
