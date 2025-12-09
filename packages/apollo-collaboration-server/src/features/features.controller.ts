@@ -41,20 +41,18 @@ export class FeaturesController {
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
    * or if search data was not found or in case of error throw exception
    */
-  @Get('getFeaturesByRange')
+  @Get('getFeatures')
   getFeaturesByRange(@Query() request: FeatureRangeSearchDto) {
     this.logger.debug(
-      `getFeaturesByRange -method: refSeq: ${request.refSeq}, start: ${request.start}, end: ${request.end}`,
+      `getFeatures endpoint: refSeq: ${request.refSeq}, start: ${request.start}, end: ${request.end}`,
     )
 
     return this.featuresService.findByRange(request)
   }
 
-  @Post('getFeatures')
-  getFeatures(@Body() request: FeatureIdsSearchDto) {
-    this.logger.debug(
-      `getFeatures -method: featureIds: ${JSON.stringify(request.featureIds)}`,
-    )
+  @Post('getByIds')
+  findByFeatureIds(@Body() request: FeatureIdsSearchDto) {
+    this.logger.debug(`: featureIds: ${JSON.stringify(request.featureIds)}`)
     return this.featuresService.findByFeatureIds(
       request.featureIds,
       request.topLevel,
