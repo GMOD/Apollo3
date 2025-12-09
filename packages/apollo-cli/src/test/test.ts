@@ -76,7 +76,9 @@ void describe('Test CLI', () => {
         'files',
         'refseqchunks',
         'refseqs',
-      ].map((collectionName) => database.dropCollection(collectionName)),
+      ].map((collectionName) =>
+        database.collection(collectionName).deleteMany({}),
+      ),
     )
     // Put back starting config file
     fs.renameSync(configFileBak, configFile)
