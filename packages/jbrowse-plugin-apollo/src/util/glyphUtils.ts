@@ -7,6 +7,7 @@ import { type MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
   getContainingView,
+  isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import SkipNextRoundedIcon from '@mui/icons-material/SkipNextRounded'
@@ -363,6 +364,23 @@ export function getContextMenuItemsForFeature(
       },
     },
   )
+  if (isSessionModelWithWidgets(session)) {
+    menuItems.push({
+      label: 'Open feature details',
+      onClick: () => {
+        const apolloGeneWidget = session.addWidget(
+          'ApolloFeatureDetailsWidget',
+          'apolloFeatureDetailsWidget',
+          {
+            feature: sourceFeature,
+            assembly: currentAssemblyId,
+            refName: region.refName,
+          },
+        )
+        session.showWidget(apolloGeneWidget)
+      },
+    })
+  }
   return menuItems
 }
 
