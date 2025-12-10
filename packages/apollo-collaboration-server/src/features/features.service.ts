@@ -117,6 +117,33 @@ export class FeaturesService {
     return
   }
 
+  async findByFeatureIds(featureIds: string[], topLevel?: boolean) {
+    const foundFeatures: Feature[] = []
+    // all featureIds that have already been fetched
+    const fetchedFeatureIds = new Set<string>()
+
+    for (const featureId of featureIds) {
+      if (fetchedFeatureIds.has(featureId)) {
+        this.logger.debug(`FeatureId ${featureId} already fetched, skipping...`)
+        continue
+      }
+
+      try {
+        const feature = await this.findById(featureId, topLevel)
+        foundFeatures.push(feature)
+        for (const id of feature.allIds) {
+          fetchedFeatureIds.add(id)
+        }
+      } catch (error) {
+        this.logger.error(
+          `Error occurred while fetching feature ${featureId}`,
+          error instanceof Error ? error.stack : String(error),
+        )
+      }
+    }
+    return foundFeatures
+  }
+
   /**
    * Get feature by featureId. When retrieving features by id, the features and any of its children are returned, but not any of its parent or sibling features.
    * @param featureId - featureId
