@@ -30,4 +30,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/export/gff3.ts](https://github.com/GMOD/Apollo3/blob/v0.3.9/packages/apollo-cli/src/commands/export/gff3.ts)_
+[src/commands/export/gff3.ts](https://github.com/GMOD/Apollo3/blob/v0.3.10/packages/apollo-cli/src/commands/export/gff3.ts)_
