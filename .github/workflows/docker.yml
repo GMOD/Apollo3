@@ -17,25 +17,26 @@ on:
           - dev
           - latest
 
+env:
+  APOLLO_CLI_REGISTRY_IMAGE: ghcr.io/gmod/apollo-cli
+  APOLLO_CS_REGISTRY_IMAGE: ghcr.io/gmod/apollo-collaboration-server
+
 jobs:
   build-docker:
-    name: Build Docker image
-    runs-on: ${{ matrix.platform.runner }}
+    name: Build Docker images
     strategy:
       matrix:
-        platform:
-          - runner: ubuntu-latest
-            arch: linux/amd64
-          - runner: ubuntu-24.04-arm
-            arch: linux/arm64
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+            artifactName: linux-amd64
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            artifactName: linux-arm64
+    runs-on: ${{ matrix.runner }}
     steps:
-      - name: Prepare
-        run: |
-          platform=${{ matrix.platform.arch }}
-          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-
       - name: Check out
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Log in to the GitHub Container Registry
         uses: docker/login-action@v3
@@ -47,60 +48,76 @@ jobs:
       - name: Set up Docker buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push by digest CLI image
-        id: buildcli
+      - name: Get CLI image Docker metadata
+        id: meta-cli
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.APOLLO_CLI_REGISTRY_IMAGE }}
+          labels: |
+            org.opencontainers.image.title=Apollo CLI
+            org.opencontainers.image.description=CLI tool interacting with the Apollo Collaboration Server
+
+      - name: Get Collaboration Server image Docker metadata
+        id: meta-cs
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.APOLLO_CS_REGISTRY_IMAGE }}
+          labels: |
+            org.opencontainers.image.title=Apollo Collaboration Server
+            org.opencontainers.image.description=Backend server for the Apollo genome annotation tool
+
+      - name: Build and push CLI image by digest
+        id: build-cli
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: ghcr.io/gmod/apollo-cli
+          tags: ${{ env.APOLLO_CLI_REGISTRY_IMAGE }}
           file:
             ${{ inputs.tag == 'dev' && 'packages/apollo-cli/dev.Dockerfile' ||
             'packages/apollo-cli/Dockerfile' }}
-          outputs:
-            type=image,push-by-digest=true,annotation-index.org.opencontainers.image.description=
-            Apollo CLI
-          cache-from: type=registry,ref=user/app:latest
+          outputs: type=image,push-by-digest=true,name-canonical=true
+          labels: ${{ steps.meta-cli.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.APOLLO_CLI_REGISTRY_IMAGE }}
           cache-to: type=inline
 
       - name: Export digests of CLI image
         run: |
           digestdir=${{ runner.temp }}/digests-cli
           mkdir -p "${digestdir}"
-          digest="${{ steps.buildcli.outputs.digest }}"
+          digest="${{ steps.build-cli.outputs.digest }}"
           touch "${digestdir}/${digest#sha256:}"
 
       - name: Upload digests of CLI image
         uses: actions/upload-artifact@v4
         with:
-          name: digests-cli-${{ env.PLATFORM_PAIR }}
+          name: digests-cli-${{ matrix.artifactName }}
           path: ${{ runner.temp }}/digests-cli/*
           if-no-files-found: error
           retention-days: 1
 
-      - name: Build and push by digest collaboration server image
-        id: buildcollab
+      - name: Build and push Collaboration Server image by digest
+        id: build-cs
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: ghcr.io/gmod/apollo-collaboration-server
-          outputs:
-            type=image,push-by-digest=true,annotation-index.org.opencontainers.image.description=Apollo
-            collaboration server
-          cache-from: type=registry,ref=user/app:latest
+          tags: ${{ env.APOLLO_CS_REGISTRY_IMAGE }}
+          outputs: type=image,push-by-digest=true,name-canonical=true
+          labels: ${{ steps.meta-cs.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.APOLLO_CS_REGISTRY_IMAGE }}
           cache-to: type=inline
 
-      - name: Export digests of collab image
+      - name: Export digests of Collaboration Server image
         run: |
-          digestdir=${{ runner.temp }}/digests-collab
+          digestdir=${{ runner.temp }}/digests-cs
           mkdir -p "${digestdir}"
-          digest="${{ steps.buildcollab.outputs.digest }}"
+          digest="${{ steps.build-cs.outputs.digest }}"
           touch "${digestdir}/${digest#sha256:}"
 
-      - name: Upload digests of collab image
+      - name: Upload digests of Collaboration Server image
         uses: actions/upload-artifact@v4
         with:
-          name: digests-collab-${{ env.PLATFORM_PAIR }}
-          path: ${{ runner.temp }}/digests-collab/*
+          name: digests-cs-${{ matrix.artifactName }}
+          path: ${{ runner.temp }}/digests-cs/*
           if-no-files-found: error
           retention-days: 1
 
@@ -119,6 +136,34 @@ jobs:
       - name: Set up Docker buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Get CLI image Docker metadata
+        id: meta-cli
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.APOLLO_CLI_REGISTRY_IMAGE }}
+          labels: |
+            org.opencontainers.image.title=Apollo CLI
+            org.opencontainers.image.description=CLI tool interacting with the Apollo Collaboration Server
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      - name: Get Collaboration Server image Docker metadata
+        id: meta-cs
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.APOLLO_CS_REGISTRY_IMAGE }}
+          labels: |
+            org.opencontainers.image.title=Apollo Collaboration Server
+            org.opencontainers.image.description=Backend server for the Apollo genome annotation tool
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
       - name: Download digests CLI image
         uses: actions/download-artifact@v4
         with:
@@ -130,29 +175,35 @@ jobs:
         working-directory: ${{ runner.temp }}/digests-cli
         run: |
           docker buildx imagetools create \
-            --tag ghcr.io/gmod/apollo-cli:${{ inputs.tag }} \
-            $(printf 'ghcr.io/gmod/apollo-cli@sha256:%s ' *)
+            --annotation "index:org.opencontainers.image.title=Apollo CLI" \
+            --annotation "index:org.opencontainers.image.description=CLI tool interacting with the Apollo Collaboration Server" \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< '${{ steps.meta-cli.outputs.json }}') \
+            --tag ${{ env.APOLLO_CLI_REGISTRY_IMAGE }}:${{ inputs.tag }} \
+            $(printf '${{ env.APOLLO_CLI_REGISTRY_IMAGE }}@sha256:%s ' *)
 
       - name: Inspect CLI image
         run: |
           docker buildx imagetools inspect \
-            ghcr.io/gmod/apollo-cli:${{ inputs.tag }}
+            ${{ env.APOLLO_CLI_REGISTRY_IMAGE }}:${{ inputs.tag }}
 
-      - name: Download digests collab image
+      - name: Download digests Collaboration Server image
         uses: actions/download-artifact@v4
         with:
-          path: ${{ runner.temp }}/digests-collab
-          pattern: digests-collab-*
+          path: ${{ runner.temp }}/digests-cs
+          pattern: digests-cs-*
           merge-multiple: true
 
-      - name: Create manifest list and push collab image
-        working-directory: ${{ runner.temp }}/digests-collab
+      - name: Create manifest list and push Collaboration Server image
+        working-directory: ${{ runner.temp }}/digests-cs
         run: |
           docker buildx imagetools create \
-            --tag ghcr.io/gmod/apollo-collaboration-server:${{ inputs.tag }} \
-            $(printf 'ghcr.io/gmod/apollo-collaboration-server@sha256:%s ' *)
+            --annotation "index:org.opencontainers.image.title=Apollo Collaboration Server" \
+            --annotation "index:org.opencontainers.image.description=Backend server for the Apollo genome annotation tool" \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< '${{ steps.meta-cs.outputs.json }}') \
+            --tag ${{ env.APOLLO_CS_REGISTRY_IMAGE }}:${{ inputs.tag }} \
+            $(printf '${{ env.APOLLO_CS_REGISTRY_IMAGE }}@sha256:%s ' *)
 
-      - name: Inspect collab image
+      - name: Inspect Collaboration Server image
         run: |
           docker buildx imagetools inspect \
-            ghcr.io/gmod/apollo-collaboration-server:${{ inputs.tag }}
+            ${{ env.APOLLO_CS_REGISTRY_IMAGE }}:${{ inputs.tag }}
