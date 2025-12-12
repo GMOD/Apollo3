@@ -32,7 +32,6 @@ import { MongoClient } from 'mongodb'
 import { Shell, deleteAllChecks } from './utils.js'
 
 const apollo = 'yarn dev'
-// let client = MongoClient
 let client: MongoClient
 let configFile = ''
 let configFileBak = ''
@@ -839,6 +838,103 @@ void describe('Test CLI', () => {
 
     p = new Shell(`${apollo} feature delete --force -i ${fid}`)
     assert.strictEqual(p.returncode, 0)
+  })
+
+  void globalThis.itName('Add features', () => {
+    let p = new Shell(
+      `${apollo} assembly add-from-fasta test_data/tiny.fasta.gz -a tiny -f`,
+    )
+    let out = JSON.parse(p.stdout)
+    const assemblyId = out._id
+    p = new Shell(`${apollo} feature get -a tiny`)
+    assert.deepStrictEqual(p.stdout.trim(), '[]')
+    // Can add a feature using flags
+    p = new Shell(`${apollo} feature add -a tiny -r ctgA -s 1 -e 10 -t remark`)
+    out = JSON.parse(p.stdout)
+    p = new Shell(`${apollo} feature get -a tiny`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    const refSeqId = out[0].refSeq
+    // Can add a feature using assembly and refSeq ids
+    p = new Shell(
+      `${apollo} feature add -a ${assemblyId} -r ${refSeqId} -s 11 -e 20 -t remark`,
+    )
+    p = new Shell(`${apollo} feature get -a ${assemblyId}`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 2)
+    // Can add a feature using JSON arg
+    p = new Shell(
+      `${apollo} feature add '{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":21,"max":30,"type":"remark"}'`,
+    )
+    p = new Shell(`${apollo} feature get -a ${assemblyId}`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 3)
+    // Can add a feature using JSON from stdin
+    p = new Shell(
+      `${apollo} feature add <<EOF
+{
+  "assembly": "${assemblyId}",
+  "refSeq": "${refSeqId}",
+  "min": 31,
+  "max": 40,
+  "type": "remark"
+}
+EOF`,
+    )
+    p = new Shell(`${apollo} feature get -a ${assemblyId}`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 4)
+    // Can add a feature using JSON from a file
+    fs.writeFileSync(
+      'test_data/tmp.json',
+      `{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":41,"max":50,"type":"remark"}\n`,
+    )
+    p = new Shell(
+      `${apollo} feature add --feature-json-file test_data/tmp.json`,
+    )
+    fs.unlinkSync('test_data/tmp.json')
+    p = new Shell(`${apollo} feature get -a ${assemblyId}`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 5)
+    // Can add multiple features using JSON
+    p = new Shell(
+      `${apollo} feature add '[{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":51,"max":60,"type":"remark"},{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":61,"max":70,"type":"remark"}]'`,
+    )
+    p = new Shell(`${apollo} feature get -a ${assemblyId}`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 7)
+    // Can add a feature with children from JSON
+    p = new Shell(
+      `${apollo} feature add '{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":71,"max":80,"type":"match","children":[{"min":71,"max":75,"type":"match_part"}]}'`,
+    )
+    p = new Shell(
+      `${apollo} feature get -a ${assemblyId} -r ${refSeqId} -s 71 -e 80`,
+    )
+    out = JSON.parse(p.stdout)
+    let feature = out.at(0)
+    assert.strictEqual(Object.keys(feature?.children).length, 1)
+    // Can add a feature with attributes from JSON
+    p = new Shell(
+      `${apollo} feature add '{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":81,"max":90,"type":"remark","attributes":{"key1":["val1"]}}'`,
+    )
+    p = new Shell(
+      `${apollo} feature get -a ${assemblyId} -r ${refSeqId} -s 81 -e 90`,
+    )
+    out = JSON.parse(p.stdout)
+    feature = out.at(0)
+    assert.strictEqual(feature?.attributes?.key1?.[0], 'val1')
+    // Can add a feature with children from JSON
+    p = new Shell(
+      `${apollo} feature add '{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":91,"max":100,"type":"match","children":[{"min":91,"max":95,"type":"match_part","attributes":{"key2":["val2"]}}]}'`,
+    )
+    p = new Shell(
+      `${apollo} feature get -a ${assemblyId} -r ${refSeqId} -s 91 -e 100`,
+    )
+    out = JSON.parse(p.stdout)
+    feature = out.at(0)
+    const keys = Object.keys(feature?.children)
+    assert.strictEqual(keys.length, 1)
+    assert.strictEqual(feature.children[keys[0]].attributes.key2[0], 'val2')
   })
 
   void globalThis.itName('Add child features', () => {
