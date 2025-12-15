@@ -123,6 +123,7 @@ export class AddFeatureChange extends FeatureChange {
         )
         featureCnt++
       } else {
+        const indexedIds = this.getIndexedIds(addedFeature, idsToIndex)
         // Adding new child feature
         if (parentFeatureId) {
           const topLevelFeature = await featureModel
@@ -146,11 +147,14 @@ export class AddFeatureChange extends FeatureChange {
           this.addChild(parentFeature, addedFeature)
           const childIds = this.getChildFeatureIds(addedFeature)
           topLevelFeature.allIds.push(_id, ...childIds)
+          if (indexedIds.length > 0 && !topLevelFeature.indexedIds) {
+            topLevelFeature.indexedIds = []
+          }
+          topLevelFeature.indexedIds?.push(...indexedIds)
           await topLevelFeature.save()
         } else {
           const childIds = this.getChildFeatureIds(addedFeature)
           const allIdsV2 = [_id, ...childIds]
-          const indexedIds = this.getIndexedIds(addedFeature, idsToIndex)
           const [newFeatureDoc] = await featureModel.create(
             [{ allIds: allIdsV2, indexedIds, status: 0, ...addedFeature }],
             { session },

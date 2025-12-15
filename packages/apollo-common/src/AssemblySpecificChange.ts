@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import { type Feature } from '@apollo-annotation/schemas'
 
 import {
   Change,
@@ -30,18 +31,27 @@ export abstract class AssemblySpecificChange extends Change {
   }
 
   getIndexedIds(
-    feature: AnnotationFeatureSnapshot,
+    feature: AnnotationFeatureSnapshot | Feature,
     idsToIndex: string[] | undefined,
   ): string[] {
     const indexedIds: string[] = []
     for (const additionalId of idsToIndex ?? []) {
-      const idValue = feature.attributes?.[additionalId]
+      const { attributes } = feature
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const idValue: string[] =
+        attributes instanceof Map
+          ? attributes.get(additionalId)
+          : attributes?.[additionalId]
       if (idValue) {
         indexedIds.push(idValue[0])
       }
     }
     if (feature.children) {
-      for (const child of Object.values(feature.children)) {
+      const childrenIterable =
+        feature.children instanceof Map
+          ? feature.children.values()
+          : Object.values(feature.children)
+      for (const child of childrenIterable) {
         const childIndexedIds = this.getIndexedIds(child, idsToIndex)
         indexedIds.push(...childIndexedIds)
       }

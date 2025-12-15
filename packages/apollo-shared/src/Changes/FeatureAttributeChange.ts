@@ -100,11 +100,24 @@ export class FeatureAttributeChange extends FeatureChange {
       featuresForChanges.push({ feature: foundFeature, topLevelFeature })
     }
 
+    const { INDEXED_IDS } = process.env
+    let idsToIndex: string[] | undefined
+    if (INDEXED_IDS) {
+      idsToIndex = INDEXED_IDS.split(',')
+    }
     // Let's update objects
     for (const [idx, change] of changes.entries()) {
       const { newAttributes } = change
       const { feature, topLevelFeature } = featuresForChanges[idx]
+      const indexedIdsChanged = idsToIndex?.some(
+        (id) => id in newAttributes || id in (feature?.attributes ?? {}),
+      )
       feature.attributes = newAttributes
+      if (indexedIdsChanged) {
+        const indexedIds = this.getIndexedIds(topLevelFeature, idsToIndex)
+        topLevelFeature.indexedIds = indexedIds
+        topLevelFeature.markModified('indexedIds')
+      }
       if (topLevelFeature._id.equals(feature._id)) {
         topLevelFeature.markModified('attributes') // Mark as modified. Without this save() -method is not updating data in database
       } else {
