@@ -67,6 +67,12 @@ export class DeleteFeatureChange extends FeatureChange {
     const { featureModel, session } = backend
     const { changes, logger } = this
 
+    const { INDEXED_IDS } = process.env
+    let idsToIndex: string[] | undefined
+    if (INDEXED_IDS) {
+      idsToIndex = INDEXED_IDS.split(',')
+    }
+
     // Loop the changes
     for (const change of changes) {
       const { deletedFeature, parentFeatureId } = change
@@ -105,6 +111,18 @@ export class DeleteFeatureChange extends FeatureChange {
       featureDoc.allIds = featureDoc.allIds.filter(
         (id) => !deletedIds.includes(id),
       )
+      const indexedIds = this.getIndexedIds(featureDoc, idsToIndex)
+      if (featureDoc.indexedIds) {
+        if (indexedIds.length > 0) {
+          featureDoc.indexedIds = indexedIds
+        } else {
+          delete featureDoc.indexedIds
+        }
+      } else {
+        if (indexedIds.length > 0) {
+          featureDoc.indexedIds = indexedIds
+        }
+      }
       // Save updated document in Mongo
       featureDoc.markModified('children') // Mark as modified. Without this save() -method is not updating data in database
       try {

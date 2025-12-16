@@ -846,6 +846,90 @@ void describe('Test CLI', () => {
     out = JSON.parse(p.stdout)
     assert.strictEqual(out.length, 1)
     assert.ok(out.at(0)?.type === 'gene')
+
+    // Gets feature and child feature that were added manually (not imported)
+    p = new Shell(
+      `${apollo} feature add ${P} <<EOF
+{
+  "assembly": "vv1",
+  "refSeq": "ctgA",
+  "min": 301,
+  "max": 310,
+  "type": "match",
+  "attributes": {"gff_id": ["match1"]},
+  "children": [
+    {
+      "min": 301,
+      "max": 305,
+      "type": "match_part",
+      "attributes": {"gff_id": ["matchPart1"]}
+    }
+  ]
+}
+EOF`,
+    )
+    p = new Shell(`${apollo} feature get-indexed-id ${P} match1 -a vv1`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.ok(p.stdout.includes('match1'))
+    p = new Shell(`${apollo} feature get-indexed-id ${P} matchPart1 -a vv1`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.ok(p.stdout.includes('matchPart1'))
+
+    // Doesn't get child feature after it was deleted
+    const idToDelete = out[0]._id
+    new Shell(`${apollo} feature delete ${P} -i ${idToDelete}`)
+    p = new Shell(`${apollo} feature get-indexed-id ${P} matchPart1 -a vv1`)
+    assert.deepStrictEqual(p.stdout.trim(), '[]')
+
+    // Gets feature after ID was manually added
+    p = new Shell(
+      `${apollo} feature add ${P} <<EOF
+{
+  "assembly": "vv1",
+  "refSeq": "ctgA",
+  "min": 311,
+  "max": 320,
+  "type": "match"
+}
+EOF`,
+    )
+    out = JSON.parse(p.stdout)
+    const { assembly, changes } = out
+    const { _id, refSeq } = changes[0].addedFeature
+    new Shell(
+      `${apollo} feature edit-attribute ${P} -i ${_id} -a gff_id -v match2`,
+    )
+    p = new Shell(`${apollo} feature get-indexed-id ${P} match2 -a vv1`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.ok(p.stdout.includes('match2'))
+
+    // Gets child featuer after it was added with an ID
+    // add-child CLI command doesn't support adding attributes yet, so we'll
+    // manually do it with curl for testing for neow
+    p = new Shell(`${apollo} config ${P} accessToken`)
+    const token = p.stdout.trim()
+    const newChildFeatureID = '69408088d502fc21aea1bb0a'
+    new Shell(
+      `curl -X POST http://127.0.0.1:3999/changes -d '{"typeName":"AddFeatureChange","changedIds":["${newChildFeatureID}"],"assembly":"${assembly}","addedFeature":{"_id":"${newChildFeatureID}","refSeq":"${refSeq}","min":311,"max":315,"type":"match_part","attributes":{"gff_id":["matchPart2"]}},"parentFeatureId":"${_id}"}' -H "Content-Type: application/json" -H "Authorization: Bearer ${token}"`,
+    )
+    p = new Shell(`${apollo} feature get-indexed-id ${P} matchPart2 -a vv1`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.ok(p.stdout.includes('matchPart2'))
+
+    // Doesn't get feature or child after IDs were manually removed
+    new Shell(`${apollo} feature edit-attribute ${P} -i ${_id} -a gff_id -d`)
+    const childId = out[0]._id
+    new Shell(
+      `${apollo} feature edit-attribute ${P} -i ${childId} -a gff_id -d`,
+    )
+    p = new Shell(`${apollo} feature get-indexed-id ${P} match2 -a vv1`)
+    assert.deepStrictEqual(p.stdout.trim(), '[]')
+    p = new Shell(`${apollo} feature get-indexed-id ${P} matchPart2 -a vv1`)
+    assert.deepStrictEqual(p.stdout.trim(), '[]')
   })
 
   void globalThis.itName('Delete features', () => {
