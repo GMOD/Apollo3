@@ -2,6 +2,7 @@
 
 Commands to manage features
 
+- [`apollo feature add [FEATURE-JSON]`](#apollo-feature-add-feature-json)
 - [`apollo feature add-child`](#apollo-feature-add-child)
 - [`apollo feature check`](#apollo-feature-check)
 - [`apollo feature copy`](#apollo-feature-copy)
@@ -15,6 +16,62 @@ Commands to manage features
 - [`apollo feature get-indexed-id ID`](#apollo-feature-get-indexed-id-id)
 - [`apollo feature import INPUT-FILE`](#apollo-feature-import-input-file)
 - [`apollo feature search`](#apollo-feature-search)
+
+## `apollo feature add [FEATURE-JSON]`
+
+Add one or more features to Apollo
+
+```
+USAGE
+  $ apollo feature add [FEATURE-JSON] [--profile <value>] [--config-file <value>] [-a <value>] [-r <value> -s
+    <value> -e <value> -t <value>] [-F <value>]
+
+ARGUMENTS
+  FEATURE-JSON  Inline JSON describing the feature(s) to add. Can also be provided via stdin.
+
+FLAGS
+  -F, --feature-json-file=<value>  File with JSON describing the feature(s) to add
+  -a, --assembly=<value>           Name or ID of target assembly. Not required if refseq is unique in the database
+  -e, --max=<value>                End position in target reference sequence
+  -r, --refSeq=<value>             Name or ID of target reference sequence
+  -s, --min=<value>                Start position in target reference sequence
+  -t, --type=<value>               Type of child feature
+      --config-file=<value>        Use this config file (mostly for testing)
+      --profile=<value>            Use credentials from this profile
+
+DESCRIPTION
+  Add one or more features to Apollo
+
+  A single simple feature can be added using the --min, --max, etc. flags.
+
+  To add multiple features, features with more details, or features with children, you can pass in JSON via argument or
+  stdin or use the --feature-json-file options.
+
+
+EXAMPLES
+  Add a single feature by specifying its location and type
+
+    $ apollo feature add --assembly hg19 --refSeq chr3 --min 1000 --max 5000 --type remark
+
+  Add a single feature from inline JSON
+
+    $ apollo feature add \
+      '{"assembly":"<assemblyNameOrId>","refseq":"<refSeqNameOrId>","min":1,"max":100,"type":"<featureType>"}'
+
+  Add mutilple features from stdin JSON
+
+    echo '[{"assembly":"<assemblyNameOrId>","refseq":"<refSeqNameOrId>","min":1,"max":100,"type":"<featureType>"},{" \
+      assembly":"<assemblyNameOrId>","refseq":"<refSeqNameOrId>","min":101,"max":200,"type":"<featureType>"}]' | \
+      apollo feature add
+
+  Add a feature with children from inline JSON
+
+    $ apollo feature add '{"assembly":"<assemblyNameOrId>","refseq":"<refSeqNameOrId>","min":1,"max":100,"type":"<fe \
+      atureType>","children":[{"min":1,"max":50,"type":"<featureType>"}]}'
+```
+
+_See code:
+[src/commands/feature/add.ts](https://github.com/GMOD/Apollo3/blob/v0.3.10/packages/apollo-cli/src/commands/feature/add.ts)_
 
 ## `apollo feature add-child`
 
