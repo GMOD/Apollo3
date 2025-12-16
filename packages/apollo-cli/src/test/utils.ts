@@ -26,11 +26,7 @@ export class Shell {
   constructor(cmd: string, strict = true, timeout?: number) {
     process.stdout.write(`${cmd}\n`)
     cmd = `set -e; set -u; set -o pipefail\n${cmd}`
-    const p = spawn.sync(cmd, {
-      shell: '/bin/bash',
-      timeout,
-      env: { APOLLO_PROFILE: 'testAdmin' },
-    })
+    const p = spawn.sync(cmd, { shell: '/bin/bash', timeout })
     this.returncode = p.status
     this.stdout = p.stdout.toString()
     this.stderr = p.stderr.toString()
@@ -42,11 +38,15 @@ export class Shell {
   }
 }
 
-export function deleteAllChecks(apollo: string, assembly: string) {
-  const p = new Shell(`${apollo} assembly check`)
+export function deleteAllChecks(
+  apollo: string,
+  profile: string,
+  assembly: string,
+) {
+  const p = new Shell(`${apollo} assembly check ${profile}`)
   const out = JSON.parse(p.stdout) as CheckResultSnapshot[]
   const checks = out.map((chk) => chk.name)
   new Shell(
-    `${apollo} assembly check --assembly ${assembly} --delete --check ${checks.join(' ')}`,
+    `${apollo} assembly check ${profile} --assembly ${assembly} --delete --check ${checks.join(' ')}`,
   )
 }
