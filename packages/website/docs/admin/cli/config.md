@@ -54,4 +54,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/config.ts](https://github.com/GMOD/Apollo3/blob/v0.3.10/packages/apollo-cli/src/commands/config.ts)_
+[src/commands/config.ts](https://github.com/GMOD/Apollo3/blob/v0.3.11/packages/apollo-cli/src/commands/config.ts)_

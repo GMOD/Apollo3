@@ -1,6 +1,6 @@
 {
   "name": "@apollo-annotation/jbrowse-plugin-apollo",
-  "version": "0.3.10",
+  "version": "0.3.11",
   "description": "Apollo plugin for JBrowse 2",
   "keywords": [
     "jbrowse",
