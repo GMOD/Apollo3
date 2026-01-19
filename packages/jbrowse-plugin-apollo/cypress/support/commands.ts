@@ -130,7 +130,7 @@ Cypress.Commands.add(
     cy.wrap(Cypress.$('body')).within(() => {
       // eslint-disable-next-line cypress/no-unnecessary-waiting
       cy.wait(3000)
-      cy.get('button[data-testid="dropDownMenuButton"]', { timeout: 10_000 })
+      cy.get('button', { timeout: 10_000 })
         .contains('Apollo')
         .click({ force: true, timeout: 10_000 })
       for (const pathPart of menuItemPathPrefix) {
