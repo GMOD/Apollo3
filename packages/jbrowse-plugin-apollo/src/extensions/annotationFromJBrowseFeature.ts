@@ -24,23 +24,26 @@ function simpleFeatureToGFF3Feature(
   feature: Feature,
   refSeqId: string,
 ): GFF3Feature {
-  // eslint-disable-next-line unicorn/prefer-structured-clone
-  const xfeature = JSON.parse(JSON.stringify(feature))
-  const children = xfeature.subfeatures
+  const children = feature.get('subfeatures')
   const gff3Feature = [
     {
-      start: (xfeature.start as number) + 1,
-      end: xfeature.end as number,
+      start: feature.get('start') + 1,
+      end: feature.get('end'),
       seq_id: refSeqId,
-      source: xfeature.source ?? null,
-      type: xfeature.type ?? null,
-      score: xfeature.score ?? null,
-      strand: xfeature.strand ? (xfeature.strand === 1 ? '+' : '-') : null,
+      source: feature.get('source') ?? null,
+      type: feature.get('type') ?? null,
+      score: feature.get('score') ?? null,
+      strand: feature.get('strand')
+        ? // eslint-disable-next-line unicorn/no-nested-ternary
+          feature.get('strand') === 1
+          ? '+'
+          : '-'
+        : null,
       phase:
-        xfeature.phase !== null || xfeature.phase !== undefined
-          ? (xfeature.phase as string)
+        feature.get('phase') !== null || feature.get('phase') !== undefined
+          ? (feature.get('phase') as string)
           : null,
-      attributes: convertFeatureAttributes(xfeature),
+      attributes: convertFeatureAttributes(feature),
       derived_features: [],
       child_features: children
         ? children.map((x: Feature) => simpleFeatureToGFF3Feature(x, refSeqId))
@@ -71,7 +74,7 @@ function convertFeatureAttributes(feature: Feature): Record<string, string[]> {
     'source',
     'score',
   ])
-  for (const [key, value] of Object.entries(feature)) {
+  for (const [key, value] of Object.entries(feature.toJSON())) {
     if (defaultFields.has(key)) {
       continue
     }
@@ -126,9 +129,7 @@ export function annotationFromJBrowseFeature(
       },
       getAnnotationFeature(assembly: Assembly, feature: Feature) {
         const refSeqId = self.getRefSeqId(assembly)
-        // @ts-expect-error typing needs improvement
-        const sfeature: Feature = feature.data
-        return jbrowseFeatureToAnnotationFeature(sfeature, refSeqId)
+        return jbrowseFeatureToAnnotationFeature(feature, refSeqId)
       },
     }))
     .views((self) => {
