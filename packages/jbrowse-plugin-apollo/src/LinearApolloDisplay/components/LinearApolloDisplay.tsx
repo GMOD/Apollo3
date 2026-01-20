@@ -156,7 +156,6 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
                   ? { top: contextCoord[1], left: contextCoord[0] }
                   : undefined
               }
-              style={{ zIndex: theme.zIndex.tooltip }}
               menuItems={contextMenuItems}
             />
           </>
