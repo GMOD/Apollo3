@@ -124,9 +124,10 @@ export function annotationFromJBrowseFeature(
         }
         return refSeqId
       },
-      getAnnotationFeature(assembly: Assembly) {
+      getAnnotationFeature(assembly: Assembly, feature: Feature) {
         const refSeqId = self.getRefSeqId(assembly)
-        const sfeature: Feature = self.contextMenuFeature.data
+        // @ts-expect-error typing needs improvement
+        const sfeature: Feature = feature.data
         return jbrowseFeatureToAnnotationFeature(sfeature, refSeqId)
       },
     }))
@@ -156,7 +157,10 @@ export function annotationFromJBrowseFeature(
                       handleClose: () => {
                         doneCallback()
                       },
-                      annotationFeature: self.getAnnotationFeature(assembly),
+                      annotationFeature: self.getAnnotationFeature(
+                        assembly,
+                        feature,
+                      ),
                       assembly,
                       refSeqId: self.getRefSeqId(assembly),
                       region,
