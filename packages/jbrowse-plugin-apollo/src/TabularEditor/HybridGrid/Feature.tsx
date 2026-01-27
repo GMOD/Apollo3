@@ -3,9 +3,9 @@
 
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type AbstractSessionModel } from '@jbrowse/core/util'
+import { makeStyles } from '@jbrowse/core/util/tss-react'
 import { observer } from 'mobx-react'
 import React from 'react'
-import { makeStyles } from 'tss-react/mui'
 
 import { isOntologyClass } from '../../OntologyManager'
 import type OntologyStore from '../../OntologyManager/OntologyStore'

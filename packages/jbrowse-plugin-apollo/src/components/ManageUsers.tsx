@@ -7,6 +7,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { DeleteUserChange, UserChange } from '@apollo-annotation/shared'
 import { type AbstractRootModel } from '@jbrowse/core/util'
+import { getRoot } from '@jbrowse/mobx-state-tree'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Button,
@@ -27,7 +28,6 @@ import {
   type GridRowParams,
   GridToolbar,
 } from '@mui/x-data-grid'
-import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
 import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'

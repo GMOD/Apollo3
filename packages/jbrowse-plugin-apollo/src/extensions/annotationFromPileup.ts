@@ -5,8 +5,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
-import { type DisplayType } from '@jbrowse/core/pluggableElementTypes'
-import type PluggableElementBase from '@jbrowse/core/pluggableElementTypes/PluggableElementBase'
+import {
+  type DisplayType,
+  type PluggableElementType,
+} from '@jbrowse/core/pluggableElementTypes'
 import {
   type AbstractSessionModel,
   getContainingView,
@@ -30,7 +32,7 @@ function parseCigar(cigar: string): [string, number][] {
   return result
 }
 
-export function annotationFromPileup(pluggableElement: PluggableElementBase) {
+export function annotationFromPileup(pluggableElement: PluggableElementType) {
   if (pluggableElement.name !== 'LinearPileupDisplay') {
     return pluggableElement
   }

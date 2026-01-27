@@ -1,4 +1,5 @@
-import { type Instance, getParent, types } from 'mobx-state-tree'
+import { type Instance, getParent, types } from '@jbrowse/mobx-state-tree'
+import { entries } from 'mobx'
 
 import { type DisplayStateModel } from './types'
 
@@ -21,7 +22,7 @@ export const TabularEditorStateModelType = types
     collapseAllFeatures() {
       // iterate over all seen features and set them to collapsed
       const display = getParent<DisplayStateModel>(self)
-      for (const [featureId] of display.seenFeatures.entries()) {
+      for (const [featureId] of entries(display.seenFeatures)) {
         self.featureCollapsed.set(featureId, true)
       }
     },

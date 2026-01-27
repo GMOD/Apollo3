@@ -10,6 +10,7 @@ import {
 import { AddFeatureChange } from '@apollo-annotation/shared'
 import { readConfObject } from '@jbrowse/core/configuration'
 import { type AbstractSessionModel } from '@jbrowse/core/util'
+import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import {
   Button,
   DialogActions,
@@ -22,7 +23,6 @@ import {
 } from '@mui/material'
 import ObjectID from 'bson-objectid'
 import { type IKeyValueMap } from 'mobx'
-import { getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
 import { type ChangeManager } from '../ChangeManager'

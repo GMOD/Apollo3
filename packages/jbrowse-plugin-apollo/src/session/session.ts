@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { type ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
@@ -20,9 +19,6 @@ import {
   type AbstractSessionModel,
   type SessionWithAddTracks,
 } from '@jbrowse/core/util'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import SaveIcon from '@mui/icons-material/Save'
-import { autorun, observable } from 'mobx'
 import {
   type Instance,
   type SnapshotOut,
@@ -31,7 +27,10 @@ import {
   getRoot,
   getSnapshot,
   types,
-} from 'mobx-state-tree'
+} from '@jbrowse/mobx-state-tree'
+import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import SaveIcon from '@mui/icons-material/Save'
+import { autorun, observable } from 'mobx'
 
 import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloJobModel } from '../ApolloJobModel'

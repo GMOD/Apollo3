@@ -2,14 +2,14 @@
 
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
+import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
 import {
   type AbstractSessionModel,
   doesIntersect2,
   getFrame,
 } from '@jbrowse/core/util'
-import { autorun, observable } from 'mobx'
-import { addDisposer, isAlive } from 'mobx-state-tree'
+import { addDisposer, isAlive } from '@jbrowse/mobx-state-tree'
+import { autorun, entries, observable } from 'mobx'
 
 import { type ApolloSessionModel } from '../../session'
 import { geneGlyph } from '../glyphs'
@@ -48,7 +48,7 @@ export function layoutsModelFactory(
           let min: number | undefined
           let max: number | undefined
           const { end, refName, start } = region
-          for (const [, feature] of self.seenFeatures) {
+          for (const [, feature] of entries(self.seenFeatures)) {
             if (
               refName !== assembly?.getCanonicalRefName(feature.refSeq) ||
               !doesIntersect2(start, end, feature.min, feature.max) ||
@@ -107,7 +107,7 @@ export function layoutsModelFactory(
             return featureLayout
           }
           const { end, refName, start } = region
-          for (const [id, feature] of self.seenFeatures.entries()) {
+          for (const [id, feature] of entries(self.seenFeatures)) {
             if (!isAlive(feature)) {
               self.deleteSeenFeature(id)
               continue

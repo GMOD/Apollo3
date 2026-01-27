@@ -5,6 +5,7 @@ import {
   type AnnotationFeatureSnapshot,
 } from '@apollo-annotation/mst'
 import { SplitExonChange } from '@apollo-annotation/shared'
+import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import {
   Button,
   DialogActions,
@@ -12,7 +13,6 @@ import {
   DialogContentText,
 } from '@mui/material'
 import ObjectID from 'bson-objectid'
-import { getSnapshot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
 import { type ChangeManager } from '../ChangeManager'

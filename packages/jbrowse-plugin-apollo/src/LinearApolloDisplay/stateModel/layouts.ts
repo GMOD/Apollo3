@@ -2,10 +2,10 @@
 
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
+import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
 import { type AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
-import { autorun, observable } from 'mobx'
-import { addDisposer, isAlive } from 'mobx-state-tree'
+import { addDisposer, isAlive } from '@jbrowse/mobx-state-tree'
+import { autorun, entries, observable } from 'mobx'
 
 import { type ApolloSessionModel } from '../../session'
 import { boxGlyph, geneGlyph, genericChildGlyph } from '../glyphs'
@@ -91,7 +91,7 @@ export function layoutsModelFactory(
           // Track the occupied coordinates in each row
           const filledRowLocations = new Map<number, [number, number][]>()
           const { end, refName, start } = region
-          for (const [id, feature] of self.seenFeatures.entries()) {
+          for (const [id, feature] of entries(self.seenFeatures)) {
             if (!isAlive(feature)) {
               self.deleteSeenFeature(id)
               continue
@@ -215,7 +215,7 @@ export function layoutsModelFactory(
               }
               // Clear out features that are no longer in the view and out of the cleanup boundary
               // cleanup boundary + region boundary + cleanup boundary
-              for (const [id, feature] of self.seenFeatures.entries()) {
+              for (const [id, feature] of entries(self.seenFeatures)) {
                 let shouldKeep = false
                 for (const region of self.regions) {
                   const extendedStart = region.start - self.cleanupBoundary

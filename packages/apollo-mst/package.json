@@ -6,11 +6,11 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@jbrowse/core": "^3.6.5",
-    "mobx": "^6.6.1",
-    "mobx-state-tree": "^5.4.0",
+    "@jbrowse/core": "^4.1.1",
+    "@jbrowse/mobx-state-tree": "^5.5.0",
+    "mobx": "^6.15.0",
     "react-dom": "^18.2.0",
-    "rxjs": "^7.4.0",
+    "rxjs": "^7.8.2",
     "tslib": "^2.3.1"
   },
   "devDependencies": {

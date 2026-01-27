@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { type AbstractSessionModel } from '@jbrowse/core/util'
+import { getRoot } from '@jbrowse/mobx-state-tree'
 import {
   Button,
   Checkbox,
@@ -19,7 +20,6 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material'
-import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
 import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'

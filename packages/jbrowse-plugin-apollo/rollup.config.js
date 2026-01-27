@@ -32,7 +32,7 @@ for (const config of rollupConfig) {
   config.onwarn = (warning, warn) => {
     if (
       warning.code === 'MODULE_LEVEL_DIRECTIVE' &&
-      warning.message.includes(`'use client'`)
+      warning.message.includes(`use client`)
     ) {
       return
     }

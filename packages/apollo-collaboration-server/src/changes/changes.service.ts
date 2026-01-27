@@ -187,7 +187,7 @@ export class ChangesService {
           try {
             await this.featureModel.updateMany(
               {
-                $and: [{ status: -1, user: uniqUserId, _id: addedFeature._id }],
+                $and: [{ status: -1, user: uniqUserId, _id: addedFeature }],
               },
               { $set: { status: 0 } },
             )

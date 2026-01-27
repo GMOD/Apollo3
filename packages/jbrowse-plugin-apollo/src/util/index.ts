@@ -1,4 +1,4 @@
-import { getParent } from 'mobx-state-tree'
+import { getParent } from '@jbrowse/mobx-state-tree'
 
 import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { type ApolloSessionModel } from '../session'

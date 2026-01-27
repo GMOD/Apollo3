@@ -5,8 +5,11 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
-import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
+import {
+  type AnyConfigurationSchemaType,
+  ConfigurationReference,
+  getConf,
+} from '@jbrowse/core/configuration'
 import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
 import {
   type AbstractSessionModel,
@@ -15,9 +18,9 @@ import {
 } from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
+import { addDisposer, getRoot, types } from '@jbrowse/mobx-state-tree'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { autorun } from 'mobx'
-import { addDisposer, getRoot, types } from 'mobx-state-tree'
 
 import { type ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { type ApolloSessionModel, type HoveredFeature } from '../../session'

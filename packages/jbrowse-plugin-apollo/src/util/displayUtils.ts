@@ -1,7 +1,6 @@
 import { type CheckResultIdsType } from '@apollo-annotation/mst'
+import { makeStyles } from '@jbrowse/core/util/tss-react'
 import { type Theme } from '@mui/material'
-import { makeStyles } from 'tss-react/mui'
-
 export { default as EditZoomThresholdDialog } from '../components/EditZoomThresholdDialog'
 
 export type Coord = [number, number]
