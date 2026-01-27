@@ -32,7 +32,7 @@
     "glob": "^11.0.0",
     "mobx": "^6.15.0",
     "mongoose": "^6.12.0",
-    "react-dom": "^18.2.0",
+    "react-dom": "^18.3.1",
     "rimraf": "^3.0.2",
     "rxjs": "^7.8.2",
     "tsx": "^4.6.2",
@@ -44,8 +44,8 @@
     "@mui/x-data-grid": "^8.26.0",
     "mobx": "^6.15.0",
     "mobx-react": "^9.2.1",
-    "react": ">=18.0.0",
-    "react-dom": "^18.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "rxjs": "^7.8.2"
   },
   "publishConfig": {
