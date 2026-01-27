@@ -28,7 +28,14 @@ function jsonPathQuery(
   if (path === PREFIXED_ID_PATH) {
     return [applyPrefixes(node.id, prefixes)]
   }
-  return jsonpath.query(node, path)
+  let response
+  try {
+    response = jsonpath.query(node, path)
+  } catch {
+    // eslint-disable-next-line unicorn/prefer-structured-clone
+    response = jsonpath.query(JSON.parse(JSON.stringify(node)), path)
+  }
+  return response
 }
 
 function wordsInString(str: string) {
