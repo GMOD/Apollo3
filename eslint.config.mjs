@@ -40,7 +40,7 @@ export default [
       globals: { ...globals.browser, ...globals.node },
       parserOptions: {
         projectService: {
-          allowDefaultProject: ['packages/jbrowse-plugin-apollo/*.js'],
+          allowDefaultProject: ['packages/jbrowse-plugin-apollo/*.{c,m,}js'],
         },
         defaultProject: 'tsconfig.json',
         tsconfigRootDir: import.meta.dirname,
