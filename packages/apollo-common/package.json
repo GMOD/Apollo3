@@ -6,6 +6,7 @@
     "url": "https://github.com/GMOD/Apollo3.git",
     "directory": "packages/apollo-common"
   },
+  "type": "module",
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc"
