@@ -335,7 +335,7 @@ __metadata:
     "@types/cross-spawn": "npm:^6.0.6"
     "@types/inquirer": "npm:^9.0.7"
     "@types/mocha": "npm:^10"
-    "@types/node": "npm:^20.19.15"
+    "@types/node": "npm:^24.10.9"
     babel-plugin-istanbul: "npm:^6.1.1"
     bson: "npm:^6.3.0"
     cli-progress: "npm:^3.12.0"
@@ -396,7 +396,7 @@ __metadata:
     "@types/express-session": "npm:^1"
     "@types/jest": "npm:^27.0.1"
     "@types/multer": "npm:^1.4.7"
-    "@types/node": "npm:^20.19.15"
+    "@types/node": "npm:^24.10.9"
     "@types/node-fetch": "npm:^2.6.2"
     "@types/passport-google-oauth20": "npm:^2.0.11"
     "@types/passport-jwt": "npm:^3.0.6"
@@ -460,7 +460,7 @@ __metadata:
     "@jbrowse/core": "npm:^3.6.5"
     "@nestjs/common": "npm:^10.1.0"
     "@nestjs/core": "npm:^10.1.0"
-    "@types/node": "npm:^20.19.15"
+    "@types/node": "npm:^24.10.9"
     bson-objectid: "npm:^2.0.4"
     generic-filehandle: "npm:^3.0.0"
     mongoose: "npm:^6.12.0"
@@ -502,7 +502,7 @@ __metadata:
     "@types/autosuggest-highlight": "npm:^3"
     "@types/file-saver": "npm:^2"
     "@types/jsonpath": "npm:^0.2.0"
-    "@types/node": "npm:^20.19.15"
+    "@types/node": "npm:^24.10.9"
     "@types/prop-types": "npm:^15"
     "@types/react": "npm:^18.3.4"
     "@types/react-dom": "npm:^18"
@@ -578,7 +578,7 @@ __metadata:
     "@nestjs/common": "npm:^10.1.0"
     "@nestjs/core": "npm:^10.1.0"
     "@nestjs/mongoose": "npm:^10.0.0"
-    "@types/node": "npm:^20.19.15"
+    "@types/node": "npm:^24.10.9"
     mongoose: "npm:^6.12.0"
     reflect-metadata: "npm:^0.1.13"
     rxjs: "npm:^7.4.0"
@@ -600,7 +600,7 @@ __metadata:
     "@nestjs/common": "npm:^10.1.0"
     "@nestjs/core": "npm:^10.1.0"
     "@types/chai": "npm:^4.3.19"
-    "@types/node": "npm:^20.19.15"
+    "@types/node": "npm:^24.10.9"
     bson-objectid: "npm:^2.0.4"
     chai: "npm:^5.1.1"
     chai-exclude: "npm:^3.0.0"
@@ -641,7 +641,7 @@ __metadata:
     "@docusaurus/tsconfig": "npm:^3.5.2"
     "@docusaurus/types": "npm:^3.5.2"
     "@mdx-js/react": "npm:^3.0.0"
-    "@types/node": "npm:^20.19.15"
+    "@types/node": "npm:^24.10.9"
     "@types/react": "npm:^18.3.4"
     clsx: "npm:^1.1.1"
     prism-react-renderer: "npm:^2.3.0"
@@ -10269,21 +10269,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.19.15":
-  version: 20.19.16
-  resolution: "@types/node@npm:20.19.16"
-  dependencies:
-    undici-types: "npm:~6.21.0"
-  checksum: 10c0/434dfbe476ef28c72173042c28ca48d7ab668521db250674a5a2deb8e23d2d8b1087ae80928f0c59629b315c4980b6f575ed9621a137c8b4c7f454c551cbcee8
-  languageName: node
-  linkType: hard
-
 "@types/node@npm:^20.9.0":
   version: 20.10.5
   resolution: "@types/node@npm:20.10.5"
   dependencies:
     undici-types: "npm:~5.26.4"
   checksum: 10c0/be30609aae0bfe492097815f166ccc07f465220cb604647fa4e5ec05a1d16c012a41b82b5f11ecfe2485cbb479d4d20384b95b809ca0bcff6d94d5bbafa645bb
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^24.10.9":
+  version: 24.10.9
+  resolution: "@types/node@npm:24.10.9"
+  dependencies:
+    undici-types: "npm:~7.16.0"
+  checksum: 10c0/e9e436fcd2136bddb1bbe3271a89f4653910bcf6ee8047c4117f544c7905a106c039e2720ee48f28505ef2560e22fb9ead719f28bf5e075fdde0c1120e38e3b2
   languageName: node
   linkType: hard
 
@@ -11786,7 +11786,7 @@ __metadata:
   dependencies:
     "@eslint/js": "npm:^9.21.0"
     "@types/cross-spawn": "npm:^6.0.6"
-    "@types/node": "npm:^20.19.15"
+    "@types/node": "npm:^24.10.9"
     "@types/semver": "npm:^7"
     "@types/yargs": "npm:^17.0.32"
     "@typescript-eslint/parser": "npm:^8.25.0"
@@ -12588,11 +12588,11 @@ __metadata:
   linkType: hard
 
 "baseline-browser-mapping@npm:^2.8.9":
-  version: 2.8.15
-  resolution: "baseline-browser-mapping@npm:2.8.15"
+  version: 2.9.18
+  resolution: "baseline-browser-mapping@npm:2.9.18"
   bin:
     baseline-browser-mapping: dist/cli.js
-  checksum: 10c0/ec561bd72bdaecc22401f3b971fa3d9ace340c8b375d1eb07362abcba25e0d7b27a6e26a73b48f1df5ec5bcf429e3639958a9b9c77604a89ffcb727449d20ea6
+  checksum: 10c0/869bdbb2784f8b1bc49b52d54ea48bf9ea6da8309195e3a0b3f4625197b8187a9b557b1d02f1b6b6dd51f163840a87db259e2b791eed35f0c5fddf3110c4cf28
   languageName: node
   linkType: hard
 
@@ -31325,10 +31325,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~6.21.0":
-  version: 6.21.0
-  resolution: "undici-types@npm:6.21.0"
-  checksum: 10c0/c01ed51829b10aa72fc3ce64b747f8e74ae9b60eafa19a7b46ef624403508a54c526ffab06a14a26b3120d055e1104d7abe7c9017e83ced038ea5cf52f8d5e04
+"undici-types@npm:~7.16.0":
+  version: 7.16.0
+  resolution: "undici-types@npm:7.16.0"
+  checksum: 10c0/3033e2f2b5c9f1504bdc5934646cb54e37ecaca0f9249c983f7b1fc2e87c6d18399ebb05dc7fd5419e02b2e915f734d872a65da2e3eeed1813951c427d33cc9a
   languageName: node
   linkType: hard
 

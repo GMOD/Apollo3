@@ -33,18 +33,11 @@ export default [
   pluginReact.configs.flat.recommended,
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   pluginJSXA11y.flatConfigs.recommended,
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   pluginCypress.configs.recommended,
   {
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },
-      parserOptions: {
-        projectService: {
-          allowDefaultProject: ['packages/jbrowse-plugin-apollo/*.js'],
-        },
-        defaultProject: 'tsconfig.json',
-        tsconfigRootDir: import.meta.dirname,
-      },
+      parserOptions: { projectService: true },
     },
     settings: { react: { version: 'detect' } },
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -122,6 +115,7 @@ export default [
       'packages/website/src/**/*.{jsx,tsx}',
     ],
     plugins: { 'react-hooks': pluginReactHooks },
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     rules: { ...pluginReactHooks.configs.recommended.rules },
   },
   // Don't enforce tsdoc syntax in JS files

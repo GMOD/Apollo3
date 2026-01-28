@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig-base.json",
+  "extends": "../../tsconfig",
   "compilerOptions": {
     "module": "commonjs",
     "lib": ["esnext"],
@@ -15,8 +15,10 @@
     "forceConsistentCasingInFileNames": false,
     "sourceMap": true,
   },
+  "include": ["./src", "./test"],
   "references": [
     { "path": "../apollo-common" },
+    { "path": "../apollo-mst" },
     { "path": "../apollo-schemas" },
     { "path": "../apollo-shared" },
   ],

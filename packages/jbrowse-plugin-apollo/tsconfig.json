@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig-base.json",
+  "extends": "../../tsconfig",
   "compilerOptions": {
     "declaration": false,
     "target": "ES6",
@@ -14,5 +14,6 @@
     { "path": "../apollo-common" },
     { "path": "../apollo-mst" },
     { "path": "../apollo-shared" },
+    { "path": "./tsconfig.node.json" },
   ],
 }
