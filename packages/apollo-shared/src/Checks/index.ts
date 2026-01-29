@@ -1,2 +1,2 @@
-export * from './CDSCheck'
-export * from './TranscriptCheck'
+export * from './CDSCheck.js'
+export * from './TranscriptCheck.js'

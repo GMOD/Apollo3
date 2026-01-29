@@ -9,10 +9,10 @@ import {
   type LocationStartChange,
   isLocationEndChange,
   isLocationStartChange,
-} from '../Changes'
-import { getPrintableId } from '../util'
+} from '../Changes/index.js'
+import { getPrintableId } from '../util.js'
 
-import { Validation, type ValidationResult } from './Validation'
+import { Validation, type ValidationResult } from './Validation.js'
 
 export class ParentChildValidation extends Validation {
   name = 'ParentChildValidation' as const

@@ -10,7 +10,7 @@ import {
 } from '@apollo-annotation/common'
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
-import { MergeExonsChange } from './MergeExonsChange'
+import { MergeExonsChange } from './MergeExonsChange.js'
 
 interface SerializedUndoMergeExonsChangeBase extends SerializedFeatureChange {
   typeName: 'UndoMergeExonsChange'

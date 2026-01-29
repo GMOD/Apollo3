@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   AssemblySpecificChange,
   type Change,
@@ -30,7 +33,6 @@ export class AddAssemblyAliasesChange extends AssemblySpecificChange {
     if (!assembly) {
       throw new Error(`assembly ${this.assembly} not found`)
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     assembly.configuration.aliases.set(this.aliases)
     return Promise.resolve()
   }

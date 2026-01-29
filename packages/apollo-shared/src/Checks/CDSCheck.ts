@@ -6,7 +6,7 @@ import {
 import { intersection2 } from '@jbrowse/core/util'
 import ObjectID from 'bson-objectid'
 
-import { getPrintableId } from './util'
+import { getPrintableId } from './util.js'
 
 enum STOP_CODONS {
   'TAG',

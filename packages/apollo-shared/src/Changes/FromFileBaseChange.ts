@@ -11,7 +11,7 @@ import {
 } from '@apollo-annotation/schemas'
 import { type GFF3Feature } from '@gmod/gff'
 
-import { gff3ToAnnotationFeature } from '../GFF3'
+import { gff3ToAnnotationFeature } from '../GFF3/index.js'
 
 export abstract class FromFileBaseChange extends AssemblySpecificChange {
   async addRefSeqIntoDb(
@@ -37,8 +37,6 @@ export abstract class FromFileBaseChange extends AssemblySpecificChange {
     logger.debug?.('starting sequence stream')
     let lineCount = 0
     const decoder = new TextDecoder()
-    // @ts-expect-error type is wrong here
-    // eslint-disable-next-line @typescript-eslint/await-thenable
     for await (const data of sequenceStream) {
       const chunk = decoder.decode(data)
       lastLineIsIncomplete = !chunk.endsWith('\n')

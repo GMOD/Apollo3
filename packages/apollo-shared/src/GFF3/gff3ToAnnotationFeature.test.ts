@@ -7,8 +7,8 @@ import { type GFF3Feature, parseStringSync } from '@gmod/gff'
 import { assert, use } from 'chai'
 import chaiExclude from 'chai-exclude'
 
-import { gff3ToAnnotationFeature } from './gff3ToAnnotationFeature'
-import { readAnnotationFeatureSnapshot, testCases } from './testUtil'
+import { gff3ToAnnotationFeature } from './gff3ToAnnotationFeature.js'
+import { readAnnotationFeatureSnapshot, testCases } from './testUtil.js'
 
 use(chaiExclude)
 
