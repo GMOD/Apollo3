@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common'
 
-import { MessagesGateway } from './messages.gateway'
-import { MessagesService } from './messages.service'
+import { MessagesGateway } from './messages.gateway.js'
+import { MessagesService } from './messages.service.js'
 
 @Module({
   providers: [MessagesGateway, MessagesService],

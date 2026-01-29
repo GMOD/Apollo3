@@ -12,15 +12,15 @@ import {
   UseGuards,
 } from '@nestjs/common'
 
-import { GoogleAuthGuard } from '../utils/google.guard'
-import { MicrosoftAuthGuard } from '../utils/microsoft.guard'
-import { Role } from '../utils/role/role.enum'
-import { Validations } from '../utils/validation/validatation.decorator'
+import { GoogleAuthGuard } from '../utils/google.guard.js'
+import { MicrosoftAuthGuard } from '../utils/microsoft.guard.js'
+import { Role } from '../utils/role/role.enum.js'
+import { Validations } from '../utils/validation/validatation.decorator.js'
 
 import {
   AuthenticationService,
-  RequestWithUserToken,
-} from './authentication.service'
+  type RequestWithUserToken,
+} from './authentication.service.js'
 
 @Validations(Role.None)
 @Controller('auth')

@@ -26,7 +26,7 @@ export class Assembly {
   user: string
 
   @Prop({ type: { fa: String, fai: String, gzi: String } })
-  externalLocation: { fa: string; fai: string; gzi?: string }
+  externalLocation?: { fa: string; fai: string; gzi?: string }
 
   @Prop({
     type: {
@@ -35,7 +35,7 @@ export class Assembly {
       gzi: { type: MongooseSchema.Types.ObjectId, ref: 'File' },
     },
   })
-  fileIds: { fa: string; fai: string; gzi: string } // Store fileId of fa/fai/gzi.
+  fileIds?: { fa: string; fai: string; gzi: string } // Store fileId of fa/fai/gzi.
 
   @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Check' }] })
   checks: Types.ObjectId[]

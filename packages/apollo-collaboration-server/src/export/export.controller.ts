@@ -10,12 +10,12 @@ import {
   Response,
   StreamableFile,
 } from '@nestjs/common'
-import { Response as ExpressResponse } from 'express'
+import { type Response as ExpressResponse } from 'express'
 
-import { Role } from '../utils/role/role.enum'
-import { Validations } from '../utils/validation/validatation.decorator'
+import { Role } from '../utils/role/role.enum.js'
+import { Validations } from '../utils/validation/validatation.decorator.js'
 
-import { ExportService } from './export.service'
+import { ExportService } from './export.service.js'
 
 @Controller('export')
 export class ExportController {

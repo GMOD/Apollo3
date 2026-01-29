@@ -6,29 +6,29 @@ import {
 } from '@apollo-annotation/common'
 import {
   Assembly,
-  AssemblyDocument,
+  type AssemblyDocument,
   Change,
-  ChangeDocument,
+  type ChangeDocument,
   Check,
-  CheckDocument,
+  type CheckDocument,
   Feature,
-  FeatureDocument,
+  type FeatureDocument,
   File,
-  FileDocument,
+  type FileDocument,
   JBrowseConfig,
-  JBrowseConfigDocument,
+  type JBrowseConfigDocument,
   RefSeq,
   RefSeqChunk,
-  RefSeqChunkDocument,
-  RefSeqDocument,
+  type RefSeqChunkDocument,
+  type RefSeqDocument,
   User,
-  UserDocument,
+  type UserDocument,
 } from '@apollo-annotation/schemas'
 import {
   AddFeatureChange,
-  AddFeatureChangeDetails,
-  ChangeMessage,
-  DecodedJWT,
+  type AddFeatureChangeDetails,
+  type ChangeMessage,
+  type DecodedJWT,
   makeUserSessionId,
   validationRegistry,
 } from '@apollo-annotation/shared'
@@ -38,14 +38,14 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { FilterQuery, Model } from 'mongoose'
+import { type FilterQuery, Model } from 'mongoose'
 
-import { CountersService } from '../counters/counters.service'
-import { FilesService } from '../files/files.service'
-import { MessagesGateway } from '../messages/messages.gateway'
-import { PluginsService } from '../plugins/plugins.service'
+import { CountersService } from '../counters/counters.service.js'
+import { FilesService } from '../files/files.service.js'
+import { MessagesGateway } from '../messages/messages.gateway.js'
+import { PluginsService } from '../plugins/plugins.service.js'
 
-import { FindChangeDto } from './dto/find-change.dto'
+import { FindChangeDto } from './dto/find-change.dto.js'
 
 const STATUS_ZERO_CHANGE_TYPES = new Set([
   'AddAssemblyAndFeaturesFromFileChange',

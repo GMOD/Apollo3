@@ -1,8 +1,8 @@
 import { Controller, Get } from '@nestjs/common'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
 
-import { Role } from '../utils/role/role.enum'
-import { Validations } from '../utils/validation/validatation.decorator'
+import { Role } from '../utils/role/role.enum.js'
+import { Validations } from '../utils/validation/validatation.decorator.js'
 
 @Controller('health')
 export class HealthController {

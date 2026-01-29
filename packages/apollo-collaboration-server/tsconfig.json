@@ -1,21 +1,17 @@
 {
   "extends": "../../tsconfig",
   "compilerOptions": {
-    "module": "commonjs",
-    "lib": ["esnext"],
-    "removeComments": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "es2017",
-    "outDir": "./dist",
-    "baseUrl": "./",
-    "incremental": true,
     "strictPropertyInitialization": false,
-    "forceConsistentCasingInFileNames": false,
-    "sourceMap": true,
+    // For Node.js >=20: https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping
+    "target": "es2023",
+    "lib": ["es2023"],
+    "types": ["jest", "node"],
   },
-  "include": ["./src", "./test"],
+  "include": ["./src"],
   "references": [
     { "path": "../apollo-common" },
     { "path": "../apollo-mst" },

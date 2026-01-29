@@ -2,16 +2,16 @@ import fs from 'node:fs/promises'
 
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
-import { JwtModule, JwtModuleOptions } from '@nestjs/jwt'
+import { JwtModule, type JwtModuleOptions } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 
-import { UsersModule } from '../users/users.module'
-import { GoogleStrategy } from '../utils/strategies/google.strategy'
-import { JwtStrategy } from '../utils/strategies/jwt.strategy'
-import { MicrosoftStrategy } from '../utils/strategies/microsoft.strategy'
+import { UsersModule } from '../users/users.module.js'
+import { GoogleStrategy } from '../utils/strategies/google.strategy.js'
+import { JwtStrategy } from '../utils/strategies/jwt.strategy.js'
+import { MicrosoftStrategy } from '../utils/strategies/microsoft.strategy.js'
 
-import { AuthenticationController } from './authentication.controller'
-import { AuthenticationService } from './authentication.service'
+import { AuthenticationController } from './authentication.controller.js'
+import { AuthenticationService } from './authentication.service.js'
 
 interface JWTSecretConfig {
   JWT_SECRET?: string

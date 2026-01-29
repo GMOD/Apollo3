@@ -4,8 +4,8 @@ import { Module } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import idValidator from 'mongoose-id-validator'
 
-import { RefSeqsController } from './refSeqs.controller'
-import { RefSeqsService } from './refSeqs.service'
+import { RefSeqsController } from './refSeqs.controller.js'
+import { RefSeqsService } from './refSeqs.service.js'
 
 @Module({
   imports: [

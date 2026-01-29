@@ -1,6 +1,6 @@
 import { Test, type TestingModule } from '@nestjs/testing'
 
-import { JBrowseService } from './jbrowse.service'
+import { JBrowseService } from './jbrowse.service.js'
 
 describe('JBrowseService', () => {
   let service: JBrowseService

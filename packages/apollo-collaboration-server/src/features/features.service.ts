@@ -2,20 +2,23 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
   Feature,
-  FeatureDocument,
+  type FeatureDocument,
   RefSeq,
-  RefSeqDocument,
+  type RefSeqDocument,
 } from '@apollo-annotation/schemas'
 import { GetFeaturesOperation } from '@apollo-annotation/shared'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 
-import { ChecksService } from '../checks/checks.service'
-import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
-import { OperationsService } from '../operations/operations.service'
+import { ChecksService } from '../checks/checks.service.js'
+import { type FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
+import { OperationsService } from '../operations/operations.service.js'
 
-import { FeatureCountRequest, GetByIndexedIdRequest } from './dto/feature.dto'
+import {
+  type FeatureCountRequest,
+  type GetByIndexedIdRequest,
+} from './dto/feature.dto.js'
 
 @Injectable()
 export class FeaturesService {

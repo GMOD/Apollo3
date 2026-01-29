@@ -4,11 +4,11 @@ import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import idValidator from 'mongoose-id-validator'
 
-import { AssembliesModule } from '../assemblies/assemblies.module'
-import { RefSeqsModule } from '../refSeqs/refSeqs.module'
+import { AssembliesModule } from '../assemblies/assemblies.module.js'
+import { RefSeqsModule } from '../refSeqs/refSeqs.module.js'
 
-import { JBrowseController } from './jbrowse.controller'
-import { JBrowseService } from './jbrowse.service'
+import { JBrowseController } from './jbrowse.controller.js'
+import { JBrowseService } from './jbrowse.service.js'
 
 @Module({
   controllers: [JBrowseController],

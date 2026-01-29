@@ -1,6 +1,6 @@
 import {
   JBrowseConfig,
-  JBrowseConfigDocument,
+  type JBrowseConfigDocument,
 } from '@apollo-annotation/schemas'
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
@@ -8,9 +8,9 @@ import { InjectModel } from '@nestjs/mongoose'
 import merge from 'deepmerge'
 import { Model } from 'mongoose'
 
-import { AssembliesService } from '../assemblies/assemblies.service'
-import { RefSeqsService } from '../refSeqs/refSeqs.service'
-import { Role } from '../utils/role/role.enum'
+import { AssembliesService } from '../assemblies/assemblies.service.js'
+import { RefSeqsService } from '../refSeqs/refSeqs.service.js'
+import { Role } from '../utils/role/role.enum.js'
 
 @Injectable()
 export class JBrowseService {

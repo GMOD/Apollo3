@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { JWTPayload } from '@apollo-annotation/shared'
-import { ExecutionContext, Injectable } from '@nestjs/common'
+import { type JWTPayload } from '@apollo-annotation/shared'
+import { type ExecutionContext, Injectable } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 
-import { Role } from './role/role.enum'
+import { Role } from './role/role.enum.js'
 
 export const IS_PUBLIC_KEY = 'isPublic'
 @Injectable()

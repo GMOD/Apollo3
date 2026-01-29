@@ -1,6 +1,6 @@
 import { Test, type TestingModule } from '@nestjs/testing'
 
-import { JBrowseController } from './jbrowse.controller'
+import { JBrowseController } from './jbrowse.controller.js'
 
 describe('JBrowseController', () => {
   let controller: JBrowseController

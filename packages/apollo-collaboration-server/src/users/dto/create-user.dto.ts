@@ -1,4 +1,4 @@
-import { type Role } from '../../utils/role/role.enum'
+import { type Role } from '../../utils/role/role.enum.js'
 
 export class CreateUserDto {
   readonly email: string

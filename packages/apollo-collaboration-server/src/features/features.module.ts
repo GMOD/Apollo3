@@ -1,21 +1,21 @@
 import {
   Feature,
-  FeatureDocument,
+  type FeatureDocument,
   FeatureSchema,
 } from '@apollo-annotation/schemas'
 import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
-import { Connection } from 'mongoose'
+import { type Connection } from 'mongoose'
 import idValidator from 'mongoose-id-validator'
 
-import { ChecksModule } from '../checks/checks.module'
-import { ChecksService } from '../checks/checks.service'
-import { OperationsModule } from '../operations/operations.module'
-import { RefSeqsModule } from '../refSeqs/refSeqs.module'
-import { SequenceModule } from '../sequence/sequence.module'
+import { ChecksModule } from '../checks/checks.module.js'
+import { ChecksService } from '../checks/checks.service.js'
+import { OperationsModule } from '../operations/operations.module.js'
+import { RefSeqsModule } from '../refSeqs/refSeqs.module.js'
+import { SequenceModule } from '../sequence/sequence.module.js'
 
-import { FeaturesController } from './features.controller'
-import { FeaturesService } from './features.service'
+import { FeaturesController } from './features.controller.js'
+import { FeaturesService } from './features.service.js'
 
 @Module({
   controllers: [FeaturesController],

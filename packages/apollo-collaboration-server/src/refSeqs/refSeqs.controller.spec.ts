@@ -1,7 +1,7 @@
 import { Test, type TestingModule } from '@nestjs/testing'
 
-import { RefSeqsController } from './refSeqs.controller'
-import { RefSeqsService } from './refSeqs.service'
+import { RefSeqsController } from './refSeqs.controller.js'
+import { RefSeqsService } from './refSeqs.service.js'
 
 describe('RefSeqsController', () => {
   let controller: RefSeqsController
