@@ -9,8 +9,8 @@ import {
   AssemblySpecificChange,
   type SerializedAssemblySpecificChange,
   isAssemblySpecificChange,
-} from './AssemblySpecificChange'
-import { type ChangeOptions } from './Change'
+} from './AssemblySpecificChange.js'
+import { type ChangeOptions } from './Change.js'
 
 export interface SerializedFeatureChange
   extends SerializedAssemblySpecificChange {

@@ -72,7 +72,7 @@
   },
   "devDependencies": {
     "@jbrowse/cli": "^3.6.5",
-    "@jbrowse/core": "^3.6.5",
+    "@jbrowse/core": "^4.1.1",
     "@jbrowse/development-tools": "^2.2.1",
     "@jest/globals": "^29.0.3",
     "@mui/material": "^7.0.0",
@@ -110,7 +110,7 @@
     "typescript": "^5.5.3"
   },
   "peerDependencies": {
-    "@jbrowse/core": "^3.0.1",
+    "@jbrowse/core": "^4.1.1",
     "@mui/material": "^7.0.0",
     "mobx": "^6.6.1",
     "mobx-react": "^9.0.0",

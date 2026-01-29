@@ -45,7 +45,7 @@
     "@emotion/styled": "^11.10.6",
     "@gmod/gff": "^2.0.0",
     "@gmod/indexedfasta": "^2.0.4",
-    "@jbrowse/core": "^3.6.5",
+    "@jbrowse/core": "^4.1.1",
     "@mui/material": "^7.0.0",
     "@nestjs/common": "^10.1.0",
     "@nestjs/config": "^3.0.0",
