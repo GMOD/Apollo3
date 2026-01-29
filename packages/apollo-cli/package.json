@@ -10,7 +10,6 @@
   "author": "Apollo Team",
   "type": "module",
   "exports": "./dist/index.js",
-  "main": "",
   "types": "dist/index.d.ts",
   "bin": {
     "apollo": "./bin/run.js"
@@ -116,7 +115,7 @@
     "typescript": "^5.5.3"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "publishConfig": {
     "access": "public"
