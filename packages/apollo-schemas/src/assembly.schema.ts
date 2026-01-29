@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { Schema as MongooseSchema, Types } from 'mongoose'
 
-import { File } from './file.schema'
+import { File } from './file.schema.js'
 
 export type AssemblyDocument = Assembly & Document
 
