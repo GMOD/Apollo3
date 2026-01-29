@@ -14,7 +14,7 @@ import {
   types,
 } from 'mobx-state-tree'
 
-import { ApolloAssembly } from '.'
+import { ApolloAssembly } from './index.js'
 
 const LateAnnotationFeature = types.late(
   (): IAnyModelType => AnnotationFeatureModel,

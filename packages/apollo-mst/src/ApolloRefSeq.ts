@@ -10,7 +10,7 @@ import {
   type AnnotationFeature,
   AnnotationFeatureModel,
   type AnnotationFeatureSnapshot,
-} from './AnnotationFeatureModel'
+} from './AnnotationFeatureModel.js'
 
 export const Sequence = types.model({
   start: types.number,
@@ -100,7 +100,7 @@ export const ApolloRefSeq = types
         self.sequence.length === consolidatedSequences.length &&
         self.sequence.every(
           (s, idx) =>
-            s.start === consolidatedSequences[idx].start &&
+            s.start === consolidatedSequences[idx]?.start &&
             s.stop === consolidatedSequences[idx].stop,
         )
       ) {
