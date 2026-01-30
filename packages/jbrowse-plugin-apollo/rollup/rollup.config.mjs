@@ -1,7 +1,8 @@
 /** @type {import('rollup').RollupOptions} */
 
 import globals from '@jbrowse/core/ReExports/list'
-import { createRollupConfig } from '@jbrowse/development-tools'
+
+import { createRollupConfig } from './createRollupConfig.mjs'
 
 function stringToBoolean(string) {
   if (string === undefined) {
@@ -32,7 +33,7 @@ for (const config of rollupConfig) {
   config.onwarn = (warning, warn) => {
     if (
       warning.code === 'MODULE_LEVEL_DIRECTIVE' &&
-      warning.message.includes(`'use client'`)
+      warning.message.includes(`use client`)
     ) {
       return
     }

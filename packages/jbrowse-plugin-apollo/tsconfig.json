@@ -1,12 +1,11 @@
 {
   "extends": "../../tsconfig",
   "compilerOptions": {
-    "declaration": false,
-    "target": "ES6",
     "rootDir": "./src",
     "noEmit": true,
-    "noEmitOnError": false,
     "resolveJsonModule": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
   },
   "include": ["src"],
   "exclude": ["**/dist/"],
