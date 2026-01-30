@@ -12,7 +12,7 @@ import {
   getParentOfType,
   getSnapshot,
   types,
-} from 'mobx-state-tree'
+} from '@jbrowse/mobx-state-tree'
 
 import { ApolloAssembly } from './index.js'
 

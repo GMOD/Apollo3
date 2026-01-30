@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+
 /* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+
 import { Menu, type MenuItem } from '@jbrowse/core/ui'
 import { getContainingView } from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
@@ -84,6 +85,8 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             <CircularProgress size="18px" />
           </div>
         ) : null}
+        {/* This type is wrong in @jbrowse/core */}
+        {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
         {message ? (
           <Alert
             severity="warning"

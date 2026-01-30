@@ -8,6 +8,7 @@ import { annotationFeatureToGFF3 } from '@apollo-annotation/shared'
 import { type GFF3Item, formatSync } from '@gmod/gff'
 import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
+import { type IMSTMap, getSnapshot } from '@jbrowse/mobx-state-tree'
 import {
   Button,
   Checkbox,
@@ -21,7 +22,6 @@ import {
   type SelectChangeEvent,
 } from '@mui/material'
 import { saveAs } from 'file-saver'
-import { type IMSTMap, getSnapshot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
 import {

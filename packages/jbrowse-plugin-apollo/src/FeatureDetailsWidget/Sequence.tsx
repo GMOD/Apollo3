@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { splitStringIntoChunks } from '@apollo-annotation/shared'
+import { makeStyles } from '@jbrowse/core/util/tss-react'
 import { observer } from 'mobx-react'
 import React from 'react'
-import { makeStyles } from 'tss-react/mui'
 
 import { type ApolloSessionModel } from '../session'
 

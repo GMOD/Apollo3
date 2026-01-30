@@ -8,3 +8,9 @@ export interface ApolloRootModel extends Omit<AppRootModel, 'session'> {
   session: ApolloSessionModel
   internetAccounts: (BaseInternetAccountModel | ApolloInternetAccountModel)[]
 }
+
+export function isApolloInternetAccount(
+  internetAccount: BaseInternetAccountModel | ApolloInternetAccountModel,
+): internetAccount is ApolloInternetAccountModel {
+  return internetAccount.type === 'ApolloInternetAccount'
+}

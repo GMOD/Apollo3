@@ -67,11 +67,11 @@ function getPlugins(mode, jbrowseGlobals) {
       ],
       // moduleResolution: 'node',
       // tsconfig: './tsconfig.json',
-      // outDir: distPath,
+      outDir: distPath,
       // target: 'esnext',
-      // ...(tsDeclarationGenerated
-      //   ? { declarationDir: './' }
-      //   : { declaration: false, declarationMap: false }),
+      ...(tsDeclarationGenerated
+        ? { declarationDir: './' }
+        : { declaration: false, declarationMap: false }),
     }),
     (mode === 'cjs' || mode === 'esmBundle') &&
       externalGlobals(createGlobalMap(jbrowseGlobals)),

@@ -5,7 +5,7 @@ import {
   getSession,
   isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
-import { types } from 'mobx-state-tree'
+import { types } from '@jbrowse/mobx-state-tree'
 
 interface JobsEntry {
   name: string

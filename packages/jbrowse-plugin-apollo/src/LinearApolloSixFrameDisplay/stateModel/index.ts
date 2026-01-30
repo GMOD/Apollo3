@@ -1,6 +1,6 @@
 import type PluginManager from '@jbrowse/core/PluginManager'
-import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
-import { type Instance, types } from 'mobx-state-tree'
+import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
+import { type Instance, types } from '@jbrowse/mobx-state-tree'
 
 import { TabularEditorStateModelType } from '../../TabularEditor'
 

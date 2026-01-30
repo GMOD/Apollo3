@@ -4,10 +4,10 @@ import {
   isGFFColumnInternal,
   isGFFInternalAttribute,
 } from '@apollo-annotation/shared'
+import { makeStyles } from '@jbrowse/core/util/tss-react'
 import InfoIcon from '@mui/icons-material/Info'
 import { Chip, Tooltip, Typography } from '@mui/material'
 import React from 'react'
-import { makeStyles } from 'tss-react/mui'
 
 const useStyles = makeStyles()((theme) => ({
   attributeKey: {

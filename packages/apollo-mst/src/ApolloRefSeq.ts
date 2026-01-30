@@ -4,7 +4,7 @@ import {
   type SnapshotIn,
   type SnapshotOrInstance,
   types,
-} from 'mobx-state-tree'
+} from '@jbrowse/mobx-state-tree'
 
 import {
   type AnnotationFeature,

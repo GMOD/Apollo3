@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -86,7 +87,7 @@ export const babelPluginJBrowse = createBabelInputPluginFactory(() => ({
     )
 
     const babelOptions = config.options || {}
-    babelOptions.presets = babelOptions.presets || []
+    babelOptions.presets = babelOptions.presets ?? []
 
     const presetEnvIdx = babelOptions.presets.findIndex((preset) =>
       preset.file.request.includes('@babel/preset-env'),
@@ -125,7 +126,7 @@ export const babelPluginJBrowse = createBabelInputPluginFactory(() => ({
     babelOptions.plugins = mergeConfigItems(
       'plugin',
       defaultPlugins,
-      babelOptions.plugins || [],
+      babelOptions.plugins ?? [],
     )
 
     return babelOptions

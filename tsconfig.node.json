@@ -45,7 +45,7 @@
     "./.*.mjs",
     "./*.cjs",
     "./.*.cjs",
-    "scripts/*.ts",
-    ".husky/*.{m,c,}js",
+    "./scripts/*.ts",
+    "./.husky/*.cjs",
   ],
 }

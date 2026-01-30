@@ -16,7 +16,7 @@ import {
 } from '@apollo-annotation/mst'
 import { type Feature } from '@apollo-annotation/schemas'
 import { doesIntersect2 } from '@jbrowse/core/util'
-import { getSnapshot } from 'mobx-state-tree'
+import { getSnapshot } from '@jbrowse/mobx-state-tree'
 
 import { attributesToRecords, stringifyAttributes } from '../util.js'
 

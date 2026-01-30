@@ -6,6 +6,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { changeRegistry } from '@apollo-annotation/common'
+import { makeStyles } from '@jbrowse/core/util/tss-react'
+import { getRoot } from '@jbrowse/mobx-state-tree'
 import {
   Button,
   DialogActions,
@@ -21,9 +23,7 @@ import {
   type GridRowsProp,
   GridToolbar,
 } from '@mui/x-data-grid'
-import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
-import { makeStyles } from 'tss-react/mui'
 
 import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import {

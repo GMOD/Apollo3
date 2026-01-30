@@ -7,8 +7,8 @@ import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { gff3ToAnnotationFeature } from '@apollo-annotation/shared'
 import { type GFF3Feature } from '@gmod/gff'
 import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import { type PluggableElementType } from '@jbrowse/core/pluggableElementTypes'
 import type DisplayType from '@jbrowse/core/pluggableElementTypes/DisplayType'
-import type PluggableElementBase from '@jbrowse/core/pluggableElementTypes/PluggableElementBase'
 import {
   type AbstractSessionModel,
   getContainingView,
@@ -81,7 +81,7 @@ function convertFeatureAttributes(feature: Feature): Record<string, string[]> {
 }
 
 export function annotationFromJBrowseFeature(
-  pluggableElement: PluggableElementBase,
+  pluggableElement: PluggableElementType,
 ) {
   if (pluggableElement.name !== 'LinearBasicDisplay') {
     return pluggableElement

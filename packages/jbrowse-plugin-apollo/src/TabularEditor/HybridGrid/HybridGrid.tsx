@@ -1,8 +1,8 @@
 import { Menu, type MenuItem } from '@jbrowse/core/ui'
+import { makeStyles } from '@jbrowse/core/util/tss-react'
 import { useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useRef, useState } from 'react'
-import { makeStyles } from 'tss-react/mui'
 
 import { type DisplayStateModel } from '../types'
 

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { getContainingView } from '@jbrowse/core/util'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
@@ -34,6 +35,7 @@ export const LinearApolloReferenceSequenceDisplay = observer(
     const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
     const message = regionCannotBeRendered()
 
+    // This type is wrong in @jbrowse/core
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (message) {
       return (

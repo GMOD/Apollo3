@@ -1,5 +1,5 @@
+import { makeStyles } from '@jbrowse/core/util/tss-react'
 import React from 'react'
-import { makeStyles } from 'tss-react/mui'
 
 const useStyles = makeStyles()({
   highlighted: {

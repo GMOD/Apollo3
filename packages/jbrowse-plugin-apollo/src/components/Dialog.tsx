@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Dialog as JBDialog } from '@jbrowse/core/ui'
+import { makeStyles } from '@jbrowse/core/util/tss-react'
 import CloseIcon from '@mui/icons-material/Close'
 import { type DialogProps, DialogTitle, IconButton } from '@mui/material'
 import { observer } from 'mobx-react'
 import React from 'react'
-import { makeStyles } from 'tss-react/mui'
 
 const useStyles = makeStyles()((theme) => ({
   dialogTitle: {

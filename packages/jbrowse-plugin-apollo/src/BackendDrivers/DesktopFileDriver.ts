@@ -16,7 +16,7 @@ import {
 import { type GFF3Item, formatSync } from '@gmod/gff'
 import { getConf } from '@jbrowse/core/configuration'
 import { type Region, getSession } from '@jbrowse/core/util'
-import { getSnapshot } from 'mobx-state-tree'
+import { getSnapshot } from '@jbrowse/mobx-state-tree'
 
 import { checkFeatures, loadAssemblyIntoClient } from '../util'
 
