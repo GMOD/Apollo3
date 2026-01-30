@@ -6,6 +6,7 @@
     "url": "https://github.com/GMOD/Apollo3.git",
     "directory": "packages/apollo-common"
   },
+  "sideEffects": false,
   "type": "module",
   "exports": "./dist/index.js",
   "scripts": {

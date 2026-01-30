@@ -1,6 +1,7 @@
 {
   "name": "@apollo-annotation/schemas",
   "version": "0.3.11",
+  "sideEffects": false,
   "type": "module",
   "exports": "./dist/index.js",
   "scripts": {
