@@ -41,7 +41,6 @@ export const LinearApolloSixFrameDisplay = observer(
       contextMenuItems: getContextMenuItems,
       cursor,
       featuresHeight,
-      featureLabelSpacer,
       geneTrackRowNums,
       isShown,
       onMouseDown,
@@ -55,6 +54,7 @@ export const LinearApolloSixFrameDisplay = observer(
       setOverlayCanvas,
       setTheme,
       showCheckResults,
+      showFeatureLabels,
     } = model
     const { classes } = useStyles()
     const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
@@ -188,15 +188,19 @@ export const LinearApolloSixFrameDisplay = observer(
                     let row
                     for (const loc of feature.cdsLocations) {
                       for (const cds of loc) {
-                        let rowNum: number = getFrame(
+                        const frame = getFrame(
                           cds.min,
                           cds.max,
                           feature.strand ?? 1,
                           cds.phase,
                         )
-                        rowNum = featureLabelSpacer(
-                          rowNum < 0 ? -1 * rowNum + 5 : rowNum,
-                        )
+                        const frameOffsets = showFeatureLabels
+                          ? [0, 5, 3, 1, 15, 13, 11]
+                          : [0, 2, 1, 0, 8, 7, 6]
+                        const rowNum = frameOffsets.at(frame)
+                        if (!rowNum) {
+                          continue
+                        }
                         if (
                           checkResult.start >= cds.min &&
                           checkResult.start <= cds.max
