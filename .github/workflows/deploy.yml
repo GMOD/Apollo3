@@ -31,7 +31,7 @@ jobs:
       - name: Build plugin
         if: inputs.environment == 'staging'
         run: |
-          yarn build
+          JB_NPM=false yarn build
           cp dist/jbrowse-plugin-apollo.umd.development.js dist/apollo.js
         working-directory: packages/jbrowse-plugin-apollo
       - name: Fetch plugin

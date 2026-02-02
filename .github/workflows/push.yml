@@ -25,7 +25,7 @@ jobs:
         run: yarn build
         working-directory: packages/apollo-collaboration-server
       - name: Build plugin
-        run: yarn build
+        run: JB_NPM=false yarn build
         working-directory: packages/jbrowse-plugin-apollo
   lint:
     name: Lint
