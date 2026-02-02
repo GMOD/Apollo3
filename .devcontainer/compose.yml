@@ -7,6 +7,9 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ../..:/workspaces:cached
+      - uploads:/data/uploads
+    environment:
+      FILE_UPLOAD_FOLDER: /data/uploads
 
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity
@@ -18,7 +21,7 @@ services:
     # (Adding the "ports" property to this file will not forward from a Codespace.)
 
   db:
-    image: mongo:latest
+    image: mongo:8
     restart: unless-stopped
     volumes:
       - mongodb-data:/data/db
@@ -34,3 +37,4 @@ services:
 
 volumes:
   mongodb-data: null
+  uploads: null

@@ -3,7 +3,7 @@
 // https://github.com/devcontainers/templates/tree/main/src/javascript-node-mongo
 {
   "name": "Apollo",
-  "dockerComposeFile": "docker-compose.yml",
+  "dockerComposeFile": "compose.yml",
   "service": "app",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 
