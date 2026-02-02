@@ -7,13 +7,13 @@ import {
 } from '@jbrowse/core/util'
 import { types } from '@jbrowse/mobx-state-tree'
 
-interface JobsEntry {
+export interface JobsEntry {
   name: string
   cancelCallback?: () => void
   progressPct?: number
   statusMessage?: string
 }
-interface JobsListModel {
+export interface JobsListModel {
   id: number
   type: 'JobsListWidget'
   jobs: JobsEntry[]
