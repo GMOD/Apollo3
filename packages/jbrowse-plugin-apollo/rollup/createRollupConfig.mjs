@@ -70,7 +70,7 @@ function getPlugins(mode, jbrowseGlobals) {
       outDir: distPath,
       // target: 'esnext',
       ...(tsDeclarationGenerated
-        ? { declarationDir: './' }
+        ? { declarationDir: distPath }
         : { declaration: false, declarationMap: false }),
     }),
     (mode === 'cjs' || mode === 'esmBundle') &&
