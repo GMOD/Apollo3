@@ -19,6 +19,11 @@ jobs:
           cache: yarn
       - name: Install
         run: yarn --immutable
+      # Have to build shared before linting so type-based lint rules can
+      # run correctly
+      - name: Build shared
+        run: yarn build
+        working-directory: packages/apollo-shared
       - name: Lint codebase
         run: yarn eslint --max-warnings 0
 

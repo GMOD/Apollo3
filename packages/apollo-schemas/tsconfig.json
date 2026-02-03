@@ -11,4 +11,5 @@
     "strictPropertyInitialization": false,
   },
   "include": ["./src"],
+  "references": [{ "path": "../apollo-mst" }],
 }
