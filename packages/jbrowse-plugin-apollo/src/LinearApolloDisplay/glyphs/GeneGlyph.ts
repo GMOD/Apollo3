@@ -14,6 +14,7 @@ import { alpha } from '@mui/material'
 
 import { type OntologyRecord } from '../../OntologyManager'
 import { MergeExons, MergeTranscripts, SplitExon } from '../../components'
+import { DuplicateTranscript } from '../../components/DuplicateTranscript'
 import {
   type MousePosition,
   type MousePositionWithFeature,
@@ -950,29 +951,54 @@ function getContextMenuItems(
         )
       }
       if (isTranscriptFeature(feature, session)) {
-        contextMenuItemsForFeature.push({
-          label: 'Merge transcript',
-          onClick: () => {
-            ;(session as unknown as AbstractSessionModel).queueDialog(
-              (doneCallback) => [
-                MergeTranscripts,
-                {
-                  session,
-                  handleClose: () => {
-                    doneCallback()
+        contextMenuItemsForFeature.push(
+          {
+            label: 'Merge transcript',
+            onClick: () => {
+              ;(session as unknown as AbstractSessionModel).queueDialog(
+                (doneCallback) => [
+                  MergeTranscripts,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                    },
+                    changeManager,
+                    sourceFeature: feature,
+                    sourceAssemblyId: currentAssemblyId,
+                    selectedFeature,
+                    setSelectedFeature: (feature?: AnnotationFeature) => {
+                      display.setSelectedFeature(feature)
+                    },
                   },
-                  changeManager,
-                  sourceFeature: feature,
-                  sourceAssemblyId: currentAssemblyId,
-                  selectedFeature,
-                  setSelectedFeature: (feature?: AnnotationFeature) => {
-                    display.setSelectedFeature(feature)
-                  },
-                },
-              ],
-            )
+                ],
+              )
+            },
           },
-        })
+          {
+            label: 'Duplicate transcript',
+            onClick: () => {
+              ;(session as unknown as AbstractSessionModel).queueDialog(
+                (doneCallback) => [
+                  DuplicateTranscript,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                    },
+                    changeManager,
+                    sourceFeature: feature,
+                    sourceAssemblyId: currentAssemblyId,
+                    selectedFeature,
+                    setSelectedFeature: (feature?: AnnotationFeature) => {
+                      display.setSelectedFeature(feature)
+                    },
+                  },
+                ],
+              )
+            },
+          },
+        )
         if (isSessionModelWithWidgets(session)) {
           contextMenuItemsForFeature.splice(1, 0, {
             label: 'Open transcript editor',
