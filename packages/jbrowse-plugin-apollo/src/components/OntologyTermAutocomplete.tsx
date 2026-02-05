@@ -93,7 +93,12 @@ export function OntologyTermAutocomplete({
       )
     }
     return () => {
-      controller.abort('OntologyTermAutocomplete matcher')
+      controller.abort(
+        new DOMException(
+          'Cancel getting current term from ontology store',
+          'AbortError',
+        ),
+      )
     }
   }, [session, valueString, filterTerms, ontologyStore, needToLoadCurrentTerm])
 
@@ -119,7 +124,12 @@ export function OntologyTermAutocomplete({
       )
     }
     return () => {
-      controller.abort('OntologyTermAutocomplete loader')
+      controller.abort(
+        new DOMException(
+          'Canceling getting valid terms from ontology store',
+          'AbortError',
+        ),
+      )
     }
   }, [
     needToLoadTermChoices,

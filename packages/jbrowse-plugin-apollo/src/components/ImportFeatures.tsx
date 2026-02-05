@@ -182,7 +182,12 @@ export function ImportFeatures({
       statusMessage: 'Uploading file, this may take awhile',
       progressPct: 0,
       cancelCallback: () => {
-        controller.abort('ImportFeatures')
+        controller.abort(
+          new DOMException(
+            `Canceling importing of features to ${selectedAssembly.displayName}`,
+            'AbortError',
+          ),
+        )
         jobsManager.abortJob(job.name)
       },
     }

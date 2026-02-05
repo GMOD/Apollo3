@@ -57,7 +57,12 @@ export const AuthTypeSelector = ({
       }
     })
     return () => {
-      controller.abort('AuthTypeSelector')
+      controller.abort(
+        new DOMException(
+          'Error retrieving valid authentication types',
+          'AbortError',
+        ),
+      )
     }
   }, [baseURL])
 
