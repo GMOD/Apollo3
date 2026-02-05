@@ -159,15 +159,19 @@ export function layoutsModelFactory(
                   }
                   for (const cdsRow of cdsLocations) {
                     for (const cds of cdsRow) {
-                      let rowNum: number = getFrame(
+                      const frame = getFrame(
                         cds.min,
                         cds.max,
                         strand ?? 1,
                         cds.phase,
                       )
-                      rowNum = self.featureLabelSpacer(
-                        rowNum < 0 ? -1 * rowNum + 5 : rowNum,
-                      )
+                      const frameOffsets = self.showFeatureLabels
+                        ? [0, 5, 3, 1, 15, 13, 11]
+                        : [0, 2, 1, 0, 8, 7, 6]
+                      const rowNum = frameOffsets.at(frame)
+                      if (!rowNum) {
+                        continue
+                      }
                       if (!featureLayout.get(rowNum)) {
                         featureLayout.set(rowNum, [])
                       }

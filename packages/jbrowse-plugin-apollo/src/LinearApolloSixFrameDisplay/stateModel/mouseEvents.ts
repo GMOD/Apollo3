@@ -86,15 +86,16 @@ export function mouseEventsModelIntermediateFactory(
             }
             for (const loc of feature.cdsLocations) {
               for (const cds of loc) {
-                let rowNum: number = getFrame(
+                const frame = getFrame(
                   cds.min,
                   cds.max,
                   feature.strand ?? 1,
                   cds.phase,
                 )
-                rowNum = self.featureLabelSpacer(
-                  rowNum < 0 ? -1 * rowNum + 5 : rowNum,
-                )
+                const frameOffsets = self.showFeatureLabels
+                  ? [0, 5, 3, 1, 15, 13, 11]
+                  : [0, 2, 1, 0, 8, 7, 6]
+                const rowNum = frameOffsets.at(frame)
                 if (row === rowNum && bp >= cds.min && bp <= cds.max) {
                   return (
                     featureID === undefined ||

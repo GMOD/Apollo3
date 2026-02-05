@@ -347,9 +347,14 @@ function draw(
           cdsStartPx = reversed ? minX - cdsWidthPx : minX
           ctx.fillStyle = theme.palette.text.primary
           const frame = getFrame(cds.min, cds.max, child.strand ?? 1, cds.phase)
-          const frameAdjust =
-            (frame < 0 ? -1 * frame + 5 : frame) * featureLabelSpacer
-          cdsTop = (frameAdjust - featureLabelSpacer) * rowHeight
+          const frameOffsets = showFeatureLabels
+            ? [0, 4, 2, 0, 14, 12, 10]
+            : [0, 2, 1, 0, 7, 6, 5]
+          const row = frameOffsets.at(frame)
+          if (row === undefined) {
+            continue
+          }
+          cdsTop = row * rowHeight
           ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
 
           // Draw lines to connect CDS features with shared mRNA parent
@@ -525,9 +530,14 @@ function drawHover(
         })?.offsetPx ?? 0) - offsetPx
       const cdsStartPx = reversed ? minX - cdsWidthPx : minX
       const frame = getFrame(cds.min, cds.max, strand ?? 1, cds.phase)
-      const frameAdjust =
-        (frame < 0 ? -1 * frame + 5 : frame) * featureLabelSpacer
-      const cdsTop = (frameAdjust - featureLabelSpacer) * rowHeight
+      const frameOffsets = showFeatureLabels
+        ? [0, 4, 2, 0, 14, 12, 10]
+        : [0, 2, 1, 0, 7, 6, 5]
+      const row = frameOffsets.at(frame)
+      if (row === undefined) {
+        continue
+      }
+      const cdsTop = row * rowHeight
       if (counter > 1) {
         // Mid-point for intron line "hat"
         const midPoint: [number, number] = [
@@ -759,8 +769,6 @@ function drawTooltip(
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
   const rowHeight = apolloRowHeight
-  const cdsHeight = Math.round(0.7 * rowHeight)
-  const featureLabelSpacer = showFeatureLabels ? 2 : 1
   let location = 'Loc: '
   let cds: TranscriptPartCoding | undefined = undefined
   for (const loc of feature.cdsLocations) {
@@ -784,9 +792,14 @@ function drawTooltip(
       regionNumber: layoutIndex,
     })?.offsetPx ?? 0) - offsetPx
   const frame = getFrame(min, max, strand ?? 1, phase)
-  const frameAdjust = (frame < 0 ? -1 * frame + 5 : frame) * featureLabelSpacer
-  const cdsTop =
-    (frameAdjust - featureLabelSpacer) * rowHeight + (rowHeight - cdsHeight) / 2
+  const frameOffsets = showFeatureLabels
+    ? [0, 4, 2, 0, 14, 12, 10]
+    : [0, 2, 1, 0, 7, 6, 5]
+  const row = frameOffsets.at(frame)
+  if (row === undefined) {
+    return
+  }
+  const cdsTop = row * rowHeight
   const cdsWidthPx = (max - min) / bpPerPx
 
   const featureType = `Type: ${cds.type}`
