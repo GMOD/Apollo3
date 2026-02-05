@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:20-alpine AS setup
+FROM node:24-alpine AS setup
 WORKDIR /app
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn/ .yarn/
@@ -8,7 +8,7 @@ COPY packages/ packages/
 RUN find packages/ -type f \! \( -name "package.json" -o -name "yarn.lock" \) -delete && \
 find . -type d -empty -delete
 
-FROM node:20-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 COPY --from=setup /app .
 RUN yarn install --immutable
@@ -18,7 +18,7 @@ RUN yarn build
 WORKDIR /app/packages/apollo-cli
 RUN yarn build
 
-FROM node:20-alpine
+FROM node:24-alpine
 LABEL org.opencontainers.image.source=https://github.com/GMOD/Apollo3
 LABEL org.opencontainers.image.description="Apollo CLI"
 WORKDIR /app

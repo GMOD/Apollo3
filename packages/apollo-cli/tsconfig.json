@@ -7,6 +7,8 @@
     "target": "es2023",
     "lib": ["es2023"],
     "types": ["node"],
+    // TODO: enable this and fix the problems it reveals
+    "noUncheckedIndexedAccess": false,
   },
   "include": ["./src"],
   "references": [{ "path": "../apollo-mst" }, { "path": "../apollo-shared" }],

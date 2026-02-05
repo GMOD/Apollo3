@@ -1,4 +1,4 @@
-FROM node:18-alpine3.19
+FROM node:24-alpine
 
 LABEL org.opencontainers.image.source=https://github.com/GMOD/Apollo3
 LABEL org.opencontainers.image.description="Apollo CLI"
