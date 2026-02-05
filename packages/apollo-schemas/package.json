@@ -1,7 +1,9 @@
 {
   "name": "@apollo-annotation/schemas",
   "version": "0.3.11",
-  "main": "./dist/index.js",
+  "sideEffects": false,
+  "type": "module",
+  "exports": "./dist/index.js",
   "scripts": {
     "build": "tsc"
   },
@@ -16,7 +18,7 @@
   },
   "devDependencies": {
     "@apollo-annotation/mst": "workspace:^",
-    "@types/node": "^20.19.15",
+    "@types/node": "^24.10.9",
     "typescript": "^5.5.3"
   },
   "publishConfig": {

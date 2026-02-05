@@ -6,9 +6,8 @@ import {
   type SerializedAssemblySpecificChange,
   type ServerDataStore,
 } from '@apollo-annotation/common'
-import { type GFF3Feature } from '@gmod/gff'
 
-import { FromFileBaseChange } from './FromFileBaseChange'
+import { FromFileBaseChange } from './FromFileBaseChange.js'
 
 export interface SerializedAddFeaturesFromFileChangeBase
   extends SerializedAssemblySpecificChange {
@@ -96,11 +95,7 @@ export class AddFeaturesFromFileChange extends FromFileBaseChange {
         { bufferSize },
       )
       let featureCount = 0
-      // @ts-expect-error type is wrong here
-      // eslint-disable-next-line @typescript-eslint/await-thenable
-      for await (const f of featureStream) {
-        const gff3Feature = f as GFF3Feature
-
+      for await (const gff3Feature of featureStream) {
         // Add new feature into database
         // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
         await this.addFeatureIntoDb(gff3Feature, backend)

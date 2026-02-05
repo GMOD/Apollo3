@@ -6,7 +6,7 @@ import {
 import { revcom } from '@jbrowse/core/util'
 import ObjectID from 'bson-objectid'
 
-import { getPrintableId } from './util'
+import { getPrintableId } from './util.js'
 
 interface SpliceSequence {
   fivePrimeSeq: string

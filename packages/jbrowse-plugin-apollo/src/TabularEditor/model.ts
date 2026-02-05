@@ -1,4 +1,4 @@
-import { type Instance, getParent, types } from 'mobx-state-tree'
+import { type Instance, getParent, types } from '@jbrowse/mobx-state-tree'
 
 import { type DisplayStateModel } from './types'
 

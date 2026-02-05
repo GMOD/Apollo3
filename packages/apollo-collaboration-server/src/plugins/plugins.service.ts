@@ -2,7 +2,7 @@
 import { ApolloPlugin } from '@apollo-annotation/common'
 import { Inject, Injectable } from '@nestjs/common'
 
-import { APOLLO_PLUGINS } from './plugins.constants'
+import { APOLLO_PLUGINS } from './plugins.constants.js'
 
 @Injectable()
 export class PluginsService {

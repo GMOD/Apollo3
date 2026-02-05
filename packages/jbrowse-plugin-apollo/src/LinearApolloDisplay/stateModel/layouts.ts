@@ -2,10 +2,10 @@
 
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
+import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
 import { type AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
+import { addDisposer, isAlive } from '@jbrowse/mobx-state-tree'
 import { autorun, observable } from 'mobx'
-import { addDisposer, isAlive } from 'mobx-state-tree'
 
 import { type ApolloSessionModel } from '../../session'
 import { boxGlyph, geneGlyph, genericChildGlyph } from '../glyphs'

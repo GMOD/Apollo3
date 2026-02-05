@@ -7,16 +7,13 @@ import {
 } from '@nestjs/websockets'
 import { Server } from 'socket.io'
 
-import { CreateMessageDto } from './dto/create-message.dto'
-import { MessagesService } from './messages.service'
+import { CreateMessageDto } from './dto/create-message.dto.js'
 
 @WebSocketGateway({ cors: { origin: '*' } })
 @Injectable()
 export class MessagesGateway {
   @WebSocketServer()
   server: Server
-
-  constructor(private readonly messagesService: MessagesService) {}
 
   @SubscribeMessage('createMessage')
   async create(eventName: string, createMessageDto: CreateMessageDto) {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
@@ -11,7 +12,7 @@ import {
 } from '@apollo-annotation/common'
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
-import { DeleteFeatureChange } from './DeleteFeatureChange'
+import { DeleteFeatureChange } from './DeleteFeatureChange.js'
 
 interface SerializedAddFeatureChangeBase extends SerializedFeatureChange {
   typeName: 'AddFeatureChange'

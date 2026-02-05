@@ -1,6 +1,6 @@
 import { Test, type TestingModule } from '@nestjs/testing'
 
-import { ExportController } from './export.controller'
+import { ExportController } from './export.controller.js'
 
 describe('ExportController', () => {
   let controller: ExportController

@@ -1,10 +1,10 @@
 import { Controller, Get, Logger, Param, Query } from '@nestjs/common'
 
-import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
-import { Role } from '../utils/role/role.enum'
-import { Validations } from '../utils/validation/validatation.decorator'
+import { type FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
+import { Role } from '../utils/role/role.enum.js'
+import { Validations } from '../utils/validation/validatation.decorator.js'
 
-import { ChecksService } from './checks.service'
+import { ChecksService } from './checks.service.js'
 
 @Validations(Role.ReadOnly)
 @Controller('checks')

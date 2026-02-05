@@ -10,7 +10,7 @@ import {
 } from '@apollo-annotation/common'
 import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
-import { MergeTranscriptsChange } from './MergeTranscriptsChange'
+import { MergeTranscriptsChange } from './MergeTranscriptsChange.js'
 
 interface SerializedUndoMergeTranscriptsChangeBase
   extends SerializedFeatureChange {

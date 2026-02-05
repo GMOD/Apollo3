@@ -1,12 +1,12 @@
 import fs from 'node:fs'
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'
 import { HttpsProxyAgent } from 'https-proxy-agent'
 import { Strategy } from 'passport-microsoft'
 
-import { AuthenticationService } from '../../authentication/authentication.service'
+import { AuthenticationService } from '../../authentication/authentication.service.js'
 
 export interface Profile {
   provider: 'microsoft'
@@ -31,7 +31,8 @@ export class MicrosoftStrategy extends PassportStrategy(Strategy) {
   private readonly logger = new Logger(MicrosoftStrategy.name)
 
   constructor(
-    private readonly authService: AuthenticationService,
+    @Inject(forwardRef(() => AuthenticationService))
+    private readonly authService: Readonly<AuthenticationService>,
     configService: ConfigService<ConfigValues, true>,
   ) {
     let clientID = configService.get('MICROSOFT_CLIENT_ID', { infer: true })

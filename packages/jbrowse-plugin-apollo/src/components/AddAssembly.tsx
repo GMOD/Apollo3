@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-misused-promises */
@@ -10,6 +10,8 @@ import {
 } from '@apollo-annotation/shared'
 import { readConfObject } from '@jbrowse/core/configuration'
 import { type AbstractSessionModel } from '@jbrowse/core/util'
+import { makeStyles } from '@jbrowse/core/util/tss-react'
+import { getRoot } from '@jbrowse/mobx-state-tree'
 import InfoIcon from '@mui/icons-material/Info'
 import LinkIcon from '@mui/icons-material/Link'
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked'
@@ -38,9 +40,7 @@ import {
   Typography,
 } from '@mui/material'
 import ObjectID from 'bson-objectid'
-import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
-import { makeStyles } from 'tss-react/mui'
 
 import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { type ChangeManager } from '../ChangeManager'
@@ -194,47 +194,42 @@ export function AddAssembly({
       locationType: 'UriLocation',
       uri,
     })
-    if (apolloFetchFile) {
-      const job = {
-        name: `UploadAssemblyFile for ${assemblyName}`,
-        statusMessage: 'Pre-validating',
-        progressPct: 0,
-        cancelCallback: () => {
-          controller.abort(
-            new DOMException(
-              `Canceling adding of assembly "${assemblyName}"`,
-              'AbortError',
-            ),
-          )
-          jobsManager.abortJob(job.name)
-        },
-      }
-      jobsManager.runJob(job)
-      jobsManager.update(
-        job.name,
-        `Uploading ${file.name}, this may take awhile`,
-      )
-      const { signal } = controller
-
-      const response = await apolloFetchFile(uri, {
-        method: 'POST',
-        body: formData,
-        signal,
-      })
-      if (!response.ok) {
-        const newErrorMessage = await createFetchErrorMessage(
-          response,
-          'Error when inserting new assembly (while uploading file)',
+    const job = {
+      name: `UploadAssemblyFile for ${assemblyName}`,
+      statusMessage: 'Pre-validating',
+      progressPct: 0,
+      cancelCallback: () => {
+        controller.abort(
+          new DOMException(
+            `Canceling adding of assembly "${assemblyName}"`,
+            'AbortError',
+          ),
         )
-        jobsManager.abortJob(job.name, newErrorMessage)
-        setErrorMessage(newErrorMessage)
-        return ''
-      }
-      const result = await response.json()
-      const fileId = result._id as string
-      jobsManager.done(job)
-      return fileId
+        jobsManager.abortJob(job.name)
+      },
     }
+    jobsManager.runJob(job)
+    jobsManager.update(job.name, `Uploading ${file.name}, this may take awhile`)
+    const { signal } = controller
+
+    const response = await apolloFetchFile(uri, {
+      method: 'POST',
+      body: formData,
+      signal,
+    })
+    if (!response.ok) {
+      const newErrorMessage = await createFetchErrorMessage(
+        response,
+        'Error when inserting new assembly (while uploading file)',
+      )
+      jobsManager.abortJob(job.name, newErrorMessage)
+      setErrorMessage(newErrorMessage)
+      return ''
+    }
+    const result = await response.json()
+    const fileId = result._id as string
+    jobsManager.done(job)
+    return fileId
     throw new Error('Failed to fetch')
   }
 

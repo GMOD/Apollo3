@@ -12,10 +12,10 @@ import {
 import { Logger } from '@nestjs/common'
 import { type Request } from 'express'
 
-import { Role, RoleInheritance } from '../role/role.enum'
+import { Role, RoleInheritance } from '../role/role.enum.js'
 
-import { getRequiredRoleForChange } from './validatation.changeTypePermissions'
-import { ROLE_KEY } from './validatation.decorator'
+import { getRequiredRoleForChange } from './validatation.changeTypePermissions.js'
+import { ROLE_KEY } from './validatation.decorator.js'
 
 export class AuthorizationValidation extends Validation {
   name = 'Authorization' as const

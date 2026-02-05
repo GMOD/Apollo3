@@ -1,6 +1,6 @@
-import { type Instance, type SnapshotIn, types } from 'mobx-state-tree'
+import { type Instance, type SnapshotIn, types } from '@jbrowse/mobx-state-tree'
 
-import { ApolloRefSeq } from './ApolloRefSeq'
+import { ApolloRefSeq } from './ApolloRefSeq.js'
 
 export type BackendDriverType =
   | 'CollaborationServerDriver'

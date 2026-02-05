@@ -6,29 +6,29 @@ import { ReadableStream, TransformStream } from 'node:stream/web'
 
 import {
   Assembly,
-  AssemblyDocument,
+  type AssemblyDocument,
   Export,
-  ExportDocument,
+  type ExportDocument,
   Feature,
-  FeatureDocument,
+  type FeatureDocument,
   File,
-  FileDocument,
+  type FileDocument,
   RefSeq,
   RefSeqChunk,
-  RefSeqDocument,
+  type RefSeqDocument,
 } from '@apollo-annotation/schemas'
 import { GFFFormattingTransformer } from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
-import { FilterQuery, Model } from 'mongoose'
+import { type FilterQuery, Model } from 'mongoose'
 import StreamConcat from 'stream-concat'
 
 import {
   FeatureDocToGFF3FeatureStream,
   RefSeqChunkDocToFASTAStream,
   RefSeqDocToGFF3HeaderStream,
-} from './transforms'
+} from './transforms.js'
 
 @Injectable()
 export class ExportService {
@@ -108,7 +108,6 @@ export class ExportService {
         sequenceStreams = await this.streamFromLocalFasta(
           assemblyDoc.fileIds.fa,
         )
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       } else if (assemblyDoc.externalLocation) {
         sequenceStreams = await this.streamFromRemoteFasta(
           assemblyDoc.externalLocation.fa,

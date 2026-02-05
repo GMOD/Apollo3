@@ -12,22 +12,35 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v4
-      - name: Use Node.js 20.x
+      - name: Use Node.js 24.x
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: yarn
       - name: Install
         run: yarn --immutable
-        # Have to build shared before linting so type-based lint rules can
-        # run correctly
+      # Have to build shared before linting so type-based lint rules can
+      # run correctly
       - name: Build shared
         run: yarn build
         working-directory: packages/apollo-shared
       - name: Lint codebase
         run: yarn eslint --max-warnings 0
-      - name: Run Jest tests
-        run: yarn test
+
+      # apollo-shared tests
+      - name: Build shared
+        run: yarn build
+        working-directory: packages/apollo-shared
+      - name: Run apollo-shared tests
+        run: yarn run test:ci
+        working-directory: packages/apollo-shared
+
+      # jbrowse-plugin-apollo tests
+      - name: Run jbrowse-plugin-apollo tests
+        run: yarn run test:ci
+        working-directory: packages/jbrowse-plugin-apollo
+
+      # Cypress tests
       - name: Get latest JBrowse
         run: yarn run jbrowse create --nightly .jbrowse
         working-directory: packages/jbrowse-plugin-apollo
@@ -43,13 +56,16 @@ jobs:
       - name: Run Cypress tests
         run: yarn run test:e2e
         working-directory: packages/jbrowse-plugin-apollo
+
+      # CLI tests
       - name: Start apollo
         run: |
           yarn --cwd packages/apollo-shared start &
           yarn --cwd packages/apollo-collaboration-server test:cli:start &
       - name: Run CLI tests
-        run: yarn test:cli
+        run: yarn run test:ci
         working-directory: packages/apollo-cli
+
       # - name: Run docker tests
       #   working-directory: packages/apollo-cli
       #   run: python3 ./src/test/test_docker.py

@@ -1,4 +1,5 @@
 import { getSession } from '@jbrowse/core/util'
+import { makeStyles } from '@jbrowse/core/util/tss-react'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {
   Accordion,
@@ -8,7 +9,6 @@ import {
 } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
-import { makeStyles } from 'tss-react/mui'
 
 import { type ApolloSessionModel } from '../session'
 

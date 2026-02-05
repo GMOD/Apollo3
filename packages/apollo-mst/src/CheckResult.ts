@@ -1,6 +1,6 @@
-import { type Instance, type SnapshotIn, types } from 'mobx-state-tree'
+import { type Instance, type SnapshotIn, types } from '@jbrowse/mobx-state-tree'
 
-import { AnnotationFeatureModel } from './AnnotationFeatureModel'
+import { AnnotationFeatureModel } from './AnnotationFeatureModel.js'
 
 export const CheckResult = types.model('CheckResult', {
   _id: types.identifier,

@@ -6,7 +6,7 @@ import {
   type Context,
   type Validation,
   type ValidationResult,
-} from './Validation'
+} from './Validation.js'
 
 export class ValidationResultSet {
   results: ValidationResult[] = []

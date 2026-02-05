@@ -1,7 +1,7 @@
 import { Test, type TestingModule } from '@nestjs/testing'
 
-import { FeaturesController } from './features.controller'
-import { FeaturesService } from './features.service'
+import { FeaturesController } from './features.controller.js'
+import { FeaturesService } from './features.service.js'
 
 describe('FeaturesController', () => {
   let controller: FeaturesController

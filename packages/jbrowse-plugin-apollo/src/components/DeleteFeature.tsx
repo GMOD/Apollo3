@@ -6,13 +6,13 @@ import {
   LocationEndChange,
   LocationStartChange,
 } from '@apollo-annotation/shared'
+import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import {
   Button,
   DialogActions,
   DialogContent,
   DialogContentText,
 } from '@mui/material'
-import { getSnapshot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
 import { type ChangeManager } from '../ChangeManager'

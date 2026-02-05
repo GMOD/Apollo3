@@ -10,6 +10,7 @@ import {
 } from '@apollo-annotation/shared'
 import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { type AbstractSessionModel } from '@jbrowse/core/util'
+import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import {
   Box,
   Button,
@@ -26,7 +27,6 @@ import {
   Typography,
 } from '@mui/material'
 import ObjectID from 'bson-objectid'
-import { getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import { type ApolloSessionModel } from '../session'

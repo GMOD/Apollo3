@@ -2,7 +2,7 @@ import { Counter, CounterSchema } from '@apollo-annotation/schemas'
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 
-import { CountersService } from './counters.service'
+import { CountersService } from './counters.service.js'
 
 @Module({
   // controllers: [CountersController],

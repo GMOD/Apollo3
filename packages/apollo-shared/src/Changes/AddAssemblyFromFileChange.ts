@@ -1,4 +1,7 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/require-await */
 import {
   type ChangeOptions,
@@ -9,7 +12,7 @@ import {
 } from '@apollo-annotation/common'
 import { BgzipIndexedFasta } from '@gmod/indexedfasta'
 
-import { FromFileBaseChange } from './FromFileBaseChange'
+import { FromFileBaseChange } from './FromFileBaseChange.js'
 
 export interface SerializedAddAssemblyFromFileChangeBase
   extends SerializedAssemblySpecificChange {

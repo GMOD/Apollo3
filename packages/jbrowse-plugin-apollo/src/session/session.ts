@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { type ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
@@ -20,9 +19,6 @@ import {
   type AbstractSessionModel,
   type SessionWithAddTracks,
 } from '@jbrowse/core/util'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import SaveIcon from '@mui/icons-material/Save'
-import { autorun, observable } from 'mobx'
 import {
   type Instance,
   type SnapshotOut,
@@ -31,7 +27,10 @@ import {
   getRoot,
   getSnapshot,
   types,
-} from 'mobx-state-tree'
+} from '@jbrowse/mobx-state-tree'
+import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import SaveIcon from '@mui/icons-material/Save'
+import { autorun, observable } from 'mobx'
 
 import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloJobModel } from '../ApolloJobModel'
@@ -386,10 +385,7 @@ export function extendSession(
                     if (Object.keys(filteredConfig).length === 0) {
                       filteredConfig = undefined
                     }
-                    const trackConfigSnapshot = getSnapshot(conf) as {
-                      trackId: string
-                      type: string
-                    }
+                    const trackConfigSnapshot = getSnapshot(conf)
                     const newTrackId = trackId.slice(
                       0,
                       trackId.length - sessionTrackIdentifier.length,
@@ -407,6 +403,7 @@ export function extendSession(
                         oldJBrowseConfig: filteredConfig,
                         newJBrowseConfig: {
                           ...filteredConfig,
+                          // @ts-expect-error The track types are in the snapshot
                           tracks: filteredConfig?.tracks && [
                             ...filteredConfig.tracks,
                             newTrackConfigSnapshot,

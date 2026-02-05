@@ -1,6 +1,6 @@
 import { Test, type TestingModule } from '@nestjs/testing'
 
-import { ExportService } from './export.service'
+import { ExportService } from './export.service.js'
 
 describe('ExportService', () => {
   let service: ExportService

@@ -8,7 +8,6 @@ import {
   LocalPathLocation,
   UriLocation,
 } from '@jbrowse/core/util/types/mst'
-import { autorun } from 'mobx'
 import {
   type Instance,
   addDisposer,
@@ -17,7 +16,8 @@ import {
   getSnapshot,
   isAlive,
   types,
-} from 'mobx-state-tree'
+} from '@jbrowse/mobx-state-tree'
+import { autorun } from 'mobx'
 
 import type ApolloPluginConfigurationSchema from '../config'
 import { type ApolloRootModel } from '../types'

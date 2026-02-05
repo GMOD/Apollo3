@@ -1,7 +1,7 @@
 import { validationRegistry } from '@apollo-annotation/shared'
 import {
-  CanActivate,
-  ExecutionContext,
+  type CanActivate,
+  type ExecutionContext,
   Injectable,
   Logger,
   UnprocessableEntityException,

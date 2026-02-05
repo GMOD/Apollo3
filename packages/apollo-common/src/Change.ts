@@ -10,13 +10,13 @@ import {
 } from '@apollo-annotation/mst'
 import { type AppRootModel, type Region } from '@jbrowse/core/util'
 
-import { changeRegistry } from './ChangeTypeRegistry'
+import { changeRegistry } from './ChangeTypeRegistry.js'
 import {
   type BackendDataStore,
   Operation,
   type OperationOptions,
   type SerializedOperation,
-} from './Operation'
+} from './Operation.js'
 
 export interface ClientDataStore {
   typeName: 'Client'

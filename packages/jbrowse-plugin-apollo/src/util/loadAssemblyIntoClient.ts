@@ -10,7 +10,7 @@ import {
   type GFF3Sequence,
   parseStringSync,
 } from '@gmod/gff'
-import { getSnapshot } from 'mobx-state-tree'
+import { getSnapshot } from '@jbrowse/mobx-state-tree'
 
 export async function loadAssemblyIntoClient(
   assemblyId: string,

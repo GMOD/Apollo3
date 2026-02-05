@@ -1,22 +1,23 @@
-/* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
-/* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
-/* eslint-disable @typescript-eslint/no-confusing-void-expression */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import fs from 'node:fs'
 import fsPromises from 'node:fs/promises'
 import path from 'node:path'
+import { Writable } from 'node:stream'
 
 import {
   ApolloPlugin,
-  ApolloPluginConstructor,
+  type ApolloPluginConstructor,
 } from '@apollo-annotation/common'
-import { DynamicModule, Logger, Module, Provider } from '@nestjs/common'
-import fetch from 'node-fetch'
+import {
+  type DynamicModule,
+  Logger,
+  Module,
+  type Provider,
+} from '@nestjs/common'
 import sanitize from 'sanitize-filename'
 
-import { APOLLO_PLUGINS } from './plugins.constants'
-import { PluginsService } from './plugins.service'
+import { APOLLO_PLUGINS } from './plugins.constants.js'
+import { PluginsService } from './plugins.service.js'
 
 @Module({})
 export class PluginsModule {
@@ -61,25 +62,18 @@ export class PluginsModule {
           __dirname,
           pluginLocation,
         )}`
-        await new Promise<void>((resolve, reject) => {
-          const file = fs.createWriteStream(pluginLocation)
-          fetch(url)
-            .then((response) => {
-              if (!response.body) {
-                return reject('fetch failed')
-              }
-              response.body.pipe(file)
-              file.on('finish', resolve)
-              file.on('error', (err) => {
-                fs.unlinkSync(pluginLocation)
-                reject(err)
-              })
-            })
-            .catch((error) => {
-              console.error(error)
-              throw error
-            })
-        })
+        const file = Writable.toWeb(fs.createWriteStream(pluginLocation))
+        const response = await fetch(url)
+        if (!response.body) {
+          throw new Error('fetch failed')
+        }
+        try {
+          await response.body.pipeTo(file)
+        } catch (error) {
+          fs.unlinkSync(pluginLocation)
+          console.error(error)
+          throw error
+        }
         plugin = await import(pluginLocationRelative)
       } finally {
         await fsPromises.rm(tmpDir, { recursive: true })

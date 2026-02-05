@@ -8,10 +8,10 @@ import {
   Post,
 } from '@nestjs/common'
 
-import { Role } from '../utils/role/role.enum'
-import { Validations } from '../utils/validation/validatation.decorator'
+import { Role } from '../utils/role/role.enum.js'
+import { Validations } from '../utils/validation/validatation.decorator.js'
 
-import { AssembliesService } from './assemblies.service'
+import { AssembliesService } from './assemblies.service.js'
 
 interface AssemblyDocument {
   _id: string

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+
 /* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+
 import { type CheckResultI } from '@apollo-annotation/mst'
 import { Menu, type MenuItem } from '@jbrowse/core/ui'
 import {
@@ -64,6 +65,7 @@ export const LinearApolloSixFrameDisplay = observer(
     }, [theme, setTheme])
     const [contextCoord, setContextCoord] = useState<Coord>()
     const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
+
     const message = regionCannotBeRendered()
     if (!isShown) {
       return null
@@ -94,6 +96,8 @@ export const LinearApolloSixFrameDisplay = observer(
               <LockIcon />
             </div>
           ) : null}
+          {/* This type is wrong in @jbrowse/core */}
+          {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
           {message ? (
             <Alert
               severity="warning"

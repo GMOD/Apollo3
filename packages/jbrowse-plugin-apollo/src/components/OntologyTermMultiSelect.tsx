@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { isAbortException } from '@jbrowse/core/util/aborting'
+import { getParent } from '@jbrowse/mobx-state-tree'
 import {
   Autocomplete,
   type AutocompleteRenderValueGetItemProps,
@@ -14,7 +15,6 @@ import {
 import { debounce } from '@mui/material/utils'
 import highlightMatch from 'autosuggest-highlight/match'
 import highlightParse from 'autosuggest-highlight/parse'
-import { getParent } from 'mobx-state-tree'
 import * as React from 'react'
 
 import {

@@ -4,10 +4,10 @@ import {
   LocationStartChange,
 } from '@apollo-annotation/shared'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
+import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
 import { type MenuItem } from '@jbrowse/core/ui'
+import { type Instance, addDisposer } from '@jbrowse/mobx-state-tree'
 import { autorun } from 'mobx'
-import { type Instance, addDisposer } from 'mobx-state-tree'
 import { type CSSProperties } from 'react'
 
 import {

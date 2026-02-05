@@ -11,10 +11,10 @@ import {
   intersection2,
   measureText,
 } from '@jbrowse/core/util'
+import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material'
 import equal from 'fast-deep-equal/es6'
-import { getSnapshot } from 'mobx-state-tree'
 
 import { MergeExons, SplitExon } from '../../components'
 import { FilterTranscripts } from '../../components/FilterTranscripts'

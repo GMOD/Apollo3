@@ -22,8 +22,14 @@ import {
   isAbstractMenuManager,
   isElectron,
 } from '@jbrowse/core/util'
+import {
+  type Instance,
+  flow,
+  getRoot,
+  isAlive,
+  types,
+} from '@jbrowse/mobx-state-tree'
 import { autorun } from 'mobx'
-import { type Instance, flow, getRoot, isAlive, types } from 'mobx-state-tree'
 import { io } from 'socket.io-client'
 
 import { addTopLevelAdminMenus } from '../menus/topLevelMenuAdmin'

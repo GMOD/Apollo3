@@ -1,3 +1,3 @@
-export * from './annotationFeatureToGFF3'
-export * from './gffReservedKeys'
-export * from './gff3ToAnnotationFeature'
+export * from './annotationFeatureToGFF3.js'
+export * from './gffReservedKeys.js'
+export * from './gff3ToAnnotationFeature.js'

@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+
 import { getSession } from '@jbrowse/core/util'
+import { makeStyles } from '@jbrowse/core/util/tss-react'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Alert, Typography, alpha } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useCallback, useEffect, useRef } from 'react'
-import { makeStyles } from 'tss-react/mui'
 
 import { LinearApolloDisplay } from './LinearApolloDisplay/components'
 import { type LinearApolloDisplay as LinearApolloDisplayI } from './LinearApolloDisplay/stateModel'

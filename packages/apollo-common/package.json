@@ -6,13 +6,15 @@
     "url": "https://github.com/GMOD/Apollo3.git",
     "directory": "packages/apollo-common"
   },
-  "main": "./dist/index.js",
+  "sideEffects": false,
+  "type": "module",
+  "exports": "./dist/index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc --build"
   },
   "dependencies": {
     "@apollo-annotation/schemas": "workspace:^",
-    "@jbrowse/core": "^3.6.5",
+    "@jbrowse/core": "^4.1.1",
     "bson-objectid": "^2.0.4",
     "tslib": "^2.3.1"
   },
@@ -21,20 +23,21 @@
     "@gmod/gff": "^2.0.0",
     "@nestjs/common": "^10.1.0",
     "@nestjs/core": "^10.1.0",
-    "@types/node": "^20.19.15",
+    "@types/node": "^24.10.9",
     "generic-filehandle": "^3.0.0",
     "mongoose": "^6.12.0",
     "typescript": "^5.5.3"
   },
   "peerDependencies": {
-    "@mui/material": "^7.0.0",
+    "@jbrowse/mobx-state-tree": "^5.5.0",
+    "@mui/material": "^7.3.7",
     "@mui/x-data-grid": "^8.0.0",
     "mobx": "^6.6.1",
     "mobx-react": "^7.2.1",
-    "mobx-state-tree": "^5.4.0",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "reflect-metadata": "^0.1.13",
     "rxjs": "^7.4.0",
     "tss-react": "^4.6.1"
   },

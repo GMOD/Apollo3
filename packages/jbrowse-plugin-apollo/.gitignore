@@ -7,3 +7,5 @@ cypress/downloads
 cypress/cypress-image-diff-html-report
 cypress/cypress-image-diff-screenshots/comparison
 cypress/cypress-image-diff-screenshots/diff
+
+data/

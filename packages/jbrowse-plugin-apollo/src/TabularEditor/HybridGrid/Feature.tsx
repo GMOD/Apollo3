@@ -1,11 +1,11 @@
-/* eslint-disable unicorn/no-nested-ternary */
 /* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable unicorn/no-nested-ternary */
 
 import { type AnnotationFeature } from '@apollo-annotation/mst'
 import { type AbstractSessionModel } from '@jbrowse/core/util'
+import { makeStyles } from '@jbrowse/core/util/tss-react'
 import { observer } from 'mobx-react'
 import React from 'react'
-import { makeStyles } from 'tss-react/mui'
 
 import { isOntologyClass } from '../../OntologyManager'
 import type OntologyStore from '../../OntologyManager/OntologyStore'
