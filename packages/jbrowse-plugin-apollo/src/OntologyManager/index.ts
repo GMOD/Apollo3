@@ -20,10 +20,10 @@ import {
 import { autorun } from 'mobx'
 
 import type ApolloPluginConfigurationSchema from '../config'
-import { type ApolloRootModel } from '../types'
+import type { ApolloRootModel } from '../types'
 
 import OntologyStore, { type OntologyStoreOptions } from './OntologyStore'
-import { type OntologyDBNode } from './OntologyStore/indexeddb-schema'
+import type { OntologyDBNode } from './OntologyStore/indexeddb-schema'
 import { applyPrefixes, expandPrefixes } from './OntologyStore/prefixes'
 
 export { isDeprecated } from './OntologyStore/indexeddb-schema'

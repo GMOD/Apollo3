@@ -1,5 +1,5 @@
 declare module 'bson-objectid' {
-  import { type Buffer } from 'node:buffer'
+  import type { Buffer } from 'node:buffer'
 
   export default ObjectID
 

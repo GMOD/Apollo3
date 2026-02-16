@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { type JWTPayload } from '@apollo-annotation/shared'
+import type { JWTPayload } from '@apollo-annotation/shared'
 import { type ExecutionContext, Injectable } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 

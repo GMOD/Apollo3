@@ -11,9 +11,9 @@ import {
 } from '@mui/material'
 import React, { useState } from 'react'
 
-import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { type ApolloSessionModel } from '../session'
-import { type ApolloRootModel } from '../types'
+import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import type { ApolloSessionModel } from '../session'
+import type { ApolloRootModel } from '../types'
 
 import { Dialog } from './Dialog'
 

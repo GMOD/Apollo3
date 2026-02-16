@@ -1,5 +1,5 @@
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { type SerializedTypeChange } from '@apollo-annotation/shared'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { SerializedTypeChange } from '@apollo-annotation/shared'
 import { Flags } from '@oclif/core'
 import { type Response, fetch } from 'undici'
 

@@ -2,13 +2,13 @@
 
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { getContainingView } from '@jbrowse/core/util'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { Alert, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect } from 'react'
 
 import { useStyles } from '../../util/displayUtils'
-import { type LinearApolloReferenceSequenceDisplay as LinearApolloReferenceSequenceDisplayI } from '../stateModel'
+import type { LinearApolloReferenceSequenceDisplay as LinearApolloReferenceSequenceDisplayI } from '../stateModel'
 
 interface LinearApolloReferenceSequenceDisplayProps {
   model: LinearApolloReferenceSequenceDisplayI

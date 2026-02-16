@@ -4,12 +4,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/require-await */
 
-import {
-  type ChangeOptions,
-  type ClientDataStore,
-  type LocalGFF3DataStore,
-  type SerializedAssemblySpecificChange,
-  type ServerDataStore,
+import type {
+  ChangeOptions,
+  ClientDataStore,
+  LocalGFF3DataStore,
+  SerializedAssemblySpecificChange,
+  ServerDataStore,
 } from '@apollo-annotation/common'
 
 import { FromFileBaseChange } from './FromFileBaseChange.js'

@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import {
   type AnyConfigurationSchemaType,
@@ -26,13 +26,13 @@ import {
   getSnapshot,
   types,
 } from '@jbrowse/mobx-state-tree'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { autorun } from 'mobx'
 
-import { type ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
+import type { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { FilterFeatures } from '../../components/FilterFeatures'
-import { type ApolloSessionModel, type HoveredFeature } from '../../session'
-import { type ApolloRootModel } from '../../types'
+import type { ApolloSessionModel, HoveredFeature } from '../../session'
+import type { ApolloRootModel } from '../../types'
 import { EditZoomThresholdDialog } from '../../util/displayUtils'
 
 const minDisplayHeight = 20

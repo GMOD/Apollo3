@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
-import { type Region } from '@jbrowse/core/util/types'
+import type { Region } from '@jbrowse/core/util/types'
 import InfoIcon from '@mui/icons-material/Info'
 import {
   Box,
@@ -26,9 +26,9 @@ import ObjectID from 'bson-objectid'
 import React, { useState } from 'react'
 
 import { CollaborationServerDriver } from '../BackendDrivers'
-import { type ChangeManager } from '../ChangeManager'
+import type { ChangeManager } from '../ChangeManager'
 import { isOntologyClass } from '../OntologyManager'
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
 import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'

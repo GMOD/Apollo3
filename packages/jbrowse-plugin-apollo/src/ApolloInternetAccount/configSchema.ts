@@ -1,6 +1,6 @@
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import { BaseInternetAccountConfig } from '@jbrowse/core/pluggableElementTypes'
-import { type Instance } from '@jbrowse/mobx-state-tree'
+import type { Instance } from '@jbrowse/mobx-state-tree'
 
 const ApolloConfigSchema = ConfigurationSchema(
   'ApolloInternetAccount',

@@ -1,5 +1,5 @@
-import { type AnnotationFeature } from '@apollo-annotation/mst'
-import { type MenuItem } from '@jbrowse/core/ui'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
+import type { MenuItem } from '@jbrowse/core/ui'
 import { alpha } from '@mui/material'
 
 import {
@@ -9,12 +9,12 @@ import {
   isMousePositionWithFeature,
   isSelectedFeature,
 } from '../../util'
-import { type LinearApolloDisplay } from '../stateModel'
-import { type LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
-import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
-import { type CanvasMouseEvent } from '../types'
+import type { LinearApolloDisplay } from '../stateModel'
+import type { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
+import type { LinearApolloDisplayRendering } from '../stateModel/rendering'
+import type { CanvasMouseEvent } from '../types'
 
-import { type Glyph } from './Glyph'
+import type { Glyph } from './Glyph'
 
 function drawBoxOutline(
   ctx: CanvasRenderingContext2D,

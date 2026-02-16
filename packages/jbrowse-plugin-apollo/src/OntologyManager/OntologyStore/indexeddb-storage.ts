@@ -16,7 +16,7 @@ import {
   isOntologyDBEdge,
   isOntologyDBNode,
 } from './indexeddb-schema'
-import { type GraphDocument } from './obo-graph-json-schema'
+import type { GraphDocument } from './obo-graph-json-schema'
 
 import type OntologyStore from '.'
 

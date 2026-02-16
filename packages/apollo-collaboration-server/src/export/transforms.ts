@@ -2,17 +2,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { TransformStream } from 'node:stream/web'
 
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import {
-  type FeatureDocument,
-  type RefSeqChunkDocument,
-  type RefSeqDocument,
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type {
+  FeatureDocument,
+  RefSeqChunkDocument,
+  RefSeqDocument,
 } from '@apollo-annotation/schemas'
 import {
   annotationFeatureToGFF3,
   splitStringIntoChunks,
 } from '@apollo-annotation/shared'
-import { type GFF3Feature } from '@gmod/gff'
+import type { GFF3Feature } from '@gmod/gff'
 
 interface FastaTransformOptions {
   fastaWidth?: number

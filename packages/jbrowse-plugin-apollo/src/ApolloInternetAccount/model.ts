@@ -33,12 +33,12 @@ import { autorun } from 'mobx'
 import { io } from 'socket.io-client'
 
 import { addTopLevelAdminMenus } from '../menus/topLevelMenuAdmin'
-import { type Collaborator } from '../session'
-import { type ApolloRootModel } from '../types'
+import type { Collaborator } from '../session'
+import type { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import { AuthTypeSelector } from './components/AuthTypeSelector'
-import { type ApolloInternetAccountConfigModel } from './configSchema'
+import type { ApolloInternetAccountConfigModel } from './configSchema'
 
 type AuthType = 'google' | 'microsoft' | 'guest'
 

@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import fs from 'node:fs/promises'
 
-import { type JWTPayload } from '@apollo-annotation/shared'
+import type { JWTPayload } from '@apollo-annotation/shared'
 import {
   BadRequestException,
   Injectable,
@@ -11,8 +11,8 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
-import { type Request } from 'express'
-import { type Profile as GoogleProfile } from 'passport-google-oauth20'
+import type { Request } from 'express'
+import type { Profile as GoogleProfile } from 'passport-google-oauth20'
 
 import { CreateUserDto } from '../users/dto/create-user.dto.js'
 import { UsersService } from '../users/users.service.js'
@@ -22,7 +22,7 @@ import {
   ROOT_USER_EMAIL,
 } from '../utils/constants.js'
 import { Role } from '../utils/role/role.enum.js'
-import { type Profile as MicrosoftProfile } from '../utils/strategies/microsoft.strategy.js'
+import type { Profile as MicrosoftProfile } from '../utils/strategies/microsoft.strategy.js'
 
 export interface RequestWithUserToken extends Request {
   user: { token: string }

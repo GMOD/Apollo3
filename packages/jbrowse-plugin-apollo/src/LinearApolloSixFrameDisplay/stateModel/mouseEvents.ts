@@ -1,15 +1,15 @@
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
 } from '@apollo-annotation/shared'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
-import { type MenuItem } from '@jbrowse/core/ui'
+import type { AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
+import type { MenuItem } from '@jbrowse/core/ui'
 import { getFrame } from '@jbrowse/core/util'
 import { type Instance, addDisposer, cast } from '@jbrowse/mobx-state-tree'
 import { autorun } from 'mobx'
-import { type CSSProperties } from 'react'
+import type { CSSProperties } from 'react'
 
 import {
   type Edge,
@@ -19,7 +19,7 @@ import {
   getPropagatedLocationChanges,
   isMousePositionWithFeature,
 } from '../../util'
-import { type CanvasMouseEvent } from '../types'
+import type { CanvasMouseEvent } from '../types'
 
 import { renderingModelFactory } from './rendering'
 

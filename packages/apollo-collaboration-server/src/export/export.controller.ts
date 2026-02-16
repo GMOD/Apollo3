@@ -10,7 +10,7 @@ import {
   Response,
   StreamableFile,
 } from '@nestjs/common'
-import { type Response as ExpressResponse } from 'express'
+import type { Response as ExpressResponse } from 'express'
 
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'

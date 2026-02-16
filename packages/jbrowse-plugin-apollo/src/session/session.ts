@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { type ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
+import type { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
 import {
   type AnnotationFeature,
   AnnotationFeatureModel,
@@ -12,12 +12,12 @@ import {
   filterJBrowseConfig,
 } from '@apollo-annotation/shared'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import { type AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
+import type { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf, readConfObject } from '@jbrowse/core/configuration'
-import { type BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
-import {
-  type AbstractSessionModel,
-  type SessionWithAddTracks,
+import type { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
+import type {
+  AbstractSessionModel,
+  SessionWithAddTracks,
 } from '@jbrowse/core/util'
 import {
   type Instance,
@@ -28,15 +28,15 @@ import {
   getSnapshot,
   types,
 } from '@jbrowse/mobx-state-tree'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import SaveIcon from '@mui/icons-material/Save'
 import { autorun, observable } from 'mobx'
 
-import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloJobModel } from '../ApolloJobModel'
-import { type ChangeManager } from '../ChangeManager'
+import type { ChangeManager } from '../ChangeManager'
 import type ApolloPluginConfigurationSchema from '../config'
-import { type ApolloRootModel } from '../types'
+import type { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import { clientDataStoreFactory } from './ClientDataStore'

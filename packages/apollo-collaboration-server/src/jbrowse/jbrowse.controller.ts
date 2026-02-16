@@ -1,5 +1,5 @@
 import { Controller, Get, Logger, Req } from '@nestjs/common'
-import { type Request } from 'express'
+import type { Request } from 'express'
 
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'

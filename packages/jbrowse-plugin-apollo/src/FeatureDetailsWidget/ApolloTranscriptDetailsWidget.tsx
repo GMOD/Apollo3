@@ -1,4 +1,4 @@
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import styled from '@emotion/styled'
 import {
   type AbstractSessionModel,
@@ -19,15 +19,15 @@ import {
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 
-import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { type ApolloSessionModel } from '../session'
-import { type ApolloRootModel } from '../types'
+import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import type { ApolloSessionModel } from '../session'
+import type { ApolloRootModel } from '../types'
 
 import { Attributes } from './Attributes'
 import { TranscriptSequence } from './TranscriptSequence'
 import { TranscriptWidgetEditLocation } from './TranscriptWidgetEditLocation'
 import { TranscriptWidgetSummary } from './TranscriptWidgetSummary'
-import { type ApolloTranscriptDetailsWidget as ApolloTranscriptDetailsWidgetState } from './model'
+import type { ApolloTranscriptDetailsWidget as ApolloTranscriptDetailsWidgetState } from './model'
 
 interface CustomComponentProps {
   session: AbstractSessionModel

@@ -1,11 +1,11 @@
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import { Button, Typography } from '@mui/material'
 import { observer } from 'mobx-react'
 import React from 'react'
 
 import { getFeatureNameOrId } from '../util'
 
-import { type ApolloFeatureDetailsWidget as ApolloFeatureDetails } from './model'
+import type { ApolloFeatureDetailsWidget as ApolloFeatureDetails } from './model'
 
 export const FeatureDetailsNavigation = observer(
   function FeatureDetailsNavigation(props: {

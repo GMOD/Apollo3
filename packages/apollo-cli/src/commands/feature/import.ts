@@ -1,6 +1,6 @@
 import * as fs from 'node:fs'
 
-import { type SerializedAddFeaturesFromFileChange } from '@apollo-annotation/shared'
+import type { SerializedAddFeaturesFromFileChange } from '@apollo-annotation/shared'
 import { Args, Flags } from '@oclif/core'
 import { Agent, type RequestInit, fetch } from 'undici'
 

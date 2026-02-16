@@ -19,7 +19,7 @@ import {
   operations,
   validationRegistry,
 } from '@apollo-annotation/shared'
-import { type LogLevel } from '@nestjs/common'
+import type { LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import connectMongoDBSession from 'connect-mongodb-session'
 import { json, urlencoded } from 'express'

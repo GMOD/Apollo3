@@ -7,7 +7,7 @@ import { IconButton, InputAdornment, TextField, Tooltip } from '@mui/material'
 import { observer } from 'mobx-react'
 import React from 'react'
 
-import { type DisplayStateModel } from '../types'
+import type { DisplayStateModel } from '../types'
 
 const useStyles = makeStyles()({
   toolbar: {

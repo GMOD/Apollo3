@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { type DecodedJWT } from '@apollo-annotation/shared'
+import type { DecodedJWT } from '@apollo-annotation/shared'
 import { Body, Controller, Get, Logger, Param, Post, Req } from '@nestjs/common'
-import { type Request } from 'express'
+import type { Request } from 'express'
 
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'

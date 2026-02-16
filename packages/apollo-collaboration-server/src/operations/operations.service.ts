@@ -19,7 +19,7 @@ import {
 } from '@apollo-annotation/schemas'
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectConnection, InjectModel } from '@nestjs/mongoose'
-import { type Connection, type Model } from 'mongoose'
+import type { Connection, Model } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service.js'
 import { FilesService } from '../files/files.service.js'

@@ -5,7 +5,7 @@ import {
 } from '@apollo-annotation/schemas'
 import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
-import { type Connection } from 'mongoose'
+import type { Connection } from 'mongoose'
 import idValidator from 'mongoose-id-validator'
 
 import { ChecksModule } from '../checks/checks.module.js'

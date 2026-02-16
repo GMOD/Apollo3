@@ -3,18 +3,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
-import {
-  type DisplayType,
-  type PluggableElementType,
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import type {
+  DisplayType,
+  PluggableElementType,
 } from '@jbrowse/core/pluggableElementTypes'
 import {
   type AbstractSessionModel,
   getContainingView,
   getSession,
 } from '@jbrowse/core/util'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
 import ObjectID from 'bson-objectid'
 

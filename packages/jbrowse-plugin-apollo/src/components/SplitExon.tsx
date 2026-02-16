@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
-import {
-  type AnnotationFeature,
-  type AnnotationFeatureSnapshot,
+import type {
+  AnnotationFeature,
+  AnnotationFeatureSnapshot,
 } from '@apollo-annotation/mst'
 import { SplitExonChange } from '@apollo-annotation/shared'
 import { getSnapshot } from '@jbrowse/mobx-state-tree'
@@ -15,8 +15,8 @@ import {
 import ObjectID from 'bson-objectid'
 import React, { useState } from 'react'
 
-import { type ChangeManager } from '../ChangeManager'
-import { type ApolloSessionModel } from '../session'
+import type { ChangeManager } from '../ChangeManager'
+import type { ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
 

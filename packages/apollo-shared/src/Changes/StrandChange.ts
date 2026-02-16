@@ -9,7 +9,7 @@ import {
   type SerializedFeatureChange,
   type ServerDataStore,
 } from '@apollo-annotation/common'
-import { type Feature, type FeatureDocument } from '@apollo-annotation/schemas'
+import type { Feature, FeatureDocument } from '@apollo-annotation/schemas'
 
 interface SerializedStrandChangeBase extends SerializedFeatureChange {
   typeName: 'StrandChange'

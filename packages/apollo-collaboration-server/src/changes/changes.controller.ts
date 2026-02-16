@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { Change } from '@apollo-annotation/common'
-import { type DecodedJWT } from '@apollo-annotation/shared'
+import type { DecodedJWT } from '@apollo-annotation/shared'
 import { Body, Controller, Get, Logger, Post, Query, Req } from '@nestjs/common'
-import { type Request } from 'express'
+import type { Request } from 'express'
 
 import { ParseChangePipe } from '../utils/parse-change.pipe.js'
 import { Role } from '../utils/role/role.enum.js'

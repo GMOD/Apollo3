@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, it } from 'node:test'
 
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { formatSync } from '@gmod/gff'
 import { assert, expect } from 'chai'
 

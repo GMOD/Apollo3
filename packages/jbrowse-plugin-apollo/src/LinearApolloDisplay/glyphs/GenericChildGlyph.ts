@@ -1,5 +1,5 @@
-import { type AnnotationFeature } from '@apollo-annotation/mst'
-import { type MenuItem } from '@jbrowse/core/ui'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
+import type { MenuItem } from '@jbrowse/core/ui'
 import { alpha } from '@mui/material'
 
 import {
@@ -8,12 +8,12 @@ import {
   isMousePositionWithFeature,
 } from '../../util'
 import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
-import { type LinearApolloDisplay } from '../stateModel'
-import { type LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
-import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
+import type { LinearApolloDisplay } from '../stateModel'
+import type { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
+import type { LinearApolloDisplayRendering } from '../stateModel/rendering'
 
 import { boxGlyph, drawBox } from './BoxGlyph'
-import { type Glyph } from './Glyph'
+import type { Glyph } from './Glyph'
 
 function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
   const features = [[feature]]

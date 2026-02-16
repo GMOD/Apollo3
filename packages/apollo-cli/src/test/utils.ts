@@ -1,6 +1,6 @@
 import { it } from 'node:test'
 
-import { type CheckResultSnapshot } from '@apollo-annotation/mst'
+import type { CheckResultSnapshot } from '@apollo-annotation/mst'
 import spawn from 'cross-spawn'
 
 declare global {

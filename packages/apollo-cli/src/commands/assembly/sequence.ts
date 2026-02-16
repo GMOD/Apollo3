@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
-import { type ApolloRefSeqSnapshot } from '@apollo-annotation/mst'
+import type { ApolloRefSeqSnapshot } from '@apollo-annotation/mst'
 import { Flags } from '@oclif/core'
 import { Agent, type RequestInit, type Response, fetch } from 'undici'
 

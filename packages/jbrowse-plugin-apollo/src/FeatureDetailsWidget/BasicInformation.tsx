@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
   StrandChange,
   TypeChange,
 } from '@apollo-annotation/shared'
-import { type AbstractSessionModel } from '@jbrowse/core/util'
+import type { AbstractSessionModel } from '@jbrowse/core/util'
 import { TextField, Typography } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
@@ -15,7 +15,7 @@ import { isOntologyClass } from '../OntologyManager'
 import type OntologyStore from '../OntologyManager/OntologyStore'
 import { fetchValidDescendantTerms } from '../OntologyManager/util'
 import { OntologyTermAutocomplete } from '../components/OntologyTermAutocomplete'
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 
 import { NumberTextField } from './NumberTextField'
 

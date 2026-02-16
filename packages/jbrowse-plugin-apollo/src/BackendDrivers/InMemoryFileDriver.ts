@@ -1,17 +1,14 @@
 /* eslint-disable @typescript-eslint/require-await */
-import {
-  type AssemblySpecificChange,
-  type Change,
-} from '@apollo-annotation/common'
-import {
-  type AnnotationFeatureSnapshot,
-  type CheckResultSnapshot,
+import type { AssemblySpecificChange, Change } from '@apollo-annotation/common'
+import type {
+  AnnotationFeatureSnapshot,
+  CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 import { ValidationResultSet } from '@apollo-annotation/shared'
 import { getConf } from '@jbrowse/core/configuration'
 import { type Region, getSession } from '@jbrowse/core/util'
 
-import { type SubmitOpts } from '../ChangeManager'
+import type { SubmitOpts } from '../ChangeManager'
 import { checkFeatures } from '../util'
 
 import { BackendDriver, type RefNameAliases } from './BackendDriver'

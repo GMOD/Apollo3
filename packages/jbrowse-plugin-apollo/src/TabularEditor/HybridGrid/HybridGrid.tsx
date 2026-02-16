@@ -4,7 +4,7 @@ import { useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useRef, useState } from 'react'
 
-import { type DisplayStateModel } from '../types'
+import type { DisplayStateModel } from '../types'
 
 import { Feature } from './Feature'
 

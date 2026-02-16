@@ -12,12 +12,12 @@ import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 
 import { ChecksService } from '../checks/checks.service.js'
-import { type FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
+import type { FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
 import { OperationsService } from '../operations/operations.service.js'
 
-import {
-  type FeatureCountRequest,
-  type GetByIndexedIdRequest,
+import type {
+  FeatureCountRequest,
+  GetByIndexedIdRequest,
 } from './dto/feature.dto.js'
 
 @Injectable()

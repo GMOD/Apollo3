@@ -23,9 +23,9 @@ import {
   type OntologyTerm,
   isOntologyClass,
 } from '../OntologyManager'
-import { type Match } from '../OntologyManager/OntologyStore/fulltext'
+import type { Match } from '../OntologyManager/OntologyStore/fulltext'
 import { isDeprecated } from '../OntologyManager/OntologyStore/indexeddb-schema'
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 
 interface TermValue {
   term: OntologyTerm

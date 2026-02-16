@@ -3,7 +3,7 @@ import React from 'react'
 
 import HybridGrid from './HybridGrid'
 import { ToolBar } from './HybridGrid/ToolBar'
-import { type DisplayStateModel } from './types'
+import type { DisplayStateModel } from './types'
 
 function stopPropagation(e: React.MouseEvent) {
   e.stopPropagation()

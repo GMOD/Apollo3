@@ -9,11 +9,11 @@ import { observer } from 'mobx-react'
 import React, { useCallback, useEffect, useRef } from 'react'
 
 import { LinearApolloDisplay } from './LinearApolloDisplay/components'
-import { type LinearApolloDisplay as LinearApolloDisplayI } from './LinearApolloDisplay/stateModel'
+import type { LinearApolloDisplay as LinearApolloDisplayI } from './LinearApolloDisplay/stateModel'
 import { LinearApolloSixFrameDisplay } from './LinearApolloSixFrameDisplay/components'
-import { type LinearApolloSixFrameDisplay as LinearApolloSixFrameDisplayI } from './LinearApolloSixFrameDisplay/stateModel'
+import type { LinearApolloSixFrameDisplay as LinearApolloSixFrameDisplayI } from './LinearApolloSixFrameDisplay/stateModel'
 import { TabularEditorPane } from './TabularEditor'
-import { type ApolloSessionModel } from './session'
+import type { ApolloSessionModel } from './session'
 
 const accordionControlHeight = 12
 

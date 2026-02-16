@@ -1,4 +1,4 @@
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 export function getPrintableId(feature: AnnotationFeatureSnapshot): string {
   const gff_id = feature.attributes?.gff_id?.join(', ')
