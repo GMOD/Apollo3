@@ -14,6 +14,7 @@ import { JwtService } from '@nestjs/jwt'
 import type { Request } from 'express'
 import type { Profile as GoogleProfile } from 'passport-google-oauth20'
 
+import { PluginsService } from '../plugins/plugins.service.js'
 import { CreateUserDto } from '../users/dto/create-user.dto.js'
 import { UsersService } from '../users/users.service.js'
 import {
@@ -40,6 +41,24 @@ interface ConfigValues {
 
 const ROOT_USER_NAME = 'root'
 
+export interface AuthHandlerRedirect {
+  url: string
+}
+
+export interface AuthHandlerUser {
+  name: string
+  email: string
+}
+
+export interface CustomAuthHandler {
+  message: string
+  needsPopup: boolean
+  handler: (
+    request: Request,
+    redirectUri?: string,
+  ) => Promise<AuthHandlerRedirect | AuthHandlerUser>
+}
+
 @Injectable()
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name)
@@ -49,6 +68,7 @@ export class AuthenticationService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService<ConfigValues, true>,
+    private readonly pluginsService: PluginsService,
   ) {
     this.defaultNewUserRole = configService.get('DEFAULT_NEW_USER_ROLE', {
       infer: true,
@@ -70,7 +90,16 @@ export class AuthenticationService {
   }
 
   async getLoginTypes() {
-    const loginTypes: { name: string; needsPopup: boolean }[] = []
+    const defaultAuthTypes = new Map<string, CustomAuthHandler>()
+    const customAuthTypes = this.pluginsService.evaluateExtensionPoint(
+      'Apollo-RegisterCustomAuth',
+      defaultAuthTypes,
+    )
+    const loginTypes: { name: string; needsPopup: boolean; message: string }[] =
+      []
+    for (const [name, { needsPopup, message }] of customAuthTypes) {
+      loginTypes.push({ name, message, needsPopup })
+    }
     let microsoftClientID = this.configService.get('MICROSOFT_CLIENT_ID', {
       infer: true,
     })
@@ -96,13 +125,25 @@ export class AuthenticationService {
       infer: true,
     })
     if (microsoftClientID) {
-      loginTypes.push({ name: 'microsoft', needsPopup: true })
+      loginTypes.push({
+        name: 'microsoft',
+        message: 'Sign in with Microsoft',
+        needsPopup: true,
+      })
     }
     if (googleClientID) {
-      loginTypes.push({ name: 'google', needsPopup: true })
+      loginTypes.push({
+        name: 'google',
+        message: 'Sign in with Google',
+        needsPopup: true,
+      })
     }
     if (allowGuestUser) {
-      loginTypes.push({ name: 'guest', needsPopup: false })
+      loginTypes.push({
+        name: 'guest',
+        message: 'Continue as Guest',
+        needsPopup: false,
+      })
     }
     return loginTypes
   }
@@ -146,6 +187,31 @@ export class AuthenticationService {
       return this.logIn(GUEST_USER_NAME, GUEST_USER_EMAIL)
     }
     throw new UnauthorizedException('Guest users are not allowed')
+  }
+
+  async fallbackLogin(id: string, request: Request, redirectUri: string) {
+    const defaultAuthTypes = new Map<string, CustomAuthHandler>()
+    const customAuthTypes = this.pluginsService.evaluateExtensionPoint(
+      'Apollo-RegisterCustomAuth',
+      defaultAuthTypes,
+    )
+    const customAuth = customAuthTypes.get(id)
+    if (!customAuth) {
+      throw new UnauthorizedException('Unknown authentication type')
+    }
+    let result: AuthHandlerRedirect | AuthHandlerUser
+    try {
+      result = await customAuth.handler(request, redirectUri)
+    } catch (error) {
+      throw new UnauthorizedException(error)
+    }
+    if ('url' in result) {
+      return result
+    }
+    if ('name' in result && 'email' in result) {
+      return this.logIn(result.name, result.email)
+    }
+    throw new UnauthorizedException('Malformed authentication handler response')
   }
 
   async rootLogin(password: string) {
