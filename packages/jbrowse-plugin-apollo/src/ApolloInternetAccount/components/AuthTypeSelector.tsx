@@ -22,6 +22,11 @@ const useStyles = makeStyles()((theme) => ({
   },
 }))
 
+interface AuthType {
+  name: string
+  needsPopup: boolean
+}
+
 export const AuthTypeSelector = ({
   baseURL,
   handleClose,
@@ -29,11 +34,11 @@ export const AuthTypeSelector = ({
 }: {
   baseURL: string
   name: string
-  handleClose: (type?: 'google' | 'microsoft' | 'guest' | Error) => void
+  handleClose: (type?: AuthType | Error) => void
 }) => {
   const { classes } = useStyles()
   const [errorMessage, setErrorMessage] = useState('')
-  const [loginTypes, setLoginTypes] = useState<string[]>([])
+  const [loginTypes, setLoginTypes] = useState<null | AuthType[]>(null)
   useEffect(() => {
     const controller = new AbortController()
     const { signal } = controller
@@ -48,8 +53,11 @@ export const AuthTypeSelector = ({
         setErrorMessage(newErrorMessage)
         return
       }
-      const data = (await response.json()) as string[]
+      const data = (await response.json()) as AuthType[]
       setLoginTypes(data)
+      if (data.length === 0) {
+        setErrorMessage('No login types configured')
+      }
     }
     getAuthTypes().catch((error) => {
       if (!isAbortException(error)) {
@@ -66,19 +74,24 @@ export const AuthTypeSelector = ({
     }
   }, [baseURL])
 
-  function handleClick(authType: 'google' | 'microsoft' | 'guest') {
-    if (authType === 'google') {
-      handleClose('google')
-    } else if (authType === 'microsoft') {
-      handleClose('microsoft')
-    } else {
-      handleClose('guest')
-    }
+  function handleClick(authType: AuthType) {
+    handleClose(authType)
   }
 
-  const allowGoogle = loginTypes.includes('google')
-  const allowMicrosoft = loginTypes.includes('microsoft')
-  const allowGuest = loginTypes.includes('guest')
+  if (loginTypes === null) {
+    return 'Loading…'
+  }
+
+  const firstLoginType = loginTypes.at(0)
+
+  if (firstLoginType && loginTypes.length === 1 && !firstLoginType.needsPopup) {
+    handleClick(firstLoginType)
+  }
+
+  const loginTypeNames = new Set(loginTypes.map((loginType) => loginType.name))
+  const allowGoogle = loginTypeNames.has('google')
+  const allowMicrosoft = loginTypeNames.has('microsoft')
+  const allowGuest = loginTypeNames.has('guest')
   return (
     <Dialog
       open
@@ -94,7 +107,7 @@ export const AuthTypeSelector = ({
           <GoogleButton
             disabled={!allowGoogle}
             onClick={() => {
-              handleClick('google')
+              handleClick({ name: 'google', needsPopup: true })
             }}
           />
         ) : null}
@@ -102,7 +115,7 @@ export const AuthTypeSelector = ({
           <MicrosoftButton
             disabled={!allowMicrosoft}
             onClick={() => {
-              handleClick('microsoft')
+              handleClick({ name: 'microsoft', needsPopup: true })
             }}
           />
         ) : null}
@@ -111,7 +124,7 @@ export const AuthTypeSelector = ({
             <Divider className={classes.divider} />
             <GuestButton
               onClick={() => {
-                handleClick('guest')
+                handleClick({ name: 'guest', needsPopup: false })
               }}
             />
           </>
