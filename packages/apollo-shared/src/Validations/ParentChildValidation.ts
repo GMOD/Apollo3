@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 
-import { type Change } from '@apollo-annotation/common'
-import { type Feature, type FeatureDocument } from '@apollo-annotation/schemas'
-import { type ClientSession, type Model } from 'mongoose'
+import type { Change } from '@apollo-annotation/common'
+import type { Feature, FeatureDocument } from '@apollo-annotation/schemas'
+import type { ClientSession, Model } from 'mongoose'
 
 import {
   type LocationEndChange,

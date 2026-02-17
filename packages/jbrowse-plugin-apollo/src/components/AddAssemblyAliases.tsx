@@ -3,12 +3,12 @@ import { Box, DialogContent, DialogContentText } from '@mui/material'
 import { DataGrid, type GridColDef, type GridRowModel } from '@mui/x-data-grid'
 import React from 'react'
 
-import {
-  type ApolloInternetAccount,
-  type CollaborationServerDriver,
+import type {
+  ApolloInternetAccount,
+  CollaborationServerDriver,
 } from '../BackendDrivers'
-import { type ChangeManager } from '../ChangeManager'
-import { type ApolloSessionModel } from '../session'
+import type { ChangeManager } from '../ChangeManager'
+import type { ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
 

@@ -1,8 +1,8 @@
 import * as fs from 'node:fs'
 
-import {
-  type JBrowseConfig,
-  type SerializedImportJBrowseConfigChange,
+import type {
+  JBrowseConfig,
+  SerializedImportJBrowseConfigChange,
 } from '@apollo-annotation/shared'
 import { Args } from '@oclif/core'
 import { Agent, type RequestInit, fetch } from 'undici'

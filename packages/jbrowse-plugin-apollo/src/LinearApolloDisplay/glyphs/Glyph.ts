@@ -1,11 +1,11 @@
-import { type AnnotationFeature } from '@apollo-annotation/mst'
-import { type MenuItem } from '@jbrowse/core/ui'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
+import type { MenuItem } from '@jbrowse/core/ui'
 
-import { type OntologyRecord } from '../../OntologyManager'
-import { type MousePositionWithFeature } from '../../util'
-import { type LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
-import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
-import { type CanvasMouseEvent } from '../types'
+import type { OntologyRecord } from '../../OntologyManager'
+import type { MousePositionWithFeature } from '../../util'
+import type { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
+import type { LinearApolloDisplayRendering } from '../stateModel/rendering'
+import type { CanvasMouseEvent } from '../types'
 
 export interface Glyph {
   /** @returns number of layout rows used by this glyph with this feature and zoom level */

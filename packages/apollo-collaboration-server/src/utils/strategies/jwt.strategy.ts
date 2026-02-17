@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 
-import { type DecodedJWT } from '@apollo-annotation/shared'
+import type { DecodedJWT } from '@apollo-annotation/shared'
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'

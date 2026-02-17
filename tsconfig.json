@@ -28,7 +28,7 @@
     // Recommended Options
     "strict": true,
     "jsx": "react-jsx",
-    "verbatimModuleSyntax": false,
+    "verbatimModuleSyntax": true,
     "isolatedModules": true,
     // TODO: enable this one TypeScript version is updated
     // "noUncheckedSideEffectImports": true,

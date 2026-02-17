@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { type Feature } from '@apollo-annotation/schemas'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { Feature } from '@apollo-annotation/schemas'
 
 import {
   Change,

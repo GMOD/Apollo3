@@ -7,7 +7,7 @@ import {
 import { Observable } from 'rxjs'
 
 import { FilesService } from './files.service.js'
-import { type FileRequest } from './filesUtil.js'
+import type { FileRequest } from './filesUtil.js'
 
 @Injectable()
 export class FilesInterceptor<T> implements NestInterceptor<T, T> {

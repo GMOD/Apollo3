@@ -1,4 +1,4 @@
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import { FeatureAttributeChange } from '@apollo-annotation/shared'
 import { type AbstractSessionModel, getEnv } from '@jbrowse/core/util'
 import { makeStyles } from '@jbrowse/core/util/tss-react'
@@ -22,7 +22,7 @@ import { entries } from 'mobx'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 
 import { AttributeKey } from './AttributeKey'
 import { AttributeKeySelector } from './AttributeKeySelector'

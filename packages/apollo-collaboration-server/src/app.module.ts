@@ -8,7 +8,7 @@ import {
   type MongooseModuleFactoryOptions,
 } from '@nestjs/mongoose'
 import Joi from 'joi'
-import { type Connection } from 'mongoose'
+import type { Connection } from 'mongoose'
 
 import { AssembliesModule } from './assemblies/assemblies.module.js'
 import { AuthenticationModule } from './authentication/authentication.module.js'

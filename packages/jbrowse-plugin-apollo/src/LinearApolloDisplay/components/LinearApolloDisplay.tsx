@@ -4,14 +4,14 @@
 
 import { Menu, type MenuItem } from '@jbrowse/core/ui'
 import { getContainingView } from '@jbrowse/core/util'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import LockIcon from '@mui/icons-material/Lock'
 import { Alert, CircularProgress, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 
 import { type Coord, useStyles } from '../../util/displayUtils'
-import { type LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
+import type { LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
 
 import { CheckResultWarnings } from './CheckResultWarnings'
 

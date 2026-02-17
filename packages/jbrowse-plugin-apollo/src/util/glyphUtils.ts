@@ -1,24 +1,24 @@
-import {
-  type AnnotationFeature,
-  type TranscriptPartCoding,
+import type {
+  AnnotationFeature,
+  TranscriptPartCoding,
 } from '@apollo-annotation/mst'
-import { type BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
-import { type MenuItem } from '@jbrowse/core/ui'
+import type { BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
+import type { MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
   getContainingView,
   isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import SkipNextRoundedIcon from '@mui/icons-material/SkipNextRounded'
 import SkipPreviousRoundedIcon from '@mui/icons-material/SkipPreviousRounded'
 
-import { type LinearApolloDisplayMouseEvents } from '../LinearApolloDisplay/stateModel/mouseEvents'
-import { type LinearApolloSixFrameDisplayMouseEvents } from '../LinearApolloSixFrameDisplay/stateModel/mouseEvents'
+import type { LinearApolloDisplayMouseEvents } from '../LinearApolloDisplay/stateModel/mouseEvents'
+import type { LinearApolloSixFrameDisplayMouseEvents } from '../LinearApolloSixFrameDisplay/stateModel/mouseEvents'
 import { AddChildFeature, CopyFeature, DeleteFeature } from '../components'
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 
-import { type MousePositionWithFeature } from '.'
+import type { MousePositionWithFeature } from '.'
 
 type NavLocation = Parameters<LinearGenomeViewModel['navTo']>[0]
 

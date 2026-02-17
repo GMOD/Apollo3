@@ -14,7 +14,7 @@ import {
 } from '@jbrowse/mobx-state-tree'
 import { autorun } from 'mobx'
 
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 
 export const ApolloFeatureDetailsWidgetModel = types
   .model('ApolloFeatureDetailsWidget', {

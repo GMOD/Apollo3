@@ -10,11 +10,11 @@ import {
   type SerializedFeatureChange,
   type ServerDataStore,
 } from '@apollo-annotation/common'
-import {
-  type AnnotationFeature,
-  type AnnotationFeatureSnapshot,
+import type {
+  AnnotationFeature,
+  AnnotationFeatureSnapshot,
 } from '@apollo-annotation/mst'
-import { type Feature } from '@apollo-annotation/schemas'
+import type { Feature } from '@apollo-annotation/schemas'
 import { doesIntersect2 } from '@jbrowse/core/util'
 import { getSnapshot } from '@jbrowse/mobx-state-tree'
 

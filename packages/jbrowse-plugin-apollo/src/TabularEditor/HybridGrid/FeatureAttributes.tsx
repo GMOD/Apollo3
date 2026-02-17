@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import { observer } from 'mobx-react'
 import React from 'react'

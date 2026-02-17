@@ -1,6 +1,6 @@
 import * as fs from 'node:fs'
 
-import { type SerializedRefSeqAliasesChange } from '@apollo-annotation/shared'
+import type { SerializedRefSeqAliasesChange } from '@apollo-annotation/shared'
 import { Args, Flags } from '@oclif/core'
 import { Agent, type RequestInit, type Response, fetch } from 'undici'
 

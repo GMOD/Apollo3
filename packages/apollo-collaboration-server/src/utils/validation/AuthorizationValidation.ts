@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { type Change, type SerializedChange } from '@apollo-annotation/common'
+import type { Change, SerializedChange } from '@apollo-annotation/common'
 import {
   type Context,
   type JWTPayload,
@@ -10,7 +10,7 @@ import {
   isContext,
 } from '@apollo-annotation/shared'
 import { Logger } from '@nestjs/common'
-import { type Request } from 'express'
+import type { Request } from 'express'
 
 import { Role, RoleInheritance } from '../role/role.enum.js'
 

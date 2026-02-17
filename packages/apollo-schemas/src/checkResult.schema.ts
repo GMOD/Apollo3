@@ -1,4 +1,4 @@
-import { type CheckResultSnapshot } from '@apollo-annotation/mst'
+import type { CheckResultSnapshot } from '@apollo-annotation/mst'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import {
   type HydratedDocument,

@@ -9,17 +9,17 @@ import {
   rmdir,
 } from 'node:fs/promises'
 import path from 'node:path'
-import { type Readable } from 'node:stream'
+import type { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { promisify } from 'node:util'
 import { createGzip, gunzip } from 'node:zlib'
 
-import { type Logger } from '@nestjs/common'
-import { type Request } from 'express'
-import {
-  type FilehandleOptions,
-  type GenericFilehandle,
-  type Stats,
+import type { Logger } from '@nestjs/common'
+import type { Request } from 'express'
+import type {
+  FilehandleOptions,
+  GenericFilehandle,
+  Stats,
 } from 'generic-filehandle'
 
 interface FileUpload {

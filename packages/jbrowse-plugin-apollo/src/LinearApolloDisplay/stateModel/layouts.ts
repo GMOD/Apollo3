@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
+import type { AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
 import { type AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
 import { addDisposer, isAlive } from '@jbrowse/mobx-state-tree'
 import { autorun, observable } from 'mobx'
 
-import { type ApolloSessionModel } from '../../session'
+import type { ApolloSessionModel } from '../../session'
 import { boxGlyph, geneGlyph, genericChildGlyph } from '../glyphs'
 
 import { baseModelFactory } from './base'

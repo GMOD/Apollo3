@@ -1,7 +1,7 @@
 import { type ClientDataStore, checkRegistry } from '@apollo-annotation/common'
-import {
-  type ApolloAssemblyI,
-  type CheckResultSnapshot,
+import type {
+  ApolloAssemblyI,
+  CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 import { gff3ToAnnotationFeature } from '@apollo-annotation/shared'
 import {

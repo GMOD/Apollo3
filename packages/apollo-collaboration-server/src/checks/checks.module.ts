@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { type CheckResultSnapshot } from '@apollo-annotation/mst'
+import type { CheckResultSnapshot } from '@apollo-annotation/mst'
 import {
   Check,
   CheckResult,
@@ -8,7 +8,7 @@ import {
   CheckResultSchema,
   CheckSchema,
 } from '@apollo-annotation/schemas'
-import { type CheckResultUpdate } from '@apollo-annotation/shared'
+import type { CheckResultUpdate } from '@apollo-annotation/shared'
 import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import idValidator from 'mongoose-id-validator'

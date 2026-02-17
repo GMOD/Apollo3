@@ -1,15 +1,15 @@
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import BaseResult from '@jbrowse/core/TextSearch/BaseResults'
-import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { readConfObject } from '@jbrowse/core/configuration'
 import {
   BaseAdapter,
   type BaseTextSearchAdapter,
   type BaseTextSearchArgs,
 } from '@jbrowse/core/data_adapters/BaseAdapter'
-import { type AbstractSessionModel, type UriLocation } from '@jbrowse/core/util'
+import type { AbstractSessionModel, UriLocation } from '@jbrowse/core/util'
 
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 
 export class ApolloTextSearchAdapter
   extends BaseAdapter

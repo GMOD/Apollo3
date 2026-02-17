@@ -1,12 +1,8 @@
-import { type Change, type ClientDataStore } from '@apollo-annotation/common'
-import { type FeatureDocument } from '@apollo-annotation/schemas'
-import { type ClientSession, type Model } from 'mongoose'
+import type { Change, ClientDataStore } from '@apollo-annotation/common'
+import type { FeatureDocument } from '@apollo-annotation/schemas'
+import type { ClientSession, Model } from 'mongoose'
 
-import {
-  type Context,
-  type Validation,
-  type ValidationResult,
-} from './Validation.js'
+import type { Context, Validation, ValidationResult } from './Validation.js'
 
 export class ValidationResultSet {
   results: ValidationResult[] = []

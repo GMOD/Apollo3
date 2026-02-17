@@ -1,7 +1,7 @@
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import { readConfObject } from '@jbrowse/core/configuration'
-import { type BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
-import { type MenuItem } from '@jbrowse/core/ui'
+import type { BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
+import type { MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
   getContainingView,
@@ -9,10 +9,10 @@ import {
   intersection2,
   isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material'
 
-import { type OntologyRecord } from '../../OntologyManager'
+import type { OntologyRecord } from '../../OntologyManager'
 import { MergeExons, MergeTranscripts, SplitExon } from '../../components'
 import {
   type MousePosition,
@@ -30,13 +30,13 @@ import {
   selectFeatureAndOpenWidget,
 } from '../../util'
 import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
-import { type LinearApolloDisplay } from '../stateModel'
-import { type LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
-import { type LinearApolloDisplayRendering } from '../stateModel/rendering'
-import { type CanvasMouseEvent } from '../types'
+import type { LinearApolloDisplay } from '../stateModel'
+import type { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
+import type { LinearApolloDisplayRendering } from '../stateModel/rendering'
+import type { CanvasMouseEvent } from '../types'
 
 import { boxGlyph } from './BoxGlyph'
-import { type Glyph } from './Glyph'
+import type { Glyph } from './Glyph'
 
 let forwardFillLight: CanvasPattern | null = null
 let backwardFillLight: CanvasPattern | null = null

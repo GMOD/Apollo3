@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, it } from 'node:test'
 
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { type GFF3Feature, parseStringSync } from '@gmod/gff'
 import { assert, use } from 'chai'
 import chaiExclude from 'chai-exclude'

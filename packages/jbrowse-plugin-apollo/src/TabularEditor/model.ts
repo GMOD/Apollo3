@@ -1,6 +1,6 @@
 import { type Instance, getParent, types } from '@jbrowse/mobx-state-tree'
 
-import { type DisplayStateModel } from './types'
+import type { DisplayStateModel } from './types'
 
 export const TabularEditorStateModelType = types
   .model('TabularEditor', {

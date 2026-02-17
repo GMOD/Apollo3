@@ -1,9 +1,9 @@
-import {
-  type AnnotationFeature,
-  type TranscriptPartCoding,
+import type {
+  AnnotationFeature,
+  TranscriptPartCoding,
 } from '@apollo-annotation/mst'
-import { type BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
-import { type MenuItem } from '@jbrowse/core/ui'
+import type { BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
+import type { MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
   getContainingView,
@@ -12,7 +12,7 @@ import {
   measureText,
 } from '@jbrowse/core/util'
 import { getSnapshot } from '@jbrowse/mobx-state-tree'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material'
 import equal from 'fast-deep-equal/es6'
 
@@ -35,12 +35,12 @@ import {
   navToFeatureCenter,
   selectFeatureAndOpenWidget,
 } from '../../util'
-import { type LinearApolloSixFrameDisplay } from '../stateModel'
-import { type LinearApolloSixFrameDisplayMouseEvents } from '../stateModel/mouseEvents'
-import { type LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
-import { type CanvasMouseEvent } from '../types'
+import type { LinearApolloSixFrameDisplay } from '../stateModel'
+import type { LinearApolloSixFrameDisplayMouseEvents } from '../stateModel/mouseEvents'
+import type { LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
+import type { CanvasMouseEvent } from '../types'
 
-import { type Glyph } from './Glyph'
+import type { Glyph } from './Glyph'
 
 let forwardFillLight: CanvasPattern | null = null
 let backwardFillLight: CanvasPattern | null = null

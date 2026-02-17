@@ -3,15 +3,15 @@ import type EventEmitter from 'node:events'
 import * as fs from 'node:fs'
 import { stderr, stdin } from 'node:process'
 
-import {
-  type ApolloAssemblySnapshot,
-  type CheckResultSnapshot,
+import type {
+  ApolloAssemblySnapshot,
+  CheckResultSnapshot,
 } from '@apollo-annotation/mst'
-import {
-  type SerializedAddAssemblyAndFeaturesFromFileChange,
-  type SerializedAddAssemblyFromExternalChange,
-  type SerializedAddAssemblyFromFileChange,
-  type SerializedDeleteAssemblyChange,
+import type {
+  SerializedAddAssemblyAndFeaturesFromFileChange,
+  SerializedAddAssemblyFromExternalChange,
+  SerializedAddAssemblyFromFileChange,
+  SerializedDeleteAssemblyChange,
 } from '@apollo-annotation/shared'
 import { Agent, type RequestInit, type Response, fetch } from 'undici'
 

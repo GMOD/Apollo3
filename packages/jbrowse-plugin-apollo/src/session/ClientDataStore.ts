@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { type ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
+import type { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
 import {
   type AnnotationFeatureModel,
   type AnnotationFeatureSnapshot,
@@ -19,9 +19,9 @@ import {
   readConfObject,
 } from '@jbrowse/core/configuration'
 import { type Region, getSession, isElectron } from '@jbrowse/core/util'
-import {
-  type LocalPathLocation,
-  type UriLocation,
+import type {
+  LocalPathLocation,
+  UriLocation,
 } from '@jbrowse/core/util/types/mst'
 import {
   type Instance,
@@ -47,9 +47,9 @@ import {
   type TextIndexFieldDefinition,
 } from '../OntologyManager'
 import type ApolloPluginConfigurationSchema from '../config'
-import { type ApolloRootModel } from '../types'
+import type { ApolloRootModel } from '../types'
 
-import { type ApolloSessionModel } from './session'
+import type { ApolloSessionModel } from './session'
 
 export function clientDataStoreFactory(
   AnnotationFeatureExtended: typeof AnnotationFeatureModel,

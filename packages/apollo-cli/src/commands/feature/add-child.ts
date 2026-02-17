@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { type SerializedAddFeatureChange } from '@apollo-annotation/shared'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { SerializedAddFeatureChange } from '@apollo-annotation/shared'
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 import { type Response, fetch } from 'undici'

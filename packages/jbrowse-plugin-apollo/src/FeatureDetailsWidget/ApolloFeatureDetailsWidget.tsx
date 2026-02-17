@@ -10,13 +10,13 @@ import {
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 
 import { Attributes } from './Attributes'
 import { BasicInformation } from './BasicInformation'
 import { FeatureDetailsNavigation } from './FeatureDetailsNavigation'
 import { Sequence } from './Sequence'
-import { type ApolloFeatureDetailsWidget as ApolloFeatureDetails } from './model'
+import type { ApolloFeatureDetailsWidget as ApolloFeatureDetails } from './model'
 
 const useStyles = makeStyles()((theme) => ({
   root: {

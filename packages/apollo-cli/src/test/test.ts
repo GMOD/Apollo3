@@ -21,7 +21,6 @@ import * as crypto from 'node:crypto'
 import fs from 'node:fs'
 import { after, afterEach, before, beforeEach, describe } from 'node:test'
 
-// eslint-disable-next-line import/consistent-type-specifier-style
 import type {
   AnnotationFeature,
   AnnotationFeatureSnapshot,

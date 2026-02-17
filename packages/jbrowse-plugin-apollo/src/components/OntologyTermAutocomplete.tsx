@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 
-import { type AbstractSessionModel } from '@jbrowse/core/util'
+import type { AbstractSessionModel } from '@jbrowse/core/util'
 import { isAbortException } from '@jbrowse/core/util/aborting'
 import {
   Autocomplete,
@@ -11,7 +11,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 
 import { type OntologyTerm, isDeprecated } from '../OntologyManager'
 import type OntologyStore from '../OntologyManager/OntologyStore'
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 
 interface OntologyTermAutocompleteProps {
   session: ApolloSessionModel

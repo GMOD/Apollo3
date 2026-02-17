@@ -16,12 +16,12 @@ import {
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
-import { type Request, type Response } from 'express'
+import type { Request, Response } from 'express'
 
 import { FileStorageEngine } from './FileStorageEngine.js'
 import { FilesInterceptor as StreamingFileInterceptor } from './files.interceptor.js'
 import { FilesService } from './files.service.js'
-import { type UploadedFile as UploadedApolloFile } from './filesUtil.js'
+import type { UploadedFile as UploadedApolloFile } from './filesUtil.js'
 
 @Controller('files')
 export class FilesController {

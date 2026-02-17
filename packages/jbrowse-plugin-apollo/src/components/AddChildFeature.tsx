@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
 import {
   Button,
@@ -12,11 +12,11 @@ import {
 import ObjectID from 'bson-objectid'
 import React, { useState } from 'react'
 
-import { type ChangeManager } from '../ChangeManager'
+import type { ChangeManager } from '../ChangeManager'
 import { isOntologyClass } from '../OntologyManager'
 import type OntologyStore from '../OntologyManager/OntologyStore'
 import { fetchValidDescendantTerms } from '../OntologyManager/util'
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
 import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'

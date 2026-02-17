@@ -3,10 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import {
-  type AnnotationFeature,
-  type TranscriptPart,
-} from '@apollo-annotation/mst'
+import type { AnnotationFeature, TranscriptPart } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
@@ -32,8 +29,8 @@ import {
 import { observer } from 'mobx-react'
 import React, { useRef } from 'react'
 
-import { type OntologyRecord } from '../OntologyManager'
-import { type ApolloSessionModel } from '../session'
+import type { OntologyRecord } from '../OntologyManager'
+import type { ApolloSessionModel } from '../session'
 import { copyToClipboard } from '../util/copyToClipboard'
 
 import { StyledAccordionSummary } from './ApolloTranscriptDetailsWidget'

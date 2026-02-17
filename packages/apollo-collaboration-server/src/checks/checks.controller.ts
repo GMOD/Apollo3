@@ -1,6 +1,6 @@
 import { Controller, Get, Logger, Param, Query } from '@nestjs/common'
 
-import { type FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
+import type { FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'
 

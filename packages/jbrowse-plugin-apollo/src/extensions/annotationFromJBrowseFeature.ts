@@ -3,19 +3,19 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { gff3ToAnnotationFeature } from '@apollo-annotation/shared'
-import { type GFF3Feature } from '@gmod/gff'
-import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
-import { type PluggableElementType } from '@jbrowse/core/pluggableElementTypes'
+import type { GFF3Feature } from '@gmod/gff'
+import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import type { PluggableElementType } from '@jbrowse/core/pluggableElementTypes'
 import type DisplayType from '@jbrowse/core/pluggableElementTypes/DisplayType'
 import {
   type AbstractSessionModel,
   getContainingView,
   getSession,
 } from '@jbrowse/core/util'
-import { type Feature } from '@jbrowse/core/util/simpleFeature'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import type { Feature } from '@jbrowse/core/util/simpleFeature'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
 
 import { CreateApolloAnnotation } from '../components/CreateApolloAnnotation'

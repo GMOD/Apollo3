@@ -1,7 +1,7 @@
 import { Check } from '@apollo-annotation/common'
-import {
-  type AnnotationFeatureSnapshot,
-  type CheckResultSnapshot,
+import type {
+  AnnotationFeatureSnapshot,
+  CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 import { intersection2 } from '@jbrowse/core/util'
 import ObjectID from 'bson-objectid'

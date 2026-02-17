@@ -1,9 +1,9 @@
 import { defaultCodonTable, getFrame, revcom } from '@jbrowse/core/util'
-import { type BlockSet } from '@jbrowse/core/util/blockTypes'
-import { type Theme } from '@mui/material'
+import type { BlockSet } from '@jbrowse/core/util/blockTypes'
+import type { Theme } from '@mui/material'
 
 import { strokeRectInner } from '../LinearApolloDisplay/glyphs/util'
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 import { codonColorCode, colorCode } from '../util/displayUtils'
 
 function drawLetter(

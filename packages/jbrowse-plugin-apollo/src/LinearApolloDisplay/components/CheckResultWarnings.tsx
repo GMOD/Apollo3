@@ -1,4 +1,4 @@
-import { type CheckResultI } from '@apollo-annotation/mst'
+import type { CheckResultI } from '@apollo-annotation/mst'
 import { type AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
 import ErrorIcon from '@mui/icons-material/Error'
 import { Avatar, Badge, Box, Tooltip } from '@mui/material'
@@ -7,7 +7,7 @@ import React from 'react'
 
 import { clusterResultByMessage, useStyles } from '../../util/displayUtils'
 import { getLeftPx } from '../glyphs/util'
-import { type LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
+import type { LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
 
 export const CheckResultWarnings = observer(function CheckResultWarnings({
   display,

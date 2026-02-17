@@ -2,14 +2,14 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/unbound-method */
 
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import {
   AddFeatureChange,
   LocationEndChange,
   LocationStartChange,
 } from '@apollo-annotation/shared'
-import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
-import { type AbstractSessionModel } from '@jbrowse/core/util'
+import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import type { AbstractSessionModel } from '@jbrowse/core/util'
 import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import {
   Box,
@@ -29,7 +29,7 @@ import {
 import ObjectID from 'bson-objectid'
 import React, { useEffect, useMemo, useState } from 'react'
 
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
 

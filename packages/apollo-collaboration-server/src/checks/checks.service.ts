@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { checkRegistry } from '@apollo-annotation/common'
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import {
   Assembly,
   type AssemblyDocument,
@@ -20,7 +20,7 @@ import { InjectModel } from '@nestjs/mongoose'
 import { ObjectId } from 'mongodb'
 import { Model } from 'mongoose'
 
-import { type FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
+import type { FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
 import { RefSeqsService } from '../refSeqs/refSeqs.service.js'
 import { SequenceService } from '../sequence/sequence.service.js'
 

@@ -8,7 +8,7 @@ import {
   type SerializedFeatureChange,
   type ServerDataStore,
 } from '@apollo-annotation/common'
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 import { findAndDeleteChildFeature } from './DeleteFeatureChange.js'
 import { SplitExonChange } from './SplitExonChange.js'

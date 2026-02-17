@@ -3,7 +3,7 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common'
-import { type StorageEngine } from 'multer'
+import type { StorageEngine } from 'multer'
 
 import { writeFileAndCalculateHash } from './filesUtil.js'
 

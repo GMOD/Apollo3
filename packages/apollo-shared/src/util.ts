@@ -1,6 +1,6 @@
-import { type AnnotationFeature } from '@apollo-annotation/mst'
-import { type Feature } from '@apollo-annotation/schemas'
-import { type IKeyValueMap } from 'mobx'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
+import type { Feature } from '@apollo-annotation/schemas'
+import type { IKeyValueMap } from 'mobx'
 
 export function splitStringIntoChunks(
   input: string,

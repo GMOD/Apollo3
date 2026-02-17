@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-misused-promises */
 
-import { type CheckResultI } from '@apollo-annotation/mst'
+import type { CheckResultI } from '@apollo-annotation/mst'
 import { Menu, type MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
@@ -10,7 +10,7 @@ import {
   getContainingView,
   getFrame,
 } from '@jbrowse/core/util'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import ErrorIcon from '@mui/icons-material/Error'
 import LockIcon from '@mui/icons-material/Lock'
 import { Alert, Avatar, Badge, Box, Tooltip, useTheme } from '@mui/material'
@@ -22,7 +22,7 @@ import {
   clusterResultByMessage,
   useStyles,
 } from '../../util/displayUtils'
-import { type LinearApolloSixFrameDisplay as LinearApolloSixFrameDisplayI } from '../stateModel'
+import type { LinearApolloSixFrameDisplay as LinearApolloSixFrameDisplayI } from '../stateModel'
 
 import { TrackLines } from './TrackLines'
 

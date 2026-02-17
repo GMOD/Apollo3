@@ -22,9 +22,9 @@ import {
 } from '@mui/x-data-grid'
 import React, { useEffect, useState } from 'react'
 
-import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { type ApolloSessionModel } from '../session'
-import { type ApolloRootModel } from '../types'
+import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import type { ApolloSessionModel } from '../session'
+import type { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import { Dialog } from './Dialog'

@@ -9,7 +9,7 @@ import {
   AddAssemblyFromFileChange,
 } from '@apollo-annotation/shared'
 import { readConfObject } from '@jbrowse/core/configuration'
-import { type AbstractSessionModel } from '@jbrowse/core/util'
+import type { AbstractSessionModel } from '@jbrowse/core/util'
 import { makeStyles } from '@jbrowse/core/util/tss-react'
 import { getRoot } from '@jbrowse/mobx-state-tree'
 import InfoIcon from '@mui/icons-material/Info'
@@ -42,10 +42,10 @@ import {
 import ObjectID from 'bson-objectid'
 import React, { useState } from 'react'
 
-import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { type ChangeManager } from '../ChangeManager'
-import { type ApolloSessionModel } from '../session'
-import { type ApolloRootModel } from '../types'
+import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import type { ChangeManager } from '../ChangeManager'
+import type { ApolloSessionModel } from '../session'
+import type { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import { Dialog } from './Dialog'

@@ -4,12 +4,9 @@ import {
   AssemblySpecificChange,
   type ServerDataStore,
 } from '@apollo-annotation/common'
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import {
-  type FileDocument,
-  type RefSeqDocument,
-} from '@apollo-annotation/schemas'
-import { type GFF3Feature } from '@gmod/gff'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { FileDocument, RefSeqDocument } from '@apollo-annotation/schemas'
+import type { GFF3Feature } from '@gmod/gff'
 
 import { gff3ToAnnotationFeature } from '../GFF3/index.js'
 
