@@ -13,7 +13,12 @@ import React, { useEffect, useState } from 'react'
 import { Dialog } from '../../components/Dialog'
 import { createFetchErrorMessage } from '../../util'
 
-import { GoogleButton, GuestButton, MicrosoftButton } from './LoginButtons'
+import {
+  GenericButton,
+  GoogleButton,
+  GuestButton,
+  MicrosoftButton,
+} from './LoginButtons'
 
 const useStyles = makeStyles()((theme) => ({
   divider: {
@@ -22,6 +27,12 @@ const useStyles = makeStyles()((theme) => ({
   },
 }))
 
+interface AuthType {
+  name: string
+  message: string
+  needsPopup: boolean
+}
+
 export const AuthTypeSelector = ({
   baseURL,
   handleClose,
@@ -29,11 +40,11 @@ export const AuthTypeSelector = ({
 }: {
   baseURL: string
   name: string
-  handleClose: (type?: 'google' | 'microsoft' | 'guest' | Error) => void
+  handleClose: (type?: AuthType | Error) => void
 }) => {
   const { classes } = useStyles()
   const [errorMessage, setErrorMessage] = useState('')
-  const [loginTypes, setLoginTypes] = useState<string[]>([])
+  const [loginTypes, setLoginTypes] = useState<null | AuthType[]>(null)
   useEffect(() => {
     const controller = new AbortController()
     const { signal } = controller
@@ -48,8 +59,11 @@ export const AuthTypeSelector = ({
         setErrorMessage(newErrorMessage)
         return
       }
-      const data = (await response.json()) as string[]
+      const data = (await response.json()) as AuthType[]
       setLoginTypes(data)
+      if (data.length === 0) {
+        setErrorMessage('No login types configured')
+      }
     }
     getAuthTypes().catch((error) => {
       if (!isAbortException(error)) {
@@ -66,19 +80,20 @@ export const AuthTypeSelector = ({
     }
   }, [baseURL])
 
-  function handleClick(authType: 'google' | 'microsoft' | 'guest') {
-    if (authType === 'google') {
-      handleClose('google')
-    } else if (authType === 'microsoft') {
-      handleClose('microsoft')
-    } else {
-      handleClose('guest')
-    }
+  function handleClick(authType: AuthType) {
+    handleClose(authType)
   }
 
-  const allowGoogle = loginTypes.includes('google')
-  const allowMicrosoft = loginTypes.includes('microsoft')
-  const allowGuest = loginTypes.includes('guest')
+  if (loginTypes === null) {
+    return 'Loading…'
+  }
+
+  const firstLoginType = loginTypes.at(0)
+
+  if (firstLoginType && loginTypes.length === 1 && !firstLoginType.needsPopup) {
+    handleClick(firstLoginType)
+  }
+
   return (
     <Dialog
       open
@@ -90,32 +105,52 @@ export const AuthTypeSelector = ({
       <DialogContent
         style={{ display: 'flex', flexDirection: 'column', paddingTop: 8 }}
       >
-        {allowGoogle ? (
-          <GoogleButton
-            disabled={!allowGoogle}
-            onClick={() => {
-              handleClick('google')
-            }}
-          />
-        ) : null}
-        {allowMicrosoft ? (
-          <MicrosoftButton
-            disabled={!allowMicrosoft}
-            onClick={() => {
-              handleClick('microsoft')
-            }}
-          />
-        ) : null}
-        {allowGuest ? (
-          <>
-            <Divider className={classes.divider} />
-            <GuestButton
+        {loginTypes.map((loginType) => {
+          if (loginType.name === 'google') {
+            return (
+              <GoogleButton
+                key={loginType.name}
+                message={loginType.message}
+                onClick={() => {
+                  handleClick(loginType)
+                }}
+              />
+            )
+          }
+          if (loginType.name === 'microsoft') {
+            return (
+              <MicrosoftButton
+                key={loginType.name}
+                message={loginType.message}
+                onClick={() => {
+                  handleClick(loginType)
+                }}
+              />
+            )
+          }
+          if (loginType.name === 'guest') {
+            return (
+              <React.Fragment key={loginType.name}>
+                <Divider className={classes.divider} />
+                <GuestButton
+                  message={loginType.message}
+                  onClick={() => {
+                    handleClick(loginType)
+                  }}
+                />
+              </React.Fragment>
+            )
+          }
+          return (
+            <GenericButton
+              key={loginType.name}
+              message={loginType.message}
               onClick={() => {
-                handleClick('guest')
+                handleClick(loginType)
               }}
             />
-          </>
-        ) : null}
+          )
+        })}
       </DialogContent>
       <DialogActions>
         <Button
