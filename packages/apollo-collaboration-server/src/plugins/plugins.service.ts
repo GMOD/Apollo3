@@ -29,20 +29,22 @@ export class PluginsService {
     callbacks.push(callback)
   }
 
-  evaluateExtensionPoint(
+  evaluateExtensionPoint<T>(
     extensionPointName: string,
-    extendee: unknown,
+    extendee: T,
     props?: Record<string, unknown>,
   ) {
     const callbacks = this.extensionPoints.get(extensionPointName)
     let accumulator = extendee
-    if (callbacks) {
-      for (const callback of callbacks) {
-        try {
-          accumulator = callback(accumulator, props)
-        } catch (error) {
-          console.error(error)
-        }
+    if (!callbacks) {
+      return accumulator
+    }
+    for (const callback of callbacks) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        accumulator = callback(accumulator, props)
+      } catch (error) {
+        console.error(error)
       }
     }
     return accumulator

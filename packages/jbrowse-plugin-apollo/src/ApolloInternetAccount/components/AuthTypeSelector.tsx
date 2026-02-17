@@ -13,7 +13,12 @@ import React, { useEffect, useState } from 'react'
 import { Dialog } from '../../components/Dialog'
 import { createFetchErrorMessage } from '../../util'
 
-import { GoogleButton, GuestButton, MicrosoftButton } from './LoginButtons'
+import {
+  GenericButton,
+  GoogleButton,
+  GuestButton,
+  MicrosoftButton,
+} from './LoginButtons'
 
 const useStyles = makeStyles()((theme) => ({
   divider: {
@@ -24,6 +29,7 @@ const useStyles = makeStyles()((theme) => ({
 
 interface AuthType {
   name: string
+  message: string
   needsPopup: boolean
 }
 
@@ -88,10 +94,6 @@ export const AuthTypeSelector = ({
     handleClick(firstLoginType)
   }
 
-  const loginTypeNames = new Set(loginTypes.map((loginType) => loginType.name))
-  const allowGoogle = loginTypeNames.has('google')
-  const allowMicrosoft = loginTypeNames.has('microsoft')
-  const allowGuest = loginTypeNames.has('guest')
   return (
     <Dialog
       open
@@ -103,32 +105,52 @@ export const AuthTypeSelector = ({
       <DialogContent
         style={{ display: 'flex', flexDirection: 'column', paddingTop: 8 }}
       >
-        {allowGoogle ? (
-          <GoogleButton
-            disabled={!allowGoogle}
-            onClick={() => {
-              handleClick({ name: 'google', needsPopup: true })
-            }}
-          />
-        ) : null}
-        {allowMicrosoft ? (
-          <MicrosoftButton
-            disabled={!allowMicrosoft}
-            onClick={() => {
-              handleClick({ name: 'microsoft', needsPopup: true })
-            }}
-          />
-        ) : null}
-        {allowGuest ? (
-          <>
-            <Divider className={classes.divider} />
-            <GuestButton
+        {loginTypes.map((loginType) => {
+          if (loginType.name === 'google') {
+            return (
+              <GoogleButton
+                key={loginType.name}
+                message={loginType.message}
+                onClick={() => {
+                  handleClick(loginType)
+                }}
+              />
+            )
+          }
+          if (loginType.name === 'microsoft') {
+            return (
+              <MicrosoftButton
+                key={loginType.name}
+                message={loginType.message}
+                onClick={() => {
+                  handleClick(loginType)
+                }}
+              />
+            )
+          }
+          if (loginType.name === 'guest') {
+            return (
+              <React.Fragment key={loginType.name}>
+                <Divider className={classes.divider} />
+                <GuestButton
+                  message={loginType.message}
+                  onClick={() => {
+                    handleClick(loginType)
+                  }}
+                />
+              </React.Fragment>
+            )
+          }
+          return (
+            <GenericButton
+              key={loginType.name}
+              message={loginType.message}
               onClick={() => {
-                handleClick({ name: 'guest', needsPopup: false })
+                handleClick(loginType)
               }}
             />
-          </>
-        ) : null}
+          )
+        })}
       </DialogContent>
       <DialogActions>
         <Button
