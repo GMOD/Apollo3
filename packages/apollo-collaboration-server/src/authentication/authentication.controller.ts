@@ -11,7 +11,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common'
-import { type Request } from 'express'
+import type { Request } from 'express'
 
 import { GoogleAuthGuard } from '../utils/google.guard.js'
 import { MicrosoftAuthGuard } from '../utils/microsoft.guard.js'
