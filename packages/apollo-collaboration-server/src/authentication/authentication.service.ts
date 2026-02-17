@@ -70,7 +70,7 @@ export class AuthenticationService {
   }
 
   async getLoginTypes() {
-    const loginTypes: string[] = []
+    const loginTypes: { name: string; needsPopup: boolean }[] = []
     let microsoftClientID = this.configService.get('MICROSOFT_CLIENT_ID', {
       infer: true,
     })
@@ -96,13 +96,13 @@ export class AuthenticationService {
       infer: true,
     })
     if (microsoftClientID) {
-      loginTypes.push('microsoft')
+      loginTypes.push({ name: 'microsoft', needsPopup: true })
     }
     if (googleClientID) {
-      loginTypes.push('google')
+      loginTypes.push({ name: 'google', needsPopup: true })
     }
     if (allowGuestUser) {
-      loginTypes.push('guest')
+      loginTypes.push({ name: 'guest', needsPopup: false })
     }
     return loginTypes
   }

@@ -40,7 +40,10 @@ import { createFetchErrorMessage } from '../util'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import type { ApolloInternetAccountConfigModel } from './configSchema'
 
-type AuthType = 'google' | 'microsoft' | 'guest'
+interface AuthType {
+  name: string
+  needsPopup: boolean
+}
 
 type Role = 'admin' | 'user' | 'readOnly' | 'none'
 
@@ -192,13 +195,13 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             )
           },
         )
-        if (authType !== 'guest') {
+        if (authType.needsPopup) {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          self.openAuthWindow(authType, resolve, reject)
+          self.openAuthWindow(authType.name, resolve, reject)
           return
         }
         const url = new URL('auth/login', baseURL)
-        const searchParams = new URLSearchParams({ type: authType })
+        const searchParams = new URLSearchParams({ type: authType.name })
         url.search = searchParams.toString()
         const uri = url.toString()
         const response = await fetch(uri, { signal: self.controller.signal })
