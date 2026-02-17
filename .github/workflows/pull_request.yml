@@ -45,9 +45,9 @@ jobs:
         run: yarn run jbrowse create --nightly .jbrowse
         working-directory: packages/jbrowse-plugin-apollo
       - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.10.0
+        uses: supercharge/mongodb-github-action@1
         with:
-          mongodb-version: 7
+          mongodb-version: 8
           mongodb-replica-set: test-rs
       - name: Start local file server
         run:
