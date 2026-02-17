@@ -23,7 +23,7 @@ jobs:
         working-directory: packages/jbrowse-plugin-apollo
 
       - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1
+        uses: supercharge/mongodb-github-action@1.12.1
         with:
           mongodb-version: 8
           mongodb-replica-set: test-rs
