@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import fsPromises from 'node:fs/promises'
 import path from 'node:path'
 import { Writable } from 'node:stream'
+import { fileURLToPath } from 'node:url'
 
 import {
   ApolloPlugin,
@@ -18,6 +19,8 @@ import sanitize from 'sanitize-filename'
 
 import { APOLLO_PLUGINS } from './plugins.constants.js'
 import { PluginsService } from './plugins.service.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 @Module({})
 export class PluginsModule {
