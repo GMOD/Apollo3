@@ -76,7 +76,7 @@ Cypress.Commands.add('addOntologies', () => {
               name: 'Sequence Ontology',
               version: 'unversioned',
               source: {
-                uri: 'http://localhost:9000/test_data/so-v3.1.json',
+                uri: 'http://localhost:9000/test_data/so-2024-11-18.json',
                 locationType: 'UriLocation',
               },
             },
@@ -86,6 +86,8 @@ Cypress.Commands.add('addOntologies', () => {
     },
     { collection: 'jbrowseconfigs' },
   )
+  // so.json.gz was generated from an IndexedDB dump using the script found at
+  // https://gist.github.com/loilo/ed43739361ec718129a15ae5d531095b
   cy.readFile('cypress/data/so.json.gz', null).then((soGZip: Buffer) => {
     cy.wrap<Promise<void>>(
       loadOntology(

@@ -41,6 +41,49 @@ export function renderingModelFactory(
           self.lastRowTooltipBufferHeight
         )
       },
+      get canvasPatterns(): Record<
+        'forward' | 'backward',
+        CanvasPattern | null
+      > {
+        const patterns: Record<'forward' | 'backward', CanvasPattern | null> = {
+          forward: null,
+          backward: null,
+        }
+        const canvas = document.createElement('canvas')
+        const ctx = canvas?.getContext('2d')
+        if (!ctx) {
+          return patterns
+        }
+        const canvasSize = 10
+        canvas.width = canvas.height = canvasSize
+        const { theme } = self
+        const stripeColor1 =
+          theme.palette.mode === 'light' ? 'rgba(0,0,0,0)' : 'rgba(0,0,0,0.75)'
+        const stripeColor2 =
+          theme.palette.mode === 'light'
+            ? 'rgba(255,255,255,0.25)'
+            : 'rgba(0,0,0,0.50)'
+        const directions = ['forward', 'backward'] as const
+        for (const direction of directions) {
+          const gradient =
+            direction === 'forward'
+              ? ctx.createLinearGradient(0, canvasSize, canvasSize, 0)
+              : ctx.createLinearGradient(0, 0, canvasSize, canvasSize)
+          gradient.addColorStop(0, stripeColor1)
+          gradient.addColorStop(0.25, stripeColor1)
+          gradient.addColorStop(0.25, stripeColor2)
+          gradient.addColorStop(0.5, stripeColor2)
+          gradient.addColorStop(0.5, stripeColor1)
+          gradient.addColorStop(0.75, stripeColor1)
+          gradient.addColorStop(0.75, stripeColor2)
+          gradient.addColorStop(1, stripeColor2)
+          ctx.fillStyle = gradient
+          ctx.clearRect(0, 0, canvasSize, canvasSize)
+          ctx.fillRect(0, 0, canvasSize, canvasSize)
+          patterns[direction] = ctx.createPattern(canvas, 'repeat')
+        }
+        return patterns
+      },
     }))
     .actions((self) => ({
       toggleShown() {
@@ -132,19 +175,27 @@ export function renderingModelFactory(
           self,
           autorun(
             () => {
-              const { canvas, featureLayouts, featuresHeight, lgv } = self
-              if (!lgv.initialized || self.regionCannotBeRendered()) {
+              const { canvas, featureLayouts, lgv } = self
+              if (
+                !lgv.initialized ||
+                self.regionCannotBeRendered() ||
+                !canvas
+              ) {
                 return
               }
-              const { displayedRegions, dynamicBlocks } = lgv
+              const { dynamicBlocks, offsetPx } = lgv
 
-              const ctx = canvas?.getContext('2d')
+              const ctx = canvas.getContext('2d')
               if (!ctx) {
                 return
               }
-              ctx.clearRect(0, 0, dynamicBlocks.totalWidthPx, featuresHeight)
+              ctx.clearRect(0, 0, canvas.width, canvas.height)
               for (const [idx, featureLayout] of featureLayouts.entries()) {
-                const displayedRegion = displayedRegions[idx]
+                const block = dynamicBlocks.contentBlocks.at(idx)
+                if (!block) {
+                  continue
+                }
+                const blockLeftPx = block.offsetPx - offsetPx
                 for (const [row, featureLayoutRow] of featureLayout.entries()) {
                   for (const [featureRow, featureId] of featureLayoutRow) {
                     const feature = self.getAnnotationFeatureById(featureId)
@@ -153,15 +204,21 @@ export function renderingModelFactory(
                     }
                     if (
                       !doesIntersect2(
-                        displayedRegion.start,
-                        displayedRegion.end,
+                        block.start,
+                        block.end,
                         feature.min,
                         feature.max,
                       )
                     ) {
                       continue
                     }
-                    self.getGlyph(feature).draw(ctx, feature, row, self, idx)
+                    ctx.save()
+                    ctx.beginPath()
+                    ctx.rect(blockLeftPx, 0, block.widthPx, canvas.height)
+                    ctx.clip()
+                    // @ts-expect-error ts doesn't understand mst extension
+                    self.getGlyph(feature).draw(self, ctx, feature, row, block)
+                    ctx.restore()
                   }
                 }
               }

@@ -8,7 +8,13 @@ import { addDisposer, isAlive } from '@jbrowse/mobx-state-tree'
 import { autorun, observable } from 'mobx'
 
 import type { ApolloSessionModel } from '../../session'
-import { boxGlyph, geneGlyph, genericChildGlyph } from '../glyphs'
+import { isTranscriptFeature, looksLikeGene } from '../../util/glyphUtils'
+import {
+  boxGlyph,
+  geneGlyph,
+  genericChildGlyph,
+  transcriptGlyph,
+} from '../glyphs'
 
 import { baseModelFactory } from './base'
 
@@ -64,8 +70,11 @@ export function layoutsModelFactory(
       },
       getGlyph(feature: AnnotationFeature) {
         const { topLevelFeature } = feature
-        if (topLevelFeature.looksLikeGene) {
+        if (looksLikeGene(topLevelFeature, self.session)) {
           return geneGlyph
+        }
+        if (isTranscriptFeature(topLevelFeature, self.session)) {
+          return transcriptGlyph
         }
         if (topLevelFeature.children?.size) {
           return genericChildGlyph
@@ -111,7 +120,8 @@ export function layoutsModelFactory(
             }
             const rowCount = self
               .getGlyph(feature)
-              .getRowCount(feature, featureTypeOntology, self.lgv.bpPerPx)
+              // @ts-expect-error ts doesn't understand mst extension
+              .getRowCount(self, feature)
             let startingRow = 0
             let placed = false
             while (!placed) {

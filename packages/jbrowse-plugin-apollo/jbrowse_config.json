@@ -30,7 +30,7 @@
           "name": "Sequence Ontology",
           "version": "3.1",
           "source": {
-            "uri": "test_data/so-v3.1.json",
+            "uri": "test_data/so-2024-11-18.json",
             "locationType": "UriLocation"
           }
         }

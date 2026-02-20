@@ -1,5 +1,6 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type { MenuItem } from '@jbrowse/core/ui'
+import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 import { alpha } from '@mui/material'
 
 import {
@@ -15,101 +16,33 @@ import type { LinearApolloDisplayRendering } from '../stateModel/rendering'
 import type { CanvasMouseEvent } from '../types'
 
 import type { Glyph } from './Glyph'
+import { getLeftPx, strokeRectInner } from './util'
 
-function drawBoxOutline(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  color: string,
-) {
-  drawBox(ctx, x, y, width, height, color)
-  if (width <= 2) {
-    return
-  }
-  ctx.clearRect(x + 1, y + 1, width - 2, height - 2)
-}
-
-function drawBoxFill(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  color: string,
-) {
-  drawBox(ctx, x + 1, y + 1, width - 2, height - 2, color)
-}
-
-function draw(
-  ctx: CanvasRenderingContext2D,
+/** @returns undefined if mouse not on the edge of this feature, otherwise 'start' or 'end' depending on which edge */
+function isMouseOnFeatureEdge(
+  mousePosition: MousePosition,
   feature: AnnotationFeature,
-  row: number,
-  stateModel: LinearApolloDisplayRendering,
-  displayedRegionIndex: number,
-) {
-  const { apolloRowHeight: heightPx, lgv, selectedFeature, theme } = stateModel
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[displayedRegionIndex]
-  const minX =
-    (lgv.bpToPx({
-      refName: displayedRegion.refName,
-      coord: feature.min,
-      regionNumber: displayedRegionIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const { reversed } = displayedRegion
-  const widthPx = feature.length / bpPerPx
-  const startPx = reversed ? minX - widthPx : minX
-  const top = row * heightPx
-  const backgroundColor = theme.palette.background.default
-  const textColor = theme.palette.text.primary
-  const featureBox: [number, number, number, number] = [
-    startPx,
-    top,
-    widthPx,
-    heightPx,
-  ]
-  drawBoxOutline(ctx, ...featureBox, textColor)
-  if (widthPx <= 2) {
-    // Don't need to add details if the feature is too small to see them
-    return
-  }
-
-  drawBoxFill(ctx, startPx, top, widthPx, heightPx, backgroundColor)
-  if (isSelectedFeature(feature, selectedFeature)) {
-    drawHighlight(stateModel, ctx, feature, true)
-  }
-}
-
-function drawDragPreview(
   stateModel: LinearApolloDisplay,
-  overlayCtx: CanvasRenderingContext2D,
 ) {
-  const { apolloDragging, apolloRowHeight, lgv, theme } = stateModel
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  if (!apolloDragging) {
-    return
+  const { refName, regionNumber, x } = mousePosition
+  const { lgv } = stateModel
+  const { offsetPx } = lgv
+  const minPxInfo = lgv.bpToPx({ refName, coord: feature.min, regionNumber })
+  const maxPxInfo = lgv.bpToPx({ refName, coord: feature.max, regionNumber })
+  if (minPxInfo !== undefined && maxPxInfo !== undefined) {
+    const minPx = minPxInfo.offsetPx - offsetPx
+    const maxPx = maxPxInfo.offsetPx - offsetPx
+    if (Math.abs(maxPx - minPx) < 8) {
+      return
+    }
+    if (Math.abs(minPx - x) < 4) {
+      return 'min'
+    }
+    if (Math.abs(maxPx - x) < 4) {
+      return 'max'
+    }
   }
-  const { current, edge, feature, start } = apolloDragging
-
-  const row = Math.floor(start.y / apolloRowHeight)
-  const region = displayedRegions[start.regionNumber]
-  const rowCount = getRowCount(feature)
-
-  const featureEdgeBp = region.reversed
-    ? region.end - feature[edge]
-    : feature[edge] - region.start
-  const featureEdgePx = featureEdgeBp / bpPerPx - offsetPx
-  const rectX = Math.min(current.x, featureEdgePx)
-  const rectY = row * apolloRowHeight
-  const rectWidth = Math.abs(current.x - featureEdgePx)
-  const rectHeight = apolloRowHeight * rowCount
-  overlayCtx.strokeStyle = theme.palette.info.main
-  overlayCtx.setLineDash([6])
-  overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
-  overlayCtx.fillStyle = alpha(theme.palette.info.main, 0.2)
-  overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
+  return
 }
 
 function drawHighlight(
@@ -140,6 +73,60 @@ function drawHighlight(
     ? theme.palette.action.disabled
     : theme.palette.action.focus
   ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
+}
+
+function draw(
+  display: LinearApolloDisplay,
+  ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
+) {
+  const { apolloRowHeight, lgv, selectedFeature, theme } = display
+  const { bpPerPx } = lgv
+  const left = Math.round(getLeftPx(display, feature, block))
+  const top = row * apolloRowHeight
+  const width = Math.round(feature.length / bpPerPx)
+  const height = apolloRowHeight
+  if (width > 2) {
+    ctx.fillStyle = theme.palette.background.default
+    ctx.fillRect(left, top, width, apolloRowHeight)
+  }
+  strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
+
+  if (isSelectedFeature(feature, selectedFeature)) {
+    drawHighlight(display, ctx, feature, true)
+  }
+}
+
+function drawDragPreview(
+  stateModel: LinearApolloDisplay,
+  overlayCtx: CanvasRenderingContext2D,
+) {
+  const { apolloDragging, apolloRowHeight, lgv, theme } = stateModel
+  const { bpPerPx, displayedRegions, offsetPx } = lgv
+  if (!apolloDragging) {
+    return
+  }
+  const { current, edge, feature, start } = apolloDragging
+
+  const row = Math.floor(start.y / apolloRowHeight)
+  const region = displayedRegions[start.regionNumber]
+  const rowCount = getRowCount()
+
+  const featureEdgeBp = region.reversed
+    ? region.end - feature[edge]
+    : feature[edge] - region.start
+  const featureEdgePx = featureEdgeBp / bpPerPx - offsetPx
+  const rectX = Math.min(current.x, featureEdgePx)
+  const rectY = row * apolloRowHeight
+  const rectWidth = Math.abs(current.x - featureEdgePx)
+  const rectHeight = apolloRowHeight * rowCount
+  overlayCtx.strokeStyle = theme.palette.info.main
+  overlayCtx.setLineDash([6])
+  overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
+  overlayCtx.fillStyle = alpha(theme.palette.info.main, 0.2)
+  overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
 }
 
 function drawHover(
@@ -216,18 +203,6 @@ function drawTooltip(
   context.fillText(location, startPx + 2, textTop)
 }
 
-export function drawBox(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  color: string,
-) {
-  ctx.fillStyle = color
-  ctx.fillRect(x, y, width, height)
-}
-
 function getContextMenuItems(
   display: LinearApolloDisplayMouseEvents,
 ): MenuItem[] {
@@ -246,7 +221,7 @@ function getFeatureFromLayout(
   return feature
 }
 
-function getRowCount(_feature: AnnotationFeature) {
+function getRowCount() {
   return 1
 }
 
@@ -305,33 +280,6 @@ function onMouseUp(
   }
   stateModel.setSelectedFeature(feature)
   stateModel.showFeatureDetailsWidget(feature)
-}
-
-/** @returns undefined if mouse not on the edge of this feature, otherwise 'start' or 'end' depending on which edge */
-function isMouseOnFeatureEdge(
-  mousePosition: MousePosition,
-  feature: AnnotationFeature,
-  stateModel: LinearApolloDisplay,
-) {
-  const { refName, regionNumber, x } = mousePosition
-  const { lgv } = stateModel
-  const { offsetPx } = lgv
-  const minPxInfo = lgv.bpToPx({ refName, coord: feature.min, regionNumber })
-  const maxPxInfo = lgv.bpToPx({ refName, coord: feature.max, regionNumber })
-  if (minPxInfo !== undefined && maxPxInfo !== undefined) {
-    const minPx = minPxInfo.offsetPx - offsetPx
-    const maxPx = maxPxInfo.offsetPx - offsetPx
-    if (Math.abs(maxPx - minPx) < 8) {
-      return
-    }
-    if (Math.abs(minPx - x) < 4) {
-      return 'min'
-    }
-    if (Math.abs(maxPx - x) < 4) {
-      return 'max'
-    }
-  }
-  return
 }
 
 export const boxGlyph: Glyph = {
