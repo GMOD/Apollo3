@@ -74,36 +74,6 @@ function drawHover(
   drawHighlight(display, overlayCtx, left, top, width, height)
 }
 
-function drawDragPreview(
-  stateModel: LinearApolloDisplay,
-  overlayCtx: CanvasRenderingContext2D,
-) {
-  const { apolloDragging, apolloRowHeight, lgv, theme } = stateModel
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  if (!apolloDragging) {
-    return
-  }
-  const { current, edge, feature, start } = apolloDragging
-
-  const row = Math.floor(start.y / apolloRowHeight)
-  const region = displayedRegions[start.regionNumber]
-  const rowCount = getRowCount()
-
-  const featureEdgeBp = region.reversed
-    ? region.end - feature[edge]
-    : feature[edge] - region.start
-  const featureEdgePx = featureEdgeBp / bpPerPx - offsetPx
-  const rectX = Math.min(current.x, featureEdgePx)
-  const rectY = row * apolloRowHeight
-  const rectWidth = Math.abs(current.x - featureEdgePx)
-  const rectHeight = apolloRowHeight * rowCount
-  overlayCtx.strokeStyle = theme.palette.info.main
-  overlayCtx.setLineDash([6])
-  overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
-  overlayCtx.fillStyle = alpha(theme.palette.info.main, 0.2)
-  overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
-}
-
 function drawTooltip(
   display: LinearApolloDisplayMouseEvents,
   context: CanvasRenderingContext2D,
@@ -167,14 +137,34 @@ function drawTooltip(
   context.fillText(location, startPx + 2, textTop)
 }
 
-function getContextMenuItems(
-  display: LinearApolloDisplayMouseEvents,
-): MenuItem[] {
-  const { hoveredFeature } = display
-  if (!hoveredFeature) {
-    return []
+function drawDragPreview(
+  stateModel: LinearApolloDisplay,
+  overlayCtx: CanvasRenderingContext2D,
+) {
+  const { apolloDragging, apolloRowHeight, lgv, theme } = stateModel
+  const { bpPerPx, displayedRegions, offsetPx } = lgv
+  if (!apolloDragging) {
+    return
   }
-  return getContextMenuItemsForFeature(display, hoveredFeature.feature)
+  const { current, edge, feature, start } = apolloDragging
+
+  const row = Math.floor(start.y / apolloRowHeight)
+  const region = displayedRegions[start.regionNumber]
+  const rowCount = getRowCount()
+
+  const featureEdgeBp = region.reversed
+    ? region.end - feature[edge]
+    : feature[edge] - region.start
+  const featureEdgePx = featureEdgeBp / bpPerPx - offsetPx
+  const rectX = Math.min(current.x, featureEdgePx)
+  const rectY = row * apolloRowHeight
+  const rectWidth = Math.abs(current.x - featureEdgePx)
+  const rectHeight = apolloRowHeight * rowCount
+  overlayCtx.strokeStyle = theme.palette.info.main
+  overlayCtx.setLineDash([6])
+  overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
+  overlayCtx.fillStyle = alpha(theme.palette.info.main, 0.2)
+  overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
 }
 
 function getRowCount() {
@@ -205,6 +195,16 @@ function getRowForFeature(
     return 0
   }
   return
+}
+
+function getContextMenuItems(
+  display: LinearApolloDisplayMouseEvents,
+): MenuItem[] {
+  const { hoveredFeature } = display
+  if (!hoveredFeature) {
+    return []
+  }
+  return getContextMenuItemsForFeature(display, hoveredFeature.feature)
 }
 
 function onMouseDown(
