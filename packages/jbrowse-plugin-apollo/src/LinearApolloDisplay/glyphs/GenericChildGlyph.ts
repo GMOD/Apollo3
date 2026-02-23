@@ -5,8 +5,8 @@ import { alpha } from '@mui/material'
 
 import {
   type MousePositionWithFeature,
-  containsSelectedFeature,
   isMousePositionWithFeature,
+  isSelectedFeature,
 } from '../../util'
 import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
 import type { LinearApolloDisplay } from '../stateModel'
@@ -14,7 +14,7 @@ import type { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
 
 import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
-import { getLeftPx, strokeRectInner } from './util'
+import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
 
 interface LayoutRow {
   feature: AnnotationFeature
@@ -45,42 +45,6 @@ function getLayoutRows(
   return rows
 }
 
-function drawHighlight(
-  stateModel: LinearApolloDisplay,
-  ctx: CanvasRenderingContext2D,
-  feature: AnnotationFeature,
-  selected = false,
-) {
-  const { apolloRowHeight, lgv, theme } = stateModel
-
-  const position = stateModel.getFeatureLayoutPosition(feature)
-  if (!position) {
-    return
-  }
-  const { featureRow, layoutIndex, layoutRow } = position
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[layoutIndex]
-  const { refName, reversed } = displayedRegion
-  const { length, max, min } = feature
-  const startPx =
-    (lgv.bpToPx({
-      refName,
-      coord: reversed ? max : min,
-      regionNumber: layoutIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const top = (layoutRow + featureRow) * apolloRowHeight
-  const widthPx = length / bpPerPx
-  ctx.fillStyle = selected
-    ? theme.palette.action.disabled
-    : theme.palette.action.focus
-  ctx.fillRect(
-    startPx,
-    top,
-    widthPx,
-    apolloRowHeight * getRowCount(stateModel, feature),
-  )
-}
-
 function draw(
   display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
@@ -88,11 +52,8 @@ function draw(
   row: number,
   block: ContentBlock,
 ) {
-  const { apolloRowHeight, lgv, selectedFeature, theme } = display
-  const { bpPerPx } = lgv
-  const left = Math.round(getLeftPx(display, feature, block))
-  const top = row * apolloRowHeight
-  const width = Math.round(feature.length / bpPerPx)
+  const { apolloRowHeight, selectedFeature, theme } = display
+  const [top, left, width] = getFeatureBox(display, feature, row, block)
   const height = getRowCount(display, feature) * apolloRowHeight
   if (width > 2) {
     ctx.fillStyle = alpha(theme.palette.background.paper, 0.6)
@@ -100,7 +61,6 @@ function draw(
   }
   strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
   boxGlyph.draw(display, ctx, feature, row, block)
-  strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
   const { children } = feature
   if (!children) {
     return
@@ -117,20 +77,22 @@ function draw(
     rowOffset += 1
   }
 
-  if (selectedFeature && containsSelectedFeature(feature, selectedFeature)) {
-    drawHighlight(display, ctx, selectedFeature)
+  if (isSelectedFeature(feature, selectedFeature)) {
+    drawHighlight(display, ctx, left, top, width, height, true)
   }
 }
 
 function drawHover(
-  stateModel: LinearApolloDisplay,
-  ctx: CanvasRenderingContext2D,
+  display: LinearApolloDisplay,
+  overlayCtx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
 ) {
-  const { hoveredFeature } = stateModel
-  if (!hoveredFeature) {
-    return
-  }
-  drawHighlight(stateModel, ctx, hoveredFeature.feature)
+  const { apolloRowHeight } = display
+  const [top, left, width] = getFeatureBox(display, feature, row, block)
+  const height = getRowCount(display, feature) * apolloRowHeight
+  drawHighlight(display, overlayCtx, left, top, width, height)
 }
 
 function getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature) {

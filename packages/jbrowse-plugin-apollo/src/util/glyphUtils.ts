@@ -286,19 +286,6 @@ export function isSelectedFeature(
   return Boolean(selectedFeature && feature._id === selectedFeature._id)
 }
 
-export function containsSelectedFeature(
-  feature: AnnotationFeature,
-  selectedFeature: AnnotationFeature | undefined,
-): boolean {
-  if (!selectedFeature) {
-    return false
-  }
-  if (feature._id === selectedFeature._id) {
-    return true
-  }
-  return feature.hasDescendant(selectedFeature._id)
-}
-
 function makeFeatureLabel(feature: AnnotationFeature) {
   let name: string | undefined
   if (feature.attributes.get('gff_name')) {

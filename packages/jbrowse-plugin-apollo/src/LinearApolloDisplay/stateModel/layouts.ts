@@ -14,14 +14,12 @@ import {
   isGeneFeature,
   isTranscriptFeature,
 } from '../../util/glyphUtils'
-import {
-  boxGlyph,
-  geneGlyph,
-  genericChildGlyph,
-  transcriptGlyph,
-} from '../glyphs'
+import { boxGlyph } from '../glyphs/BoxGlyph'
 import { cdsGlyph } from '../glyphs/CDSGlyph'
 import { exonGlyph } from '../glyphs/ExonGlyph'
+import { geneGlyph } from '../glyphs/GeneGlyph'
+import { genericChildGlyph } from '../glyphs/GenericChildGlyph'
+import { transcriptGlyph } from '../glyphs/TranscriptGlyph'
 
 import { baseModelFactory } from './base'
 
@@ -76,20 +74,19 @@ export function layoutsModelFactory(
         return self.seenFeatures.get(id)
       },
       getGlyph(feature: AnnotationFeature) {
-        const { topLevelFeature } = feature
-        if (isGeneFeature(topLevelFeature, self.session)) {
+        if (isGeneFeature(feature, self.session)) {
           return geneGlyph
         }
-        if (isTranscriptFeature(topLevelFeature, self.session)) {
+        if (isTranscriptFeature(feature, self.session)) {
           return transcriptGlyph
         }
-        if (isExonFeature(topLevelFeature, self.session)) {
+        if (isExonFeature(feature, self.session)) {
           return exonGlyph
         }
-        if (isCDSFeature(topLevelFeature, self.session)) {
+        if (isCDSFeature(feature, self.session)) {
           return cdsGlyph
         }
-        if (topLevelFeature.children?.size) {
+        if (feature.children?.size) {
           return genericChildGlyph
         }
         return boxGlyph

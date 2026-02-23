@@ -16,19 +16,24 @@ export interface Glyph {
     row: number,
     block: ContentBlock,
   ): void
-
+  /** draw the feature's hover highlight on the overlay canvas */
   drawHover(
-    display: LinearApolloDisplayMouseEvents,
+    display: LinearApolloDisplay,
     overlayCtx: CanvasRenderingContext2D,
+    feature: AnnotationFeature,
+    row: number,
+    block: ContentBlock,
   ): void
-
   drawDragPreview(
     display: LinearApolloDisplayMouseEvents,
     ctx: CanvasRenderingContext2D,
   ): void
 
   /** @returns number of layout rows used by this glyph with this feature and zoom level */
-  getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature): number
+  getRowCount(
+    display: LinearApolloDisplayMouseEvents,
+    feature: AnnotationFeature,
+  ): number
   /**
    * @returns the feature or subfeature at the given bp and row number in this
    * glyph's layout, or undefined if one does not exist

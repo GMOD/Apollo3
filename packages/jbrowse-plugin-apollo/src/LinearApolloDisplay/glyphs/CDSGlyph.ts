@@ -6,10 +6,12 @@ import type { MenuItem } from '@jbrowse/core/ui'
 import { getFrame } from '@jbrowse/core/util'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
+import { isSelectedFeature } from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
 
+import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
-import { getLeftPx, strokeRectInner } from './util'
+import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
 
 function drawCDSLocation(
   display: LinearApolloDisplay,
@@ -19,12 +21,9 @@ function drawCDSLocation(
   row: number,
   block: ContentBlock,
 ) {
-  const { apolloRowHeight, canvasPatterns, lgv, theme } = display
-  const { bpPerPx } = lgv
-  const left = Math.round(getLeftPx(display, cdsLocation, block))
-  const width = Math.round((cdsLocation.max - cdsLocation.min) / bpPerPx)
+  const { apolloRowHeight, canvasPatterns, theme } = display
+  const [top, left, width] = getFeatureBox(display, cdsLocation, row, block)
   const halfHeight = Math.round(apolloRowHeight / 2)
-  const top = row * apolloRowHeight
   if (width > 2) {
     const frame = getFrame(
       cdsLocation.min,
@@ -69,6 +68,7 @@ function draw(
 ) {
   const transcript = cds.parent
   if (!transcript) {
+    boxGlyph.draw(display, ctx, cds, row, block)
     return
   }
   const { cdsLocations } = transcript
@@ -83,6 +83,25 @@ function draw(
   for (const cdsLocation of thisCDSLocations) {
     drawCDSLocation(display, ctx, cdsLocation, cds.strand, row, block)
   }
+  const { apolloRowHeight, selectedFeature } = display
+  if (isSelectedFeature(cds, selectedFeature)) {
+    const [top, left, width] = getFeatureBox(display, cds, row, block)
+    const height = getRowCount() * apolloRowHeight
+    drawHighlight(display, ctx, left, top, width, height, true)
+  }
+}
+
+function drawHover(
+  display: LinearApolloDisplay,
+  overlayCtx: CanvasRenderingContext2D,
+  cds: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
+) {
+  const { apolloRowHeight } = display
+  const [top, left, width] = getFeatureBox(display, cds, row, block)
+  const height = getRowCount() * apolloRowHeight
+  drawHighlight(display, overlayCtx, left, top, width, height)
 }
 
 function getRowCount() {
@@ -114,12 +133,6 @@ function getRowForFeature(
   }
   return
 }
-
-function drawHover() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// overlayCtx: CanvasRenderingContext2D,
 
 function drawDragPreview() {
   // Not implemented

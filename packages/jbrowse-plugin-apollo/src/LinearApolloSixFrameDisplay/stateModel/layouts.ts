@@ -13,7 +13,7 @@ import { autorun, observable } from 'mobx'
 
 import type { ApolloSessionModel } from '../../session'
 import { looksLikeGene } from '../../util/glyphUtils'
-import { geneGlyph } from '../glyphs'
+import { geneGlyph } from '../glyphs/GeneGlyph'
 
 import { baseModelFactory } from './base'
 

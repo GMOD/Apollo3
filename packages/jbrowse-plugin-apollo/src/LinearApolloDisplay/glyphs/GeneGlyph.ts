@@ -16,7 +16,6 @@ import { MergeExons, MergeTranscripts, SplitExon } from '../../components'
 import {
   type MousePosition,
   type MousePositionWithFeature,
-  containsSelectedFeature,
   getAdjacentExons,
   getMinAndMaxPx,
   getOverlappingEdge,
@@ -24,6 +23,7 @@ import {
   isCDSFeature,
   isExonFeature,
   isMousePositionWithFeature,
+  isSelectedFeature,
   isTranscriptFeature,
   navToFeatureCenter,
   selectFeatureAndOpenWidget,
@@ -36,7 +36,7 @@ import type { CanvasMouseEvent } from '../types'
 import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
 import { transcriptGlyph } from './TranscriptGlyph'
-import { getLeftPx, strokeRectInner } from './util'
+import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
 
 function getDraggableFeatureInfo(
   mousePosition: MousePosition,
@@ -132,44 +132,6 @@ function getLayoutRows(
   return rows
 }
 
-function drawHighlight(
-  stateModel: LinearApolloDisplay,
-  ctx: CanvasRenderingContext2D,
-  feature: AnnotationFeature,
-  selected = false,
-) {
-  const { apolloRowHeight, lgv, theme } = stateModel
-
-  const position = stateModel.getFeatureLayoutPosition(feature)
-  if (!position) {
-    return
-  }
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const { featureRow, layoutIndex, layoutRow } = position
-  const displayedRegion = displayedRegions[layoutIndex]
-  const { refName, reversed } = displayedRegion
-  const { length, max, min } = feature
-  const startPx =
-    (lgv.bpToPx({
-      refName,
-      coord: reversed ? max : min,
-      regionNumber: layoutIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const row = layoutRow + featureRow
-  const top = row * apolloRowHeight
-  const widthPx = length / bpPerPx
-  ctx.fillStyle = selected
-    ? theme.palette.action.disabled
-    : theme.palette.action.focus
-
-  ctx.fillRect(
-    startPx,
-    top,
-    widthPx,
-    apolloRowHeight * getRowCount(stateModel, feature),
-  )
-}
-
 function draw(
   display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
@@ -177,11 +139,8 @@ function draw(
   row: number,
   block: ContentBlock,
 ): void {
-  const { apolloRowHeight, lgv, theme, selectedFeature, session } = display
-  const { bpPerPx } = lgv
-  const left = Math.round(getLeftPx(display, gene, block))
-  const width = Math.round(gene.length / bpPerPx)
-  const top = row * apolloRowHeight
+  const { apolloRowHeight, theme, selectedFeature, session } = display
+  const [top, left, width] = getFeatureBox(display, gene, row, block)
   const height = getRowCount(display, gene) * apolloRowHeight
   if (width > 2) {
     let selectedColor = readConfObject(
@@ -199,7 +158,7 @@ function draw(
     return
   }
 
-  // Draw lines on different rows for each transcript
+  // Draw children of gene on their own rows
   const rows = getLayoutRows(display, gene)
   for (const [idx, layoutRow] of rows.entries()) {
     const { feature: rowFeature, glyph, rowInFeature } = layoutRow
@@ -209,9 +168,22 @@ function draw(
     glyph.draw(display, ctx, rowFeature, row + idx, block)
   }
 
-  if (selectedFeature && containsSelectedFeature(gene, selectedFeature)) {
-    drawHighlight(display, ctx, selectedFeature, true)
+  if (isSelectedFeature(gene, selectedFeature)) {
+    drawHighlight(display, ctx, left, top, width, height, true)
   }
+}
+
+function drawHover(
+  display: LinearApolloDisplay,
+  ctx: CanvasRenderingContext2D,
+  gene: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
+) {
+  const { apolloRowHeight } = display
+  const [top, left, width] = getFeatureBox(display, gene, row, block)
+  const height = getRowCount(display, gene) * apolloRowHeight
+  drawHighlight(display, ctx, left, top, width, height)
 }
 
 function drawDragPreview(
@@ -241,18 +213,6 @@ function drawDragPreview(
   overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
   overlayCtx.fillStyle = alpha(theme.palette.info.main, 0.2)
   overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
-}
-
-function drawHover(
-  stateModel: LinearApolloDisplay,
-  ctx: CanvasRenderingContext2D,
-) {
-  const { hoveredFeature } = stateModel
-
-  if (!hoveredFeature) {
-    return
-  }
-  drawHighlight(stateModel, ctx, hoveredFeature.feature)
 }
 
 function getRowCount(

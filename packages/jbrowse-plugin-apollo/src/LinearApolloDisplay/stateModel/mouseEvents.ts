@@ -6,6 +6,7 @@ import {
 import type PluginManager from '@jbrowse/core/PluginManager'
 import type { AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
 import type { MenuItem } from '@jbrowse/core/ui'
+import { doesIntersect2 } from '@jbrowse/core/util'
 import { type Instance, addDisposer } from '@jbrowse/mobx-state-tree'
 import { autorun } from 'mobx'
 import type { CSSProperties } from 'react'
@@ -262,31 +263,28 @@ export function mouseEventsModelFactory(
           self,
           autorun(
             () => {
-              // This type is wrong in @jbrowse/core
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-              if (!self.lgv.initialized || self.regionCannotBeRendered()) {
+              const { lgv, overlayCanvas } = self
+              if (
+                !lgv.initialized ||
+                // This type is wrong in @jbrowse/core
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                self.regionCannotBeRendered() ||
+                !overlayCanvas
+              ) {
                 return
               }
-              const ctx = self.overlayCanvas?.getContext('2d')
+              const { dynamicBlocks, offsetPx } = lgv
+              const ctx = overlayCanvas.getContext('2d')
               if (!ctx) {
                 return
               }
-              ctx.clearRect(
-                0,
-                0,
-                self.lgv.dynamicBlocks.totalWidthPx,
-                self.featuresHeight,
-              )
-
+              ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height)
               const { apolloDragging, hoveredFeature } = self
               if (!hoveredFeature) {
                 return
               }
-              const glyph = self.getGlyph(hoveredFeature.feature)
-
-              // draw mouseover hovers
-              glyph.drawHover(self, ctx)
-
+              const { feature } = hoveredFeature
+              const glyph = self.getGlyph(feature)
               // draw tooltip on hover
               glyph.drawTooltip(self, ctx)
 
@@ -298,6 +296,41 @@ export function mouseEventsModelFactory(
                   apolloDragging.feature.topLevelFeature,
                 )
                 glyph.drawDragPreview(self, ctx)
+              }
+              const position = self.getFeatureLayoutPosition(feature)
+              if (!position) {
+                return
+              }
+              const { featureRow, layoutRow } = position
+
+              for (const block of dynamicBlocks.contentBlocks) {
+                if (
+                  !doesIntersect2(
+                    block.start,
+                    block.end,
+                    feature.min,
+                    feature.max,
+                  )
+                ) {
+                  continue
+                }
+                const blockLeftPx = block.offsetPx - offsetPx
+                ctx.save()
+                ctx.beginPath()
+                ctx.rect(blockLeftPx, 0, block.widthPx, overlayCanvas.height)
+                ctx.clip()
+
+                // draw mouseover hovers
+                glyph.drawHover(
+                  // @ts-expect-error ts doesn't understand mst extension
+                  self,
+                  ctx,
+                  feature,
+                  featureRow + layoutRow,
+                  block,
+                )
+
+                ctx.restore()
               }
             },
             { name: 'LinearApolloDisplayRenderMouseoverAndDrag' },
