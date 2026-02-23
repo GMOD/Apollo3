@@ -2,15 +2,18 @@ import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type { MenuItem } from '@jbrowse/core/ui'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
-import { type MousePositionWithFeature } from '../../util'
-import { isCDSFeature, isExonFeature } from '../../util/glyphUtils'
+import type { MousePositionWithFeature } from '../../util'
+import {
+  isCDSFeature,
+  isExonFeature,
+  isSelectedFeature,
+} from '../../util/glyphUtils'
 import type { LinearApolloDisplay } from '../stateModel'
-
 
 import { cdsGlyph } from './CDSGlyph'
 import { exonGlyph } from './ExonGlyph'
 import type { Glyph } from './Glyph'
-import { getLeftPx } from './util'
+import { drawHighlight, getFeatureBox, getLeftPx } from './util'
 
 function* range(start: number, stop: number, step = 1): Generator<number> {
   if (start === stop) {
@@ -175,6 +178,25 @@ function draw(
       glyph.draw(display, ctx, feature, row + rowInFeature, block)
     }
   }
+  const { apolloRowHeight, selectedFeature } = display
+  if (isSelectedFeature(transcript, selectedFeature)) {
+    const [top, left, width] = getFeatureBox(display, transcript, row, block)
+    const height = apolloRowHeight * getRowCount(display, transcript)
+    drawHighlight(display, ctx, left, top, width, height, true)
+  }
+}
+
+function drawHover(
+  display: LinearApolloDisplay,
+  overlayCtx: CanvasRenderingContext2D,
+  transcript: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
+) {
+  const { apolloRowHeight } = display
+  const [top, left, width] = getFeatureBox(display, transcript, row, block)
+  const height = apolloRowHeight * getRowCount(display, transcript)
+  drawHighlight(display, overlayCtx, left, top, width, height)
 }
 
 function getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature) {
@@ -243,12 +265,6 @@ function getRowForFeature(
   }
   return
 }
-
-function drawHover() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// overlayCtx: CanvasRenderingContext2D,
 
 function drawDragPreview() {
   // Not implemented

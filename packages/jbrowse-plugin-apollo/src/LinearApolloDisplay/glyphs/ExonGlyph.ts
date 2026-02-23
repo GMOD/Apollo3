@@ -2,10 +2,11 @@ import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type { MenuItem } from '@jbrowse/core/ui'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
+import { isSelectedFeature } from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
 
 import type { Glyph } from './Glyph'
-import { getLeftPx, strokeRectInner } from './util'
+import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
 
 function draw(
   display: LinearApolloDisplay,
@@ -14,10 +15,8 @@ function draw(
   row: number,
   block: ContentBlock,
 ) {
-  const { apolloRowHeight, canvasPatterns, lgv, theme } = display
-  const { bpPerPx } = lgv
-  const left = Math.round(getLeftPx(display, exon, block))
-  const width = Math.round(exon.length / bpPerPx)
+  const { apolloRowHeight, canvasPatterns, selectedFeature, theme } = display
+  const [, left, width] = getFeatureBox(display, exon, row, block)
   const height = Math.round(0.6 * apolloRowHeight)
   const halfHeight = Math.round(height / 2)
   const top = Math.round(halfHeight / 2) + row * apolloRowHeight
@@ -41,6 +40,24 @@ function draw(
     }
   }
   strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
+  if (isSelectedFeature(exon, selectedFeature)) {
+    drawHighlight(display, ctx, left, top, width, height, true)
+  }
+}
+
+function drawHover(
+  display: LinearApolloDisplay,
+  overlayCtx: CanvasRenderingContext2D,
+  exon: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
+) {
+  const { apolloRowHeight } = display
+  const [, left, width] = getFeatureBox(display, exon, row, block)
+  const height = Math.round(0.6 * apolloRowHeight)
+  const halfHeight = Math.round(height / 2)
+  const top = Math.round(halfHeight / 2) + row * apolloRowHeight
+  drawHighlight(display, overlayCtx, left, top, width, height)
 }
 
 function getRowCount() {
@@ -72,12 +89,6 @@ function getRowForFeature(
   }
   return
 }
-
-function drawHover() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// overlayCtx: CanvasRenderingContext2D,
 
 function drawDragPreview() {
   // Not implemented

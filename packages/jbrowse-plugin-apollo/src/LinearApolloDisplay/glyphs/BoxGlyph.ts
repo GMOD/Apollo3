@@ -12,11 +12,10 @@ import {
 } from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
 import type { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
-import type { LinearApolloDisplayRendering } from '../stateModel/rendering'
 import type { CanvasMouseEvent } from '../types'
 
 import type { Glyph } from './Glyph'
-import { getLeftPx, strokeRectInner } from './util'
+import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
 
 /** @returns undefined if mouse not on the edge of this feature, otherwise 'start' or 'end' depending on which edge */
 function isMouseOnFeatureEdge(
@@ -45,36 +44,6 @@ function isMouseOnFeatureEdge(
   return
 }
 
-function drawHighlight(
-  stateModel: LinearApolloDisplayRendering,
-  ctx: CanvasRenderingContext2D,
-  feature: AnnotationFeature,
-  selected = false,
-) {
-  const { apolloRowHeight, lgv, theme } = stateModel
-  const position = stateModel.getFeatureLayoutPosition(feature)
-  if (!position) {
-    return
-  }
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const { layoutIndex, layoutRow } = position
-  const displayedRegion = displayedRegions[layoutIndex]
-  const { refName, reversed } = displayedRegion
-  const { length, max, min } = feature
-  const startPx =
-    (lgv.bpToPx({
-      refName,
-      coord: reversed ? max : min,
-      regionNumber: layoutIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const top = layoutRow * apolloRowHeight
-  const widthPx = length / bpPerPx
-  ctx.fillStyle = selected
-    ? theme.palette.action.disabled
-    : theme.palette.action.focus
-  ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
-}
-
 function draw(
   display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
@@ -82,21 +51,27 @@ function draw(
   row: number,
   block: ContentBlock,
 ) {
-  const { apolloRowHeight, lgv, selectedFeature, theme } = display
-  const { bpPerPx } = lgv
-  const left = Math.round(getLeftPx(display, feature, block))
-  const top = row * apolloRowHeight
-  const width = Math.round(feature.length / bpPerPx)
-  const height = apolloRowHeight
+  const { selectedFeature, theme } = display
+  const [top, left, width, height] = getFeatureBox(display, feature, row, block)
   if (width > 2) {
     ctx.fillStyle = theme.palette.background.default
-    ctx.fillRect(left, top, width, apolloRowHeight)
+    ctx.fillRect(left, top, width, height)
   }
   strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
-
   if (isSelectedFeature(feature, selectedFeature)) {
-    drawHighlight(display, ctx, feature, true)
+    drawHighlight(display, ctx, left, top, width, height, true)
   }
+}
+
+function drawHover(
+  display: LinearApolloDisplay,
+  overlayCtx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
+) {
+  const [top, left, width, height] = getFeatureBox(display, feature, row, block)
+  drawHighlight(display, overlayCtx, left, top, width, height)
 }
 
 function drawDragPreview(
@@ -127,17 +102,6 @@ function drawDragPreview(
   overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
   overlayCtx.fillStyle = alpha(theme.palette.info.main, 0.2)
   overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
-}
-
-function drawHover(
-  stateModel: LinearApolloDisplay,
-  ctx: CanvasRenderingContext2D,
-) {
-  const { hoveredFeature } = stateModel
-  if (!hoveredFeature) {
-    return
-  }
-  drawHighlight(stateModel, ctx, hoveredFeature.feature)
 }
 
 function drawTooltip(
