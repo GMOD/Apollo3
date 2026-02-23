@@ -286,6 +286,7 @@ export function mouseEventsModelFactory(
               const { feature } = hoveredFeature
               const glyph = self.getGlyph(feature)
               // draw tooltip on hover
+              // @ts-expect-error ts doesn't understand mst extension
               glyph.drawTooltip(self, ctx)
 
               // dragging previews
@@ -295,6 +296,7 @@ export function mouseEventsModelFactory(
                 const glyph = self.getGlyph(
                   apolloDragging.feature.topLevelFeature,
                 )
+                // @ts-expect-error ts doesn't understand mst extension
                 glyph.drawDragPreview(self, ctx)
               }
               const position = self.getFeatureLayoutPosition(feature)

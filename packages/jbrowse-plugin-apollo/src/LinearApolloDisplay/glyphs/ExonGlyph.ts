@@ -5,6 +5,7 @@ import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 import { isSelectedFeature } from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
 
+import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
 import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
 
@@ -60,6 +61,12 @@ function drawHover(
   drawHighlight(display, overlayCtx, left, top, width, height)
 }
 
+function drawDragPreview() {
+  // Not implemented
+}
+// display: LinearApolloDisplayMouseEvents,
+// ctx: CanvasRenderingContext2D,
+
 function getRowCount() {
   return 1
 }
@@ -90,12 +97,6 @@ function getRowForFeature(
   return
 }
 
-function drawDragPreview() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// ctx: CanvasRenderingContext2D,
-
 function onMouseDown() {
   // Not implemented
 }
@@ -124,12 +125,6 @@ function onMouseUp() {
 // currentMousePosition: MousePositionWithFeature,
 // event: CanvasMouseEvent,
 
-function drawTooltip() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// context: CanvasRenderingContext2D,
-
 function getContextMenuItemsForFeature(): MenuItem[] {
   return []
   // Not implemented
@@ -143,6 +138,11 @@ function getContextMenuItems(): MenuItem[] {
 }
 // display: LinearApolloDisplayMouseEvents,
 // currentMousePosition: MousePositionWithFeature,
+
+// False positive here, none of these functions use "this"
+/* eslint-disable @typescript-eslint/unbound-method */
+const { drawTooltip } = boxGlyph
+/* eslint-enable @typescript-eslint/unbound-method */
 
 export const exonGlyph: Glyph = {
   draw,
