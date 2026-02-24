@@ -14,6 +14,7 @@ import {
   MergeExons,
   MergeTranscripts,
   SplitExon,
+  DuplicateTranscript,
 } from '../../components'
 import type { ApolloSessionModel } from '../../session'
 import { getApolloInternetAccount } from '../../util'
@@ -212,6 +213,27 @@ export function featureContextMenuItems(
               },
             )
             session.showWidget(apolloTranscriptWidget)
+          },
+        },
+        {
+          label: 'Duplicate transcript',
+          onClick: () => {
+            ;(session as unknown as AbstractSessionModel).queueDialog(
+              (doneCallback) => [
+                DuplicateTranscript,
+                {
+                  session,
+                  handleClose: () => {
+                    doneCallback()
+                  },
+                  changeManager,
+                  sourceFeature: feature,
+                  sourceAssemblyId: currentAssemblyId,
+                  selectedFeature,
+                  setSelectedFeature,
+                },
+              ],
+            )
           },
         },
         {
