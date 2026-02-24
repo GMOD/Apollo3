@@ -6,7 +6,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { AddFeaturesFromFileChange } from '@apollo-annotation/shared'
-import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import {
   Button,
@@ -22,12 +22,12 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import LinearProgress from '@mui/material/LinearProgress'
 import React, { useEffect, useState } from 'react'
 
-import {
-  type ApolloInternetAccount,
-  type CollaborationServerDriver,
+import type {
+  ApolloInternetAccount,
+  CollaborationServerDriver,
 } from '../BackendDrivers'
-import { type ChangeManager } from '../ChangeManager'
-import { type ApolloSessionModel } from '../session'
+import type { ChangeManager } from '../ChangeManager'
+import type { ApolloSessionModel } from '../session'
 import { createFetchErrorMessage } from '../util'
 
 import { Dialog } from './Dialog'
@@ -182,7 +182,12 @@ export function ImportFeatures({
       statusMessage: 'Uploading file, this may take awhile',
       progressPct: 0,
       cancelCallback: () => {
-        controller.abort('ImportFeatures')
+        controller.abort(
+          new DOMException(
+            `Canceling importing of features to ${selectedAssembly.displayName}`,
+            'AbortError',
+          ),
+        )
         jobsManager.abortJob(job.name)
       },
     }

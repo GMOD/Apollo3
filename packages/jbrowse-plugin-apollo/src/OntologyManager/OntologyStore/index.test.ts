@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import { beforeAll, describe, expect, it, jest } from '@jest/globals'
 
 import { type OntologyClass, isOntologyClass } from '..'
 
 import OntologyStore from '.'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 jest.setTimeout(1_000_000_000)
 

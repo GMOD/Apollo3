@@ -6,15 +6,15 @@ import {
 } from '@apollo-annotation/mst'
 import { getSession } from '@jbrowse/core/util'
 import { ElementId } from '@jbrowse/core/util/types/mst'
-import { autorun } from 'mobx'
 import {
   type Instance,
   type SnapshotIn,
   addDisposer,
   types,
-} from 'mobx-state-tree'
+} from '@jbrowse/mobx-state-tree'
+import { autorun } from 'mobx'
 
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 
 export const ApolloFeatureDetailsWidgetModel = types
   .model('ApolloFeatureDetailsWidget', {

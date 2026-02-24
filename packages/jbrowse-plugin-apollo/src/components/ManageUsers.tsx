@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { DeleteUserChange, UserChange } from '@apollo-annotation/shared'
-import { type AbstractRootModel } from '@jbrowse/core/util'
+import { getRoot } from '@jbrowse/mobx-state-tree'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Button,
@@ -27,12 +27,12 @@ import {
   type GridRowParams,
   GridToolbar,
 } from '@mui/x-data-grid'
-import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
-import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { type ChangeManager } from '../ChangeManager'
-import { type ApolloSessionModel } from '../session'
+import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import type { ChangeManager } from '../ChangeManager'
+import type { ApolloSessionModel } from '../session'
+import { type ApolloRootModel, isApolloInternetAccount } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import { Dialog } from './Dialog'
@@ -50,19 +50,15 @@ interface ManageUsersProps {
   changeManager: ChangeManager
 }
 
-interface ApolloRootModel extends AbstractRootModel {
-  internetAccounts: ApolloInternetAccountModel[]
-}
-
 export function ManageUsers({
   changeManager,
   handleClose,
   session,
 }: ManageUsersProps) {
   const { internetAccounts } = getRoot<ApolloRootModel>(session)
-  const apolloInternetAccounts = internetAccounts.filter(
-    (ia) => ia.type === 'ApolloInternetAccount' && ia.role?.includes('admin'),
-  )
+  const apolloInternetAccounts: ApolloInternetAccountModel[] = internetAccounts
+    .filter((ia) => isApolloInternetAccount(ia))
+    .filter((ia) => ia.role?.includes('admin'))
   if (apolloInternetAccounts.length === 0) {
     throw new Error('No Apollo internet account found')
   }
@@ -80,21 +76,17 @@ export function ManageUsers({
         locationType: 'UriLocation',
         uri,
       })
-      if (apolloFetch) {
-        const response = await apolloFetch(uri, { method: 'GET' })
-        if (!response.ok) {
-          const newErrorMessage = await createFetchErrorMessage(
-            response,
-            'Error when getting user data from db',
-          )
-          setErrorMessage(newErrorMessage)
-          return
-        }
-        const data = (await response.json()) as UserResponse[]
-        setUsers(
-          data.map((u) => (u.role === undefined ? { ...u, role: '' } : u)),
+      const response = await apolloFetch(uri, { method: 'GET' })
+      if (!response.ok) {
+        const newErrorMessage = await createFetchErrorMessage(
+          response,
+          'Error when getting user data from db',
         )
+        setErrorMessage(newErrorMessage)
+        return
       }
+      const data = (await response.json()) as UserResponse[]
+      setUsers(data.map((u) => (u.role === undefined ? { ...u, role: '' } : u)))
     }
     getUsers().catch((error) => {
       setErrorMessage(String(error))

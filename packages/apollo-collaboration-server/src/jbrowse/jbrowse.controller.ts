@@ -1,10 +1,10 @@
 import { Controller, Get, Logger, Req } from '@nestjs/common'
-import { Request } from 'express'
+import type { Request } from 'express'
 
-import { Role } from '../utils/role/role.enum'
-import { Validations } from '../utils/validation/validatation.decorator'
+import { Role } from '../utils/role/role.enum.js'
+import { Validations } from '../utils/validation/validatation.decorator.js'
 
-import { JBrowseService } from './jbrowse.service'
+import { JBrowseService } from './jbrowse.service.js'
 
 export interface RequestWithUser extends Request {
   user?: { role: Role; id?: string }

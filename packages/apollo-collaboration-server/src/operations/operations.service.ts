@@ -1,29 +1,29 @@
 import { Operation, operationRegistry } from '@apollo-annotation/common'
 import {
   Assembly,
-  AssemblyDocument,
+  type AssemblyDocument,
   Check,
-  CheckDocument,
+  type CheckDocument,
   Feature,
-  FeatureDocument,
+  type FeatureDocument,
   File,
-  FileDocument,
+  type FileDocument,
   JBrowseConfig,
-  JBrowseConfigDocument,
+  type JBrowseConfigDocument,
   RefSeq,
   RefSeqChunk,
-  RefSeqChunkDocument,
-  RefSeqDocument,
+  type RefSeqChunkDocument,
+  type RefSeqDocument,
   User,
-  UserDocument,
+  type UserDocument,
 } from '@apollo-annotation/schemas'
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectConnection, InjectModel } from '@nestjs/mongoose'
-import { Connection, Model } from 'mongoose'
+import type { Connection, Model } from 'mongoose'
 
-import { CountersService } from '../counters/counters.service'
-import { FilesService } from '../files/files.service'
-import { PluginsService } from '../plugins/plugins.service'
+import { CountersService } from '../counters/counters.service.js'
+import { FilesService } from '../files/files.service.js'
+import { PluginsService } from '../plugins/plugins.service.js'
 
 @Injectable()
 export class OperationsService {

@@ -1,13 +1,13 @@
 /** schema types used to strongly-type using the `idb` type system */
-import { type DBSchema } from 'idb/with-async-ittr'
+import type { DBSchema } from 'idb/with-async-ittr'
 
-import {
-  type Edge as OboGraphEdge,
-  type Meta as OboGraphMeta,
-  type Node as OboGraphNode,
+import type {
+  Edge as OboGraphEdge,
+  Meta as OboGraphMeta,
+  Node as OboGraphNode,
 } from './obo-graph-json-schema'
 
-import { type OntologyStoreOptions, type SourceLocation } from '.'
+import type { OntologyStoreOptions, SourceLocation } from '.'
 
 /** metadata about this IndexedDB ontology database */
 export interface Meta {

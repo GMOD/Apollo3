@@ -11,9 +11,9 @@ import {
   validationRegistry,
 } from '@apollo-annotation/shared'
 import { getSession } from '@jbrowse/core/util'
-import { type IAnyStateTreeNode } from 'mobx-state-tree'
+import type { IAnyStateTreeNode } from '@jbrowse/mobx-state-tree'
 
-import { type ApolloSessionModel } from './session'
+import type { ApolloSessionModel } from './session'
 
 export interface SubmitOpts {
   /** defaults to true */
@@ -66,7 +66,12 @@ export class ChangeManager {
       statusMessage: 'Pre-validating',
       progressPct: 0,
       cancelCallback: () => {
-        controller.abort('ChangeManager')
+        controller.abort(
+          new DOMException(
+            `Cancelling change "${change.typeName}"`,
+            'AbortError',
+          ),
+        )
       },
     }
 

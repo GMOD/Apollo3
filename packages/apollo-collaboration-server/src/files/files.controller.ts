@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { Readable } from 'node:stream'
 
 import {
@@ -13,17 +12,16 @@ import {
   Req,
   Res,
   StreamableFile,
-  UnprocessableEntityException,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common'
-import { FileInterceptor } from '@nestjs/platform-express/multer'
-import { Request, Response } from 'express'
+import { FileInterceptor } from '@nestjs/platform-express'
+import type { Request, Response } from 'express'
 
-import { FileStorageEngine } from './FileStorageEngine'
-import { FilesInterceptor as StreamingFileInterceptor } from './files.interceptor'
-import { FilesService } from './files.service'
-import { UploadedFile as UploadedApolloFile } from './filesUtil'
+import { FileStorageEngine } from './FileStorageEngine.js'
+import { FilesInterceptor as StreamingFileInterceptor } from './files.interceptor.js'
+import { FilesService } from './files.service.js'
+import type { UploadedFile as UploadedApolloFile } from './filesUtil.js'
 
 @Controller('files')
 export class FilesController {
@@ -55,9 +53,6 @@ export class FilesController {
     @UploadedFile() file: UploadedApolloFile,
     @Query('type') type: 'text/x-gff3' | 'text/x-fasta',
   ) {
-    if (!file) {
-      throw new UnprocessableEntityException('No "file" found in request')
-    }
     this.logger.debug(
       `Upload file "${file.originalname}", checksum "${file.checksum}"`,
     )

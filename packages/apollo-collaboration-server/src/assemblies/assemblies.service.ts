@@ -1,8 +1,8 @@
 import {
   Assembly,
-  AssemblyDocument,
+  type AssemblyDocument,
   Check,
-  CheckDocument,
+  type CheckDocument,
 } from '@apollo-annotation/schemas'
 import { GetAssembliesOperation } from '@apollo-annotation/shared'
 import {
@@ -13,14 +13,14 @@ import {
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
-import { FeaturesService } from 'src/features/features.service'
-import { RefSeqsService } from 'src/refSeqs/refSeqs.service'
 
-import { ChecksService } from '../checks/checks.service'
-import { OperationsService } from '../operations/operations.service'
+import { ChecksService } from '../checks/checks.service.js'
+import { FeaturesService } from '../features/features.service.js'
+import { OperationsService } from '../operations/operations.service.js'
+import { RefSeqsService } from '../refSeqs/refSeqs.service.js'
 
-import { CreateAssemblyDto } from './dto/create-assembly.dto'
-import { UpdateAssemblyDto } from './dto/update-assembly.dto'
+import { CreateAssemblyDto } from './dto/create-assembly.dto.js'
+import { UpdateAssemblyDto } from './dto/update-assembly.dto.js'
 
 @Injectable()
 export class AssembliesService {

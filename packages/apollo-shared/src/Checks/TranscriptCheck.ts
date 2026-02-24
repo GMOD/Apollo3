@@ -1,12 +1,12 @@
 import { Check } from '@apollo-annotation/common'
-import {
-  type AnnotationFeatureSnapshot,
-  type CheckResultSnapshot,
+import type {
+  AnnotationFeatureSnapshot,
+  CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 import { revcom } from '@jbrowse/core/util'
 import ObjectID from 'bson-objectid'
 
-import { getPrintableId } from './util'
+import { getPrintableId } from './util.js'
 
 interface SpliceSequence {
   fivePrimeSeq: string

@@ -1,5 +1,5 @@
 import { Flags } from '@oclif/core'
-import { type Response } from 'undici'
+import type { Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import { idReader, queryApollo } from '../../utils.js'

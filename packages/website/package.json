@@ -27,7 +27,7 @@
     "@docusaurus/theme-classic": "^3.5.2",
     "@docusaurus/tsconfig": "^3.5.2",
     "@docusaurus/types": "^3.5.2",
-    "@types/node": "^20.19.15",
+    "@types/node": "^24.10.9",
     "@types/react": "^18.3.4",
     "typescript": "^5.5.3"
   }

@@ -1,9 +1,9 @@
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { type GFF3Feature, type GFF3FeatureLineWithRefs } from '@gmod/gff'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { GFF3Feature, GFF3FeatureLineWithRefs } from '@gmod/gff'
 import { doesIntersect2 } from '@jbrowse/core/util'
 import ObjectID from 'bson-objectid'
 
-import { gffToInternal, isGFFReservedAttribute } from './gffReservedKeys'
+import { gffToInternal, isGFFReservedAttribute } from './gffReservedKeys.js'
 
 export function gff3ToAnnotationFeature(
   gff3Feature: GFF3Feature,

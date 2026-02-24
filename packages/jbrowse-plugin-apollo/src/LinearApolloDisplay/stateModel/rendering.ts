@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import type PluginManager from '@jbrowse/core/PluginManager'
-import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
+import type { AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
 import { doesIntersect2 } from '@jbrowse/core/util'
+import { type Instance, addDisposer, types } from '@jbrowse/mobx-state-tree'
 import { type Theme, createTheme } from '@mui/material'
 import { autorun } from 'mobx'
-import { type Instance, addDisposer, types } from 'mobx-state-tree'
 
-import { type ApolloSessionModel } from '../../session'
+import type { ApolloSessionModel } from '../../session'
 
 import { layoutsModelFactory } from './layouts'
 

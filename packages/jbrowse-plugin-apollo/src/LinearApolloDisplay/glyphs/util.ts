@@ -1,6 +1,6 @@
-import { type ContentBlock } from '@jbrowse/core/util/blockTypes'
+import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
-import { type LinearApolloDisplay } from '../stateModel'
+import type { LinearApolloDisplay } from '../stateModel'
 
 export function getLeftPx(
   display: LinearApolloDisplay,

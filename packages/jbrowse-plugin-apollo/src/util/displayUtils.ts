@@ -1,6 +1,6 @@
-import { type CheckResultIdsType } from '@apollo-annotation/mst'
-import { type Theme } from '@mui/material'
-import { makeStyles } from 'tss-react/mui'
+import type { CheckResultIdsType } from '@apollo-annotation/mst'
+import { makeStyles } from '@jbrowse/core/util/tss-react'
+import type { Theme } from '@mui/material'
 
 export { default as EditZoomThresholdDialog } from '../components/EditZoomThresholdDialog'
 

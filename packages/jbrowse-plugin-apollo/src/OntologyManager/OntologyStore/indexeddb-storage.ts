@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
+
 import { openLocation } from '@jbrowse/core/util/io'
 import equal from 'fast-deep-equal/es6'
 import {
@@ -15,7 +16,7 @@ import {
   isOntologyDBEdge,
   isOntologyDBNode,
 } from './indexeddb-schema'
-import { type GraphDocument } from './obo-graph-json-schema'
+import type { GraphDocument } from './obo-graph-json-schema'
 
 import type OntologyStore from '.'
 

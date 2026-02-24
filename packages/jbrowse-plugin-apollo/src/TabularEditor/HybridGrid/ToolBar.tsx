@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+
+import { makeStyles } from '@jbrowse/core/util/tss-react'
 import ClearIcon from '@mui/icons-material/Clear'
 import UnfoldLessIcon from '@mui/icons-material/UnfoldLess'
 import { IconButton, InputAdornment, TextField, Tooltip } from '@mui/material'
 import { observer } from 'mobx-react'
 import React from 'react'
-import { makeStyles } from 'tss-react/mui'
 
-import { type DisplayStateModel } from '../types'
+import type { DisplayStateModel } from '../types'
 
 const useStyles = makeStyles()({
   toolbar: {

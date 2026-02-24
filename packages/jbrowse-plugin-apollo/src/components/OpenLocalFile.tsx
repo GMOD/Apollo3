@@ -16,8 +16,8 @@ import {
 import { nanoid } from 'nanoid'
 import React, { useState } from 'react'
 
-import { type InMemoryFileDriver } from '../BackendDrivers'
-import { type ApolloSessionModel } from '../session'
+import type { InMemoryFileDriver } from '../BackendDrivers'
+import type { ApolloSessionModel } from '../session'
 import { loadAssemblyIntoClient } from '../util'
 
 import { Dialog } from './Dialog'

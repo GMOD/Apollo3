@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+
 import { getSession } from '@jbrowse/core/util'
+import { makeStyles } from '@jbrowse/core/util/tss-react'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Alert, Typography, alpha } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useCallback, useEffect, useRef } from 'react'
-import { makeStyles } from 'tss-react/mui'
 
 import { LinearApolloDisplay } from './LinearApolloDisplay/components'
-import { type LinearApolloDisplay as LinearApolloDisplayI } from './LinearApolloDisplay/stateModel'
+import type { LinearApolloDisplay as LinearApolloDisplayI } from './LinearApolloDisplay/stateModel'
 import { LinearApolloSixFrameDisplay } from './LinearApolloSixFrameDisplay/components'
-import { type LinearApolloSixFrameDisplay as LinearApolloSixFrameDisplayI } from './LinearApolloSixFrameDisplay/stateModel'
+import type { LinearApolloSixFrameDisplay as LinearApolloSixFrameDisplayI } from './LinearApolloSixFrameDisplay/stateModel'
 import { TabularEditorPane } from './TabularEditor'
-import { type ApolloSessionModel } from './session'
+import type { ApolloSessionModel } from './session'
 
 const accordionControlHeight = 12
 
@@ -97,7 +98,9 @@ const ResizeHandle = ({
         const controller = new AbortController()
         const { signal } = controller
         function abortDrag() {
-          controller.abort('makeDisplayComponent')
+          controller.abort(
+            new DOMException('Canceling drag event listener', 'AbortError'),
+          )
         }
         globalThis.addEventListener('mousemove', mouseMove, { signal })
         globalThis.addEventListener('mouseup', abortDrag, { signal })

@@ -1,6 +1,6 @@
-import {
-  type AbstractMenuManager,
-  type AbstractSessionModel,
+import type {
+  AbstractMenuManager,
+  AbstractSessionModel,
 } from '@jbrowse/core/util'
 import AddIcon from '@mui/icons-material/Add'
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
@@ -18,7 +18,7 @@ import {
   ManageChecks,
   ManageUsers,
 } from '../components'
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 
 export function addTopLevelAdminMenus(rootModel: AbstractMenuManager) {
   rootModel.appendToMenu('Apollo', {

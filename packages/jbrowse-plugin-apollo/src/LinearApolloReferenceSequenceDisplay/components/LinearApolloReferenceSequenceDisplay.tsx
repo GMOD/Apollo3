@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { getContainingView } from '@jbrowse/core/util'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { Alert, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect } from 'react'
 
 import { useStyles } from '../../util/displayUtils'
-import { type LinearApolloReferenceSequenceDisplay as LinearApolloReferenceSequenceDisplayI } from '../stateModel'
+import type { LinearApolloReferenceSequenceDisplay as LinearApolloReferenceSequenceDisplayI } from '../stateModel'
 
 interface LinearApolloReferenceSequenceDisplayProps {
   model: LinearApolloReferenceSequenceDisplayI
@@ -34,6 +35,7 @@ export const LinearApolloReferenceSequenceDisplay = observer(
     const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
     const message = regionCannotBeRendered()
 
+    // This type is wrong in @jbrowse/core
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (message) {
       return (

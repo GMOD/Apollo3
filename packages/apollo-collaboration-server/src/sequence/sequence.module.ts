@@ -1,12 +1,12 @@
 import { Module, forwardRef } from '@nestjs/common'
 
-import { AssembliesModule } from '../assemblies/assemblies.module'
-import { FilesModule } from '../files/files.module'
-import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module'
-import { RefSeqsModule } from '../refSeqs/refSeqs.module'
+import { AssembliesModule } from '../assemblies/assemblies.module.js'
+import { FilesModule } from '../files/files.module.js'
+import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module.js'
+import { RefSeqsModule } from '../refSeqs/refSeqs.module.js'
 
-import { SequenceController } from './sequence.controller'
-import { SequenceService } from './sequence.service'
+import { SequenceController } from './sequence.controller.js'
+import { SequenceService } from './sequence.service.js'
 
 @Module({
   imports: [

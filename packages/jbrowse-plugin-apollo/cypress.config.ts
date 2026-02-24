@@ -1,15 +1,12 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
-const fs = require('node:fs')
+import fs from 'node:fs'
 
-const { defineConfig } = require('cypress')
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-const getCompareSnapshotsPlugin = require('cypress-image-diff-js/plugin')
-const { configurePlugin } = require('cypress-mongodb')
+import { defineConfig } from 'cypress'
+import getCompareSnapshotsPlugin from 'cypress-image-diff-js/plugin'
+import { configurePlugin } from 'cypress-mongodb'
 
-module.exports = defineConfig({
+export default defineConfig({
   // Make viewport long and thin to avoid the scrollbar on the right interfere
   // with the coordinates
   viewportHeight: 2000,
@@ -28,7 +25,7 @@ module.exports = defineConfig({
   e2e: {
     baseUrl: 'http://localhost:8999',
     setupNodeEvents(on, config) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      // @ts-expect-error types are wrong
       getCompareSnapshotsPlugin(on, config)
       configurePlugin(on)
       on('task', {

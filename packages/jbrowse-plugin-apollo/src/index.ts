@@ -29,7 +29,7 @@ import {
   getSession,
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
-import { type LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
+import type { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
 import { alpha } from '@mui/material'
 

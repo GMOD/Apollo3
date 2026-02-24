@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-base-to-string */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+
 import {
   File,
-  FileDocument,
+  type FileDocument,
   RefSeq,
   RefSeqChunk,
-  RefSeqChunkDocument,
-  RefSeqDocument,
+  type RefSeqChunkDocument,
+  type RefSeqDocument,
 } from '@apollo-annotation/schemas'
 import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
 import { Injectable, Logger } from '@nestjs/common'
@@ -14,10 +14,10 @@ import { InjectModel } from '@nestjs/mongoose'
 import { RemoteFile } from 'generic-filehandle'
 import { Model } from 'mongoose'
 
-import { AssembliesService } from '../assemblies/assemblies.service'
-import { FilesService } from '../files/files.service'
+import { AssembliesService } from '../assemblies/assemblies.service.js'
+import { FilesService } from '../files/files.service.js'
 
-import { GetSequenceDto } from './dto/get-sequence.dto'
+import { GetSequenceDto } from './dto/get-sequence.dto.js'
 
 @Injectable()
 export class SequenceService {
@@ -45,7 +45,7 @@ export class SequenceService {
       assembly.toString(),
     )
 
-    if (assemblyDoc?.externalLocation) {
+    if (assemblyDoc.externalLocation) {
       const { fa, fai, gzi } = assemblyDoc.externalLocation
 
       const sequenceAdapter = gzi
@@ -65,7 +65,7 @@ export class SequenceService {
       return sequence
     }
 
-    if (assemblyDoc?.fileIds?.fai) {
+    if (assemblyDoc.fileIds?.fai) {
       const { fa: faId, fai: faiId, gzi: gziId } = assemblyDoc.fileIds
       const faDoc = await this.fileModel.findById(faId)
       if (!faDoc) {

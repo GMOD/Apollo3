@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
-import {
-  type AnnotationFeatureSnapshot,
-  type TranscriptPartLocation,
-  type TranscriptPartNonCoding,
+import type {
+  AnnotationFeatureSnapshot,
+  TranscriptPartLocation,
+  TranscriptPartNonCoding,
 } from '@apollo-annotation/mst'
-import { type GFF3Feature } from '@gmod/gff'
+import type { GFF3Feature } from '@gmod/gff'
 import { intersection2 } from '@jbrowse/core/util'
 
 export function annotationFeatureToGFF3(

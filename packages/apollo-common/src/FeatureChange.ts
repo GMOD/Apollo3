@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { type Feature } from '@apollo-annotation/schemas'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { Feature } from '@apollo-annotation/schemas'
 import ObjectID from 'bson-objectid'
-import { type Types } from 'mongoose'
+import type { Types } from 'mongoose'
 
 import {
   AssemblySpecificChange,
   type SerializedAssemblySpecificChange,
   isAssemblySpecificChange,
-} from './AssemblySpecificChange'
-import { type ChangeOptions } from './Change'
+} from './AssemblySpecificChange.js'
+import type { ChangeOptions } from './Change.js'
 
 export interface SerializedFeatureChange
   extends SerializedAssemblySpecificChange {

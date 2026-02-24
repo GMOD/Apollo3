@@ -5,16 +5,16 @@
 import { checkAbortSignal } from '@jbrowse/core/util/aborting'
 import jsonpath from 'jsonpath'
 
-import { type TextIndexFieldDefinition } from '..'
+import type { TextIndexFieldDefinition } from '..'
 
 import { stopwords } from './fulltext-stopwords'
-import { type OntologyDBNode } from './indexeddb-schema'
+import type { OntologyDBNode } from './indexeddb-schema'
 import { applyPrefixes } from './prefixes'
 
 // eslint-disable-next-line import/no-duplicates
 import type OntologyStore from '.'
 // eslint-disable-next-line import/no-duplicates
-import { type Transaction } from '.'
+import type { Transaction } from '.'
 
 /** special value of jsonPath that gets the IRI (that is, ID) of the node with the configured prefixes applied */
 export const PREFIXED_ID_PATH = '$PREFIXED_ID'
@@ -28,7 +28,14 @@ function jsonPathQuery(
   if (path === PREFIXED_ID_PATH) {
     return [applyPrefixes(node.id, prefixes)]
   }
-  return jsonpath.query(node, path)
+  let response
+  try {
+    response = jsonpath.query(node, path)
+  } catch {
+    // eslint-disable-next-line unicorn/prefer-structured-clone
+    response = jsonpath.query(JSON.parse(JSON.stringify(node)), path)
+  }
+  return response
 }
 
 function wordsInString(str: string) {

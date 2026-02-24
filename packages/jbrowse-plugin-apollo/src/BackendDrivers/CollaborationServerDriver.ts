@@ -10,10 +10,10 @@ import {
   type FeatureChange,
   isFeatureChange,
 } from '@apollo-annotation/common'
-import {
-  type AnnotationFeatureSnapshot,
-  type ApolloRefSeqI,
-  type CheckResultSnapshot,
+import type {
+  AnnotationFeatureSnapshot,
+  ApolloRefSeqI,
+  CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 import {
   type ChangeMessage,
@@ -21,9 +21,9 @@ import {
   makeUserSessionId,
 } from '@apollo-annotation/shared'
 import { getConf } from '@jbrowse/core/configuration'
-import { type BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
+import type { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { type Region, getSession } from '@jbrowse/core/util'
-import { type Socket } from 'socket.io-client'
+import type { Socket } from 'socket.io-client'
 
 import { ChangeManager, type SubmitOpts } from '../ChangeManager'
 import { createFetchErrorMessage } from '../util'

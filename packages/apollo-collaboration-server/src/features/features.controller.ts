@@ -9,15 +9,18 @@ import {
   Query,
 } from '@nestjs/common'
 
-import {
+import type {
   FeatureIdsSearchDto,
   FeatureRangeSearchDto,
-} from '../entity/gff3Object.dto'
-import { Role } from '../utils/role/role.enum'
-import { Validations } from '../utils/validation/validatation.decorator'
+} from '../entity/gff3Object.dto.js'
+import { Role } from '../utils/role/role.enum.js'
+import { Validations } from '../utils/validation/validatation.decorator.js'
 
-import { FeatureCountRequest, GetByIndexedIdRequest } from './dto/feature.dto'
-import { FeaturesService } from './features.service'
+import type {
+  FeatureCountRequest,
+  GetByIndexedIdRequest,
+} from './dto/feature.dto.js'
+import { FeaturesService } from './features.service.js'
 
 @Validations(Role.ReadOnly)
 @Controller('features')

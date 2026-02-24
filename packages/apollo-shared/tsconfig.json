@@ -1,14 +1,16 @@
 {
-  "extends": "../../tsconfig-base.json",
+  "extends": "../../tsconfig",
   "compilerOptions": {
     "composite": true,
     "incremental": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM"],
-    "module": "CommonJS",
     "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
+    // TODO: enable this and fix the problems it reveals
+    "noUncheckedIndexedAccess": false,
+    // For nodejs:
+    "lib": ["esnext"],
+    "types": ["node"],
   },
   "include": ["./src"],
   "references": [

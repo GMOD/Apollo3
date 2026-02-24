@@ -7,10 +7,10 @@ import { readConfObject } from '@jbrowse/core/configuration'
 import { BaseSequenceAdapter } from '@jbrowse/core/data_adapters/BaseAdapter'
 import { ObservableCreate } from '@jbrowse/core/util/rxjs'
 import SimpleFeature, { type Feature } from '@jbrowse/core/util/simpleFeature'
-import { type NoAssemblyRegion, type Region } from '@jbrowse/core/util/types'
+import type { NoAssemblyRegion, Region } from '@jbrowse/core/util/types'
 import { nanoid } from 'nanoid'
 
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 
 // declare global {
 //   var rpcServer: import('librpc-web-mod').RpcServer

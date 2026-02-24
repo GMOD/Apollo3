@@ -33,18 +33,11 @@ export default [
   pluginReact.configs.flat.recommended,
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   pluginJSXA11y.flatConfigs.recommended,
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   pluginCypress.configs.recommended,
   {
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },
-      parserOptions: {
-        projectService: {
-          allowDefaultProject: ['packages/jbrowse-plugin-apollo/*.js'],
-        },
-        defaultProject: 'tsconfig.json',
-        tsconfigRootDir: import.meta.dirname,
-      },
+      parserOptions: { projectService: true },
     },
     settings: { react: { version: 'detect' } },
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -74,13 +67,14 @@ export default [
       radix: 'error',
       // @typescript-eslint/eslint-plugin rules (override recommended)
       '@typescript-eslint/consistent-type-imports': [
-        'warn',
+        'error',
         { fixStyle: 'inline-type-imports' },
       ],
       '@typescript-eslint/no-extraneous-class': [
         'error',
         { allowWithDecorator: true },
       ],
+      '@typescript-eslint/no-import-type-side-effects': 'error',
       '@typescript-eslint/no-unused-vars': [
         'warn',
         { argsIgnorePattern: '^_', ignoreRestSiblings: true },
@@ -91,7 +85,6 @@ export default [
       ],
       '@typescript-eslint/return-await': 'error',
       // eslint-plugin-import rules
-      'import/consistent-type-specifier-style': ['warn', 'prefer-inline'],
       'import/export': 'error',
       'import/no-duplicates': ['warn', { 'prefer-inline': true }],
       'import/no-extraneous-dependencies': 'error',
@@ -122,6 +115,7 @@ export default [
       'packages/website/src/**/*.{jsx,tsx}',
     ],
     plugins: { 'react-hooks': pluginReactHooks },
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     rules: { ...pluginReactHooks.configs.recommended.rules },
   },
   // Don't enforce tsdoc syntax in JS files

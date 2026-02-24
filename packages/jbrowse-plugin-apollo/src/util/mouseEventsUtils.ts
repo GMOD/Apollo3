@@ -1,5 +1,5 @@
-import { type AnnotationFeature } from '@apollo-annotation/mst'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 
 type MinEdge = 'min'
 type MaxEdge = 'max'

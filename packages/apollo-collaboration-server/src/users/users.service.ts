@@ -1,8 +1,11 @@
-import { User as UserSchema, UserDocument } from '@apollo-annotation/schemas'
 import {
-  DecodedJWT,
-  RequestUserInformationMessage,
-  UserLocationMessage,
+  User as UserSchema,
+  type UserDocument,
+} from '@apollo-annotation/schemas'
+import {
+  type DecodedJWT,
+  type RequestUserInformationMessage,
+  type UserLocationMessage,
   makeUserSessionId,
 } from '@apollo-annotation/shared'
 import { Injectable, Logger } from '@nestjs/common'
@@ -10,11 +13,11 @@ import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 
-import { MessagesGateway } from '../messages/messages.gateway'
-import { GUEST_USER_EMAIL, GUEST_USER_NAME } from '../utils/constants'
-import { Role } from '../utils/role/role.enum'
+import { MessagesGateway } from '../messages/messages.gateway.js'
+import { GUEST_USER_EMAIL, GUEST_USER_NAME } from '../utils/constants.js'
+import { Role } from '../utils/role/role.enum.js'
 
-import { CreateUserDto, UserLocationDto } from './dto/create-user.dto'
+import { CreateUserDto, UserLocationDto } from './dto/create-user.dto.js'
 
 export interface User {
   email: string

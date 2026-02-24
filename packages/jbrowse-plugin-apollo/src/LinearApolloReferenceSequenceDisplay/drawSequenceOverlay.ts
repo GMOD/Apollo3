@@ -1,9 +1,9 @@
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import { type Frame, getFrame } from '@jbrowse/core/util'
-import { type BlockSet, type ContentBlock } from '@jbrowse/core/util/blockTypes'
-import { type Theme } from '@mui/material'
+import type { BlockSet, ContentBlock } from '@jbrowse/core/util/blockTypes'
+import type { Theme } from '@mui/material'
 
-import { type ApolloSessionModel, type HoveredFeature } from '../session'
+import type { ApolloSessionModel, HoveredFeature } from '../session'
 
 function getSeqRow(
   strand: 1 | -1 | undefined,

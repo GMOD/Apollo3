@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
+import type { AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
 import {
   type AbstractSessionModel,
   doesIntersect2,
   getFrame,
 } from '@jbrowse/core/util'
+import { addDisposer, isAlive } from '@jbrowse/mobx-state-tree'
 import { autorun, observable } from 'mobx'
-import { addDisposer, isAlive } from 'mobx-state-tree'
 
-import { type ApolloSessionModel } from '../../session'
+import type { ApolloSessionModel } from '../../session'
 import { geneGlyph } from '../glyphs'
 
 import { baseModelFactory } from './base'
@@ -159,15 +159,19 @@ export function layoutsModelFactory(
                   }
                   for (const cdsRow of cdsLocations) {
                     for (const cds of cdsRow) {
-                      let rowNum: number = getFrame(
+                      const frame = getFrame(
                         cds.min,
                         cds.max,
                         strand ?? 1,
                         cds.phase,
                       )
-                      rowNum = self.featureLabelSpacer(
-                        rowNum < 0 ? -1 * rowNum + 5 : rowNum,
-                      )
+                      const frameOffsets = self.showFeatureLabels
+                        ? [0, 5, 3, 1, 15, 13, 11]
+                        : [0, 2, 1, 0, 8, 7, 6]
+                      const rowNum = frameOffsets.at(frame)
+                      if (!rowNum) {
+                        continue
+                      }
                       if (!featureLayout.get(rowNum)) {
                         featureLayout.set(rowNum, [])
                       }

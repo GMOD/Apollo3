@@ -1,15 +1,15 @@
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
 } from '@apollo-annotation/shared'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import { type AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
-import { type MenuItem } from '@jbrowse/core/ui'
+import type { AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
+import type { MenuItem } from '@jbrowse/core/ui'
 import { getFrame } from '@jbrowse/core/util'
+import { type Instance, addDisposer, cast } from '@jbrowse/mobx-state-tree'
 import { autorun } from 'mobx'
-import { type Instance, addDisposer, cast } from 'mobx-state-tree'
-import { type CSSProperties } from 'react'
+import type { CSSProperties } from 'react'
 
 import {
   type Edge,
@@ -19,7 +19,7 @@ import {
   getPropagatedLocationChanges,
   isMousePositionWithFeature,
 } from '../../util'
-import { type CanvasMouseEvent } from '../types'
+import type { CanvasMouseEvent } from '../types'
 
 import { renderingModelFactory } from './rendering'
 
@@ -86,15 +86,16 @@ export function mouseEventsModelIntermediateFactory(
             }
             for (const loc of feature.cdsLocations) {
               for (const cds of loc) {
-                let rowNum: number = getFrame(
+                const frame = getFrame(
                   cds.min,
                   cds.max,
                   feature.strand ?? 1,
                   cds.phase,
                 )
-                rowNum = self.featureLabelSpacer(
-                  rowNum < 0 ? -1 * rowNum + 5 : rowNum,
-                )
+                const frameOffsets = self.showFeatureLabels
+                  ? [0, 5, 3, 1, 15, 13, 11]
+                  : [0, 2, 1, 0, 8, 7, 6]
+                const rowNum = frameOffsets.at(frame)
                 if (row === rowNum && bp >= cds.min && bp <= cds.max) {
                   return (
                     featureID === undefined ||

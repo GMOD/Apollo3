@@ -3,12 +3,12 @@
 import { readFileSync } from 'node:fs'
 import { describe, it } from 'node:test'
 
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { formatSync } from '@gmod/gff'
 import { assert, expect } from 'chai'
 
-import { annotationFeatureToGFF3 } from './annotationFeatureToGFF3'
-import { readAnnotationFeatureSnapshot, testCases } from './testUtil'
+import { annotationFeatureToGFF3 } from './annotationFeatureToGFF3.js'
+import { readAnnotationFeatureSnapshot, testCases } from './testUtil.js'
 
 describe('Converts AnnotationFeatureSnapshot JSON to GFF3 when', () => {
   for (const testCase of testCases) {

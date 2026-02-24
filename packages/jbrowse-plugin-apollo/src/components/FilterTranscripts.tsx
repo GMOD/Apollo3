@@ -1,4 +1,4 @@
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import {
   Checkbox,
   DialogContent,

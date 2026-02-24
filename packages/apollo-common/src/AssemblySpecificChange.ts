@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { type Feature } from '@apollo-annotation/schemas'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { Feature } from '@apollo-annotation/schemas'
 
 import {
   Change,
   type ChangeOptions,
   type SerializedChange,
   isChange,
-} from './Change'
+} from './Change.js'
 
 export interface SerializedAssemblySpecificChange extends SerializedChange {
   assembly: string
@@ -42,7 +42,7 @@ export abstract class AssemblySpecificChange extends Change {
         attributes instanceof Map
           ? attributes.get(additionalId)
           : attributes?.[additionalId]
-      if (idValue) {
+      if (idValue?.[0]) {
         indexedIds.push(idValue[0])
       }
     }

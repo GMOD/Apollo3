@@ -1,6 +1,6 @@
 import { Test, type TestingModule } from '@nestjs/testing'
 
-import { RefSeqsService } from './refSeqs.service'
+import { RefSeqsService } from './refSeqs.service.js'
 
 describe('RefSeqsService', () => {
   let service: RefSeqsService

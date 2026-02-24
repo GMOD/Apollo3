@@ -1,6 +1,6 @@
-import {
-  type AbstractMenuManager,
-  type AbstractSessionModel,
+import type {
+  AbstractMenuManager,
+  AbstractSessionModel,
 } from '@jbrowse/core/util'
 import DownloadIcon from '@mui/icons-material/Download'
 import FactCheckIcon from '@mui/icons-material/FactCheck'
@@ -17,7 +17,7 @@ import {
   ViewChangeLog,
   ViewCheckResults,
 } from '../components'
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 
 export function addTopLevelMenus(rootModel: AbstractMenuManager) {
   rootModel.insertInMenu(

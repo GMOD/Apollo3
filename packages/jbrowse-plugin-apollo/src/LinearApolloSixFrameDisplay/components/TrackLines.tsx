@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react'
 import React from 'react'
 
-import { type LinearApolloSixFrameDisplay } from '../stateModel'
+import type { LinearApolloSixFrameDisplay } from '../stateModel'
 
 export const TrackLines = observer(function TrackLines({
   model,

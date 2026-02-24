@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+import { getRoot } from '@jbrowse/mobx-state-tree'
 import {
   Button,
   DialogActions,
@@ -8,12 +9,11 @@ import {
   Select,
   type SelectChangeEvent,
 } from '@mui/material'
-import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
-import { type ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { type ApolloSessionModel } from '../session'
-import { type ApolloRootModel } from '../types'
+import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import type { ApolloSessionModel } from '../session'
+import type { ApolloRootModel } from '../types'
 
 import { Dialog } from './Dialog'
 

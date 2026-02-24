@@ -1,25 +1,25 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { CheckResultSnapshot } from '@apollo-annotation/mst'
+import type { CheckResultSnapshot } from '@apollo-annotation/mst'
 import {
   Check,
   CheckResult,
-  CheckResultDocument,
+  type CheckResultDocument,
   CheckResultSchema,
   CheckSchema,
 } from '@apollo-annotation/schemas'
-import { CheckResultUpdate } from '@apollo-annotation/shared'
+import type { CheckResultUpdate } from '@apollo-annotation/shared'
 import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import idValidator from 'mongoose-id-validator'
 
-import { MessagesGateway } from '../messages/messages.gateway'
-import { MessagesModule } from '../messages/messages.module'
-import { RefSeqsModule } from '../refSeqs/refSeqs.module'
-import { SequenceModule } from '../sequence/sequence.module'
+import { MessagesGateway } from '../messages/messages.gateway.js'
+import { MessagesModule } from '../messages/messages.module.js'
+import { RefSeqsModule } from '../refSeqs/refSeqs.module.js'
+import { SequenceModule } from '../sequence/sequence.module.js'
 
-import { ChecksController } from './checks.controller'
-import { ChecksService } from './checks.service'
+import { ChecksController } from './checks.controller.js'
+import { ChecksService } from './checks.service.js'
 
 @Module({
   providers: [ChecksService],

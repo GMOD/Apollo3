@@ -11,7 +11,7 @@ import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 
 import { isOntologyClass } from '../OntologyManager'
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
 import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'

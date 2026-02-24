@@ -3,16 +3,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
-import { type DisplayType } from '@jbrowse/core/pluggableElementTypes'
-import type PluggableElementBase from '@jbrowse/core/pluggableElementTypes/PluggableElementBase'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import type {
+  DisplayType,
+  PluggableElementType,
+} from '@jbrowse/core/pluggableElementTypes'
 import {
   type AbstractSessionModel,
   getContainingView,
   getSession,
 } from '@jbrowse/core/util'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
 import ObjectID from 'bson-objectid'
 
@@ -30,7 +32,7 @@ function parseCigar(cigar: string): [string, number][] {
   return result
 }
 
-export function annotationFromPileup(pluggableElement: PluggableElementBase) {
+export function annotationFromPileup(pluggableElement: PluggableElementType) {
   if (pluggableElement.name !== 'LinearPileupDisplay') {
     return pluggableElement
   }

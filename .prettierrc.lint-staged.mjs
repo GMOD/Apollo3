@@ -13,6 +13,7 @@ const config = {
       options: { parser: 'jsonc' },
     },
   ],
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   plugins: [packagejson],
 }
 

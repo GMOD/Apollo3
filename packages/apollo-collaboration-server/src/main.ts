@@ -19,16 +19,16 @@ import {
   operations,
   validationRegistry,
 } from '@apollo-annotation/shared'
-import { type LogLevel } from '@nestjs/common'
+import type { LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import connectMongoDBSession from 'connect-mongodb-session'
 import { json, urlencoded } from 'express'
 import session from 'express-session'
 import mongoose from 'mongoose'
 
-import { AppModule } from './app.module'
-import { GlobalExceptionsFilter } from './global-exceptions.filter'
-import { AuthorizationValidation } from './utils/validation/AuthorizationValidation'
+import { AppModule } from './app.module.js'
+import { GlobalExceptionsFilter } from './global-exceptions.filter.js'
+import { AuthorizationValidation } from './utils/validation/AuthorizationValidation.js'
 
 const MongoDBStore = connectMongoDBSession(session)
 
@@ -123,14 +123,15 @@ async function bootstrap() {
   const ChecksModel = mongoose.model('checks', CheckSchema)
   for (const [key, check] of checksMap.entries()) {
     const checkByName = await ChecksModel.find({ name: key }).exec()
-    if (checkByName.length > 0) {
+    const firstCheck = checkByName.at(0)
+    if (firstCheck) {
       const checkByNameAndVersion = await ChecksModel.find({
         name: key,
         version: check.version,
       }).exec()
       if (checkByNameAndVersion.length === 0) {
-        checkByName[0].version = check.version
-        await checkByName[0].save()
+        firstCheck.version = check.version
+        await firstCheck.save()
       }
     } else {
       await ChecksModel.create(check)

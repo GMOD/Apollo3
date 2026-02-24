@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
 import { isAbortException } from '@jbrowse/core/util/aborting'
+import { makeStyles } from '@jbrowse/core/util/tss-react'
 import {
   Button,
   DialogActions,
@@ -8,7 +9,6 @@ import {
   Divider,
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
-import { makeStyles } from 'tss-react/mui'
 
 import { Dialog } from '../../components/Dialog'
 import { createFetchErrorMessage } from '../../util'
@@ -57,7 +57,12 @@ export const AuthTypeSelector = ({
       }
     })
     return () => {
-      controller.abort('AuthTypeSelector')
+      controller.abort(
+        new DOMException(
+          'Error retrieving valid authentication types',
+          'AbortError',
+        ),
+      )
     }
   }, [baseURL])
 

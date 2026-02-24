@@ -3,11 +3,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { type ApolloAssembly } from '@apollo-annotation/mst'
+import type { ApolloAssembly } from '@apollo-annotation/mst'
 import { annotationFeatureToGFF3 } from '@apollo-annotation/shared'
 import { type GFF3Item, formatSync } from '@gmod/gff'
-import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
+import { type IMSTMap, getSnapshot } from '@jbrowse/mobx-state-tree'
 import {
   Button,
   Checkbox,
@@ -21,15 +22,14 @@ import {
   type SelectChangeEvent,
 } from '@mui/material'
 import { saveAs } from 'file-saver'
-import { type IMSTMap, getSnapshot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
-import {
-  type ApolloInternetAccount,
-  type CollaborationServerDriver,
-  type InMemoryFileDriver,
+import type {
+  ApolloInternetAccount,
+  CollaborationServerDriver,
+  InMemoryFileDriver,
 } from '../BackendDrivers'
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 import { createFetchErrorMessage } from '../util'
 
 import { Dialog } from './Dialog'

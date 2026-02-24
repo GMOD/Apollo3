@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+
 /* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+
 import { Menu, type MenuItem } from '@jbrowse/core/ui'
 import { getContainingView } from '@jbrowse/core/util'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import LockIcon from '@mui/icons-material/Lock'
 import { Alert, CircularProgress, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 
 import { type Coord, useStyles } from '../../util/displayUtils'
-import { type LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
+import type { LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
 
 import { CheckResultWarnings } from './CheckResultWarnings'
 
@@ -84,6 +85,8 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             <CircularProgress size="18px" />
           </div>
         ) : null}
+        {/* This type is wrong in @jbrowse/core */}
+        {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
         {message ? (
           <Alert
             severity="warning"
@@ -156,7 +159,6 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
                   ? { top: contextCoord[1], left: contextCoord[0] }
                   : undefined
               }
-              style={{ zIndex: theme.zIndex.tooltip }}
               menuItems={contextMenuItems}
             />
           </>

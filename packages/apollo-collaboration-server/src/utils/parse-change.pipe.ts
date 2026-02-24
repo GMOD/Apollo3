@@ -1,10 +1,10 @@
-import { Change, SerializedChange } from '@apollo-annotation/common'
+import { Change, type SerializedChange } from '@apollo-annotation/common'
 import {
-  ArgumentMetadata,
+  type ArgumentMetadata,
   BadRequestException,
   Injectable,
   Logger,
-  PipeTransform,
+  type PipeTransform,
 } from '@nestjs/common'
 
 @Injectable()

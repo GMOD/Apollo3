@@ -1,11 +1,11 @@
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
   TypeChange,
 } from '@apollo-annotation/shared'
 
-import { type ChangeManager } from '../../ChangeManager'
+import type { ChangeManager } from '../../ChangeManager'
 
 export function handleFeatureTypeChange(
   changeManager: ChangeManager,

@@ -14,10 +14,10 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v4
-      - name: Use Node.js 20.x
+      - name: Use Node.js 24.x
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: yarn
       - name: Install
         run: yarn --immutable
@@ -25,7 +25,7 @@ jobs:
         run: yarn build
         working-directory: packages/apollo-collaboration-server
       - name: Build plugin
-        run: yarn build
+        run: JB_NPM=false yarn build
         working-directory: packages/jbrowse-plugin-apollo
   lint:
     name: Lint
@@ -33,10 +33,10 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v4
-      - name: Use Node.js 20.x
+      - name: Use Node.js 24.x
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: yarn
       - name: Install
         run: yarn --immutable

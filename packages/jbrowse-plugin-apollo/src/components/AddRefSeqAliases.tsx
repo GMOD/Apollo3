@@ -3,7 +3,7 @@ import {
   AddRefSeqAliasesChange,
   type SerializedRefSeqAliases,
 } from '@apollo-annotation/shared'
-import { type Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import {
   Button,
   DialogActions,
@@ -25,13 +25,13 @@ import {
 import { observer } from 'mobx-react'
 import React, { useEffect, useRef, useState } from 'react'
 
-import {
-  type ApolloInternetAccount,
-  type CollaborationServerDriver,
-  type RefNameAliases,
+import type {
+  ApolloInternetAccount,
+  CollaborationServerDriver,
+  RefNameAliases,
 } from '../BackendDrivers'
-import { type ChangeManager } from '../ChangeManager'
-import { type ApolloSessionModel } from '../session'
+import type { ChangeManager } from '../ChangeManager'
+import type { ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
 

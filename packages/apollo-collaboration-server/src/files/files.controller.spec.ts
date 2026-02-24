@@ -1,6 +1,6 @@
 import { Test, type TestingModule } from '@nestjs/testing'
 
-import { FilesController } from './files.controller'
+import { FilesController } from './files.controller.js'
 
 describe('FilesController', () => {
   let controller: FilesController

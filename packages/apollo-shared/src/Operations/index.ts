@@ -1,6 +1,6 @@
-import { GetAssembliesOperation } from './GetAssembliesOperation'
-import { GetFeaturesOperation } from './GetFeaturesOperation'
+import { GetAssembliesOperation } from './GetAssembliesOperation.js'
+import { GetFeaturesOperation } from './GetFeaturesOperation.js'
 
 export const operations = { GetAssembliesOperation, GetFeaturesOperation }
-export * from './GetAssembliesOperation'
-export * from './GetFeaturesOperation'
+export * from './GetAssembliesOperation.js'
+export * from './GetFeaturesOperation.js'

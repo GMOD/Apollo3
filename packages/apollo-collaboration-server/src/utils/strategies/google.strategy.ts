@@ -4,9 +4,9 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'
 import { HttpsProxyAgent } from 'https-proxy-agent'
-import { Profile, Strategy } from 'passport-google-oauth20'
+import { type Profile, Strategy } from 'passport-google-oauth20'
 
-import { AuthenticationService } from '../../authentication/authentication.service'
+import { AuthenticationService } from '../../authentication/authentication.service.js'
 
 interface ConfigValues {
   GOOGLE_CLIENT_ID?: string

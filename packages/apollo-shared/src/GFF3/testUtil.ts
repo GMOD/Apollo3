@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 export function readAnnotationFeatureSnapshot(
   fn: string,

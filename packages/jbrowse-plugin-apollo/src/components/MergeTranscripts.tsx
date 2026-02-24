@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import { MergeTranscriptsChange } from '@apollo-annotation/shared'
+import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import {
   Box,
   Button,
@@ -13,11 +14,10 @@ import {
   RadioGroup,
   type SelectChangeEvent,
 } from '@mui/material'
-import { getSnapshot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
-import { type ChangeManager } from '../ChangeManager'
-import { type ApolloSessionModel } from '../session'
+import type { ChangeManager } from '../ChangeManager'
+import type { ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
 

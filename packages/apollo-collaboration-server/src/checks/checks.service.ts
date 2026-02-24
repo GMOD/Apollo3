@@ -3,26 +3,26 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { checkRegistry } from '@apollo-annotation/common'
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import {
   Assembly,
-  AssemblyDocument,
+  type AssemblyDocument,
   Check,
-  CheckDocument,
+  type CheckDocument,
   CheckResult,
-  CheckResultDocument,
-  FeatureDocument,
+  type CheckResultDocument,
+  type FeatureDocument,
   RefSeq,
-  RefSeqDocument,
+  type RefSeqDocument,
 } from '@apollo-annotation/schemas'
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { ObjectId } from 'mongodb'
 import { Model } from 'mongoose'
 
-import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
-import { RefSeqsService } from '../refSeqs/refSeqs.service'
-import { SequenceService } from '../sequence/sequence.service'
+import type { FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
+import { RefSeqsService } from '../refSeqs/refSeqs.service.js'
+import { SequenceService } from '../sequence/sequence.service.js'
 
 @Injectable()
 export class ChecksService {
@@ -31,7 +31,7 @@ export class ChecksService {
     private readonly checkResultModel: Model<CheckResultDocument>,
     private readonly refSeqsService: RefSeqsService,
     @Inject(forwardRef(() => SequenceService))
-    private readonly sequenceService: SequenceService,
+    private readonly sequenceService: Readonly<SequenceService>,
     @InjectModel(Check.name)
     private readonly checkModel: Model<CheckDocument>,
   ) {}

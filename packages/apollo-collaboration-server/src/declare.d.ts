@@ -29,7 +29,7 @@ interface MongooseIdValidatorOptions {
 }
 
 declare module 'mongoose-id-validator' {
-  import { type Schema } from 'mongoose'
+  import type { Schema } from 'mongoose'
   export default function mongooseIdValidator(
     schema: Schema,
     options?: MongooseIdValidatorOptions,
@@ -42,7 +42,7 @@ declare module 'mongoose-id-validator' {
 
 declare module 'connect-mongodb-session' {
   import { type SessionData, Store } from 'express-session'
-  import { type MongoClient, type MongoClientOptions } from 'mongodb'
+  import type { MongoClient, MongoClientOptions } from 'mongodb'
 
   declare function connectMongoDBSession(
     fn: typeof session,

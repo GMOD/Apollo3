@@ -1,4 +1,4 @@
-import { Role } from '../role/role.enum'
+import { Role } from '../role/role.enum.js'
 
 export function getRequiredRoleForChange(changeName: string) {
   if (

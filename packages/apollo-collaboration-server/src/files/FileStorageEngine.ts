@@ -3,9 +3,9 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common'
-import { StorageEngine } from 'multer'
+import type { StorageEngine } from 'multer'
 
-import { writeFileAndCalculateHash } from './filesUtil'
+import { writeFileAndCalculateHash } from './filesUtil.js'
 
 export interface UploadedFile extends Express.Multer.File {
   checksum: string

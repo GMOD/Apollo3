@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { Change } from '@apollo-annotation/common'
-import { DecodedJWT } from '@apollo-annotation/shared'
+import type { DecodedJWT } from '@apollo-annotation/shared'
 import { Body, Controller, Get, Logger, Post, Query, Req } from '@nestjs/common'
-import { Request } from 'express'
+import type { Request } from 'express'
 
-import { ParseChangePipe } from '../utils/parse-change.pipe'
-import { Role } from '../utils/role/role.enum'
-import { Validations } from '../utils/validation/validatation.decorator'
+import { ParseChangePipe } from '../utils/parse-change.pipe.js'
+import { Role } from '../utils/role/role.enum.js'
+import { Validations } from '../utils/validation/validatation.decorator.js'
 
-import { ChangesService } from './changes.service'
-import { FindChangeDto } from './dto/find-change.dto'
+import { ChangesService } from './changes.service.js'
+import { FindChangeDto } from './dto/find-change.dto.js'
 
 @Validations(Role.ReadOnly)
 @Controller('changes')

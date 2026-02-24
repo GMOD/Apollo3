@@ -1,4 +1,4 @@
-import { type AnnotationFeature } from '@apollo-annotation/mst'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import { splitStringIntoChunks } from '@apollo-annotation/shared'
 import { defaultCodonTable, revcom } from '@jbrowse/core/util'
 import {
@@ -12,7 +12,7 @@ import {
 import { observer } from 'mobx-react'
 import React, { useEffect, useRef, useState } from 'react'
 
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 import { copyToClipboard } from '../util/copyToClipboard'
 
 const SEQUENCE_WRAP_LENGTH = 60

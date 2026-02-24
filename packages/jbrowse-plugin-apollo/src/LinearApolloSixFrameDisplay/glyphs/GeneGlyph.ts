@@ -1,9 +1,9 @@
-import {
-  type AnnotationFeature,
-  type TranscriptPartCoding,
+import type {
+  AnnotationFeature,
+  TranscriptPartCoding,
 } from '@apollo-annotation/mst'
-import { type BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
-import { type MenuItem } from '@jbrowse/core/ui'
+import type { BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
+import type { MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
   getContainingView,
@@ -11,10 +11,10 @@ import {
   intersection2,
   measureText,
 } from '@jbrowse/core/util'
-import { type LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import { getSnapshot } from '@jbrowse/mobx-state-tree'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material'
 import equal from 'fast-deep-equal/es6'
-import { getSnapshot } from 'mobx-state-tree'
 
 import { MergeExons, SplitExon } from '../../components'
 import { FilterTranscripts } from '../../components/FilterTranscripts'
@@ -35,12 +35,12 @@ import {
   navToFeatureCenter,
   selectFeatureAndOpenWidget,
 } from '../../util'
-import { type LinearApolloSixFrameDisplay } from '../stateModel'
-import { type LinearApolloSixFrameDisplayMouseEvents } from '../stateModel/mouseEvents'
-import { type LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
-import { type CanvasMouseEvent } from '../types'
+import type { LinearApolloSixFrameDisplay } from '../stateModel'
+import type { LinearApolloSixFrameDisplayMouseEvents } from '../stateModel/mouseEvents'
+import type { LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
+import type { CanvasMouseEvent } from '../types'
 
-import { type Glyph } from './Glyph'
+import type { Glyph } from './Glyph'
 
 let forwardFillLight: CanvasPattern | null = null
 let backwardFillLight: CanvasPattern | null = null
@@ -347,9 +347,14 @@ function draw(
           cdsStartPx = reversed ? minX - cdsWidthPx : minX
           ctx.fillStyle = theme.palette.text.primary
           const frame = getFrame(cds.min, cds.max, child.strand ?? 1, cds.phase)
-          const frameAdjust =
-            (frame < 0 ? -1 * frame + 5 : frame) * featureLabelSpacer
-          cdsTop = (frameAdjust - featureLabelSpacer) * rowHeight
+          const frameOffsets = showFeatureLabels
+            ? [0, 4, 2, 0, 14, 12, 10]
+            : [0, 2, 1, 0, 7, 6, 5]
+          const row = frameOffsets.at(frame)
+          if (row === undefined) {
+            continue
+          }
+          cdsTop = row * rowHeight
           ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
 
           // Draw lines to connect CDS features with shared mRNA parent
@@ -525,9 +530,14 @@ function drawHover(
         })?.offsetPx ?? 0) - offsetPx
       const cdsStartPx = reversed ? minX - cdsWidthPx : minX
       const frame = getFrame(cds.min, cds.max, strand ?? 1, cds.phase)
-      const frameAdjust =
-        (frame < 0 ? -1 * frame + 5 : frame) * featureLabelSpacer
-      const cdsTop = (frameAdjust - featureLabelSpacer) * rowHeight
+      const frameOffsets = showFeatureLabels
+        ? [0, 4, 2, 0, 14, 12, 10]
+        : [0, 2, 1, 0, 7, 6, 5]
+      const row = frameOffsets.at(frame)
+      if (row === undefined) {
+        continue
+      }
+      const cdsTop = row * rowHeight
       if (counter > 1) {
         // Mid-point for intron line "hat"
         const midPoint: [number, number] = [
@@ -759,8 +769,6 @@ function drawTooltip(
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
   const rowHeight = apolloRowHeight
-  const cdsHeight = Math.round(0.7 * rowHeight)
-  const featureLabelSpacer = showFeatureLabels ? 2 : 1
   let location = 'Loc: '
   let cds: TranscriptPartCoding | undefined = undefined
   for (const loc of feature.cdsLocations) {
@@ -784,9 +792,14 @@ function drawTooltip(
       regionNumber: layoutIndex,
     })?.offsetPx ?? 0) - offsetPx
   const frame = getFrame(min, max, strand ?? 1, phase)
-  const frameAdjust = (frame < 0 ? -1 * frame + 5 : frame) * featureLabelSpacer
-  const cdsTop =
-    (frameAdjust - featureLabelSpacer) * rowHeight + (rowHeight - cdsHeight) / 2
+  const frameOffsets = showFeatureLabels
+    ? [0, 4, 2, 0, 14, 12, 10]
+    : [0, 2, 1, 0, 7, 6, 5]
+  const row = frameOffsets.at(frame)
+  if (row === undefined) {
+    return
+  }
+  const cdsTop = row * rowHeight
   const cdsWidthPx = (max - min) / bpPerPx
 
   const featureType = `Type: ${cds.type}`

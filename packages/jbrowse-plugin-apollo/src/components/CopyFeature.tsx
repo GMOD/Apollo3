@@ -3,13 +3,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import {
-  type AnnotationFeature,
-  type AnnotationFeatureSnapshot,
+import type {
+  AnnotationFeature,
+  AnnotationFeatureSnapshot,
 } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
 import { readConfObject } from '@jbrowse/core/configuration'
-import { type AbstractSessionModel } from '@jbrowse/core/util'
+import type { AbstractSessionModel } from '@jbrowse/core/util'
+import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import {
   Button,
   DialogActions,
@@ -21,12 +22,11 @@ import {
   TextField,
 } from '@mui/material'
 import ObjectID from 'bson-objectid'
-import { type IKeyValueMap } from 'mobx'
-import { getSnapshot } from 'mobx-state-tree'
+import type { IKeyValueMap } from 'mobx'
 import React, { useEffect, useState } from 'react'
 
-import { type ChangeManager } from '../ChangeManager'
-import { type ApolloSessionModel } from '../session'
+import type { ChangeManager } from '../ChangeManager'
+import type { ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
 

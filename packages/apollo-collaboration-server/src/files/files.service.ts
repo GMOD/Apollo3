@@ -4,7 +4,7 @@ import path from 'node:path'
 import { Readable } from 'node:stream'
 import { ReadableStream, TransformStream } from 'node:stream/web'
 
-import { File, FileDocument } from '@apollo-annotation/schemas'
+import { File, type FileDocument } from '@apollo-annotation/schemas'
 import { type GFF3Feature, GFFTransformer } from '@gmod/gff'
 import {
   Injectable,
@@ -14,15 +14,15 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
-import { GenericFilehandle, LocalFile } from 'generic-filehandle'
+import { type GenericFilehandle, LocalFile } from 'generic-filehandle'
 import { Model } from 'mongoose'
 
-import { CreateFileDto } from './dto/create-file.dto'
+import { CreateFileDto } from './dto/create-file.dto.js'
 import {
-  FileRequest,
+  type FileRequest,
   LocalFileGzip,
   writeFileAndCalculateHash,
-} from './filesUtil'
+} from './filesUtil.js'
 
 @Injectable()
 export class FilesService {

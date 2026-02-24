@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { type ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
+import type { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
 import {
   type AnnotationFeatureModel,
   type AnnotationFeatureSnapshot,
@@ -13,14 +13,16 @@ import {
   CheckResult,
   type CheckResultSnapshot,
 } from '@apollo-annotation/mst'
-import { getConf, readConfObject } from '@jbrowse/core/configuration'
-import { type ConfigurationModel } from '@jbrowse/core/configuration/types'
-import { type Region, getSession, isElectron } from '@jbrowse/core/util'
 import {
-  type LocalPathLocation,
-  type UriLocation,
+  type AnyConfigurationModel,
+  getConf,
+  readConfObject,
+} from '@jbrowse/core/configuration'
+import { type Region, getSession, isElectron } from '@jbrowse/core/util'
+import type {
+  LocalPathLocation,
+  UriLocation,
 } from '@jbrowse/core/util/types/mst'
-import { autorun } from 'mobx'
 import {
   type Instance,
   addDisposer,
@@ -29,7 +31,8 @@ import {
   getRoot,
   resolveIdentifier,
   types,
-} from 'mobx-state-tree'
+} from '@jbrowse/mobx-state-tree'
+import { autorun } from 'mobx'
 
 import {
   type ApolloInternetAccount,
@@ -41,13 +44,12 @@ import {
 import { ChangeManager } from '../ChangeManager'
 import {
   OntologyManagerType,
-  type OntologyRecordConfiguration,
   type TextIndexFieldDefinition,
 } from '../OntologyManager'
 import type ApolloPluginConfigurationSchema from '../config'
-import { type ApolloRootModel } from '../types'
+import type { ApolloRootModel } from '../types'
 
-import { type ApolloSessionModel } from './session'
+import type { ApolloSessionModel } from './session'
 
 export function clientDataStoreFactory(
   AnnotationFeatureExtended: typeof AnnotationFeatureModel,
@@ -177,9 +179,7 @@ export function clientDataStoreFactory(
             // take precedence over the ontologies in the configuration.
             const { ontologyManager, pluginConfiguration } = self
             const configuredOntologies =
-              pluginConfiguration.ontologies as ConfigurationModel<
-                typeof OntologyRecordConfiguration
-              >[]
+              pluginConfiguration.ontologies as AnyConfigurationModel[]
             for (const ont of configuredOntologies || []) {
               const [name, version, source, indexFields] = [
                 readConfObject(ont, 'name') as string,
@@ -204,7 +204,12 @@ export function clientDataStoreFactory(
                   statusMessage: `Loading ontology "${name}", version "${version}", this may take a while`,
                   progressPct: 0,
                   cancelCallback: () => {
-                    controller.abort('ClientDataStore')
+                    controller.abort(
+                      new DOMException(
+                        `Canceling loading of ontology "${name}"`,
+                        'AbortError',
+                      ),
+                    )
                     jobsManager.abortJob(job.name)
                   },
                 }

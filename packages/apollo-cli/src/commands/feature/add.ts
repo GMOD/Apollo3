@@ -1,9 +1,9 @@
 import { readFile } from 'node:fs/promises'
 
-import { type AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import {
-  type AddFeatureChangeDetails,
-  type SerializedAddFeatureChange,
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type {
+  AddFeatureChangeDetails,
+  SerializedAddFeatureChange,
 } from '@apollo-annotation/shared'
 import { Args, Flags } from '@oclif/core'
 import { ObjectId } from 'bson'

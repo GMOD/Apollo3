@@ -1,11 +1,11 @@
-import { RefSeq, RefSeqDocument } from '@apollo-annotation/schemas'
+import { RefSeq, type RefSeqDocument } from '@apollo-annotation/schemas'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 
-import { CreateRefSeqDto } from './dto/create-refSeq.dto'
-import { FindRefSeqDto } from './dto/find-refSeq.dto'
-import { UpdateRefSeqDto } from './dto/update-refSeq.dto'
+import { CreateRefSeqDto } from './dto/create-refSeq.dto.js'
+import { FindRefSeqDto } from './dto/find-refSeq.dto.js'
+import { UpdateRefSeqDto } from './dto/update-refSeq.dto.js'
 
 @Injectable()
 export class RefSeqsService {

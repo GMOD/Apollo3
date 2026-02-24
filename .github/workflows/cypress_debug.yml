@@ -9,10 +9,10 @@ jobs:
       - name: Check out
         uses: actions/checkout@v4
 
-      - name: Use Node.js 20.x
+      - name: Use Node.js 24.x
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: yarn
 
       - name: Install
@@ -23,9 +23,9 @@ jobs:
         working-directory: packages/jbrowse-plugin-apollo
 
       - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.10.0
+        uses: supercharge/mongodb-github-action@1.12.1
         with:
-          mongodb-version: 7
+          mongodb-version: 8
           mongodb-replica-set: test-rs
 
       - name: Start local file server

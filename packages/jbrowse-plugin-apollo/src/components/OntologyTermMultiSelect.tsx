@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { isAbortException } from '@jbrowse/core/util/aborting'
+import { getParent } from '@jbrowse/mobx-state-tree'
 import {
   Autocomplete,
   type AutocompleteRenderValueGetItemProps,
@@ -14,7 +15,6 @@ import {
 import { debounce } from '@mui/material/utils'
 import highlightMatch from 'autosuggest-highlight/match'
 import highlightParse from 'autosuggest-highlight/parse'
-import { getParent } from 'mobx-state-tree'
 import * as React from 'react'
 
 import {
@@ -23,9 +23,9 @@ import {
   type OntologyTerm,
   isOntologyClass,
 } from '../OntologyManager'
-import { type Match } from '../OntologyManager/OntologyStore/fulltext'
+import type { Match } from '../OntologyManager/OntologyStore/fulltext'
 import { isDeprecated } from '../OntologyManager/OntologyStore/indexeddb-schema'
-import { type ApolloSessionModel } from '../session'
+import type { ApolloSessionModel } from '../session'
 
 interface TermValue {
   term: OntologyTerm
@@ -89,7 +89,12 @@ function TermTagWithTooltip({
     })
 
     return () => {
-      controller.abort('TermTagWithTooltip ')
+      controller.abort(
+        new DOMException(
+          'Cancel fetching term description from ontology store',
+          'AbortError',
+        ),
+      )
     }
   }, [termId, ontology, manager])
 
@@ -211,7 +216,9 @@ export function OntologyTermMultiSelect({
     })
 
     return () => {
-      aborter.abort('OntologyTermMultiSelect')
+      aborter.abort(
+        new DOMException('Cancel getting ontology terms', 'AbortError'),
+      )
     }
   }, [getOntologyTerms, ontology, includeDeprecated, inputValue, value])
 
