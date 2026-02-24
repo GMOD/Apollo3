@@ -12,7 +12,7 @@ import {
   DialogContentText,
 } from '@mui/material'
 import ObjectID from 'bson-objectid'
-import { getSnapshot } from 'mobx-state-tree'
+import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import React, { useState } from 'react'
 
 import { type ChangeManager } from '../ChangeManager'
