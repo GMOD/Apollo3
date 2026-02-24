@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { changeRegistry, checkRegistry } from '@apollo-annotation/common'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import {
   CDSCheck,
   CoreValidation,
@@ -12,6 +14,7 @@ import {
 } from '@apollo-annotation/shared'
 import Plugin from '@jbrowse/core/Plugin'
 import type PluginManager from '@jbrowse/core/PluginManager'
+import type BaseResult from '@jbrowse/core/TextSearch/BaseResults'
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import {
   DisplayType,
@@ -73,9 +76,6 @@ import {
 } from './makeDisplayComponent'
 import { addTopLevelMenus } from './menus'
 import { type ApolloSessionModel, extendSession } from './session'
-
-import type BaseResult from '@jbrowse/core/TextSearch/BaseResults'
-import type { AnnotationFeature } from '@apollo-annotation/mst'
 
 interface RpcHandle {
   on(event: string, listener: (event: MessageEvent) => void): this
@@ -291,6 +291,7 @@ export default class ApolloPlugin extends Plugin {
     pluginManager.addToExtensionPoint(
       'LinearGenomeView-searchResultSelected',
       (_: any, props: Record<string, unknown>) => {
+        /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
         const { session, result } = props as {
           session: any
           result: BaseResult
@@ -301,9 +302,11 @@ export default class ApolloPlugin extends Plugin {
         if (trackId?.startsWith('apollo_track_') && matchedFeature) {
           // search backend returns only gene feature
           const geneFeature = matchedFeature as AnnotationFeature
+          /* eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
           session.apolloSetSelectedFeature(geneFeature._id)
         }
 
+        /* eslint-disable-next-line @typescript-eslint/no-unsafe-return */
         return _
       },
     )
