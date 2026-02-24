@@ -117,7 +117,7 @@ export function DuplicateTranscript({
           <Button variant="contained" type="submit">
             Yes
           </Button>
-          <Button variant="outlined" type="submit" onClick={handleClose}>
+          <Button variant="outlined" type="button" onClick={handleClose}>
             Cancel
           </Button>
         </DialogActions>
