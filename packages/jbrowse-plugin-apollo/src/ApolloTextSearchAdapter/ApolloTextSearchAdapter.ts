@@ -38,6 +38,7 @@ export class ApolloTextSearchAdapter
         label: query,
         trackId: this.trackId,
         locString: `${refName}:${feature.min + 1}..${feature.max}`,
+        matchedObject: feature,
       })
     })
   }
