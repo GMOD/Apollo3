@@ -14,6 +14,7 @@ import { type Coord, useStyles } from '../../util/displayUtils'
 import type { LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
 
 import { CheckResultWarnings } from './CheckResultWarnings'
+import { Tooltip as LinearApolloDisplayTooltip } from './Tooltip'
 
 interface LinearApolloDisplayProps {
   model: LinearApolloDisplayI
@@ -51,6 +52,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   }, [theme, setTheme])
   const [contextCoord, setContextCoord] = useState<Coord>()
   const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
+  const [mouseCoord, setMouseCoord] = useState<Coord>()
   const message = regionCannotBeRendered()
   if (!isShown) {
     return null
@@ -73,6 +75,9 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             setContextCoord(coord)
             setContextMenuItems(getContextMenuItems(event))
           }
+        }}
+        onMouseMove={(event) => {
+          setMouseCoord([event.clientX, event.clientY])
         }}
       >
         {session.isLocked ? (
@@ -164,6 +169,10 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
           </>
         )}
       </div>
+      <LinearApolloDisplayTooltip
+        mouseCooordinate={mouseCoord}
+        session={session}
+      />
     </>
   )
 })

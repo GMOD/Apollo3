@@ -232,14 +232,13 @@ function onMouseMove(
 
 // False positive here, none of these functions use "this"
 /* eslint-disable @typescript-eslint/unbound-method */
-const { drawTooltip, onMouseLeave, onMouseUp } = boxGlyph
+const { onMouseLeave, onMouseUp } = boxGlyph
 /* eslint-enable @typescript-eslint/unbound-method */
 
 export const cdsGlyph: Glyph = {
   draw,
   drawDragPreview,
   drawHover,
-  drawTooltip,
   getContextMenuItems,
   getContextMenuItemsForFeature,
   getFeatureFromLayout,

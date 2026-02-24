@@ -51,69 +51,6 @@ function drawHover(
   drawHighlight(display, overlayCtx, left, top, width, height)
 }
 
-function drawTooltip(
-  display: LinearApolloDisplayMouseEvents,
-  context: CanvasRenderingContext2D,
-): void {
-  const { hoveredFeature, apolloRowHeight, lgv, theme } = display
-  if (!hoveredFeature) {
-    return
-  }
-  const { feature } = hoveredFeature
-  const position = display.getFeatureLayoutPosition(feature)
-  if (!position) {
-    return
-  }
-  const { featureRow, layoutIndex, layoutRow } = position
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[layoutIndex]
-  const { refName, reversed } = displayedRegion
-
-  let location = 'Loc: '
-
-  const { length, max, min } = feature
-  location += `${min + 1}–${max}`
-
-  let startPx =
-    (lgv.bpToPx({
-      refName,
-      coord: reversed ? max : min,
-      regionNumber: layoutIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const top = (layoutRow + featureRow) * apolloRowHeight
-  const widthPx = length / bpPerPx
-
-  const featureType = `Type: ${feature.type}`
-  const { attributes } = feature
-  const featureName = attributes.get('gff_name')?.find((name) => name !== '')
-  const textWidth = [
-    context.measureText(featureType).width,
-    context.measureText(location).width,
-  ]
-  if (featureName) {
-    textWidth.push(context.measureText(`Name: ${featureName}`).width)
-  }
-  const maxWidth = Math.max(...textWidth)
-
-  startPx = startPx + widthPx + 5
-  context.fillStyle = alpha(theme.palette.text.primary, 0.7)
-  context.fillRect(startPx, top, maxWidth + 4, textWidth.length === 3 ? 45 : 35)
-  context.beginPath()
-  context.moveTo(startPx, top)
-  context.lineTo(startPx - 5, top + 5)
-  context.lineTo(startPx, top + 10)
-  context.fill()
-  context.fillStyle = theme.palette.background.default
-  let textTop = top + 12
-  context.fillText(featureType, startPx + 2, textTop)
-  if (featureName) {
-    textTop = textTop + 12
-    context.fillText(`Name: ${featureName}`, startPx + 2, textTop)
-  }
-  textTop = textTop + 12
-  context.fillText(location, startPx + 2, textTop)
-}
-
 function drawDragPreview(
   stateModel: LinearApolloDisplay,
   overlayCtx: CanvasRenderingContext2D,
@@ -232,7 +169,6 @@ export const boxGlyph: Glyph = {
   draw,
   drawDragPreview,
   drawHover,
-  drawTooltip,
   getContextMenuItemsForFeature,
   getContextMenuItems,
   getFeatureFromLayout,

@@ -24,11 +24,6 @@ export interface Glyph {
     row: number,
     block: ContentBlock,
   ): void
-  /** draw the feature's tooltip on the overlay canvas */
-  drawTooltip(
-    display: LinearApolloDisplay,
-    context: CanvasRenderingContext2D,
-  ): void
   /** draw a preview of the result of a dragging action on the overlay canvas */
   drawDragPreview(
     display: LinearApolloDisplay,

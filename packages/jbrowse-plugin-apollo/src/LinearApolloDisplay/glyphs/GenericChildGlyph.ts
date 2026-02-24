@@ -180,7 +180,6 @@ function getContextMenuItems(
 /* eslint-disable @typescript-eslint/unbound-method */
 const {
   drawDragPreview,
-  drawTooltip,
   getContextMenuItemsForFeature,
   onMouseDown,
   onMouseLeave,
@@ -193,7 +192,6 @@ export const genericChildGlyph: Glyph = {
   draw,
   drawDragPreview,
   drawHover,
-  drawTooltip,
   getContextMenuItemsForFeature,
   getContextMenuItems,
   getFeatureFromLayout,
