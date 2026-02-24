@@ -52,33 +52,32 @@ function drawHover(
 }
 
 function drawDragPreview(
-  stateModel: LinearApolloDisplay,
+  display: LinearApolloDisplay,
   overlayCtx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
 ) {
-  const { apolloDragging, apolloRowHeight, lgv, theme } = stateModel
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
+  const { apolloDragging, theme } = display
   if (!apolloDragging) {
     return
   }
-  const { current, edge, feature, start } = apolloDragging
+  const { current, start } = apolloDragging
+  const min = Math.min(current.bp, start.bp)
+  const max = Math.max(current.bp, start.bp)
 
-  const row = Math.floor(start.y / apolloRowHeight)
-  const region = displayedRegions[start.regionNumber]
-  const rowCount = getRowCount()
+  const [top, left, width, height] = getFeatureBox(
+    display,
+    { min, max },
+    row,
+    block,
+  )
 
-  const featureEdgeBp = region.reversed
-    ? region.end - feature[edge]
-    : feature[edge] - region.start
-  const featureEdgePx = featureEdgeBp / bpPerPx - offsetPx
-  const rectX = Math.min(current.x, featureEdgePx)
-  const rectY = row * apolloRowHeight
-  const rectWidth = Math.abs(current.x - featureEdgePx)
-  const rectHeight = apolloRowHeight * rowCount
-  overlayCtx.strokeStyle = theme.palette.info.main
-  overlayCtx.setLineDash([6])
-  overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
   overlayCtx.fillStyle = alpha(theme.palette.info.main, 0.2)
-  overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
+  overlayCtx.fillRect(left, top, width, height)
+
+  overlayCtx.setLineDash([6])
+  strokeRectInner(overlayCtx, left, top, width, height, theme.palette.info.main)
 }
 
 function getRowCount() {

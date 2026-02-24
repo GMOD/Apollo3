@@ -298,49 +298,64 @@ export function mouseEventsModelFactory(
               }
               const { feature } = hoveredFeature
               const glyph = self.getGlyph(feature)
-
-              // dragging previews
-              if (apolloDragging) {
-                // NOTE: the glyph where the drag started is responsible for drawing the preview.
-                // it can call methods in other glyphs to help with this though.
-                const glyph = self.getGlyph(
-                  apolloDragging.feature.topLevelFeature,
-                )
-                // @ts-expect-error ts doesn't understand mst extension
-                glyph.drawDragPreview(self, ctx)
-              }
               const position = self.getFeatureLayoutPosition(feature)
               if (!position) {
                 return
               }
-              const { featureRow, layoutRow } = position
 
               for (const block of dynamicBlocks.contentBlocks) {
+                const blockLeftPx = block.offsetPx - offsetPx
+                ctx.save()
+                ctx.beginPath()
+                ctx.rect(blockLeftPx, 0, block.widthPx, overlayCanvas.height)
+                ctx.clip()
                 if (
-                  !doesIntersect2(
+                  doesIntersect2(
                     block.start,
                     block.end,
                     feature.min,
                     feature.max,
                   )
                 ) {
-                  continue
+                  const { featureRow, layoutRow } = position
+                  // draw mouseover hovers
+                  glyph.drawHover(
+                    // @ts-expect-error ts doesn't understand mst extension
+                    self,
+                    ctx,
+                    feature,
+                    featureRow + layoutRow,
+                    block,
+                  )
                 }
-                const blockLeftPx = block.offsetPx - offsetPx
-                ctx.save()
-                ctx.beginPath()
-                ctx.rect(blockLeftPx, 0, block.widthPx, overlayCanvas.height)
-                ctx.clip()
+                if (apolloDragging) {
+                  const {
+                    current,
+                    start,
+                    feature: dragFeature,
+                  } = apolloDragging
+                  const dragMin = Math.min(current.bp, start.bp)
+                  const dragMax = Math.max(current.bp, start.bp)
+                  if (
+                    doesIntersect2(block.start, block.end, dragMin, dragMax)
+                  ) {
+                    const dragGlyph = self.getGlyph(dragFeature)
+                    const dragPosition =
+                      self.getFeatureLayoutPosition(dragFeature)
 
-                // draw mouseover hovers
-                glyph.drawHover(
-                  // @ts-expect-error ts doesn't understand mst extension
-                  self,
-                  ctx,
-                  feature,
-                  featureRow + layoutRow,
-                  block,
-                )
+                    if (dragPosition) {
+                      // draw dragging previews
+                      dragGlyph.drawDragPreview(
+                        // @ts-expect-error ts doesn't understand mst extension
+                        self,
+                        ctx,
+                        dragFeature,
+                        dragPosition.featureRow + dragPosition.layoutRow,
+                        block,
+                      )
+                    }
+                  }
+                }
 
                 ctx.restore()
               }

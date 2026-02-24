@@ -110,12 +110,6 @@ function drawHover(
   drawHighlight(display, overlayCtx, left, top, width, height)
 }
 
-function drawDragPreview() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// ctx: CanvasRenderingContext2D,
-
 function getRowCount() {
   return 1
 }
@@ -199,6 +193,7 @@ function onMouseDown(
 function onMouseMove(
   stateModel: LinearApolloDisplay,
   mousePosition: MousePositionWithFeature,
+  event: CanvasMouseEvent,
 ) {
   const { feature, bp } = mousePosition
   stateModel.setHoveredFeature({ feature, bp })
@@ -209,6 +204,7 @@ function onMouseMove(
   }
   const transcript = feature.parent
   if (!transcript) {
+    boxGlyph.onMouseMove(stateModel, mousePosition, event)
     return
   }
   const { cdsLocations } = transcript
@@ -232,7 +228,7 @@ function onMouseMove(
 
 // False positive here, none of these functions use "this"
 /* eslint-disable @typescript-eslint/unbound-method */
-const { onMouseLeave, onMouseUp } = boxGlyph
+const { drawDragPreview, onMouseLeave, onMouseUp } = boxGlyph
 /* eslint-enable @typescript-eslint/unbound-method */
 
 export const cdsGlyph: Glyph = {

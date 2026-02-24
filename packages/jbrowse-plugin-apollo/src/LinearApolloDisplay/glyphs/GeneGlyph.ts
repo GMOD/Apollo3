@@ -115,35 +115,6 @@ function drawHover(
   drawHighlight(display, ctx, left, top, width, height)
 }
 
-function drawDragPreview(
-  stateModel: LinearApolloDisplay,
-  overlayCtx: CanvasRenderingContext2D,
-) {
-  const { apolloDragging, apolloRowHeight, lgv, theme } = stateModel
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  if (!apolloDragging) {
-    return
-  }
-  const { current, edge, feature, start } = apolloDragging
-
-  const row = Math.floor(start.y / apolloRowHeight)
-  const region = displayedRegions[start.regionNumber]
-  const rowCount = 1
-  const featureEdgeBp = region.reversed
-    ? region.end - feature[edge]
-    : feature[edge] - region.start
-  const featureEdgePx = featureEdgeBp / bpPerPx - offsetPx
-  const rectX = Math.min(current.x, featureEdgePx)
-  const rectY = row * apolloRowHeight
-  const rectWidth = Math.abs(current.x - featureEdgePx)
-  const rectHeight = apolloRowHeight * rowCount
-  overlayCtx.strokeStyle = theme.palette.info.main
-  overlayCtx.setLineDash([6])
-  overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
-  overlayCtx.fillStyle = alpha(theme.palette.info.main, 0.2)
-  overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
-}
-
 function getRowCount(
   display: LinearApolloDisplay,
   feature: AnnotationFeature,
@@ -394,7 +365,12 @@ function onMouseMove(
 
 // False positive here, none of these functions use "this"
 /* eslint-disable @typescript-eslint/unbound-method */
-const { getContextMenuItemsForFeature, onMouseLeave, onMouseUp } = boxGlyph
+const {
+  drawDragPreview,
+  getContextMenuItemsForFeature,
+  onMouseLeave,
+  onMouseUp,
+} = boxGlyph
 /* eslint-enable @typescript-eslint/unbound-method */
 
 export const geneGlyph: Glyph = {
