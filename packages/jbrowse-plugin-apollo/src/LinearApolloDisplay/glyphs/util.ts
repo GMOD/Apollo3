@@ -1,5 +1,6 @@
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
+import type { MousePositionWithFeature } from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
 
 export function getLeftPx(
@@ -64,4 +65,31 @@ export function strokeRectInner(
   ctx.strokeStyle = color
   ctx.lineWidth = 1
   ctx.strokeRect(left + 0.5, top + 0.5, width - 1, height - 1)
+}
+
+/** @returns undefined if mouse not on the edge of this feature, otherwise 'start' or 'end' depending on which edge */
+export function isMouseOnFeatureEdge(
+  mousePosition: MousePositionWithFeature,
+  feature: { min: number; max: number },
+  stateModel: LinearApolloDisplay,
+) {
+  const { refName, regionNumber, x } = mousePosition
+  const { lgv } = stateModel
+  const { offsetPx } = lgv
+  const minPxInfo = lgv.bpToPx({ refName, coord: feature.min, regionNumber })
+  const maxPxInfo = lgv.bpToPx({ refName, coord: feature.max, regionNumber })
+  if (minPxInfo !== undefined && maxPxInfo !== undefined) {
+    const minPx = minPxInfo.offsetPx - offsetPx
+    const maxPx = maxPxInfo.offsetPx - offsetPx
+    if (Math.abs(maxPx - minPx) < 8) {
+      return
+    }
+    if (Math.abs(minPx - x) < 4) {
+      return 'min'
+    }
+    if (Math.abs(maxPx - x) < 4) {
+      return 'max'
+    }
+  }
+  return
 }

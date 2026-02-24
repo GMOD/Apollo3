@@ -57,30 +57,6 @@ export interface Glyph {
     childFeature: AnnotationFeature,
   ): number | undefined
 
-  onMouseDown(
-    display: LinearApolloDisplayMouseEvents,
-    currentMousePosition: MousePositionWithFeature,
-    event: CanvasMouseEvent,
-  ): void
-
-  onMouseMove(
-    display: LinearApolloDisplayMouseEvents,
-    currentMousePosition: MousePositionWithFeature,
-    event: CanvasMouseEvent,
-  ): void
-
-  onMouseLeave(
-    display: LinearApolloDisplayMouseEvents,
-    currentMousePosition: MousePositionWithFeature,
-    event: CanvasMouseEvent,
-  ): void
-
-  onMouseUp(
-    display: LinearApolloDisplayMouseEvents,
-    currentMousePosition: MousePositionWithFeature,
-    event: CanvasMouseEvent,
-  ): void
-
   getContextMenuItemsForFeature(
     display: LinearApolloDisplayMouseEvents,
     sourceFeature: AnnotationFeature,
@@ -90,4 +66,29 @@ export interface Glyph {
     display: LinearApolloDisplayMouseEvents,
     currentMousePosition: MousePositionWithFeature,
   ): MenuItem[]
+
+  /** take any actions needed when the canvas's onMouseDown event fires */
+  onMouseDown(
+    display: LinearApolloDisplay,
+    mousePosition: MousePositionWithFeature,
+    event: CanvasMouseEvent,
+  ): void
+  /** take any actions needed when the canvas's onMouseMove event fires */
+  onMouseMove(
+    display: LinearApolloDisplay,
+    mousePosition: MousePositionWithFeature,
+    event: CanvasMouseEvent,
+  ): void
+  /** take any actions needed when the canvas's onMouseLeave event fires */
+  onMouseLeave(
+    display: LinearApolloDisplay,
+    mousePosition: MousePositionWithFeature,
+    event: CanvasMouseEvent,
+  ): void
+  /** take any actions needed when the canvas's onMouseUp event fires */
+  onMouseUp(
+    display: LinearApolloDisplay,
+    mousePosition: MousePositionWithFeature,
+    event: CanvasMouseEvent,
+  ): void
 }

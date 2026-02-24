@@ -2,12 +2,18 @@ import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type { MenuItem } from '@jbrowse/core/ui'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
-import { isSelectedFeature } from '../../util'
+import { type MousePositionWithFeature, isSelectedFeature } from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
+import type { CanvasMouseEvent } from '../types'
 
 import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
-import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
+import {
+  drawHighlight,
+  getFeatureBox,
+  isMouseOnFeatureEdge,
+  strokeRectInner,
+} from './util'
 
 function draw(
   display: LinearApolloDisplay,
@@ -97,34 +103,6 @@ function getRowForFeature(
   return
 }
 
-function onMouseDown() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
-function onMouseMove() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
-function onMouseLeave() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
-function onMouseUp() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
 function getContextMenuItemsForFeature(): MenuItem[] {
   return []
   // Not implemented
@@ -139,9 +117,24 @@ function getContextMenuItems(): MenuItem[] {
 // display: LinearApolloDisplayMouseEvents,
 // currentMousePosition: MousePositionWithFeature,
 
+function onMouseDown(
+  stateModel: LinearApolloDisplay,
+  mousePosition: MousePositionWithFeature,
+  event: CanvasMouseEvent,
+) {
+  const { feature } = mousePosition
+  // swallow the mouseDown if we are on the edge of the feature so that we
+  // don't start dragging the view if we try to drag the feature edge
+  const edge = isMouseOnFeatureEdge(mousePosition, feature, stateModel)
+  if (edge) {
+    event.stopPropagation()
+    stateModel.startDrag(mousePosition, feature, edge, true)
+  }
+}
+
 // False positive here, none of these functions use "this"
 /* eslint-disable @typescript-eslint/unbound-method */
-const { drawTooltip } = boxGlyph
+const { drawTooltip, onMouseMove, onMouseLeave, onMouseUp } = boxGlyph
 /* eslint-enable @typescript-eslint/unbound-method */
 
 export const exonGlyph: Glyph = {

@@ -4,45 +4,22 @@ import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 import { alpha } from '@mui/material'
 
 import {
-  type MousePosition,
   type MousePositionWithFeature,
   getContextMenuItemsForFeature,
-  isMousePositionWithFeature,
   isSelectedFeature,
+  selectFeatureAndOpenWidget,
 } from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
 import type { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
 import type { CanvasMouseEvent } from '../types'
 
 import type { Glyph } from './Glyph'
-import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
-
-/** @returns undefined if mouse not on the edge of this feature, otherwise 'start' or 'end' depending on which edge */
-function isMouseOnFeatureEdge(
-  mousePosition: MousePosition,
-  feature: AnnotationFeature,
-  stateModel: LinearApolloDisplay,
-) {
-  const { refName, regionNumber, x } = mousePosition
-  const { lgv } = stateModel
-  const { offsetPx } = lgv
-  const minPxInfo = lgv.bpToPx({ refName, coord: feature.min, regionNumber })
-  const maxPxInfo = lgv.bpToPx({ refName, coord: feature.max, regionNumber })
-  if (minPxInfo !== undefined && maxPxInfo !== undefined) {
-    const minPx = minPxInfo.offsetPx - offsetPx
-    const maxPx = maxPxInfo.offsetPx - offsetPx
-    if (Math.abs(maxPx - minPx) < 8) {
-      return
-    }
-    if (Math.abs(minPx - x) < 4) {
-      return 'min'
-    }
-    if (Math.abs(maxPx - x) < 4) {
-      return 'max'
-    }
-  }
-  return
-}
+import {
+  drawHighlight,
+  getFeatureBox,
+  isMouseOnFeatureEdge,
+  strokeRectInner,
+} from './util'
 
 function draw(
   display: LinearApolloDisplay,
@@ -209,52 +186,46 @@ function getContextMenuItems(
 
 function onMouseDown(
   stateModel: LinearApolloDisplay,
-  currentMousePosition: MousePositionWithFeature,
+  mousePosition: MousePositionWithFeature,
   event: CanvasMouseEvent,
 ) {
-  const { feature } = currentMousePosition
+  const { feature } = mousePosition
   // swallow the mouseDown if we are on the edge of the feature so that we
   // don't start dragging the view if we try to drag the feature edge
-  const edge = isMouseOnFeatureEdge(currentMousePosition, feature, stateModel)
+  const edge = isMouseOnFeatureEdge(mousePosition, feature, stateModel)
   if (edge) {
     event.stopPropagation()
-    stateModel.startDrag(currentMousePosition, feature, edge)
+    stateModel.startDrag(mousePosition, feature, edge)
   }
+}
+
+function onMouseMove(
+  stateModel: LinearApolloDisplay,
+  mousePosition: MousePositionWithFeature,
+) {
+  const { feature, bp } = mousePosition
+  stateModel.setHoveredFeature({ feature, bp })
+  const edge = isMouseOnFeatureEdge(mousePosition, feature, stateModel)
+  if (edge) {
+    stateModel.setCursor('col-resize')
+    return
+  }
+  stateModel.setCursor()
 }
 
 function onMouseLeave(): void {
   return
 }
 
-function onMouseMove(
-  stateModel: LinearApolloDisplay,
-  mousePosition: MousePosition,
-) {
-  if (isMousePositionWithFeature(mousePosition)) {
-    const { feature, bp } = mousePosition
-    stateModel.setHoveredFeature({ feature, bp })
-    const edge = isMouseOnFeatureEdge(mousePosition, feature, stateModel)
-    if (edge) {
-      stateModel.setCursor('col-resize')
-      return
-    }
-  }
-  stateModel.setCursor()
-}
-
 function onMouseUp(
   stateModel: LinearApolloDisplay,
-  mousePosition: MousePosition,
+  mousePosition: MousePositionWithFeature,
 ) {
   if (stateModel.apolloDragging) {
     return
   }
   const { feature } = mousePosition
-  if (!feature) {
-    return
-  }
-  stateModel.setSelectedFeature(feature)
-  stateModel.showFeatureDetailsWidget(feature)
+  selectFeatureAndOpenWidget(stateModel, feature)
 }
 
 export const boxGlyph: Glyph = {

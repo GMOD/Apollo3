@@ -144,77 +144,87 @@ export function mouseEventsModelFactory(
       return []
     },
   }))
-    .actions((self) => ({
-      // explicitly pass in a feature in case it's not the same as the one in
-      // mousePosition (e.g. if features are drawn overlapping).
-      startDrag(
-        mousePosition: MousePositionWithFeature,
-        feature: AnnotationFeature,
-        edge: Edge,
-        shrinkParent = false,
-      ) {
-        self.apolloDragging = {
-          start: mousePosition,
-          current: mousePosition,
-          feature,
-          edge,
-          shrinkParent,
+    .actions((self) => {
+      function cancelDragListener(event: KeyboardEvent) {
+        if (event.key === 'Escape') {
+          self.setDragging()
         }
-      },
-      endDrag() {
-        if (!self.apolloDragging) {
-          throw new Error('endDrag() called with no current drag in progress')
-        }
-        const { current, edge, feature, start, shrinkParent } =
-          self.apolloDragging
-        // don't do anything if it was only dragged a tiny bit
-        if (Math.abs(current.x - start.x) <= 4) {
+      }
+      return {
+        // explicitly pass in a feature in case it's not the same as the one in
+        // mousePosition (e.g. if features are drawn overlapping).
+        startDrag(
+          mousePosition: MousePositionWithFeature,
+          feature: AnnotationFeature,
+          edge: Edge,
+          shrinkParent = false,
+        ) {
+          globalThis.addEventListener('keydown', cancelDragListener, true)
+          self.apolloDragging = {
+            start: mousePosition,
+            current: mousePosition,
+            feature,
+            edge,
+            shrinkParent,
+          }
+        },
+        endDrag() {
+          globalThis.removeEventListener('keydown', cancelDragListener, true)
+          if (!self.apolloDragging) {
+            throw new Error('endDrag() called with no current drag in progress')
+          }
+          const { current, edge, feature, start, shrinkParent } =
+            self.apolloDragging
+          // don't do anything if it was only dragged a tiny bit
+          if (Math.abs(current.x - start.x) <= 4) {
+            self.setDragging()
+            self.setCursor()
+            return
+          }
+          const { displayedRegions } = self.lgv
+          const region = displayedRegions[start.regionNumber]
+          const assembly = self.getAssemblyId(region.assemblyName)
+          const changes = getPropagatedLocationChanges(
+            feature,
+            current.bp,
+            edge,
+            shrinkParent,
+          )
+
+          const change: LocationEndChange | LocationStartChange =
+            edge === 'max'
+              ? new LocationEndChange({
+                  typeName: 'LocationEndChange',
+                  changedIds: changes.map((c) => c.featureId),
+                  changes: changes.map((c) => ({
+                    featureId: c.featureId,
+                    oldEnd: c.oldLocation,
+                    newEnd: c.newLocation,
+                  })),
+                  assembly,
+                })
+              : new LocationStartChange({
+                  typeName: 'LocationStartChange',
+                  changedIds: changes.map((c) => c.featureId),
+                  changes: changes.map((c) => ({
+                    featureId: c.featureId,
+                    oldStart: c.oldLocation,
+                    newStart: c.newLocation,
+                  })),
+                  assembly,
+                })
+          void self.changeManager.submit(change)
           self.setDragging()
           self.setCursor()
-          return
-        }
-        const { displayedRegions } = self.lgv
-        const region = displayedRegions[start.regionNumber]
-        const assembly = self.getAssemblyId(region.assemblyName)
-        const changes = getPropagatedLocationChanges(
-          feature,
-          current.bp,
-          edge,
-          shrinkParent,
-        )
-
-        const change: LocationEndChange | LocationStartChange =
-          edge === 'max'
-            ? new LocationEndChange({
-                typeName: 'LocationEndChange',
-                changedIds: changes.map((c) => c.featureId),
-                changes: changes.map((c) => ({
-                  featureId: c.featureId,
-                  oldEnd: c.oldLocation,
-                  newEnd: c.newLocation,
-                })),
-                assembly,
-              })
-            : new LocationStartChange({
-                typeName: 'LocationStartChange',
-                changedIds: changes.map((c) => c.featureId),
-                changes: changes.map((c) => ({
-                  featureId: c.featureId,
-                  oldStart: c.oldLocation,
-                  newStart: c.newLocation,
-                })),
-                assembly,
-              })
-        void self.changeManager.submit(change)
-        self.setDragging()
-        self.setCursor()
-      },
-    }))
+        },
+      }
+    })
     .actions((self) => ({
       onMouseDown(event: CanvasMouseEvent) {
         const mousePosition = self.getMousePosition(event)
         if (isMousePositionWithFeature(mousePosition)) {
           const glyph = self.getGlyph(mousePosition.feature)
+          // @ts-expect-error ts doesn't understand mst extension
           glyph.onMouseDown(self, mousePosition, event)
         }
       },
@@ -227,6 +237,7 @@ export function mouseEventsModelFactory(
         }
         if (isMousePositionWithFeature(mousePosition)) {
           const glyph = self.getGlyph(mousePosition.feature)
+          // @ts-expect-error ts doesn't understand mst extension
           glyph.onMouseMove(self, mousePosition, event)
         } else {
           self.setHoveredFeature()
@@ -240,6 +251,7 @@ export function mouseEventsModelFactory(
         const mousePosition = self.getMousePosition(event)
         if (isMousePositionWithFeature(mousePosition)) {
           const glyph = self.getGlyph(mousePosition.feature)
+          // @ts-expect-error ts doesn't understand mst extension
           glyph.onMouseLeave(self, mousePosition, event)
         }
       },
@@ -247,6 +259,7 @@ export function mouseEventsModelFactory(
         const mousePosition = self.getMousePosition(event)
         if (isMousePositionWithFeature(mousePosition)) {
           const glyph = self.getGlyph(mousePosition.feature)
+          // @ts-expect-error ts doesn't understand mst extension
           glyph.onMouseUp(self, mousePosition, event)
         } else {
           self.setSelectedFeature()

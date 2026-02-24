@@ -273,35 +273,6 @@ function getRowForFeature(
   return
 }
 
-function onMouseDown() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
-function onMouseMove(
-  display: LinearApolloDisplay,
-  mousePosition: MousePositionWithFeature,
-) {
-  const { feature, bp } = mousePosition
-  display.setHoveredFeature({ feature, bp })
-}
-
-function onMouseLeave() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
-function onMouseUp() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
 function getContextMenuItemsForFeature(): MenuItem[] {
   return []
   // Not implemented
@@ -316,9 +287,22 @@ function getContextMenuItems(): MenuItem[] {
 // display: LinearApolloDisplayMouseEvents,
 // currentMousePosition: MousePositionWithFeature,
 
+// Genes are not draggable, only the underlying exons and CDS are
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+function onMouseDown() {}
+
+function onMouseMove(
+  stateModel: LinearApolloDisplay,
+  mousePosition: MousePositionWithFeature,
+) {
+  const { feature, bp } = mousePosition
+  stateModel.setHoveredFeature({ feature, bp })
+  stateModel.setCursor()
+}
+
 // False positive here, none of these functions use "this"
 /* eslint-disable @typescript-eslint/unbound-method */
-const { drawTooltip } = boxGlyph
+const { drawTooltip, onMouseLeave, onMouseUp } = boxGlyph
 /* eslint-enable @typescript-eslint/unbound-method */
 
 export const transcriptGlyph: Glyph = {

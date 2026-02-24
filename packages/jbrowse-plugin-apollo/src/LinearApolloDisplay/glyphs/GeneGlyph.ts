@@ -5,7 +5,6 @@ import type { MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
   getContainingView,
-  intersection2,
   isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
@@ -14,11 +13,8 @@ import { alpha } from '@mui/material'
 
 import { MergeExons, MergeTranscripts, SplitExon } from '../../components'
 import {
-  type MousePosition,
   type MousePositionWithFeature,
   getAdjacentExons,
-  getMinAndMaxPx,
-  getOverlappingEdge,
   getStreamIcon,
   isCDSFeature,
   isExonFeature,
@@ -31,78 +27,11 @@ import {
 import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
 import type { LinearApolloDisplay } from '../stateModel'
 import type { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
-import type { CanvasMouseEvent } from '../types'
 
 import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
 import { transcriptGlyph } from './TranscriptGlyph'
 import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
-
-function getDraggableFeatureInfo(
-  mousePosition: MousePosition,
-  feature: AnnotationFeature,
-  stateModel: LinearApolloDisplay,
-): { feature: AnnotationFeature; edge: 'min' | 'max' } | undefined {
-  const { session } = stateModel
-  const { apolloDataStore } = session
-  const { featureTypeOntology } = apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
-  const isGene =
-    featureTypeOntology.isTypeOf(feature.type, 'gene') ||
-    featureTypeOntology.isTypeOf(feature.type, 'pseudogene')
-  const isTranscript =
-    featureTypeOntology.isTypeOf(feature.type, 'transcript') ||
-    featureTypeOntology.isTypeOf(feature.type, 'pseudogenic_transcript')
-  const isCDS = featureTypeOntology.isTypeOf(feature.type, 'CDS')
-  if (isGene || isTranscript) {
-    // For gene glyphs, the sizes of genes and transcripts are determined by
-    // their child exons, so we don't make them draggable
-    return
-  }
-  // So now the type of feature is either CDS or exon. If an exon and CDS edge
-  // are in the same place, we want to prioritize dragging the exon. If the
-  // feature we're on is a CDS, let's find any exon it may overlap.
-  const { bp, refName, regionNumber, x } = mousePosition
-  const { lgv } = stateModel
-  if (isCDS) {
-    const transcript = feature.parent
-    if (!transcript?.children) {
-      return
-    }
-    const exonChildren: AnnotationFeature[] = []
-    for (const child of transcript.children.values()) {
-      const childIsExon = featureTypeOntology.isTypeOf(child.type, 'exon')
-      if (childIsExon) {
-        exonChildren.push(child)
-      }
-    }
-    const overlappingExon = exonChildren.find((child) => {
-      const [start, end] = intersection2(bp - 1, bp, child.min, child.max)
-      return start !== undefined && end !== undefined
-    })
-    if (overlappingExon) {
-      // We are on an exon, are we on the edge of it?
-      const minMax = getMinAndMaxPx(overlappingExon, refName, regionNumber, lgv)
-      if (minMax) {
-        const overlappingEdge = getOverlappingEdge(overlappingExon, x, minMax)
-        if (overlappingEdge) {
-          return overlappingEdge
-        }
-      }
-    }
-  }
-  // End of special cases, let's see if we're on the edge of this CDS or exon
-  const minMax = getMinAndMaxPx(feature, refName, regionNumber, lgv)
-  if (minMax) {
-    const overlappingEdge = getOverlappingEdge(feature, x, minMax)
-    if (overlappingEdge) {
-      return overlappingEdge
-    }
-  }
-  return
-}
 
 interface LayoutRow {
   feature: AnnotationFeature
@@ -272,64 +201,6 @@ function getRowForFeature(
     }
   }
   return
-}
-
-function onMouseDown(
-  stateModel: LinearApolloDisplay,
-  currentMousePosition: MousePositionWithFeature,
-  event: CanvasMouseEvent,
-) {
-  const { feature } = currentMousePosition
-  // swallow the mouseDown if we are on the edge of the feature so that we
-  // don't start dragging the view if we try to drag the feature edge
-  const draggableFeature = getDraggableFeatureInfo(
-    currentMousePosition,
-    feature,
-    stateModel,
-  )
-  if (draggableFeature) {
-    event.stopPropagation()
-    stateModel.startDrag(
-      currentMousePosition,
-      draggableFeature.feature,
-      draggableFeature.edge,
-      true,
-    )
-  }
-}
-
-function onMouseMove(
-  stateModel: LinearApolloDisplay,
-  mousePosition: MousePosition,
-) {
-  if (isMousePositionWithFeature(mousePosition)) {
-    const { feature, bp } = mousePosition
-    stateModel.setHoveredFeature({ feature, bp })
-    const draggableFeature = getDraggableFeatureInfo(
-      mousePosition,
-      feature,
-      stateModel,
-    )
-    if (draggableFeature) {
-      stateModel.setCursor('col-resize')
-      return
-    }
-  }
-  stateModel.setCursor()
-}
-
-function onMouseUp(
-  stateModel: LinearApolloDisplay,
-  mousePosition: MousePosition,
-) {
-  if (stateModel.apolloDragging) {
-    return
-  }
-  const { feature } = mousePosition
-  if (!feature) {
-    return
-  }
-  selectFeatureAndOpenWidget(stateModel, feature)
 }
 
 function getContextMenuItems(
@@ -508,9 +379,23 @@ function getContextMenuItems(
   return menuItems
 }
 
+// Genes are not draggable, only the underlying exons and CDS are
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+function onMouseDown() {}
+
+function onMouseMove(
+  stateModel: LinearApolloDisplay,
+  mousePosition: MousePositionWithFeature,
+) {
+  const { feature, bp } = mousePosition
+  stateModel.setHoveredFeature({ feature, bp })
+  stateModel.setCursor()
+}
+
 // False positive here, none of these functions use "this"
 /* eslint-disable @typescript-eslint/unbound-method */
-const { drawTooltip, getContextMenuItemsForFeature, onMouseLeave } = boxGlyph
+const { drawTooltip, getContextMenuItemsForFeature, onMouseLeave, onMouseUp } =
+  boxGlyph
 /* eslint-enable @typescript-eslint/unbound-method */
 
 export const geneGlyph: Glyph = {
