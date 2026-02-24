@@ -11,10 +11,10 @@ import {
   AddChildFeature,
   CopyFeature,
   DeleteFeature,
+  DuplicateTranscript,
   MergeExons,
   MergeTranscripts,
   SplitExon,
-  DuplicateTranscript,
 } from '../../components'
 import type { ApolloSessionModel } from '../../session'
 import { getApolloInternetAccount } from '../../util'
