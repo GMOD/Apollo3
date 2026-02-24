@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import {
-  type AnnotationFeature,
-  type AnnotationFeatureSnapshot,
+import type {
+  AnnotationFeature,
+  AnnotationFeatureSnapshot,
 } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
-import { type AbstractSessionModel } from '@jbrowse/core/util/types'
+import type { AbstractSessionModel } from '@jbrowse/core/util/types'
+import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import {
   Button,
   DialogActions,
@@ -12,11 +13,10 @@ import {
   DialogContentText,
 } from '@mui/material'
 import ObjectID from 'bson-objectid'
-import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import React, { useState } from 'react'
 
-import { type ChangeManager } from '../ChangeManager'
-import { type ApolloSessionModel } from '../session'
+import type { ChangeManager } from '../ChangeManager'
+import type { ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
 
