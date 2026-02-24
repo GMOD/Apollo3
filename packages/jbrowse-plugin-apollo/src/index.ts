@@ -74,6 +74,9 @@ import {
 import { addTopLevelMenus } from './menus'
 import { type ApolloSessionModel, extendSession } from './session'
 
+import type BaseResult from '@jbrowse/core/TextSearch/BaseResults'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
+
 interface RpcHandle {
   on(event: string, listener: (event: MessageEvent) => void): this
   workers: Worker[]
@@ -284,6 +287,27 @@ export default class ApolloPlugin extends Plugin {
       'Core-extendPluggableElement',
       annotationFromJBrowseFeature,
     )
+
+    pluginManager.addToExtensionPoint(
+      'LinearGenomeView-searchResultSelected',
+      (_: any, props: Record<string, unknown>) => {
+        const { session, result } = props as {
+          session: any
+          result: BaseResult
+        }
+        const trackId = result.getTrackId()
+        const matchedFeature = result.matchedObject
+
+        if (trackId?.startsWith('apollo_track_') && matchedFeature) {
+          // search backend returns only gene feature
+          const geneFeature = matchedFeature as AnnotationFeature
+          session.apolloSetSelectedFeature(geneFeature._id)
+        }
+
+        return _
+      },
+    )
+
     if (!inWebWorker) {
       pluginManager.addToExtensionPoint(
         'Core-extendWorker',
