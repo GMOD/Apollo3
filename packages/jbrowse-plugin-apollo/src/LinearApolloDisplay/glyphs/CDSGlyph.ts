@@ -6,12 +6,18 @@ import type { MenuItem } from '@jbrowse/core/ui'
 import { getFrame } from '@jbrowse/core/util'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
-import { isSelectedFeature } from '../../util'
+import { type MousePositionWithFeature, isSelectedFeature } from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
+import type { CanvasMouseEvent } from '../types'
 
 import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
-import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
+import {
+  drawHighlight,
+  getFeatureBox,
+  isMouseOnFeatureEdge,
+  strokeRectInner,
+} from './util'
 
 function drawCDSLocation(
   display: LinearApolloDisplay,
@@ -140,34 +146,6 @@ function getRowForFeature(
   return
 }
 
-function onMouseDown() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
-function onMouseMove() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
-function onMouseLeave() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
-function onMouseUp() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
 function getContextMenuItemsForFeature(): MenuItem[] {
   return []
   // Not implemented
@@ -182,9 +160,79 @@ function getContextMenuItems(): MenuItem[] {
 // display: LinearApolloDisplayMouseEvents,
 // currentMousePosition: MousePositionWithFeature,
 
+function onMouseDown(
+  stateModel: LinearApolloDisplay,
+  mousePosition: MousePositionWithFeature,
+  event: CanvasMouseEvent,
+) {
+  const { feature } = mousePosition
+  // swallow the mouseDown if we are on the edge of the feature so that we
+  // don't start dragging the view if we try to drag the feature edge
+  const edge = isMouseOnFeatureEdge(mousePosition, feature, stateModel)
+  if (edge) {
+    event.stopPropagation()
+    stateModel.startDrag(mousePosition, feature, edge)
+  }
+  const transcript = feature.parent
+  if (!transcript) {
+    return
+  }
+  const { cdsLocations } = transcript
+  const thisCDSLocations = cdsLocations.find((loc) => {
+    const min = loc.at(feature.strand === 1 ? 0 : -1)?.min
+    const max = loc.at(feature.strand === 1 ? -1 : 0)?.max
+    return feature.min === min && feature.max === max
+  })
+  if (!thisCDSLocations) {
+    return
+  }
+  for (const cdsLocation of thisCDSLocations) {
+    const edge = isMouseOnFeatureEdge(mousePosition, cdsLocation, stateModel)
+    if (edge) {
+      event.stopPropagation()
+      stateModel.startDrag(mousePosition, feature, edge)
+      return
+    }
+  }
+}
+
+function onMouseMove(
+  stateModel: LinearApolloDisplay,
+  mousePosition: MousePositionWithFeature,
+) {
+  const { feature, bp } = mousePosition
+  stateModel.setHoveredFeature({ feature, bp })
+  const edge = isMouseOnFeatureEdge(mousePosition, feature, stateModel)
+  if (edge) {
+    stateModel.setCursor('col-resize')
+    return
+  }
+  const transcript = feature.parent
+  if (!transcript) {
+    return
+  }
+  const { cdsLocations } = transcript
+  const thisCDSLocations = cdsLocations.find((loc) => {
+    const min = loc.at(feature.strand === 1 ? 0 : -1)?.min
+    const max = loc.at(feature.strand === 1 ? -1 : 0)?.max
+    return feature.min === min && feature.max === max
+  })
+  if (!thisCDSLocations) {
+    return
+  }
+  for (const cdsLocation of thisCDSLocations) {
+    const edge = isMouseOnFeatureEdge(mousePosition, cdsLocation, stateModel)
+    if (edge) {
+      stateModel.setCursor('col-resize')
+      return
+    }
+  }
+  stateModel.setCursor()
+}
+
 // False positive here, none of these functions use "this"
 /* eslint-disable @typescript-eslint/unbound-method */
-const { drawTooltip } = boxGlyph
+const { drawTooltip, onMouseLeave, onMouseUp } = boxGlyph
 /* eslint-enable @typescript-eslint/unbound-method */
 
 export const cdsGlyph: Glyph = {
