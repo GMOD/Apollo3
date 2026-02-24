@@ -27,7 +27,10 @@ export interface Glyph {
   /** draw a preview of the result of a dragging action on the overlay canvas */
   drawDragPreview(
     display: LinearApolloDisplay,
-    ctx: CanvasRenderingContext2D,
+    overlayCtx: CanvasRenderingContext2D,
+    feature: AnnotationFeature,
+    row: number,
+    block: ContentBlock,
   ): void
 
   /** @returns number of layout rows used by this glyph with this feature and zoom level */

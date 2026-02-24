@@ -200,12 +200,6 @@ function drawHover(
   drawHighlight(display, overlayCtx, left, top, width, height)
 }
 
-function drawDragPreview() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// ctx: CanvasRenderingContext2D,
-
 function getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature) {
   const rows = getLayoutRows(display, feature)
   if (rows.length === 0) {
@@ -302,7 +296,7 @@ function onMouseMove(
 
 // False positive here, none of these functions use "this"
 /* eslint-disable @typescript-eslint/unbound-method */
-const { onMouseLeave, onMouseUp } = boxGlyph
+const { drawDragPreview, onMouseLeave, onMouseUp } = boxGlyph
 /* eslint-enable @typescript-eslint/unbound-method */
 
 export const transcriptGlyph: Glyph = {

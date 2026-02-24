@@ -79,6 +79,9 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
         onMouseMove={(event) => {
           setMouseCoord([event.clientX, event.clientY])
         }}
+        onMouseLeave={() => {
+          setMouseCoord(undefined)
+        }}
       >
         {session.isLocked ? (
           <div className={classes.locked} data-testid="lock-icon">
