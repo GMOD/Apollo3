@@ -127,7 +127,7 @@ function getRowCount(
   return layoutRows.length
 }
 
-function getFeatureFromLayout(
+function getFeaturesFromLayout(
   display: LinearApolloDisplay,
   feature: AnnotationFeature,
   bp: number,
@@ -135,22 +135,19 @@ function getFeatureFromLayout(
 ) {
   const layoutRow = getLayoutRows(display, feature).at(row)
   if (!layoutRow) {
-    return
+    return []
   }
   const { feature: rowFeature, glyph, rowInFeature } = layoutRow
-  const subFeature = glyph.getFeatureFromLayout(
+  const layoutFeatures = glyph.getFeaturesFromLayout(
     display,
     rowFeature,
     bp,
     rowInFeature,
   )
-  if (subFeature) {
-    return subFeature
-  }
   if (bp >= feature.min && bp <= feature.max) {
-    return feature
+    layoutFeatures.push(feature)
   }
-  return
+  return layoutFeatures
 }
 
 function getRowForFeature(
@@ -405,7 +402,7 @@ export const geneGlyph: Glyph = {
   drawHover,
   getContextMenuItems,
   getContextMenuItemsForFeature,
-  getFeatureFromLayout,
+  getFeaturesFromLayout,
   getRowCount,
   getRowForFeature,
   onMouseDown,

@@ -208,7 +208,7 @@ function getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature) {
   return rows.length
 }
 
-function getFeatureFromLayout(
+function getFeaturesFromLayout(
   display: LinearApolloDisplay,
   transcript: AnnotationFeature,
   bp: number,
@@ -216,14 +216,14 @@ function getFeatureFromLayout(
 ) {
   const layoutRow = getLayoutRows(display, transcript).at(row)
   if (!layoutRow) {
-    return
+    return []
   }
-  // If it's in an intron, return the transcript
-  // Then if it's in an exon and the CDS, return the CDS
-  // Then if it's in an exon, return the exon
+  // If it's in an intron, order is transcript -> CDS
+  // Then if it's in an exon and the CDS, order is CDS -> exon -> transcript
+  // Then if it's in an exon, order is exon -> transcript
   const isInTranscript = bp >= transcript.min && bp <= transcript.max
   if (!isInTranscript) {
-    return
+    return []
   }
   const { session } = display
   const matchingExonLayout = layoutRow.find((layoutRowFeature) => {
@@ -234,9 +234,6 @@ function getFeatureFromLayout(
     }
     return bp >= feature.min && bp <= feature.max
   })
-  if (!matchingExonLayout) {
-    return transcript
-  }
   const matchingCDSLayout = layoutRow.find((layoutRowFeature) => {
     const { feature } = layoutRowFeature
     const isCDS = isCDSFeature(feature, session)
@@ -245,10 +242,16 @@ function getFeatureFromLayout(
     }
     return bp >= feature.min && bp <= feature.max
   })
-  if (matchingCDSLayout) {
-    return matchingCDSLayout.feature
+  if (!matchingExonLayout) {
+    if (!matchingCDSLayout) {
+      return [transcript]
+    }
+    return [transcript, matchingCDSLayout.feature]
   }
-  return matchingExonLayout.feature
+  if (matchingCDSLayout) {
+    return [matchingCDSLayout.feature, matchingExonLayout.feature]
+  }
+  return [matchingExonLayout.feature]
 }
 
 function getRowForFeature(
@@ -305,7 +308,7 @@ export const transcriptGlyph: Glyph = {
   drawHover,
   getContextMenuItems,
   getContextMenuItemsForFeature,
-  getFeatureFromLayout,
+  getFeaturesFromLayout,
   getRowCount,
   getRowForFeature,
   onMouseDown,
