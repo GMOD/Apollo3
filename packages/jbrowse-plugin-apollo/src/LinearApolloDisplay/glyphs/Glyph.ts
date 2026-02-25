@@ -36,15 +36,15 @@ export interface Glyph {
   /** @returns number of layout rows used by this glyph with this feature and zoom level */
   getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature): number
   /**
-   * @returns the feature or subfeature at the given bp and row number in this
-   * glyph's layout, or undefined if one does not exist
+   * @returns the features at the given bp and row number in this glyph's
+   * layout, starting with the one that is considered "on top"
    */
-  getFeatureFromLayout(
+  getFeaturesFromLayout(
     display: LinearApolloDisplay,
     feature: AnnotationFeature,
     bp: number,
     row: number,
-  ): AnnotationFeature | undefined
+  ): AnnotationFeature[]
   /**
    * @returns the row in this glyph where a child feature appears, or undefined
    * if the feature does not appear

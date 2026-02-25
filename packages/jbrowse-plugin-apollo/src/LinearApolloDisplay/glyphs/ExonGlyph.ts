@@ -71,19 +71,19 @@ function getRowCount() {
   return 1
 }
 
-function getFeatureFromLayout(
+function getFeaturesFromLayout(
   _display: LinearApolloDisplay,
   feature: AnnotationFeature,
   bp: number,
   row: number,
 ) {
   if (row > 0) {
-    return
+    return []
   }
   if (bp >= feature.min && bp <= feature.max) {
-    return feature
+    return [feature]
   }
-  return
+  return []
 }
 
 function getRowForFeature(
@@ -137,7 +137,7 @@ export const exonGlyph: Glyph = {
   drawHover,
   getContextMenuItems,
   getContextMenuItemsForFeature,
-  getFeatureFromLayout,
+  getFeaturesFromLayout,
   getRowCount,
   getRowForFeature,
   onMouseDown,
