@@ -24,7 +24,6 @@ export function renderingModelFactory(
       apolloRowHeight: 20,
       detailsMinHeight: 200,
       detailsHeight: 200,
-      lastRowTooltipBufferHeight: 40,
       isShown: true,
       filteredTranscripts: types.array(types.string),
     })
@@ -36,10 +35,7 @@ export function renderingModelFactory(
     }))
     .views((self) => ({
       get featuresHeight() {
-        return (
-          (self.highestRow + 1) * self.apolloRowHeight +
-          self.lastRowTooltipBufferHeight
-        )
+        return (self.highestRow + 1) * self.apolloRowHeight
       },
       get canvasPatterns(): Record<
         'forward' | 'backward',
