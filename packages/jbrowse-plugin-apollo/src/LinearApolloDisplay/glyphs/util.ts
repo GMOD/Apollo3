@@ -1,7 +1,8 @@
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
-import type { MousePositionWithFeature } from '../../util'
+import type {} from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
+import type { MousePosition } from '../stateModel/mouseEvents'
 
 export function getLeftPx(
   display: LinearApolloDisplay,
@@ -69,7 +70,7 @@ export function strokeRectInner(
 
 /** @returns undefined if mouse not on the edge of this feature, otherwise 'start' or 'end' depending on which edge */
 export function isMouseOnFeatureEdge(
-  mousePosition: MousePositionWithFeature,
+  mousePosition: MousePosition,
   feature: { min: number; max: number },
   stateModel: LinearApolloDisplay,
 ) {

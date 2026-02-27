@@ -78,7 +78,7 @@ function drawHighlight(
   selected = false,
 ) {
   const row = getSeqRow(feature.strand, bpPerPx, block.reversed)
-  if (!row) {
+  if (row === undefined) {
     return
   }
   const left = getLeftPx(feature, bpPerPx, offsetPx, block)

@@ -8,20 +8,49 @@ import type { AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
 import type { MenuItem } from '@jbrowse/core/ui'
 import { doesIntersect2 } from '@jbrowse/core/util'
 import { type Instance, addDisposer } from '@jbrowse/mobx-state-tree'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { autorun } from 'mobx'
 import type { CSSProperties } from 'react'
 
 import {
   type Edge,
-  type MousePosition,
-  type MousePositionWithFeature,
-  getMousePosition,
+  getContextMenuItemsForFeature,
   getPropagatedLocationChanges,
-  isMousePositionWithFeature,
+  isCDSFeature,
+  isExonFeature,
+  selectFeatureAndOpenWidget,
 } from '../../util'
+import { isMouseOnFeatureEdge } from '../glyphs/util'
 import type { CanvasMouseEvent } from '../types'
 
 import { renderingModelFactory } from './rendering'
+
+export interface MousePosition {
+  x: number
+  y: number
+  assemblyName: string
+  refName: string
+  bp: number
+  regionNumber: number
+}
+
+export function getMousePosition(
+  event: React.MouseEvent,
+  lgv: LinearGenomeViewModel,
+): MousePosition {
+  const canvas = event.currentTarget
+  const { clientX, clientY } = event
+  const { left, top } = canvas.getBoundingClientRect()
+  const x = clientX - left
+  const y = clientY - top
+  const {
+    coord: bp,
+    index: regionNumber,
+    assemblyName,
+    refName,
+  } = lgv.pxToBp(x)
+  return { x, y, assemblyName, refName, bp, regionNumber }
+}
 
 export function mouseEventsModelIntermediateFactory(
   pluginManager: PluginManager,
@@ -45,47 +74,16 @@ export function mouseEventsModelIntermediateFactory(
     }))
     .views((self) => ({
       getMousePosition(event: React.MouseEvent): MousePosition {
-        const mousePosition = getMousePosition(event, self.lgv)
-        const { bp, regionNumber, y } = mousePosition
+        return getMousePosition(event, self.lgv)
+      },
+      getFeaturesAtMousePosition(mousePosition: MousePosition) {
+        const { bp, assemblyName, refName, y } = mousePosition
         const row = Math.floor(y / self.apolloRowHeight)
-        const featureLayout = self.featureLayouts[regionNumber]
-        const layoutRow = featureLayout.get(row)
-        if (!layoutRow) {
-          return mousePosition
+        const featureLayout = self.layouts.get(assemblyName)?.get(refName)
+        if (!featureLayout) {
+          return []
         }
-        const foundFeature = layoutRow.find((f) => {
-          const feature = self.getAnnotationFeatureById(f[1])
-          return feature && bp >= feature.min && bp <= feature.max
-        })
-        if (!foundFeature) {
-          return mousePosition
-        }
-        const [featureRow, topLevelFeatureId] = foundFeature
-        const topLevelFeature = self.getAnnotationFeatureById(topLevelFeatureId)
-        if (!topLevelFeature) {
-          return mousePosition
-        }
-        const glyph = self.getGlyph(topLevelFeature)
-        const { featureTypeOntology } =
-          self.session.apolloDataStore.ontologyManager
-        if (!featureTypeOntology) {
-          throw new Error('featureTypeOntology is undefined')
-        }
-        const features = glyph.getFeaturesFromLayout(
-          // @ts-expect-error ts doesn't understand mst extension
-          self,
-          topLevelFeature,
-          bp,
-          featureRow,
-        )
-        const topFeature = features.at(0)
-        if (!topFeature) {
-          return mousePosition
-        }
-        return {
-          ...mousePosition,
-          feature: topFeature,
-        }
+        return self.getFeaturesAtPosition(assemblyName, refName, row, bp)
       },
     }))
     .actions((self) => ({
@@ -132,17 +130,24 @@ export function mouseEventsModelFactory(
 
   return LinearApolloDisplayMouseEvents.views((self) => ({
     contextMenuItems(event: React.MouseEvent<HTMLDivElement>): MenuItem[] {
-      const { hoveredFeature } = self
-      if (!hoveredFeature) {
-        return []
-      }
       const mousePosition = self.getMousePosition(event)
-      const { topLevelFeature } = hoveredFeature.feature
-      const glyph = self.getGlyph(topLevelFeature)
-      if (isMousePositionWithFeature(mousePosition)) {
-        return glyph.getContextMenuItems(self, mousePosition)
+      const features = self.getFeaturesAtMousePosition(mousePosition)
+      if (features.length === 1) {
+        return getContextMenuItemsForFeature(self, features[0])
       }
-      return []
+      const menuItems: MenuItem[] = []
+      for (const feature of features) {
+        const glyph = self.getGlyph(feature)
+        menuItems.push({
+          label: feature.type,
+          subMenu: [
+            ...getContextMenuItemsForFeature(self, feature),
+            // @ts-expect-error ts doesn't understand mst extension
+            ...glyph.getContextMenuItems(self, feature),
+          ],
+        })
+      }
+      return menuItems
     },
   }))
     .actions((self) => {
@@ -155,7 +160,7 @@ export function mouseEventsModelFactory(
         // explicitly pass in a feature in case it's not the same as the one in
         // mousePosition (e.g. if features are drawn overlapping).
         startDrag(
-          mousePosition: MousePositionWithFeature,
+          mousePosition: MousePosition,
           feature: AnnotationFeature,
           edge: Edge,
           shrinkParent = false,
@@ -223,10 +228,18 @@ export function mouseEventsModelFactory(
     .actions((self) => ({
       onMouseDown(event: CanvasMouseEvent) {
         const mousePosition = self.getMousePosition(event)
-        if (isMousePositionWithFeature(mousePosition)) {
-          const glyph = self.getGlyph(mousePosition.feature)
-          // @ts-expect-error ts doesn't understand mst extension
-          glyph.onMouseDown(self, mousePosition, event)
+        const features = self.getFeaturesAtMousePosition(mousePosition)
+        for (const feature of features.toReversed()) {
+          const glyph = self.getGlyph(feature)
+          if (glyph.isDraggable) {
+            // @ts-expect-error ts doesn't understand mst extension
+            const edge = isMouseOnFeatureEdge(mousePosition, feature, self)
+            if (edge) {
+              event.stopPropagation()
+              self.startDrag(mousePosition, feature, edge)
+              return
+            }
+          }
         }
       },
       onMouseMove(event: CanvasMouseEvent) {
@@ -236,38 +249,55 @@ export function mouseEventsModelFactory(
           self.continueDrag(mousePosition, event)
           return
         }
-        if (isMousePositionWithFeature(mousePosition)) {
-          const glyph = self.getGlyph(mousePosition.feature)
-          // @ts-expect-error ts doesn't understand mst extension
-          glyph.onMouseMove(self, mousePosition, event)
-        } else {
-          self.setHoveredFeature()
-          self.setCursor()
+        const features = self.getFeaturesAtMousePosition(mousePosition)
+        let topFeature = features.at(-1)
+        // TODO: can we get this special case for CDS to fit nicely in the glyph?
+        if (topFeature && isCDSFeature(topFeature, self.session)) {
+          const nextFeature = features.at(-2)
+          if (nextFeature && !isExonFeature(nextFeature, self.session)) {
+            topFeature = nextFeature
+          }
         }
+        if (topFeature) {
+          self.setHoveredFeature({ feature: topFeature, bp: mousePosition.bp })
+        }
+        for (const feature of features.toReversed()) {
+          const glyph = self.getGlyph(feature)
+          if (
+            glyph.isDraggable &&
+            // @ts-expect-error ts doesn't understand mst extension
+            isMouseOnFeatureEdge(mousePosition, feature, self)
+          ) {
+            self.setCursor('col-resize')
+            return
+          }
+        }
+        self.setCursor()
       },
-      onMouseLeave(event: CanvasMouseEvent) {
+      onMouseLeave() {
         self.setDragging()
         self.setHoveredFeature()
-
-        const mousePosition = self.getMousePosition(event)
-        if (isMousePositionWithFeature(mousePosition)) {
-          const glyph = self.getGlyph(mousePosition.feature)
-          // @ts-expect-error ts doesn't understand mst extension
-          glyph.onMouseLeave(self, mousePosition, event)
-        }
       },
       onMouseUp(event: CanvasMouseEvent) {
-        const mousePosition = self.getMousePosition(event)
-        if (isMousePositionWithFeature(mousePosition)) {
-          const glyph = self.getGlyph(mousePosition.feature)
-          // @ts-expect-error ts doesn't understand mst extension
-          glyph.onMouseUp(self, mousePosition, event)
-        } else {
-          self.setSelectedFeature()
-        }
-
         if (self.apolloDragging) {
           self.endDrag()
+          return
+        }
+        const mousePosition = self.getMousePosition(event)
+        const features = self.getFeaturesAtMousePosition(mousePosition)
+        let topFeature = features.at(-1)
+        // TODO: can we get this special case for CDS to fit nicely in the glyph?
+        if (topFeature && isCDSFeature(topFeature, self.session)) {
+          const nextFeature = features.at(-2)
+          if (nextFeature && !isExonFeature(nextFeature, self.session)) {
+            topFeature = nextFeature
+          }
+        }
+        if (topFeature) {
+          selectFeatureAndOpenWidget(self, topFeature)
+          self.setSelectedFeature(topFeature)
+        } else {
+          self.setSelectedFeature()
         }
       },
     }))
@@ -299,8 +329,8 @@ export function mouseEventsModelFactory(
               }
               const { feature } = hoveredFeature
               const glyph = self.getGlyph(feature)
-              const position = self.getFeatureLayoutPosition(feature)
-              if (!position) {
+              const row = self.getRowForFeature(feature)
+              if (row === undefined) {
                 return
               }
 
@@ -311,6 +341,7 @@ export function mouseEventsModelFactory(
                 ctx.rect(blockLeftPx, 0, block.widthPx, overlayCanvas.height)
                 ctx.clip()
                 if (
+                  block.assemblyName === feature.assemblyId &&
                   doesIntersect2(
                     block.start,
                     block.end,
@@ -318,14 +349,13 @@ export function mouseEventsModelFactory(
                     feature.max,
                   )
                 ) {
-                  const { featureRow, layoutRow } = position
                   // draw mouseover hovers
                   glyph.drawHover(
                     // @ts-expect-error ts doesn't understand mst extension
                     self,
                     ctx,
                     feature,
-                    featureRow + layoutRow,
+                    row,
                     block,
                   )
                 }
@@ -341,17 +371,16 @@ export function mouseEventsModelFactory(
                     doesIntersect2(block.start, block.end, dragMin, dragMax)
                   ) {
                     const dragGlyph = self.getGlyph(dragFeature)
-                    const dragPosition =
-                      self.getFeatureLayoutPosition(dragFeature)
+                    const row = self.getRowForFeature(dragFeature)
 
-                    if (dragPosition) {
+                    if (row !== undefined) {
                       // draw dragging previews
                       dragGlyph.drawDragPreview(
                         // @ts-expect-error ts doesn't understand mst extension
                         self,
                         ctx,
                         dragFeature,
-                        dragPosition.featureRow + dragPosition.layoutRow,
+                        row,
                         block,
                       )
                     }

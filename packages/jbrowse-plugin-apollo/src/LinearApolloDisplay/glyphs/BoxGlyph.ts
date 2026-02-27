@@ -3,29 +3,19 @@ import type { MenuItem } from '@jbrowse/core/ui'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 import { alpha } from '@mui/material'
 
-import {
-  type MousePositionWithFeature,
-  getContextMenuItemsForFeature,
-  isSelectedFeature,
-  selectFeatureAndOpenWidget,
-} from '../../util'
+import { getContextMenuItemsForFeature, isSelectedFeature } from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
 import type { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
-import type { CanvasMouseEvent } from '../types'
 
 import type { Glyph } from './Glyph'
-import {
-  drawHighlight,
-  getFeatureBox,
-  isMouseOnFeatureEdge,
-  strokeRectInner,
-} from './util'
+import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
 
 function draw(
   display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
+  rowInFeature: number,
   block: ContentBlock,
 ) {
   const { selectedFeature, theme } = display
@@ -80,34 +70,13 @@ function drawDragPreview(
   strokeRectInner(overlayCtx, left, top, width, height, theme.palette.info.main)
 }
 
-function getRowCount() {
-  return 1
-}
-
-function getFeaturesFromLayout(
-  _display: LinearApolloDisplay,
-  feature: AnnotationFeature,
-  bp: number,
-  row: number,
-) {
-  if (row > 0) {
-    return []
+function getLayout(display: LinearApolloDisplay, feature: AnnotationFeature) {
+  return {
+    byFeature: new Map([[feature._id, 0]]),
+    byRow: [[{ feature, rowInFeature: 0 }]],
+    min: feature.min,
+    max: feature.max,
   }
-  if (bp >= feature.min && bp <= feature.max) {
-    return [feature]
-  }
-  return []
-}
-
-function getRowForFeature(
-  _display: LinearApolloDisplay,
-  feature: AnnotationFeature,
-  childFeature: AnnotationFeature,
-) {
-  if (feature._id === childFeature._id) {
-    return 0
-  }
-  return
 }
 
 function getContextMenuItems(
@@ -120,61 +89,11 @@ function getContextMenuItems(
   return getContextMenuItemsForFeature(display, hoveredFeature.feature)
 }
 
-function onMouseDown(
-  stateModel: LinearApolloDisplay,
-  mousePosition: MousePositionWithFeature,
-  event: CanvasMouseEvent,
-) {
-  const { feature } = mousePosition
-  // swallow the mouseDown if we are on the edge of the feature so that we
-  // don't start dragging the view if we try to drag the feature edge
-  const edge = isMouseOnFeatureEdge(mousePosition, feature, stateModel)
-  if (edge) {
-    event.stopPropagation()
-    stateModel.startDrag(mousePosition, feature, edge)
-  }
-}
-
-function onMouseMove(
-  stateModel: LinearApolloDisplay,
-  mousePosition: MousePositionWithFeature,
-) {
-  const { feature, bp } = mousePosition
-  stateModel.setHoveredFeature({ feature, bp })
-  const edge = isMouseOnFeatureEdge(mousePosition, feature, stateModel)
-  if (edge) {
-    stateModel.setCursor('col-resize')
-    return
-  }
-  stateModel.setCursor()
-}
-
-function onMouseLeave(): void {
-  return
-}
-
-function onMouseUp(
-  stateModel: LinearApolloDisplay,
-  mousePosition: MousePositionWithFeature,
-) {
-  if (stateModel.apolloDragging) {
-    return
-  }
-  const { feature } = mousePosition
-  selectFeatureAndOpenWidget(stateModel, feature)
-}
-
 export const boxGlyph: Glyph = {
   draw,
   drawDragPreview,
   drawHover,
-  getContextMenuItemsForFeature,
   getContextMenuItems,
-  getFeaturesFromLayout,
-  getRowCount,
-  getRowForFeature,
-  onMouseDown,
-  onMouseLeave,
-  onMouseMove,
-  onMouseUp,
+  getLayout,
+  isDraggable: true,
 }

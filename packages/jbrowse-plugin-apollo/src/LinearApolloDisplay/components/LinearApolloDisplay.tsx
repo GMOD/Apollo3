@@ -31,7 +31,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
     loading,
     contextMenuItems: getContextMenuItems,
     cursor,
-    featuresHeight,
+    featuresHeight: getFeaturesHeight,
     isShown,
     onMouseDown,
     onMouseLeave,
@@ -57,6 +57,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   if (!isShown) {
     return null
   }
+  const featuresHeight = getFeaturesHeight(lgv.assemblyNames[0])
   return (
     <>
       <div
