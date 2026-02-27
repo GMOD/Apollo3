@@ -236,7 +236,7 @@ export function mouseEventsModelFactory(
             const edge = isMouseOnFeatureEdge(mousePosition, feature, self)
             if (edge) {
               event.stopPropagation()
-              self.startDrag(mousePosition, feature, edge)
+              self.startDrag(mousePosition, feature, edge, true)
               return
             }
           }
@@ -260,6 +260,8 @@ export function mouseEventsModelFactory(
         }
         if (topFeature) {
           self.setHoveredFeature({ feature: topFeature, bp: mousePosition.bp })
+        } else {
+          self.setHoveredFeature()
         }
         for (const feature of features.toReversed()) {
           const glyph = self.getGlyph(feature)
