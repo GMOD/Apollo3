@@ -3,63 +3,15 @@ import type { MenuItem } from '@jbrowse/core/ui'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 import { alpha } from '@mui/material'
 
-import {
-  type MousePositionWithFeature,
-  containsSelectedFeature,
-  isMousePositionWithFeature,
-} from '../../util'
-import { getRelatedFeatures } from '../../util/annotationFeatureUtils'
+import { isSelectedFeature } from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
-import type { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
 
 import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
-import { getLeftPx, strokeRectInner } from './util'
+import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
 
-function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
-  const features = [[feature]]
-  if (feature.children) {
-    for (const [, child] of feature.children) {
-      features.push(...featuresForRow(child))
-    }
-  }
-  return features
-}
-
-function drawHighlight(
-  stateModel: LinearApolloDisplay,
-  ctx: CanvasRenderingContext2D,
-  feature: AnnotationFeature,
-  selected = false,
-) {
-  const { apolloRowHeight, lgv, theme } = stateModel
-
-  const position = stateModel.getFeatureLayoutPosition(feature)
-  if (!position) {
-    return
-  }
-  const { featureRow, layoutIndex, layoutRow } = position
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[layoutIndex]
-  const { refName, reversed } = displayedRegion
-  const { length, max, min } = feature
-  const startPx =
-    (lgv.bpToPx({
-      refName,
-      coord: reversed ? max : min,
-      regionNumber: layoutIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const top = (layoutRow + featureRow) * apolloRowHeight
-  const widthPx = length / bpPerPx
-  ctx.fillStyle = selected
-    ? theme.palette.action.disabled
-    : theme.palette.action.focus
-  ctx.fillRect(
-    startPx,
-    top,
-    widthPx,
-    apolloRowHeight * getRowCount(stateModel, feature),
-  )
+function getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature) {
+  return getLayout(display, feature).byRow.length
 }
 
 function draw(
@@ -67,152 +19,85 @@ function draw(
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
+  rowInFeature: number,
   block: ContentBlock,
 ) {
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  const { apolloRowHeight, getGlyph, lgv, selectedFeature, theme } = display
-  const { bpPerPx } = lgv
-  const left = Math.round(getLeftPx(display, feature, block))
-  const top = row * apolloRowHeight
-  const width = Math.round(feature.length / bpPerPx)
+  if (rowInFeature > 0) {
+    return
+  }
+  const { apolloRowHeight, selectedFeature, theme } = display
+  const [top, left, width] = getFeatureBox(display, feature, row, block)
   const height = getRowCount(display, feature) * apolloRowHeight
   if (width > 2) {
     ctx.fillStyle = alpha(theme.palette.background.paper, 0.6)
     ctx.fillRect(left, top, width, height)
   }
   strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
-  boxGlyph.draw(display, ctx, feature, row, block)
-  strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
-  const { children } = feature
-  if (!children) {
-    return
-  }
-  let rowOffset = 1
-  for (const [, child] of children) {
-    const glyph = getGlyph(child)
-    const rowCount = glyph.getRowCount(display, child)
-    glyph.draw(display, ctx, child, row + rowOffset, block)
-    rowOffset += rowCount
-  }
+  boxGlyph.draw(display, ctx, feature, row, 0, block)
 
-  if (selectedFeature && containsSelectedFeature(feature, selectedFeature)) {
-    drawHighlight(display, ctx, selectedFeature)
+  if (isSelectedFeature(feature, selectedFeature)) {
+    drawHighlight(display, ctx, left, top, width, height, true)
   }
 }
 
 function drawHover(
-  stateModel: LinearApolloDisplay,
-  ctx: CanvasRenderingContext2D,
+  display: LinearApolloDisplay,
+  overlayCtx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
 ) {
-  const { hoveredFeature } = stateModel
-  if (!hoveredFeature) {
-    return
-  }
-  drawHighlight(stateModel, ctx, hoveredFeature.feature)
+  const { apolloRowHeight } = display
+  const [top, left, width] = getFeatureBox(display, feature, row, block)
+  const height = getRowCount(display, feature) * apolloRowHeight
+  drawHighlight(display, overlayCtx, left, top, width, height)
 }
 
-function getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature) {
+function getLayout(display: LinearApolloDisplay, feature: AnnotationFeature) {
+  const layout = {
+    byFeature: new Map([[feature._id, 0]]),
+    byRow: [[{ feature, rowInFeature: 0 }]],
+    min: feature.min,
+    max: feature.max,
+  }
   const { children } = feature
   if (!children) {
-    return 1
+    return layout
   }
   // eslint-disable-next-line @typescript-eslint/unbound-method
   const { getGlyph } = display
-  let rowCount = 1
   for (const [, child] of children) {
-    const glyph = getGlyph(feature)
-    rowCount += glyph.getRowCount(display, child)
-  }
-  return rowCount
-}
-
-function getFeatureFromLayout(
-  feature: AnnotationFeature,
-  bp: number,
-  row: number,
-) {
-  const layoutRow = featuresForRow(feature)[row]
-  return layoutRow.find((f) => bp >= f.min && bp <= f.max)
-}
-
-function getRowForFeature(
-  feature: AnnotationFeature,
-  childFeature: AnnotationFeature,
-) {
-  const rows = featuresForRow(feature)
-  for (const [idx, row] of rows.entries()) {
-    if (row.some((feature) => feature._id === childFeature._id)) {
-      return idx
+    const glyph = getGlyph(child)
+    const childLayout = glyph.getLayout(display, child)
+    const startingRowIndex = layout.byRow.length
+    for (const [idx, row] of childLayout.byRow.entries()) {
+      layout.byRow.push([
+        { feature, rowInFeature: startingRowIndex + idx },
+        ...row,
+      ])
+    }
+    for (const entry of childLayout.byFeature.entries()) {
+      const [featureId, rowNumber] = entry
+      layout.byFeature.set(featureId, rowNumber + startingRowIndex)
     }
   }
-  return
+  return layout
 }
 
-function getContextMenuItems(
-  display: LinearApolloDisplayMouseEvents,
-  mousePosition: MousePositionWithFeature,
-): MenuItem[] {
-  const { hoveredFeature, session } = display
-  const menuItems: MenuItem[] = []
-  if (!hoveredFeature) {
-    return menuItems
-  }
-  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
-  if (!featureTypeOntology) {
-    throw new Error('featureTypeOntology is undefined')
-  }
-  const sourceFeatureMenuItems = boxGlyph.getContextMenuItems(
-    display,
-    mousePosition,
-  )
-  menuItems.push({
-    label: hoveredFeature.feature.type,
-    subMenu: sourceFeatureMenuItems,
-  })
-  if (isMousePositionWithFeature(mousePosition)) {
-    const { bp, feature } = mousePosition
-    for (const relative of getRelatedFeatures(feature, bp)) {
-      if (relative._id === hoveredFeature.feature._id) {
-        continue
-      }
-      const contextMenuItemsForFeature = boxGlyph.getContextMenuItemsForFeature(
-        display,
-        relative,
-      )
-      menuItems.push({
-        label: relative.type,
-        subMenu: contextMenuItemsForFeature,
-      })
-    }
-  }
-  return menuItems
+function getContextMenuItems(): MenuItem[] {
+  return []
 }
 
 // False positive here, none of these functions use "this"
 /* eslint-disable @typescript-eslint/unbound-method */
-const {
-  drawDragPreview,
-  drawTooltip,
-  getContextMenuItemsForFeature,
-  onMouseDown,
-  onMouseLeave,
-  onMouseMove,
-  onMouseUp,
-} = boxGlyph
+const { drawDragPreview } = boxGlyph
 /* eslint-enable @typescript-eslint/unbound-method */
 
 export const genericChildGlyph: Glyph = {
   draw,
   drawDragPreview,
   drawHover,
-  drawTooltip,
-  getContextMenuItemsForFeature,
   getContextMenuItems,
-  getFeatureFromLayout,
-  getRowCount,
-  getRowForFeature,
-  onMouseDown,
-  onMouseLeave,
-  onMouseMove,
-  onMouseUp,
+  getLayout,
+  isDraggable: true,
 }

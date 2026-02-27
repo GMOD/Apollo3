@@ -886,12 +886,7 @@ function getContextMenuItems(
         feature,
       )
       if (isExonFeature(feature, session)) {
-        const adjacentExons = getAdjacentExons(
-          feature,
-          display,
-          mousePosition,
-          session,
-        )
+        const adjacentExons = getAdjacentExons(feature, display)
         const lgv = getContainingView(
           display as BaseDisplayModel,
         ) as unknown as LinearGenomeViewModel

@@ -1,23 +1,37 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
+import type { BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
 import type { MenuItem } from '@jbrowse/core/ui'
+import {
+  type AbstractSessionModel,
+  getContainingView,
+} from '@jbrowse/core/util'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 
+import { MergeExons, SplitExon } from '../../components'
+import {
+  getAdjacentExons,
+  getStreamIcon,
+  isSelectedFeature,
+  navToFeatureCenter,
+  selectFeatureAndOpenWidget,
+} from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
 
+import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
-import { getLeftPx, strokeRectInner } from './util'
+import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
 
 function draw(
   display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
   exon: AnnotationFeature,
   row: number,
+  rowInFeature: number,
   block: ContentBlock,
 ) {
-  const { apolloRowHeight, canvasPatterns, lgv, theme } = display
-  const { bpPerPx } = lgv
-  const left = Math.round(getLeftPx(display, exon, block))
-  const width = Math.round(exon.length / bpPerPx)
+  const { apolloRowHeight, canvasPatterns, selectedFeature, theme } = display
+  const [, left, width] = getFeatureBox(display, exon, row, block)
   const height = Math.round(0.6 * apolloRowHeight)
   const halfHeight = Math.round(height / 2)
   const top = Math.round(halfHeight / 2) + row * apolloRowHeight
@@ -41,100 +55,148 @@ function draw(
     }
   }
   strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
+  if (isSelectedFeature(exon, selectedFeature)) {
+    drawHighlight(display, ctx, left, top, width, height, true)
+  }
 }
 
-function getRowCount(): number {
-  return 1
+function drawHover(
+  display: LinearApolloDisplay,
+  overlayCtx: CanvasRenderingContext2D,
+  exon: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
+) {
+  const { apolloRowHeight } = display
+  const [, left, width] = getFeatureBox(display, exon, row, block)
+  const height = Math.round(0.6 * apolloRowHeight)
+  const halfHeight = Math.round(height / 2)
+  const top = Math.round(halfHeight / 2) + row * apolloRowHeight
+  drawHighlight(display, overlayCtx, left, top, width, height)
 }
 
-function getFeatureFromLayout(): AnnotationFeature | undefined {
-  return undefined
-  // Not implemented
+function getLayout(display: LinearApolloDisplay, feature: AnnotationFeature) {
+  return {
+    byFeature: new Map([[feature._id, 0]]),
+    byRow: [[{ feature, rowInFeature: 0 }]],
+    min: feature.min,
+    max: feature.max,
+  }
 }
-// feature: AnnotationFeature,
-// bp: number,
-// row: number,
-// featureTypeOntology: OntologyRecord,
-function getRowForFeature(): number | undefined {
-  // Not implemented
-  return undefined
-}
-// feature: AnnotationFeature,
-// childFeature: AnnotationFeature,
-// featureTypeOntology: OntologyRecord,
 
-function drawHover() {
-  // Not implemented
+function getContextMenuItems(
+  display: LinearApolloDisplay,
+  feature: AnnotationFeature,
+): MenuItem[] {
+  const {
+    apolloInternetAccount: internetAccount,
+    changeManager,
+    regions,
+    selectedFeature,
+    session,
+  } = display
+  const [region] = regions
+  const currentAssemblyId = display.getAssemblyId(region.assemblyName)
+  const role = internetAccount ? internetAccount.role : 'admin'
+  const admin = role === 'admin'
+  const menuItems: MenuItem[] = []
+  const adjacentExons = getAdjacentExons(feature, display)
+  const lgv = getContainingView(
+    display as BaseDisplayModel,
+  ) as unknown as LinearGenomeViewModel
+  if (adjacentExons.upstream) {
+    const exon = adjacentExons.upstream
+    menuItems.push({
+      label: 'Go to upstream exon',
+      icon: getStreamIcon(
+        feature.strand,
+        true,
+        lgv.displayedRegions.at(0)?.reversed,
+      ),
+      onClick: () => {
+        lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
+        selectFeatureAndOpenWidget(display, exon)
+      },
+    })
+  }
+  if (adjacentExons.downstream) {
+    const exon = adjacentExons.downstream
+    menuItems.push({
+      label: 'Go to downstream exon',
+      icon: getStreamIcon(
+        feature.strand,
+        false,
+        lgv.displayedRegions.at(0)?.reversed,
+      ),
+      onClick: () => {
+        lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
+        selectFeatureAndOpenWidget(display, exon)
+      },
+    })
+  }
+  menuItems.push(
+    {
+      label: 'Merge exons',
+      disabled: !admin,
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            MergeExons,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature: feature,
+              sourceAssemblyId: currentAssemblyId,
+              selectedFeature,
+              setSelectedFeature: (feature?: AnnotationFeature) => {
+                display.setSelectedFeature(feature)
+              },
+            },
+          ],
+        )
+      },
+    },
+    {
+      label: 'Split exon',
+      disabled: !admin,
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            SplitExon,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature: feature,
+              sourceAssemblyId: currentAssemblyId,
+              selectedFeature,
+              setSelectedFeature: (feature?: AnnotationFeature) => {
+                display.setSelectedFeature(feature)
+              },
+            },
+          ],
+        )
+      },
+    },
+  )
+  return menuItems
 }
-// display: LinearApolloDisplayMouseEvents,
-// overlayCtx: CanvasRenderingContext2D,
 
-function drawDragPreview() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// ctx: CanvasRenderingContext2D,
-
-function onMouseDown() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
-function onMouseMove() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
-function onMouseLeave() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
-function onMouseUp() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
-function drawTooltip() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// context: CanvasRenderingContext2D,
-
-function getContextMenuItemsForFeature(): MenuItem[] {
-  return []
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// sourceFeature: AnnotationFeature,
-
-function getContextMenuItems(): MenuItem[] {
-  return []
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
+// False positive here, none of these functions use "this"
+/* eslint-disable @typescript-eslint/unbound-method */
+const { drawDragPreview } = boxGlyph
+/* eslint-enable @typescript-eslint/unbound-method */
 
 export const exonGlyph: Glyph = {
   draw,
   drawDragPreview,
   drawHover,
-  drawTooltip,
   getContextMenuItems,
-  getContextMenuItemsForFeature,
-  getFeatureFromLayout,
-  getRowCount,
-  getRowForFeature,
-  onMouseDown,
-  onMouseLeave,
-  onMouseMove,
-  onMouseUp,
+  getLayout,
+  isDraggable: true,
 }

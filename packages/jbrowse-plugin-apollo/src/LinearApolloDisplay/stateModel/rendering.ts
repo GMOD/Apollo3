@@ -24,7 +24,6 @@ export function renderingModelFactory(
       apolloRowHeight: 20,
       detailsMinHeight: 200,
       detailsHeight: 200,
-      lastRowTooltipBufferHeight: 40,
       isShown: true,
       filteredTranscripts: types.array(types.string),
     })
@@ -35,11 +34,8 @@ export function renderingModelFactory(
       theme: createTheme(),
     }))
     .views((self) => ({
-      get featuresHeight() {
-        return (
-          (self.highestRow + 1) * self.apolloRowHeight +
-          self.lastRowTooltipBufferHeight
-        )
+      featuresHeight(assemblyName: string) {
+        return (self.highestRow(assemblyName) + 1) * self.apolloRowHeight
       },
       get canvasPatterns(): Record<
         'forward' | 'backward',
@@ -127,7 +123,7 @@ export function renderingModelFactory(
                 0,
                 0,
                 self.lgv.dynamicBlocks.totalWidthPx,
-                self.featuresHeight,
+                self.featuresHeight(self.lgv.assemblyNames[0]),
               )
               for (const collaborator of (
                 self.session as unknown as ApolloSessionModel
@@ -175,7 +171,7 @@ export function renderingModelFactory(
           self,
           autorun(
             () => {
-              const { canvas, featureLayouts, lgv } = self
+              const { canvas, layouts, lgv } = self
               if (
                 !lgv.initialized ||
                 self.regionCannotBeRendered() ||
@@ -189,19 +185,25 @@ export function renderingModelFactory(
               if (!ctx) {
                 return
               }
+              const featureLayouts = layouts.get(lgv.assemblyNames[0])
+              if (!featureLayouts) {
+                return
+              }
               ctx.clearRect(0, 0, canvas.width, canvas.height)
-              for (const [idx, featureLayout] of featureLayouts.entries()) {
-                const block = dynamicBlocks.contentBlocks.at(idx)
-                if (!block) {
-                  continue
-                }
+              for (const block of dynamicBlocks.contentBlocks) {
                 const blockLeftPx = block.offsetPx - offsetPx
-                for (const [row, featureLayoutRow] of featureLayout.entries()) {
-                  for (const [featureRow, featureId] of featureLayoutRow) {
-                    const feature = self.getAnnotationFeatureById(featureId)
-                    if (featureRow > 0 || !feature) {
-                      continue
-                    }
+                ctx.save()
+                ctx.beginPath()
+                ctx.rect(blockLeftPx, 0, block.widthPx, canvas.height)
+                ctx.clip()
+                const layout = featureLayouts.get(block.refName)
+                if (!layout) {
+                  return
+                }
+                const { byRow } = layout
+                for (const [row, layoutRow] of byRow.entries()) {
+                  for (const layoutFeature of layoutRow) {
+                    const { feature, rowInFeature } = layoutFeature
                     if (
                       !doesIntersect2(
                         block.start,
@@ -212,15 +214,13 @@ export function renderingModelFactory(
                     ) {
                       continue
                     }
-                    ctx.save()
-                    ctx.beginPath()
-                    ctx.rect(blockLeftPx, 0, block.widthPx, canvas.height)
-                    ctx.clip()
-                    // @ts-expect-error ts doesn't understand mst extension
-                    self.getGlyph(feature).draw(self, ctx, feature, row, block)
-                    ctx.restore()
+                    self
+                      .getGlyph(feature)
+                      // @ts-expect-error ts doesn't understand mst extension
+                      .draw(self, ctx, feature, row, rowInFeature, block)
                   }
                 }
+                ctx.restore()
               }
             },
             { name: 'LinearApolloDisplayRenderFeatures' },

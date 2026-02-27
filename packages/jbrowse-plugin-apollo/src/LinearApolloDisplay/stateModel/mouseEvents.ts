@@ -6,21 +6,51 @@ import {
 import type PluginManager from '@jbrowse/core/PluginManager'
 import type { AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
 import type { MenuItem } from '@jbrowse/core/ui'
+import { doesIntersect2 } from '@jbrowse/core/util'
 import { type Instance, addDisposer } from '@jbrowse/mobx-state-tree'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { autorun } from 'mobx'
 import type { CSSProperties } from 'react'
 
 import {
   type Edge,
-  type MousePosition,
-  type MousePositionWithFeature,
-  getMousePosition,
+  getContextMenuItemsForFeature,
   getPropagatedLocationChanges,
-  isMousePositionWithFeature,
+  isCDSFeature,
+  isExonFeature,
+  selectFeatureAndOpenWidget,
 } from '../../util'
+import { isMouseOnFeatureEdge } from '../glyphs/util'
 import type { CanvasMouseEvent } from '../types'
 
 import { renderingModelFactory } from './rendering'
+
+export interface MousePosition {
+  x: number
+  y: number
+  assemblyName: string
+  refName: string
+  bp: number
+  regionNumber: number
+}
+
+export function getMousePosition(
+  event: React.MouseEvent,
+  lgv: LinearGenomeViewModel,
+): MousePosition {
+  const canvas = event.currentTarget
+  const { clientX, clientY } = event
+  const { left, top } = canvas.getBoundingClientRect()
+  const x = clientX - left
+  const y = clientY - top
+  const {
+    coord: bp,
+    index: regionNumber,
+    assemblyName,
+    refName,
+  } = lgv.pxToBp(x)
+  return { x, y, assemblyName, refName, bp, regionNumber }
+}
 
 export function mouseEventsModelIntermediateFactory(
   pluginManager: PluginManager,
@@ -44,45 +74,16 @@ export function mouseEventsModelIntermediateFactory(
     }))
     .views((self) => ({
       getMousePosition(event: React.MouseEvent): MousePosition {
-        const mousePosition = getMousePosition(event, self.lgv)
-        const { bp, regionNumber, y } = mousePosition
+        return getMousePosition(event, self.lgv)
+      },
+      getFeaturesAtMousePosition(mousePosition: MousePosition) {
+        const { bp, assemblyName, refName, y } = mousePosition
         const row = Math.floor(y / self.apolloRowHeight)
-        const featureLayout = self.featureLayouts[regionNumber]
-        const layoutRow = featureLayout.get(row)
-        if (!layoutRow) {
-          return mousePosition
+        const featureLayout = self.layouts.get(assemblyName)?.get(refName)
+        if (!featureLayout) {
+          return []
         }
-        const foundFeature = layoutRow.find((f) => {
-          const feature = self.getAnnotationFeatureById(f[1])
-          return feature && bp >= feature.min && bp <= feature.max
-        })
-        if (!foundFeature) {
-          return mousePosition
-        }
-        const [featureRow, topLevelFeatureId] = foundFeature
-        const topLevelFeature = self.getAnnotationFeatureById(topLevelFeatureId)
-        if (!topLevelFeature) {
-          return mousePosition
-        }
-        const glyph = self.getGlyph(topLevelFeature)
-        const { featureTypeOntology } =
-          self.session.apolloDataStore.ontologyManager
-        if (!featureTypeOntology) {
-          throw new Error('featureTypeOntology is undefined')
-        }
-        const feature = glyph.getFeatureFromLayout(
-          topLevelFeature,
-          bp,
-          featureRow,
-          featureTypeOntology,
-        )
-        if (!feature) {
-          return mousePosition
-        }
-        return {
-          ...mousePosition,
-          feature,
-        }
+        return self.getFeaturesAtPosition(assemblyName, refName, row, bp)
       },
     }))
     .actions((self) => ({
@@ -129,91 +130,116 @@ export function mouseEventsModelFactory(
 
   return LinearApolloDisplayMouseEvents.views((self) => ({
     contextMenuItems(event: React.MouseEvent<HTMLDivElement>): MenuItem[] {
-      const { hoveredFeature } = self
-      if (!hoveredFeature) {
-        return []
-      }
       const mousePosition = self.getMousePosition(event)
-      const { topLevelFeature } = hoveredFeature.feature
-      const glyph = self.getGlyph(topLevelFeature)
-      if (isMousePositionWithFeature(mousePosition)) {
-        return glyph.getContextMenuItems(self, mousePosition)
+      const features = self.getFeaturesAtMousePosition(mousePosition)
+      if (features.length === 1) {
+        return getContextMenuItemsForFeature(self, features[0])
       }
-      return []
+      const menuItems: MenuItem[] = []
+      for (const feature of features) {
+        const glyph = self.getGlyph(feature)
+        menuItems.push({
+          label: feature.type,
+          subMenu: [
+            ...getContextMenuItemsForFeature(self, feature),
+            // @ts-expect-error ts doesn't understand mst extension
+            ...glyph.getContextMenuItems(self, feature),
+          ],
+        })
+      }
+      return menuItems
     },
   }))
-    .actions((self) => ({
-      // explicitly pass in a feature in case it's not the same as the one in
-      // mousePosition (e.g. if features are drawn overlapping).
-      startDrag(
-        mousePosition: MousePositionWithFeature,
-        feature: AnnotationFeature,
-        edge: Edge,
-        shrinkParent = false,
-      ) {
-        self.apolloDragging = {
-          start: mousePosition,
-          current: mousePosition,
-          feature,
-          edge,
-          shrinkParent,
+    .actions((self) => {
+      function cancelDragListener(event: KeyboardEvent) {
+        if (event.key === 'Escape') {
+          self.setDragging()
         }
-      },
-      endDrag() {
-        if (!self.apolloDragging) {
-          throw new Error('endDrag() called with no current drag in progress')
-        }
-        const { current, edge, feature, start, shrinkParent } =
-          self.apolloDragging
-        // don't do anything if it was only dragged a tiny bit
-        if (Math.abs(current.x - start.x) <= 4) {
+      }
+      return {
+        // explicitly pass in a feature in case it's not the same as the one in
+        // mousePosition (e.g. if features are drawn overlapping).
+        startDrag(
+          mousePosition: MousePosition,
+          feature: AnnotationFeature,
+          edge: Edge,
+          shrinkParent = false,
+        ) {
+          globalThis.addEventListener('keydown', cancelDragListener, true)
+          self.apolloDragging = {
+            start: mousePosition,
+            current: mousePosition,
+            feature,
+            edge,
+            shrinkParent,
+          }
+        },
+        endDrag() {
+          globalThis.removeEventListener('keydown', cancelDragListener, true)
+          if (!self.apolloDragging) {
+            throw new Error('endDrag() called with no current drag in progress')
+          }
+          const { current, edge, feature, start, shrinkParent } =
+            self.apolloDragging
+          // don't do anything if it was only dragged a tiny bit
+          if (Math.abs(current.x - start.x) <= 4) {
+            self.setDragging()
+            self.setCursor()
+            return
+          }
+          const { displayedRegions } = self.lgv
+          const region = displayedRegions[start.regionNumber]
+          const assembly = self.getAssemblyId(region.assemblyName)
+          const changes = getPropagatedLocationChanges(
+            feature,
+            current.bp,
+            edge,
+            shrinkParent,
+          )
+
+          const change: LocationEndChange | LocationStartChange =
+            edge === 'max'
+              ? new LocationEndChange({
+                  typeName: 'LocationEndChange',
+                  changedIds: changes.map((c) => c.featureId),
+                  changes: changes.map((c) => ({
+                    featureId: c.featureId,
+                    oldEnd: c.oldLocation,
+                    newEnd: c.newLocation,
+                  })),
+                  assembly,
+                })
+              : new LocationStartChange({
+                  typeName: 'LocationStartChange',
+                  changedIds: changes.map((c) => c.featureId),
+                  changes: changes.map((c) => ({
+                    featureId: c.featureId,
+                    oldStart: c.oldLocation,
+                    newStart: c.newLocation,
+                  })),
+                  assembly,
+                })
+          void self.changeManager.submit(change)
           self.setDragging()
           self.setCursor()
-          return
-        }
-        const { displayedRegions } = self.lgv
-        const region = displayedRegions[start.regionNumber]
-        const assembly = self.getAssemblyId(region.assemblyName)
-        const changes = getPropagatedLocationChanges(
-          feature,
-          current.bp,
-          edge,
-          shrinkParent,
-        )
-
-        const change: LocationEndChange | LocationStartChange =
-          edge === 'max'
-            ? new LocationEndChange({
-                typeName: 'LocationEndChange',
-                changedIds: changes.map((c) => c.featureId),
-                changes: changes.map((c) => ({
-                  featureId: c.featureId,
-                  oldEnd: c.oldLocation,
-                  newEnd: c.newLocation,
-                })),
-                assembly,
-              })
-            : new LocationStartChange({
-                typeName: 'LocationStartChange',
-                changedIds: changes.map((c) => c.featureId),
-                changes: changes.map((c) => ({
-                  featureId: c.featureId,
-                  oldStart: c.oldLocation,
-                  newStart: c.newLocation,
-                })),
-                assembly,
-              })
-        void self.changeManager.submit(change)
-        self.setDragging()
-        self.setCursor()
-      },
-    }))
+        },
+      }
+    })
     .actions((self) => ({
       onMouseDown(event: CanvasMouseEvent) {
         const mousePosition = self.getMousePosition(event)
-        if (isMousePositionWithFeature(mousePosition)) {
-          const glyph = self.getGlyph(mousePosition.feature)
-          glyph.onMouseDown(self, mousePosition, event)
+        const features = self.getFeaturesAtMousePosition(mousePosition)
+        for (const feature of features.toReversed()) {
+          const glyph = self.getGlyph(feature)
+          if (glyph.isDraggable) {
+            // @ts-expect-error ts doesn't understand mst extension
+            const edge = isMouseOnFeatureEdge(mousePosition, feature, self)
+            if (edge) {
+              event.stopPropagation()
+              self.startDrag(mousePosition, feature, edge, true)
+              return
+            }
+          }
         }
       },
       onMouseMove(event: CanvasMouseEvent) {
@@ -223,35 +249,57 @@ export function mouseEventsModelFactory(
           self.continueDrag(mousePosition, event)
           return
         }
-        if (isMousePositionWithFeature(mousePosition)) {
-          const glyph = self.getGlyph(mousePosition.feature)
-          glyph.onMouseMove(self, mousePosition, event)
+        const features = self.getFeaturesAtMousePosition(mousePosition)
+        let topFeature = features.at(-1)
+        // TODO: can we get this special case for CDS to fit nicely in the glyph?
+        if (topFeature && isCDSFeature(topFeature, self.session)) {
+          const nextFeature = features.at(-2)
+          if (nextFeature && !isExonFeature(nextFeature, self.session)) {
+            topFeature = nextFeature
+          }
+        }
+        if (topFeature) {
+          self.setHoveredFeature({ feature: topFeature, bp: mousePosition.bp })
         } else {
           self.setHoveredFeature()
-          self.setCursor()
         }
+        for (const feature of features.toReversed()) {
+          const glyph = self.getGlyph(feature)
+          if (
+            glyph.isDraggable &&
+            // @ts-expect-error ts doesn't understand mst extension
+            isMouseOnFeatureEdge(mousePosition, feature, self)
+          ) {
+            self.setCursor('col-resize')
+            return
+          }
+        }
+        self.setCursor()
       },
-      onMouseLeave(event: CanvasMouseEvent) {
+      onMouseLeave() {
         self.setDragging()
         self.setHoveredFeature()
-
-        const mousePosition = self.getMousePosition(event)
-        if (isMousePositionWithFeature(mousePosition)) {
-          const glyph = self.getGlyph(mousePosition.feature)
-          glyph.onMouseLeave(self, mousePosition, event)
-        }
       },
       onMouseUp(event: CanvasMouseEvent) {
-        const mousePosition = self.getMousePosition(event)
-        if (isMousePositionWithFeature(mousePosition)) {
-          const glyph = self.getGlyph(mousePosition.feature)
-          glyph.onMouseUp(self, mousePosition, event)
-        } else {
-          self.setSelectedFeature()
-        }
-
         if (self.apolloDragging) {
           self.endDrag()
+          return
+        }
+        const mousePosition = self.getMousePosition(event)
+        const features = self.getFeaturesAtMousePosition(mousePosition)
+        let topFeature = features.at(-1)
+        // TODO: can we get this special case for CDS to fit nicely in the glyph?
+        if (topFeature && isCDSFeature(topFeature, self.session)) {
+          const nextFeature = features.at(-2)
+          if (nextFeature && !isExonFeature(nextFeature, self.session)) {
+            topFeature = nextFeature
+          }
+        }
+        if (topFeature) {
+          selectFeatureAndOpenWidget(self, topFeature)
+          self.setSelectedFeature(topFeature)
+        } else {
+          self.setSelectedFeature()
         }
       },
     }))
@@ -261,42 +309,87 @@ export function mouseEventsModelFactory(
           self,
           autorun(
             () => {
-              // This type is wrong in @jbrowse/core
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-              if (!self.lgv.initialized || self.regionCannotBeRendered()) {
+              const { lgv, overlayCanvas } = self
+              if (
+                !lgv.initialized ||
+                // This type is wrong in @jbrowse/core
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                self.regionCannotBeRendered() ||
+                !overlayCanvas
+              ) {
                 return
               }
-              const ctx = self.overlayCanvas?.getContext('2d')
+              const { dynamicBlocks, offsetPx } = lgv
+              const ctx = overlayCanvas.getContext('2d')
               if (!ctx) {
                 return
               }
-              ctx.clearRect(
-                0,
-                0,
-                self.lgv.dynamicBlocks.totalWidthPx,
-                self.featuresHeight,
-              )
-
+              ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height)
               const { apolloDragging, hoveredFeature } = self
               if (!hoveredFeature) {
                 return
               }
-              const glyph = self.getGlyph(hoveredFeature.feature)
+              const { feature } = hoveredFeature
+              const glyph = self.getGlyph(feature)
+              const row = self.getRowForFeature(feature)
+              if (row === undefined) {
+                return
+              }
 
-              // draw mouseover hovers
-              glyph.drawHover(self, ctx)
+              for (const block of dynamicBlocks.contentBlocks) {
+                const blockLeftPx = block.offsetPx - offsetPx
+                ctx.save()
+                ctx.beginPath()
+                ctx.rect(blockLeftPx, 0, block.widthPx, overlayCanvas.height)
+                ctx.clip()
+                if (
+                  block.assemblyName === feature.assemblyId &&
+                  doesIntersect2(
+                    block.start,
+                    block.end,
+                    feature.min,
+                    feature.max,
+                  )
+                ) {
+                  // draw mouseover hovers
+                  glyph.drawHover(
+                    // @ts-expect-error ts doesn't understand mst extension
+                    self,
+                    ctx,
+                    feature,
+                    row,
+                    block,
+                  )
+                }
+                if (apolloDragging) {
+                  const {
+                    current,
+                    start,
+                    feature: dragFeature,
+                  } = apolloDragging
+                  const dragMin = Math.min(current.bp, start.bp)
+                  const dragMax = Math.max(current.bp, start.bp)
+                  if (
+                    doesIntersect2(block.start, block.end, dragMin, dragMax)
+                  ) {
+                    const dragGlyph = self.getGlyph(dragFeature)
+                    const row = self.getRowForFeature(dragFeature)
 
-              // draw tooltip on hover
-              glyph.drawTooltip(self, ctx)
+                    if (row !== undefined) {
+                      // draw dragging previews
+                      dragGlyph.drawDragPreview(
+                        // @ts-expect-error ts doesn't understand mst extension
+                        self,
+                        ctx,
+                        dragFeature,
+                        row,
+                        block,
+                      )
+                    }
+                  }
+                }
 
-              // dragging previews
-              if (apolloDragging) {
-                // NOTE: the glyph where the drag started is responsible for drawing the preview.
-                // it can call methods in other glyphs to help with this though.
-                const glyph = self.getGlyph(
-                  apolloDragging.feature.topLevelFeature,
-                )
-                glyph.drawDragPreview(self, ctx)
+                ctx.restore()
               }
             },
             { name: 'LinearApolloDisplayRenderMouseoverAndDrag' },
