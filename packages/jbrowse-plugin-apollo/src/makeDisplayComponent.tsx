@@ -65,9 +65,16 @@ function scrollSelectedFeatureIntoView(
 ) {
   const { apolloRowHeight, selectedFeature } = model
   if (scrollContainerRef.current && selectedFeature) {
-    const position = model.getFeatureLayoutPosition(selectedFeature)
-    if (position) {
-      const row = position.layoutRow + position.featureRow
+    let row: number | undefined
+    if ('getFeatureLayoutPosition' in model) {
+      const position = model.getFeatureLayoutPosition(selectedFeature)
+      if (position) {
+        row = position.layoutRow + position.featureRow
+      }
+    } else {
+      row = model.getRowForFeature(selectedFeature)
+    }
+    if (row !== undefined) {
       const top = row * apolloRowHeight
       scrollContainerRef.current.scroll({ top, behavior: 'smooth' })
     }

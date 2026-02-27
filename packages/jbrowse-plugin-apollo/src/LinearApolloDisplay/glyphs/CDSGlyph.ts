@@ -6,18 +6,12 @@ import type { MenuItem } from '@jbrowse/core/ui'
 import { getFrame } from '@jbrowse/core/util'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
-import { type MousePositionWithFeature, isSelectedFeature } from '../../util'
+import { isSelectedFeature } from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
-import type { CanvasMouseEvent } from '../types'
 
 import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
-import {
-  drawHighlight,
-  getFeatureBox,
-  isMouseOnFeatureEdge,
-  strokeRectInner,
-} from './util'
+import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
 
 function drawCDSLocation(
   display: LinearApolloDisplay,
@@ -70,11 +64,12 @@ function draw(
   ctx: CanvasRenderingContext2D,
   cds: AnnotationFeature,
   row: number,
+  rowInFeature: number,
   block: ContentBlock,
 ) {
   const transcript = cds.parent
   if (!transcript) {
-    boxGlyph.draw(display, ctx, cds, row, block)
+    boxGlyph.draw(display, ctx, cds, row, 0, block)
     return
   }
   const { cdsLocations } = transcript
@@ -110,125 +105,26 @@ function drawHover(
   drawHighlight(display, overlayCtx, left, top, width, height)
 }
 
+function getLayout(display: LinearApolloDisplay, feature: AnnotationFeature) {
+  return {
+    byFeature: new Map([[feature._id, 0]]),
+    byRow: [[{ feature, rowInFeature: 0 }]],
+    min: feature.min,
+    max: feature.max,
+  }
+}
+
 function getRowCount() {
   return 1
 }
 
-function getFeaturesFromLayout(
-  _display: LinearApolloDisplay,
-  feature: AnnotationFeature,
-  bp: number,
-  row: number,
-) {
-  if (row > 0) {
-    return []
-  }
-  if (bp >= feature.min && bp <= feature.max) {
-    return [feature]
-  }
-  return []
-}
-
-function getRowForFeature(
-  _display: LinearApolloDisplay,
-  feature: AnnotationFeature,
-  childFeature: AnnotationFeature,
-) {
-  if (feature._id === childFeature._id) {
-    return 0
-  }
-  return
-}
-
-function getContextMenuItemsForFeature(): MenuItem[] {
-  return []
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// sourceFeature: AnnotationFeature,
-
 function getContextMenuItems(): MenuItem[] {
   return []
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-
-function onMouseDown(
-  stateModel: LinearApolloDisplay,
-  mousePosition: MousePositionWithFeature,
-  event: CanvasMouseEvent,
-) {
-  const { feature } = mousePosition
-  // swallow the mouseDown if we are on the edge of the feature so that we
-  // don't start dragging the view if we try to drag the feature edge
-  const edge = isMouseOnFeatureEdge(mousePosition, feature, stateModel)
-  if (edge) {
-    event.stopPropagation()
-    stateModel.startDrag(mousePosition, feature, edge)
-  }
-  const transcript = feature.parent
-  if (!transcript) {
-    return
-  }
-  const { cdsLocations } = transcript
-  const thisCDSLocations = cdsLocations.find((loc) => {
-    const min = loc.at(feature.strand === 1 ? 0 : -1)?.min
-    const max = loc.at(feature.strand === 1 ? -1 : 0)?.max
-    return feature.min === min && feature.max === max
-  })
-  if (!thisCDSLocations) {
-    return
-  }
-  for (const cdsLocation of thisCDSLocations) {
-    const edge = isMouseOnFeatureEdge(mousePosition, cdsLocation, stateModel)
-    if (edge) {
-      event.stopPropagation()
-      stateModel.startDrag(mousePosition, feature, edge)
-      return
-    }
-  }
-}
-
-function onMouseMove(
-  stateModel: LinearApolloDisplay,
-  mousePosition: MousePositionWithFeature,
-  event: CanvasMouseEvent,
-) {
-  const { feature, bp } = mousePosition
-  stateModel.setHoveredFeature({ feature, bp })
-  const edge = isMouseOnFeatureEdge(mousePosition, feature, stateModel)
-  if (edge) {
-    stateModel.setCursor('col-resize')
-    return
-  }
-  const transcript = feature.parent
-  if (!transcript) {
-    boxGlyph.onMouseMove(stateModel, mousePosition, event)
-    return
-  }
-  const { cdsLocations } = transcript
-  const thisCDSLocations = cdsLocations.find((loc) => {
-    const min = loc.at(feature.strand === 1 ? 0 : -1)?.min
-    const max = loc.at(feature.strand === 1 ? -1 : 0)?.max
-    return feature.min === min && feature.max === max
-  })
-  if (!thisCDSLocations) {
-    return
-  }
-  for (const cdsLocation of thisCDSLocations) {
-    const edge = isMouseOnFeatureEdge(mousePosition, cdsLocation, stateModel)
-    if (edge) {
-      stateModel.setCursor('col-resize')
-      return
-    }
-  }
-  stateModel.setCursor()
 }
 
 // False positive here, none of these functions use "this"
 /* eslint-disable @typescript-eslint/unbound-method */
-const { drawDragPreview, onMouseLeave, onMouseUp } = boxGlyph
+const { drawDragPreview } = boxGlyph
 /* eslint-enable @typescript-eslint/unbound-method */
 
 export const cdsGlyph: Glyph = {
@@ -236,12 +132,6 @@ export const cdsGlyph: Glyph = {
   drawDragPreview,
   drawHover,
   getContextMenuItems,
-  getContextMenuItemsForFeature,
-  getFeaturesFromLayout,
-  getRowCount,
-  getRowForFeature,
-  onMouseDown,
-  onMouseLeave,
-  onMouseMove,
-  onMouseUp,
+  getLayout,
+  isDraggable: true,
 }

@@ -1,8 +1,12 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type { MenuItem } from '@jbrowse/core/ui'
+import {
+  type AbstractSessionModel,
+  isSessionModelWithWidgets,
+} from '@jbrowse/core/util'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
-import type { MousePositionWithFeature } from '../../util'
+import { MergeTranscripts } from '../../components'
 import {
   isCDSFeature,
   isExonFeature,
@@ -11,9 +15,7 @@ import {
 import type { LinearApolloDisplay } from '../stateModel'
 
 import { boxGlyph } from './BoxGlyph'
-import { cdsGlyph } from './CDSGlyph'
-import { exonGlyph } from './ExonGlyph'
-import type { Glyph } from './Glyph'
+import type { Glyph, LayoutRow } from './Glyph'
 import { drawHighlight, getFeatureBox, getLeftPx } from './util'
 
 function* range(start: number, stop: number, step = 1): Generator<number> {
@@ -98,63 +100,8 @@ function getNonExonChildren(
   )
 }
 
-interface LayoutRowFeature {
-  feature: AnnotationFeature
-  glyph: Glyph
-  rowInFeature: number
-}
-
-type LayoutRow = LayoutRowFeature[]
-
-function getLayoutRows(
-  display: LinearApolloDisplay,
-  transcript: AnnotationFeature,
-): LayoutRow[] {
-  const { children } = transcript
-  if (!children) {
-    return []
-  }
-  const rows: LayoutRow[] = []
-  const exons = getExonChildren(display, transcript)
-  const nonExonChildren = getNonExonChildren(display, transcript)
-  // Usually non-coding (no CDS) transcript
-  if (nonExonChildren.length === 0) {
-    const row: LayoutRow = []
-    for (const exon of exons) {
-      row.push({ feature: exon, glyph: exonGlyph, rowInFeature: 0 })
-    }
-    rows.push(row)
-    return rows
-  }
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  const { getGlyph, session } = display
-  let extraOffset = 0
-  for (const [idx, child] of nonExonChildren.entries()) {
-    const row: LayoutRow = []
-    if (isCDSFeature(child, session)) {
-      for (const exon of exons) {
-        row.push({
-          feature: exon,
-          glyph: exonGlyph,
-          rowInFeature: idx + extraOffset,
-        })
-      }
-      row.push({
-        feature: child,
-        glyph: cdsGlyph,
-        rowInFeature: idx + extraOffset,
-      })
-    } else {
-      const glyph = getGlyph(child)
-      const rowCount = glyph.getRowCount(display, child)
-      for (let i = 0; i < rowCount; i++) {
-        row.push({ feature: child, glyph, rowInFeature: i })
-      }
-      extraOffset += rowCount - 1
-    }
-    rows.push(row)
-  }
-  return rows
+function getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature) {
+  return getLayout(display, feature).byRow.length
 }
 
 function draw(
@@ -162,23 +109,10 @@ function draw(
   ctx: CanvasRenderingContext2D,
   transcript: AnnotationFeature,
   row: number,
+  rowInFeature: number,
   block: ContentBlock,
 ) {
-  const rows = getLayoutRows(display, transcript)
-  if (rows.length === 0) {
-    drawTranscriptLine(display, ctx, transcript, row, block)
-    return
-  }
-  for (const [idx, layoutRow] of rows.entries()) {
-    drawTranscriptLine(display, ctx, transcript, row + idx, block)
-    for (const layoutFeature of layoutRow) {
-      const { feature, glyph, rowInFeature } = layoutFeature
-      if (rowInFeature > 1) {
-        continue
-      }
-      glyph.draw(display, ctx, feature, row + rowInFeature, block)
-    }
-  }
+  drawTranscriptLine(display, ctx, transcript, row, block)
   const { apolloRowHeight, selectedFeature } = display
   if (isSelectedFeature(transcript, selectedFeature)) {
     const [top, left, width] = getFeatureBox(display, transcript, row, block)
@@ -200,106 +134,114 @@ function drawHover(
   drawHighlight(display, overlayCtx, left, top, width, height)
 }
 
-function getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature) {
-  const rows = getLayoutRows(display, feature)
-  if (rows.length === 0) {
-    return 1
+function getLayout(display: LinearApolloDisplay, feature: AnnotationFeature) {
+  const layout = {
+    byFeature: new Map([[feature._id, 0]]),
+    byRow: [[{ feature, rowInFeature: 0 }]],
+    min: feature.min,
+    max: feature.max,
   }
-  return rows.length
+  const { children } = feature
+  if (!children) {
+    return layout
+  }
+  layout.byRow = []
+  const exons = getExonChildren(display, feature)
+  const nonExonChildren = getNonExonChildren(display, feature)
+  layout.byFeature.set(feature._id, 0)
+  // Usually non-coding (no CDS) transcript
+  if (nonExonChildren.length === 0) {
+    const row: LayoutRow = []
+    row.push({ feature, rowInFeature: 0 })
+    for (const exon of exons) {
+      row.push({ feature: exon, rowInFeature: 0 })
+      layout.byFeature.set(exon._id, 0)
+    }
+    layout.byRow.push(row)
+    return layout
+  }
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  const { getGlyph, session } = display
+  let extraOffset = 0
+  for (const [idx, child] of nonExonChildren.entries()) {
+    const row: LayoutRow = []
+    row.push({ feature, rowInFeature: idx + extraOffset })
+    if (isCDSFeature(child, session)) {
+      for (const exon of exons) {
+        row.push({ feature: exon, rowInFeature: extraOffset })
+        layout.byFeature.set(exon._id, extraOffset)
+      }
+      row.push({ feature: child, rowInFeature: extraOffset })
+      layout.byFeature.set(child._id, extraOffset)
+    } else {
+      const glyph = getGlyph(child)
+      const rowCount = glyph.getLayout(display, child).byRow.length
+      for (let i = 0; i < rowCount; i++) {
+        row.push({ feature: child, rowInFeature: i })
+        layout.byFeature.set(child._id, i)
+      }
+      extraOffset += rowCount - 1
+    }
+    layout.byRow.push(row)
+  }
+  return layout
 }
 
-function getFeaturesFromLayout(
-  display: LinearApolloDisplay,
-  transcript: AnnotationFeature,
-  bp: number,
-  row: number,
-) {
-  const layoutRow = getLayoutRows(display, transcript).at(row)
-  if (!layoutRow) {
-    return []
-  }
-  // If it's in an intron, order is transcript -> CDS
-  // Then if it's in an exon and the CDS, order is CDS -> exon -> transcript
-  // Then if it's in an exon, order is exon -> transcript
-  const isInTranscript = bp >= transcript.min && bp <= transcript.max
-  if (!isInTranscript) {
-    return []
-  }
-  const { session } = display
-  const matchingExonLayout = layoutRow.find((layoutRowFeature) => {
-    const { feature } = layoutRowFeature
-    const isExon = isExonFeature(feature, session)
-    if (!isExon) {
-      return false
-    }
-    return bp >= feature.min && bp <= feature.max
-  })
-  const matchingCDSLayout = layoutRow.find((layoutRowFeature) => {
-    const { feature } = layoutRowFeature
-    const isCDS = isCDSFeature(feature, session)
-    if (!isCDS) {
-      return false
-    }
-    return bp >= feature.min && bp <= feature.max
-  })
-  if (!matchingExonLayout) {
-    if (!matchingCDSLayout) {
-      return [transcript]
-    }
-    return [transcript, matchingCDSLayout.feature]
-  }
-  if (matchingCDSLayout) {
-    return [matchingCDSLayout.feature, matchingExonLayout.feature]
-  }
-  return [matchingExonLayout.feature]
-}
-
-function getRowForFeature(
+function getContextMenuItems(
   display: LinearApolloDisplay,
   feature: AnnotationFeature,
-  childFeature: AnnotationFeature,
-) {
-  const rows = getLayoutRows(display, feature)
-  for (const [idx, row] of rows.entries()) {
-    for (const rowFeature of row) {
-      if (rowFeature.feature._id === childFeature._id) {
-        return idx
-      }
-    }
+): MenuItem[] {
+  const { changeManager, regions, selectedFeature, session } = display
+  const [region] = regions
+  const currentAssemblyId = display.getAssemblyId(region.assemblyName)
+  const menuItems: MenuItem[] = []
+  if (isSessionModelWithWidgets(session)) {
+    menuItems.splice(1, 0, {
+      label: 'Open transcript editor',
+      onClick: () => {
+        const apolloTranscriptWidget = session.addWidget(
+          'ApolloTranscriptDetails',
+          'apolloTranscriptDetails',
+          {
+            feature,
+            assembly: currentAssemblyId,
+            changeManager,
+            refName: region.refName,
+          },
+        )
+        session.showWidget(apolloTranscriptWidget)
+      },
+    })
   }
-  return
-}
-
-function getContextMenuItemsForFeature(): MenuItem[] {
-  return []
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// sourceFeature: AnnotationFeature,
-
-function getContextMenuItems(): MenuItem[] {
-  return []
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-
-// Genes are not draggable, only the underlying exons and CDS are
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-function onMouseDown() {}
-
-function onMouseMove(
-  stateModel: LinearApolloDisplay,
-  mousePosition: MousePositionWithFeature,
-) {
-  const { feature, bp } = mousePosition
-  stateModel.setHoveredFeature({ feature, bp })
-  stateModel.setCursor()
+  menuItems.push({
+    label: 'Merge transcript',
+    onClick: () => {
+      ;(session as unknown as AbstractSessionModel).queueDialog(
+        (doneCallback) => [
+          MergeTranscripts,
+          {
+            session,
+            handleClose: () => {
+              doneCallback()
+            },
+            changeManager,
+            sourceFeature: feature,
+            sourceAssemblyId: currentAssemblyId,
+            selectedFeature,
+            setSelectedFeature: (feature?: AnnotationFeature) => {
+              display.setSelectedFeature(feature)
+            },
+          },
+        ],
+      )
+    },
+  })
+  return menuItems
 }
 
 // False positive here, none of these functions use "this"
 /* eslint-disable @typescript-eslint/unbound-method */
-const { drawDragPreview, onMouseLeave, onMouseUp } = boxGlyph
+const { drawDragPreview } = boxGlyph
 /* eslint-enable @typescript-eslint/unbound-method */
 
 export const transcriptGlyph: Glyph = {
@@ -307,12 +249,6 @@ export const transcriptGlyph: Glyph = {
   drawDragPreview,
   drawHover,
   getContextMenuItems,
-  getContextMenuItemsForFeature,
-  getFeaturesFromLayout,
-  getRowCount,
-  getRowForFeature,
-  onMouseDown,
-  onMouseLeave,
-  onMouseMove,
-  onMouseUp,
+  getLayout,
+  isDraggable: false,
 }

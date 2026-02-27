@@ -1,25 +1,33 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
+import type { BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
 import type { MenuItem } from '@jbrowse/core/ui'
+import {
+  type AbstractSessionModel,
+  getContainingView,
+} from '@jbrowse/core/util'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 
-import { type MousePositionWithFeature, isSelectedFeature } from '../../util'
+import { MergeExons, SplitExon } from '../../components'
+import {
+  getAdjacentExons,
+  getStreamIcon,
+  isSelectedFeature,
+  navToFeatureCenter,
+  selectFeatureAndOpenWidget,
+} from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
-import type { CanvasMouseEvent } from '../types'
 
 import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
-import {
-  drawHighlight,
-  getFeatureBox,
-  isMouseOnFeatureEdge,
-  strokeRectInner,
-} from './util'
+import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
 
 function draw(
   display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
   exon: AnnotationFeature,
   row: number,
+  rowInFeature: number,
   block: ContentBlock,
 ) {
   const { apolloRowHeight, canvasPatterns, selectedFeature, theme } = display
@@ -67,68 +75,121 @@ function drawHover(
   drawHighlight(display, overlayCtx, left, top, width, height)
 }
 
-function getRowCount() {
-  return 1
+function getLayout(display: LinearApolloDisplay, feature: AnnotationFeature) {
+  return {
+    byFeature: new Map([[feature._id, 0]]),
+    byRow: [[{ feature, rowInFeature: 0 }]],
+    min: feature.min,
+    max: feature.max,
+  }
 }
 
-function getFeaturesFromLayout(
-  _display: LinearApolloDisplay,
+function getContextMenuItems(
+  display: LinearApolloDisplay,
   feature: AnnotationFeature,
-  bp: number,
-  row: number,
-) {
-  if (row > 0) {
-    return []
+): MenuItem[] {
+  const {
+    apolloInternetAccount: internetAccount,
+    changeManager,
+    regions,
+    selectedFeature,
+    session,
+  } = display
+  const [region] = regions
+  const currentAssemblyId = display.getAssemblyId(region.assemblyName)
+  const role = internetAccount ? internetAccount.role : 'admin'
+  const admin = role === 'admin'
+  const menuItems: MenuItem[] = []
+  const adjacentExons = getAdjacentExons(feature, display)
+  const lgv = getContainingView(
+    display as BaseDisplayModel,
+  ) as unknown as LinearGenomeViewModel
+  if (adjacentExons.upstream) {
+    const exon = adjacentExons.upstream
+    menuItems.push({
+      label: 'Go to upstream exon',
+      icon: getStreamIcon(
+        feature.strand,
+        true,
+        lgv.displayedRegions.at(0)?.reversed,
+      ),
+      onClick: () => {
+        lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
+        selectFeatureAndOpenWidget(display, exon)
+      },
+    })
   }
-  if (bp >= feature.min && bp <= feature.max) {
-    return [feature]
+  if (adjacentExons.downstream) {
+    const exon = adjacentExons.downstream
+    menuItems.push({
+      label: 'Go to downstream exon',
+      icon: getStreamIcon(
+        feature.strand,
+        false,
+        lgv.displayedRegions.at(0)?.reversed,
+      ),
+      onClick: () => {
+        lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
+        selectFeatureAndOpenWidget(display, exon)
+      },
+    })
   }
-  return []
-}
-
-function getRowForFeature(
-  _display: LinearApolloDisplay,
-  feature: AnnotationFeature,
-  childFeature: AnnotationFeature,
-) {
-  if (feature._id === childFeature._id) {
-    return 0
-  }
-  return
-}
-
-function getContextMenuItemsForFeature(): MenuItem[] {
-  return []
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// sourceFeature: AnnotationFeature,
-
-function getContextMenuItems(): MenuItem[] {
-  return []
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-
-function onMouseDown(
-  stateModel: LinearApolloDisplay,
-  mousePosition: MousePositionWithFeature,
-  event: CanvasMouseEvent,
-) {
-  const { feature } = mousePosition
-  // swallow the mouseDown if we are on the edge of the feature so that we
-  // don't start dragging the view if we try to drag the feature edge
-  const edge = isMouseOnFeatureEdge(mousePosition, feature, stateModel)
-  if (edge) {
-    event.stopPropagation()
-    stateModel.startDrag(mousePosition, feature, edge, true)
-  }
+  menuItems.push(
+    {
+      label: 'Merge exons',
+      disabled: !admin,
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            MergeExons,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature: feature,
+              sourceAssemblyId: currentAssemblyId,
+              selectedFeature,
+              setSelectedFeature: (feature?: AnnotationFeature) => {
+                display.setSelectedFeature(feature)
+              },
+            },
+          ],
+        )
+      },
+    },
+    {
+      label: 'Split exon',
+      disabled: !admin,
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            SplitExon,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature: feature,
+              sourceAssemblyId: currentAssemblyId,
+              selectedFeature,
+              setSelectedFeature: (feature?: AnnotationFeature) => {
+                display.setSelectedFeature(feature)
+              },
+            },
+          ],
+        )
+      },
+    },
+  )
+  return menuItems
 }
 
 // False positive here, none of these functions use "this"
 /* eslint-disable @typescript-eslint/unbound-method */
-const { drawDragPreview, onMouseMove, onMouseLeave, onMouseUp } = boxGlyph
+const { drawDragPreview } = boxGlyph
 /* eslint-enable @typescript-eslint/unbound-method */
 
 export const exonGlyph: Glyph = {
@@ -136,12 +197,6 @@ export const exonGlyph: Glyph = {
   drawDragPreview,
   drawHover,
   getContextMenuItems,
-  getContextMenuItemsForFeature,
-  getFeaturesFromLayout,
-  getRowCount,
-  getRowForFeature,
-  onMouseDown,
-  onMouseLeave,
-  onMouseMove,
-  onMouseUp,
+  getLayout,
+  isDraggable: true,
 }

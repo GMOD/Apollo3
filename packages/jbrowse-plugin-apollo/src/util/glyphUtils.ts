@@ -3,11 +3,9 @@ import type {
   Children,
   TranscriptPartCoding,
 } from '@apollo-annotation/mst'
-import type { BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
 import type { MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
-  getContainingView,
   isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
@@ -18,8 +16,6 @@ import type { LinearApolloDisplayMouseEvents } from '../LinearApolloDisplay/stat
 import type { LinearApolloSixFrameDisplayMouseEvents } from '../LinearApolloSixFrameDisplay/stateModel/mouseEvents'
 import { AddChildFeature, CopyFeature, DeleteFeature } from '../components'
 import type { ApolloSessionModel } from '../session'
-
-import type { MousePositionWithFeature } from '.'
 
 type NavLocation = Parameters<LinearGenomeViewModel['navTo']>[0]
 
@@ -154,16 +150,8 @@ export function getAdjacentExons(
   display:
     | LinearApolloDisplayMouseEvents
     | LinearApolloSixFrameDisplayMouseEvents,
-  mousePosition: MousePositionWithFeature,
-  session: ApolloSessionModel,
 ): AdjacentExons {
-  const lgv = getContainingView(
-    display as BaseDisplayModel,
-  ) as unknown as LinearGenomeViewModel
-
   // Genomic coords of current view
-  const viewGenomicLeft = mousePosition.bp - lgv.bpPerPx * mousePosition.x
-  const viewGenomicRight = viewGenomicLeft + lgv.coarseTotalBp
   if (!currentExon.parent) {
     return { upstream: undefined, downstream: undefined }
   }
@@ -171,7 +159,8 @@ export function getAdjacentExons(
   if (!transcript.children) {
     throw new Error(`Error getting children of ${transcript._id}`)
   }
-  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  const { featureTypeOntology } =
+    display.session.apolloDataStore.ontologyManager
   if (!featureTypeOntology) {
     throw new Error('featureTypeOntology is undefined')
   }
@@ -188,14 +177,14 @@ export function getAdjacentExons(
   }
   exons = exons.sort((a, b) => (a.min < b.min ? -1 : 1))
   for (const exon of exons) {
-    if (exon.min > viewGenomicRight) {
+    if (exon.min > currentExon.max) {
       adjacentExons.downstream = exon
       break
     }
   }
   exons = exons.sort((a, b) => (a.min > b.min ? -1 : 1))
   for (const exon of exons) {
-    if (exon.max < viewGenomicLeft) {
+    if (exon.max < currentExon.min) {
       adjacentExons.upstream = exon
       break
     }

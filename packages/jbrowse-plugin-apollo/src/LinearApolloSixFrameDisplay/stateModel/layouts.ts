@@ -170,7 +170,7 @@ export function layoutsModelFactory(
                         ? [0, 5, 3, 1, 15, 13, 11]
                         : [0, 2, 1, 0, 8, 7, 6]
                       const rowNum = frameOffsets.at(frame)
-                      if (!rowNum) {
+                      if (rowNum === undefined) {
                         continue
                       }
                       if (!featureLayout.get(rowNum)) {
