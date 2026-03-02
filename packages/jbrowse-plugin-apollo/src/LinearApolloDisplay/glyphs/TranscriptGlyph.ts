@@ -52,8 +52,12 @@ function drawTranscriptLine(
   // If view is reversed, draw forward as reverse and vice versa
   const effectiveStrand = strand * (reversed ? -1 : 1)
   // Draw the transcript line, and extend it out a bit on the 3` end
-  const lineStart = left - (effectiveStrand === -1 ? 5 : 0)
-  const lineEnd = left + width + (effectiveStrand === -1 ? 0 : 5)
+  let lineStart = left - (effectiveStrand === -1 ? 5 : 0)
+  let lineEnd = left + width + (effectiveStrand === -1 ? 0 : 5)
+  // Limit the transcript line to the width of the screen to avoid drawing
+  // too many arrows
+  lineStart = Math.max(lineStart, 0)
+  lineEnd = Math.min(lineEnd, globalThis.innerWidth)
   ctx.moveTo(lineStart, top)
   ctx.lineTo(lineEnd, top)
   // Now to draw arrows every 20 pixels along the line
