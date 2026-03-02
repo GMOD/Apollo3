@@ -276,7 +276,7 @@ export function mouseEventsModelFactory(
         }
         self.setCursor()
       },
-      onMouseLeave() {
+      onMouseLeave(_event: CanvasMouseEvent) {
         self.setDragging()
         self.setHoveredFeature()
       },
