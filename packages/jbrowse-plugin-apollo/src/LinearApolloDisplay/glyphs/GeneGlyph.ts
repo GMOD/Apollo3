@@ -976,7 +976,7 @@ function getContextMenuItems(
             },
           },
           {
-            label: 'Duplicate transcript',
+            label: 'Duplicate feature',
             onClick: () => {
               ;(session as unknown as AbstractSessionModel).queueDialog(
                 (doneCallback) => [
