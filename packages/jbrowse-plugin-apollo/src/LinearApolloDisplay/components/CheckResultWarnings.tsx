@@ -52,11 +52,7 @@ export const CheckResultWarnings = observer(function CheckResultWarnings({
       if (!feature) {
         return null
       }
-      let row = 0
-      const featureLayout = display.getFeatureLayoutPosition(feature)
-      if (featureLayout) {
-        row = featureLayout.layoutRow + featureLayout.featureRow
-      }
+      const row = display.getRowForFeature(feature) ?? 0
       const top = row * apolloRowHeight
       const height = apolloRowHeight
       return (
