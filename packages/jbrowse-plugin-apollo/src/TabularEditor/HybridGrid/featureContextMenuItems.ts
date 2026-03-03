@@ -11,6 +11,7 @@ import {
   AddChildFeature,
   CopyFeature,
   DeleteFeature,
+  DuplicateTranscript,
   MergeExons,
   MergeTranscripts,
   SplitExon,
@@ -212,6 +213,27 @@ export function featureContextMenuItems(
               },
             )
             session.showWidget(apolloTranscriptWidget)
+          },
+        },
+        {
+          label: 'Duplicate feature',
+          onClick: () => {
+            ;(session as unknown as AbstractSessionModel).queueDialog(
+              (doneCallback) => [
+                DuplicateTranscript,
+                {
+                  session,
+                  handleClose: () => {
+                    doneCallback()
+                  },
+                  changeManager,
+                  sourceFeature: feature,
+                  sourceAssemblyId: currentAssemblyId,
+                  selectedFeature,
+                  setSelectedFeature,
+                },
+              ],
+            )
           },
         },
         {
