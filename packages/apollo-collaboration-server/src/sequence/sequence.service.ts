@@ -36,6 +36,11 @@ const adapterLRU = new QuickLRU<string, AdapterCache>({
   },
 })
 
+const refSeqDocLRU = new QuickLRU<string, RefSeqDocument>({
+  maxSize: 100,
+  maxAge: 24 * 60 * 60 * 1000,
+})
+
 @Injectable()
 export class SequenceService {
   constructor(
@@ -52,9 +57,15 @@ export class SequenceService {
   private readonly logger = new Logger(SequenceService.name)
 
   async getSequence({ end, refSeq: refSeqId, start }: GetSequenceDto) {
-    const refSeq = await this.refSeqModel.findById(refSeqId)
+    let refSeq: RefSeqDocument | null | undefined = refSeqDocLRU.get(
+      String(refSeqId),
+    )
     if (!refSeq) {
-      throw new Error(`RefSeq "${refSeqId}" not found`)
+      refSeq = await this.refSeqModel.findById(refSeqId)
+      if (!refSeq) {
+        throw new Error(`RefSeq "${refSeqId}" not found`)
+      }
+      refSeqDocLRU.set(String(refSeqId), refSeq)
     }
 
     const { assembly, chunkSize, name } = refSeq
