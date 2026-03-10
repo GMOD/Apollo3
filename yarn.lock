@@ -424,6 +424,7 @@ __metadata:
     passport-local: "npm:^1.0.0"
     passport-microsoft: "npm:^1.0.0"
     prop-types: "npm:^15.8.1"
+    quick-lru: "npm:^7.3.0"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     reflect-metadata: "npm:^0.1.13"
@@ -28800,6 +28801,13 @@ __metadata:
   version: 5.1.1
   resolution: "quick-lru@npm:5.1.1"
   checksum: 10c0/a24cba5da8cec30d70d2484be37622580f64765fb6390a928b17f60cd69e8dbd32a954b3ff9176fa1b86d86ff2ba05252fae55dc4d40d0291c60412b0ad096da
+  languageName: node
+  linkType: hard
+
+"quick-lru@npm:^7.3.0":
+  version: 7.3.0
+  resolution: "quick-lru@npm:7.3.0"
+  checksum: 10c0/28dc8eaadcd489d26917f238ad27a6b09f8fe3a609152b0a4f399d5805094e07b56fe1e8c0d7ade0c11463c31bef329803672effc559601daf160a85f578fd05
   languageName: node
   linkType: hard
 

@@ -11,13 +11,30 @@ import {
 import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { RemoteFile } from 'generic-filehandle2'
+import { type GenericFilehandle, RemoteFile } from 'generic-filehandle2'
 import { Model } from 'mongoose'
+import QuickLRU from 'quick-lru'
 
 import { AssembliesService } from '../assemblies/assemblies.service.js'
 import { FilesService } from '../files/files.service.js'
 
 import { GetSequenceDto } from './dto/get-sequence.dto.js'
+
+interface AdapterCache {
+  adapter: IndexedFasta | BgzipIndexedFasta
+  fileHandles: GenericFilehandle[]
+}
+
+const adapterLRU = new QuickLRU<string, AdapterCache>({
+  maxSize: 100,
+  maxAge: 24 * 60 * 60 * 1000,
+  onEviction(key, adapter) {
+    const { fileHandles } = adapter
+    for (const fileHandle of fileHandles) {
+      void fileHandle.close()
+    }
+  },
+})
 
 @Injectable()
 export class SequenceService {
@@ -47,17 +64,34 @@ export class SequenceService {
 
     if (assemblyDoc.externalLocation) {
       const { fa, fai, gzi } = assemblyDoc.externalLocation
+      const adapterCacheEntry = adapterLRU.get(fa)
+      let sequenceAdapter = adapterCacheEntry?.adapter
 
-      const sequenceAdapter = gzi
-        ? new BgzipIndexedFasta({
-            fasta: new RemoteFile(fa, { fetch }),
-            fai: new RemoteFile(fai, { fetch }),
-            gzi: new RemoteFile(gzi, { fetch }),
+      if (!sequenceAdapter) {
+        const fastaHandle = new RemoteFile(fa, { fetch })
+        const faiHandle = new RemoteFile(fa, { fetch })
+        if (gzi) {
+          const gziHandle = new RemoteFile(fa, { fetch })
+          sequenceAdapter = new BgzipIndexedFasta({
+            fasta: fastaHandle,
+            fai: faiHandle,
+            gzi: gziHandle,
           })
-        : new IndexedFasta({
-            fasta: new RemoteFile(fa, { fetch }),
+          adapterLRU.set(fa, {
+            adapter: sequenceAdapter,
+            fileHandles: [fastaHandle, faiHandle, gziHandle],
+          })
+        } else {
+          sequenceAdapter = new IndexedFasta({
+            fasta: fastaHandle,
             fai: new RemoteFile(fai, { fetch }),
           })
+          adapterLRU.set(fa, {
+            adapter: sequenceAdapter,
+            fileHandles: [fastaHandle, faiHandle],
+          })
+        }
+      }
       const sequence = await sequenceAdapter.getSequence(name, start, end)
       if (sequence === undefined) {
         throw new Error('Sequence not found')
@@ -67,29 +101,37 @@ export class SequenceService {
 
     if (assemblyDoc.fileIds?.fai) {
       const { fa: faId, fai: faiId, gzi: gziId } = assemblyDoc.fileIds
-      const faDoc = await this.fileModel.findById(faId)
-      if (!faDoc) {
-        throw new Error(`No checksum for file document ${faId}`)
-      }
+      const adapterCacheEntry = adapterLRU.get(String(faId))
+      let sequenceAdapter = adapterCacheEntry?.adapter
+      if (!sequenceAdapter) {
+        const faDoc = await this.fileModel.findById(faId)
+        if (!faDoc) {
+          throw new Error(`No checksum for file document ${faId}`)
+        }
 
-      const faiDoc = await this.fileModel.findById(faiId)
-      if (!faiDoc) {
-        throw new Error(`File document not found for ${faiId}`)
-      }
+        const faiDoc = await this.fileModel.findById(faiId)
+        if (!faiDoc) {
+          throw new Error(`File document not found for ${faiId}`)
+        }
 
-      const gziDoc = await this.fileModel.findById(gziId)
-      if (!gziDoc) {
-        throw new Error(`File document not found for ${gziId}`)
-      }
+        const gziDoc = await this.fileModel.findById(gziId)
+        if (!gziDoc) {
+          throw new Error(`File document not found for ${gziId}`)
+        }
 
-      const fasta = this.filesService.getFileHandle(faDoc)
-      const fai = this.filesService.getFileHandle(faiDoc)
-      const gzi = gziId ? this.filesService.getFileHandle(gziDoc) : undefined
-      const sequenceAdapter = gziId
-        ? new BgzipIndexedFasta({ fasta, fai, gzi })
-        : new IndexedFasta({ fasta, fai })
+        const fasta = this.filesService.getFileHandle(faDoc)
+        const fai = this.filesService.getFileHandle(faiDoc)
+        const gzi = gziId ? this.filesService.getFileHandle(gziDoc) : undefined
+        sequenceAdapter = gziId
+          ? new BgzipIndexedFasta({ fasta, fai, gzi })
+          : new IndexedFasta({ fasta, fai })
+        const fileHandles = [fasta, fai]
+        if (gzi) {
+          fileHandles.push(gzi)
+        }
+        adapterLRU.set(String(faId), { adapter: sequenceAdapter, fileHandles })
+      }
       const sequence = await sequenceAdapter.getSequence(name, start, end)
-      await Promise.all([fasta.close(), fai.close(), gzi?.close()])
       if (sequence === undefined) {
         throw new Error('Sequence not found')
       }
