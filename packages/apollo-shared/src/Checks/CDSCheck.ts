@@ -99,12 +99,10 @@ function getOriginalCodonLocation(
   index: number,
 ): [number, number] | undefined {
   // Index 0 is the start codon, so reverse the CDS locations if strand is -1
-  const sortedLocation: CDSLocation = structuredClone(cdsLocation)
-  if (strand === -1) {
-    sortedLocation.sort((a, b) => (a.min < b.min ? 1 : -1))
-  } else {
-    sortedLocation.sort((a, b) => (a.min < b.min ? -1 : 1))
-  }
+  const sortedLocation =
+    strand === -1
+      ? cdsLocation.toSorted((a, b) => (a.min < b.min ? 1 : -1))
+      : cdsLocation.toSorted((a, b) => (a.min < b.min ? -1 : 1))
   let i = 0
   let currentStart: number | undefined = undefined
   let currentEnd: number | undefined = undefined
