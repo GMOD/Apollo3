@@ -20,7 +20,7 @@ import type {
   FilehandleOptions,
   GenericFilehandle,
   Stats,
-} from 'generic-filehandle'
+} from 'generic-filehandle2'
 
 interface FileUpload {
   originalname: string
@@ -116,20 +116,11 @@ export class LocalFileGzip implements GenericFilehandle {
     this.contents = fhPromise.then((fh) => unzip(fh))
   }
 
-  public async read(
-    buffer: Buffer,
-    offset = 0,
-    length: number,
-    position = 0,
-  ): Promise<{ bytesRead: number; buffer: Buffer }> {
+  public async read(length: number, position = 0): Promise<Buffer> {
+    const buffer = Buffer.alloc(length)
     const unzippedContents = await this.contents
-    const bytesRead = unzippedContents.copy(
-      buffer,
-      offset,
-      position,
-      position + length,
-    )
-    return { bytesRead, buffer }
+    unzippedContents.copy(buffer, 0, position, position + length)
+    return buffer
   }
 
   public async readFile(

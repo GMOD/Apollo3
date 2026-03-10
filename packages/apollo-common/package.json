@@ -24,7 +24,7 @@
     "@nestjs/common": "^10.1.0",
     "@nestjs/core": "^10.1.0",
     "@types/node": "^24.10.9",
-    "generic-filehandle": "^3.0.0",
+    "generic-filehandle2": "^2.0.18",
     "mongoose": "^6.12.0",
     "typescript": "^5.5.3"
   },

@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
-import { type GenericFilehandle, LocalFile } from 'generic-filehandle'
+import { type GenericFilehandle, LocalFile } from 'generic-filehandle2'
 import { Model } from 'mongoose'
 
 import { CreateFileDto } from './dto/create-file.dto.js'

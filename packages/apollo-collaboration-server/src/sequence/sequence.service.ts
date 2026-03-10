@@ -11,7 +11,7 @@ import {
 import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { RemoteFile } from 'generic-filehandle'
+import { RemoteFile } from 'generic-filehandle2'
 import { Model } from 'mongoose'
 
 import { AssembliesService } from '../assemblies/assemblies.service.js'

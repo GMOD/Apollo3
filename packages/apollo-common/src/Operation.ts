@@ -15,7 +15,7 @@ import type {
 } from '@apollo-annotation/schemas'
 import type { GFF3Feature } from '@gmod/gff'
 import type { LoggerService } from '@nestjs/common'
-import type { GenericFilehandle } from 'generic-filehandle'
+import type { GenericFilehandle } from 'generic-filehandle2'
 import type { ClientSession, Model } from 'mongoose'
 
 export interface LocalGFF3DataStore {
