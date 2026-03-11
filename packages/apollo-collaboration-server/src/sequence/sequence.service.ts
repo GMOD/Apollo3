@@ -80,9 +80,9 @@ export class SequenceService {
 
       if (!sequenceAdapter) {
         const fastaHandle = new RemoteFile(fa, { fetch })
-        const faiHandle = new RemoteFile(fa, { fetch })
+        const faiHandle = new RemoteFile(fai, { fetch })
         if (gzi) {
-          const gziHandle = new RemoteFile(fa, { fetch })
+          const gziHandle = new RemoteFile(gzi, { fetch })
           sequenceAdapter = new BgzipIndexedFasta({
             fasta: fastaHandle,
             fai: faiHandle,
@@ -95,7 +95,7 @@ export class SequenceService {
         } else {
           sequenceAdapter = new IndexedFasta({
             fasta: fastaHandle,
-            fai: new RemoteFile(fai, { fetch }),
+            fai: faiHandle,
           })
           adapterLRU.set(fa, {
             adapter: sequenceAdapter,
