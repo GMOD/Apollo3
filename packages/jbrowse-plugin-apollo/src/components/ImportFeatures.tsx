@@ -10,16 +10,17 @@ import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import {
   Button,
+  Checkbox,
   DialogActions,
   DialogContent,
   DialogContentText,
+  FormControlLabel,
+  FormHelperText,
+  LinearProgress,
   MenuItem,
   Select,
   type SelectChangeEvent,
 } from '@mui/material'
-import Checkbox from '@mui/material/Checkbox'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import LinearProgress from '@mui/material/LinearProgress'
 import React, { useEffect, useState } from 'react'
 
 import type {
@@ -52,6 +53,7 @@ export function ImportFeatures({
   // default is -1, submit button should be disabled until count is set
   const [featuresCount, setFeaturesCount] = useState<number | undefined>()
   const [deleteFeatures, setDeleteFeatures] = useState(false)
+  const [strict, setStrict] = useState(true)
   const [loading, setLoading] = useState(false)
 
   const { collaborationServerDriver, getInternetAccount } = apolloDataStore as {
@@ -71,6 +73,10 @@ export function ImportFeatures({
 
   function handleDeleteFeatures(e: React.ChangeEvent<HTMLInputElement>) {
     setDeleteFeatures(e.target.checked)
+  }
+
+  function handleSetStrict(e: React.ChangeEvent<HTMLInputElement>) {
+    setStrict(e.target.checked)
   }
 
   // fetch and set features count for selected assembly
@@ -220,6 +226,7 @@ export function ImportFeatures({
       typeName: 'AddFeaturesFromFileChange',
       assembly: selectedAssembly.name,
       fileId,
+      parseOptions: { strict },
       deleteExistingFeatures: deleteFeatures,
     })
 
@@ -253,36 +260,42 @@ export function ImportFeatures({
               </MenuItem>
             ))}
           </Select>
-        </DialogContent>
-        <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText>Upload GFF3 to load features</DialogContentText>
           <input
             type="file"
             onChange={handleChangeFile}
             disabled={submitted && !errorMessage}
           />
-        </DialogContent>
+          <FormControlLabel
+            label="Strict parsing"
+            disabled={submitted && !errorMessage}
+            control={<Checkbox checked={strict} onChange={handleSetStrict} />}
+          />
+          <FormHelperText>
+            Don&apos;t import any features if any lines in the GFF3 are unable
+            to be processed
+          </FormHelperText>
 
-        {featuresCount && featuresCount > 0 ? (
-          <DialogContent>
-            <DialogContentText>
-              This assembly already has {featuresCount} features, would you like
-              to delete the existing features before importing new ones?
-            </DialogContentText>
-            <FormControlLabel
-              label="Yes, delete existing features"
-              disabled={submitted && !errorMessage}
-              control={
-                <Checkbox
-                  checked={deleteFeatures}
-                  onChange={handleDeleteFeatures}
-                  slotProps={{ input: { 'aria-label': 'controlled' } }}
-                  color="warning"
-                />
-              }
-            />
-          </DialogContent>
-        ) : null}
+          {featuresCount && featuresCount > 0 ? (
+            <>
+              <FormControlLabel
+                label="Delete existing features"
+                disabled={submitted && !errorMessage}
+                control={
+                  <Checkbox
+                    checked={deleteFeatures}
+                    onChange={handleDeleteFeatures}
+                    slotProps={{ input: { 'aria-label': 'controlled' } }}
+                    color="warning"
+                  />
+                }
+              />
+              <FormHelperText>
+                This assembly has {featuresCount} features that will be deleted
+              </FormHelperText>
+            </>
+          ) : null}
+        </DialogContent>
 
         <DialogActions>
           <Button

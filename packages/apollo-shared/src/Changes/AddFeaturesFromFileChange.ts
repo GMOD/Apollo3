@@ -17,7 +17,7 @@ export interface SerializedAddFeaturesFromFileChangeBase
 
 export interface AddFeaturesFromFileChangeDetails {
   fileId: string
-  parseOptions?: { bufferSize: number }
+  parseOptions?: { bufferSize?: number; strict?: boolean }
 }
 
 export interface SerializedAddFeaturesFromFileChangeSingle
@@ -89,16 +89,33 @@ export class AddFeaturesFromFileChange extends FromFileBaseChange {
       logger.debug?.(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
 
       // Read data from compressed file and parse the content
-      const { bufferSize = 10_000 } = parseOptions ?? {}
+      const { bufferSize = 10_000, strict = true } = parseOptions ?? {}
       const featureStream = filesService.parseGFF3(
         filesService.getFileStream(fileDoc),
         { bufferSize },
       )
       let featureCount = 0
+      let errorCount = 0
       for await (const gff3Feature of featureStream) {
         // Add new feature into database
-        // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
-        await this.addFeatureIntoDb(gff3Feature, backend)
+        try {
+          await this.addFeatureIntoDb(gff3Feature, backend)
+        } catch (error) {
+          // if the first feature is an error, assume the file isn't valid and throw
+          if (strict || featureCount === 0) {
+            throw error
+          }
+          if (errorCount <= 99) {
+            logger.warn('Error parsing feature')
+            logger.warn(error)
+            if (errorCount === 99) {
+              logger.warn(
+                'Reached 100 parsing errors, omitting further warnings from log',
+              )
+            }
+          }
+          errorCount++
+        }
         featureCount++
         if (featureCount % 1000 === 0) {
           logger.debug?.(`Processed ${featureCount} features`)
