@@ -280,7 +280,7 @@ Cypress.Commands.add(
             cy.get('input[type="file"]').selectFile(gffFile)
           })
 
-        cy.get('[role="button"]').click()
+        cy.get('[role="combobox"]').click()
       })
     cy.contains('li', assemblyName, { timeout: 10_000 }).click()
 
