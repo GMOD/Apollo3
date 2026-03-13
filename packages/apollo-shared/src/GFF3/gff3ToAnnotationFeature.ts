@@ -154,7 +154,10 @@ function convertChildren(
   }
   if (gff3Feature.length > 1 && gff3Feature[0].type !== 'CDS') {
     for (const gff3FeatureLocation of gff3Feature) {
-      const annotationFeature = gff3ToAnnotationFeature([gff3FeatureLocation])
+      const annotationFeature = gff3ToAnnotationFeature(
+        [gff3FeatureLocation],
+        refSeq,
+      )
       convertedChildren[annotationFeature._id] = annotationFeature
     }
     return convertedChildren
