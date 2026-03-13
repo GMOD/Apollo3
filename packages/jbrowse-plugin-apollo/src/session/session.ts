@@ -30,7 +30,7 @@ import {
 } from '@jbrowse/mobx-state-tree'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import SaveIcon from '@mui/icons-material/Save'
-import { autorun, observable } from 'mobx'
+import { autorun, flow, observable, when } from 'mobx'
 
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloJobModel } from '../ApolloJobModel'
@@ -205,6 +205,14 @@ export function extendSession(
           }
         }
       },
+    }))
+    .actions((self) => ({
+      apolloSetEventualSelectedFeature: flow(
+        function* apolloSetEventualSelectedFeature(featureId: string) {
+          yield when(() => Boolean(self.apolloDataStore.getFeature(featureId)))
+          self.apolloSetSelectedFeature(featureId)
+        },
+      ),
     }))
     .volatile((self) => ({
       previousSnapshot: getSnapshot(self),

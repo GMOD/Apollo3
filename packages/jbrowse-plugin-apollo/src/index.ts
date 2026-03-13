@@ -291,19 +291,16 @@ export default class ApolloPlugin extends Plugin {
     pluginManager.addToExtensionPoint(
       'LinearGenomeView-searchResultSelected',
       (_: any, props: Record<string, unknown>) => {
-        /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
         const { session, result } = props as {
-          session: any
+          session: ApolloSessionModel
           result: BaseResult
         }
         const trackId = result.getTrackId()
         const matchedFeature = result.matchedObject
 
         if (trackId?.startsWith('apollo_track_') && matchedFeature) {
-          // search backend returns only gene feature
           const geneFeature = matchedFeature as AnnotationFeature
-          /* eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
-          session.apolloSetSelectedFeature(geneFeature._id)
+          void session.apolloSetEventualSelectedFeature(geneFeature._id)
         }
 
         /* eslint-disable-next-line @typescript-eslint/no-unsafe-return */
