@@ -49,6 +49,10 @@ export default class AddGff extends FileCommand {
       char: 'f',
       description: 'Delete existing assembly, if it exists',
     }),
+    'no-strict': Flags.boolean({
+      description:
+        "If any feature lines in the GFF3 can't be processed, skip them instead of aborting the import",
+    }),
   }
 
   public async run(): Promise<void> {
@@ -85,6 +89,7 @@ export default class AddGff extends FileCommand {
           fileIds: { fa: fileId },
           typeName: 'AddAssemblyAndFeaturesFromFileChange',
           assembly: new ObjectId().toHexString(),
+          parseOptions: { strict: !flags['no-strict'] },
         }
     const rec = await submitAssembly(
       access.address,
