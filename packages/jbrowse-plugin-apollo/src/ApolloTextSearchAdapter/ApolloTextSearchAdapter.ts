@@ -11,6 +11,27 @@ import type { AbstractSessionModel, UriLocation } from '@jbrowse/core/util'
 
 import type { ApolloSessionModel } from '../session'
 
+function getMatchedFeature(
+  query: string,
+  feature: AnnotationFeatureSnapshot,
+): AnnotationFeatureSnapshot | undefined {
+  // @ts-expect-error this actually has a bit more info that a plain snapshot
+  const { children, indexedIds, ...featureWithoutChildren } = feature
+  const featureString = JSON.stringify(featureWithoutChildren)
+  if (featureString.includes(query)) {
+    return feature
+  }
+  if (!children) {
+    return undefined
+  }
+  for (const subFeature of Object.values(children)) {
+    const matchedFeature = getMatchedFeature(query, subFeature)
+    if (matchedFeature) {
+      return matchedFeature
+    }
+  }
+}
+
 export class ApolloTextSearchAdapter
   extends BaseAdapter
   implements BaseTextSearchAdapter
@@ -33,12 +54,13 @@ export class ApolloTextSearchAdapter
     query: string,
   ) {
     return features.map((feature) => {
+      const matchedObject = getMatchedFeature(query, feature) ?? feature
       const refName = assembly.getCanonicalRefName(feature.refSeq)
       return new BaseResult({
         label: query,
         trackId: this.trackId,
-        locString: `${refName}:${feature.min + 1}..${feature.max}`,
-        matchedObject: feature,
+        locString: `${refName}:${matchedObject.min + 1}..${matchedObject.max}`,
+        matchedObject,
       })
     })
   }
