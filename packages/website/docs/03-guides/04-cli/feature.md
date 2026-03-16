@@ -2,6 +2,7 @@
 
 Commands to manage features
 
+- [`apollo feature add [FEATURE-JSON]`](#apollo-feature-add-feature-json)
 - [`apollo feature add-child`](#apollo-feature-add-child)
 - [`apollo feature check`](#apollo-feature-check)
 - [`apollo feature copy`](#apollo-feature-copy)
@@ -12,8 +13,65 @@ Commands to manage features
 - [`apollo feature edit-type`](#apollo-feature-edit-type)
 - [`apollo feature get`](#apollo-feature-get)
 - [`apollo feature get-id`](#apollo-feature-get-id)
+- [`apollo feature get-indexed-id ID`](#apollo-feature-get-indexed-id-id)
 - [`apollo feature import INPUT-FILE`](#apollo-feature-import-input-file)
 - [`apollo feature search`](#apollo-feature-search)
+
+## `apollo feature add [FEATURE-JSON]`
+
+Add one or more features to Apollo
+
+```
+USAGE
+  $ apollo feature add [FEATURE-JSON] [--profile <value>] [--config-file <value>] [-a <value>] [-r <value> -s
+    <value> -e <value> -t <value>] [-F <value>]
+
+ARGUMENTS
+  FEATURE-JSON  Inline JSON describing the feature(s) to add. Can also be provided via stdin.
+
+FLAGS
+  -F, --feature-json-file=<value>  File with JSON describing the feature(s) to add
+  -a, --assembly=<value>           Name or ID of target assembly. Not required if refseq is unique in the database
+  -e, --max=<value>                End position in target reference sequence
+  -r, --refSeq=<value>             Name or ID of target reference sequence
+  -s, --min=<value>                Start position in target reference sequence
+  -t, --type=<value>               Type of child feature
+      --config-file=<value>        Use this config file (mostly for testing)
+      --profile=<value>            Use credentials from this profile
+
+DESCRIPTION
+  Add one or more features to Apollo
+
+  A single simple feature can be added using the --min, --max, etc. flags.
+
+  To add multiple features, features with more details, or features with children, you can pass in JSON via argument or
+  stdin or use the --feature-json-file options.
+
+
+EXAMPLES
+  Add a single feature by specifying its location and type
+
+    $ apollo feature add --assembly hg19 --refSeq chr3 --min 1000 --max 5000 --type remark
+
+  Add a single feature from inline JSON
+
+    $ apollo feature add \
+      '{"assembly":"<assemblyNameOrId>","refseq":"<refSeqNameOrId>","min":1,"max":100,"type":"<featureType>"}'
+
+  Add mutilple features from stdin JSON
+
+    echo '[{"assembly":"<assemblyNameOrId>","refseq":"<refSeqNameOrId>","min":1,"max":100,"type":"<featureType>"},{" \
+      assembly":"<assemblyNameOrId>","refseq":"<refSeqNameOrId>","min":101,"max":200,"type":"<featureType>"}]' | \
+      apollo feature add
+
+  Add a feature with children from inline JSON
+
+    $ apollo feature add '{"assembly":"<assemblyNameOrId>","refseq":"<refSeqNameOrId>","min":1,"max":100,"type":"<fe \
+      atureType>","children":[{"min":1,"max":50,"type":"<featureType>"}]}'
+```
+
+_See code:
+[src/commands/feature/add.ts](https://github.com/GMOD/Apollo3/blob/v0.3.11/packages/apollo-cli/src/commands/feature/add.ts)_
 
 ## `apollo feature add-child`
 
@@ -44,7 +102,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/add-child.ts](https://github.com/GMOD/Apollo3/blob/v0.3.8/packages/apollo-cli/src/commands/feature/add-child.ts)_
+[src/commands/feature/add-child.ts](https://github.com/GMOD/Apollo3/blob/v0.3.11/packages/apollo-cli/src/commands/feature/add-child.ts)_
 
 ## `apollo feature check`
 
@@ -77,7 +135,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/check.ts](https://github.com/GMOD/Apollo3/blob/v0.3.8/packages/apollo-cli/src/commands/feature/check.ts)_
+[src/commands/feature/check.ts](https://github.com/GMOD/Apollo3/blob/v0.3.11/packages/apollo-cli/src/commands/feature/check.ts)_
 
 ## `apollo feature copy`
 
@@ -108,7 +166,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/copy.ts](https://github.com/GMOD/Apollo3/blob/v0.3.8/packages/apollo-cli/src/commands/feature/copy.ts)_
+[src/commands/feature/copy.ts](https://github.com/GMOD/Apollo3/blob/v0.3.11/packages/apollo-cli/src/commands/feature/copy.ts)_
 
 ## `apollo feature delete`
 
@@ -132,7 +190,7 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/feature/delete.ts](https://github.com/GMOD/Apollo3/blob/v0.3.8/packages/apollo-cli/src/commands/feature/delete.ts)_
+[src/commands/feature/delete.ts](https://github.com/GMOD/Apollo3/blob/v0.3.11/packages/apollo-cli/src/commands/feature/delete.ts)_
 
 ## `apollo feature edit`
 
@@ -174,7 +232,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/edit.ts](https://github.com/GMOD/Apollo3/blob/v0.3.8/packages/apollo-cli/src/commands/feature/edit.ts)_
+[src/commands/feature/edit.ts](https://github.com/GMOD/Apollo3/blob/v0.3.11/packages/apollo-cli/src/commands/feature/edit.ts)_
 
 ## `apollo feature edit-attribute`
 
@@ -214,7 +272,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/edit-attribute.ts](https://github.com/GMOD/Apollo3/blob/v0.3.8/packages/apollo-cli/src/commands/feature/edit-attribute.ts)_
+[src/commands/feature/edit-attribute.ts](https://github.com/GMOD/Apollo3/blob/v0.3.11/packages/apollo-cli/src/commands/feature/edit-attribute.ts)_
 
 ## `apollo feature edit-coords`
 
@@ -248,7 +306,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/edit-coords.ts](https://github.com/GMOD/Apollo3/blob/v0.3.8/packages/apollo-cli/src/commands/feature/edit-coords.ts)_
+[src/commands/feature/edit-coords.ts](https://github.com/GMOD/Apollo3/blob/v0.3.11/packages/apollo-cli/src/commands/feature/edit-coords.ts)_
 
 ## `apollo feature edit-type`
 
@@ -272,7 +330,7 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/feature/edit-type.ts](https://github.com/GMOD/Apollo3/blob/v0.3.8/packages/apollo-cli/src/commands/feature/edit-type.ts)_
+[src/commands/feature/edit-type.ts](https://github.com/GMOD/Apollo3/blob/v0.3.11/packages/apollo-cli/src/commands/feature/edit-type.ts)_
 
 ## `apollo feature get`
 
@@ -306,7 +364,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/get.ts](https://github.com/GMOD/Apollo3/blob/v0.3.8/packages/apollo-cli/src/commands/feature/get.ts)_
+[src/commands/feature/get.ts](https://github.com/GMOD/Apollo3/blob/v0.3.11/packages/apollo-cli/src/commands/feature/get.ts)_
 
 ## `apollo feature get-id`
 
@@ -334,7 +392,39 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/get-id.ts](https://github.com/GMOD/Apollo3/blob/v0.3.8/packages/apollo-cli/src/commands/feature/get-id.ts)_
+[src/commands/feature/get-id.ts](https://github.com/GMOD/Apollo3/blob/v0.3.11/packages/apollo-cli/src/commands/feature/get-id.ts)_
+
+## `apollo feature get-indexed-id ID`
+
+Get features given an indexed identifier
+
+```
+USAGE
+  $ apollo feature get-indexed-id ID [--profile <value>] [--config-file <value>] [-a <value>] [--topLevel]
+
+ARGUMENTS
+  ID  Indexed identifier to search for
+
+FLAGS
+  -a, --assembly=<value>...  Assembly names or IDs to search; use "-" to read it from stdin. If omitted search all
+                             assemblies
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      Use credentials from this profile
+      --topLevel             Return the top-level parent of the feature instead of the feature itself
+
+DESCRIPTION
+  Get features given an indexed identifier
+
+  Get features that match a given indexed identifier, such as the ID of a feature from an imported GFF3 file
+
+EXAMPLES
+  Get features for this indexed identifier:
+
+    $ apollo feature get-indexed-id -i abc...zyz def...foo
+```
+
+_See code:
+[src/commands/feature/get-indexed-id.ts](https://github.com/GMOD/Apollo3/blob/v0.3.11/packages/apollo-cli/src/commands/feature/get-indexed-id.ts)_
 
 ## `apollo feature import INPUT-FILE`
 
@@ -365,7 +455,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/import.ts](https://github.com/GMOD/Apollo3/blob/v0.3.8/packages/apollo-cli/src/commands/feature/import.ts)_
+[src/commands/feature/import.ts](https://github.com/GMOD/Apollo3/blob/v0.3.11/packages/apollo-cli/src/commands/feature/import.ts)_
 
 ## `apollo feature search`
 
@@ -416,4 +506,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/search.ts](https://github.com/GMOD/Apollo3/blob/v0.3.8/packages/apollo-cli/src/commands/feature/search.ts)_
+[src/commands/feature/search.ts](https://github.com/GMOD/Apollo3/blob/v0.3.11/packages/apollo-cli/src/commands/feature/search.ts)_
