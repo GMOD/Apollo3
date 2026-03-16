@@ -13,105 +13,111 @@ export function annotationFeatureToGFF3(
   parentId?: string,
   refSeqNames?: Record<string, string | undefined>,
 ): GFF3Feature {
-  // eslint-disable-next-line unicorn/prefer-structured-clone
-  const attributes: Record<string, string[] | undefined> = JSON.parse(
-    JSON.stringify(feature.attributes ?? {}),
-  )
-  const ontologyTerms: string[] = []
-  const source = feature.attributes?.gff_source?.[0] ?? null
+  const locations =
+    feature.type === 'apollo_feature_container'
+      ? Object.values(feature.children ?? {})
+      : [feature]
+  return locations.map((featureLoc) => {
+    // eslint-disable-next-line unicorn/prefer-structured-clone
+    const attributes: Record<string, string[] | undefined> = JSON.parse(
+      JSON.stringify(featureLoc.attributes ?? {}),
+    )
+    const ontologyTerms: string[] = []
+    const source = featureLoc.attributes?.gff_source?.[0] ?? null
 
-  delete attributes.gff_source
-  if (parentId) {
-    attributes.Parent = [parentId]
-  }
-  if (attributes.gff_id) {
-    attributes.ID = attributes.gff_id
-    delete attributes.gff_id
-  } else if (feature.children) {
-    attributes.ID = [feature._id]
-  }
-  if (attributes.gff_name) {
-    attributes.Name = attributes.gff_name
-    delete attributes.gff_name
-  }
-  if (attributes.gff_alias) {
-    attributes.Alias = attributes.gff_alias
-    delete attributes.gff_alias
-  }
-  if (attributes.gff_target) {
-    attributes.Target = attributes.gff_target
-    delete attributes.gff_target
-  }
-  if (attributes.gff_gap) {
-    attributes.Gap = attributes.gff_gap
-    delete attributes.gff_gap
-  }
-  if (attributes.gff_derives_from) {
-    attributes.Derives_from = attributes.gff_derives_from
-    delete attributes.gff_derives_from
-  }
-  if (attributes.gff_note) {
-    attributes.Note = attributes.gff_note
-    delete attributes.gff_note
-  }
-  if (attributes.gff_dbxref) {
-    attributes.Dbxref = attributes.gff_dbxref
-    delete attributes.gff_dbxref
-  }
-  if (attributes.gff_is_circular) {
-    attributes.Is_circular = attributes.gff_is_circular
-    delete attributes.gff_is_circular
-  }
-  if (attributes.gff_ontology_term) {
-    ontologyTerms.push(...attributes.gff_ontology_term)
-    delete attributes.gff_ontology_term
-  }
-  if (attributes['Gene Ontology']) {
-    ontologyTerms.push(...attributes['Gene Ontology'])
-    delete attributes['Gene Ontology']
-  }
-  if (attributes['Sequence Ontology']) {
-    ontologyTerms.push(...attributes['Sequence Ontology'])
-    delete attributes['Sequence Ontology']
-  }
-  if (ontologyTerms.length > 0) {
-    attributes.Ontology_term = ontologyTerms
-  }
-
-  const gff_score = feature.attributes?.gff_score
-  let score: number | null = null
-  if (gff_score && gff_score.length > 0) {
-    if (gff_score[0]) {
-      score = Number(gff_score[0])
-      if (Number.isNaN(score)) {
-        score = null
-      }
+    delete attributes.gff_source
+    if (parentId) {
+      attributes.Parent = [parentId]
     }
-    delete attributes.gff_score
-  }
+    if (attributes.gff_id) {
+      attributes.ID = attributes.gff_id
+      delete attributes.gff_id
+    } else if (featureLoc.children) {
+      attributes.ID = [featureLoc._id]
+    }
+    if (attributes.gff_name) {
+      attributes.Name = attributes.gff_name
+      delete attributes.gff_name
+    }
+    if (attributes.gff_alias) {
+      attributes.Alias = attributes.gff_alias
+      delete attributes.gff_alias
+    }
+    if (attributes.gff_target) {
+      attributes.Target = attributes.gff_target
+      delete attributes.gff_target
+    }
+    if (attributes.gff_gap) {
+      attributes.Gap = attributes.gff_gap
+      delete attributes.gff_gap
+    }
+    if (attributes.gff_derives_from) {
+      attributes.Derives_from = attributes.gff_derives_from
+      delete attributes.gff_derives_from
+    }
+    if (attributes.gff_note) {
+      attributes.Note = attributes.gff_note
+      delete attributes.gff_note
+    }
+    if (attributes.gff_dbxref) {
+      attributes.Dbxref = attributes.gff_dbxref
+      delete attributes.gff_dbxref
+    }
+    if (attributes.gff_is_circular) {
+      attributes.Is_circular = attributes.gff_is_circular
+      delete attributes.gff_is_circular
+    }
+    if (attributes.gff_ontology_term) {
+      ontologyTerms.push(...attributes.gff_ontology_term)
+      delete attributes.gff_ontology_term
+    }
+    if (attributes['Gene Ontology']) {
+      ontologyTerms.push(...attributes['Gene Ontology'])
+      delete attributes['Gene Ontology']
+    }
+    if (attributes['Sequence Ontology']) {
+      ontologyTerms.push(...attributes['Sequence Ontology'])
+      delete attributes['Sequence Ontology']
+    }
+    if (ontologyTerms.length > 0) {
+      attributes.Ontology_term = ontologyTerms
+    }
 
-  const locations = [{ start: feature.min, end: feature.max }]
+    const gff_score = featureLoc.attributes?.gff_score
+    let score: number | null = null
+    if (gff_score && gff_score.length > 0) {
+      if (gff_score[0]) {
+        score = Number(gff_score[0])
+        if (Number.isNaN(score)) {
+          score = null
+        }
+      }
+      delete attributes.gff_score
+    }
 
-  return locations.map((location) => ({
-    start: Number(location.start) + 1,
-    end: Number(location.end),
-    seq_id: refSeqNames ? refSeqNames[feature.refSeq] ?? null : feature.refSeq,
-    source,
-    type: feature.type,
-    score,
-    strand: feature.strand ? (feature.strand === 1 ? '+' : '-') : null,
-    phase: null,
-    attributes:
-      Object.keys(attributes).length > 0
-        ? (attributes as Record<string, string[]>)
-        : null,
-    derived_features: [],
-    child_features: prepareChildFeatures(
-      feature,
-      attributes.ID?.[0],
-      refSeqNames,
-    ),
-  }))
+    return {
+      start: Number(featureLoc.min) + 1,
+      end: Number(featureLoc.max),
+      seq_id: refSeqNames
+        ? refSeqNames[featureLoc.refSeq] ?? null
+        : featureLoc.refSeq,
+      source,
+      type: featureLoc.type,
+      score,
+      strand: featureLoc.strand ? (featureLoc.strand === 1 ? '+' : '-') : null,
+      phase: null,
+      attributes:
+        Object.keys(attributes).length > 0
+          ? (attributes as Record<string, string[]>)
+          : null,
+      derived_features: [],
+      child_features: prepareChildFeatures(
+        featureLoc,
+        attributes.ID?.[0],
+        refSeqNames,
+      ),
+    }
+  })
 }
 
 function prepareChildFeatures(

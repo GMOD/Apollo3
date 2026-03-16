@@ -22,4 +22,8 @@ export const testCases: { filenameStem: string; description: string }[] = [
     filenameStem: 'gene_with_two_cds',
     description: 'Gene with two CDS',
   },
+  {
+    filenameStem: 'single_feature_mutliple_locations',
+    description: 'A single top-level feature has multiple locations',
+  },
 ]

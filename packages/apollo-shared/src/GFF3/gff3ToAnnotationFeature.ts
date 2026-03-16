@@ -10,15 +10,10 @@ export function gff3ToAnnotationFeature(
   refSeq?: string,
 ): AnnotationFeatureSnapshot {
   const [firstFeature] = gff3Feature
-  const { end, seq_id: refName, start, strand, type } = firstFeature
+  const { end, seq_id: refName, start, strand } = firstFeature
   if (!refName) {
     throw new Error(
       `feature does not have seq_id: ${JSON.stringify(firstFeature)}`,
-    )
-  }
-  if (!type) {
-    throw new Error(
-      `feature does not have type: ${JSON.stringify(firstFeature)}`,
     )
   }
   if (start === null) {
@@ -41,7 +36,7 @@ export function gff3ToAnnotationFeature(
   const feature: AnnotationFeatureSnapshot = {
     _id: new ObjectID().toHexString(),
     refSeq: refSeq ?? refName,
-    type,
+    type: getFeatureType(gff3Feature),
     min,
     max,
   }
@@ -64,9 +59,6 @@ export function gff3ToAnnotationFeature(
 }
 
 function getFeatureMinMax(gff3Feature: GFF3Feature): [number, number] {
-  if (gff3Feature.length > 1 && !gff3Feature.every((f) => f.type === 'CDS')) {
-    throw new Error('GFF3 features has multiple locations but is not a CDS')
-  }
   const mins = gff3Feature.map((f) => f.start).filter((m) => m !== null)
   const maxes = gff3Feature.map((f) => f.end).filter((m) => m !== null)
   const min = Math.min(...mins)
@@ -134,6 +126,20 @@ function convertFeatureAttributes(
   return
 }
 
+function getFeatureType(gff3Feature: GFF3Feature) {
+  const [firstFeature] = gff3Feature
+  if (gff3Feature.length === 1 || firstFeature.type === 'CDS') {
+    const { type } = firstFeature
+    if (!type) {
+      throw new Error(
+        `feature does not have type: ${JSON.stringify(firstFeature)}`,
+      )
+    }
+    return type
+  }
+  return 'apollo_feature_container'
+}
+
 function convertChildren(
   gff3Feature: GFF3Feature,
   refSeq?: string,
@@ -145,6 +151,16 @@ function convertChildren(
   )
   if (locationsWithChildren.length > 1) {
     throw new Error('Features with multiple locations may not have children')
+  }
+  if (gff3Feature.length > 1 && gff3Feature[0].type !== 'CDS') {
+    for (const gff3FeatureLocation of gff3Feature) {
+      const annotationFeature = gff3ToAnnotationFeature(
+        [gff3FeatureLocation],
+        refSeq,
+      )
+      convertedChildren[annotationFeature._id] = annotationFeature
+    }
+    return convertedChildren
   }
   if (locationsWithChildren.length === 0) {
     return

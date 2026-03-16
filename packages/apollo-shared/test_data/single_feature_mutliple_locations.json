@@ -1,0 +1,76 @@
+[
+  {
+    "_id": "69b44de19e27d84db8a9bd71",
+    "refSeq": "TMUE_LG1",
+    "type": "apollo_feature_container",
+    "min": 212018,
+    "max": 213480,
+    "strand": -1,
+    "children": {
+      "69b44de19e27d84db8a9bd6c": {
+        "_id": "69b44de19e27d84db8a9bd6c",
+        "refSeq": "TMUE_LG1",
+        "type": "polypeptide_motif",
+        "min": 212018,
+        "max": 212160,
+        "strand": -1,
+        "attributes": {
+          "gff_source": ["translated_feature"],
+          "gff_id": ["motif:TMUE_1000004293-hmmpanther.1"]
+        }
+      },
+      "69b44de19e27d84db8a9bd6d": {
+        "_id": "69b44de19e27d84db8a9bd6d",
+        "refSeq": "TMUE_LG1",
+        "type": "polypeptide_motif",
+        "min": 212779,
+        "max": 212850,
+        "strand": -1,
+        "attributes": {
+          "gff_source": ["translated_feature"],
+          "gff_id": ["motif:TMUE_1000004293-hmmpanther.1"]
+        }
+      },
+      "69b44de19e27d84db8a9bd6e": {
+        "_id": "69b44de19e27d84db8a9bd6e",
+        "refSeq": "TMUE_LG1",
+        "type": "polypeptide_motif",
+        "min": 212904,
+        "max": 213031,
+        "strand": -1,
+        "attributes": {
+          "gff_source": ["translated_feature"],
+          "gff_id": ["motif:TMUE_1000004293-hmmpanther.1"]
+        }
+      },
+      "69b44de19e27d84db8a9bd6f": {
+        "_id": "69b44de19e27d84db8a9bd6f",
+        "refSeq": "TMUE_LG1",
+        "type": "polypeptide_motif",
+        "min": 213183,
+        "max": 213299,
+        "strand": -1,
+        "attributes": {
+          "gff_source": ["translated_feature"],
+          "gff_id": ["motif:TMUE_1000004293-hmmpanther.1"]
+        }
+      },
+      "69b44de19e27d84db8a9bd70": {
+        "_id": "69b44de19e27d84db8a9bd70",
+        "refSeq": "TMUE_LG1",
+        "type": "polypeptide_motif",
+        "min": 213368,
+        "max": 213480,
+        "strand": -1,
+        "attributes": {
+          "gff_source": ["translated_feature"],
+          "gff_id": ["motif:TMUE_1000004293-hmmpanther.1"]
+        }
+      }
+    },
+    "attributes": {
+      "gff_source": ["translated_feature"],
+      "gff_id": ["motif:TMUE_1000004293-hmmpanther.1"]
+    }
+  }
+]
