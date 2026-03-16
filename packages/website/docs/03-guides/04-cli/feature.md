@@ -432,7 +432,7 @@ Import features from local gff file
 
 ```
 USAGE
-  $ apollo feature import INPUT-FILE -a <value> [--profile <value>] [--config-file <value>] [-d]
+  $ apollo feature import INPUT-FILE -a <value> [--profile <value>] [--config-file <value>] [-d] [--no-strict]
 
 ARGUMENTS
   INPUT-FILE  Input gff file
@@ -441,6 +441,7 @@ FLAGS
   -a, --assembly=<value>     (required) Import into this assembly name or assembly ID
   -d, --delete-existing      Delete existing features before importing
       --config-file=<value>  Use this config file (mostly for testing)
+      --no-strict            If any lines in the GFF3 can't be processed, skip them instead of aborting the import
       --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
