@@ -8,10 +8,9 @@ import type {
 } from '@apollo-annotation/shared'
 import { Args, Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
-import type { Response } from 'undici'
 
 import { FileCommand } from '../../fileCommand.js'
-import { queryApollo, submitAssembly } from '../../utils.js'
+import { isFileId, submitAssembly } from '../../utils.js'
 
 export default class AddFasta extends FileCommand {
   static summary = 'Add a new assembly from fasta input'
@@ -234,18 +233,4 @@ function isValidHttpUrl(x: string) {
     return false
   }
   return url.protocol === 'http:' || url.protocol === 'https:'
-}
-
-async function isFileId(x: string, address: string, accessToken: string) {
-  if (x.length != 24) {
-    return false
-  }
-  const files: Response = await queryApollo(address, accessToken, 'files')
-  const json = (await files.json()) as object[]
-  for (const fileDoc of json) {
-    if (fileDoc['_id' as keyof typeof fileDoc] === x) {
-      return true
-    }
-  }
-  return false
 }

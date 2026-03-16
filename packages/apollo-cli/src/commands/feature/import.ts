@@ -8,6 +8,7 @@ import { FileCommand } from '../../fileCommand.js'
 import {
   convertAssemblyNameToId,
   createFetchErrorMessage,
+  isFileId,
   localhostToAddress,
 } from '../../utils.js'
 
@@ -46,9 +47,7 @@ export default class Import extends FileCommand {
   public async run(): Promise<void> {
     const { args, flags } = await this.parse(Import)
 
-    if (!fs.existsSync(args['input-file'])) {
-      this.error(`File "${args['input-file']}" does not exist`)
-    }
+    const inputFile = args['input-file']
 
     const access = await this.getAccess()
 
@@ -63,13 +62,26 @@ export default class Import extends FileCommand {
       )
     }
 
-    const uploadId = await this.uploadFile(
+    let uploadId
+    const inputFileIsFileId = await isFileId(
+      inputFile,
       access.address,
       access.accessToken,
-      args['input-file'],
-      'text/x-gff3',
-      false,
     )
+    if (inputFileIsFileId) {
+      uploadId = inputFile
+    } else {
+      if (!fs.existsSync(inputFile)) {
+        this.error(`File "${inputFile}" does not exist`)
+      }
+      uploadId = await this.uploadFile(
+        access.address,
+        access.accessToken,
+        inputFile,
+        'text/x-gff3',
+        false,
+      )
+    }
 
     const body: SerializedAddFeaturesFromFileChange = {
       typeName: 'AddFeaturesFromFileChange',

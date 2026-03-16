@@ -38,7 +38,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { type FilterQuery, Model } from 'mongoose'
+import { type FilterQuery, Model, Types } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service.js'
 import { FilesService } from '../files/files.service.js'
@@ -142,18 +142,18 @@ export class ChangesService {
         this.logger.debug(
           '*** INSERT DATA EXCEPTION - Start to clean up old temporary documents...',
         )
-        await this.assemblyModel.deleteMany({
-          $and: [{ status: -1, user: uniqUserId }],
-        })
-        await this.featureModel.deleteMany({
-          $and: [{ status: -1, user: uniqUserId }],
-        })
-        await this.refSeqModel.deleteMany({
-          $and: [{ status: -1, user: uniqUserId }],
-        })
-        await this.refSeqChunkModel.deleteMany({
-          $and: [{ status: -1, user: uniqUserId }],
-        })
+        await this.assemblyModel
+          .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
+          .exec()
+        await this.featureModel
+          .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
+          .exec()
+        await this.refSeqModel
+          .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
+          .exec()
+        await this.refSeqChunkModel
+          .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
+          .exec()
         throw new UnprocessableEntityException(String(error))
       }
 
@@ -185,68 +185,58 @@ export class ChangesService {
 
         await this.featureModel.db.transaction(async () => {
           try {
-            await this.featureModel.updateMany(
-              {
-                $and: [{ status: -1, user: uniqUserId, _id: addedFeature._id }],
-              },
-              { $set: { status: 0 } },
-            )
+            await this.featureModel
+              .updateMany(
+                {
+                  $and: [
+                    { status: -1, user: uniqUserId, _id: addedFeature._id },
+                  ],
+                },
+                { $set: { status: 0 } },
+              )
+              .exec()
           } catch (error) {
             const err = error as Error
             this.logger.error(
               `Error setting status of add feature change to 0: ${err.message}`,
             )
-            await this.featureModel.deleteMany({
-              $and: [{ status: -1, user: uniqUserId, _id: addedFeature._id }],
-            })
+            await this.featureModel
+              .deleteMany({
+                $and: [{ status: -1, user: uniqUserId, _id: addedFeature._id }],
+              })
+              .exec()
           }
         })
       }
     }
 
     if (STATUS_ZERO_CHANGE_TYPES.has(change.typeName)) {
-      this.logger.debug?.('*** TEMPORARY DATA INSERTTED ***')
+      // manual finalization of change since the data is too big for a transaction
+      this.logger.debug('*** TEMPORARY DATA INSERTED ***')
       // Set "temporary document" -status --> "valid" -status i.e. (-1 --> 0)
       await this.featureModel.db.transaction(async () => {
-        this.logger.debug(
-          'Updates "temporary document" -status --> "valid" -status',
-        )
         try {
-          // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
-          await this.assemblyModel.updateMany(
-            { $and: [{ status: -1, user: uniqUserId }] },
-            { $set: { status: 0 } },
-          )
-          await this.refSeqChunkModel.updateMany(
-            { $and: [{ status: -1, user: uniqUserId }] },
-            { $set: { status: 0 } },
-          )
-          await this.featureModel.updateMany(
-            { $and: [{ status: -1, user: uniqUserId }] },
-            { $set: { status: 0 } },
-          )
-          await this.refSeqModel.updateMany(
-            { $and: [{ status: -1, user: uniqUserId }] },
-            { $set: { status: 0 } },
-          )
+          await this.batchUpdateMany(this.assemblyModel, uniqUserId)
+          await this.batchUpdateMany(this.refSeqChunkModel, uniqUserId)
+          await this.batchUpdateMany(this.featureModel, uniqUserId)
+          await this.batchUpdateMany(this.refSeqModel, uniqUserId)
         } catch (error) {
           // Clean up old "temporary document" -documents
           this.logger.debug(
             '*** UPDATE STATUS EXCEPTION - Start to clean up old temporary documents...',
           )
-          // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
-          await this.assemblyModel.deleteMany({
-            $and: [{ status: -1, user: uniqUserId }],
-          })
-          await this.featureModel.deleteMany({
-            $and: [{ status: -1, user: uniqUserId }],
-          })
-          await this.refSeqModel.deleteMany({
-            $and: [{ status: -1, user: uniqUserId }],
-          })
-          await this.refSeqChunkModel.deleteMany({
-            $and: [{ status: -1, user: uniqUserId }],
-          })
+          await this.assemblyModel
+            .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
+            .exec()
+          await this.featureModel
+            .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
+            .exec()
+          await this.refSeqModel
+            .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
+            .exec()
+          await this.refSeqChunkModel
+            .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
+            .exec()
           throw new UnprocessableEntityException(String(error))
         }
       })
@@ -332,5 +322,34 @@ export class ChangesService {
     }
 
     return change
+  }
+
+  async batchUpdateMany(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    model: Model<any>,
+    uniqUserId: string,
+  ) {
+    let docsToUpdate = await model
+      .find({ $and: [{ status: -1, user: uniqUserId }] })
+      .limit(1000)
+      .exec()
+    let updatedCount = 0
+    while (docsToUpdate.length > 0) {
+      const lengthBefore = updatedCount
+      updatedCount += docsToUpdate.length
+      this.logger.debug(
+        `Finalizing ${model.collection.name} ${lengthBefore} to ${updatedCount}`,
+      )
+      const idsToUpdate = docsToUpdate.map(
+        (doc) => (doc as { _id: Types.ObjectId })._id,
+      )
+      await model
+        .updateMany({ _id: idsToUpdate }, { $set: { status: 0 } })
+        .exec()
+      docsToUpdate = await model
+        .find({ $and: [{ status: -1, user: uniqUserId }] })
+        .limit(1000)
+        .exec()
+    }
   }
 }
