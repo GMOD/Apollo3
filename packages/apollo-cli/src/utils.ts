@@ -471,3 +471,21 @@ export async function idReader(
   }
   return ids
 }
+
+export async function isFileId(
+  x: string,
+  address: string,
+  accessToken: string,
+) {
+  if (x.length != 24) {
+    return false
+  }
+  const files: Response = await queryApollo(address, accessToken, 'files')
+  const json = (await files.json()) as object[]
+  for (const fileDoc of json) {
+    if (fileDoc['_id' as keyof typeof fileDoc] === x) {
+      return true
+    }
+  }
+  return false
+}
