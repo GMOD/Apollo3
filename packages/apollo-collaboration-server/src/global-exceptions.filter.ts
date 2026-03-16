@@ -7,6 +7,14 @@ export class GlobalExceptionsFilter extends BaseExceptionFilter {
 
   catch(exception: unknown, host: ArgumentsHost) {
     this.logger.error(exception)
+    if (exception instanceof Error) {
+      if (exception.cause) {
+        this.logger.error(exception.cause)
+      }
+      if (exception.stack) {
+        this.logger.error(exception.stack)
+      }
+    }
     super.catch(exception, host)
   }
 }

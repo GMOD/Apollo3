@@ -237,6 +237,9 @@ export class ChangesService {
           await this.refSeqChunkModel
             .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
             .exec()
+          if (error instanceof Error) {
+            throw error
+          }
           throw new UnprocessableEntityException(String(error))
         }
       })

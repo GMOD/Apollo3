@@ -373,7 +373,7 @@ __metadata:
     "@emotion/react": "npm:^11.10.6"
     "@emotion/styled": "npm:^11.10.6"
     "@gmod/gff": "npm:^2.0.0"
-    "@gmod/indexedfasta": "npm:^2.0.4"
+    "@gmod/indexedfasta": "npm:^5.0.2"
     "@jbrowse/core": "npm:^4.1.1"
     "@jbrowse/mobx-state-tree": "npm:^5.5.0"
     "@mui/material": "npm:^7.3.7"
@@ -407,7 +407,7 @@ __metadata:
     deepmerge: "npm:^4.3.1"
     express: "npm:^4.18.0"
     express-session: "npm:^1.17.3"
-    generic-filehandle: "npm:^3.0.0"
+    generic-filehandle2: "npm:^2.0.18"
     https-proxy-agent: "npm:^7.0.6"
     jest: "npm:^29.6.2"
     joi: "npm:^17.7.0"
@@ -424,6 +424,7 @@ __metadata:
     passport-local: "npm:^1.0.0"
     passport-microsoft: "npm:^1.0.0"
     prop-types: "npm:^15.8.1"
+    quick-lru: "npm:^7.3.0"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     reflect-metadata: "npm:^0.1.13"
@@ -458,7 +459,7 @@ __metadata:
     "@nestjs/core": "npm:^10.1.0"
     "@types/node": "npm:^24.10.9"
     bson-objectid: "npm:^2.0.4"
-    generic-filehandle: "npm:^3.0.0"
+    generic-filehandle2: "npm:^2.0.18"
     mongoose: "npm:^6.12.0"
     tslib: "npm:^2.3.1"
     typescript: "npm:^5.5.3"
@@ -617,7 +618,7 @@ __metadata:
     "@apollo-annotation/mst": "workspace:^"
     "@apollo-annotation/schemas": "workspace:^"
     "@gmod/gff": "npm:^2.0.0"
-    "@gmod/indexedfasta": "npm:^2.0.4"
+    "@gmod/indexedfasta": "npm:^5.0.2"
     "@jbrowse/core": "npm:^4.1.1"
     "@jbrowse/mobx-state-tree": "npm:^5.5.0"
     "@nestjs/common": "npm:^10.1.0"
@@ -627,7 +628,7 @@ __metadata:
     bson-objectid: "npm:^2.0.4"
     chai: "npm:^5.1.1"
     chai-exclude: "npm:^3.0.0"
-    generic-filehandle: "npm:^3.0.0"
+    generic-filehandle2: "npm:^2.0.18"
     glob: "npm:^11.0.0"
     jwt-decode: "npm:^3.1.2"
     mobx: "npm:^6.6.1"
@@ -7175,19 +7176,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gmod/bgzf-filehandle@npm:^1.4.0":
-  version: 1.4.6
-  resolution: "@gmod/bgzf-filehandle@npm:1.4.6"
-  dependencies:
-    es6-promisify: "npm:^7.0.0"
-    generic-filehandle: "npm:^3.0.0"
-    long: "npm:^5.1.0"
-    pako: "npm:^1.0.11"
-  checksum: 10c0/7cef8d81b60fa06bff1d8f1dc49c986090c83606ef45dbc857bf8b3d5e6e63b524150464bcb71c97d714c5aa4fd0e38da3df10eee8ad32430869750b36f30842
-  languageName: node
-  linkType: hard
-
-"@gmod/bgzf-filehandle@npm:^6.0.12":
+"@gmod/bgzf-filehandle@npm:^6.0.12, @gmod/bgzf-filehandle@npm:^6.0.3":
   version: 6.0.12
   resolution: "@gmod/bgzf-filehandle@npm:6.0.12"
   dependencies:
@@ -7213,13 +7202,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gmod/indexedfasta@npm:^2.0.4":
-  version: 2.1.0
-  resolution: "@gmod/indexedfasta@npm:2.1.0"
+"@gmod/indexedfasta@npm:^5.0.2":
+  version: 5.0.2
+  resolution: "@gmod/indexedfasta@npm:5.0.2"
   dependencies:
-    "@gmod/bgzf-filehandle": "npm:^1.4.0"
-    generic-filehandle: "npm:^3.0.0"
-  checksum: 10c0/2362b699f27f8509501960e346b49fca6e2dd2ec0b7feaeb92546d819d5f429e8b517799249f66cc959125dfb11444682084e65ce6e94294285006ca07823974
+    "@gmod/bgzf-filehandle": "npm:^6.0.3"
+    generic-filehandle2: "npm:^2.0.1"
+  checksum: 10c0/dc874fbfbb85270abae8c7a2ac4dd9434e08dda5edebe922dcb65fb8216b64a48ef62008457289ec90ca81b870ad042394ae0dd6e267c9d7a0c0fc1c56a8aa2b
   languageName: node
   linkType: hard
 
@@ -18317,20 +18306,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"es6-promisify@npm:^6.1.1":
-  version: 6.1.1
-  resolution: "es6-promisify@npm:6.1.1"
-  checksum: 10c0/2c1f68c28f0dc81d15f832ea02ea052f335d72c7600ba93f6df3a25dc7b7fd839d522f814a79470c71a3b45a730f96070024ec38c0ed55e74ba294391ab6ee5a
-  languageName: node
-  linkType: hard
-
-"es6-promisify@npm:^7.0.0":
-  version: 7.0.0
-  resolution: "es6-promisify@npm:7.0.0"
-  checksum: 10c0/2d71b098a9bff9802cdb5cd9f4079d13d31236a2ed4753230c3099edff2c0f34b280fcf7ce814e0ff30713dfb25dd888d1eb2ac50a8f1e26ceae04d66d51c4f4
-  languageName: node
-  linkType: hard
-
 "esbuild@npm:~0.18.20":
   version: 0.18.20
   resolution: "esbuild@npm:0.18.20"
@@ -20215,19 +20190,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"generic-filehandle2@npm:^2.0.18":
+"generic-filehandle2@npm:^2.0.1, generic-filehandle2@npm:^2.0.18":
   version: 2.0.18
   resolution: "generic-filehandle2@npm:2.0.18"
   checksum: 10c0/baffbe01ad89d0194aed5c083f150822b84e4c8c9eee491694e07db911177381c6eeeac2d79207c10841eb467fdf22939a4b433e7e5c9824a74601c14ac9b875
-  languageName: node
-  linkType: hard
-
-"generic-filehandle@npm:^3.0.0":
-  version: 3.1.1
-  resolution: "generic-filehandle@npm:3.1.1"
-  dependencies:
-    es6-promisify: "npm:^6.1.1"
-  checksum: 10c0/3fc0e243eccddc0a47155309a9ba826a78b77e7ed02d8cb0055ac367310c66291e3d8f5e272d14635e6752e92be131336b68b1a0243854c7c4824d1a05cf277b
   languageName: node
   linkType: hard
 
@@ -24278,13 +24244,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"long@npm:^5.1.0":
-  version: 5.2.3
-  resolution: "long@npm:5.2.3"
-  checksum: 10c0/6a0da658f5ef683b90330b1af76f06790c623e148222da9d75b60e266bbf88f803232dd21464575681638894a84091616e7f89557aa087fd14116c0f4e0e43d9
-  languageName: node
-  linkType: hard
-
 "longest-streak@npm:^3.0.0":
   version: 3.1.0
   resolution: "longest-streak@npm:3.1.0"
@@ -27412,13 +27371,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pako@npm:^1.0.11":
-  version: 1.0.11
-  resolution: "pako@npm:1.0.11"
-  checksum: 10c0/86dd99d8b34c3930345b8bbeb5e1cd8a05f608eeb40967b293f72fe469d0e9c88b783a8777e4cc7dc7c91ce54c5e93d88ff4b4f060e6ff18408fd21030d9ffbe
-  languageName: node
-  linkType: hard
-
 "param-case@npm:^3.0.4":
   version: 3.0.4
   resolution: "param-case@npm:3.0.4"
@@ -28849,6 +28801,13 @@ __metadata:
   version: 5.1.1
   resolution: "quick-lru@npm:5.1.1"
   checksum: 10c0/a24cba5da8cec30d70d2484be37622580f64765fb6390a928b17f60cd69e8dbd32a954b3ff9176fa1b86d86ff2ba05252fae55dc4d40d0291c60412b0ad096da
+  languageName: node
+  linkType: hard
+
+"quick-lru@npm:^7.3.0":
+  version: 7.3.0
+  resolution: "quick-lru@npm:7.3.0"
+  checksum: 10c0/28dc8eaadcd489d26917f238ad27a6b09f8fe3a609152b0a4f399d5805094e07b56fe1e8c0d7ade0c11463c31bef329803672effc559601daf160a85f578fd05
   languageName: node
   linkType: hard
 

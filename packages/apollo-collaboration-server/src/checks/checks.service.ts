@@ -100,12 +100,26 @@ export class ChecksService {
       if (!c) {
         throw new Error(`Check "${check.name}" not registered`)
       }
-      const result = await c.checkFeature(
-        flatDoc,
-        (start: number, end: number) => {
+      // If the feature is small enough, just fetch its sequence once and
+      // substring that to avoid slow disk reads
+      let featureSequence: string | undefined
+      if (doc.max - doc.min <= 1_000_000) {
+        featureSequence = await this.getSequence({
+          start: doc.min,
+          end: doc.max,
+          featureDoc: doc,
+        })
+      }
+      // eslint-disable-next-line unicorn/consistent-function-scoping
+      const getSequence = (start: number, end: number) => {
+        if (!featureSequence || start < doc.min || end > doc.max) {
           return this.getSequence({ start, end, featureDoc: doc })
-        },
-      )
+        }
+        return Promise.resolve(
+          featureSequence.slice(start - doc.min, end - doc.min),
+        )
+      }
+      const result = await c.checkFeature(flatDoc, getSequence)
       if (result.length > 0) {
         await this.checkResultModel.insertMany(result)
       }

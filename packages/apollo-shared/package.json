@@ -16,10 +16,10 @@
     "@apollo-annotation/mst": "workspace:^",
     "@apollo-annotation/schemas": "workspace:^",
     "@gmod/gff": "^2.0.0",
-    "@gmod/indexedfasta": "^2.0.4",
+    "@gmod/indexedfasta": "^5.0.2",
     "@jbrowse/core": "^4.1.1",
     "bson-objectid": "^2.0.4",
-    "generic-filehandle": "^3.0.0",
+    "generic-filehandle2": "^2.0.18",
     "jwt-decode": "^3.1.2",
     "tslib": "^2.3.1"
   },
