@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { changeRegistry, checkRegistry } from '@apollo-annotation/common'
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import {
   CDSCheck,
   CoreValidation,
@@ -12,6 +14,7 @@ import {
 } from '@apollo-annotation/shared'
 import Plugin from '@jbrowse/core/Plugin'
 import type PluginManager from '@jbrowse/core/PluginManager'
+import type BaseResult from '@jbrowse/core/TextSearch/BaseResults'
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import {
   DisplayType,
@@ -284,6 +287,27 @@ export default class ApolloPlugin extends Plugin {
       'Core-extendPluggableElement',
       annotationFromJBrowseFeature,
     )
+
+    pluginManager.addToExtensionPoint(
+      'LinearGenomeView-searchResultSelected',
+      (_: any, props: Record<string, unknown>) => {
+        const { session, result } = props as {
+          session: ApolloSessionModel
+          result: BaseResult
+        }
+        const trackId = result.getTrackId()
+        const matchedFeature = result.matchedObject
+
+        if (trackId?.startsWith('apollo_track_') && matchedFeature) {
+          const geneFeature = matchedFeature as AnnotationFeature
+          void session.apolloSetEventualSelectedFeature(geneFeature._id)
+        }
+
+        /* eslint-disable-next-line @typescript-eslint/no-unsafe-return */
+        return _
+      },
+    )
+
     if (!inWebWorker) {
       pluginManager.addToExtensionPoint(
         'Core-extendWorker',
