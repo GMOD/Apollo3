@@ -1,5 +1,6 @@
 import type {
   AnnotationFeature,
+  Children,
   TranscriptPartCoding,
 } from '@apollo-annotation/mst'
 import type { BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
@@ -63,6 +64,20 @@ export function selectFeatureAndOpenWidget(
   }
 }
 
+export function isGeneFeature(
+  feature: AnnotationFeature,
+  session: ApolloSessionModel,
+): boolean {
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  return (
+    featureTypeOntology.isTypeOf(feature.type, 'gene') ||
+    featureTypeOntology.isTypeOf(feature.type, 'pseudogene')
+  )
+}
+
 export function isTranscriptFeature(
   feature: AnnotationFeature,
   session: ApolloSessionModel,
@@ -97,6 +112,36 @@ export function isCDSFeature(
     throw new Error('featureTypeOntology is undefined')
   }
   return featureTypeOntology.isTypeOf(feature.type, 'CDS')
+}
+
+export function looksLikeGene(
+  feature: AnnotationFeature,
+  session: ApolloSessionModel,
+) {
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  const children = feature.children as Children
+  if (!children?.size) {
+    return false
+  }
+  const isGene = isGeneFeature(feature, session)
+  if (!isGene) {
+    return false
+  }
+  for (const [, child] of children) {
+    if (isTranscriptFeature(child, session)) {
+      const { children: grandChildren } = child as { children?: Children }
+      if (!grandChildren?.size) {
+        return false
+      }
+      return [...grandChildren.values()].some((grandchild) =>
+        isExonFeature(grandchild, session),
+      )
+    }
+  }
+  return false
 }
 
 export interface AdjacentExons {

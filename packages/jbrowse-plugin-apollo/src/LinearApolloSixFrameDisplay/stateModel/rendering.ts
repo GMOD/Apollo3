@@ -13,6 +13,7 @@ import { autorun } from 'mobx'
 
 import type { ApolloSessionModel } from '../../session'
 import { codonColorCode } from '../../util/displayUtils'
+import { looksLikeGene } from '../../util/glyphUtils'
 
 import { layoutsModelFactory } from './layouts'
 
@@ -209,7 +210,7 @@ export function renderingModelFactory(
                 const displayedRegion = displayedRegions[idx]
                 for (const [row, featureLayoutRow] of featureLayout.entries()) {
                   for (const { feature } of featureLayoutRow) {
-                    if (!feature.looksLikeGene) {
+                    if (!looksLikeGene(feature, self.session)) {
                       continue
                     }
                     if (
