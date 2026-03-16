@@ -280,25 +280,19 @@ Cypress.Commands.add(
             cy.get('input[type="file"]').selectFile(gffFile)
           })
 
-        cy.contains('Select assembly')
-          .parent()
-          .within(() => {
-            cy.get('input').parent().click()
-          })
+        cy.get('[role="combobox"]').click()
       })
     cy.contains('li', assemblyName, { timeout: 10_000 }).click()
 
     if (deleteExistingFeatures !== undefined) {
-      cy.contains('Yes, delete existing features')
-        .parent()
-        .within(() => {
-          if (deleteExistingFeatures) {
-            cy.get('input[type="checkbox"]').click()
-            cy.get('input[type="checkbox"]').should('be.checked')
-          } else {
-            cy.get('input[type="checkbox"]').should('be.not.checked')
-          }
-        })
+      cy.contains('label', 'Delete existing features').within(() => {
+        if (deleteExistingFeatures) {
+          cy.get('input[type="checkbox"]').click()
+          cy.get('input[type="checkbox"]').should('be.checked')
+        } else {
+          cy.get('input[type="checkbox"]').should('be.not.checked')
+        }
+      })
     }
 
     cy.contains('button', 'Submit').click()

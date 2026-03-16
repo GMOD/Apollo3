@@ -42,6 +42,10 @@ export default class Import extends FileCommand {
       char: 'd',
       description: 'Delete existing features before importing',
     }),
+    'no-strict': Flags.boolean({
+      description:
+        "If any lines in the GFF3 can't be processed, skip them instead of aborting the import",
+    }),
   }
 
   public async run(): Promise<void> {
@@ -88,6 +92,7 @@ export default class Import extends FileCommand {
       assembly: assembly[0],
       fileId: uploadId,
       deleteExistingFeatures: flags['delete-existing'],
+      parseOptions: { strict: !flags['no-strict'] },
     }
     const auth: RequestInit = {
       method: 'POST',

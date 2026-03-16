@@ -28,6 +28,7 @@ import {
   DialogContentText,
   FormControlLabel,
   FormGroup,
+  FormHelperText,
   IconButton,
   InputAdornment,
   LinearProgress,
@@ -139,6 +140,7 @@ export function AddAssembly({
   const [importFeatures, setImportFeatures] = useState(true)
   const [sequenceIsEditable, setSequenceIsEditable] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [strict, setStrict] = useState(true)
 
   const [fastaFile, setFastaFile] = useState<File | null>(null)
   const [fastaIndexFile, setFastaIndexFile] = useState<File | null>(null)
@@ -270,6 +272,7 @@ export function AddAssembly({
           assembly: new ObjectID().toHexString(),
           assemblyName,
           fileIds: { fa: faId },
+          parseOptions: { strict },
         })
       } else if (fileType === FileType.GFF3) {
         const faId = await uploadFile(fastaFile, FileType.GFF3)
@@ -740,6 +743,22 @@ export function AddAssembly({
                     }
                     label="Load features from GFF3 file"
                   />
+                  <FormControlLabel
+                    label="Strict parsing"
+                    disabled={!importFeatures || (submitted && !errorMessage)}
+                    control={
+                      <Checkbox
+                        checked={strict}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setStrict(e.target.checked)
+                        }}
+                      />
+                    }
+                  />
+                  <FormHelperText>
+                    Don&apos;t import any features if any lines in the GFF3 are
+                    unable to be processed
+                  </FormHelperText>
                   <FormControlLabel
                     data-testid="gff3-is-gzip-checkbox"
                     control={
