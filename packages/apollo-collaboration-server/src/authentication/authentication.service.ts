@@ -186,6 +186,9 @@ export class AuthenticationService {
         username: name,
         role: newUserRole,
       }
+      this.logger.log(
+        `First time login for "${newUser.username}" (${newUser.email})`,
+      )
       user = await this.usersService.addNew(newUser)
     }
     this.logger.debug(`User found in Mongo: ${JSON.stringify(user)}`)
@@ -198,11 +201,7 @@ export class AuthenticationService {
     }
     // Return token with SUCCESS status
     const returnToken = this.jwtService.sign(payload)
-    this.logger.debug(
-      `First time login successful. Apollo token: ${JSON.stringify(
-        returnToken,
-      )}`,
-    )
+    this.logger.debug(`User "${user.username}" has logged in`)
     return { token: returnToken }
   }
 }

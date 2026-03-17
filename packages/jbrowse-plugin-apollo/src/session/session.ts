@@ -345,6 +345,10 @@ export function extendSession(
                   console.error(error)
                   continue
                 }
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                if (!jbrowseConfig.configuration.ApolloPlugin.hasRole) {
+                  continue
+                }
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                 reloadPluginManagerCallback(
                   jbrowseConfig,
