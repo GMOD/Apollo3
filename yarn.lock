@@ -372,7 +372,7 @@ __metadata:
     "@apollo-annotation/shared": "workspace:^"
     "@emotion/react": "npm:^11.10.6"
     "@emotion/styled": "npm:^11.10.6"
-    "@gmod/gff": "npm:^2.0.0"
+    "@gmod/gff": "npm:^2.1.0"
     "@gmod/indexedfasta": "npm:^5.0.2"
     "@jbrowse/core": "npm:^4.1.1"
     "@jbrowse/mobx-state-tree": "npm:^5.5.0"
@@ -453,7 +453,7 @@ __metadata:
   dependencies:
     "@apollo-annotation/mst": "workspace:^"
     "@apollo-annotation/schemas": "workspace:^"
-    "@gmod/gff": "npm:^2.0.0"
+    "@gmod/gff": "npm:^2.1.0"
     "@jbrowse/core": "npm:^4.1.1"
     "@nestjs/common": "npm:^10.1.0"
     "@nestjs/core": "npm:^10.1.0"
@@ -490,7 +490,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.28.6"
     "@emotion/react": "npm:^11.10.6"
     "@emotion/styled": "npm:^11.10.6"
-    "@gmod/gff": "npm:^2.0.0"
+    "@gmod/gff": "npm:^2.1.0"
     "@jbrowse/cli": "npm:^4.1.1"
     "@jbrowse/core": "npm:^4.1.1"
     "@jbrowse/development-tools": "npm:^2.2.1"
@@ -617,7 +617,7 @@ __metadata:
     "@apollo-annotation/common": "workspace:^"
     "@apollo-annotation/mst": "workspace:^"
     "@apollo-annotation/schemas": "workspace:^"
-    "@gmod/gff": "npm:^2.0.0"
+    "@gmod/gff": "npm:^2.1.0"
     "@gmod/indexedfasta": "npm:^5.0.2"
     "@jbrowse/core": "npm:^4.1.1"
     "@jbrowse/mobx-state-tree": "npm:^5.5.0"
@@ -7186,10 +7186,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gmod/gff@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@gmod/gff@npm:2.0.0"
-  checksum: 10c0/f8a40c0eb84eeffcea49aa65e0656a12e8810fb0525b61272be443c9d45790a00ae84ad19808c5f30acd8a69714b04bcaacd5c469a65e8f6ae36920bf6ccca00
+"@gmod/gff@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "@gmod/gff@npm:2.1.0"
+  checksum: 10c0/0f83d5cbbfe6338d89d5f0939c4c35f72d4f13085522d01e777e72ee614ea1aa9ccdca6a7df05bde4cccae99f8cd2b8d04b9c27197f88442810bda508e0ab6cc
   languageName: node
   linkType: hard
 
