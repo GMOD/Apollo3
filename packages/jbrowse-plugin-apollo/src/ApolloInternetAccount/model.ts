@@ -107,7 +107,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           if (
             event.data.name !== `JBrowseAuthWindow-${self.internetAccountId}`
           ) {
-            this.deleteMessageChannel()
             return
           }
           const redirectUriWithInfo = event.data.redirectUri
