@@ -88,14 +88,28 @@ export class AddFeaturesFromFileChange extends FromFileBaseChange {
       }
       logger.debug?.(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
 
+      let errorCount = 0
+      // eslint-disable-next-line unicorn/consistent-function-scoping
+      const errorLogger = (error: unknown) => {
+        if (errorCount <= 99) {
+          logger.warn('Error parsing or adding feature')
+          logger.warn(error)
+          if (errorCount === 99) {
+            logger.warn(
+              'Reached 100 feature errors, omitting further warnings from log',
+            )
+          }
+        }
+        errorCount++
+      }
+
       // Read data from compressed file and parse the content
       const { bufferSize = 10_000, strict = true } = parseOptions ?? {}
       const featureStream = filesService.parseGFF3(
         filesService.getFileStream(fileDoc),
-        { bufferSize },
+        { bufferSize, errorCallback: strict ? undefined : errorLogger },
       )
       let featureCount = 0
-      let errorCount = 0
       for await (const gff3Feature of featureStream) {
         // Add new feature into database
         try {
@@ -105,16 +119,7 @@ export class AddFeaturesFromFileChange extends FromFileBaseChange {
           if (strict || featureCount === 0) {
             throw error
           }
-          if (errorCount <= 99) {
-            logger.warn('Error parsing feature')
-            logger.warn(error)
-            if (errorCount === 99) {
-              logger.warn(
-                'Reached 100 parsing errors, omitting further warnings from log',
-              )
-            }
-          }
-          errorCount++
+          errorLogger(error)
         }
         featureCount++
         if (featureCount % 1000 === 0) {

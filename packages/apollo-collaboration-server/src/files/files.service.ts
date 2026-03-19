@@ -105,8 +105,13 @@ export class FilesService {
 
   parseGFF3(
     stream: ReadableStream<Uint8Array>,
-    options?: { bufferSize?: number },
+    options?: {
+      bufferSize?: number
+      errorCallback?(erroreMessage: string): void
+    },
   ): ReadableStream<GFF3Feature> {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { errorCallback } = options ?? {}
     return stream.pipeThrough(
       new TransformStream(
         new GFFTransformer({
@@ -114,6 +119,11 @@ export class FilesService {
           parseComments: false,
           parseDirectives: false,
           parseFeatures: true,
+          errorCallback: errorCallback
+            ? (errorMessage: string) => {
+                errorCallback(errorMessage)
+              }
+            : undefined,
           ...options,
         }),
       ),

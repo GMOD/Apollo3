@@ -1,6 +1,6 @@
 {
   "name": "@apollo-annotation/shared",
-  "version": "0.3.11",
+  "version": "0.3.12",
   "sideEffects": false,
   "type": "module",
   "exports": "./dist/index.js",
@@ -15,7 +15,7 @@
     "@apollo-annotation/common": "workspace:^",
     "@apollo-annotation/mst": "workspace:^",
     "@apollo-annotation/schemas": "workspace:^",
-    "@gmod/gff": "^2.0.0",
+    "@gmod/gff": "^2.1.0",
     "@gmod/indexedfasta": "^5.0.2",
     "@jbrowse/core": "^4.1.1",
     "bson-objectid": "^2.0.4",
