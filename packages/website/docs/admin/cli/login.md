@@ -41,4 +41,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/login.ts](https://github.com/GMOD/Apollo3/blob/v0.3.12/packages/apollo-cli/src/commands/login.ts)_
+[src/commands/login.ts](https://github.com/GMOD/Apollo3/blob/v0.3.13/packages/apollo-cli/src/commands/login.ts)_
