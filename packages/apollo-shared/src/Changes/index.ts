@@ -14,6 +14,7 @@ import { LocationEndChange } from './LocationEndChange.js'
 import { LocationStartChange } from './LocationStartChange.js'
 import { MergeExonsChange } from './MergeExonsChange.js'
 import { MergeTranscriptsChange } from './MergeTranscriptsChange.js'
+import { ReplaceFeatureChange } from './ReplaceFeatureChange.js'
 import { SplitExonChange } from './SplitExonChange.js'
 import { StrandChange } from './StrandChange.js'
 import { TypeChange } from './TypeChange.js'
@@ -43,6 +44,7 @@ export const changes = {
   UndoMergeTranscriptsChange,
   StrandChange,
   TypeChange,
+  ReplaceFeatureChange,
   UserChange,
   AddRefSeqAliasesChange,
   AddAssemblyAliasesChange,
@@ -68,6 +70,7 @@ export * from './UndoSplitExonChange.js'
 export * from './UndoMergeTranscriptsChange.js'
 export * from './StrandChange.js'
 export * from './TypeChange.js'
+export * from './ReplaceFeatureChange.js'
 export * from './UserChange.js'
 export * from './AddRefSeqAliasesChange.js'
 export * from './AddAssemblyAliasesChange.js'
