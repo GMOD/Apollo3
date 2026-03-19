@@ -17,7 +17,7 @@ import {
 } from '@apollo-annotation/schemas'
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { ObjectId } from 'mongodb'
+import type { ObjectId } from 'mongodb'
 import { Model } from 'mongoose'
 
 import type { FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
