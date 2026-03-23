@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/require-await */
 import type {
   ChangeOptions,
   ClientDataStore,
-  LocalGFF3DataStore,
   SerializedAssemblySpecificChange,
   ServerDataStore,
 } from '@apollo-annotation/common'
@@ -128,10 +126,6 @@ export class AddFeaturesFromFileChange extends FromFileBaseChange {
       }
     }
     logger.debug?.('New features added into database!')
-  }
-
-  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
-    throw new Error('executeOnLocalGFF3 not implemented')
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function

@@ -2,11 +2,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/require-await */
 import type {
   ChangeOptions,
   ClientDataStore,
-  LocalGFF3DataStore,
   SerializedAssemblySpecificChange,
   ServerDataStore,
 } from '@apollo-annotation/common'
@@ -207,10 +205,6 @@ export class AddAssemblyFromFileChange extends FromFileBaseChange {
     // Add refSeqs
     // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
     await this.addRefSeqIntoDb(fileDoc, newAssemblyDoc._id.toString(), backend)
-  }
-
-  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
-    throw new Error('executeOnLocalGFF3 not implemented')
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function

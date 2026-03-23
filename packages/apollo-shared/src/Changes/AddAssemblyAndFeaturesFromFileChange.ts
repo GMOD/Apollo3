@@ -2,12 +2,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/require-await */
 
 import type {
   ChangeOptions,
   ClientDataStore,
-  LocalGFF3DataStore,
   SerializedAssemblySpecificChange,
   ServerDataStore,
 } from '@apollo-annotation/common'
@@ -147,10 +145,6 @@ export class AddAssemblyAndFeaturesFromFileChange extends FromFileBaseChange {
         }
       }
     }
-  }
-
-  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
-    throw new Error('executeOnLocalGFF3 not implemented')
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function

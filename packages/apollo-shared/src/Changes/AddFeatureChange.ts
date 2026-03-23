@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
   type ChangeOptions,
   type ClientDataStore,
   FeatureChange,
-  type LocalGFF3DataStore,
   type SerializedFeatureChange,
   type ServerDataStore,
 } from '@apollo-annotation/common'
@@ -166,10 +164,6 @@ export class AddFeatureChange extends FeatureChange {
       featureCnt++
     }
     logger.debug?.(`Added ${featureCnt} new feature(s) into database.`)
-  }
-
-  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
-    throw new Error('executeOnLocalGFF3 not implemented')
   }
 
   async executeOnClient(dataStore: ClientDataStore) {

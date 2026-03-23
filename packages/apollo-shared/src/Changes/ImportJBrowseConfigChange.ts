@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/require-await */
 import {
   Change,
   type ChangeOptions,
   type ClientDataStore,
-  type LocalGFF3DataStore,
   type ServerDataStore,
 } from '@apollo-annotation/common'
 
@@ -109,10 +107,6 @@ export class ImportJBrowseConfigChange extends Change {
     const filteredConfig = filterJBrowseConfig(newJBrowseConfig)
     await jbrowseConfigModel.create(filteredConfig)
     logger.debug?.('Stored new JBrowse Config')
-  }
-
-  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
-    throw new Error('executeOnLocalGFF3 not implemented')
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function

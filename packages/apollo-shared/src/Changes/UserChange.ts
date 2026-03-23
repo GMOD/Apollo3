@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/require-await */
 import {
   Change,
   type ChangeOptions,
   type ClientDataStore,
-  type LocalGFF3DataStore,
   type SerializedChange,
   type ServerDataStore,
 } from '@apollo-annotation/common'
@@ -66,10 +64,6 @@ export class UserChange extends Change {
         throw new Error(errMsg)
       }
     }
-  }
-
-  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
-    throw new Error('executeOnLocalGFF3 not implemented')
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function

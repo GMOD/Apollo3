@@ -6,14 +6,12 @@ import {
   RefSeq,
   type RefSeqDocument,
 } from '@apollo-annotation/schemas'
-import { GetFeaturesOperation } from '@apollo-annotation/shared'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 
 import { ChecksService } from '../checks/checks.service.js'
 import type { FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
-import { OperationsService } from '../operations/operations.service.js'
 
 import type {
   FeatureCountRequest,
@@ -23,7 +21,6 @@ import type {
 @Injectable()
 export class FeaturesService {
   constructor(
-    private readonly operationsService: OperationsService,
     private readonly checksService: ChecksService,
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
@@ -226,13 +223,14 @@ export class FeaturesService {
   }
 
   async findByRange(searchDto: FeatureRangeSearchDto) {
-    const featureDocs =
-      await this.operationsService.executeOperation<GetFeaturesOperation>({
-        typeName: 'GetFeaturesOperation',
+    const featureDocs = await this.featureModel
+      .find({
         refSeq: searchDto.refSeq,
-        start: searchDto.start,
-        end: searchDto.end,
+        min: { $lte: searchDto.end },
+        max: { $gte: searchDto.start },
+        status: 0,
       })
+      .exec()
     for (const featureDoc of featureDocs) {
       await this.checksService.checkFeature(featureDoc)
     }

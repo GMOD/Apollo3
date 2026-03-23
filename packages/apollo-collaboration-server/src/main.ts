@@ -7,7 +7,6 @@ import {
   type Check,
   changeRegistry,
   checkRegistry,
-  operationRegistry,
 } from '@apollo-annotation/common'
 import { CheckSchema } from '@apollo-annotation/schemas'
 import {
@@ -16,7 +15,6 @@ import {
   ParentChildValidation,
   TranscriptCheck,
   changes,
-  operations,
   validationRegistry,
 } from '@apollo-annotation/shared'
 import type { LogLevel } from '@nestjs/common'
@@ -73,10 +71,6 @@ async function bootstrap() {
 
   for (const [changeName, change] of Object.entries(changes)) {
     changeRegistry.registerChange(changeName, change)
-  }
-
-  for (const [operationName, operation] of Object.entries(operations)) {
-    operationRegistry.registerOperation(operationName, operation)
   }
 
   const cdsCheck = new CDSCheck()

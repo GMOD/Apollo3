@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   AssemblySpecificChange,
   type ClientDataStore,
-  type LocalGFF3DataStore,
   type SerializedAssemblySpecificChange,
   type ServerDataStore,
 } from '@apollo-annotation/common'
@@ -70,10 +68,6 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
     await assemblyModel.findByIdAndDelete(assembly).exec()
 
     logger.debug?.(`Assembly "${assembly}" deleted from database.`)
-  }
-
-  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
-    throw new Error('executeOnLocalGFF3 not implemented')
   }
 
   async executeOnClient(dataStore: ClientDataStore) {

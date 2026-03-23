@@ -21,7 +21,6 @@ import { FilesModule } from './files/files.module.js'
 import { HealthModule } from './health/health.module.js'
 import { JBrowseModule } from './jbrowse/jbrowse.module.js'
 import { MessagesModule } from './messages/messages.module.js'
-import { OperationsModule } from './operations/operations.module.js'
 import { PluginsModule } from './plugins/plugins.module.js'
 import { RefSeqChunksModule } from './refSeqChunks/refSeqChunks.module.js'
 import { RefSeqsModule } from './refSeqs/refSeqs.module.js'
@@ -165,7 +164,6 @@ async function mongoDBURIFactory(
       useFactory: mongoDBURIFactory,
       inject: [ConfigService],
     }),
-    OperationsModule,
     PluginsModule.registerAsync(),
     RefSeqChunksModule,
     RefSeqsModule,

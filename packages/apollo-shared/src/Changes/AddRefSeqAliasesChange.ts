@@ -6,7 +6,6 @@ import {
   type Change,
   type ChangeOptions,
   type ClientDataStore,
-  type LocalGFF3DataStore,
   type SerializedAssemblySpecificChange,
   type ServerDataStore,
 } from '@apollo-annotation/common'
@@ -72,10 +71,6 @@ export class AddRefSeqAliasesChange extends AssemblySpecificChange {
         .updateOne({ assembly, name: refName }, { $set: { aliases } })
         .session(session)
     }
-  }
-
-  executeOnLocalGFF3(_backend: LocalGFF3DataStore): Promise<unknown> {
-    throw new Error('Method not implemented.')
   }
 
   // eslint-disable-next-line @typescript-eslint/class-literal-property-style

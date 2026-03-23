@@ -5,7 +5,6 @@ import {
   type ChangeOptions,
   type ClientDataStore,
   FeatureChange,
-  type LocalGFF3DataStore,
   type SerializedFeatureChange,
   type ServerDataStore,
 } from '@apollo-annotation/common'
@@ -136,10 +135,6 @@ export class DeleteFeatureChange extends FeatureChange {
         `Feature "${deletedFeature._id}" deleted from document "${featureDoc._id}"`,
       )
     }
-  }
-
-  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
-    throw new Error('executeOnLocalGFF3 not implemented')
   }
 
   async executeOnClient(dataStore: ClientDataStore) {

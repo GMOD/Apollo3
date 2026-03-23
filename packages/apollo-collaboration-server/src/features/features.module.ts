@@ -3,14 +3,13 @@ import {
   type FeatureDocument,
   FeatureSchema,
 } from '@apollo-annotation/schemas'
-import { Module, forwardRef } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import type { Connection } from 'mongoose'
 import idValidator from 'mongoose-id-validator'
 
 import { ChecksModule } from '../checks/checks.module.js'
 import { ChecksService } from '../checks/checks.service.js'
-import { OperationsModule } from '../operations/operations.module.js'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module.js'
 import { SequenceModule } from '../sequence/sequence.module.js'
 
@@ -22,7 +21,6 @@ import { FeaturesService } from './features.service.js'
   providers: [FeaturesService],
   imports: [
     ChecksModule,
-    forwardRef(() => OperationsModule),
     RefSeqsModule,
     SequenceModule,
     MongooseModule.forFeatureAsync([

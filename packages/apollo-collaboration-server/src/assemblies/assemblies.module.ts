@@ -4,7 +4,6 @@ import { MongooseModule } from '@nestjs/mongoose'
 
 import { ChecksModule } from '../checks/checks.module.js'
 import { FeaturesModule } from '../features/features.module.js'
-import { OperationsModule } from '../operations/operations.module.js'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module.js'
 
 import { AssembliesController } from './assemblies.controller.js'
@@ -19,7 +18,6 @@ import { AssembliesService } from './assemblies.service.js'
     ]),
     ChecksModule,
     FeaturesModule,
-    OperationsModule,
     RefSeqsModule,
   ],
   exports: [MongooseModule, AssembliesService],
