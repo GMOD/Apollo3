@@ -330,7 +330,7 @@ function draw(
       let prevCDSTop = 0
       let prevCDSEndPx = 0
       let counter = 1
-      for (const cds of cdsRow.sort((a, b) => a.max - b.max)) {
+      for (const cds of cdsRow.toSorted((a, b) => a.max - b.max)) {
         if (
           (selectedFeature &&
             isSelected &&
@@ -520,7 +520,7 @@ function drawHover(
     let prevCDSTop = 0
     let prevCDSEndPx = 0
     let counter = 1
-    for (const cds of cdsRow.sort((a, b) => a.max - b.max)) {
+    for (const cds of cdsRow.toSorted((a, b) => a.max - b.max)) {
       const cdsWidthPx = (cds.max - cds.min) / bpPerPx
       const minX =
         (lgv.bpToPx({
