@@ -105,7 +105,10 @@ export class ChangesService {
         const handler =
           this.changeHandlersService[change.typeName as keyof typeof changes]
         // @ts-expect-error change not narrowed
-        await handler(change, { session, user: uniqUserId })
+        await handler.bind(this.changeHandlersService)(change, {
+          session,
+          user: uniqUserId,
+        })
       } catch (error) {
         // Clean up old "temporary document" -documents
         // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
