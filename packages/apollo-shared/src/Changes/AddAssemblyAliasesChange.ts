@@ -1,15 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   AssemblySpecificChange,
   type Change,
   type ChangeOptions,
-  type ClientDataStore,
   type SerializedAssemblySpecificChange,
-  type ServerDataStore,
 } from '@apollo-annotation/common'
-import { getSession } from '@jbrowse/core/util'
 
 export interface SerializedAssemblyAliasesChange
   extends SerializedAssemblySpecificChange {
@@ -26,16 +20,6 @@ export class AddAssemblyAliasesChange extends AssemblySpecificChange {
     this.aliases = json.aliases
   }
 
-  executeOnClient(clientDataStore: ClientDataStore) {
-    const { assemblyManager } = getSession(clientDataStore)
-    const assembly = assemblyManager.get(this.assembly)
-    if (!assembly) {
-      throw new Error(`assembly ${this.assembly} not found`)
-    }
-    assembly.configuration.aliases.set(this.aliases)
-    return Promise.resolve()
-  }
-
   getInverse(): Change {
     throw new Error('Method not implemented.')
   }
@@ -43,20 +27,6 @@ export class AddAssemblyAliasesChange extends AssemblySpecificChange {
   toJSON(): SerializedAssemblyAliasesChange {
     const { assembly, aliases, typeName } = this
     return { assembly, typeName, aliases }
-  }
-
-  async executeOnServer(backend: ServerDataStore) {
-    const { assemblyModel } = backend
-    const { assembly, logger, aliases } = this
-    logger.debug?.(
-      `Updating assembly aliases for assembly: ${assembly}, aliases: ${JSON.stringify(aliases)}`,
-    )
-    const asm = await assemblyModel.findById(assembly)
-    if (!asm) {
-      throw new Error(`Assembly with ID ${assembly} not found`)
-    }
-    asm.aliases = aliases
-    await asm.save()
   }
 
   // eslint-disable-next-line @typescript-eslint/class-literal-property-style

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/require-await */
-import type { Change, ClientDataStore } from '@apollo-annotation/common'
+import type { Change } from '@apollo-annotation/common'
 import type { FeatureDocument } from '@apollo-annotation/schemas'
 import type { ExecutionContext } from '@nestjs/common'
 import type { Reflector } from '@nestjs/core'
@@ -29,10 +29,7 @@ export abstract class Validation {
     return { validationName: this.name }
   }
 
-  async frontendPostValidate(
-    _change: Change,
-    _dataStore: ClientDataStore,
-  ): Promise<ValidationResult> {
+  async frontendPostValidate(_change: Change): Promise<ValidationResult> {
     return { validationName: this.name }
   }
 

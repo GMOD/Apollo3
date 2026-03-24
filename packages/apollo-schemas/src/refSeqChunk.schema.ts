@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { Document, Schema as MongooseSchema } from 'mongoose'
+import { type HydratedDocument, Schema as MongooseSchema } from 'mongoose'
 
 import { RefSeq } from './refSeq.schema.js'
 
-export type RefSeqChunkDocument = RefSeqChunk & Document
+export type RefSeqChunkDocument = HydratedDocument<RefSeqChunk>
 
 @Schema()
 export class RefSeqChunk {

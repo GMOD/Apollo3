@@ -15,12 +15,13 @@ import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module.js'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module.js'
 import { UsersModule } from '../users/users.module.js'
 
+import { ChangeHandlersService } from './changeHandlers.service.js'
 import { ChangesController } from './changes.controller.js'
 import { ChangesService } from './changes.service.js'
 
 @Module({
   controllers: [ChangesController],
-  providers: [ChangesService],
+  providers: [ChangesService, ChangeHandlersService],
   imports: [
     MongooseModule.forFeatureAsync([
       {

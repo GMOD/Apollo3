@@ -1,9 +1,7 @@
 import {
   Change,
   type ChangeOptions,
-  type ClientDataStore,
   type SerializedChange,
-  type ServerDataStore,
 } from '@apollo-annotation/common'
 
 export interface SerializedUserChangeBase extends SerializedChange {
@@ -46,28 +44,6 @@ export class UserChange extends Change {
     }
     return { typeName, userId, changes }
   }
-
-  async executeOnServer(backend: ServerDataStore) {
-    const { session, userModel } = backend
-    const { changes, logger, userId } = this
-
-    for (const change of changes) {
-      logger.debug?.(`change: ${JSON.stringify(changes)}`)
-      const { role } = change
-      const user = await userModel
-        .findByIdAndUpdate(userId, { role })
-        .session(session)
-        .exec()
-      if (!user) {
-        const errMsg = `*** ERROR: User with id "${userId}" not found`
-        logger.error(errMsg)
-        throw new Error(errMsg)
-      }
-    }
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  async executeOnClient(_dataStore: ClientDataStore) {}
 
   getInverse() {
     const { changes, logger, typeName, userId } = this

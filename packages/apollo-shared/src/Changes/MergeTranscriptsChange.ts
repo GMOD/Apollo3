@@ -1,13 +1,10 @@
 /* eslint-disable unicorn/prefer-structured-clone */
-/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import {
   type ChangeOptions,
-  type ClientDataStore,
   FeatureChange,
   type SerializedFeatureChange,
-  type ServerDataStore,
 } from '@apollo-annotation/common'
 import type {
   AnnotationFeature,
@@ -19,7 +16,6 @@ import { getSnapshot } from '@jbrowse/mobx-state-tree'
 
 import { attributesToRecords, stringifyAttributes } from '../util.js'
 
-import { findAndDeleteChildFeature } from './DeleteFeatureChange.js'
 import { UndoMergeTranscriptsChange } from './UndoMergeTranscriptsChange.js'
 
 interface SerializedMergeTranscriptsChangeBase extends SerializedFeatureChange {
@@ -73,43 +69,6 @@ export class MergeTranscriptsChange extends FeatureChange {
       }
     }
     return { typeName, changedIds, assembly, changes }
-  }
-
-  async executeOnServer(backend: ServerDataStore) {
-    const { featureModel, session } = backend
-    const { changes, logger } = this
-    for (const change of changes) {
-      const { firstTranscript, secondTranscript } = change
-      const topLevelFeature = await featureModel
-        .findOne({ allIds: firstTranscript._id })
-        .session(session)
-        .exec()
-      if (!topLevelFeature) {
-        const errMsg = `*** ERROR: The following featureId was not found in database ='${firstTranscript._id}'`
-        logger.error(errMsg)
-        throw new Error(errMsg)
-      }
-      const mergedTranscript = this.getFeatureFromId(
-        topLevelFeature,
-        firstTranscript._id,
-      )
-      if (!mergedTranscript) {
-        const errMsg = 'ERROR when searching feature by featureId'
-        logger.error(errMsg)
-        throw new Error(errMsg)
-      }
-      this.mergeTranscriptsOnServer(mergedTranscript, secondTranscript)
-      const deletedIds = findAndDeleteChildFeature(
-        topLevelFeature,
-        secondTranscript._id,
-        this,
-      )
-      deletedIds.push(secondTranscript._id)
-      topLevelFeature.allIds = topLevelFeature.allIds.filter(
-        (id) => !deletedIds.includes(id),
-      )
-      await topLevelFeature.save()
-    }
   }
 
   mergeTranscriptsOnServer(
@@ -239,24 +198,6 @@ export class MergeTranscriptsChange extends FeatureChange {
       // This secondFeatureChild has no overlap with any feature in the
       // receiving transcript so we add it as it is to the receiving transcript
       this.addChild(firstTranscript, secondFeatureChild)
-    }
-  }
-
-  /* --------------------------------- */
-
-  async executeOnClient(dataStore: ClientDataStore) {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!dataStore) {
-      throw new Error('No data store')
-    }
-    for (const [idx, changedId] of this.changedIds.entries()) {
-      const { firstTranscript, secondTranscript } = this.changes[idx]
-      const mergedTranscript = dataStore.getFeature(firstTranscript._id)
-      if (!mergedTranscript) {
-        throw new Error(`Could not find feature with identifier "${changedId}"`)
-      }
-      this.mergeTranscriptsOnClient(mergedTranscript, secondTranscript)
-      mergedTranscript.parent?.deleteChild(secondTranscript._id)
     }
   }
 

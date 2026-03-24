@@ -1,11 +1,8 @@
-import type {
-  ChangeOptions,
-  ClientDataStore,
-  SerializedAssemblySpecificChange,
-  ServerDataStore,
+import {
+  AssemblySpecificChange,
+  type ChangeOptions,
+  type SerializedAssemblySpecificChange,
 } from '@apollo-annotation/common'
-
-import { FromFileBaseChange } from './FromFileBaseChange.js'
 
 export interface SerializedAddFeaturesFromFileChangeBase
   extends SerializedAssemblySpecificChange {
@@ -31,7 +28,7 @@ export type SerializedAddFeaturesFromFileChange =
   | SerializedAddFeaturesFromFileChangeSingle
   | SerializedAddFeaturesFromFileChangeMultiple
 
-export class AddFeaturesFromFileChange extends FromFileBaseChange {
+export class AddFeaturesFromFileChange extends AssemblySpecificChange {
   typeName = 'AddFeaturesFromFileChange' as const
   changes: AddFeaturesFromFileChangeDetails[]
   deleteExistingFeatures = false
@@ -58,78 +55,6 @@ export class AddFeaturesFromFileChange extends FromFileBaseChange {
     }
     return { typeName, assembly, changes, deleteExistingFeatures }
   }
-
-  /**
-   * Applies the required change to database
-   * @param backend - parameters from backend
-   * @returns
-   */
-  async executeOnServer(backend: ServerDataStore) {
-    const { fileModel, filesService } = backend
-    const { changes, deleteExistingFeatures, logger } = this
-
-    if (deleteExistingFeatures) {
-      await this.removeExistingFeatures(backend)
-    }
-
-    for (const change of changes) {
-      const { fileId, parseOptions } = change
-
-      const { FILE_UPLOAD_FOLDER } = process.env
-      if (!FILE_UPLOAD_FOLDER) {
-        throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
-      }
-      // Get file checksum
-      const fileDoc = await fileModel.findById(fileId).exec()
-      if (!fileDoc) {
-        throw new Error(`File "${fileId}" not found in Mongo`)
-      }
-      logger.debug?.(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
-
-      let errorCount = 0
-      // eslint-disable-next-line unicorn/consistent-function-scoping
-      const errorLogger = (error: unknown) => {
-        if (errorCount <= 99) {
-          logger.warn('Error parsing or adding feature')
-          logger.warn(error)
-          if (errorCount === 99) {
-            logger.warn(
-              'Reached 100 feature errors, omitting further warnings from log',
-            )
-          }
-        }
-        errorCount++
-      }
-
-      // Read data from compressed file and parse the content
-      const { bufferSize = 10_000, strict = true } = parseOptions ?? {}
-      const featureStream = filesService.parseGFF3(
-        filesService.getFileStream(fileDoc),
-        { bufferSize, errorCallback: strict ? undefined : errorLogger },
-      )
-      let featureCount = 0
-      for await (const gff3Feature of featureStream) {
-        // Add new feature into database
-        try {
-          await this.addFeatureIntoDb(gff3Feature, backend)
-        } catch (error) {
-          // if the first feature is an error, assume the file isn't valid and throw
-          if (strict || featureCount === 0) {
-            throw error
-          }
-          errorLogger(error)
-        }
-        featureCount++
-        if (featureCount % 1000 === 0) {
-          logger.debug?.(`Processed ${featureCount} features`)
-        }
-      }
-    }
-    logger.debug?.('New features added into database!')
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  async executeOnClient(_dataStore: ClientDataStore) {}
 
   getInverse() {
     const { assembly, changes, logger, typeName } = this

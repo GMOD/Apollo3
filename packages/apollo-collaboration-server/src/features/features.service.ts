@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
   Feature,
@@ -58,7 +57,7 @@ export class FeaturesService {
         .exec()
 
       for (const refSeq of refSeqs) {
-        filter.refSeq = refSeq._id
+        filter.refSeq = refSeq._id.toString()
         count += await this.featureModel.countDocuments(filter)
       }
     } else {

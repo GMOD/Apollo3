@@ -1,9 +1,4 @@
-import {
-  Change,
-  type ChangeOptions,
-  type ClientDataStore,
-  type ServerDataStore,
-} from '@apollo-annotation/common'
+import { Change, type ChangeOptions } from '@apollo-annotation/common'
 
 interface JBrowseAssembly {
   sequence: { adapter: { type: string } }
@@ -96,21 +91,6 @@ export class ImportJBrowseConfigChange extends Change {
     const { newJBrowseConfig, oldJBrowseConfig, typeName } = this
     return { typeName, oldJBrowseConfig, newJBrowseConfig }
   }
-
-  async executeOnServer(backend: ServerDataStore) {
-    const { jbrowseConfigModel } = backend
-    const { logger, newJBrowseConfig } = this
-    await jbrowseConfigModel.deleteMany()
-    if (!newJBrowseConfig) {
-      return
-    }
-    const filteredConfig = filterJBrowseConfig(newJBrowseConfig)
-    await jbrowseConfigModel.create(filteredConfig)
-    logger.debug?.('Stored new JBrowse Config')
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  async executeOnClient(_dataStore: ClientDataStore) {}
 
   getInverse() {
     const { logger, newJBrowseConfig, oldJBrowseConfig } = this

@@ -1,15 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   AssemblySpecificChange,
   type Change,
   type ChangeOptions,
-  type ClientDataStore,
   type SerializedAssemblySpecificChange,
-  type ServerDataStore,
 } from '@apollo-annotation/common'
-import { getSession } from '@jbrowse/core/util'
 
 export interface SerializedRefSeqAliases {
   refName: string
@@ -31,24 +25,6 @@ export class AddRefSeqAliasesChange extends AssemblySpecificChange {
     this.refSeqAliases = json.refSeqAliases
   }
 
-  executeOnClient(clientDataStore: ClientDataStore) {
-    const { assemblyManager } = getSession(clientDataStore)
-    const assembly = assemblyManager.get(this.assembly)
-    if (!assembly) {
-      throw new Error(`assembly ${this.assembly} not found`)
-    }
-    const sessionAliases = assembly.refNameAliases ?? {}
-
-    for (const refSeqAlias of this.refSeqAliases) {
-      const { aliases, refName } = refSeqAlias
-      for (const alias of aliases) {
-        sessionAliases[alias] = refName
-      }
-    }
-    assembly.setRefNameAliases(sessionAliases)
-    return Promise.resolve()
-  }
-
   getInverse(): Change {
     throw new Error('Method not implemented.')
   }
@@ -56,21 +32,6 @@ export class AddRefSeqAliasesChange extends AssemblySpecificChange {
   toJSON(): SerializedRefSeqAliasesChange {
     const { assembly, refSeqAliases, typeName } = this
     return { assembly, typeName, refSeqAliases }
-  }
-
-  async executeOnServer(backend: ServerDataStore) {
-    const { refSeqModel, session } = backend
-    const { assembly, logger, refSeqAliases } = this
-
-    for (const refSeqAlias of refSeqAliases) {
-      logger.debug?.(
-        `Updating Refname alias for assembly: ${assembly}, refSeqAlias: ${JSON.stringify(refSeqAlias)}`,
-      )
-      const { aliases, refName } = refSeqAlias
-      await refSeqModel
-        .updateOne({ assembly, name: refName }, { $set: { aliases } })
-        .session(session)
-    }
   }
 
   // eslint-disable-next-line @typescript-eslint/class-literal-property-style

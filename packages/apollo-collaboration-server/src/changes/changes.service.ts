@@ -9,26 +9,19 @@ import {
   type AssemblyDocument,
   Change,
   type ChangeDocument,
-  Check,
-  type CheckDocument,
   Feature,
   type FeatureDocument,
-  File,
-  type FileDocument,
-  JBrowseConfig,
-  type JBrowseConfigDocument,
   RefSeq,
   RefSeqChunk,
   type RefSeqChunkDocument,
   type RefSeqDocument,
-  User,
-  type UserDocument,
 } from '@apollo-annotation/schemas'
 import {
   AddFeatureChange,
   type AddFeatureChangeDetails,
   type ChangeMessage,
   type DecodedJWT,
+  changes,
   makeUserSessionId,
   validationRegistry,
 } from '@apollo-annotation/shared'
@@ -41,10 +34,9 @@ import { InjectModel } from '@nestjs/mongoose'
 import { type FilterQuery, Model, Types } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service.js'
-import { FilesService } from '../files/files.service.js'
 import { MessagesGateway } from '../messages/messages.gateway.js'
-import { PluginsService } from '../plugins/plugins.service.js'
 
+import { ChangeHandlersService } from './changeHandlers.service.js'
 import { FindChangeDto } from './dto/find-change.dto.js'
 
 const STATUS_ZERO_CHANGE_TYPES = new Set([
@@ -53,7 +45,6 @@ const STATUS_ZERO_CHANGE_TYPES = new Set([
   'AddAssemblyFromFileChange',
   'AddFeaturesFromFileChange',
 ])
-
 export class ChangesService {
   constructor(
     @InjectModel(Feature.name)
@@ -64,20 +55,11 @@ export class ChangesService {
     private readonly refSeqModel: Model<RefSeqDocument>,
     @InjectModel(RefSeqChunk.name)
     private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
-    @InjectModel(File.name)
-    private readonly fileModel: Model<FileDocument>,
-    @InjectModel(User.name)
-    private readonly userModel: Model<UserDocument>,
-    @InjectModel(JBrowseConfig.name)
-    private readonly jbrowseConfigModel: Model<JBrowseConfigDocument>,
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
-    @InjectModel(Check.name)
-    private readonly checkModel: Model<CheckDocument>,
-    private readonly filesService: FilesService,
     private readonly countersService: CountersService,
-    private readonly pluginsService: PluginsService,
     private readonly messagesGateway: MessagesGateway,
+    private readonly changeHandlersService: ChangeHandlersService,
   ) {}
 
   private readonly logger = new Logger(ChangesService.name)
@@ -120,22 +102,10 @@ export class ChangesService {
     let changeDoc: ChangeDocument | undefined
     await this.featureModel.db.transaction(async (session) => {
       try {
-        await change.execute({
-          typeName: 'Server',
-          featureModel: this.featureModel,
-          assemblyModel: this.assemblyModel,
-          refSeqModel: this.refSeqModel,
-          refSeqChunkModel: this.refSeqChunkModel,
-          fileModel: this.fileModel,
-          userModel: this.userModel,
-          jbrowseConfigModel: this.jbrowseConfigModel,
-          checkModel: this.checkModel,
-          session,
-          filesService: this.filesService,
-          counterService: this.countersService,
-          pluginsService: this.pluginsService,
-          user: uniqUserId,
-        })
+        const handler =
+          this.changeHandlersService[change.typeName as keyof typeof changes]
+        // @ts-expect-error change not narrowed
+        await handler(change, { session, user: uniqUserId })
       } catch (error) {
         // Clean up old "temporary document" -documents
         // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
@@ -287,7 +257,7 @@ export class ChangesService {
       )
       await this.messagesGateway.create(message.channel, message)
     }
-    this.logger.debug(`ChangeDocId: ${changeDoc?._id}`)
+    this.logger.debug(`ChangeDocId: ${changeDoc?._id.toString()}`)
     return changeDoc
   }
 

@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import type { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
 import {
   type AnnotationFeatureModel,
   type AnnotationFeatureSnapshot,
@@ -158,15 +157,13 @@ export function clientDataStoreFactory(
       },
     }))
     .volatile((self) => ({
-      changeManager: new ChangeManager(self as unknown as ClientDataStoreType),
+      changeManager: new ChangeManager(self as ClientDataStoreModel),
       collaborationServerDriver: new CollaborationServerDriver(
-        self as unknown as ClientDataStoreType,
+        self as ClientDataStoreModel,
       ),
-      inMemoryFileDriver: new InMemoryFileDriver(
-        self as unknown as ClientDataStoreType,
-      ),
+      inMemoryFileDriver: new InMemoryFileDriver(self as ClientDataStoreModel),
       desktopFileDriver: isElectron
-        ? new DesktopFileDriver(self as unknown as ClientDataStoreType)
+        ? new DesktopFileDriver(self as ClientDataStoreModel)
         : undefined,
     }))
     .actions((self) => ({
@@ -347,3 +344,12 @@ export function clientDataStoreFactory(
       }),
     }))
 }
+
+export type ClientDataStoreStateModel = ReturnType<
+  typeof clientDataStoreFactory
+>
+// eslint disable because of
+// https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ClientDataStoreModel
+  extends Instance<ClientDataStoreStateModel> {}

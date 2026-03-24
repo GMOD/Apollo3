@@ -1,12 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
   type ChangeOptions,
-  type ClientDataStore,
   FeatureChange,
   type SerializedFeatureChange,
-  type ServerDataStore,
 } from '@apollo-annotation/common'
 import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
@@ -64,143 +60,6 @@ export class AddFeatureChange extends FeatureChange {
       }
     }
     return { typeName, changedIds, assembly, changes }
-  }
-
-  /**
-   * Applies the required change to database
-   * @param backend - parameters from backend
-   * @returns
-   */
-  async executeOnServer(backend: ServerDataStore) {
-    const { assemblyModel, featureModel, refSeqModel, session, user } = backend
-    const { assembly, changes, logger } = this
-
-    const assemblyDoc = await assemblyModel
-      .findById(assembly)
-      .session(session)
-      .exec()
-    if (!assemblyDoc) {
-      const errMsg = `*** ERROR: Assembly with id "${assembly}" not found`
-      logger.error(errMsg)
-      throw new Error(errMsg)
-    }
-
-    let featureCnt = 0
-    logger.debug?.(`changes: ${JSON.stringify(changes)}`)
-
-    const { INDEXED_IDS } = process.env
-    let idsToIndex: string[] | undefined
-    if (INDEXED_IDS) {
-      idsToIndex = INDEXED_IDS.split(',')
-    }
-
-    // Loop the changes
-    for (const change of changes) {
-      logger.debug?.(`change: ${JSON.stringify(change)}`)
-      const { addedFeature, allIds, copyFeature, parentFeatureId } = change
-      const { _id, refSeq } = addedFeature
-      const refSeqDoc = await refSeqModel
-        .findById(refSeq)
-        .session(session)
-        .exec()
-      if (!refSeqDoc) {
-        throw new Error(
-          `RefSeq was not found by assembly "${assembly}" and seq_id "${refSeq}" not found`,
-        )
-      }
-
-      // CopyFeature is called from CopyFeature.tsx
-      if (copyFeature) {
-        const indexedIds = this.getIndexedIds(addedFeature, idsToIndex)
-        // Add into Mongo
-        const [newFeatureDoc] = await featureModel.create(
-          [{ ...addedFeature, allIds, indexedIds, status: -1, user }],
-          { session },
-        )
-        logger.debug?.(
-          `Copied feature, docId "${newFeatureDoc._id}" to assembly "${assembly}"`,
-        )
-        featureCnt++
-      } else {
-        const indexedIds = this.getIndexedIds(addedFeature, idsToIndex)
-        // Adding new child feature
-        if (parentFeatureId) {
-          const topLevelFeature = await featureModel
-            .findOne({ allIds: parentFeatureId })
-            .session(session)
-            .exec()
-          if (!topLevelFeature) {
-            throw new Error(
-              `Could not find feature with ID "${parentFeatureId}"`,
-            )
-          }
-          const parentFeature = this.getFeatureFromId(
-            topLevelFeature,
-            parentFeatureId,
-          )
-          if (!parentFeature) {
-            throw new Error(
-              `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature._id}"`,
-            )
-          }
-          this.addChild(parentFeature, addedFeature)
-          const childIds = this.getChildFeatureIds(addedFeature)
-          topLevelFeature.allIds.push(_id, ...childIds)
-          if (indexedIds.length > 0 && !topLevelFeature.indexedIds) {
-            topLevelFeature.indexedIds = []
-          }
-          topLevelFeature.indexedIds?.push(...indexedIds)
-          await topLevelFeature.save()
-        } else {
-          const childIds = this.getChildFeatureIds(addedFeature)
-          const allIdsV2 = [_id, ...childIds]
-          const [newFeatureDoc] = await featureModel.create(
-            [{ allIds: allIdsV2, indexedIds, status: 0, ...addedFeature }],
-            { session },
-          )
-          logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
-        }
-      }
-      featureCnt++
-    }
-    logger.debug?.(`Added ${featureCnt} new feature(s) into database.`)
-  }
-
-  async executeOnClient(dataStore: ClientDataStore) {
-    if (!dataStore) {
-      throw new Error('No data store')
-    }
-    const { assembly, changes } = this
-    for (const change of changes) {
-      const { addedFeature, parentFeatureId } = change
-      if (parentFeatureId) {
-        let parentFeature = dataStore.getFeature(parentFeatureId)
-        // maybe the parent feature hasn't been loaded yet
-        if (!parentFeature) {
-          await dataStore.loadFeatures([
-            {
-              assemblyName: assembly,
-              refName: addedFeature.refSeq,
-              start: addedFeature.min,
-              end: addedFeature.max,
-            },
-          ])
-          parentFeature = dataStore.getFeature(parentFeatureId)
-          if (!parentFeature) {
-            throw new Error(
-              `Could not find parent feature "${parentFeatureId}"`,
-            )
-          }
-        }
-        // create an ID for the parent feature if it does not have one
-        if (!parentFeature.attributes.get('_id')) {
-          parentFeature.setAttribute('_id', [parentFeature._id])
-        }
-        parentFeature.addChild(addedFeature)
-      } else {
-        dataStore.addFeature(assembly, addedFeature)
-      }
-    }
   }
 
   getInverse() {

@@ -22,17 +22,10 @@ import { UndoMergeTranscriptsChange } from './UndoMergeTranscriptsChange.js'
 import { UndoSplitExonChange } from './UndoSplitExonChange.js'
 import { UserChange } from './UserChange.js'
 
-export const changes = {
-  AddAssemblyAndFeaturesFromFileChange,
-  AddAssemblyFromFileChange,
-  AddAssemblyFromExternalChange,
+export const localChanges = {
   AddFeatureChange,
-  AddFeaturesFromFileChange,
-  DeleteAssemblyChange,
   DeleteFeatureChange,
-  DeleteUserChange,
   FeatureAttributeChange,
-  ImportJBrowseConfigChange,
   LocationEndChange,
   LocationStartChange,
   MergeExonsChange,
@@ -43,6 +36,17 @@ export const changes = {
   UndoMergeTranscriptsChange,
   StrandChange,
   TypeChange,
+}
+
+export const changes = {
+  ...localChanges,
+  AddAssemblyAndFeaturesFromFileChange,
+  AddAssemblyFromFileChange,
+  AddAssemblyFromExternalChange,
+  AddFeaturesFromFileChange,
+  DeleteAssemblyChange,
+  DeleteUserChange,
+  ImportJBrowseConfigChange,
   UserChange,
   AddRefSeqAliasesChange,
   AddAssemblyAliasesChange,

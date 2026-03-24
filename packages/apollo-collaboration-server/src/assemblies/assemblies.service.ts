@@ -60,7 +60,7 @@ export class AssembliesService {
     const refSeqs = await this.refSeqsService.findAll({ assembly: _id })
     for (const refSeq of refSeqs) {
       const features = await this.featuresService.findByRange({
-        refSeq: refSeq._id as string,
+        refSeq: refSeq._id.toString(),
         start: 0,
         end: refSeq.length,
       })

@@ -1,16 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
-import type {
-  ChangeOptions,
-  ClientDataStore,
-  SerializedAssemblySpecificChange,
-  ServerDataStore,
+import {
+  AssemblySpecificChange,
+  type ChangeOptions,
+  type SerializedAssemblySpecificChange,
 } from '@apollo-annotation/common'
-
-import { FromFileBaseChange } from './FromFileBaseChange.js'
 
 export interface SerializedAddAssemblyAndFeaturesFromFileChangeBase
   extends SerializedAssemblySpecificChange {
@@ -36,7 +28,7 @@ export type SerializedAddAssemblyAndFeaturesFromFileChange =
   | SerializedAddAssemblyAndFeaturesFromFileChangeSingle
   | SerializedAddAssemblyAndFeaturesFromFileChangeMultiple
 
-export class AddAssemblyAndFeaturesFromFileChange extends FromFileBaseChange {
+export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange {
   typeName = 'AddAssemblyAndFeaturesFromFileChange' as const
   changes: AddAssemblyAndFeaturesFromFileChangeDetails[]
 
@@ -60,95 +52,6 @@ export class AddAssemblyAndFeaturesFromFileChange extends FromFileBaseChange {
     }
     return { typeName, assembly, changes }
   }
-
-  /**
-   * Applies the required change to database
-   * @param backend - parameters from backend
-   * @returns
-   */
-  async executeOnServer(backend: ServerDataStore) {
-    const { assemblyModel, checkModel, fileModel, filesService, user } = backend
-    const { assembly, changes, logger } = this
-    for (const change of changes) {
-      const { assemblyName, fileIds, parseOptions } = change
-      const fileId = fileIds.fa
-
-      const { FILE_UPLOAD_FOLDER } = process.env
-      if (!FILE_UPLOAD_FOLDER) {
-        throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
-      }
-      // Get file checksum
-      const fileDoc = await fileModel.findById(fileId).exec()
-      if (!fileDoc) {
-        throw new Error(`File "${fileId}" not found in Mongo`)
-      }
-      logger.debug?.(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
-
-      // Check and add new assembly
-      const assemblyDoc = await assemblyModel
-        .findOne({ name: assemblyName })
-        .exec()
-      if (assemblyDoc) {
-        throw new Error(`Assembly "${assemblyName}" already exists`)
-      }
-      // get checks
-      const checkDocs = await checkModel.find({ isDefault: true }).exec()
-
-      const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
-      // Add assembly
-      const [newAssemblyDoc] = await assemblyModel.create([
-        { _id: assembly, name: assemblyName, user, status: -1, fileId, checks },
-      ])
-      logger.debug?.(
-        `Added new assembly "${assemblyName}", docId "${newAssemblyDoc._id.toHexString()}"`,
-      )
-      logger.debug?.(`File type: "${fileDoc.type}"`)
-
-      // Add refSeqs
-      // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
-      await this.addRefSeqIntoDb(
-        fileDoc,
-        newAssemblyDoc._id.toString(),
-        backend,
-      )
-
-      const { bufferSize = 10_000, strict = true } = parseOptions ?? {}
-      const featureStream = filesService.parseGFF3(
-        filesService.getFileStream(fileDoc),
-        { bufferSize },
-      )
-      let featureCount = 0
-      let errorCount = 0
-      for await (const gff3Feature of featureStream) {
-        // Add new feature into database
-        try {
-          await this.addFeatureIntoDb(gff3Feature, backend)
-        } catch (error) {
-          // if the first feature is an error, assume the file isn't valid and throw
-          if (strict || featureCount === 0) {
-            throw error
-          }
-          if (errorCount <= 99) {
-            logger.warn('Error parsing feature')
-            logger.warn(error)
-            if (errorCount === 99) {
-              logger.warn(
-                'Reached 100 parsing errors, omitting further warnings from log',
-              )
-            }
-          }
-          errorCount++
-        }
-        featureCount++
-        if (featureCount % 1000 === 0) {
-          logger.debug?.(`Processed ${featureCount} features`)
-        }
-      }
-    }
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  async executeOnClient(_dataStore: ClientDataStore) {}
 
   getInverse() {
     const { assembly, changes, logger, typeName } = this

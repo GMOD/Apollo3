@@ -1,9 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   type Change,
-  type ClientDataStore,
   isAssemblySpecificChange,
 } from '@apollo-annotation/common'
 import {
@@ -11,9 +7,10 @@ import {
   validationRegistry,
 } from '@apollo-annotation/shared'
 import { getSession } from '@jbrowse/core/util'
-import type { IAnyStateTreeNode } from '@jbrowse/mobx-state-tree'
 
 import type { ApolloSessionModel } from './session'
+import type { ClientDataStoreModel } from './session/ClientDataStore'
+import { changeHandlers, isLocalChange } from './session/changeHandlers'
 
 export interface SubmitOpts {
   /** defaults to true */
@@ -27,7 +24,7 @@ export interface SubmitOpts {
 }
 
 export class ChangeManager {
-  constructor(private dataStore: ClientDataStore & IAnyStateTreeNode) {}
+  constructor(private dataStore: ClientDataStoreModel) {}
 
   recentChanges: Change[] = []
   undoneChanges: Change[] = []
@@ -90,27 +87,31 @@ export class ChangeManager {
       return
     }
 
-    try {
-      // submit to client data store
-      await change.execute(this.dataStore)
-    } catch (error) {
-      if (updateJobsManager) {
-        jobsManager.abortJob(job.name, String(error))
+    const changeName = change.typeName
+    const handler = isLocalChange(changeName)
+      ? changeHandlers[changeName]
+      : undefined
+    if (handler) {
+      try {
+        // submit to client data store
+        // @ts-expect-error change not narrowing
+        await handler(this.dataStore, change)
+      } catch (error) {
+        if (updateJobsManager) {
+          jobsManager.abortJob(job.name, String(error))
+        }
+        console.error(error)
+        session.notify(
+          `Error encountered in client: ${String(error)}. Data may be out of sync, please refresh the page`,
+          'error',
+        )
+        setChangeInProgress(false)
+        return
       }
-      console.error(error)
-      session.notify(
-        `Error encountered in client: ${String(error)}. Data may be out of sync, please refresh the page`,
-        'error',
-      )
-      setChangeInProgress(false)
-      return
     }
 
     // post-validate
-    const results2 = await validationRegistry.frontendPostValidate(
-      change,
-      this.dataStore,
-    )
+    const results2 = await validationRegistry.frontendPostValidate(change)
     if (!results2.ok) {
       // notify of invalid change and revert
       await this.undo(change)
@@ -121,6 +122,7 @@ export class ChangeManager {
         jobsManager.update(job.name, 'Submitting to driver')
       }
       // submit to driver
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       const { collaborationServerDriver, getBackendDriver } = this.dataStore
       const backendDriver = isAssemblySpecificChange(change)
         ? // for assembly-specific change, fall back in case it's an
