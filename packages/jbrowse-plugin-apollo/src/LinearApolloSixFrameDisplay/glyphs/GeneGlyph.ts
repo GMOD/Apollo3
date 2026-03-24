@@ -859,7 +859,7 @@ function getContextMenuItems(
   const currentAssemblyId = display.getAssemblyId(region.assemblyName)
   const menuItems: MenuItem[] = []
   const role = internetAccount ? internetAccount.role : 'admin'
-  const admin = role === 'admin'
+  const readOnly = !(role && ['admin', 'user'].includes(role))
   if (!hoveredFeature) {
     return menuItems
   }
@@ -928,7 +928,7 @@ function getContextMenuItems(
         contextMenuItemsForFeature.push(
           {
             label: 'Merge exons',
-            disabled: !admin,
+            disabled: readOnly,
             onClick: () => {
               ;(session as unknown as AbstractSessionModel).queueDialog(
                 (doneCallback) => [
@@ -952,7 +952,7 @@ function getContextMenuItems(
           },
           {
             label: 'Split exon',
-            disabled: !admin,
+            disabled: readOnly,
             onClick: () => {
               ;(session as unknown as AbstractSessionModel).queueDialog(
                 (doneCallback) => [

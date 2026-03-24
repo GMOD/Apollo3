@@ -288,7 +288,6 @@ export function getContextMenuItemsForFeature(
   } = display
   const menuItems: MenuItem[] = []
   const role = internetAccount ? internetAccount.role : 'admin'
-  const admin = role === 'admin'
   const readOnly = !(role && ['admin', 'user'].includes(role))
   const [region] = regions
   const sourceAssemblyId = display.getAssemblyId(region.assemblyName)
@@ -341,7 +340,7 @@ export function getContextMenuItemsForFeature(
     },
     {
       label: 'Delete feature',
-      disabled: !admin,
+      disabled: readOnly,
       onClick: () => {
         ;(session as unknown as AbstractSessionModel).queueDialog(
           (doneCallback) => [
