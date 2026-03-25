@@ -37,6 +37,7 @@ import {
   type ApolloInternetAccount,
   type BackendDriver,
   CollaborationServerDriver,
+  LocalDriver,
 } from '../BackendDrivers'
 import { ChangeManager } from '../ChangeManager'
 import {
@@ -159,6 +160,7 @@ export function clientDataStoreFactory(
       collaborationServerDriver: new CollaborationServerDriver(
         self as ClientDataStoreModel,
       ),
+      localDriver: new LocalDriver(self as ClientDataStoreModel),
     }))
     .actions((self) => ({
       afterCreate() {
@@ -243,6 +245,7 @@ export function clientDataStoreFactory(
         if (internetAccountConfigId) {
           return self.collaborationServerDriver
         }
+        return self.localDriver
       },
       getInternetAccount(assemblyName?: string, internetAccountId?: string) {
         if (!(assemblyName ?? internetAccountId)) {

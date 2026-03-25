@@ -1,0 +1,68 @@
+{
+  "assemblies": [
+    {
+      "name": "volvox",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "volvox_refseq",
+        "adapter": {
+          "type": "TwoBitAdapter",
+          "twoBitLocation": {
+            "uri": "test_data/volvox.2bit",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    }
+  ],
+  "defaultSession": {
+    "name": "Apollo",
+    "views": [{ "type": "LinearGenomeView" }]
+  },
+  "tracks": [
+    {
+      "type": "ApolloTrack",
+      "trackId": "apollo_track_volvox",
+      "name": "Apollo Annotations",
+      "assemblyNames": ["volvox"]
+    },
+    {
+      "type": "FeatureTrack",
+      "trackId": "gff3tabix_genes",
+      "assemblyNames": ["volvox"],
+      "name": "GFF3Tabix genes",
+      "adapter": {
+        "type": "Gff3TabixAdapter",
+        "gffGzLocation": {
+          "uri": "test_data/volvox.sort.gff3.gz",
+          "locationType": "UriLocation"
+        },
+        "index": {
+          "location": {
+            "uri": "test_data/volvox.sort.gff3.gz.tbi",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    }
+  ],
+  "plugins": [
+    {
+      "name": "Apollo",
+      "url": "http://localhost:9000/dist/jbrowse-plugin-apollo.umd.development.js"
+    }
+  ],
+  "configuration": {
+    "ApolloPlugin": {
+      "ontologies": [
+        {
+          "name": "Sequence Ontology",
+          "source": {
+            "uri": "http://localhost:9000/test_data/so-v3.1.json",
+            "locationType": "UriLocation"
+          }
+        }
+      ]
+    }
+  }
+}
