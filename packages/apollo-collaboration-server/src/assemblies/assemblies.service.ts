@@ -1,8 +1,4 @@
-import {
-  Assembly,
-  type AssemblyDocument,
-  Check,
-} from '@apollo-annotation/schemas'
+import { Assembly, type AssemblyDocument } from '@apollo-annotation/schemas'
 import {
   Injectable,
   Logger,
@@ -24,7 +20,6 @@ export class AssembliesService {
   constructor(
     @InjectModel(Assembly.name)
     private readonly assemblyModel: Model<AssemblyDocument>,
-    @InjectModel(Check.name)
     private readonly checksService: ChecksService,
     private readonly featuresService: FeaturesService,
     private readonly refSeqsService: RefSeqsService,
