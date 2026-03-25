@@ -27,7 +27,6 @@ import React, { useState } from 'react'
 import type {
   ApolloInternetAccount,
   CollaborationServerDriver,
-  InMemoryFileDriver,
 } from '../BackendDrivers'
 import type { ApolloSessionModel } from '../session'
 import { createFetchErrorMessage } from '../util'
@@ -44,19 +43,15 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
   const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
   const [errorMessage, setErrorMessage] = useState('')
 
-  const { collaborationServerDriver, getInternetAccount, inMemoryFileDriver } =
+  const { collaborationServerDriver, getInternetAccount } =
     session.apolloDataStore as {
       collaborationServerDriver: CollaborationServerDriver
-      inMemoryFileDriver: InMemoryFileDriver
       getInternetAccount(
         assemblyName?: string,
         internetAccountId?: string,
       ): ApolloInternetAccount
     }
-  const assemblies = [
-    ...collaborationServerDriver.getAssemblies(),
-    ...inMemoryFileDriver.getAssemblies(),
-  ]
+  const assemblies = [...collaborationServerDriver.getAssemblies()]
 
   function handleChangeAssembly(e: SelectChangeEvent) {
     const newAssembly = assemblies.find((asm) => asm.name === e.target.value)

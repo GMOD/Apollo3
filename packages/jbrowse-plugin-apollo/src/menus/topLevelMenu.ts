@@ -4,7 +4,6 @@ import type {
 } from '@jbrowse/core/util'
 import DownloadIcon from '@mui/icons-material/Download'
 import FactCheckIcon from '@mui/icons-material/FactCheck'
-import FileOpenIcon from '@mui/icons-material/FileOpen'
 import LogoutIcon from '@mui/icons-material/Logout'
 import RedoIcon from '@mui/icons-material/Redo'
 import TrackChangesIcon from '@mui/icons-material/TrackChanges'
@@ -13,7 +12,6 @@ import UndoIcon from '@mui/icons-material/Undo'
 import {
   DownloadGFF3,
   LogOut,
-  OpenLocalFile,
   ViewChangeLog,
   ViewCheckResults,
 } from '../components'
@@ -74,24 +72,6 @@ export function addTopLevelMenus(rootModel: AbstractMenuManager) {
             handleClose: () => {
               doneCallback()
             },
-          },
-        ],
-      )
-    },
-  })
-  rootModel.appendToMenu('Apollo', {
-    label: 'Open local GFF3 file',
-    icon: FileOpenIcon,
-    onClick: (session: ApolloSessionModel) => {
-      ;(session as unknown as AbstractSessionModel).queueDialog(
-        (doneCallback) => [
-          OpenLocalFile,
-          {
-            session,
-            handleClose: () => {
-              doneCallback()
-            },
-            inMemoryFileDriver: session.apolloDataStore.inMemoryFileDriver,
           },
         ],
       )

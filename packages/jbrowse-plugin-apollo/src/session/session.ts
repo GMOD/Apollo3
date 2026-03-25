@@ -487,15 +487,9 @@ export function extendSession(
   return types.snapshotProcessor(sm, {
     postProcessor(snap: SnapshotOut<typeof sm>, node) {
       snap.apolloSelectedFeature = undefined
-      const assemblies = Object.fromEntries(
-        Object.entries(snap.apolloDataStore.assemblies).filter(
-          ([, assembly]) => assembly.backendDriverType === 'InMemoryFileDriver',
-        ),
-      )
       // @ts-expect-error ontologyManager isn't actually required
       snap.apolloDataStore = {
         typeName: 'Client',
-        assemblies,
         checkResults: {},
       }
       if (!node) {
@@ -507,10 +501,6 @@ export function extendSession(
         const [feature] = cr.ids
         if (!feature) {
           continue
-        }
-        const assembly = apolloDataStore.assemblies.get(feature.assemblyId)
-        if (assembly && assembly.backendDriverType === 'InMemoryFileDriver') {
-          snap.apolloDataStore.checkResults[cr._id] = getSnapshot(cr)
         }
       }
       return snap
