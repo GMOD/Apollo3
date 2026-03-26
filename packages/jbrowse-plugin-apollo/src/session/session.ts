@@ -11,7 +11,7 @@ import {
   filterJBrowseConfig,
 } from '@apollo-annotation/shared'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import type { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
+import type assemblyManager from '@jbrowse/core/assemblyManager'
 import { getConf, readConfObject } from '@jbrowse/core/configuration'
 import type { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
 import type {
@@ -58,6 +58,8 @@ export interface HoveredFeature {
   feature: AnnotationFeature
   bp: number
 }
+
+type Assembly = Instance<ReturnType<typeof assemblyManager>>['assemblies'][0]
 
 export function extendSession(
   pluginManager: PluginManager,
@@ -111,31 +113,22 @@ export function extendSession(
       apolloSetHoveredFeature(feature?: HoveredFeature) {
         self.apolloHoveredFeature = feature
       },
-      addApolloTrackConfig(assembly: AssemblyModel, baseURL?: string) {
+      addApolloLocalTrackConfig(assembly: Assembly) {
         const trackId = `apollo_track_${assembly.name}`
         const hasTrack = (self as unknown as AbstractSessionModel).tracks.some(
           (track) => track.trackId === trackId,
         )
         if (!hasTrack) {
-          ;(self as unknown as SessionWithAddTracks).addTrackConf({
+          ;(
+            getRoot<ApolloRootModel>(self).jbrowse as {
+              addTrackConf: SessionWithAddTracks['addTrackConf']
+            }
+          ).addTrackConf({
             type: 'ApolloTrack',
             trackId,
-            name: `Annotations (${
-              // @ts-expect-error getConf types don't quite work here for some reason
-              getConf(assembly, 'displayName') || assembly.name
-            })`,
+            name: `Annotations (${assembly.displayName})`,
             assemblyNames: [assembly.name],
-            textSearching: {
-              textSearchAdapter: {
-                type: 'ApolloTextSearchAdapter',
-                trackId,
-                assemblyNames: [assembly.name],
-                textSearchAdapterId: `apollo_search_${assembly.name}`,
-                ...(baseURL
-                  ? { baseURL: { uri: baseURL, locationType: 'UriLocation' } }
-                  : {}),
-              },
-            },
+            category: ['Apollo'],
           })
         }
       },
@@ -220,16 +213,10 @@ export function extendSession(
     }))
     .actions((self) => ({
       afterCreate() {
+        applySnapshot(self, { name: self.name, id: self.id })
         // @ts-expect-error type is missing on ApolloRootModel
         const { internetAccounts, jbrowse, reloadPluginManagerCallback } =
           getRoot<ApolloRootModel>(self)
-        const hasApolloInternetAccount = internetAccounts.some((ia) =>
-          isApolloInternetAccount(ia),
-        )
-        if (!hasApolloInternetAccount) {
-          return
-        }
-        applySnapshot(self, { name: self.name, id: self.id })
         addDisposer(
           self,
           autorun(
@@ -294,6 +281,12 @@ export function extendSession(
           self,
           autorun(
             async (reaction) => {
+              // Wait for assemblyManager to load before we do this part
+              const { assemblies } = (self as unknown as AbstractSessionModel)
+                .assemblyManager
+              if (assemblies.length === 0) {
+                return
+              }
               // When the initial config.json loads, it doesn't include the Apollo
               // tracks, which would result in a potentially invalid session snapshot
               // if any tracks are open. Here we copy the session snapshot, apply an
@@ -308,7 +301,23 @@ export function extendSession(
                 pluginConfiguration,
                 'hasRole',
               ) as boolean
-              if (hasRole) {
+              const hasApolloInternetAccount = internetAccounts.some((ia) =>
+                isApolloInternetAccount(ia),
+              )
+              const nonApolloAssemblies = (
+                self as unknown as AbstractSessionModel
+              ).assemblyManager.assemblies.filter(
+                (a) =>
+                  !(
+                    getConf(a, ['sequence', 'metadata']) as {
+                      apollo?: boolean
+                    }
+                  ).apollo,
+              )
+              if (!hasApolloInternetAccount || hasRole) {
+                for (const a of nonApolloAssemblies) {
+                  self.addApolloLocalTrackConfig(a)
+                }
                 // @ts-expect-error not sure why snapshot type is wrong for snapshot
                 applySnapshot(self, self.previousSnapshot)
                 reaction.dispose()

@@ -21,12 +21,6 @@
   },
   "tracks": [
     {
-      "type": "ApolloTrack",
-      "trackId": "apollo_track_volvox",
-      "name": "Apollo Annotations",
-      "assemblyNames": ["volvox"]
-    },
-    {
       "type": "FeatureTrack",
       "trackId": "gff3tabix_genes",
       "assemblyNames": ["volvox"],
