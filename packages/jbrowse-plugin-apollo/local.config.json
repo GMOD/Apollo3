@@ -45,18 +45,5 @@
       "name": "Apollo",
       "url": "http://localhost:9000/dist/jbrowse-plugin-apollo.umd.development.js"
     }
-  ],
-  "configuration": {
-    "ApolloPlugin": {
-      "ontologies": [
-        {
-          "name": "Sequence Ontology",
-          "source": {
-            "uri": "http://localhost:9000/test_data/so-v3.1.json",
-            "locationType": "UriLocation"
-          }
-        }
-      ]
-    }
-  }
+  ]
 }
