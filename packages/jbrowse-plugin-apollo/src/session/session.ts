@@ -34,7 +34,7 @@ import { autorun, flow, observable, when } from 'mobx'
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloJobModel } from '../ApolloJobModel'
 import type ApolloPluginConfigurationSchema from '../config'
-import type { ApolloRootModel } from '../types'
+import { type ApolloRootModel, isApolloInternetAccount } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import {
@@ -183,7 +183,7 @@ export function extendSession(
         }
         if (locations.length === 0) {
           for (const internetAccount of internetAccounts) {
-            if ('baseURL' in internetAccount) {
+            if (isApolloInternetAccount(internetAccount)) {
               internetAccount.postUserLocation([])
             }
           }
@@ -192,7 +192,7 @@ export function extendSession(
 
         const allLocations: UserLocation[] = []
         for (const internetAccount of internetAccounts) {
-          if ('baseURL' in internetAccount) {
+          if (isApolloInternetAccount(internetAccount)) {
             for (const location of locations) {
               const tmpLoc: UserLocation = {
                 assemblyId: location.assemblyName,
@@ -220,10 +220,16 @@ export function extendSession(
     }))
     .actions((self) => ({
       afterCreate() {
-        applySnapshot(self, { name: self.name, id: self.id })
         // @ts-expect-error type is missing on ApolloRootModel
         const { internetAccounts, jbrowse, reloadPluginManagerCallback } =
           getRoot<ApolloRootModel>(self)
+        const hasApolloInternetAccount = internetAccounts.some((ia) =>
+          isApolloInternetAccount(ia),
+        )
+        if (!hasApolloInternetAccount) {
+          return
+        }
+        applySnapshot(self, { name: self.name, id: self.id })
         addDisposer(
           self,
           autorun(
@@ -258,7 +264,7 @@ export function extendSession(
               }
               if (locations.length === 0) {
                 for (const internetAccount of internetAccounts) {
-                  if ('baseURL' in internetAccount) {
+                  if (isApolloInternetAccount(internetAccount)) {
                     internetAccount.postUserLocation([])
                   }
                 }
@@ -267,7 +273,7 @@ export function extendSession(
 
               const allLocations: UserLocation[] = []
               for (const internetAccount of internetAccounts) {
-                if ('baseURL' in internetAccount) {
+                if (isApolloInternetAccount(internetAccount)) {
                   for (const location of locations) {
                     const tmpLoc: UserLocation = {
                       assemblyId: location.assemblyName,
