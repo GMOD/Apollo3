@@ -1,11 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/require-await */
-import type { Change } from '@apollo-annotation/common'
+import {
+  type Change,
+  FeatureChange,
+  isFeatureChange,
+} from '@apollo-annotation/common'
 import type {
+  AnnotationFeature,
   AnnotationFeatureSnapshot,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
-import { ValidationResultSet } from '@apollo-annotation/shared'
+import {
+  ValidationResultSet,
+  isDeleteFeatureChange,
+} from '@apollo-annotation/shared'
 import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import type {
   BaseRefNameAliasAdapter,
@@ -17,16 +25,32 @@ import {
   getEnv,
   getSession,
 } from '@jbrowse/core/util'
+import { getSnapshot } from '@jbrowse/mobx-state-tree'
 
-import type { SubmitOpts } from '../ChangeManager'
+import type { SubmitOpts } from '../../ChangeManager'
+import { BackendDriver, type RefNameAliases } from '../BackendDriver'
 
-import { BackendDriver, type RefNameAliases } from './BackendDriver'
+import { type FeatureDatabase, openDb } from './db'
 
 export class LocalDriver extends BackendDriver {
   async getFeatures(
     region: Region,
   ): Promise<[AnnotationFeatureSnapshot[], CheckResultSnapshot[]]> {
-    return [[], []]
+    const { assemblyName, end, refName, start } = region
+    const regions = await this.getRegions(assemblyName)
+    const refNames = regions.map((r) => r.refName)
+    const db = await openDb(assemblyName, refNames)
+    const storeName = `features-${refName}`
+    const features: AnnotationFeatureSnapshot[] = []
+    for await (const cursor of db
+      .transaction(storeName)
+      .store.index('min')
+      .iterate(IDBKeyRange.upperBound(end, true))) {
+      if ((cursor.value as { max: number }).max > start) {
+        features.push(cursor.value as AnnotationFeatureSnapshot)
+      }
+    }
+    return [features, []]
   }
 
   async getSequence(region: Region): Promise<{ seq: string; refSeq: string }> {
@@ -114,6 +138,43 @@ export class LocalDriver extends BackendDriver {
     change: Change,
     opts: SubmitOpts,
   ): Promise<ValidationResultSet> {
+    if (!isFeatureChange(change)) {
+      return new ValidationResultSet()
+    }
+    const { assembly, changedIds } = change
+    const regions = await this.getRegions(assembly)
+    const refNames = regions.map((r) => r.refName)
+    const db = await openDb(assembly, refNames)
+    const storeNames = refNames.map((r) => `features-${r}`)
+    const tx = db.transaction(storeNames, 'readwrite')
+    const topLevelFeatures = new Set<AnnotationFeature>()
+    if (isDeleteFeatureChange(change)) {
+      for (const c of change.changes) {
+        if (c.parentFeatureId) {
+          const feature = this.clientStore.getFeature(c.parentFeatureId)
+          if (feature) {
+            topLevelFeatures.add(feature.topLevelFeature)
+          }
+        } else {
+          const { refSeq } = c.deletedFeature
+          void tx.objectStore(`features-${refSeq}`).delete(c.deletedFeature._id)
+        }
+      }
+    } else {
+      for (const changedId of changedIds) {
+        const feature = this.clientStore.getFeature(changedId)
+        if (feature) {
+          topLevelFeatures.add(feature.topLevelFeature)
+        }
+      }
+    }
+    for (const feature of topLevelFeatures) {
+      const snapshot = getSnapshot<AnnotationFeatureSnapshot>(feature)
+      void tx
+        .objectStore(`features-${feature.refSeq}`)
+        .put(snapshot, feature._id)
+    }
+    await tx.done
     return new ValidationResultSet()
   }
 
