@@ -32,7 +32,6 @@ export function featureContextMenuItems(
 ) {
   const internetAccount = getApolloInternetAccount(session)
   const role = internetAccount ? internetAccount.role : 'admin'
-  const admin = role === 'admin'
   const readOnly = !(role && ['admin', 'user'].includes(role))
   const menuItems: MenuItem[] = []
   if (feature) {
@@ -102,7 +101,7 @@ export function featureContextMenuItems(
       },
       {
         label: 'Delete feature',
-        disabled: !admin,
+        disabled: readOnly,
         onClick: () => {
           ;(session as unknown as AbstractSessionModel).queueDialog(
             (doneCallback) => [
@@ -124,7 +123,7 @@ export function featureContextMenuItems(
       },
       {
         label: 'Merge transcripts',
-        disabled: !admin,
+        disabled: readOnly,
         onClick: () => {
           ;(session as unknown as AbstractSessionModel).queueDialog(
             (doneCallback) => [
@@ -146,7 +145,7 @@ export function featureContextMenuItems(
       },
       {
         label: 'Merge exons',
-        disabled: !admin,
+        disabled: readOnly,
         onClick: () => {
           ;(session as unknown as AbstractSessionModel).queueDialog(
             (doneCallback) => [
@@ -168,7 +167,7 @@ export function featureContextMenuItems(
       },
       {
         label: 'Split exon',
-        disabled: !admin,
+        disabled: readOnly,
         onClick: () => {
           ;(session as unknown as AbstractSessionModel).queueDialog(
             (doneCallback) => [
