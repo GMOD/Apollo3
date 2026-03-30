@@ -16,7 +16,7 @@ function getMatchedFeature(
   feature: AnnotationFeatureSnapshot,
 ): AnnotationFeatureSnapshot | undefined {
   // @ts-expect-error this actually has a bit more info that a plain snapshot
-  const { children, indexedIds, ...featureWithoutChildren } = feature
+  const { children, indexedIds, allIds, ...featureWithoutChildren } = feature
   const featureString = JSON.stringify(featureWithoutChildren)
   if (featureString.includes(query)) {
     return feature
