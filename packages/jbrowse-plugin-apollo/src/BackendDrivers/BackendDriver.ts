@@ -13,7 +13,7 @@ import type { ClientDataStoreModel } from '../session/ClientDataStore'
 export interface RefNameAliases {
   refName: string
   aliases: string[]
-  uniqueId: string
+  uniqueId?: string
 }
 
 export abstract class BackendDriver {
