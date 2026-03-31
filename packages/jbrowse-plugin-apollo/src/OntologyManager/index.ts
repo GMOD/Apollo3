@@ -23,8 +23,11 @@ import type ApolloPluginConfigurationSchema from '../config'
 import type { ApolloRootModel } from '../types'
 
 import OntologyStore, { type OntologyStoreOptions } from './OntologyStore'
-import type { OntologyDBNode } from './OntologyStore/indexeddb-schema'
 import { applyPrefixes, expandPrefixes } from './OntologyStore/prefixes'
+import {
+  type OntologyTerm,
+  defaultTextIndexFields,
+} from './OntologyStore/types'
 
 export { isDeprecated } from './OntologyStore/indexeddb-schema'
 
@@ -200,17 +203,17 @@ export const OntologyManagerType = types
 
 export default OntologyManagerType
 
-export interface TextIndexFieldDefinition {
-  /** name to display in the UI for text taken from this field or fields */
-  displayName: string
-  /** JSONPath of the field(s) */
-  jsonPath: string
-}
-export const defaultTextIndexFields: TextIndexFieldDefinition[] = [
-  { displayName: 'Label', jsonPath: '$.lbl' },
-  { displayName: 'Synonym', jsonPath: '$.meta.synonyms[*].val' },
-  { displayName: 'Definition', jsonPath: '$.meta.definition.val' },
-]
+export type {
+  OntologyClass,
+  OntologyProperty,
+  OntologyTerm,
+  TextIndexFieldDefinition,
+} from './OntologyStore/types'
+export {
+  defaultTextIndexFields,
+  isOntologyClass,
+  isOntologyProperty,
+} from './OntologyStore/types'
 
 export const OntologyRecordConfiguration = ConfigurationSchema(
   'OntologyRecord',
@@ -248,17 +251,3 @@ export const OntologyRecordConfiguration = ConfigurationSchema(
 export interface OntologyManager extends Instance<typeof OntologyManagerType> {}
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface OntologyRecord extends Instance<typeof OntologyRecordType> {}
-
-export type OntologyTerm = OntologyDBNode
-
-export type OntologyClass = OntologyTerm & { type: 'CLASS' }
-export function isOntologyClass(term: OntologyTerm): term is OntologyClass {
-  return term.type === 'CLASS'
-}
-
-export type OntologyProperty = OntologyTerm & { type: 'PROPERTY' }
-export function isOntologyProperty(
-  term: OntologyTerm,
-): term is OntologyProperty {
-  return term.type === 'PROPERTY'
-}

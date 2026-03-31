@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 
 import { beforeAll, describe, expect, it, jest } from '@jest/globals'
 
-import { type OntologyClass, isOntologyClass } from '..'
+import { type OntologyClass, isOntologyClass } from './types'
 
 import OntologyStore from '.'
 

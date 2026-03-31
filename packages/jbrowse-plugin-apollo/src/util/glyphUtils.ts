@@ -15,7 +15,9 @@ import SkipPreviousRoundedIcon from '@mui/icons-material/SkipPreviousRounded'
 
 import type { LinearApolloDisplayMouseEvents } from '../LinearApolloDisplay/stateModel/mouseEvents'
 import type { LinearApolloSixFrameDisplayMouseEvents } from '../LinearApolloSixFrameDisplay/stateModel/mouseEvents'
-import { AddChildFeature, CopyFeature, DeleteFeature } from '../components'
+import { AddChildFeature } from '../components/AddChildFeature'
+import { CopyFeature } from '../components/CopyFeature'
+import { DeleteFeature } from '../components/DeleteFeature'
 import type { ApolloSessionModel } from '../session'
 
 import type { MousePositionWithFeature } from '.'

@@ -8,8 +8,6 @@ import {
   openDB,
 } from 'idb/with-async-ittr'
 
-import { defaultTextIndexFields } from '..'
-
 import { PREFIXED_ID_PATH, getWords } from './fulltext'
 import {
   type OntologyDB,
@@ -17,6 +15,7 @@ import {
   isOntologyDBNode,
 } from './indexeddb-schema'
 import type { GraphDocument } from './obo-graph-json-schema'
+import { defaultTextIndexFields } from './types'
 
 import type OntologyStore from '.'
 

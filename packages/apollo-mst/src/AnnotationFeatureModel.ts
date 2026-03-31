@@ -4,17 +4,18 @@
 import { getSession, intersection2 } from '@jbrowse/core/util'
 import {
   type IAnyModelType,
+  type IAnyStateTreeNode,
   type IMSTMap,
   type Instance,
   type SnapshotIn,
   type SnapshotOrInstance,
   cast,
+  getParent,
   getParentOfType,
   getSnapshot,
+  hasParent,
   types,
 } from '@jbrowse/mobx-state-tree'
-
-import { ApolloAssembly } from './index.js'
 
 const LateAnnotationFeature = types.late(
   (): IAnyModelType => AnnotationFeatureModel,
@@ -431,7 +432,18 @@ export const AnnotationFeatureModel = types
       return feature as AnnotationFeature
     },
     get assemblyId(): string {
-      return getParentOfType(self, ApolloAssembly)._id
+      // Not using getParentOfType because importing ApolloAssembly would create
+      // a circular module dependency
+      let node: IAnyStateTreeNode = self
+      while (hasParent(node)) {
+        node = getParent(node)
+        if ('refSeqs' in node && '_id' in node) {
+          return node._id as string
+        }
+      }
+      throw new Error(
+        'AnnotationFeatureModel: could not find parent ApolloAssembly',
+      )
     },
   }))
 

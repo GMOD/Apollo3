@@ -5,11 +5,10 @@
 import { checkAbortSignal } from '@jbrowse/core/util/aborting'
 import jsonpath from 'jsonpath'
 
-import type { TextIndexFieldDefinition } from '..'
-
 import { stopwords } from './fulltext-stopwords'
 import type { OntologyDBNode } from './indexeddb-schema'
 import { applyPrefixes } from './prefixes'
+import type { TextIndexFieldDefinition } from './types'
 
 // eslint-disable-next-line import/no-duplicates
 import type OntologyStore from '.'

@@ -15,14 +15,6 @@ import {
   deleteDB,
 } from 'idb/with-async-ittr'
 
-import {
-  type OntologyClass,
-  type OntologyProperty,
-  type OntologyTerm,
-  isOntologyClass,
-  isOntologyProperty,
-} from '..'
-
 import { textSearch } from './fulltext'
 import {
   type OntologyDB,
@@ -35,6 +27,13 @@ import {
   loadOboGraphJson,
   openDatabase,
 } from './indexeddb-storage'
+import {
+  type OntologyClass,
+  type OntologyProperty,
+  type OntologyTerm,
+  isOntologyClass,
+  isOntologyProperty,
+} from './types'
 
 export type SourceLocation = UriLocation | LocalPathLocation | BlobLocation
 

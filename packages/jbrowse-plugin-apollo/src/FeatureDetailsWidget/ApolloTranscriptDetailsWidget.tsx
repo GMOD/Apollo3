@@ -40,7 +40,7 @@ const useStyles = makeStyles()((theme) => ({
   },
 }))
 
-export const StyledAccordionSummary = styled(AccordionSummary)(() => ({
+const StyledAccordionSummary = styled(AccordionSummary)(() => ({
   minHeight: 30,
   maxHeight: 30,
   '&.Mui-expanded': {
