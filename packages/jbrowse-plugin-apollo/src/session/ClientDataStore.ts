@@ -42,7 +42,6 @@ import {
 import { ChangeManager } from '../ChangeManager'
 import {
   OntologyManagerType,
-  OntologyRecordConfiguration,
   type TextIndexFieldDefinition,
 } from '../OntologyManager'
 import type ApolloPluginConfigurationSchema from '../config'
@@ -174,18 +173,6 @@ export function clientDataStoreFactory(
             const { ontologyManager, pluginConfiguration } = self
             const configuredOntologies =
               pluginConfiguration.ontologies as AnyConfigurationModel[]
-            if (configuredOntologies.length === 0) {
-              configuredOntologies.push(
-                OntologyRecordConfiguration.create({
-                  name: 'Sequence Ontology',
-                  version: '01c33c6d9b6c8dca12e7d3e37b49ee113093c2fa',
-                  source: {
-                    uri: 'https://raw.githubusercontent.com/The-Sequence-Ontology/SO-Ontologies/01c33c6d9b6c8dca12e7d3e37b49ee113093c2fa/Ontology_Files/so.json',
-                    locationType: 'UriLocation',
-                  },
-                }),
-              )
-            }
             for (const ont of configuredOntologies || []) {
               const [name, version, source, indexFields] = [
                 readConfObject(ont, 'name') as string,

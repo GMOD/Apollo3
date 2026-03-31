@@ -12,7 +12,11 @@ import {
 } from '@apollo-annotation/shared'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import type assemblyManager from '@jbrowse/core/assemblyManager'
-import { getConf, readConfObject } from '@jbrowse/core/configuration'
+import {
+  type AnyConfigurationModel,
+  getConf,
+  readConfObject,
+} from '@jbrowse/core/configuration'
 import type { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
 import type {
   AbstractSessionModel,
@@ -281,12 +285,6 @@ export function extendSession(
           self,
           autorun(
             async (reaction) => {
-              // Wait for assemblyManager to load before we do this part
-              const { assemblies } = (self as unknown as AbstractSessionModel)
-                .assemblyManager
-              if (assemblies.length === 0) {
-                return
-              }
               // When the initial config.json loads, it doesn't include the Apollo
               // tracks, which would result in a potentially invalid session snapshot
               // if any tracks are open. Here we copy the session snapshot, apply an
@@ -301,6 +299,10 @@ export function extendSession(
                 pluginConfiguration,
                 'hasRole',
               ) as boolean
+              const featureTypeOntologyName = readConfObject(
+                pluginConfiguration,
+                'featureTypeOntologyName',
+              ) as string
               const hasApolloInternetAccount = internetAccounts.some((ia) =>
                 isApolloInternetAccount(ia),
               )
@@ -315,6 +317,30 @@ export function extendSession(
                   ).apollo,
               )
               if (!hasApolloInternetAccount || hasRole) {
+                // Wait for assemblyManager to load before we do this part
+                const { assemblies } = (self as unknown as AbstractSessionModel)
+                  .assemblyManager
+                if (assemblies.length === 0) {
+                  return
+                }
+                const { pluginConfiguration } = self.apolloDataStore
+                const configuredOntologies =
+                  pluginConfiguration.ontologies as AnyConfigurationModel[]
+                const featureTypeOntology = configuredOntologies.find(
+                  (ont) =>
+                    readConfObject(ont, 'name') === featureTypeOntologyName,
+                )
+                if (!featureTypeOntology) {
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                  pluginConfiguration.addOntology({
+                    name: 'Sequence Ontology',
+                    version: '01c33c6d9b6c8dca12e7d3e37b49ee113093c2fa',
+                    source: {
+                      uri: 'https://raw.githubusercontent.com/The-Sequence-Ontology/SO-Ontologies/01c33c6d9b6c8dca12e7d3e37b49ee113093c2fa/Ontology_Files/so.json',
+                      locationType: 'UriLocation',
+                    },
+                  })
+                }
                 for (const a of nonApolloAssemblies) {
                   self.addApolloLocalTrackConfig(a)
                 }
