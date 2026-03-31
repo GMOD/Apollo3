@@ -16,6 +16,7 @@ import {
   ViewCheckResults,
 } from '../components'
 import type { ApolloSessionModel } from '../session'
+import { type ApolloRootModel, isApolloInternetAccount } from '../types'
 
 export function addTopLevelMenus(rootModel: AbstractMenuManager) {
   rootModel.insertInMenu(
@@ -100,21 +101,27 @@ export function addTopLevelMenus(rootModel: AbstractMenuManager) {
       session.toggleLocked()
     },
   })
-  rootModel.appendToMenu('Apollo', {
-    label: 'Log out',
-    icon: LogoutIcon,
-    onClick: (session: ApolloSessionModel) => {
-      ;(session as unknown as AbstractSessionModel).queueDialog(
-        (doneCallback) => [
-          LogOut,
-          {
-            session,
-            handleClose: () => {
-              doneCallback()
+  const { internetAccounts } = rootModel as unknown as ApolloRootModel
+  const hasApolloInternetAccount = internetAccounts.some((ia) =>
+    isApolloInternetAccount(ia),
+  )
+  if (hasApolloInternetAccount) {
+    rootModel.appendToMenu('Apollo', {
+      label: 'Log out',
+      icon: LogoutIcon,
+      onClick: (session: ApolloSessionModel) => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            LogOut,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
             },
-          },
-        ],
-      )
-    },
-  })
+          ],
+        )
+      },
+    })
+  }
 }
