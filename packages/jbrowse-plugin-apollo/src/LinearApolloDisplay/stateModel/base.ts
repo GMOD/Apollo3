@@ -30,6 +30,10 @@ import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { autorun } from 'mobx'
 
 import type { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
+import {
+  DownloadGFF3,
+  Export as ExportIcon,
+} from '../../components/DownloadGFF3'
 import { FilterFeatures } from '../../components/FilterFeatures'
 import type { ApolloSessionModel, HoveredFeature } from '../../session'
 import type { ApolloRootModel } from '../../types'
@@ -271,6 +275,31 @@ export function baseModelFactory(
                       onUpdate: (types: string[]) => {
                         self.updateFilteredFeatureTypes(types)
                       },
+                    },
+                  ],
+                )
+              },
+            },
+            {
+              label: 'Export annotations',
+              icon: ExportIcon,
+              onClick: () => {
+                const [region] = self.regions
+                const { assemblyName } = region
+                const assembly = self.getAssemblyId(assemblyName)
+                if (!assembly) {
+                  return
+                }
+                const session = self.session as unknown as ApolloSessionModel
+                ;(session as unknown as AbstractSessionModel).queueDialog(
+                  (doneCallback) => [
+                    DownloadGFF3,
+                    {
+                      session,
+                      handleClose: () => {
+                        doneCallback()
+                      },
+                      assembly,
                     },
                   ],
                 )

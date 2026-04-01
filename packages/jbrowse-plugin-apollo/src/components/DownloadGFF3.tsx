@@ -1,14 +1,10 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import type { ApolloAssembly } from '@apollo-annotation/mst'
 import { annotationFeatureToGFF3 } from '@apollo-annotation/shared'
-import { type GFF3Item, formatSync } from '@gmod/gff'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import { GFFFormattingTransformer } from '@gmod/gff'
 import { getConf } from '@jbrowse/core/configuration'
-import { type IMSTMap, getSnapshot } from '@jbrowse/mobx-state-tree'
+import type { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
   Checkbox,
@@ -17,9 +13,8 @@ import {
   DialogContentText,
   FormControlLabel,
   FormGroup,
-  MenuItem,
-  Select,
-  type SelectChangeEvent,
+  SvgIcon,
+  type SvgIconProps,
 } from '@mui/material'
 import { saveAs } from 'file-saver'
 import React, { useState } from 'react'
@@ -28,6 +23,7 @@ import type {
   ApolloInternetAccount,
   CollaborationServerDriver,
 } from '../BackendDrivers'
+import { openDb } from '../BackendDrivers/LocalDriver/db'
 import type { ApolloSessionModel } from '../session'
 import { createFetchErrorMessage } from '../util'
 
@@ -36,63 +32,65 @@ import { Dialog } from './Dialog'
 interface DownloadGFF3Props {
   session: ApolloSessionModel
   handleClose(): void
+  assembly: string
 }
 
-export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
+// Icon source: https://pictogrammers.com/library/mdi/icon/export/
+export function Export(props: SvgIconProps) {
+  return (
+    <SvgIcon viewBox="0 0 24 24" {...props}>
+      <path d="M23,12L19,8V11H10V13H19V16M1,18V6C1,4.89 1.9,4 3,4H15A2,2 0 0,1 17,6V9H15V6H3V18H15V15H17V18A2,2 0 0,1 15,20H3A2,2 0 0,1 1,18Z" />
+    </SvgIcon>
+  )
+}
+
+export function DownloadGFF3({
+  handleClose,
+  session,
+  assembly: assemblyName,
+}: DownloadGFF3Props) {
   const [includeFASTA, setincludeFASTA] = useState(false)
-  const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
   const [errorMessage, setErrorMessage] = useState('')
 
-  const { collaborationServerDriver, getInternetAccount } =
-    session.apolloDataStore as {
-      collaborationServerDriver: CollaborationServerDriver
-      getInternetAccount(
-        assemblyName?: string,
-        internetAccountId?: string,
-      ): ApolloInternetAccount
-    }
-  const assemblies = [...collaborationServerDriver.getAssemblies()]
-
-  function handleChangeAssembly(e: SelectChangeEvent) {
-    const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
-    setSelectedAssembly(newAssembly)
+  const { getInternetAccount } = session.apolloDataStore as {
+    collaborationServerDriver: CollaborationServerDriver
+    getInternetAccount(
+      assemblyName?: string,
+      internetAccountId?: string,
+    ): ApolloInternetAccount
   }
+
+  const { assemblyManager } = session as unknown as AbstractSessionModel
+  const assembly = assemblyManager.get(assemblyName)
+  if (!assembly) {
+    setErrorMessage(`Assembly "${assemblyName}" not found`)
+    return
+  }
+
+  const { internetAccountConfigId } = getConf(assembly, [
+    'sequence',
+    'metadata',
+  ]) as { internetAccountConfigId?: string }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    if (!selectedAssembly) {
-      setErrorMessage('Must select assembly to download')
-      return
-    }
 
-    const { internetAccountConfigId } = getConf(selectedAssembly, [
-      'sequence',
-      'metadata',
-    ]) as { internetAccountConfigId?: string }
-    if (internetAccountConfigId) {
-      await exportFromCollaborationServer(internetAccountConfigId)
-    } else {
-      exportFromMemory(session)
-    }
+    await (internetAccountConfigId
+      ? exportFromCollaborationServer(internetAccountConfigId)
+      : downloadAssemblyGFF3(assemblyName))
     handleClose()
   }
 
   async function exportFromCollaborationServer(
     internetAccountConfigId: string,
   ) {
-    if (!selectedAssembly) {
-      setErrorMessage('Must select assembly to download')
-      return
-    }
     const internetAccount = getInternetAccount(
-      selectedAssembly.configuration.name,
+      assemblyName,
       internetAccountConfigId,
     )
     const url = new URL('export/getID', internetAccount.baseURL)
-    const searchParams = new URLSearchParams({
-      assembly: selectedAssembly.name,
-    })
+    const searchParams = new URLSearchParams({ assembly: assemblyName })
     url.search = searchParams.toString()
     const uri = url.toString()
     const apolloFetch = internetAccount.getFetcher({
@@ -122,83 +120,19 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
     window.open(exportUri, '_blank')
   }
 
-  function exportFromMemory(session: ApolloSessionModel) {
-    if (!selectedAssembly) {
-      setErrorMessage('Must select assembly to download')
-      return
-    }
-    const { assemblies } = session.apolloDataStore as {
-      assemblies: IMSTMap<typeof ApolloAssembly>
-    }
-    const assembly = assemblies.get(selectedAssembly.name)
-    const refSeqs = assembly?.refSeqs
-    if (!refSeqs) {
-      setErrorMessage(
-        `No refSeqs found for assembly "${selectedAssembly.name}"`,
-      )
-      return
-    }
-    const gff3Items: GFF3Item[] = [{ directive: 'gff-version', value: '3' }]
-    const sequenceFeatures = getConf(selectedAssembly, [
-      'sequence',
-      'adapter',
-      'features',
-    ]) as { refName: string; start: number; end: number; seq: string }[]
-    for (const sequenceFeature of sequenceFeatures) {
-      const { end, refName, start } = sequenceFeature
-      gff3Items.push({
-        directive: 'sequence-region',
-        value: `${refName} ${start + 1} ${end}`,
-      })
-    }
-    for (const [, refSeq] of refSeqs) {
-      const { features } = refSeq
-      if (!features) {
-        continue
-      }
-      for (const [, feature] of features) {
-        gff3Items.push(annotationFeatureToGFF3(getSnapshot(feature)))
-      }
-    }
-    for (const sequenceFeature of sequenceFeatures) {
-      const { refName, seq } = sequenceFeature
-      gff3Items.push({ id: refName, description: '', sequence: seq })
-    }
-    const gff3 = formatSync(gff3Items)
-    const gff3Blob = new Blob([gff3], { type: 'text/plain;charset=utf-8' })
-    saveAs(
-      gff3Blob,
-      `${selectedAssembly.displayName ?? selectedAssembly.name}.gff3`,
-    )
-  }
-
   return (
     <Dialog
       open
-      title="Export GFF3"
+      title="Export annotations"
       handleClose={handleClose}
       maxWidth={false}
       data-testid="download-gff3"
     >
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-          <DialogContentText>Select assembly</DialogContentText>
-          <Select
-            labelId="label"
-            value={selectedAssembly?.name ?? ''}
-            onChange={handleChangeAssembly}
-            disabled={assemblies.length === 0}
-          >
-            {assemblies.map((option) => (
-              <MenuItem key={option.name} value={option.name}>
-                {option.displayName ?? option.name}
-              </MenuItem>
-            ))}
-          </Select>
           <DialogContentText>
-            Select assembly to export to GFF3
+            Exporting annotations for {assemblyName}
           </DialogContentText>
-
           <FormGroup>
             <FormControlLabel
               data-testid="include-fasta-checkbox"
@@ -208,6 +142,7 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
                   onChange={() => {
                     setincludeFASTA(!includeFASTA)
                   }}
+                  disabled={!internetAccountConfigId}
                 />
               }
               label="Include fasta sequence in GFF output"
@@ -215,11 +150,7 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
           </FormGroup>
         </DialogContent>
         <DialogActions>
-          <Button
-            disabled={!selectedAssembly}
-            variant="contained"
-            type="submit"
-          >
+          <Button variant="contained" type="submit">
             Download
           </Button>
           <Button variant="outlined" type="submit" onClick={handleClose}>
@@ -234,4 +165,49 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
       ) : null}
     </Dialog>
   )
+}
+
+function getAssemblyGFF3Stream(assemblyName: string): ReadableStream<string> {
+  const featureStream = new ReadableStream({
+    async start(controller) {
+      for await (const feature of getFeaturesForAssembly(assemblyName)) {
+        const gff3Feature = annotationFeatureToGFF3(feature)
+        controller.enqueue(gff3Feature)
+      }
+      controller.close()
+    },
+  })
+  return featureStream.pipeThrough(
+    new TransformStream(new GFFFormattingTransformer()),
+  )
+}
+
+async function downloadAssemblyGFF3(assemblyName: string) {
+  const stream = getAssemblyGFF3Stream(assemblyName)
+  const fileName = `${assemblyName}.gff3`
+  try {
+    const handle = await (
+      globalThis as unknown as {
+        showSaveFilePicker: (opts: {
+          suggestedName: string
+        }) => Promise<FileSystemFileHandle>
+      }
+    ).showSaveFilePicker({ suggestedName: fileName })
+    const writable = await handle.createWritable()
+    await stream.pipeTo(writable)
+  } catch {
+    const blob = await new Response(stream).blob()
+    saveAs(blob, fileName)
+  }
+}
+
+async function* getFeaturesForAssembly(assemblyName: string) {
+  const db = await openDb(assemblyName, [])
+  for (const storeName of db.objectStoreNames) {
+    const tx = db.transaction(storeName)
+    for await (const cursor of tx.store.iterate()) {
+      yield cursor.value
+    }
+  }
+  db.close()
 }

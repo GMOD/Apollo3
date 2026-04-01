@@ -14,7 +14,7 @@ describe('Download GFF', () => {
 
   it('Can download gff with fasta', () => {
     cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
-    cy.selectFromApolloMenu('Download GFF3')
+    cy.selectFromTrackMenu('Export annotations')
     cy.focused()
       .contains('Select assembly')
       .parent()
@@ -43,7 +43,7 @@ describe('Download GFF', () => {
 
   it('Can download gff without fasta', () => {
     cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
-    cy.selectFromApolloMenu('Download GFF3')
+    cy.selectFromTrackMenu('Export annotations')
     cy.focused()
       .contains('Select assembly')
       .parent()

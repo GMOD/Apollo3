@@ -2,19 +2,13 @@ import type {
   AbstractMenuManager,
   AbstractSessionModel,
 } from '@jbrowse/core/util'
-import DownloadIcon from '@mui/icons-material/Download'
 import FactCheckIcon from '@mui/icons-material/FactCheck'
 import LogoutIcon from '@mui/icons-material/Logout'
 import RedoIcon from '@mui/icons-material/Redo'
 import TrackChangesIcon from '@mui/icons-material/TrackChanges'
 import UndoIcon from '@mui/icons-material/Undo'
 
-import {
-  DownloadGFF3,
-  LogOut,
-  ViewChangeLog,
-  ViewCheckResults,
-} from '../components'
+import { LogOut, ViewChangeLog, ViewCheckResults } from '../components'
 import type { ApolloSessionModel } from '../session'
 import { type ApolloRootModel, isApolloInternetAccount } from '../types'
 
@@ -44,23 +38,6 @@ export function addTopLevelMenus(rootModel: AbstractMenuManager) {
     0,
   )
 
-  rootModel.appendToMenu('Apollo', {
-    label: 'Download GFF3',
-    icon: DownloadIcon,
-    onClick: (session: ApolloSessionModel) => {
-      ;(session as unknown as AbstractSessionModel).queueDialog(
-        (doneCallback) => [
-          DownloadGFF3,
-          {
-            session,
-            handleClose: () => {
-              doneCallback()
-            },
-          },
-        ],
-      )
-    },
-  })
   rootModel.appendToMenu('Apollo', {
     label: 'View Change Log',
     icon: TrackChangesIcon,

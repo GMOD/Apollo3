@@ -5,6 +5,7 @@ declare namespace Cypress {
     addOntologies(): Chainable<void>
     loginAsGuest(): Chainable<void>
     deleteAssemblies(): Chainable<void>
+    selectFromTrackMenu(menuItemNameOrPath: string | string[]): Chainable<void>
     selectFromApolloMenu(menuItemNameOrPath: string | string[]): Chainable<void>
     annotationTrackAppearance(
       appearance:
