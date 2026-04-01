@@ -28,7 +28,11 @@ import type { Socket } from 'socket.io-client'
 import { ChangeManager, type SubmitOpts } from '../ChangeManager'
 import { createFetchErrorMessage } from '../util'
 
-import { BackendDriver, type RefNameAliases } from './BackendDriver'
+import {
+  BackendDriver,
+  type ChangeDocument,
+  type RefNameAliases,
+} from './BackendDriver'
 
 export interface ApolloRefSeqResponse {
   _id: string
@@ -390,6 +394,22 @@ export class CollaborationServerDriver extends BackendDriver {
       }
       return false
     })
+  }
+
+  async getChanges(assemblyName: string): Promise<ChangeDocument[]> {
+    const internetAccount = this.clientStore.getInternetAccount(assemblyName)
+    const { baseURL } = internetAccount
+    const url = new URL('changes', baseURL)
+    url.search = new URLSearchParams({ assembly: assemblyName }).toString()
+    const response = await this.fetch(internetAccount, url.toString())
+    if (!response.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'getChanges failed',
+      )
+      throw new Error(errorMessage)
+    }
+    return response.json() as Promise<ChangeDocument[]>
   }
 
   async submitChange(

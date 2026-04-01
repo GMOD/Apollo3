@@ -3,6 +3,7 @@
 import {
   type Change,
   FeatureChange,
+  type SerializedChange,
   isFeatureChange,
 } from '@apollo-annotation/common'
 import type {
@@ -28,7 +29,11 @@ import {
 import { getSnapshot } from '@jbrowse/mobx-state-tree'
 
 import type { SubmitOpts } from '../../ChangeManager'
-import { BackendDriver, type RefNameAliases } from '../BackendDriver'
+import {
+  BackendDriver,
+  type ChangeDocument,
+  type RefNameAliases,
+} from '../BackendDriver'
 
 import { type FeatureDatabase, openDb } from './db'
 
@@ -146,6 +151,7 @@ export class LocalDriver extends BackendDriver {
     const refNames = regions.map((r) => r.refName)
     const db = await openDb(assembly, refNames)
     const storeNames = refNames.map((r) => `features-${r}`)
+    storeNames.push('changes')
     const tx = db.transaction(storeNames, 'readwrite')
     const topLevelFeatures = new Set<AnnotationFeature>()
     if (isDeleteFeatureChange(change)) {
@@ -174,6 +180,9 @@ export class LocalDriver extends BackendDriver {
         .objectStore(`features-${feature.refSeq}`)
         .put(snapshot, feature._id)
     }
+    void tx
+      .objectStore('changes')
+      .put({ ...change.toJSON(), createdAt: new Date() })
     await tx.done
     return new ValidationResultSet()
   }
@@ -183,5 +192,19 @@ export class LocalDriver extends BackendDriver {
     assemblies: string[],
   ): Promise<AnnotationFeatureSnapshot[]> {
     return []
+  }
+
+  async getChanges(assemblyName: string): Promise<ChangeDocument[]> {
+    const regions = await this.getRegions(assemblyName)
+    const refNames = regions.map((r) => r.refName)
+    const db = await openDb(assemblyName, refNames)
+    const changes: ChangeDocument[] = []
+    for await (const cursor of db.transaction('changes').store.iterate()) {
+      changes.push({
+        sequence: cursor.key,
+        ...(cursor.value as SerializedChange & { createdAt: string }),
+      })
+    }
+    return changes
   }
 }

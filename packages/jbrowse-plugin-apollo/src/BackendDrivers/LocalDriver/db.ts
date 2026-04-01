@@ -9,6 +9,10 @@ export async function openDb(
   const dbName = `Apollo-${assemblyName}`
   return openDB(dbName, 1, {
     upgrade(db) {
+      const changesStoreName = 'changes'
+      if (!db.objectStoreNames.contains(changesStoreName)) {
+        db.createObjectStore(changesStoreName, { autoIncrement: true })
+      }
       for (const refName of refNames) {
         const storeName = `features-${refName}`
         if (!db.objectStoreNames.contains(storeName)) {

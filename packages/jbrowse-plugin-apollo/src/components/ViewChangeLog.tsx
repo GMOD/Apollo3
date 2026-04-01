@@ -1,44 +1,27 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { changeRegistry } from '@apollo-annotation/common'
 import { makeStyles } from '@jbrowse/core/util/tss-react'
-import { getRoot } from '@jbrowse/mobx-state-tree'
 import {
   Button,
   DialogActions,
   DialogContent,
   DialogContentText,
-  MenuItem,
-  Select,
-  type SelectChangeEvent,
 } from '@mui/material'
-import {
-  DataGrid,
-  type GridColDef,
-  type GridRowsProp,
-  GridToolbar,
-} from '@mui/x-data-grid'
+import { DataGrid, type GridColDef, type GridRowsProp } from '@mui/x-data-grid'
 import React, { useEffect, useState } from 'react'
 
-import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import type {
-  ApolloInternetAccount,
-  CollaborationServerDriver,
-} from '../BackendDrivers'
 import type { ApolloSessionModel } from '../session'
-import type { ApolloRootModel } from '../types'
-import { createFetchErrorMessage } from '../util'
 
 import { Dialog } from './Dialog'
 
 interface ViewChangeLogProps {
   session: ApolloSessionModel
   handleClose(): void
+  assembly: string
 }
 
 const useStyles = makeStyles()((theme) => ({
@@ -51,28 +34,16 @@ const useStyles = makeStyles()((theme) => ({
   },
 }))
 
-export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
-  const { internetAccounts } = getRoot<ApolloRootModel>(session)
-  const apolloInternetAccount = internetAccounts.find(
-    (ia) => ia.type === 'ApolloInternetAccount',
-  ) as ApolloInternetAccountModel | undefined
-  if (!apolloInternetAccount) {
-    throw new Error('No Apollo internet account found')
-  }
-  const { baseURL } = apolloInternetAccount
+export function ViewChangeLog({
+  handleClose,
+  session,
+  assembly: assemblyName,
+}: ViewChangeLogProps) {
   const { classes } = useStyles()
   const [errorMessage, setErrorMessage] = useState<string>()
   const [displayGridData, setDisplayGridData] = useState<GridRowsProp[]>([])
 
-  const { collaborationServerDriver } = session.apolloDataStore as {
-    collaborationServerDriver: CollaborationServerDriver
-    getInternetAccount(
-      assemblyName?: string,
-      internetAccountId?: string,
-    ): ApolloInternetAccount
-  }
-  const assemblies = collaborationServerDriver.getAssemblies()
-  const [selectedAssembly, setSelectedAssembly] = useState(assemblies.at(0))
+  const { apolloDataStore } = session
 
   const gridColumns: GridColDef[] = [
     { field: 'sequence' },
@@ -85,7 +56,7 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
       valueOptions: [...changeRegistry.changes.keys()],
     },
     {
-      field: 'changes',
+      field: 'changeData',
       headerName: 'Change JSON',
       width: 600,
       renderCell: ({ value }) => (
@@ -108,46 +79,24 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
 
   useEffect(() => {
     async function getGridData() {
-      if (!selectedAssembly) {
+      const backendDriver = apolloDataStore.getBackendDriver(assemblyName)
+      if (!backendDriver) {
+        setErrorMessage(`No driver found for assembly "${assemblyName}"`)
         return
       }
-
-      // Get changes
-      const url = new URL('changes', baseURL)
-      const searchParams = new URLSearchParams({
-        assembly: selectedAssembly.name,
+      const data = await backendDriver.getChanges(assemblyName)
+      const gridData = data.map((change) => {
+        const { sequence, typeName, changes, user, createdAt, ...rest } = change
+        const changeData = changes ?? { typeName, ...rest }
+        return { sequence, typeName, changeData, user, createdAt }
       })
-      url.search = searchParams.toString()
-      const uri = url.toString()
-      const apolloFetch = apolloInternetAccount?.getFetcher({
-        locationType: 'UriLocation',
-        uri,
-      })
-      if (apolloFetch) {
-        const response = await apolloFetch(uri, {
-          headers: new Headers({ 'Content-Type': 'application/json' }),
-        })
-        if (!response.ok) {
-          const newErrorMessage = await createFetchErrorMessage(
-            response,
-            'Error when retrieving changes',
-          )
-          setErrorMessage(newErrorMessage)
-          return
-        }
-        const data = await response.json()
-        setDisplayGridData(data)
-      }
+      // @ts-expect-error not sure how to type this
+      setDisplayGridData(gridData)
     }
     getGridData().catch((error) => {
       setErrorMessage(String(error))
     })
-  }, [apolloInternetAccount, baseURL, selectedAssembly])
-
-  function handleChangeAssembly(e: SelectChangeEvent) {
-    const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
-    setSelectedAssembly(newAssembly)
-  }
+  }, [apolloDataStore, assemblyName])
 
   return (
     <Dialog
@@ -157,25 +106,14 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
       handleClose={handleClose}
       data-testid="view-changelog"
     >
-      <Select
-        style={{ width: 200, marginLeft: 40 }}
-        value={selectedAssembly?.name ?? ''}
-        onChange={handleChangeAssembly}
-      >
-        {assemblies.map((option) => (
-          <MenuItem key={option.name} value={option.name}>
-            {option.displayName || option.name}
-          </MenuItem>
-        ))}
-      </Select>
-
       <DialogContent>
+        <DialogContentText>Changes for {assemblyName}</DialogContentText>
         <DataGrid
           pagination
           rows={displayGridData}
           columns={gridColumns}
-          getRowId={(row) => row._id}
-          slots={{ toolbar: GridToolbar }}
+          getRowId={(row) => row.sequence}
+          showToolbar
           initialState={{
             sorting: { sortModel: [{ field: 'sequence', sort: 'desc' }] },
             columns: { columnVisibilityModel: { sequence: false } },

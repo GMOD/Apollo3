@@ -5,10 +5,9 @@ import type {
 import FactCheckIcon from '@mui/icons-material/FactCheck'
 import LogoutIcon from '@mui/icons-material/Logout'
 import RedoIcon from '@mui/icons-material/Redo'
-import TrackChangesIcon from '@mui/icons-material/TrackChanges'
 import UndoIcon from '@mui/icons-material/Undo'
 
-import { LogOut, ViewChangeLog, ViewCheckResults } from '../components'
+import { LogOut, ViewCheckResults } from '../components'
 import type { ApolloSessionModel } from '../session'
 import { type ApolloRootModel, isApolloInternetAccount } from '../types'
 
@@ -38,23 +37,6 @@ export function addTopLevelMenus(rootModel: AbstractMenuManager) {
     0,
   )
 
-  rootModel.appendToMenu('Apollo', {
-    label: 'View Change Log',
-    icon: TrackChangesIcon,
-    onClick: (session: ApolloSessionModel) => {
-      ;(session as unknown as AbstractSessionModel).queueDialog(
-        (doneCallback) => [
-          ViewChangeLog,
-          {
-            session,
-            handleClose: () => {
-              doneCallback()
-            },
-          },
-        ],
-      )
-    },
-  })
   rootModel.appendToMenu('Apollo', {
     label: 'View check results',
     icon: FactCheckIcon,

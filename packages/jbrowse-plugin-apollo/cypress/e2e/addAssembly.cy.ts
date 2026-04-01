@@ -34,7 +34,7 @@ describe('Add Assembly', () => {
       cy.contains('volvox')
     })
     // Check logs to ensure we submitted index files
-    cy.selectFromApolloMenu('View Change Log')
+    cy.selectFromTrackMenu('View Change Log')
     cy.get('textarea').should('have.length', 1)
     cy.get('textarea').within(() => {
       cy.contains('"AddAssemblyFromFileChange"')
@@ -147,7 +147,7 @@ describe('Add Assembly', () => {
       cy.contains('volvox')
     })
     // Check logs to ensure we submitted features
-    cy.selectFromApolloMenu('View Change Log')
+    cy.selectFromTrackMenu('View Change Log')
     cy.get('textarea').should('have.length', 1)
     cy.get('textarea').within(() => {
       cy.contains('"AddAssemblyAndFeaturesFromFileChange"')
@@ -179,7 +179,7 @@ describe('Add Assembly', () => {
       cy.contains('volvox')
     })
     // Check logs to ensure we submitted only assembly
-    cy.selectFromApolloMenu('View Change Log')
+    cy.selectFromTrackMenu('View Change Log')
     cy.get('textarea').should('have.length', 1)
     cy.get('textarea').within(() => {
       cy.contains('"AddAssemblyFromFileChange"')
@@ -286,7 +286,7 @@ describe('Add Assembly', () => {
       cy.contains('volvox')
     })
     // Check logs to ensure we submitted only assembly
-    cy.selectFromApolloMenu('View Change Log')
+    cy.selectFromTrackMenu('View Change Log')
     cy.get('textarea').should('have.length', 1)
     cy.get('textarea').within(() => {
       cy.contains('"AddAssemblyAndFeaturesFromFileChange"')

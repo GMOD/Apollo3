@@ -132,8 +132,7 @@ export class ChangesService {
 
       // Add entry to change collection
       const [savedChangedLogDoc] = await this.changeModel.create([
-        // eslint-disable-next-line @typescript-eslint/no-misused-spread
-        { ...change, user: user.email, sequence },
+        { ...change.toJSON(), user: user.email, sequence },
       ])
       changeDoc = savedChangedLogDoc
       const validationResult2 = await validationRegistry.backendPostValidate(
