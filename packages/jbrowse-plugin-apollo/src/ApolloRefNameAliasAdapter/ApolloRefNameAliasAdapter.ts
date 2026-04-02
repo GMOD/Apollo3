@@ -38,9 +38,12 @@ export default class RefNameAliasAdapter
   extends BaseAdapter
   implements BaseRefNameAliasAdapter
 {
-  private refNameAliases: RefNameAliases[] | undefined
+  private refNameAliasesP: Promise<RefNameAliases[]> | undefined
 
   async getRefNameAliases() {
+    if (this.refNameAliasesP) {
+      return this.refNameAliasesP
+    }
     const assemblyId = readConfObject(this.config, 'assemblyId') as string
     if (!isInWebWorker) {
       const dataStore = (
@@ -56,7 +59,7 @@ export default class RefNameAliasAdapter
       const refNameAliases = await backendDriver.getRefNameAliases(assemblyId)
       return refNameAliases
     }
-    const refNameAliases = await new Promise(
+    const refNameAliases = new Promise(
       (
         resolve: (refNameAliases: RefNameAliases[]) => void,
         reject: (reason: Error) => void,
@@ -86,7 +89,7 @@ export default class RefNameAliasAdapter
         })
       },
     )
-    this.refNameAliases = refNameAliases
+    this.refNameAliasesP = refNameAliases
     return refNameAliases
   }
 

@@ -138,8 +138,8 @@ export class ChangeManager {
         }
         console.error(error)
         session.notify(String(error), 'error')
-        await this.undo(change, false)
         setChangeInProgress(false)
+        await this.undo(change, false)
         return
       }
       if (!backendResult.ok) {
@@ -148,8 +148,8 @@ export class ChangeManager {
           jobsManager.abortJob(job.name, msg)
         }
         session.notify(msg, 'error')
-        await this.undo(change, false)
         setChangeInProgress(false)
+        await this.undo(change, false)
         return
       }
       if (change.notification) {

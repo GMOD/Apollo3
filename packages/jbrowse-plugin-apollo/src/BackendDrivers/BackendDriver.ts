@@ -1,4 +1,4 @@
-import type { Change } from '@apollo-annotation/common'
+import type { Change, SerializedChange } from '@apollo-annotation/common'
 import type {
   AnnotationFeatureSnapshot,
   CheckResultSnapshot,
@@ -13,7 +13,14 @@ import type { ClientDataStoreModel } from '../session/ClientDataStore'
 export interface RefNameAliases {
   refName: string
   aliases: string[]
-  uniqueId: string
+  uniqueId?: string
+}
+
+export interface ChangeDocument extends SerializedChange {
+  sequence: IDBValidKey
+  user?: string
+  createdAt: string
+  changes?: SerializedChange[]
 }
 
 export abstract class BackendDriver {
@@ -40,4 +47,8 @@ export abstract class BackendDriver {
     term: string,
     assemblies: string[],
   ): Promise<AnnotationFeatureSnapshot[]>
+
+  abstract getChanges(assemblyName: string): Promise<ChangeDocument[]>
+
+  abstract getCheckResults(assemblyName: string): Promise<CheckResultSnapshot[]>
 }

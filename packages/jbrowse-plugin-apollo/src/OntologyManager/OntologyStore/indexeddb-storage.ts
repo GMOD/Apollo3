@@ -171,6 +171,7 @@ export async function loadOboGraphJson(this: OntologyStore, db: Database) {
     const tx2 = db.transaction('meta', 'readwrite')
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { update, ...otherOptions } = this.options
+    await tx2.objectStore('meta').delete('meta')
     await tx2.objectStore('meta').add(
       {
         ontologyRecord: {

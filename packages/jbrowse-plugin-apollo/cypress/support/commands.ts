@@ -119,6 +119,29 @@ Cypress.Commands.add(
 )
 
 Cypress.Commands.add(
+  'selectFromTrackMenu',
+  (menuItemNameOrPath: string | string[]) => {
+    const menuItemPath = Array.isArray(menuItemNameOrPath)
+      ? menuItemNameOrPath
+      : [menuItemNameOrPath]
+    const menuItemName = menuItemPath.at(-1)
+    if (!menuItemName) {
+      return
+    }
+    const menuItemPathPrefix = menuItemPath.slice(0, -1)
+    cy.wrap(Cypress.$('body')).within(() => {
+      // cy.wrap() makes it work inside within() scope - see
+      // https://github.com/cypress-io/cypress/issues/6666
+      cy.get('[data-testid="track_menu_icon"]').click()
+      for (const pathPart of menuItemPathPrefix) {
+        cy.contains(pathPart, { timeout: 10_000 }).click()
+      }
+      cy.contains(menuItemName, { timeout: 10_000 }).click()
+    })
+  },
+)
+
+Cypress.Commands.add(
   'selectFromApolloMenu',
   (menuItemNameOrPath: string | string[]) => {
     const menuItemPath = Array.isArray(menuItemNameOrPath)

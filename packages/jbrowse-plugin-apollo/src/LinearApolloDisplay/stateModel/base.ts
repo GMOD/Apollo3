@@ -27,10 +27,18 @@ import {
   types,
 } from '@jbrowse/mobx-state-tree'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import FactCheckIcon from '@mui/icons-material/FactCheck'
+import TrackChangesIcon from '@mui/icons-material/TrackChanges'
 import { autorun } from 'mobx'
 
 import type { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
+import {
+  DownloadGFF3,
+  Export as ExportIcon,
+} from '../../components/DownloadGFF3'
 import { FilterFeatures } from '../../components/FilterFeatures'
+import { ViewChangeLog } from '../../components/ViewChangeLog'
+import { ViewCheckResults } from '../../components/ViewCheckResults'
 import type { ApolloSessionModel, HoveredFeature } from '../../session'
 import type { ApolloRootModel } from '../../types'
 import { EditZoomThresholdDialog } from '../../util/displayUtils'
@@ -271,6 +279,81 @@ export function baseModelFactory(
                       onUpdate: (types: string[]) => {
                         self.updateFilteredFeatureTypes(types)
                       },
+                    },
+                  ],
+                )
+              },
+            },
+            {
+              label: 'Export annotations',
+              icon: ExportIcon,
+              onClick: () => {
+                const [region] = self.regions
+                const { assemblyName } = region
+                const assembly = self.getAssemblyId(assemblyName)
+                if (!assembly) {
+                  return
+                }
+                const session = self.session as unknown as ApolloSessionModel
+                ;(session as unknown as AbstractSessionModel).queueDialog(
+                  (doneCallback) => [
+                    DownloadGFF3,
+                    {
+                      session,
+                      handleClose: () => {
+                        doneCallback()
+                      },
+                      assembly,
+                    },
+                  ],
+                )
+              },
+            },
+            {
+              label: 'View Change Log',
+              icon: TrackChangesIcon,
+              onClick: () => {
+                const [region] = self.regions
+                const { assemblyName } = region
+                const assembly = self.getAssemblyId(assemblyName)
+                if (!assembly) {
+                  return
+                }
+                const session = self.session as unknown as ApolloSessionModel
+                ;(session as unknown as AbstractSessionModel).queueDialog(
+                  (doneCallback) => [
+                    ViewChangeLog,
+                    {
+                      session,
+                      handleClose: () => {
+                        doneCallback()
+                      },
+                      assembly,
+                    },
+                  ],
+                )
+              },
+            },
+            {
+              label: 'View Check Results',
+              icon: FactCheckIcon,
+              onClick: () => {
+                const [region] = self.regions
+                const { assemblyName } = region
+                const assembly = self.getAssemblyId(assemblyName)
+                if (!assembly) {
+                  return
+                }
+                const session = self.session as unknown as ApolloSessionModel
+                ;(session as unknown as AbstractSessionModel).queueDialog(
+                  (doneCallback) => [
+                    ViewCheckResults,
+                    {
+                      session,
+                      handleClose: () => {
+                        doneCallback()
+                      },
+                      assembly,
                     },
                   ],
                 )

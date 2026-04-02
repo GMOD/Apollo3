@@ -17,7 +17,7 @@ import {
   getConf,
   readConfObject,
 } from '@jbrowse/core/configuration'
-import { type Region, getSession, isElectron } from '@jbrowse/core/util'
+import { type Region, getSession } from '@jbrowse/core/util'
 import type {
   LocalPathLocation,
   UriLocation,
@@ -37,8 +37,7 @@ import {
   type ApolloInternetAccount,
   type BackendDriver,
   CollaborationServerDriver,
-  DesktopFileDriver,
-  InMemoryFileDriver,
+  LocalDriver,
 } from '../BackendDrivers'
 import { ChangeManager } from '../ChangeManager'
 import {
@@ -161,10 +160,7 @@ export function clientDataStoreFactory(
       collaborationServerDriver: new CollaborationServerDriver(
         self as ClientDataStoreModel,
       ),
-      inMemoryFileDriver: new InMemoryFileDriver(self as ClientDataStoreModel),
-      desktopFileDriver: isElectron
-        ? new DesktopFileDriver(self as ClientDataStoreModel)
-        : undefined,
+      localDriver: new LocalDriver(self as ClientDataStoreModel),
     }))
     .actions((self) => ({
       afterCreate() {
@@ -242,17 +238,14 @@ export function clientDataStoreFactory(
         if (!assembly) {
           return
         }
-        const { file, internetAccountConfigId } = getConf(assembly, [
+        const { internetAccountConfigId } = getConf(assembly, [
           'sequence',
           'metadata',
         ]) as { internetAccountConfigId?: string; file: string }
-        if (isElectron && file) {
-          return self.desktopFileDriver
-        }
         if (internetAccountConfigId) {
           return self.collaborationServerDriver
         }
-        return self.inMemoryFileDriver
+        return self.localDriver
       },
       getInternetAccount(assemblyName?: string, internetAccountId?: string) {
         if (!(assemblyName ?? internetAccountId)) {

@@ -11,8 +11,12 @@ import {
   filterJBrowseConfig,
 } from '@apollo-annotation/shared'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import type { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
-import { getConf, readConfObject } from '@jbrowse/core/configuration'
+import type assemblyManager from '@jbrowse/core/assemblyManager'
+import {
+  type AnyConfigurationModel,
+  getConf,
+  readConfObject,
+} from '@jbrowse/core/configuration'
 import type { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
 import type {
   AbstractSessionModel,
@@ -34,7 +38,7 @@ import { autorun, flow, observable, when } from 'mobx'
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloJobModel } from '../ApolloJobModel'
 import type ApolloPluginConfigurationSchema from '../config'
-import type { ApolloRootModel } from '../types'
+import { type ApolloRootModel, isApolloInternetAccount } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import {
@@ -58,6 +62,8 @@ export interface HoveredFeature {
   feature: AnnotationFeature
   bp: number
 }
+
+type Assembly = Instance<ReturnType<typeof assemblyManager>>['assemblies'][0]
 
 export function extendSession(
   pluginManager: PluginManager,
@@ -111,31 +117,22 @@ export function extendSession(
       apolloSetHoveredFeature(feature?: HoveredFeature) {
         self.apolloHoveredFeature = feature
       },
-      addApolloTrackConfig(assembly: AssemblyModel, baseURL?: string) {
+      addApolloLocalTrackConfig(assembly: Assembly) {
         const trackId = `apollo_track_${assembly.name}`
         const hasTrack = (self as unknown as AbstractSessionModel).tracks.some(
           (track) => track.trackId === trackId,
         )
         if (!hasTrack) {
-          ;(self as unknown as SessionWithAddTracks).addTrackConf({
+          ;(
+            getRoot<ApolloRootModel>(self).jbrowse as {
+              addTrackConf: SessionWithAddTracks['addTrackConf']
+            }
+          ).addTrackConf({
             type: 'ApolloTrack',
             trackId,
-            name: `Annotations (${
-              // @ts-expect-error getConf types don't quite work here for some reason
-              getConf(assembly, 'displayName') || assembly.name
-            })`,
+            name: `Annotations (${assembly.displayName})`,
             assemblyNames: [assembly.name],
-            textSearching: {
-              textSearchAdapter: {
-                type: 'ApolloTextSearchAdapter',
-                trackId,
-                assemblyNames: [assembly.name],
-                textSearchAdapterId: `apollo_search_${assembly.name}`,
-                ...(baseURL
-                  ? { baseURL: { uri: baseURL, locationType: 'UriLocation' } }
-                  : {}),
-              },
-            },
+            category: ['Apollo'],
           })
         }
       },
@@ -183,7 +180,7 @@ export function extendSession(
         }
         if (locations.length === 0) {
           for (const internetAccount of internetAccounts) {
-            if ('baseURL' in internetAccount) {
+            if (isApolloInternetAccount(internetAccount)) {
               internetAccount.postUserLocation([])
             }
           }
@@ -192,7 +189,7 @@ export function extendSession(
 
         const allLocations: UserLocation[] = []
         for (const internetAccount of internetAccounts) {
-          if ('baseURL' in internetAccount) {
+          if (isApolloInternetAccount(internetAccount)) {
             for (const location of locations) {
               const tmpLoc: UserLocation = {
                 assemblyId: location.assemblyName,
@@ -258,7 +255,7 @@ export function extendSession(
               }
               if (locations.length === 0) {
                 for (const internetAccount of internetAccounts) {
-                  if ('baseURL' in internetAccount) {
+                  if (isApolloInternetAccount(internetAccount)) {
                     internetAccount.postUserLocation([])
                   }
                 }
@@ -267,7 +264,7 @@ export function extendSession(
 
               const allLocations: UserLocation[] = []
               for (const internetAccount of internetAccounts) {
-                if ('baseURL' in internetAccount) {
+                if (isApolloInternetAccount(internetAccount)) {
                   for (const location of locations) {
                     const tmpLoc: UserLocation = {
                       assemblyId: location.assemblyName,
@@ -302,7 +299,51 @@ export function extendSession(
                 pluginConfiguration,
                 'hasRole',
               ) as boolean
-              if (hasRole) {
+              const featureTypeOntologyName = readConfObject(
+                pluginConfiguration,
+                'featureTypeOntologyName',
+              ) as string
+              const hasApolloInternetAccount = internetAccounts.some((ia) =>
+                isApolloInternetAccount(ia),
+              )
+              const nonApolloAssemblies = (
+                self as unknown as AbstractSessionModel
+              ).assemblyManager.assemblies.filter(
+                (a) =>
+                  !(
+                    getConf(a, ['sequence', 'metadata']) as {
+                      apollo?: boolean
+                    }
+                  ).apollo,
+              )
+              if (!hasApolloInternetAccount || hasRole) {
+                // Wait for assemblyManager to load before we do this part
+                const { assemblies } = (self as unknown as AbstractSessionModel)
+                  .assemblyManager
+                if (assemblies.length === 0) {
+                  return
+                }
+                const { pluginConfiguration } = self.apolloDataStore
+                const configuredOntologies =
+                  pluginConfiguration.ontologies as AnyConfigurationModel[]
+                const featureTypeOntology = configuredOntologies.find(
+                  (ont) =>
+                    readConfObject(ont, 'name') === featureTypeOntologyName,
+                )
+                if (!featureTypeOntology) {
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                  pluginConfiguration.addOntology({
+                    name: 'Sequence Ontology',
+                    version: '01c33c6d9b6c8dca12e7d3e37b49ee113093c2fa',
+                    source: {
+                      uri: 'https://raw.githubusercontent.com/The-Sequence-Ontology/SO-Ontologies/01c33c6d9b6c8dca12e7d3e37b49ee113093c2fa/Ontology_Files/so.json',
+                      locationType: 'UriLocation',
+                    },
+                  })
+                }
+                for (const a of nonApolloAssemblies) {
+                  self.addApolloLocalTrackConfig(a)
+                }
                 // @ts-expect-error not sure why snapshot type is wrong for snapshot
                 applySnapshot(self, self.previousSnapshot)
                 reaction.dispose()
@@ -487,15 +528,9 @@ export function extendSession(
   return types.snapshotProcessor(sm, {
     postProcessor(snap: SnapshotOut<typeof sm>, node) {
       snap.apolloSelectedFeature = undefined
-      const assemblies = Object.fromEntries(
-        Object.entries(snap.apolloDataStore.assemblies).filter(
-          ([, assembly]) => assembly.backendDriverType === 'InMemoryFileDriver',
-        ),
-      )
       // @ts-expect-error ontologyManager isn't actually required
       snap.apolloDataStore = {
         typeName: 'Client',
-        assemblies,
         checkResults: {},
       }
       if (!node) {
@@ -507,10 +542,6 @@ export function extendSession(
         const [feature] = cr.ids
         if (!feature) {
           continue
-        }
-        const assembly = apolloDataStore.assemblies.get(feature.assemblyId)
-        if (assembly && assembly.backendDriverType === 'InMemoryFileDriver') {
-          snap.apolloDataStore.checkResults[cr._id] = getSnapshot(cr)
         }
       }
       return snap
