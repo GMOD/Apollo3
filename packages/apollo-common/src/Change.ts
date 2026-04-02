@@ -1,57 +1,31 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-import type {
-  AnnotationFeature,
-  AnnotationFeatureSnapshot,
-  ApolloAssemblyI,
-  BackendDriverType,
-  CheckResultI,
-  CheckResultSnapshot,
-} from '@apollo-annotation/mst'
-import type { AppRootModel, Region } from '@jbrowse/core/util'
+import type { LoggerService } from '@nestjs/common'
 
 import { changeRegistry } from './ChangeTypeRegistry.js'
-import {
-  type BackendDataStore,
-  Operation,
-  type OperationOptions,
-  type SerializedOperation,
-} from './Operation.js'
 
-export interface ClientDataStore {
-  typeName: 'Client'
-  assemblies: Map<string | number, ApolloAssemblyI>
-  checkResults: Map<string | number, CheckResultI>
-  internetAccounts: AppRootModel['internetAccounts']
-  getInternetAccount(
-    assemblyName?: string,
-    internetAccountId?: string,
-  ): AppRootModel['internetAccounts'][0]
-  loadFeatures(regions: Region[]): Promise<void>
-  loadRefSeq(regions: Region[]): void
-  getFeature(featureId: string): AnnotationFeature | undefined
-  addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot): void
-  deleteFeature(featureId: string): void
-  deleteAssembly(assemblyId: string): void
-  addCheckResults(checkResults: CheckResultSnapshot[]): void
-  addAssembly(
-    assemblyId: string,
-    backendDriverType?: BackendDriverType,
-  ): ApolloAssemblyI
-  clearCheckResults(): void
+export interface SerializedChange {
+  typeName: string
 }
 
-export type SerializedChange = SerializedOperation
-export type ChangeOptions = OperationOptions
-
-export type DataStore = BackendDataStore | ClientDataStore
+export interface ChangeOptions {
+  logger: LoggerService
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isChange(thing: any): thing is Change {
-  return (thing as Change).executeOnClient !== undefined
+  return (thing as Change).getInverse !== undefined
 }
 
-export abstract class Change extends Operation {
+export abstract class Change {
+  protected logger: LoggerService
+  abstract typeName: string
+
+  constructor(json: SerializedChange, options?: ChangeOptions) {
+    this.logger = options?.logger ?? console
+  }
+
+  abstract toJSON(): SerializedChange
+
   /**
    * If a non-empty string, a snackbar will display in JBrowse with this message
    * when a successful response is received from the server.
@@ -61,25 +35,10 @@ export abstract class Change extends Operation {
     return ''
   }
 
-  static fromJSON(json: SerializedOperation, options?: ChangeOptions): Change {
+  static fromJSON(json: SerializedChange, options?: ChangeOptions): Change {
     const ChangeType = changeRegistry.getChangeType(json.typeName)
     return new ChangeType(json, options?.logger && { logger: options.logger })
   }
-
-  async execute(backend: DataStore): Promise<unknown> {
-    const backendType = backend.typeName
-    if (backendType === 'LocalGFF3' || backendType === 'Server') {
-      return super.execute(backend)
-    }
-    if (backendType === 'Client') {
-      return this.executeOnClient(backend)
-    }
-    throw new Error(
-      `no change implementation for backend type '${backendType}'`,
-    )
-  }
-
-  abstract executeOnClient(backend: ClientDataStore): Promise<void>
 
   abstract getInverse(): Change
 }

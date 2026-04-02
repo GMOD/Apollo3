@@ -1,18 +1,10 @@
-/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import {
   type ChangeOptions,
-  type ClientDataStore,
   FeatureChange,
-  type LocalGFF3DataStore,
   type SerializedFeatureChange,
-  type ServerDataStore,
 } from '@apollo-annotation/common'
 import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-
-import { findAndDeleteChildFeature } from './DeleteFeatureChange.js'
-import { UndoSplitExonChange } from './UndoSplitExonChange.js'
 
 interface SerializedSplitExonChangeBase extends SerializedFeatureChange {
   typeName: 'SplitExonChange'
@@ -39,6 +31,34 @@ interface SerializedSplitExonChangeMultiple
 export type SerializedSplitExonChange =
   | SerializedSplitExonChangeSingle
   | SerializedSplitExonChangeMultiple
+
+interface SerializedUndoSplitExonChangeBase extends SerializedFeatureChange {
+  typeName: 'UndoSplitExonChange'
+}
+
+export interface UndoSplitExonChangeDetails {
+  exonToRestore: AnnotationFeatureSnapshot
+  parentFeatureId: string
+  idsToDelete: string[]
+  upstreamCut: number
+  downstreamCut: number
+  leftExonId: string
+  rightExonId: string
+}
+
+interface SerializedUndoSplitExonChangeSingle
+  extends SerializedUndoSplitExonChangeBase,
+    UndoSplitExonChangeDetails {}
+
+interface SerializedUndoSplitExonChangeMultiple
+  extends SerializedUndoSplitExonChangeBase {
+  changes: UndoSplitExonChangeDetails[]
+}
+
+export type SerializedUndoSplitExonChange =
+  | SerializedUndoSplitExonChangeSingle
+  | SerializedUndoSplitExonChangeMultiple
+
 export class SplitExonChange extends FeatureChange {
   typeName = 'SplitExonChange' as const
   changes: SplitExonChangeDetails[]
@@ -81,119 +101,6 @@ export class SplitExonChange extends FeatureChange {
     return { typeName, changedIds, assembly, changes }
   }
 
-  async executeOnServer(backend: ServerDataStore) {
-    const { featureModel, session } = backend
-    const { changes, logger } = this
-    for (const change of changes) {
-      const {
-        exonToBeSplit,
-        parentFeatureId,
-        upstreamCut,
-        downstreamCut,
-        leftExonId,
-        rightExonId,
-      } = change
-      const topLevelFeature = await featureModel
-        .findOne({ allIds: exonToBeSplit._id })
-        .session(session)
-        .exec()
-      if (!topLevelFeature) {
-        const errMsg = `*** ERROR: The following featureId was not found in database ='${exonToBeSplit._id}'`
-        logger.error(errMsg)
-        throw new Error(errMsg)
-      }
-      const tx = this.getFeatureFromId(topLevelFeature, parentFeatureId)
-      if (!tx?.children) {
-        throw new Error(
-          'ERROR: There should be at least one child (i.e. the exon to be split)',
-        )
-      }
-
-      const [leftExon, rightExon] = this.makeSplitExons(
-        exonToBeSplit,
-        upstreamCut,
-        downstreamCut,
-        leftExonId,
-        rightExonId,
-      )
-
-      tx.children.set(leftExon._id, {
-        allIds: [],
-        ...leftExon,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        _id: leftExon._id,
-      })
-      tx.children.set(rightExon._id, {
-        allIds: [],
-        ...rightExon,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        _id: rightExon._id,
-      })
-      // Child features should be sorted for click and drag of gene glyphs to work properly
-      tx.children = new Map(
-        [...tx.children.entries()].sort((a, b) => a[1].min - b[1].min),
-      )
-
-      const deletedIds = findAndDeleteChildFeature(
-        topLevelFeature,
-        exonToBeSplit._id,
-        this,
-      )
-      deletedIds.push(exonToBeSplit._id)
-      topLevelFeature.allIds = topLevelFeature.allIds.filter(
-        (id) => !deletedIds.includes(id),
-      )
-      topLevelFeature.allIds.push(leftExon._id, rightExon._id)
-      await topLevelFeature.save()
-    }
-  }
-
-  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
-    throw new Error('executeOnLocalGFF3 not implemented')
-  }
-
-  async executeOnClient(dataStore: ClientDataStore) {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!dataStore) {
-      throw new Error('No data store')
-    }
-
-    for (const [idx] of this.changedIds.entries()) {
-      const {
-        exonToBeSplit,
-        parentFeatureId,
-        upstreamCut,
-        downstreamCut,
-        leftExonId,
-        rightExonId,
-      } = this.changes[idx]
-      if (!parentFeatureId) {
-        throw new Error('TODO: Split exon without parent')
-      }
-
-      const [leftExon, rightExon] = this.makeSplitExons(
-        exonToBeSplit,
-        upstreamCut,
-        downstreamCut,
-        leftExonId,
-        rightExonId,
-      )
-
-      const parentFeature = dataStore.getFeature(parentFeatureId)
-      if (!parentFeature) {
-        throw new Error(`Could not find parent feature "${parentFeatureId}"`)
-      }
-
-      parentFeature.addChild(leftExon)
-      parentFeature.addChild(rightExon)
-      if (dataStore.getFeature(exonToBeSplit._id)) {
-        dataStore.deleteFeature(exonToBeSplit._id)
-      }
-    }
-  }
-
   getInverse() {
     const { assembly, changedIds, changes, logger } = this
     const inverseChangedIds = [...changedIds].reverse()
@@ -224,7 +131,7 @@ export class SplitExonChange extends FeatureChange {
     downstreamCut: number,
     leftExonId: string,
     rightExonId: string,
-  ): AnnotationFeatureSnapshot[] {
+  ): [AnnotationFeatureSnapshot, AnnotationFeatureSnapshot] {
     // eslint-disable-next-line unicorn/prefer-structured-clone
     const exon = JSON.parse(JSON.stringify(exonToBeSplit))
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -245,5 +152,71 @@ export class SplitExonChange extends FeatureChange {
     rightExon._id = rightExonId
 
     return [leftExon, rightExon]
+  }
+}
+
+export class UndoSplitExonChange extends FeatureChange {
+  typeName = 'UndoSplitExonChange' as const
+  changes: UndoSplitExonChangeDetails[]
+
+  constructor(json: SerializedUndoSplitExonChange, options?: ChangeOptions) {
+    super(json, options)
+    this.changes = 'changes' in json ? json.changes : [json]
+  }
+
+  toJSON(): SerializedUndoSplitExonChange {
+    const { assembly, changedIds, changes, typeName } = this
+    if (changes.length === 1) {
+      const [
+        {
+          exonToRestore,
+          parentFeatureId,
+          idsToDelete,
+          upstreamCut,
+          downstreamCut,
+          leftExonId,
+          rightExonId,
+        },
+      ] = changes
+
+      return {
+        typeName,
+        changedIds,
+        assembly,
+        exonToRestore,
+        parentFeatureId,
+        idsToDelete,
+        upstreamCut,
+        downstreamCut,
+        leftExonId,
+        rightExonId,
+      }
+    }
+    return { typeName, changedIds, assembly, changes }
+  }
+
+  getInverse() {
+    const { assembly, changedIds, changes, logger } = this
+    const inverseChangedIds = [...changedIds].reverse()
+    const inverseChanges = [...changes]
+      .reverse()
+      .map((undoSplitExonChange) => ({
+        parentFeatureId: undoSplitExonChange.parentFeatureId,
+        exonToBeSplit: undoSplitExonChange.exonToRestore,
+        upstreamCut: undoSplitExonChange.upstreamCut,
+        downstreamCut: undoSplitExonChange.downstreamCut,
+        leftExonId: undoSplitExonChange.leftExonId,
+        rightExonId: undoSplitExonChange.rightExonId,
+      }))
+
+    return new SplitExonChange(
+      {
+        changedIds: inverseChangedIds,
+        typeName: 'SplitExonChange',
+        changes: inverseChanges,
+        assembly,
+      },
+      { logger },
+    )
   }
 }

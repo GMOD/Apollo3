@@ -1,7 +1,7 @@
 import { Schema, SchemaFactory } from '@nestjs/mongoose'
-import { Document } from 'mongoose'
+import type { HydratedDocument } from 'mongoose'
 
-export type JBrowseConfigDocument = JBrowseConfig & Document
+export type JBrowseConfigDocument = HydratedDocument<JBrowseConfig>
 
 @Schema({ strict: false })
 export class JBrowseConfig {}

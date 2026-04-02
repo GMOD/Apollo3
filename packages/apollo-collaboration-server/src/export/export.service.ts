@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { createReadStream } from 'node:fs'
 import path from 'node:path'
 import { Readable } from 'node:stream'

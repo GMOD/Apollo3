@@ -1,4 +1,4 @@
-import { type ClientDataStore, checkRegistry } from '@apollo-annotation/common'
+import { checkRegistry } from '@apollo-annotation/common'
 import type {
   ApolloAssemblyI,
   CheckResultSnapshot,
@@ -12,10 +12,12 @@ import {
 } from '@gmod/gff'
 import { getSnapshot } from '@jbrowse/mobx-state-tree'
 
+import type { ClientDataStoreModel } from '../session/ClientDataStore'
+
 export async function loadAssemblyIntoClient(
   assemblyId: string,
   gff3FileText: string,
-  apolloDataStore: ClientDataStore,
+  apolloDataStore: ClientDataStoreModel,
 ) {
   const featuresAndSequences: (GFF3Feature | GFF3Sequence | GFF3Comment)[] =
     parseStringSync(gff3FileText, {

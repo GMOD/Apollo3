@@ -4,7 +4,7 @@ import type { ExecutionContext } from '@nestjs/common'
 import type { Reflector } from '@nestjs/core'
 import type { ClientSession, Model } from 'mongoose'
 
-import type { Change, ClientDataStore } from './Change.js'
+import type { Change } from './Change.js'
 
 export interface Context {
   context: ExecutionContext
@@ -26,10 +26,7 @@ export abstract class Validation {
     return { validationName: this.name }
   }
 
-  async frontendPostValidate(
-    _change: Change,
-    _dataStore: ClientDataStore,
-  ): Promise<ValidationResult> {
+  async frontendPostValidate(_change: Change): Promise<ValidationResult> {
     return { validationName: this.name }
   }
 

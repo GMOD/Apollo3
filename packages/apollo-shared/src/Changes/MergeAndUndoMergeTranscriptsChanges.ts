@@ -1,14 +1,10 @@
 /* eslint-disable unicorn/prefer-structured-clone */
-/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import {
   type ChangeOptions,
-  type ClientDataStore,
   FeatureChange,
-  type LocalGFF3DataStore,
   type SerializedFeatureChange,
-  type ServerDataStore,
 } from '@apollo-annotation/common'
 import type {
   AnnotationFeature,
@@ -19,9 +15,6 @@ import { doesIntersect2 } from '@jbrowse/core/util'
 import { getSnapshot } from '@jbrowse/mobx-state-tree'
 
 import { attributesToRecords, stringifyAttributes } from '../util.js'
-
-import { findAndDeleteChildFeature } from './DeleteFeatureChange.js'
-import { UndoMergeTranscriptsChange } from './UndoMergeTranscriptsChange.js'
 
 interface SerializedMergeTranscriptsChangeBase extends SerializedFeatureChange {
   typeName: 'MergeTranscriptsChange'
@@ -45,6 +38,29 @@ interface SerializedMergeTranscriptsChangeMultiple
 export type SerializedMergeTranscriptsChange =
   | SerializedMergeTranscriptsChangeSingle
   | SerializedMergeTranscriptsChangeMultiple
+
+interface SerializedUndoMergeTranscriptsChangeBase
+  extends SerializedFeatureChange {
+  typeName: 'UndoMergeTranscriptsChange'
+}
+
+export interface UndoMergeTranscriptsChangeDetails {
+  transcriptsToRestore: AnnotationFeatureSnapshot[]
+  parentFeatureId: string
+}
+
+interface SerializedUndoMergeTranscriptsChangeSingle
+  extends SerializedUndoMergeTranscriptsChangeBase,
+    UndoMergeTranscriptsChangeDetails {}
+
+interface SerializedUndoMergeTranscriptsChangeMultiple
+  extends SerializedUndoMergeTranscriptsChangeBase {
+  changes: UndoMergeTranscriptsChangeDetails[]
+}
+
+export type SerializedUndoMergeTranscriptsChange =
+  | SerializedUndoMergeTranscriptsChangeSingle
+  | SerializedUndoMergeTranscriptsChangeMultiple
 
 export class MergeTranscriptsChange extends FeatureChange {
   typeName = 'MergeTranscriptsChange' as const
@@ -74,43 +90,6 @@ export class MergeTranscriptsChange extends FeatureChange {
       }
     }
     return { typeName, changedIds, assembly, changes }
-  }
-
-  async executeOnServer(backend: ServerDataStore) {
-    const { featureModel, session } = backend
-    const { changes, logger } = this
-    for (const change of changes) {
-      const { firstTranscript, secondTranscript } = change
-      const topLevelFeature = await featureModel
-        .findOne({ allIds: firstTranscript._id })
-        .session(session)
-        .exec()
-      if (!topLevelFeature) {
-        const errMsg = `*** ERROR: The following featureId was not found in database ='${firstTranscript._id}'`
-        logger.error(errMsg)
-        throw new Error(errMsg)
-      }
-      const mergedTranscript = this.getFeatureFromId(
-        topLevelFeature,
-        firstTranscript._id,
-      )
-      if (!mergedTranscript) {
-        const errMsg = 'ERROR when searching feature by featureId'
-        logger.error(errMsg)
-        throw new Error(errMsg)
-      }
-      this.mergeTranscriptsOnServer(mergedTranscript, secondTranscript)
-      const deletedIds = findAndDeleteChildFeature(
-        topLevelFeature,
-        secondTranscript._id,
-        this,
-      )
-      deletedIds.push(secondTranscript._id)
-      topLevelFeature.allIds = topLevelFeature.allIds.filter(
-        (id) => !deletedIds.includes(id),
-      )
-      await topLevelFeature.save()
-    }
   }
 
   mergeTranscriptsOnServer(
@@ -243,24 +222,6 @@ export class MergeTranscriptsChange extends FeatureChange {
     }
   }
 
-  /* --------------------------------- */
-
-  async executeOnClient(dataStore: ClientDataStore) {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!dataStore) {
-      throw new Error('No data store')
-    }
-    for (const [idx, changedId] of this.changedIds.entries()) {
-      const { firstTranscript, secondTranscript } = this.changes[idx]
-      const mergedTranscript = dataStore.getFeature(firstTranscript._id)
-      if (!mergedTranscript) {
-        throw new Error(`Could not find feature with identifier "${changedId}"`)
-      }
-      this.mergeTranscriptsOnClient(mergedTranscript, secondTranscript)
-      mergedTranscript.parent?.deleteChild(secondTranscript._id)
-    }
-  }
-
   mergeTranscriptsOnClient(
     firstTranscript: AnnotationFeature,
     secondTranscript: AnnotationFeatureSnapshot,
@@ -364,10 +325,6 @@ export class MergeTranscriptsChange extends FeatureChange {
     }
   }
 
-  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
-    throw new Error('executeOnLocalGFF3 not implemented')
-  }
-
   getInverse() {
     const { assembly, changedIds, changes, logger } = this
     const inverseChangedIds = [...changedIds].reverse()
@@ -385,6 +342,57 @@ export class MergeTranscriptsChange extends FeatureChange {
       {
         changedIds: inverseChangedIds,
         typeName: 'UndoMergeTranscriptsChange',
+        changes: inverseChanges,
+        assembly,
+      },
+      { logger },
+    )
+  }
+}
+
+export class UndoMergeTranscriptsChange extends FeatureChange {
+  typeName = 'UndoMergeTranscriptsChange' as const
+  changes: UndoMergeTranscriptsChangeDetails[]
+
+  constructor(
+    json: SerializedUndoMergeTranscriptsChange,
+    options?: ChangeOptions,
+  ) {
+    super(json, options)
+    this.changes = 'changes' in json ? json.changes : [json]
+  }
+
+  toJSON(): SerializedUndoMergeTranscriptsChange {
+    const { assembly, changedIds, changes, typeName } = this
+    if (changes.length === 1) {
+      const [{ transcriptsToRestore, parentFeatureId }] = changes
+
+      return {
+        typeName,
+        changedIds,
+        assembly,
+        transcriptsToRestore,
+        parentFeatureId,
+      }
+    }
+    return { typeName, changedIds, assembly, changes }
+  }
+
+  getInverse() {
+    const { assembly, changedIds, changes, logger } = this
+    const inverseChangedIds = [...changedIds].reverse()
+    const inverseChanges = [...changes]
+      .reverse()
+      .map((undoMergeTranscriptsChange) => ({
+        firstTranscript: undoMergeTranscriptsChange.transcriptsToRestore[0],
+        secondTranscript: undoMergeTranscriptsChange.transcriptsToRestore[1],
+        parentFeatureId: undoMergeTranscriptsChange.parentFeatureId,
+      }))
+
+    return new MergeTranscriptsChange(
+      {
+        changedIds: inverseChangedIds,
+        typeName: 'MergeTranscriptsChange',
         changes: inverseChanges,
         assembly,
       },

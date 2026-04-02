@@ -1,4 +1,4 @@
-import type { Change, ClientDataStore } from '@apollo-annotation/common'
+import type { Change } from '@apollo-annotation/common'
 import type {
   AnnotationFeatureSnapshot,
   CheckResultSnapshot,
@@ -8,6 +8,7 @@ import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import type { Region } from '@jbrowse/core/util'
 
 import type { SubmitOpts } from '../ChangeManager'
+import type { ClientDataStoreModel } from '../session/ClientDataStore'
 
 export interface RefNameAliases {
   refName: string
@@ -16,7 +17,7 @@ export interface RefNameAliases {
 }
 
 export abstract class BackendDriver {
-  constructor(protected clientStore: ClientDataStore) {}
+  constructor(protected clientStore: ClientDataStoreModel) {}
 
   abstract getFeatures(
     region: Region,

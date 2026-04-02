@@ -1,10 +1,4 @@
-import {
-  Assembly,
-  type AssemblyDocument,
-  Check,
-  type CheckDocument,
-} from '@apollo-annotation/schemas'
-import { GetAssembliesOperation } from '@apollo-annotation/shared'
+import { Assembly, type AssemblyDocument } from '@apollo-annotation/schemas'
 import {
   Injectable,
   Logger,
@@ -16,7 +10,6 @@ import { Model } from 'mongoose'
 
 import { ChecksService } from '../checks/checks.service.js'
 import { FeaturesService } from '../features/features.service.js'
-import { OperationsService } from '../operations/operations.service.js'
 import { RefSeqsService } from '../refSeqs/refSeqs.service.js'
 
 import { CreateAssemblyDto } from './dto/create-assembly.dto.js'
@@ -27,9 +20,6 @@ export class AssembliesService {
   constructor(
     @InjectModel(Assembly.name)
     private readonly assemblyModel: Model<AssemblyDocument>,
-    @InjectModel(Check.name)
-    private readonly checkModel: Model<CheckDocument>,
-    private readonly operationsService: OperationsService,
     private readonly checksService: ChecksService,
     private readonly featuresService: FeaturesService,
     private readonly refSeqsService: RefSeqsService,
@@ -65,7 +55,7 @@ export class AssembliesService {
     const refSeqs = await this.refSeqsService.findAll({ assembly: _id })
     for (const refSeq of refSeqs) {
       const features = await this.featuresService.findByRange({
-        refSeq: refSeq._id as string,
+        refSeq: refSeq._id.toString(),
         start: 0,
         end: refSeq.length,
       })
@@ -78,9 +68,7 @@ export class AssembliesService {
   }
 
   findAll() {
-    return this.operationsService.executeOperation<GetAssembliesOperation>({
-      typeName: 'GetAssembliesOperation',
-    })
+    return this.assemblyModel.find({ status: 0 }).exec()
   }
 
   async findOne(id: string) {

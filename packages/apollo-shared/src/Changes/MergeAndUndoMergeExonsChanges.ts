@@ -1,21 +1,9 @@
-/* eslint-disable unicorn/prefer-structured-clone */
-/* eslint-disable @typescript-eslint/require-await */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import {
   type ChangeOptions,
-  type ClientDataStore,
   FeatureChange,
-  type LocalGFF3DataStore,
   type SerializedFeatureChange,
-  type ServerDataStore,
 } from '@apollo-annotation/common'
 import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-
-import { attributesToRecords, stringifyAttributes } from '../util.js'
-
-import { findAndDeleteChildFeature } from './DeleteFeatureChange.js'
-import { UndoMergeExonsChange } from './UndoMergeExonsChange.js'
 
 interface SerializedMergeExonsChangeBase extends SerializedFeatureChange {
   typeName: 'MergeExonsChange'
@@ -39,6 +27,28 @@ interface SerializedMergeExonsChangeMultiple
 export type SerializedMergeExonsChange =
   | SerializedMergeExonsChangeSingle
   | SerializedMergeExonsChangeMultiple
+
+interface SerializedUndoMergeExonsChangeBase extends SerializedFeatureChange {
+  typeName: 'UndoMergeExonsChange'
+}
+
+export interface UndoMergeExonsChangeDetails {
+  exonsToRestore: AnnotationFeatureSnapshot[]
+  parentFeatureId: string
+}
+
+interface SerializedUndoMergeExonsChangeSingle
+  extends SerializedUndoMergeExonsChangeBase,
+    UndoMergeExonsChangeDetails {}
+
+interface SerializedUndoMergeExonsChangeMultiple
+  extends SerializedUndoMergeExonsChangeBase {
+  changes: UndoMergeExonsChangeDetails[]
+}
+
+export type SerializedUndoMergeExonsChange =
+  | SerializedUndoMergeExonsChangeSingle
+  | SerializedUndoMergeExonsChangeMultiple
 
 export class MergeExonsChange extends FeatureChange {
   typeName = 'MergeExonsChange' as const
@@ -68,84 +78,6 @@ export class MergeExonsChange extends FeatureChange {
       }
     }
     return { typeName, changedIds, assembly, changes }
-  }
-
-  async executeOnServer(backend: ServerDataStore) {
-    const { featureModel, session } = backend
-    const { changes, logger } = this
-    for (const change of changes) {
-      const { firstExon, secondExon } = change
-      const topLevelFeature = await featureModel
-        .findOne({ allIds: firstExon._id })
-        .session(session)
-        .exec()
-      if (!topLevelFeature) {
-        const errMsg = `*** ERROR: The following featureId was not found in database ='${firstExon._id}'`
-        logger.error(errMsg)
-        throw new Error(errMsg)
-      }
-      const mergedExon = this.getFeatureFromId(topLevelFeature, firstExon._id)
-      if (!mergedExon) {
-        const errMsg = 'ERROR when searching feature by featureId'
-        logger.error(errMsg)
-        throw new Error(errMsg)
-      }
-      mergedExon.min = Math.min(firstExon.min, secondExon.min)
-      mergedExon.max = Math.max(firstExon.max, secondExon.max)
-
-      const mergedAttributes: Record<string, string[]> = mergedExon.attributes
-        ? JSON.parse(JSON.stringify(mergedExon.attributes))
-        : {}
-      mergedAttributes.merged_with = [
-        stringifyAttributes(attributesToRecords(secondExon.attributes)),
-      ]
-      mergedExon.attributes = mergedAttributes
-
-      const deletedIds = findAndDeleteChildFeature(
-        topLevelFeature,
-        secondExon._id,
-        this,
-      )
-      deletedIds.push(secondExon._id)
-      topLevelFeature.allIds = topLevelFeature.allIds.filter(
-        (id) => !deletedIds.includes(id),
-      )
-      await topLevelFeature.save()
-    }
-  }
-
-  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
-    throw new Error('executeOnLocalGFF3 not implemented')
-  }
-
-  async executeOnClient(dataStore: ClientDataStore) {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!dataStore) {
-      throw new Error('No data store')
-    }
-
-    for (const change of this.changes) {
-      const { firstExon, secondExon } = change
-      const mergedExon = dataStore.getFeature(firstExon._id)
-      if (!mergedExon) {
-        throw new Error(
-          `Could not find feature with identifier "${firstExon._id}"`,
-        )
-      }
-      mergedExon.setMin(Math.min(firstExon.min, secondExon.min))
-      mergedExon.setMax(Math.max(firstExon.max, secondExon.max))
-
-      const mrg = mergedExon.attributes.get('merged_with')?.slice() ?? []
-      const mergedWith = stringifyAttributes(
-        attributesToRecords(secondExon.attributes),
-      )
-      if (!mrg.includes(mergedWith)) {
-        mrg.push(mergedWith)
-      }
-      mergedExon.setAttribute('merged_with', mrg)
-
-      mergedExon.parent?.deleteChild(secondExon._id)
-    }
   }
 
   getInverse() {
@@ -198,4 +130,52 @@ export class MergeExonsChange extends FeatureChange {
   //   }
   //   return mergedAttrs
   // }
+}
+
+export class UndoMergeExonsChange extends FeatureChange {
+  typeName = 'UndoMergeExonsChange' as const
+  changes: UndoMergeExonsChangeDetails[]
+
+  constructor(json: SerializedUndoMergeExonsChange, options?: ChangeOptions) {
+    super(json, options)
+    this.changes = 'changes' in json ? json.changes : [json]
+  }
+
+  toJSON(): SerializedUndoMergeExonsChange {
+    const { assembly, changedIds, changes, typeName } = this
+    if (changes.length === 1) {
+      const [{ exonsToRestore, parentFeatureId }] = changes
+
+      return {
+        typeName,
+        changedIds,
+        assembly,
+        exonsToRestore,
+        parentFeatureId,
+      }
+    }
+    return { typeName, changedIds, assembly, changes }
+  }
+
+  getInverse() {
+    const { assembly, changedIds, changes, logger } = this
+    const inverseChangedIds = [...changedIds].reverse()
+    const inverseChanges = [...changes]
+      .reverse()
+      .map((undoMergeExonsChange) => ({
+        firstExon: undoMergeExonsChange.exonsToRestore[0],
+        secondExon: undoMergeExonsChange.exonsToRestore[1],
+        parentFeatureId: undoMergeExonsChange.parentFeatureId,
+      }))
+
+    return new MergeExonsChange(
+      {
+        changedIds: inverseChangedIds,
+        typeName: 'MergeExonsChange',
+        changes: inverseChanges,
+        assembly,
+      },
+      { logger },
+    )
+  }
 }

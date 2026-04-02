@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
 import {
   type AnnotationFeature,
   AnnotationFeatureModel,
@@ -34,15 +33,17 @@ import { autorun, flow, observable, when } from 'mobx'
 
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloJobModel } from '../ApolloJobModel'
-import type { ChangeManager } from '../ChangeManager'
 import type ApolloPluginConfigurationSchema from '../config'
 import type { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
-import { clientDataStoreFactory } from './ClientDataStore'
+import {
+  type ClientDataStoreModel,
+  clientDataStoreFactory,
+} from './ClientDataStore'
 
 export interface ApolloSession extends AbstractSessionModel {
-  apolloDataStore: ClientDataStoreType & { changeManager: ChangeManager }
+  apolloDataStore: ClientDataStoreModel
   apolloSelectedFeature?: AnnotationFeature
   apolloSetSelectedFeature(feature?: AnnotationFeature): void
 }

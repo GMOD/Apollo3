@@ -72,9 +72,7 @@ export class CollaborationServerDriver extends BackendDriver {
   }
 
   async searchFeatures(term: string, assemblies: string[]) {
-    const internetAccount = this.clientStore.getInternetAccount(
-      assemblies[0],
-    ) as ApolloInternetAccount
+    const internetAccount = this.clientStore.getInternetAccount(assemblies[0])
     const { baseURL } = internetAccount
 
     const url = new URL('features/searchFeatures', baseURL)
@@ -114,9 +112,7 @@ export class CollaborationServerDriver extends BackendDriver {
       throw new Error(`Could not find refSeq "${refName}"`)
     }
     const refSeq = refSeqEntry.id
-    const internetAccount = this.clientStore.getInternetAccount(
-      assemblyName,
-    ) as ApolloInternetAccount
+    const internetAccount = this.clientStore.getInternetAccount(assemblyName)
     const { baseURL } = internetAccount
 
     const url = new URL('features/getFeatures', baseURL)
@@ -229,9 +225,7 @@ export class CollaborationServerDriver extends BackendDriver {
     if (clientStoreSequence.length === end - start) {
       return { seq: clientStoreSequence, refSeq }
     }
-    const internetAccount = this.clientStore.getInternetAccount(
-      assemblyName,
-    ) as ApolloInternetAccount
+    const internetAccount = this.clientStore.getInternetAccount(assemblyName)
     const { baseURL } = internetAccount
 
     const url = new URL('sequence', baseURL)
@@ -293,9 +287,7 @@ export class CollaborationServerDriver extends BackendDriver {
     if (!assembly) {
       throw new Error(`Could not find assembly with name "${assemblyName}"`)
     }
-    const internetAccount = this.clientStore.getInternetAccount(
-      assemblyName,
-    ) as ApolloInternetAccount
+    const internetAccount = this.clientStore.getInternetAccount(assemblyName)
     const { baseURL } = internetAccount
     const url = new URL('refSeqs', baseURL)
     const searchParams = new URLSearchParams({ assembly: assemblyName })
@@ -351,9 +343,7 @@ export class CollaborationServerDriver extends BackendDriver {
     if (!assembly) {
       throw new Error(`Could not find assembly with name "${assemblyName}"`)
     }
-    const internetAccount = this.clientStore.getInternetAccount(
-      assemblyName,
-    ) as ApolloInternetAccount
+    const internetAccount = this.clientStore.getInternetAccount(assemblyName)
     const { baseURL } = internetAccount
     const url = new URL('refSeqs', baseURL)
     const searchParams = new URLSearchParams({ assembly: assemblyName })
@@ -410,7 +400,7 @@ export class CollaborationServerDriver extends BackendDriver {
     const internetAccount = this.clientStore.getInternetAccount(
       'assembly' in change ? change.assembly : undefined,
       internetAccountId,
-    ) as ApolloInternetAccount
+    )
     const { baseURL } = internetAccount
     const url = new URL('changes', baseURL).href
     const response = await this.fetch(internetAccount, url, {

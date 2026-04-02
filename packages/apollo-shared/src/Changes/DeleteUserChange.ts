@@ -1,11 +1,7 @@
-/* eslint-disable @typescript-eslint/require-await */
 import {
   Change,
   type ChangeOptions,
-  type ClientDataStore,
-  type LocalGFF3DataStore,
   type SerializedChange,
-  type ServerDataStore,
 } from '@apollo-annotation/common'
 
 export interface SerializedDeleteUserChangeBase extends SerializedChange {
@@ -44,27 +40,6 @@ export class DeleteUserChange extends Change {
     const { typeName, userId } = this
     return { typeName, userId }
   }
-
-  async executeOnServer(backend: ServerDataStore) {
-    const { session, userModel } = backend
-    const { logger, userId } = this
-    const user = await userModel
-      .findOneAndDelete({ _id: userId })
-      .session(session)
-      .exec()
-    if (!user) {
-      const errMsg = `*** ERROR: User with id "${userId}" not found`
-      logger.error(errMsg)
-      throw new Error(errMsg)
-    }
-  }
-
-  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
-    throw new Error('executeOnLocalGFF3 not implemented')
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  async executeOnClient(_dataStore: ClientDataStore) {}
 
   getInverse() {
     const { logger, typeName, userId } = this
