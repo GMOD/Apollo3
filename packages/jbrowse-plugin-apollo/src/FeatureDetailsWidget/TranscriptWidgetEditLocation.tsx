@@ -22,6 +22,7 @@ import RemoveIcon from '@mui/icons-material/Remove'
 import {
   Accordion,
   AccordionDetails,
+  AccordionSummary,
   Grid,
   Tooltip,
   Typography,
@@ -33,7 +34,6 @@ import type { OntologyRecord } from '../OntologyManager'
 import type { ApolloSessionModel } from '../session'
 import { copyToClipboard } from '../util/copyToClipboard'
 
-import { StyledAccordionSummary } from './ApolloTranscriptDetailsWidget'
 import { NumberTextField } from './NumberTextField'
 
 const StyledTextField = styled(NumberTextField)(() => ({
@@ -63,6 +63,15 @@ const SequenceContainer = styled('div')({
     fontSize: 12,
   },
 })
+
+const StyledAccordionSummary = styled(AccordionSummary)(() => ({
+  minHeight: 30,
+  maxHeight: 30,
+  '&.Mui-expanded': {
+    minHeight: 30,
+    maxHeight: 30,
+  },
+}))
 
 const Strand = (props: { strand: 1 | -1 | undefined }) => {
   const { strand } = props
