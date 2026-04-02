@@ -14,14 +14,10 @@ describe('Download GFF', () => {
 
   it('Can download gff with fasta', () => {
     cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
+    cy.selectAssemblyToView('volvox')
+    cy.contains('Open track selector').click()
+    cy.contains('Annotations (').click()
     cy.selectFromTrackMenu('Export annotations')
-    cy.focused()
-      .contains('Select assembly')
-      .parent()
-      .within(() => {
-        cy.get('input').parent().first().click()
-      })
-    cy.get('li').contains('volvox.fasta.gff3').click()
     cy.get('label[data-testid="include-fasta-checkbox"]').within(() => {
       cy.get('input').click()
     })
@@ -43,14 +39,10 @@ describe('Download GFF', () => {
 
   it('Can download gff without fasta', () => {
     cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
+    cy.selectAssemblyToView('volvox')
+    cy.contains('Open track selector').click()
+    cy.contains('Annotations (').click()
     cy.selectFromTrackMenu('Export annotations')
-    cy.focused()
-      .contains('Select assembly')
-      .parent()
-      .within(() => {
-        cy.get('input').parent().first().click()
-      })
-    cy.get('li').contains('volvox.fasta.gff3').click()
     cy.get('button').contains('Download').click()
 
     // We don't know when the download is done

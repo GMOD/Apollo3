@@ -30,9 +30,9 @@ describe('Add Assembly', () => {
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
     cy.contains('Launch view').click()
-    cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
-      cy.contains('volvox')
-    })
+    cy.selectAssemblyToView('volvox')
+    cy.contains('Open track selector').click()
+    cy.contains('Annotations (').click()
     // Check logs to ensure we submitted index files
     cy.selectFromTrackMenu('View Change Log')
     cy.get('textarea').should('have.length', 1)
@@ -143,9 +143,9 @@ describe('Add Assembly', () => {
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
     cy.contains('Launch view').click()
-    cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
-      cy.contains('volvox')
-    })
+    cy.selectAssemblyToView('volvox')
+    cy.contains('Open track selector').click()
+    cy.contains('Annotations (').click()
     // Check logs to ensure we submitted features
     cy.selectFromTrackMenu('View Change Log')
     cy.get('textarea').should('have.length', 1)
@@ -154,7 +154,7 @@ describe('Add Assembly', () => {
     })
   })
 
-  it('Can add assembly from gff3 wihtout importing features', () => {
+  it('Can add assembly from gff3 without importing features', () => {
     cy.selectFromApolloMenu(['Admin', 'Add Assembly'])
     cy.get('form[data-testid="submit-form"]').within(() => {
       cy.get('input[type="TextField"]').type('volvox')
@@ -175,9 +175,9 @@ describe('Add Assembly', () => {
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
     cy.contains('Launch view').click()
-    cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
-      cy.contains('volvox')
-    })
+    cy.selectAssemblyToView('volvox')
+    cy.contains('Open track selector').click()
+    cy.contains('Annotations (').click()
     // Check logs to ensure we submitted only assembly
     cy.selectFromTrackMenu('View Change Log')
     cy.get('textarea').should('have.length', 1)
@@ -282,9 +282,9 @@ describe('Add Assembly', () => {
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
     cy.contains('Launch view').click()
-    cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
-      cy.contains('volvox')
-    })
+    cy.selectAssemblyToView('volvox')
+    cy.contains('Open track selector').click()
+    cy.contains('Annotations (').click()
     // Check logs to ensure we submitted only assembly
     cy.selectFromTrackMenu('View Change Log')
     cy.get('textarea').should('have.length', 1)
