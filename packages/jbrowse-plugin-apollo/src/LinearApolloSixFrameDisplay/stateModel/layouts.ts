@@ -12,6 +12,7 @@ import { addDisposer, isAlive } from '@jbrowse/mobx-state-tree'
 import { autorun, observable } from 'mobx'
 
 import type { ApolloSessionModel } from '../../session'
+import { looksLikeGene } from '../../util/glyphUtils'
 import { geneGlyph } from '../glyphs'
 
 import { baseModelFactory } from './base'
@@ -123,7 +124,7 @@ export function layoutsModelFactory(
             if (!featureTypeOntology) {
               throw new Error('featureTypeOntology is undefined')
             }
-            if (feature.looksLikeGene) {
+            if (looksLikeGene(feature, self.session)) {
               const rowNum =
                 feature.strand == 1
                   ? self.geneTrackRowNums[0]
