@@ -13,7 +13,7 @@ import { autorun, observable } from 'mobx'
 
 import type { ApolloSessionModel } from '../../session'
 import { looksLikeGene } from '../../util/glyphUtils'
-import { geneGlyph } from '../glyphs'
+import { geneGlyph } from '../glyphs/GeneGlyph'
 
 import { baseModelFactory } from './base'
 
@@ -170,7 +170,7 @@ export function layoutsModelFactory(
                         ? [0, 5, 3, 1, 15, 13, 11]
                         : [0, 2, 1, 0, 8, 7, 6]
                       const rowNum = frameOffsets.at(frame)
-                      if (!rowNum) {
+                      if (rowNum === undefined) {
                         continue
                       }
                       if (!featureLayout.get(rowNum)) {

@@ -6,10 +6,12 @@ import type { MenuItem } from '@jbrowse/core/ui'
 import { getFrame } from '@jbrowse/core/util'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
+import { isSelectedFeature } from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
 
+import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
-import { getLeftPx, strokeRectInner } from './util'
+import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
 
 function drawCDSLocation(
   display: LinearApolloDisplay,
@@ -19,12 +21,9 @@ function drawCDSLocation(
   row: number,
   block: ContentBlock,
 ) {
-  const { apolloRowHeight, canvasPatterns, lgv, theme } = display
-  const { bpPerPx } = lgv
-  const left = Math.round(getLeftPx(display, cdsLocation, block))
-  const width = Math.round((cdsLocation.max - cdsLocation.min) / bpPerPx)
+  const { apolloRowHeight, canvasPatterns, theme } = display
+  const [top, left, width] = getFeatureBox(display, cdsLocation, row, block)
   const halfHeight = Math.round(apolloRowHeight / 2)
-  const top = row * apolloRowHeight
   if (width > 2) {
     const frame = getFrame(
       cdsLocation.min,
@@ -65,10 +64,12 @@ function draw(
   ctx: CanvasRenderingContext2D,
   cds: AnnotationFeature,
   row: number,
+  rowInFeature: number,
   block: ContentBlock,
 ) {
   const transcript = cds.parent
   if (!transcript) {
+    boxGlyph.draw(display, ctx, cds, row, 0, block)
     return
   }
   const { cdsLocations } = transcript
@@ -83,100 +84,54 @@ function draw(
   for (const cdsLocation of thisCDSLocations) {
     drawCDSLocation(display, ctx, cdsLocation, cds.strand, row, block)
   }
+  const { apolloRowHeight, selectedFeature } = display
+  if (isSelectedFeature(cds, selectedFeature)) {
+    const [top, left, width] = getFeatureBox(display, cds, row, block)
+    const height = getRowCount() * apolloRowHeight
+    drawHighlight(display, ctx, left, top, width, height, true)
+  }
 }
 
-function getRowCount(): number {
+function drawHover(
+  display: LinearApolloDisplay,
+  overlayCtx: CanvasRenderingContext2D,
+  cds: AnnotationFeature,
+  row: number,
+  block: ContentBlock,
+) {
+  const { apolloRowHeight } = display
+  const [top, left, width] = getFeatureBox(display, cds, row, block)
+  const height = getRowCount() * apolloRowHeight
+  drawHighlight(display, overlayCtx, left, top, width, height)
+}
+
+function getLayout(display: LinearApolloDisplay, feature: AnnotationFeature) {
+  return {
+    byFeature: new Map([[feature._id, 0]]),
+    byRow: [[{ feature, rowInFeature: 0 }]],
+    min: feature.min,
+    max: feature.max,
+  }
+}
+
+function getRowCount() {
   return 1
 }
 
-function getFeatureFromLayout(): AnnotationFeature | undefined {
-  return undefined
-  // Not implemented
-}
-// feature: AnnotationFeature,
-// bp: number,
-// row: number,
-// featureTypeOntology: OntologyRecord,
-function getRowForFeature(): number | undefined {
-  // Not implemented
-  return undefined
-}
-// feature: AnnotationFeature,
-// childFeature: AnnotationFeature,
-// featureTypeOntology: OntologyRecord,
-
-function drawHover() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// overlayCtx: CanvasRenderingContext2D,
-
-function drawDragPreview() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// ctx: CanvasRenderingContext2D,
-
-function onMouseDown() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
-function onMouseMove() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
-function onMouseLeave() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
-function onMouseUp() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
-// event: CanvasMouseEvent,
-
-function drawTooltip() {
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// context: CanvasRenderingContext2D,
-
-function getContextMenuItemsForFeature(): MenuItem[] {
-  return []
-  // Not implemented
-}
-// display: LinearApolloDisplayMouseEvents,
-// sourceFeature: AnnotationFeature,
-
 function getContextMenuItems(): MenuItem[] {
   return []
-  // Not implemented
 }
-// display: LinearApolloDisplayMouseEvents,
-// currentMousePosition: MousePositionWithFeature,
+
+// False positive here, none of these functions use "this"
+/* eslint-disable @typescript-eslint/unbound-method */
+const { drawDragPreview } = boxGlyph
+/* eslint-enable @typescript-eslint/unbound-method */
 
 export const cdsGlyph: Glyph = {
   draw,
   drawDragPreview,
   drawHover,
-  drawTooltip,
   getContextMenuItems,
-  getContextMenuItemsForFeature,
-  getFeatureFromLayout,
-  getRowCount,
-  getRowForFeature,
-  onMouseDown,
-  onMouseLeave,
-  onMouseMove,
-  onMouseUp,
+  getLayout,
+  isDraggable: true,
 }
