@@ -49,4 +49,6 @@ export abstract class BackendDriver {
   ): Promise<AnnotationFeatureSnapshot[]>
 
   abstract getChanges(assemblyName: string): Promise<ChangeDocument[]>
+
+  abstract getCheckResults(assemblyName: string): Promise<CheckResultSnapshot[]>
 }

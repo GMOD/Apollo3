@@ -412,6 +412,22 @@ export class CollaborationServerDriver extends BackendDriver {
     return response.json() as Promise<ChangeDocument[]>
   }
 
+  async getCheckResults(assemblyName: string): Promise<CheckResultSnapshot[]> {
+    const internetAccount = this.clientStore.getInternetAccount(assemblyName)
+    const { baseURL } = internetAccount
+    const url = new URL('checks', baseURL)
+    url.search = new URLSearchParams({ assembly: assemblyName }).toString()
+    const response = await this.fetch(internetAccount, url.toString())
+    if (!response.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'getCheckResults failed',
+      )
+      throw new Error(errorMessage)
+    }
+    return response.json() as Promise<CheckResultSnapshot[]>
+  }
+
   async submitChange(
     change: Change | AssemblySpecificChange,
     opts: SubmitOpts = {},

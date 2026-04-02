@@ -20,6 +20,17 @@ export async function openDb(
           store.createIndex('min', 'min', { unique: false })
           store.createIndex('max', 'max', { unique: false })
         }
+        const checkStoreName = `checkresults-${refName}`
+        if (!db.objectStoreNames.contains(checkStoreName)) {
+          const store = db.createObjectStore(checkStoreName, {
+            keyPath: '_id',
+          })
+          store.createIndex('min', 'start', { unique: false })
+          store.createIndex('max', 'end', { unique: false })
+          store.createIndex('featureId', 'featureId', {
+            unique: false,
+          })
+        }
       }
     },
   })
