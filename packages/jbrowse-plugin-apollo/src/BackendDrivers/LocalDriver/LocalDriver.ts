@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/require-await */
 import {
   type Change,
-  FeatureChange,
   type SerializedChange,
   checkRegistry,
   isFeatureChange,
@@ -162,14 +161,9 @@ export class LocalDriver extends BackendDriver {
     const regions = await this.getRegions(assembly)
     const refNames = regions.map((r) => r.refName)
     const db = await openDb(assembly, refNames)
-    const storeNames = refNames.flatMap((r) => [
-      `features-${r}`,
-      `checkresults-${r}`,
-    ])
-    storeNames.push('changes')
-    const tx = db.transaction(storeNames, 'readwrite')
     const topLevelFeatures = new Set<AnnotationFeature>()
     const deletedFeatureIds: { refSeq: string; featureId: string }[] = []
+    const neededRefNames = new Set<string>()
     if (isDeleteFeatureChange(change)) {
       for (const c of change.changes) {
         if (c.parentFeatureId) {
@@ -179,8 +173,8 @@ export class LocalDriver extends BackendDriver {
           }
         } else {
           const { refSeq, _id } = c.deletedFeature
-          void tx.objectStore(`features-${refSeq}`).delete(c.deletedFeature._id)
           deletedFeatureIds.push({ refSeq, featureId: _id })
+          neededRefNames.add(refSeq)
         }
       }
     } else {
@@ -188,8 +182,18 @@ export class LocalDriver extends BackendDriver {
         const feature = this.clientStore.getFeature(changedId)
         if (feature) {
           topLevelFeatures.add(feature.topLevelFeature)
+          neededRefNames.add(feature.refSeq)
         }
       }
+    }
+    const storeNames = [...neededRefNames].flatMap((r) => [
+      `features-${r}`,
+      `checkresults-${r}`,
+    ])
+    storeNames.push('changes')
+    const tx = db.transaction(storeNames, 'readwrite')
+    for (const { refSeq, featureId } of deletedFeatureIds) {
+      void tx.objectStore(`features-${refSeq}`).delete(featureId)
     }
     for (const feature of topLevelFeatures) {
       const snapshot = getSnapshot<AnnotationFeatureSnapshot>(feature)
