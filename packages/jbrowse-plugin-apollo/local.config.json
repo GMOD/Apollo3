@@ -38,6 +38,27 @@
           }
         }
       }
+    },
+    {
+      "type": "AlignmentsTrack",
+      "trackId": "paired_end_stranded_rnaseq",
+      "name": "volvox-stranded-rnaseq",
+      "category": ["Alignments"],
+      "adapter": {
+        "type": "BamAdapter",
+        "bamLocation": {
+          "uri": "test_data/paired_end_stranded_rnaseq.bam",
+          "locationType": "UriLocation"
+        },
+        "index": {
+          "location": {
+            "uri": "test_data/paired_end_stranded_rnaseq.bam.bai",
+            "locationType": "UriLocation"
+          },
+          "indexType": "BAI"
+        }
+      },
+      "assemblyNames": ["volvox"]
     }
   ],
   "plugins": [

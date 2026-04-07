@@ -4,7 +4,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import type {
   DisplayType,
   PluggableElementType,
@@ -14,11 +13,14 @@ import {
   getContainingView,
   getSession,
 } from '@jbrowse/core/util'
+import type { Feature } from '@jbrowse/core/util/simpleFeature'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
 import ObjectID from 'bson-objectid'
 
+import { CollaborationServerDriver } from '../BackendDrivers'
 import { CreateApolloAnnotation } from '../components/CreateApolloAnnotation'
+import type { ApolloSessionModel } from '../session'
 
 function parseCigar(cigar: string): [string, number][] {
   const regex = /(\d+)([MIDNSHPX=])/g
@@ -44,7 +46,7 @@ export function annotationFromPileup(pluggableElement: PluggableElementType) {
         return lgv.dynamicBlocks.contentBlocks[0]
       },
       getAssembly() {
-        const firstRegion = self.getFirstRegion()
+        const firstRegion = this.getFirstRegion()
         const session = getSession(self)
         const { assemblyManager } = session
         const { assemblyName } = firstRegion
@@ -54,35 +56,13 @@ export function annotationFromPileup(pluggableElement: PluggableElementType) {
         }
         return assembly
       },
-      getRefSeqId(assembly: Assembly) {
-        const firstRegion = self.getFirstRegion()
-        const { refName } = firstRegion
-        const { refNameAliases } = assembly
-        if (!refNameAliases) {
-          throw new Error(`Could not find aliases for ${assembly.name}`)
-        }
-        const newRefNames = [...Object.entries(refNameAliases)]
-          .filter(([id, refName]) => id !== refName)
-          .map(([id, refName]) => ({
-            _id: id,
-            name: refName,
-          }))
-        const refSeqId = newRefNames.find((item) => item.name === refName)?._id
-        if (!refSeqId) {
-          throw new Error(`Could not find refSeqId named ${refName}`)
-        }
-        return refSeqId
-      },
-      getAnnotationFeature() {
-        const feature = self.contextMenuFeature
-        const assembly = self.getAssembly()
-        const refSeqId = self.getRefSeqId(assembly)
-        const start: number = feature.get('start')
-        const end: number = feature.get('end')
-        const strand = feature.get('strand')
-        const name = feature.get('name')
+      getAnnotationFeature(jbrowseFeature: Feature, refSeqId: string) {
+        const start: number = jbrowseFeature.get('start')
+        const end: number = jbrowseFeature.get('end')
+        const strand = jbrowseFeature.get('strand') as 1 | -1 | undefined
+        const name = jbrowseFeature.get('name') as string | undefined
 
-        const cigarData: string = feature.get('CIGAR')
+        const cigarData = jbrowseFeature.get('CIGAR') as string
         const ops = parseCigar(cigarData)
         let position = start
         let currentExonStart: number | undefined
@@ -151,9 +131,10 @@ export function annotationFromPileup(pluggableElement: PluggableElementType) {
           max: end,
           type: 'mRNA',
           strand,
-          attributes: {
-            name: [name],
-          },
+        }
+        if (name) {
+          newFeature.attributes = {}
+          newFeature.attributes.gff_name = [name]
         }
         if (exons.length === 0) {
           return newFeature
@@ -183,8 +164,8 @@ export function annotationFromPileup(pluggableElement: PluggableElementType) {
           const session = getSession(self)
           const assembly = self.getAssembly()
           const region = self.getFirstRegion()
-          const feature = self.contextMenuFeature
-          if (!feature) {
+          const jbrowseFeature = self.contextMenuFeature
+          if (!jbrowseFeature) {
             return superContextMenuItems()
           }
           return [
@@ -192,7 +173,23 @@ export function annotationFromPileup(pluggableElement: PluggableElementType) {
             {
               label: 'Create Apollo annotation',
               icon: AddIcon,
-              onClick: () => {
+              onClick: async () => {
+                const backendDriver = (
+                  session as unknown as ApolloSessionModel
+                ).apolloDataStore.getBackendDriver(region.assemblyName)
+                let refSeqId = region.refName
+                if (backendDriver instanceof CollaborationServerDriver) {
+                  const backendRefSeqId = await backendDriver.getRefSeqId(
+                    region.assemblyName,
+                    region.refName,
+                  )
+                  if (!backendRefSeqId) {
+                    throw new Error(
+                      `Could not find refSeq for "${region.refName}"`,
+                    )
+                  }
+                  refSeqId = backendRefSeqId
+                }
                 ;(session as unknown as AbstractSessionModel).queueDialog(
                   (doneCallback) => [
                     CreateApolloAnnotation,
@@ -201,9 +198,12 @@ export function annotationFromPileup(pluggableElement: PluggableElementType) {
                       handleClose: () => {
                         doneCallback()
                       },
-                      annotationFeature: self.getAnnotationFeature(assembly),
+                      annotationFeature: self.getAnnotationFeature(
+                        jbrowseFeature,
+                        refSeqId,
+                      ),
                       assembly,
-                      refSeqId: self.getRefSeqId(assembly),
+                      refSeqId,
                       region,
                     },
                   ],
