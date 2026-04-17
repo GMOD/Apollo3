@@ -8,15 +8,16 @@ import type { Coord } from '../../util/displayUtils'
 interface LinearApolloDisplayProps {
   mouseCooordinate: Coord | undefined
   session: ApolloSessionModel
+  dragging: boolean
 }
 
 export const Tooltip = observer(function Tooltip(
   props: LinearApolloDisplayProps,
 ) {
-  const { mouseCooordinate, session } = props
+  const { mouseCooordinate, session, dragging } = props
   const { apolloHoveredFeature } = session
 
-  if (!(mouseCooordinate && apolloHoveredFeature)) {
+  if (!(mouseCooordinate && apolloHoveredFeature) || dragging) {
     return
   }
   const [x, y] = mouseCooordinate
