@@ -52,5 +52,5 @@ You can add any JBrowse configuration that you wish to the `config.json`, but
 here are some common use cases for configuration JBrowse with Apollo.
 
 - [Adding evidence tracks](evidence-tracks)
-- [Adding plugins](plugins)
+<!-- - [Adding plugins](plugins) -->
 - [Changing themes or color schemes](themes-and-coloring)

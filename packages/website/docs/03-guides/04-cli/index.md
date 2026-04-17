@@ -3,8 +3,12 @@
 The Apollo CLI allows you to programmatically interact with the Apollo
 Collaboration Server. This can be used to manage data, such as adding assemblies
 and importing annotation features. It can also be used to query the data stored
-in Apollo, such as [annotation features](annotation-features),
-[check results](checks), or the [changelog](changelog).
+in Apollo, such as [annotation features](annotation-features) or the
+[changelog](changelog).
+
+<!-- It can also be used to query the data stored in Apollo, such as
+[annotation features](annotation-features), [check results](checks), or the
+[changelog](changelog). -->
 
 ## Configuring the CLI
 

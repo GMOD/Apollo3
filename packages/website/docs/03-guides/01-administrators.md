@@ -40,5 +40,5 @@ the guide that explains each one:
 
 - [Adding assemblies](assemblies)
 - [Importing annotation features](annotation-features)
-- [Managing users](users)
+<!-- - [Managing users](users) -->
 - [Adding evidence tracks](evidence-tracks)
