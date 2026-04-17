@@ -170,6 +170,7 @@ export class LocalDriver extends BackendDriver {
           const feature = this.clientStore.getFeature(c.parentFeatureId)
           if (feature) {
             topLevelFeatures.add(feature.topLevelFeature)
+            neededRefNames.add(feature.topLevelFeature.refSeq)
           }
         } else {
           const { refSeq, _id } = c.deletedFeature
