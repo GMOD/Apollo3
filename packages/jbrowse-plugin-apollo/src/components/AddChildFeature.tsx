@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
-import type { AnnotationFeature } from '@apollo-annotation/mst'
+import type {
+  AnnotationFeature,
+  AnnotationFeatureSnapshot,
+} from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
 import {
   Button,
@@ -65,17 +68,21 @@ export function AddChildFeature({
     event.preventDefault()
     setErrorMessage('')
     const _id = new ObjectID().toHexString()
+    const addedFeature: AnnotationFeatureSnapshot = {
+      _id,
+      refSeq: sourceFeature.refSeq,
+      min: Number(start) - 1,
+      max: Number(end),
+      type,
+    }
+    if (sourceFeature.strand) {
+      addedFeature.strand = sourceFeature.strand
+    }
     const change = new AddFeatureChange({
       changedIds: [sourceFeature._id],
       typeName: 'AddFeatureChange',
       assembly: sourceAssemblyId,
-      addedFeature: {
-        _id,
-        refSeq: sourceFeature.refSeq,
-        min: Number(start) - 1,
-        max: Number(end),
-        type,
-      },
+      addedFeature,
       parentFeatureId: sourceFeature._id,
     })
     void changeManager.submit(change).then(() => {

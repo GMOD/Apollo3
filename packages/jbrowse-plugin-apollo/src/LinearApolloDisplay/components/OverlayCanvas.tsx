@@ -21,6 +21,7 @@ export const OverlayCanvas = observer(function OverlayCanvas(
 ) {
   const { model } = props
   const {
+    apolloDragging,
     cursor,
     featuresHeight: getFeaturesHeight,
     isShown,
@@ -68,6 +69,7 @@ export const OverlayCanvas = observer(function OverlayCanvas(
       <LinearApolloDisplayTooltip
         mouseCooordinate={mouseCoord}
         session={session}
+        dragging={Boolean(apolloDragging)}
       />
     </>
   )
