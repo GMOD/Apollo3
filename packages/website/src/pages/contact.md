@@ -17,4 +17,4 @@ https://github.com/GMOD/Apollo3/issues/new/choose
 
 ## Email
 
-Coming soon
+team@apollo.jbrowse.org
