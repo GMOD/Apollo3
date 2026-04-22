@@ -9,6 +9,7 @@ import {
   LocationStartChange,
 } from '@apollo-annotation/shared'
 import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import { readConfObject } from '@jbrowse/core/configuration'
 import type { AbstractSessionModel } from '@jbrowse/core/util'
 import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import {
@@ -30,6 +31,7 @@ import ObjectID from 'bson-objectid'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import type { ApolloSessionModel } from '../session'
+import { removeSkippedAttributes } from '../util'
 
 import { Dialog } from './Dialog'
 
@@ -162,6 +164,11 @@ export function CreateApolloAnnotation({
   region,
 }: CreateApolloAnnotationProps) {
   const apolloSessionModel = session as unknown as ApolloSessionModel
+  const configuredSkippedAttributes = readConfObject(
+    apolloSessionModel.getPluginConfiguration(),
+    'skippedAttributesOnCopy',
+  ) as string[] | undefined
+  const skippedAttributesOnCopy = new Set(configuredSkippedAttributes ?? [])
   const { featureTypeOntology } =
     apolloSessionModel.apolloDataStore.ontologyManager
   const childIds = useMemo(
@@ -340,23 +347,28 @@ export function CreateApolloAnnotation({
 
   // Copies gene feature along with its selected children
   const copyGeneFeature = async () => {
+    const copiedAnnotationFeature = {
+      ...annotationFeature,
+    } as AnnotationFeatureSnapshot
+    removeSkippedAttributes(copiedAnnotationFeature, skippedAttributesOnCopy)
+
     let change
     if (
-      annotationFeature.children &&
+      copiedAnnotationFeature.children &&
       checkedChildrens.length !==
-        Object.values(annotationFeature.children).length
+        Object.values(copiedAnnotationFeature.children).length
     ) {
       // IF SOME CHILDREN ARE CHECKED
       const childrens: Record<string, AnnotationFeatureSnapshot> = {}
       for (const childId of checkedChildrens) {
-        childrens[childId] = annotationFeature.children[childId]
+        childrens[childId] = copiedAnnotationFeature.children[childId]
       }
       change = new AddFeatureChange({
         changedIds: [annotationFeature._id],
         typeName: 'AddFeatureChange',
         assembly: assembly.name,
         addedFeature: {
-          ...annotationFeature,
+          ...copiedAnnotationFeature,
           children: childrens,
         },
       })
@@ -366,7 +378,7 @@ export function CreateApolloAnnotation({
         changedIds: [annotationFeature._id],
         typeName: 'AddFeatureChange',
         assembly: assembly.name,
-        addedFeature: annotationFeature,
+        addedFeature: copiedAnnotationFeature,
       })
     }
 
@@ -380,7 +392,10 @@ export function CreateApolloAnnotation({
       return
     }
     for (const transcriptId of Object.keys(transcripts)) {
-      const transcript = transcripts[transcriptId]
+      const transcript = {
+        ...transcripts[transcriptId],
+      } as AnnotationFeatureSnapshot
+      removeSkippedAttributes(transcript, skippedAttributesOnCopy)
       transcript.strand = selectedDestinationFeature.strand
 
       // update strand of transcript children if they exist
@@ -405,9 +420,20 @@ export function CreateApolloAnnotation({
   const createNewGeneFeatureWithTranscripts = async (
     childrens: Record<string, AnnotationFeatureSnapshot>,
   ) => {
+    const copiedChildrens: Record<string, AnnotationFeatureSnapshot> = {}
+    for (const [childId, child] of Object.entries(childrens)) {
+      const copiedChild = { ...child } as AnnotationFeatureSnapshot
+      removeSkippedAttributes(copiedChild, skippedAttributesOnCopy)
+      copiedChildrens[childId] = copiedChild
+    }
+
     const newGeneId = new ObjectID().toHexString()
-    const min = Math.min(...Object.values(childrens).map((child) => child.min))
-    const max = Math.max(...Object.values(childrens).map((child) => child.max))
+    const min = Math.min(
+      ...Object.values(copiedChildrens).map((child) => child.min),
+    )
+    const max = Math.max(
+      ...Object.values(copiedChildrens).map((child) => child.max),
+    )
     const change = new AddFeatureChange({
       changedIds: [newGeneId],
       typeName: 'AddFeatureChange',
@@ -419,7 +445,7 @@ export function CreateApolloAnnotation({
         max,
         strand: annotationFeature.strand,
         type: 'gene',
-        children: childrens,
+        children: copiedChildrens,
         attributes: {
           name: [getGeneNameOrId(annotationFeature)],
           gene_name: [getGeneNameOrId(annotationFeature)],

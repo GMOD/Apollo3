@@ -1,4 +1,7 @@
-import type { AnnotationFeature } from '@apollo-annotation/mst'
+import type {
+  AnnotationFeature,
+  AnnotationFeatureSnapshot,
+} from '@apollo-annotation/mst'
 
 export function getFeatureName(feature: AnnotationFeature) {
   const { attributes } = feature
@@ -109,4 +112,29 @@ export function getRelatedFeatures(
     }
   }
   return relatedFeatures
+}
+
+export function removeSkippedAttributes(
+  feature: AnnotationFeatureSnapshot,
+  skippedAttributes: Set<string>,
+) {
+  if (feature.attributes) {
+    const newAttributes: Record<string, readonly string[] | undefined> = {}
+    for (const [attribute, values] of Object.entries(feature.attributes)) {
+      if (!skippedAttributes.has(attribute)) {
+        newAttributes[attribute] = values
+      }
+    }
+    feature.attributes =
+      Object.keys(newAttributes).length === 0 ? undefined : newAttributes
+  }
+  if (feature.children) {
+    const newChildren: Record<string, AnnotationFeatureSnapshot> = {}
+    for (const [childId, child] of Object.entries(feature.children)) {
+      const newChild = { ...child } as AnnotationFeatureSnapshot
+      removeSkippedAttributes(newChild, skippedAttributes)
+      newChildren[childId] = newChild
+    }
+    feature.children = newChildren
+  }
 }
