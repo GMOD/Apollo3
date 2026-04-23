@@ -6,7 +6,7 @@ import {
 } from '@jbrowse/core/util'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
-import { MergeTranscripts } from '../../components'
+import { DuplicateTranscript, MergeTranscripts } from '../../components'
 import {
   isCDSFeature,
   isExonFeature,
@@ -217,29 +217,54 @@ function getContextMenuItems(
       },
     })
   }
-  menuItems.push({
-    label: 'Merge transcript',
-    onClick: () => {
-      ;(session as unknown as AbstractSessionModel).queueDialog(
-        (doneCallback) => [
-          MergeTranscripts,
-          {
-            session,
-            handleClose: () => {
-              doneCallback()
+  menuItems.push(
+    {
+      label: 'Merge transcript',
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            MergeTranscripts,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature: feature,
+              sourceAssemblyId: currentAssemblyId,
+              selectedFeature,
+              setSelectedFeature: (feature?: AnnotationFeature) => {
+                display.setSelectedFeature(feature)
+              },
             },
-            changeManager,
-            sourceFeature: feature,
-            sourceAssemblyId: currentAssemblyId,
-            selectedFeature,
-            setSelectedFeature: (feature?: AnnotationFeature) => {
-              display.setSelectedFeature(feature)
-            },
-          },
-        ],
-      )
+          ],
+        )
+      },
     },
-  })
+    {
+      label: 'Duplicate feature',
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            DuplicateTranscript,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature: feature,
+              sourceAssemblyId: currentAssemblyId,
+              selectedFeature,
+              setSelectedFeature: (feature?: AnnotationFeature) => {
+                display.setSelectedFeature(feature)
+              },
+            },
+          ],
+        )
+      },
+    },
+  )
   return menuItems
 }
 
