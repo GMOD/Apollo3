@@ -274,6 +274,28 @@ export class ChangesService {
       queryCond.sequence = { $gt: Number(changeFilter.since) }
       delete queryCond.since
     }
+
+    if (changeFilter.createdAfter) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      const createdAfterDate = new Date(changeFilter.createdAfter)
+      if (Number.isNaN(createdAfterDate.getTime())) {
+        throw new UnprocessableEntityException(
+          'createdAfter must be a valid date string',
+        )
+      }
+
+      // Return only changes created on/after this date.
+      queryCond.createdAt = {
+        $gte: createdAfterDate,
+      }
+      delete queryCond.createdAfter
+    }
+    delete queryCond.createdBefore
+
+    delete queryCond.limit
+    delete queryCond.sort
+    delete queryCond.offset
+
     this.logger.debug(`Search criteria: "${JSON.stringify(queryCond)}"`)
 
     let sortOrder: 1 | -1 = -1
@@ -288,6 +310,15 @@ export class ChangesService {
 
     if (changeFilter.limit) {
       changeCursor = changeCursor.limit(Number(changeFilter.limit))
+    }
+    if (changeFilter.offset) {
+      const offset = Number(changeFilter.offset)
+      if (!Number.isInteger(offset) || offset < 0) {
+        throw new UnprocessableEntityException(
+          'offset must be an integer greater than or equal to 0',
+        )
+      }
+      changeCursor = changeCursor.skip(offset)
     }
     const change = await changeCursor.exec()
 
