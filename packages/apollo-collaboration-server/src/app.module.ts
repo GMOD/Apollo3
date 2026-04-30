@@ -59,6 +59,7 @@ const validationSchema = Joi.object({
   DESCRIPTION: Joi.string(),
   FEATURE_TYPE_ONTOLOGY_LOCATION: Joi.string(),
   PLUGIN_LOCATION: Joi.string(),
+  SKIPPED_ATTRIBUTES_ON_COPY: Joi.string().default(''),
   INDEXED_IDS: Joi.string().default('gff_id'),
   ALLOW_ROOT_USER: Joi.boolean().default(false),
   ROOT_USER_PASSWORD: Joi.string(),

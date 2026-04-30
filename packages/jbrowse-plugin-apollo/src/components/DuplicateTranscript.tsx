@@ -4,6 +4,7 @@ import type {
   AnnotationFeatureSnapshot,
 } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
+import { readConfObject } from '@jbrowse/core/configuration'
 import type { AbstractSessionModel } from '@jbrowse/core/util/types'
 import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import {
@@ -17,6 +18,7 @@ import React, { useState } from 'react'
 
 import type { ChangeManager } from '../ChangeManager'
 import type { ApolloSessionModel } from '../session'
+import { removeSkippedAttributes } from '../util'
 
 import { Dialog } from './Dialog'
 
@@ -70,6 +72,14 @@ export function DuplicateTranscript({
         }
         duplicateTranscript.children = newChildren
       }
+
+      // skip attributes that are configured (SKIPPED_ATTRIBUTES_ON_COPY env var in backend)
+      const configuredSkippedAttributes = readConfObject(
+        session.getPluginConfiguration(),
+        'skippedAttributesOnCopy',
+      ) as string[] | undefined
+      const skippedAttributesOnCopy = new Set(configuredSkippedAttributes ?? [])
+      removeSkippedAttributes(duplicateTranscript, skippedAttributesOnCopy)
 
       const change = new AddFeatureChange({
         parentFeatureId: parentGene._id,

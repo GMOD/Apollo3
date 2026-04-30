@@ -26,6 +26,7 @@ export class JBrowseService {
         DESCRIPTION?: string
         PLUGIN_LOCATION?: string
         FEATURE_TYPE_ONTOLOGY_LOCATION?: string
+        SKIPPED_ATTRIBUTES_ON_COPY?: string
       },
       true
     >,
@@ -43,6 +44,7 @@ export class JBrowseService {
       this.configService.get('FEATURE_TYPE_ONTOLOGY_LOCATION', {
         infer: true,
       }) ?? 'sequence_ontology.json'
+    const skippedAttributesOnCopy = this.getSkippedAttributesOnCopy()
     const configuration = {
       theme: {
         palette: {
@@ -69,7 +71,10 @@ export class JBrowseService {
           ],
         },
       },
-      ApolloPlugin: { hasRole: false },
+      ApolloPlugin: {
+        hasRole: false,
+        skippedAttributesOnCopy,
+      },
     }
     if (!role) {
       return configuration
@@ -79,6 +84,7 @@ export class JBrowseService {
         ...configuration,
         ApolloPlugin: {
           hasRole: true,
+          skippedAttributesOnCopy,
         },
       }
     }
@@ -86,6 +92,7 @@ export class JBrowseService {
       ...configuration,
       ApolloPlugin: {
         hasRole: true,
+        skippedAttributesOnCopy,
         ontologies: [
           {
             name: 'Sequence Ontology',
@@ -97,6 +104,19 @@ export class JBrowseService {
         ],
       },
     }
+  }
+
+  getSkippedAttributesOnCopy() {
+    const skippedAttributes = this.configService.get(
+      'SKIPPED_ATTRIBUTES_ON_COPY',
+      {
+        infer: true,
+      },
+    )
+    return (skippedAttributes ?? '')
+      .split(',')
+      .map((attribute) => attribute.trim())
+      .filter(Boolean)
   }
 
   getPlugins() {
