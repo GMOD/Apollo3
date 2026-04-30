@@ -57,24 +57,52 @@ export function jbrowseFeatureToAnnotationFeature(
   return gff3ToAnnotationFeature(simpleFeatureToGFF3Feature(feature, refSeqId))
 }
 
+const fieldsToSkip = new Set([
+  'start',
+  'end',
+  'type',
+  'strand',
+  'refName',
+  'subfeatures',
+  'derived_features',
+  'phase',
+  'source',
+  'score',
+  'parent',
+  // From https://github.com/GMOD/jbrowse-components/blob/ab3126374367f43d01038d6d2e86d8db03c4d8d8/packages/core/src/BaseFeatureWidget/BaseFeatureDetail/Attributes.tsx#L12-L24
+  '__jbrowsefmt',
+  'length',
+  'position',
+  'uniqueId',
+  'exonFrames',
+  'parentId',
+  'thickStart',
+  'thickEnd',
+  '_lineHash',
+])
+
+const fieldsToRename: Record<string, string | undefined> = {
+  id: 'gff_id',
+  name: 'gff_name',
+  alias: 'gff_alias',
+  target: 'gff_target',
+  gap: 'gff_gap',
+  derives_from: 'gff_derives_from',
+  note: 'gff_note',
+  dbxref: 'gff_dbxref',
+  ontology_term: 'gff_ontology_term',
+  is_circular: 'gff_is_circular',
+}
+
 function convertFeatureAttributes(feature: Feature): Record<string, string[]> {
   const attributes: Record<string, string[]> = {}
-  const defaultFields = new Set([
-    'start',
-    'end',
-    'type',
-    'strand',
-    'refName',
-    'subfeatures',
-    'derived_features',
-    'phase',
-    'source',
-    'score',
-  ])
-  for (const [key, value] of Object.entries(feature.toJSON())) {
-    if (defaultFields.has(key)) {
+
+  for (const [originalKey, value] of Object.entries(feature.toJSON())) {
+    if (fieldsToSkip.has(originalKey)) {
       continue
     }
+    const renamedKey = fieldsToRename[originalKey]
+    const key = renamedKey ?? originalKey
     attributes[key] = Array.isArray(value) ? value.map(String) : [String(value)]
   }
   return attributes

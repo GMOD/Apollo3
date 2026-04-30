@@ -110,7 +110,7 @@ describe('Convert JBrowse feature to annotation feature', () => {
       expect(xcds?.type).toStrictEqual('CDS')
       expect(xcds?.min).toStrictEqual(15)
       expect(xcds?.max).toStrictEqual(27)
-      expect(xcds?.attributes?.name?.at(0)).toStrictEqual('XYZ')
+      expect(xcds?.attributes?.gff_name?.at(0)).toStrictEqual('XYZ')
       expect(xcds?.attributes?.gff_score?.at(0)).toStrictEqual('0')
       expect(xcds?.attributes?.gff_source?.at(0)).toStrictEqual('mySource')
     } else {
