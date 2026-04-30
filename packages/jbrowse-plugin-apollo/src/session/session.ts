@@ -411,23 +411,22 @@ export function extendSession(
     }))
 
     .views((self) => {
-      const superTrackActionMenuItems = (
-        self as unknown as AbstractSessionModel
-      ).getTrackActionMenuItems
+      const superTrackActions = (self as unknown as AbstractSessionModel)
+        .getTrackActions
       return {
-        getTrackActionMenuItems(conf: BaseTrackConfig) {
+        getTrackActions(conf: BaseTrackConfig) {
           if (
             conf.type === 'ApolloTrack' ||
             conf.type === 'ReferenceSequenceTrack'
           ) {
-            return superTrackActionMenuItems?.(conf)
+            return superTrackActions?.(conf)
           }
           const trackId = readConfObject(conf, 'trackId') as string
           const sessionTrackIdentifier = '-sessionTrack'
           const isSessionTrack = trackId.endsWith(sessionTrackIdentifier)
           return isSessionTrack
             ? [
-                ...(superTrackActionMenuItems?.(conf) ?? []),
+                ...(superTrackActions?.(conf) ?? []),
                 {
                   label: 'Save track to Apollo',
                   onClick: async () => {
@@ -480,7 +479,7 @@ export function extendSession(
                 },
               ]
             : [
-                ...(superTrackActionMenuItems?.(conf) ?? []),
+                ...(superTrackActions?.(conf) ?? []),
                 {
                   label: 'Remove track from Apollo',
                   onClick: async () => {
