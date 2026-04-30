@@ -960,61 +960,11 @@ export const TranscriptWidgetEditLocation = observer(
       <div>
         {cdsPresent && (
           <div>
-            <Accordion>
-              <StyledAccordionSummary
-                expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
-                aria-controls="panel1-content"
-                id="panel1-header"
-              >
-                <Typography component="span" fontWeight={'bold'}>
-                  Translation
-                </Typography>
-              </StyledAccordionSummary>
-              <AccordionDetails>
-                <SequenceContainer>
-                  <Typography
-                    component={'span'}
-                    ref={seqRef}
-                    style={{ maxHeight: 120, overflowY: 'scroll' }}
-                  >
-                    {getTranslationSequence()}
-                  </Typography>
-                </SequenceContainer>
-                <div
-                  style={{
-                    marginTop: 10,
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 10,
-                  }}
-                >
-                  <Tooltip title="Copy">
-                    <button
-                      onClick={onCopyClick}
-                      style={{ border: 'none', background: 'none', padding: 0 }}
-                      disabled={changeInProgress}
-                    >
-                      <ContentCopyIcon style={{ fontSize: 15 }} />
-                    </button>
-                  </Tooltip>
-                  <Tooltip title="Trim">
-                    <button
-                      onClick={trimTranslationSequence}
-                      style={{ border: 'none', background: 'none', padding: 0 }}
-                      disabled={changeInProgress}
-                    >
-                      <ContentCutIcon style={{ fontSize: 15 }} />
-                    </button>
-                  </Tooltip>
-                </div>
-              </AccordionDetails>
-            </Accordion>
             <Grid
               container
               justifyContent="center"
               alignItems="center"
-              style={{ textAlign: 'center', marginTop: 10 }}
+              style={{ textAlign: 'center' }}
             >
               <Grid size={1} />
               {strand === 1 ? (
@@ -1098,7 +1048,10 @@ export const TranscriptWidgetEditLocation = observer(
             </Grid>
           </div>
         )}
-        <div style={{ marginTop: 5 }}>
+        <div style={{ marginTop: 5, marginBottom: 10 }}>
+          <div style={{ textAlign: 'center' }}>
+            <Typography>Exons</Typography>
+          </div>
           {transcriptExonParts.map((loc, index) => {
             return (
               <div key={index}>
@@ -1212,6 +1165,60 @@ export const TranscriptWidgetEditLocation = observer(
             )
           })}
         </div>
+        {cdsPresent && (
+          <div>
+            <Accordion>
+              <StyledAccordionSummary
+                expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
+                aria-controls="panel1-content"
+                id="panel1-header"
+              >
+                <Typography component="span" fontWeight={'bold'}>
+                  Translation
+                </Typography>
+              </StyledAccordionSummary>
+              <AccordionDetails>
+                <SequenceContainer>
+                  <Typography
+                    component={'span'}
+                    ref={seqRef}
+                    style={{ maxHeight: 120, overflowY: 'scroll' }}
+                  >
+                    {getTranslationSequence()}
+                  </Typography>
+                </SequenceContainer>
+                <div
+                  style={{
+                    marginTop: 10,
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 10,
+                  }}
+                >
+                  <Tooltip title="Copy">
+                    <button
+                      onClick={onCopyClick}
+                      style={{ border: 'none', background: 'none', padding: 0 }}
+                      disabled={changeInProgress}
+                    >
+                      <ContentCopyIcon style={{ fontSize: 15 }} />
+                    </button>
+                  </Tooltip>
+                  <Tooltip title="Trim">
+                    <button
+                      onClick={trimTranslationSequence}
+                      style={{ border: 'none', background: 'none', padding: 0 }}
+                      disabled={changeInProgress}
+                    >
+                      <ContentCutIcon style={{ fontSize: 15 }} />
+                    </button>
+                  </Tooltip>
+                </div>
+              </AccordionDetails>
+            </Accordion>
+          </div>
+        )}
       </div>
     )
   },
