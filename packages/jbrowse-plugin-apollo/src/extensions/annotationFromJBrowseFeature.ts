@@ -11,10 +11,10 @@ import type DisplayType from '@jbrowse/core/pluggableElementTypes/DisplayType'
 import { getContainingView, getSession } from '@jbrowse/core/util'
 import type { Feature } from '@jbrowse/core/util/simpleFeature'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import AddIcon from '@mui/icons-material/Add'
 
 import { CollaborationServerDriver } from '../BackendDrivers'
 import { CreateApolloAnnotation } from '../components/CreateApolloAnnotation'
+import { Apollo as ApolloIcon } from '../menus/Icons'
 import type { ApolloSessionModel } from '../session'
 
 function simpleFeatureToGFF3Feature(
@@ -161,7 +161,7 @@ export function annotationFromJBrowseFeature(
             ...superContextMenuItems(),
             {
               label: 'Create Apollo annotation',
-              icon: AddIcon,
+              icon: ApolloIcon,
               onClick: async () => {
                 const backendDriver = (
                   session as unknown as ApolloSessionModel

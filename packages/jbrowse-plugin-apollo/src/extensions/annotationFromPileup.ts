@@ -15,11 +15,11 @@ import {
 } from '@jbrowse/core/util'
 import type { Feature } from '@jbrowse/core/util/simpleFeature'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import AddIcon from '@mui/icons-material/Add'
 import ObjectID from 'bson-objectid'
 
 import { CollaborationServerDriver } from '../BackendDrivers'
 import { CreateApolloAnnotation } from '../components/CreateApolloAnnotation'
+import { Apollo as ApolloIcon } from '../menus/Icons'
 import type { ApolloSessionModel } from '../session'
 
 function parseCigar(cigar: string): [string, number][] {
@@ -172,7 +172,7 @@ export function annotationFromPileup(pluggableElement: PluggableElementType) {
             ...superContextMenuItems(),
             {
               label: 'Create Apollo annotation',
-              icon: AddIcon,
+              icon: ApolloIcon,
               onClick: async () => {
                 const backendDriver = (
                   session as unknown as ApolloSessionModel
