@@ -108,6 +108,16 @@ function convertFeatureAttributes(feature: Feature): Record<string, string[]> {
   return attributes
 }
 
+function getTopLevelSimpleFeature(feature: Feature) {
+  let topLevel = feature
+  let parent = feature.get('parent')
+  while (parent) {
+    topLevel = parent
+    parent = parent.get('parent')
+  }
+  return topLevel
+}
+
 export function annotationFromJBrowseFeature(
   pluggableElement: PluggableElementType,
 ) {
@@ -146,6 +156,7 @@ export function annotationFromJBrowseFeature(
           if (!feature) {
             return superContextMenuItems()
           }
+          const topLevelFeature = getTopLevelSimpleFeature(feature)
           return [
             ...superContextMenuItems(),
             {
@@ -169,7 +180,7 @@ export function annotationFromJBrowseFeature(
                   refSeqId = backendRefSeqId
                 }
                 const annotationFeature = jbrowseFeatureToAnnotationFeature(
-                  feature,
+                  topLevelFeature,
                   refSeqId,
                 )
                 session.queueDialog((doneCallback) => [
