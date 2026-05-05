@@ -91,6 +91,12 @@ interface ApolloMessageData {
   assembly: string
 }
 
+interface JBrowseTrackConfig {
+  trackId: string
+  type: string
+  displays?: { type: string; displayId: string }[]
+}
+
 function isApolloMessageData(data?: unknown): data is ApolloMessageData {
   return (
     typeof data === 'object' &&
@@ -287,6 +293,43 @@ export default class ApolloPlugin extends Plugin {
     pluginManager.addToExtensionPoint(
       'Core-extendPluggableElement',
       annotationFromJBrowseFeature,
+    )
+
+    pluginManager.addToExtensionPoint(
+      'Core-preProcessTrackConfig',
+      (snap: JBrowseTrackConfig): JBrowseTrackConfig => {
+        if (snap.type !== 'ReferenceSequenceTrack') {
+          return snap
+        }
+        const displays = snap.displays ?? []
+        const apolloDisplayIdx = displays.findIndex(
+          (d) => d.type === 'LinearApolloReferenceSequenceDisplay',
+        )
+        if (apolloDisplayIdx === 0) {
+          return snap
+        }
+        if (apolloDisplayIdx === -1) {
+          return {
+            ...snap,
+            displays: [
+              {
+                type: 'LinearApolloReferenceSequenceDisplay',
+                displayId: `${snap.trackId}-LinearApolloReferenceSequenceDisplay`,
+              },
+              ...displays,
+            ],
+          }
+        }
+        const reorderedDisplays = displays.toSpliced(apolloDisplayIdx, 1)
+        reorderedDisplays.unshift({
+          type: 'LinearApolloReferenceSequenceDisplay',
+          displayId: `${snap.trackId}-LinearApolloReferenceSequenceDisplay`,
+        })
+        return {
+          ...snap,
+          displays: reorderedDisplays,
+        }
+      },
     )
 
     pluginManager.addToExtensionPoint(
