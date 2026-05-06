@@ -3,7 +3,6 @@ import DocusaurusImageUrl from '@site/static/img/demo_screenshot.png'
 import React from 'react'
 
 import styles from './styles.module.css'
-// @ts-expect-error Need to figure out proper way to declare this
 
 export default function HomepageFeatures(): React.JSX.Element {
   return (
@@ -14,7 +13,8 @@ export default function HomepageFeatures(): React.JSX.Element {
             <div className={styles.buttons}>
               <Link
                 className="button button--secondary button--lg"
-                to="//demo.apollo.jbrowse.org/?session=share-eZDit63bNm&password=Px6yn"
+                to="/demo/?assembly=Onchocerca%20volvulus&loc=OVOC_OM2:23836500-23840000&tracks=onchocerca_volvulus.PRJEB513.WBPS19.genomic-ReferenceSequenceTrack,apollo_track_Onchocerca%20volvulus,onchocerca_volvulus.PRJEB513.WBPS19.annotations.genes.sorted.gff3&tracklist=true"
+                target="_blank"
               >
                 Try a Demo — 🧬
               </Link>
