@@ -11,10 +11,10 @@ import type DisplayType from '@jbrowse/core/pluggableElementTypes/DisplayType'
 import { getContainingView, getSession } from '@jbrowse/core/util'
 import type { Feature } from '@jbrowse/core/util/simpleFeature'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import AddIcon from '@mui/icons-material/Add'
 
 import { CollaborationServerDriver } from '../BackendDrivers'
 import { CreateApolloAnnotation } from '../components/CreateApolloAnnotation'
+import { Apollo as ApolloIcon } from '../menus/Icons'
 import type { ApolloSessionModel } from '../session'
 
 function simpleFeatureToGFF3Feature(
@@ -108,6 +108,16 @@ function convertFeatureAttributes(feature: Feature): Record<string, string[]> {
   return attributes
 }
 
+function getTopLevelSimpleFeature(feature: Feature) {
+  let topLevel = feature
+  let parent = feature.get('parent')
+  while (parent) {
+    topLevel = parent
+    parent = parent.get('parent')
+  }
+  return topLevel
+}
+
 export function annotationFromJBrowseFeature(
   pluggableElement: PluggableElementType,
 ) {
@@ -146,11 +156,12 @@ export function annotationFromJBrowseFeature(
           if (!feature) {
             return superContextMenuItems()
           }
+          const topLevelFeature = getTopLevelSimpleFeature(feature)
           return [
             ...superContextMenuItems(),
             {
               label: 'Create Apollo annotation',
-              icon: AddIcon,
+              icon: ApolloIcon,
               onClick: async () => {
                 const backendDriver = (
                   session as unknown as ApolloSessionModel
@@ -169,7 +180,7 @@ export function annotationFromJBrowseFeature(
                   refSeqId = backendRefSeqId
                 }
                 const annotationFeature = jbrowseFeatureToAnnotationFeature(
-                  feature,
+                  topLevelFeature,
                   refSeqId,
                 )
                 session.queueDialog((doneCallback) => [
