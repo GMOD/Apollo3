@@ -13,7 +13,7 @@ export default function HomepageFeatures(): React.JSX.Element {
             <div className={styles.buttons}>
               <Link
                 className="button button--secondary button--lg"
-                to="/demo/?assembly=Onchocerca%20volvulus&loc=OVOC_OM2:23836500-23840000&tracks=onchocerca_volvulus.PRJEB513.WBPS19.genomic-ReferenceSequenceTrack,apollo_track_Onchocerca%20volvulus,onchocerca_volvulus.PRJEB513.WBPS19.annotations.genes.sorted.gff3&tracklist=true"
+                to="/demo//?assembly=Onchocerca%20volvulus&loc=OVOC_OM2:23836500-23840000&tracks=onchocerca_volvulus.PRJEB513.WBPS19.genomic-ReferenceSequenceTrack,apollo_track_Onchocerca%20volvulus,onchocerca_volvulus.PRJEB513.WBPS19.annotations.genes.sorted.gff3&tracklist=true"
                 target="_blank"
               >
                 Try a Demo — 🧬
