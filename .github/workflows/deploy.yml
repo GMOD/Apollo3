@@ -47,7 +47,7 @@ jobs:
             tar --extract --gzip --file=- --strip=2 package/dist/jbrowse-plugin-apollo.umd.production.min.js package/dist/jbrowse-plugin-apollo.umd.production.min.js.map
           cp jbrowse-plugin-apollo.umd.production.min.js apollo.js
       - name: Upload built plugin files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: plugin
           path: |
@@ -62,7 +62,7 @@ jobs:
       - name: Check out
         uses: actions/checkout@v6
       - name: Download built plugin files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: plugin
           path: .github/workflows/deploy/
@@ -136,7 +136,7 @@ jobs:
       - name: Check out
         uses: actions/checkout@v6
       - name: Download built plugin files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: plugin
           path: .github/workflows/deploy/
