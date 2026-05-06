@@ -13,6 +13,7 @@ import {
 import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
 import {
   type AbstractSessionModel,
+  type Region,
   getContainingView,
   getSession,
 } from '@jbrowse/core/util'
@@ -84,13 +85,30 @@ export function baseModelFactory(
         return regions
       },
       regionCannotBeRendered(/* region */) {
-        if (self.lgv && self.lgv.bpPerPx >= 3) {
+        if (self.lgv && self.lgv.bpPerPx > 3) {
           return 'Zoom in to see sequence'
         }
         return
       },
     }))
     .views((self) => ({
+      get expandedRegions() {
+        const regions = self.lgv.dynamicBlocks.contentBlocks.map((block) => {
+          const { assemblyName, end, refName, start } = block
+          const { parentRegion } = block as unknown as { parentRegion: Region }
+          const expandedStart = Math.round(
+            Math.max(start - 5, parentRegion.start),
+          )
+          const expandedEnd = Math.round(Math.min(end + 5, parentRegion.end))
+          return {
+            assemblyName,
+            refName,
+            start: expandedStart,
+            end: expandedEnd,
+          }
+        })
+        return regions
+      },
       get apolloInternetAccount() {
         const [region] = self.regions
         const { internetAccounts } = getRoot<ApolloRootModel>(self)
@@ -216,7 +234,7 @@ export function baseModelFactory(
               if (self.lgv.bpPerPx <= 3) {
                 void (
                   self.session as unknown as ApolloSessionModel
-                ).apolloDataStore.loadRefSeq(self.regions)
+                ).apolloDataStore.loadRefSeq(self.expandedRegions)
               }
             },
             {
