@@ -44,14 +44,16 @@ jobs:
           LATEST_VERSION=$(jq --raw-output '."dist-tags".latest' jpa.json)
           TARBALL=$(jq --raw-output ".versions.\"${LATEST_VERSION}\".dist.tarball" jpa.json)
           wget --output-document=- --quiet ${TARBALL} | \
-            tar --extract --gzip --file=- --strip=2 package/dist/jbrowse-plugin-apollo.umd.production.min.js
+            tar --extract --gzip --file=- --strip=2 package/dist/jbrowse-plugin-apollo.umd.production.min.js package/dist/jbrowse-plugin-apollo.umd.production.min.js.map
           cp jbrowse-plugin-apollo.umd.production.min.js apollo.js
       - name: Upload built plugin files
         uses: actions/upload-artifact@v4
         with:
           name: plugin
-          path: packages/jbrowse-plugin-apollo/dist/apollo.js
-  deploy:
+          path: |
+            packages/jbrowse-plugin-apollo/dist/apollo.js
+            packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.production.min.js*
+  deploy_collab:
     name: Deploy to ${{ inputs.environment }} demo server
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -125,3 +127,48 @@ jobs:
           docker --context ${{ inputs.environment }} compose --project-name apollo-demo-${{ inputs.environment }}-site down
           docker --context ${{ inputs.environment }} compose --project-name apollo-demo-${{ inputs.environment }}-site pull
           docker --context ${{ inputs.environment }} compose --project-name apollo-demo-${{ inputs.environment }}-site up --build --detach --wait --wait-timeout 120
+  deploy_local:
+    name: Deploy to ${{ inputs.environment }} local installation
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    needs: [build]
+    steps:
+      - name: Check out
+        uses: actions/checkout@v6
+      - name: Download built plugin files
+        uses: actions/download-artifact@v4
+        with:
+          name: plugin
+          path: .github/workflows/deploy/
+      - name: Download JBrowse ZIP
+        run: |
+          mkdir tmp
+          cd tmp/
+          if [[ ${{ inputs.environment }} == prod ]]; then
+            curl -fsSL https://s3.amazonaws.com/jbrowse.org/code/jb2/latest/jbrowse-web-latest.zip > jbrowse-web.zip
+          else
+            curl -fsSL https://s3.amazonaws.com/jbrowse.org/code/jb2/main/jbrowse-web-main.zip > jbrowse-web.zip
+          fi
+        working-directory: .github/workflows/deploy
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Upload
+        working-directory: .github/workflows/deploy
+        run: |
+          cp jbrowse-plugin-apollo.umd.production.min.js* tmp/
+          cd tmp/
+          unzip jbrowse-web.zip
+          rm jbrowse-web.zip
+          aws s3 sync ./ s3://apollo.jbrowse.org/demo/ \
+            --exclude "data/*" \
+            --exclude "config.json" \
+            --exclude "jbrowse-plugin-apollo.umd.production.min.js*" \
+            --exclude "jbrowse-plugin-apollo-intro.iife.production.min.js*" \
+            --delete
+          aws cloudfront create-invalidation \
+            --distribution-id EL84YTOVCGNJZ \
+            --paths '/demo/*'
