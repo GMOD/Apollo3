@@ -159,11 +159,16 @@ jobs:
       - name: Upload
         working-directory: .github/workflows/deploy
         run: |
+          if [[ ${{ inputs.environment }} == prod ]]; then
+            SITE_DIR=demo
+          else
+            SITE_DIR=demo-staging
+          fi
           cp jbrowse-plugin-apollo.umd.production.min.js* tmp/
           cd tmp/
           unzip jbrowse-web.zip
           rm jbrowse-web.zip
-          aws s3 sync ./ s3://apollo.jbrowse.org/demo/ \
+          aws s3 sync ./ s3://apollo.jbrowse.org/$SITE_DIR/ \
             --exclude "data/*" \
             --exclude "config.json" \
             --exclude "jbrowse-plugin-apollo.umd.production.min.js*" \
@@ -171,4 +176,4 @@ jobs:
             --delete
           aws cloudfront create-invalidation \
             --distribution-id EL84YTOVCGNJZ \
-            --paths '/demo/*'
+            --paths "/$SITE_DIR/*"
