@@ -88,7 +88,7 @@ jobs:
           touch "${digestdir}/${digest#sha256:}"
 
       - name: Upload digests of CLI image
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: digests-cli-${{ matrix.artifactName }}
           path: ${{ runner.temp }}/digests-cli/*
@@ -114,7 +114,7 @@ jobs:
           touch "${digestdir}/${digest#sha256:}"
 
       - name: Upload digests of Collaboration Server image
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: digests-cs-${{ matrix.artifactName }}
           path: ${{ runner.temp }}/digests-cs/*
@@ -165,7 +165,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
 
       - name: Download digests CLI image
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: ${{ runner.temp }}/digests-cli
           pattern: digests-cli-*
@@ -187,7 +187,7 @@ jobs:
             ${{ env.APOLLO_CLI_REGISTRY_IMAGE }}:${{ inputs.tag }}
 
       - name: Download digests Collaboration Server image
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: ${{ runner.temp }}/digests-cs
           pattern: digests-cs-*
