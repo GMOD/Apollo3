@@ -8,7 +8,7 @@ import type { LinearApolloDisplay } from '../stateModel'
 
 import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
-import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
+import { drawHover, getFeatureBox, strokeRectInner } from './util'
 
 function getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature) {
   return getLayout(display, feature).byRow.length
@@ -36,11 +36,11 @@ function draw(
   boxGlyph.draw(display, ctx, feature, row, 0, block)
 
   if (isSelectedFeature(feature, selectedFeature)) {
-    drawHighlight(display, ctx, left, top, width, height, true)
+    drawHover(display, ctx, left, top, width, height, true)
   }
 }
 
-function drawHover(
+function drawOverlay(
   display: LinearApolloDisplay,
   overlayCtx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
@@ -50,7 +50,7 @@ function drawHover(
   const { apolloRowHeight } = display
   const [top, left, width] = getFeatureBox(display, feature, row, block)
   const height = getRowCount(display, feature) * apolloRowHeight
-  drawHighlight(display, overlayCtx, left, top, width, height)
+  drawHover(display, overlayCtx, left, top, width, height)
 }
 
 function getLayout(display: LinearApolloDisplay, feature: AnnotationFeature) {
@@ -96,7 +96,7 @@ const { drawDragPreview } = boxGlyph
 export const genericChildGlyph: Glyph = {
   draw,
   drawDragPreview,
-  drawHover,
+  drawOverlay,
   getContextMenuItems,
   getLayout,
   isDraggable: true,

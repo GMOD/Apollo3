@@ -8,7 +8,7 @@ import type { LinearApolloDisplay } from '../stateModel'
 import type { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
 
 import type { Glyph } from './Glyph'
-import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
+import { drawHover, getFeatureBox, strokeRectInner } from './util'
 
 function draw(
   display: LinearApolloDisplay,
@@ -26,11 +26,11 @@ function draw(
   }
   strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
   if (isSelectedFeature(feature, selectedFeature)) {
-    drawHighlight(display, ctx, left, top, width, height, true)
+    drawHover(display, ctx, left, top, width, height, true)
   }
 }
 
-function drawHover(
+function drawOverlay(
   display: LinearApolloDisplay,
   overlayCtx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
@@ -38,7 +38,7 @@ function drawHover(
   block: ContentBlock,
 ) {
   const [top, left, width, height] = getFeatureBox(display, feature, row, block)
-  drawHighlight(display, overlayCtx, left, top, width, height)
+  drawHover(display, overlayCtx, left, top, width, height)
 }
 
 function drawDragPreview(
@@ -92,7 +92,7 @@ function getContextMenuItems(
 export const boxGlyph: Glyph = {
   draw,
   drawDragPreview,
-  drawHover,
+  drawOverlay,
   getContextMenuItems,
   getLayout,
   isDraggable: true,

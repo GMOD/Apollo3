@@ -352,7 +352,7 @@ export function mouseEventsModelFactory(
                   )
                 ) {
                   // draw mouseover hovers
-                  glyph.drawHover(
+                  glyph.drawOverlay(
                     // @ts-expect-error ts doesn't understand mst extension
                     self,
                     ctx,

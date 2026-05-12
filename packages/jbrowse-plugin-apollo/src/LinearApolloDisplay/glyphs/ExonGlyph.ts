@@ -20,7 +20,7 @@ import type { LinearApolloDisplay } from '../stateModel'
 
 import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
-import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
+import { drawHover, getFeatureBox, strokeRectInner } from './util'
 
 function draw(
   display: LinearApolloDisplay,
@@ -56,11 +56,11 @@ function draw(
   }
   strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
   if (isSelectedFeature(exon, selectedFeature)) {
-    drawHighlight(display, ctx, left, top, width, height, true)
+    drawHover(display, ctx, left, top, width, height, true)
   }
 }
 
-function drawHover(
+function drawOverlay(
   display: LinearApolloDisplay,
   overlayCtx: CanvasRenderingContext2D,
   exon: AnnotationFeature,
@@ -72,7 +72,7 @@ function drawHover(
   const height = Math.round(0.6 * apolloRowHeight)
   const halfHeight = Math.round(height / 2)
   const top = Math.round(halfHeight / 2) + row * apolloRowHeight
-  drawHighlight(display, overlayCtx, left, top, width, height)
+  drawHover(display, overlayCtx, left, top, width, height)
 }
 
 function getLayout(display: LinearApolloDisplay, feature: AnnotationFeature) {
@@ -195,7 +195,7 @@ const { drawDragPreview } = boxGlyph
 export const exonGlyph: Glyph = {
   draw,
   drawDragPreview,
-  drawHover,
+  drawOverlay,
   getContextMenuItems,
   getLayout,
   isDraggable: true,

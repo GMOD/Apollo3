@@ -11,7 +11,7 @@ import type { LinearApolloDisplay } from '../stateModel'
 
 import { boxGlyph } from './BoxGlyph'
 import type { Glyph } from './Glyph'
-import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
+import { drawHover, getFeatureBox, strokeRectInner } from './util'
 
 function drawCDSLocation(
   display: LinearApolloDisplay,
@@ -88,11 +88,11 @@ function draw(
   if (isSelectedFeature(cds, selectedFeature)) {
     const [top, left, width] = getFeatureBox(display, cds, row, block)
     const height = getRowCount() * apolloRowHeight
-    drawHighlight(display, ctx, left, top, width, height, true)
+    drawHover(display, ctx, left, top, width, height, true)
   }
 }
 
-function drawHover(
+function drawOverlay(
   display: LinearApolloDisplay,
   overlayCtx: CanvasRenderingContext2D,
   cds: AnnotationFeature,
@@ -102,7 +102,7 @@ function drawHover(
   const { apolloRowHeight } = display
   const [top, left, width] = getFeatureBox(display, cds, row, block)
   const height = getRowCount() * apolloRowHeight
-  drawHighlight(display, overlayCtx, left, top, width, height)
+  drawHover(display, overlayCtx, left, top, width, height)
 }
 
 function getLayout(display: LinearApolloDisplay, feature: AnnotationFeature) {
@@ -130,7 +130,7 @@ const { drawDragPreview } = boxGlyph
 export const cdsGlyph: Glyph = {
   draw,
   drawDragPreview,
-  drawHover,
+  drawOverlay,
   getContextMenuItems,
   getLayout,
   isDraggable: true,

@@ -16,7 +16,7 @@ import type { LinearApolloDisplay } from '../stateModel'
 
 import { boxGlyph } from './BoxGlyph'
 import type { Glyph, LayoutRow } from './Glyph'
-import { drawHighlight, getFeatureBox, getLeftPx } from './util'
+import { drawHover, getFeatureBox, getLeftPx } from './util'
 
 function* range(start: number, stop: number, step = 1): Generator<number> {
   if (start === stop) {
@@ -121,11 +121,11 @@ function draw(
   if (isSelectedFeature(transcript, selectedFeature)) {
     const [top, left, width] = getFeatureBox(display, transcript, row, block)
     const height = apolloRowHeight * getRowCount(display, transcript)
-    drawHighlight(display, ctx, left, top, width, height, true)
+    drawHover(display, ctx, left, top, width, height, true)
   }
 }
 
-function drawHover(
+function drawOverlay(
   display: LinearApolloDisplay,
   overlayCtx: CanvasRenderingContext2D,
   transcript: AnnotationFeature,
@@ -135,7 +135,7 @@ function drawHover(
   const { apolloRowHeight } = display
   const [top, left, width] = getFeatureBox(display, transcript, row, block)
   const height = apolloRowHeight * getRowCount(display, transcript)
-  drawHighlight(display, overlayCtx, left, top, width, height)
+  drawHover(display, overlayCtx, left, top, width, height)
 }
 
 function getLayout(display: LinearApolloDisplay, feature: AnnotationFeature) {
@@ -276,7 +276,7 @@ const { drawDragPreview } = boxGlyph
 export const transcriptGlyph: Glyph = {
   draw,
   drawDragPreview,
-  drawHover,
+  drawOverlay,
   getContextMenuItems,
   getLayout,
   isDraggable: false,

@@ -473,7 +473,7 @@ function drawDragPreview(
   overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
 }
 
-function drawHover(
+function drawOverlay(
   stateModel: LinearApolloSixFrameDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
@@ -1009,7 +1009,7 @@ function onMouseLeave(): void {
 export const geneGlyph: Glyph = {
   draw,
   drawDragPreview,
-  drawHover,
+  drawOverlay,
   drawTooltip,
   getContextMenuItems,
   getContextMenuItemsForFeature,

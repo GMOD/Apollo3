@@ -28,7 +28,7 @@ export interface Glyph {
     block: ContentBlock,
   ): void
   /** draw the feature's hover highlight on the overlay canvas */
-  drawHover(
+  drawOverlay(
     display: LinearApolloDisplay,
     overlayCtx: CanvasRenderingContext2D,
     feature: AnnotationFeature,

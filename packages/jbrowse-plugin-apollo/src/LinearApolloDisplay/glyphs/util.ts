@@ -35,7 +35,7 @@ export function getFeatureBox(
   return [top, left, width, height]
 }
 
-export function drawHighlight(
+export function drawHover(
   display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
   left: number,
