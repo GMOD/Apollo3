@@ -154,16 +154,16 @@ export class CollaborationServerDriver extends BackendDriver {
     internetAccount: ApolloInternetAccount,
   ) {
     const { socket } = internetAccount
-    const token = internetAccount.retrieveToken()
-    if (!token) {
-      return
-    }
-    const localSessionId = makeUserSessionId(token)
     const channel = `${assembly}-${refSeq}`
-    const changeManager = new ChangeManager(this.clientStore)
 
     if (!socket.hasListeners(channel)) {
       socket.on(channel, async (message: ChangeMessage) => {
+        const token = internetAccount.retrieveToken()
+        if (!token) {
+          return
+        }
+        const localSessionId = makeUserSessionId(token)
+        const changeManager = new ChangeManager(this.clientStore)
         // Save server last change sequence into session storage
         internetAccount.setLastChangeSequenceNumber(
           Number(message.changeSequence),
