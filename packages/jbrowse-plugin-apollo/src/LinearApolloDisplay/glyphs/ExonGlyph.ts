@@ -19,8 +19,8 @@ import {
 import type { LinearApolloDisplay } from '../stateModel'
 
 import { boxGlyph } from './BoxGlyph'
-import type { Glyph } from './Glyph'
-import { drawHover, getFeatureBox, strokeRectInner } from './util'
+import type { Glyph, OverlayType } from './Glyph'
+import { drawOverlayBox, getFeatureBox, strokeRectInner } from './util'
 
 function draw(
   display: LinearApolloDisplay,
@@ -56,7 +56,7 @@ function draw(
   }
   strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
   if (isSelectedFeature(exon, selectedFeature)) {
-    drawHover(display, ctx, left, top, width, height, true)
+    drawOverlay(display, ctx, exon, row, block, 'select')
   }
 }
 
@@ -66,13 +66,23 @@ function drawOverlay(
   exon: AnnotationFeature,
   row: number,
   block: ContentBlock,
+  overlayType: OverlayType,
 ) {
   const { apolloRowHeight } = display
   const [, left, width] = getFeatureBox(display, exon, row, block)
   const height = Math.round(0.6 * apolloRowHeight)
   const halfHeight = Math.round(height / 2)
   const top = Math.round(halfHeight / 2) + row * apolloRowHeight
-  drawHover(display, overlayCtx, left, top, width, height)
+  drawOverlayBox(
+    display,
+    overlayCtx,
+    left,
+    top,
+    width,
+    height,
+    exon,
+    overlayType,
+  )
 }
 
 function getLayout(display: LinearApolloDisplay, feature: AnnotationFeature) {

@@ -359,6 +359,7 @@ export function mouseEventsModelFactory(
                     feature,
                     row,
                     block,
+                    'hover',
                   )
                 }
                 if (apolloDragging) {

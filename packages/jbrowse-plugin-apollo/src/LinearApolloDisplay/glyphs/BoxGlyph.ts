@@ -7,8 +7,8 @@ import { getContextMenuItemsForFeature, isSelectedFeature } from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
 import type { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
 
-import type { Glyph } from './Glyph'
-import { drawHover, getFeatureBox, strokeRectInner } from './util'
+import type { Glyph, OverlayType } from './Glyph'
+import { drawOverlayBox, getFeatureBox, strokeRectInner } from './util'
 
 function draw(
   display: LinearApolloDisplay,
@@ -26,7 +26,7 @@ function draw(
   }
   strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
   if (isSelectedFeature(feature, selectedFeature)) {
-    drawHover(display, ctx, left, top, width, height, true)
+    drawOverlay(display, ctx, feature, row, block, 'select')
   }
 }
 
@@ -36,9 +36,19 @@ function drawOverlay(
   feature: AnnotationFeature,
   row: number,
   block: ContentBlock,
+  overlayType: OverlayType,
 ) {
   const [top, left, width, height] = getFeatureBox(display, feature, row, block)
-  drawHover(display, overlayCtx, left, top, width, height)
+  drawOverlayBox(
+    display,
+    overlayCtx,
+    left,
+    top,
+    width,
+    height,
+    feature,
+    overlayType,
+  )
 }
 
 function drawDragPreview(

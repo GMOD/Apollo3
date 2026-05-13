@@ -1,8 +1,12 @@
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
-
 import type {} from '../../util'
+import { alpha } from '@mui/material'
+
 import type { LinearApolloDisplay } from '../stateModel'
 import type { MousePosition } from '../stateModel/mouseEvents'
+
+import type { OverlayType } from './Glyph'
 
 export function getLeftPx(
   display: LinearApolloDisplay,
@@ -35,19 +39,42 @@ export function getFeatureBox(
   return [top, left, width, height]
 }
 
-export function drawHover(
+function getOverlayColor(
+  display: LinearApolloDisplay,
+  feature: AnnotationFeature,
+  overlayType: OverlayType,
+): string | undefined {
+  const { theme } = display
+  switch (overlayType) {
+    case 'select': {
+      return theme.palette.action.disabled
+    }
+    case 'hover': {
+      return theme.palette.action.focus
+    }
+    case 'highlight': {
+      const { attributes } = feature
+      const colorAttribute = attributes.get('apollo_color')
+      return colorAttribute?.[0]
+    }
+  }
+}
+
+export function drawOverlayBox(
   display: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
   left: number,
   top: number,
   width: number,
   height: number,
-  selected = false,
+  feature: AnnotationFeature,
+  overlayType: OverlayType,
 ) {
-  const { theme } = display
-  ctx.fillStyle = selected
-    ? theme.palette.action.disabled
-    : theme.palette.action.focus
+  const color = getOverlayColor(display, feature, overlayType)
+  if (!color) {
+    return
+  }
+  ctx.fillStyle = alpha(color, 0.3)
   ctx.fillRect(left, top, width, height)
 }
 

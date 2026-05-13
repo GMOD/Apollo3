@@ -15,8 +15,8 @@ import {
 import type { LinearApolloDisplay } from '../stateModel'
 
 import { boxGlyph } from './BoxGlyph'
-import type { Glyph, LayoutRow } from './Glyph'
-import { drawHover, getFeatureBox, getLeftPx } from './util'
+import type { Glyph, LayoutRow, OverlayType } from './Glyph'
+import { drawOverlayBox, getFeatureBox, getLeftPx } from './util'
 
 function* range(start: number, stop: number, step = 1): Generator<number> {
   if (start === stop) {
@@ -117,11 +117,9 @@ function draw(
   block: ContentBlock,
 ) {
   drawTranscriptLine(display, ctx, transcript, row, block)
-  const { apolloRowHeight, selectedFeature } = display
+  const { selectedFeature } = display
   if (isSelectedFeature(transcript, selectedFeature)) {
-    const [top, left, width] = getFeatureBox(display, transcript, row, block)
-    const height = apolloRowHeight * getRowCount(display, transcript)
-    drawHover(display, ctx, left, top, width, height, true)
+    drawOverlay(display, ctx, transcript, row, block, 'select')
   }
 }
 
@@ -131,11 +129,21 @@ function drawOverlay(
   transcript: AnnotationFeature,
   row: number,
   block: ContentBlock,
+  overlayType: OverlayType,
 ) {
   const { apolloRowHeight } = display
   const [top, left, width] = getFeatureBox(display, transcript, row, block)
   const height = apolloRowHeight * getRowCount(display, transcript)
-  drawHover(display, overlayCtx, left, top, width, height)
+  drawOverlayBox(
+    display,
+    overlayCtx,
+    left,
+    top,
+    width,
+    height,
+    transcript,
+    overlayType,
+  )
 }
 
 function getLayout(display: LinearApolloDisplay, feature: AnnotationFeature) {

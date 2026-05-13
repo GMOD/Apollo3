@@ -8,8 +8,8 @@ import { isSelectedFeature } from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
 
 import { boxGlyph } from './BoxGlyph'
-import type { Glyph } from './Glyph'
-import { drawHover, getFeatureBox, strokeRectInner } from './util'
+import type { Glyph, OverlayType } from './Glyph'
+import { drawOverlayBox, getFeatureBox, strokeRectInner } from './util'
 
 function getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature) {
   return getLayout(display, feature).byRow.length
@@ -42,7 +42,7 @@ function draw(
   strokeRectInner(ctx, left, top, width, height, theme.palette.text.primary)
 
   if (isSelectedFeature(gene, selectedFeature)) {
-    drawHover(display, ctx, left, top, width, height, true)
+    drawOverlay(display, ctx, gene, row, block, 'select', rowInFeature)
   }
 }
 
@@ -52,11 +52,16 @@ function drawOverlay(
   gene: AnnotationFeature,
   row: number,
   block: ContentBlock,
+  overlayType: OverlayType,
+  rowInFeature: number,
 ) {
+  if (rowInFeature > 0) {
+    return
+  }
   const { apolloRowHeight } = display
   const [top, left, width] = getFeatureBox(display, gene, row, block)
   const height = getRowCount(display, gene) * apolloRowHeight
-  drawHover(display, ctx, left, top, width, height)
+  drawOverlayBox(display, ctx, left, top, width, height, gene, overlayType)
 }
 
 function getLayout(display: LinearApolloDisplay, feature: AnnotationFeature) {
