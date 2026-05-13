@@ -15,6 +15,7 @@ import SkipPreviousRoundedIcon from '@mui/icons-material/SkipPreviousRounded'
 import type { LinearApolloDisplayMouseEvents } from '../LinearApolloDisplay/stateModel/mouseEvents'
 import type { LinearApolloSixFrameDisplayMouseEvents } from '../LinearApolloSixFrameDisplay/stateModel/mouseEvents'
 import { AddChildFeature } from '../components/AddChildFeature'
+import { ColorFeature } from '../components/ColorFeature'
 import { CopyFeature } from '../components/CopyFeature'
 import { DeleteFeature } from '../components/DeleteFeature'
 import type { ApolloSessionModel } from '../session'
@@ -380,6 +381,26 @@ export function getContextMenuItemsForFeature(
               setSelectedFeature: (feature?: AnnotationFeature) => {
                 display.setSelectedFeature(feature)
               },
+            },
+          ],
+        )
+      },
+    },
+    {
+      label: 'Color feature',
+      disabled: readOnly,
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            ColorFeature,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature,
+              sourceAssemblyId: currentAssemblyId,
             },
           ],
         )
