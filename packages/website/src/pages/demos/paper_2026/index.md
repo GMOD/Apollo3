@@ -11,7 +11,7 @@ to the Apollo track, where it can be edited.
 
 ![Three-level pairwise synteny](multi_way_synteny_screenshot.png)
 
-[Session link](https://apollo.jbrowse.org/paper_2026/?session=share-O4MEYslLhE&password=czp9i)
+[Session link](https://apollo.jbrowse.org/paper_2026/?session=share-i9tsh_e0kZ&password=0owtJ)
 
 ## Single genome with deep evidence
 

@@ -16,7 +16,7 @@ $ npm install -g @apollo-annotation/cli
 $ apollo COMMAND
 running command...
 $ apollo (--version)
-@apollo-annotation/cli/0.3.13 linux-x64 node-v24.13.0
+@apollo-annotation/cli/0.3.13 linux-x64 node-v24.14.1
 $ apollo --help [COMMAND]
 USAGE
   $ apollo COMMAND
