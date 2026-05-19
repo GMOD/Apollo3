@@ -276,7 +276,6 @@ export class ChangesService {
     }
 
     if (changeFilter.createdAfter) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const createdAfterDate = new Date(changeFilter.createdAfter)
       if (Number.isNaN(createdAfterDate.getTime())) {
         throw new UnprocessableEntityException(
