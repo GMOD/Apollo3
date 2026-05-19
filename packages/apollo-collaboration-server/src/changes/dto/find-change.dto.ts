@@ -5,7 +5,7 @@ export class FindChangeDto {
   readonly user?: string
   readonly typeName?: string
   readonly since?: string
-  // Timestamp lower bound for createdAt (ISO string recommended)
+  // Timestamp lower bound for createdAt
   readonly createdAfter?: string
   readonly sort?: string
   readonly limit?: string
