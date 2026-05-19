@@ -26,14 +26,14 @@ In such cases you need to use the assembly ID.'
 
     const access = await this.getAccess()
 
-    const changes: Response = await queryApollo(
+    const response: Response = await queryApollo(
       access.address,
       access.accessToken,
       'changes',
     )
-    const json = (await changes.json()) as object[]
+    const { changes } = (await response.json()) as { changes: object[] }
 
-    let keep = json
+    let keep = changes
     if (flags.assembly !== undefined) {
       keep = []
       const assembly = await idReader(flags.assembly)
@@ -42,7 +42,7 @@ In such cases you need to use the assembly ID.'
         access.accessToken,
         assembly,
       )
-      for (const x of json) {
+      for (const x of changes) {
         if (assemblyIds.includes(x['assembly' as keyof typeof x])) {
           keep.push(x)
         }
