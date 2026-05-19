@@ -19,6 +19,7 @@ import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
 import {
   type AbstractSessionModel,
+  type UriLocation,
   isAbstractMenuManager,
   isElectron,
 } from '@jbrowse/core/util'
@@ -68,8 +69,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
     .volatile(() => ({
       role: undefined as Role | undefined,
       controller: new AbortController(),
+      tokenPromise: undefined as Promise<string> | undefined,
     }))
-
     .actions((self) => ({
       setRole() {
         const token = self.retrieveToken()
@@ -78,10 +79,73 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           return
         }
         const dec = getDecodedToken(token)
-        const { role } = dec
+        const { role, exp } = dec
+        if (exp < Date.now() / 1000) {
+          self.role = undefined
+          self.removeToken()
+          return
+        }
         if (self.role !== role) {
           self.role = role
         }
+      },
+    }))
+    .actions((self) => {
+      const superGetFetcher = self.getFetcher
+      return {
+        getFetcher(loc?: UriLocation) {
+          const fetcher = superGetFetcher(loc)
+          return async (input: RequestInfo, init?: RequestInit) => {
+            const response = await fetcher(input, init)
+            if (response.status === 403) {
+              self.removeToken()
+              self.setRole()
+              return fetcher(input, init)
+            }
+            return response
+          }
+        },
+      }
+    })
+    .actions((self) => ({
+      removeToken() {
+        sessionStorage.removeItem(self.tokenKey)
+        self.tokenPromise = undefined
+      },
+    }))
+    .actions((self) => ({
+      async getToken(location?: UriLocation): Promise<string> {
+        if (self.tokenPromise) {
+          return self.tokenPromise
+        }
+        let token = location?.internetAccountPreAuthorization?.authInfo?.token
+        if (token) {
+          self.tokenPromise = Promise.resolve(token)
+          return self.tokenPromise
+        }
+        if (inWebWorker) {
+          throw new Error(
+            'Did not get internet account pre-authorization info in worker',
+          )
+        }
+        token = self.retrieveToken()
+        if (token) {
+          self.tokenPromise = Promise.resolve(token)
+          return self.tokenPromise
+        }
+        self.tokenPromise = new Promise((resolve, reject) => {
+          self.getTokenFromUser(
+            (token) => {
+              self.storeToken(token)
+              resolve(token)
+            },
+            (error) => {
+              self.removeToken()
+              reject(error)
+            },
+          )
+        })
+        return self.tokenPromise
       },
     }))
     .actions((self) => {
