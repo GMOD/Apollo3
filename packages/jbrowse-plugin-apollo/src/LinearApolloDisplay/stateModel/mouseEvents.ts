@@ -352,13 +352,14 @@ export function mouseEventsModelFactory(
                   )
                 ) {
                   // draw mouseover hovers
-                  glyph.drawHover(
+                  glyph.drawOverlay(
                     // @ts-expect-error ts doesn't understand mst extension
                     self,
                     ctx,
                     feature,
                     row,
                     block,
+                    'hover',
                   )
                 }
                 if (apolloDragging) {

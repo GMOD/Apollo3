@@ -220,6 +220,31 @@ export function renderingModelFactory(
                       .draw(self, ctx, feature, row, rowInFeature, block)
                   }
                 }
+                for (const [row, layoutRow] of byRow.entries()) {
+                  for (const layoutFeature of layoutRow) {
+                    const { feature, rowInFeature } = layoutFeature
+                    if (
+                      !doesIntersect2(
+                        block.start,
+                        block.end,
+                        feature.min,
+                        feature.max,
+                      )
+                    ) {
+                      continue
+                    }
+                    self.getGlyph(feature).drawOverlay(
+                      // @ts-expect-error ts doesn't understand mst extension
+                      self,
+                      ctx,
+                      feature,
+                      row,
+                      block,
+                      'highlight',
+                      rowInFeature,
+                    )
+                  }
+                }
                 ctx.restore()
               }
             },

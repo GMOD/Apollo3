@@ -7,8 +7,8 @@ import { isSelectedFeature } from '../../util'
 import type { LinearApolloDisplay } from '../stateModel'
 
 import { boxGlyph } from './BoxGlyph'
-import type { Glyph } from './Glyph'
-import { drawHighlight, getFeatureBox, strokeRectInner } from './util'
+import type { Glyph, OverlayType } from './Glyph'
+import { drawOverlayBox, getFeatureBox, strokeRectInner } from './util'
 
 function getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature) {
   return getLayout(display, feature).byRow.length
@@ -36,21 +36,31 @@ function draw(
   boxGlyph.draw(display, ctx, feature, row, 0, block)
 
   if (isSelectedFeature(feature, selectedFeature)) {
-    drawHighlight(display, ctx, left, top, width, height, true)
+    drawOverlay(display, ctx, feature, row, block, 'select')
   }
 }
 
-function drawHover(
+function drawOverlay(
   display: LinearApolloDisplay,
   overlayCtx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
   block: ContentBlock,
+  overlayType: OverlayType,
 ) {
   const { apolloRowHeight } = display
   const [top, left, width] = getFeatureBox(display, feature, row, block)
   const height = getRowCount(display, feature) * apolloRowHeight
-  drawHighlight(display, overlayCtx, left, top, width, height)
+  drawOverlayBox(
+    display,
+    overlayCtx,
+    left,
+    top,
+    width,
+    height,
+    feature,
+    overlayType,
+  )
 }
 
 function getLayout(display: LinearApolloDisplay, feature: AnnotationFeature) {
@@ -96,7 +106,7 @@ const { drawDragPreview } = boxGlyph
 export const genericChildGlyph: Glyph = {
   draw,
   drawDragPreview,
-  drawHover,
+  drawOverlay,
   getContextMenuItems,
   getLayout,
   isDraggable: true,

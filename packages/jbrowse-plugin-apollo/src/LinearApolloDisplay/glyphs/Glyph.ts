@@ -17,6 +17,8 @@ export interface Layout {
   max: number
 }
 
+export type OverlayType = 'hover' | 'select' | 'highlight'
+
 export interface Glyph {
   /** draw the feature's primary rendering on the canvas */
   draw(
@@ -27,13 +29,18 @@ export interface Glyph {
     rowInFeature: number,
     block: ContentBlock,
   ): void
-  /** draw the feature's hover highlight on the overlay canvas */
-  drawHover(
+  /**
+   * draw an overlay of the feature, used for when the feature is selected,
+   * hovered over, or highlighted
+   */
+  drawOverlay(
     display: LinearApolloDisplay,
     overlayCtx: CanvasRenderingContext2D,
     feature: AnnotationFeature,
     row: number,
     block: ContentBlock,
+    overlayType: OverlayType,
+    rowInFeature?: number,
   ): void
   /** draw a preview of the result of a dragging action on the overlay canvas */
   drawDragPreview(

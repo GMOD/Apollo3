@@ -313,7 +313,7 @@ export function mouseEventsModelFactory(
               const glyph = self.getGlyph(hoveredFeature.feature)
 
               // draw mouseover hovers
-              glyph.drawHover(self, ctx)
+              glyph.drawOverlay(self, ctx)
 
               // draw tooltip on hover
               glyph.drawTooltip(self, ctx)

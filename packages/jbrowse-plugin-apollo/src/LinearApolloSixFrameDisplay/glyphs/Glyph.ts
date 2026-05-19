@@ -16,7 +16,7 @@ export interface Glyph {
     displayedRegionIndex: number,
   ): void
 
-  drawHover(
+  drawOverlay(
     display: LinearApolloSixFrameDisplayMouseEvents,
     overlayCtx: CanvasRenderingContext2D,
   ): void
