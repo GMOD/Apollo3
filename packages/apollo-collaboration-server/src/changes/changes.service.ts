@@ -265,39 +265,96 @@ export class ChangesService {
   }
 
   async findAll(changeFilter: FindChangeDto) {
-    // eslint-disable-next-line @typescript-eslint/no-misused-spread
-    const queryCond: FilterQuery<ChangeDocument> = { ...changeFilter }
-    if (changeFilter.user) {
-      queryCond.user = { $regex: changeFilter.user, $options: 'i' }
+    const {
+      assembly,
+      changedIds,
+      reverts,
+      user,
+      typeName,
+      since,
+      sort,
+      limit,
+      page,
+      pageSize,
+      sortField,
+      sortOrder,
+      startTime,
+      endTime,
+    } = changeFilter
+
+    const queryCond: FilterQuery<ChangeDocument> = {}
+    if (assembly) {
+      queryCond.assembly = assembly
     }
-    if (changeFilter.since) {
-      queryCond.sequence = { $gt: Number(changeFilter.since) }
-      delete queryCond.since
+    if (changedIds) {
+      queryCond.changedIds = changedIds
+    }
+    if (reverts) {
+      queryCond.reverts = reverts
+    }
+    if (typeName) {
+      queryCond.typeName = typeName
+    }
+    if (user) {
+      queryCond.user = { $regex: user, $options: 'i' }
+    }
+    if (since) {
+      queryCond.sequence = { $gt: Number(since) }
+    }
+    if (startTime || endTime) {
+      const createdAt: { $gte?: Date; $lte?: Date } = {}
+      if (startTime) {
+        createdAt.$gte = new Date(startTime)
+      }
+      if (endTime) {
+        createdAt.$lte = new Date(endTime)
+      }
+      queryCond.createdAt = createdAt
     }
     this.logger.debug(`Search criteria: "${JSON.stringify(queryCond)}"`)
 
-    let sortOrder: 1 | -1 = -1
-    if (changeFilter.sort && changeFilter.sort === '1') {
-      sortOrder = 1
+    const sortableFields = new Set([
+      'sequence',
+      'typeName',
+      'user',
+      'createdAt',
+    ])
+    const resolvedSortField =
+      sortField && sortableFields.has(sortField) ? sortField : 'sequence'
+    let resolvedSortOrder: 1 | -1 = -1
+    if (sortOrder === 'asc') {
+      resolvedSortOrder = 1
+    } else if (sortOrder === 'desc') {
+      resolvedSortOrder = -1
+    } else if (sort === '1') {
+      resolvedSortOrder = 1
     }
     let changeCursor = this.changeModel
       // unicorn thinks this is an Array.prototype.find, so we ignore it
       // eslint-disable-next-line unicorn/no-array-callback-reference
       .find(queryCond)
-      .sort({ sequence: sortOrder })
+      .sort({ [resolvedSortField]: resolvedSortOrder })
 
-    if (changeFilter.limit) {
-      changeCursor = changeCursor.limit(Number(changeFilter.limit))
+    if (page !== undefined && pageSize !== undefined) {
+      const pageNum = Number(page)
+      const size = Number(pageSize)
+      changeCursor = changeCursor.skip(pageNum * size).limit(size)
+    } else if (limit) {
+      changeCursor = changeCursor.limit(Number(limit))
     }
-    const change = await changeCursor.exec()
 
-    if (!change) {
+    const [changes, totalCount] = await Promise.all([
+      changeCursor.exec(),
+      this.changeModel.countDocuments(queryCond).exec(),
+    ])
+
+    if (!changes) {
       const errMsg = 'ERROR: The following change was not found in database....'
       this.logger.error(errMsg)
       throw new NotFoundException(errMsg)
     }
 
-    return change
+    return { changes, totalCount }
   }
 
   async batchUpdateMany(

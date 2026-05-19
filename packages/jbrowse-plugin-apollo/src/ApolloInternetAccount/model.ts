@@ -253,7 +253,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             )
             throw new Error(errorMessage)
           }
-          const changes = yield response.json()
+          const { changes } = yield response.json()
           const sequence = changes.length > 0 ? changes[0].sequence : 0
           self.setLastChangeSequenceNumber(sequence)
         },
@@ -298,7 +298,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           )
           return
         }
-        const serializedChanges = yield response.json()
+        const { changes: serializedChanges } = yield response.json()
         for (const serializedChange of serializedChanges) {
           const change = Change.fromJSON(serializedChange)
           void changeManager.submit(change, { submitToBackend: false })

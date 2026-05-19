@@ -7,4 +7,10 @@ export class FindChangeDto {
   readonly since?: string
   readonly sort?: string
   readonly limit?: string
+  readonly page?: string
+  readonly pageSize?: string
+  readonly sortField?: string
+  readonly sortOrder?: string
+  readonly startTime?: string
+  readonly endTime?: string
 }

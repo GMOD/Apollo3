@@ -30,7 +30,8 @@ import { createFetchErrorMessage } from '../util'
 
 import {
   BackendDriver,
-  type ChangeDocument,
+  type GetChangesOpts,
+  type GetChangesResult,
   type RefNameAliases,
 } from './BackendDriver'
 
@@ -396,11 +397,39 @@ export class CollaborationServerDriver extends BackendDriver {
     })
   }
 
-  async getChanges(assemblyName: string): Promise<ChangeDocument[]> {
+  async getChanges(
+    assemblyName: string,
+    opts: GetChangesOpts = {},
+  ): Promise<GetChangesResult> {
     const internetAccount = this.clientStore.getInternetAccount(assemblyName)
     const { baseURL } = internetAccount
     const url = new URL('changes', baseURL)
-    url.search = new URLSearchParams({ assembly: assemblyName }).toString()
+    const params: Record<string, string> = { assembly: assemblyName }
+    if (opts.page !== undefined) {
+      params.page = String(opts.page)
+    }
+    if (opts.pageSize !== undefined) {
+      params.pageSize = String(opts.pageSize)
+    }
+    if (opts.sortField) {
+      params.sortField = opts.sortField
+    }
+    if (opts.sortOrder) {
+      params.sortOrder = opts.sortOrder
+    }
+    if (opts.filters?.user) {
+      params.user = opts.filters.user
+    }
+    if (opts.filters?.typeName) {
+      params.typeName = opts.filters.typeName
+    }
+    if (opts.filters?.startTime) {
+      params.startTime = opts.filters.startTime
+    }
+    if (opts.filters?.endTime) {
+      params.endTime = opts.filters.endTime
+    }
+    url.search = new URLSearchParams(params).toString()
     const response = await this.fetch(internetAccount, url.toString())
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(
@@ -409,7 +438,7 @@ export class CollaborationServerDriver extends BackendDriver {
       )
       throw new Error(errorMessage)
     }
-    return response.json() as Promise<ChangeDocument[]>
+    return response.json() as Promise<GetChangesResult>
   }
 
   async getCheckResults(assemblyName: string): Promise<CheckResultSnapshot[]> {
