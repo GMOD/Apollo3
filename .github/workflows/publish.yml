@@ -16,7 +16,7 @@ jobs:
     environment: publish
     steps:
       - name: Check out
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       # Setup .npmrc file to publish to npm
       - name: Use Node.js 24.x
         uses: actions/setup-node@v6
@@ -33,7 +33,7 @@ jobs:
       - name: Publish
         run:
           yarn workspaces foreach --no-private --all npm publish
-          --tolerate-republish
+          --tolerate-republish --access public --provenance
   publish-docker:
     needs: [publish-npm]
     uses: ./.github/workflows/docker.yml
