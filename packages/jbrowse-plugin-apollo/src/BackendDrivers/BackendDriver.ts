@@ -23,6 +23,24 @@ export interface ChangeDocument extends SerializedChange {
   changes?: SerializedChange[]
 }
 
+export interface GetChangesOpts {
+  page?: number
+  pageSize?: number
+  sortField?: string
+  sortOrder?: 'asc' | 'desc'
+  filters?: {
+    user?: string
+    typeName?: string
+    startTime?: string
+    endTime?: string
+  }
+}
+
+export interface GetChangesResult {
+  changes: ChangeDocument[]
+  totalCount: number
+}
+
 export abstract class BackendDriver {
   constructor(protected clientStore: ClientDataStoreModel) {}
 
@@ -48,7 +66,10 @@ export abstract class BackendDriver {
     assemblies: string[],
   ): Promise<AnnotationFeatureSnapshot[]>
 
-  abstract getChanges(assemblyName: string): Promise<ChangeDocument[]>
+  abstract getChanges(
+    assemblyName: string,
+    opts?: GetChangesOpts,
+  ): Promise<GetChangesResult>
 
   abstract getCheckResults(assemblyName: string): Promise<CheckResultSnapshot[]>
 }
