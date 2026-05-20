@@ -1,6 +1,6 @@
 {
   "name": "@apollo-annotation/mst",
-  "version": "0.3.13",
+  "version": "1.0.0",
   "sideEffects": false,
   "type": "module",
   "exports": "./dist/index.js",
