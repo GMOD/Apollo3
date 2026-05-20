@@ -49,7 +49,7 @@ function main() {
       [
         'add',
         'packages/apollo-cli/README.md',
-        '../website/docs/03-guides/04-cli/*.md',
+        'packages/website/docs/03-guides/04-cli/*.md',
       ],
       { stdio: 'inherit' },
     )
