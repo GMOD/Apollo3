@@ -96,7 +96,10 @@ export class LocalDriver extends BackendDriver {
       undefined,
       pluginManager,
     ) as BaseSequenceAdapter
-    const seq = await adapter.getSequence(region)
+    const seq = await adapter.getSequence({
+      ...region,
+      refName: assembly.getSeqAdapterRefName(region.refName),
+    })
     if (!seq) {
       throw new Error(`Sequence not found: ${JSON.stringify(region)}`)
     }
