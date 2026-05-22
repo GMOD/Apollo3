@@ -7,26 +7,39 @@ sidebar_position: 0
 Apollo is a tool for collaborative, customizable, and scalable graphical genome
 annotation.
 
-<!-- These docs are aimed at those who are installing or managing a full
-collaborative installation of Apollo. We need a separate section at some point
-for user guides and information about Apollo on JBrowse Desktop. -->
+## User Guide
 
-## Try it out
+If you're new to Apollo, our user guide is a great way to get familiar with what
+Apollo is and what it can do. The guide will walk you step by step through
+creating and editing your first genome annotations.
 
-Want to try out Apollo? See [this page](01-try-it-out/01-ways-to-try-it-out.md)
-for several options, ranging from trying out our public demo to quickly
-installing your own local version.
+The user guide also covers more advanced topics in genome annotation and can
+serve as a "how-to" reference for more experienced users.
 
-## Installation
+<a href="docs/user-guide" target="\_blank" className="button button--primary button--lg">Go
+to user guide</a>
 
-Are you ready to deploy a multi-user Apollo installation? See our full
-[installation instructions](02-installation/01-background.md).
+## Setting up Apollo
 
-## Guides
+Are you ready to start using Apollo on your own data? There are two ways you can
+get started.
 
-Once you have Apollo set up, see our guides to learn how to add your genomes and
-annotations. You can also learn how to customize Apollo to better fit your
-needs.
+### Single user
+
+If you don't need multi-user collaboration, see our single-user guide for
+instructions on how to quickly and easily set up Apollo to work on your genome
+annotations.
+
+<a href="docs/single-user" target="\_blank" className="button button--primary button--lg">Go
+to single-user setup guide</a>
+
+### Multiple users
+
+If you want to set up Apollo for multiple users to work collaboratively, then
+see this guide for links to installing an Apollo Collaboration Server.
+
+<a href="docs/multi-user" target="\_blank" className="button button--primary button--lg">Go
+to multi-user setup guide</a>
 
 <!-- ## Developers
 

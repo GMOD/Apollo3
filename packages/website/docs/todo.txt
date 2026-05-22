@@ -1,0 +1,32 @@
+Add a gene from a JBrowse gene track
+  Add another, and make sure not to create a new gene
+Add a transcript from a JBrowse track to an existing gene
+Duplicate and modify an existing transcript
+Add a feature from the rubberband menu
+Add a gene from a long-read transcriptomic RNA-seq read
+  Add a coding sequence from the read
+Add an exon to a transcript
+Modify an exon
+  Both by extending to create UTR and to fix splice sites
+Merge exons
+Merge transcripts
+Add an intron
+Delete an exon
+Flip a strand
+Merge genes
+Six-frame
+
+Functional annotation
+
+Export GFF3
+
+---
+
+Introduction
+Try out Apollo
+  Direct toward user guide
+  On an existing JBrowse installation or JBrowse desktop
+  In a local version
+Installation
+Using Apollo
+Guides
