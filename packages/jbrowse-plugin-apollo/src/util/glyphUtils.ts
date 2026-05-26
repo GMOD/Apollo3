@@ -314,8 +314,8 @@ export function getContextMenuItemsForFeature(
   const role = internetAccount ? internetAccount.role : 'admin'
   const readOnly = !(role && ['admin', 'user'].includes(role))
   const [region] = regions
-  const sourceAssemblyId = display.getAssemblyId(region.assemblyName)
-  const currentAssemblyId = display.getAssemblyId(region.assemblyName)
+  const sourceAssemblyId = display.getAssemblyId(region.assemblyName) as string
+  const currentAssemblyId = display.getAssemblyId(region.assemblyName) as string
   menuItems.push(
     {
       label: makeFeatureLabel(sourceFeature),

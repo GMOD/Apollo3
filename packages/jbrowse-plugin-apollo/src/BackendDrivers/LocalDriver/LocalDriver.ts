@@ -74,7 +74,9 @@ export class LocalDriver extends BackendDriver {
   async getSequence(region: Region): Promise<{ seq: string; refSeq: string }> {
     const session = getSession(this.clientStore)
     const { assemblyManager } = session
-    const assembly = await assemblyManager.waitForAssembly(region.assemblyName)
+    const assembly = (await assemblyManager.waitForAssembly(
+      region.assemblyName,
+    )) as Assembly | undefined
     if (!assembly) {
       throw new Error(`Assembly not found: "${region.assemblyName}"`)
     }
@@ -109,7 +111,9 @@ export class LocalDriver extends BackendDriver {
   async getRegions(assemblyName: string): Promise<Region[]> {
     const session = getSession(this.clientStore)
     const { assemblyManager } = session
-    const assembly = await assemblyManager.waitForAssembly(assemblyName)
+    const assembly = (await assemblyManager.waitForAssembly(assemblyName)) as
+      | Assembly
+      | undefined
     if (!assembly) {
       throw new Error(`Assembly not found: "${assemblyName}"`)
     }
@@ -127,7 +131,9 @@ export class LocalDriver extends BackendDriver {
   async getRefNameAliases(assemblyName: string): Promise<RefNameAliases[]> {
     const session = getSession(this.clientStore)
     const { assemblyManager } = session
-    const assembly = await assemblyManager.waitForAssembly(assemblyName)
+    const assembly = (await assemblyManager.waitForAssembly(assemblyName)) as
+      | Assembly
+      | undefined
     if (!assembly) {
       throw new Error(`Assembly not found: "${assemblyName}"`)
     }

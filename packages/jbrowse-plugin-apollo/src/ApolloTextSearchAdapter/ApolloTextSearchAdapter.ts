@@ -78,7 +78,7 @@ export class ApolloTextSearchAdapter
     const { assemblyManager } = session as unknown as AbstractSessionModel
     for (const assemblyName of this.assemblyNames) {
       const backendDriver = apolloDataStore.getBackendDriver(assemblyName)
-      const assembly = assemblyManager.get(assemblyName)
+      const assembly = assemblyManager.get(assemblyName) as Assembly | undefined
       if (!(backendDriver && assembly)) {
         continue
       }

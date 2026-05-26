@@ -202,7 +202,7 @@ export function mouseEventsModelFactory(
         }
         const { displayedRegions } = self.lgv
         const region = displayedRegions[start.regionNumber]
-        const assembly = self.getAssemblyId(region.assemblyName)
+        const assembly = self.getAssemblyId(region.assemblyName) as string
         const changes = getPropagatedLocationChanges(
           feature,
           current.bp,

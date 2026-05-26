@@ -205,7 +205,7 @@ function getContextMenuItems(
 ): MenuItem[] {
   const { changeManager, regions, selectedFeature, session } = display
   const [region] = regions
-  const currentAssemblyId = display.getAssemblyId(region.assemblyName)
+  const currentAssemblyId = display.getAssemblyId(region.assemblyName) as string
   const menuItems: MenuItem[] = []
   if (isSessionModelWithWidgets(session)) {
     menuItems.splice(1, 0, {
