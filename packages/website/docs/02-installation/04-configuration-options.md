@@ -29,10 +29,10 @@ SESSION_SECRET=g9fGaRuw06T7hs960Tm7KYyfcFaYEIaG9jfFnVEQ4QyFXmq7
 # Alternatively, can be a path to a file with the session secret
 # SESSION_SECRET_FILE=/run/secrets/session-secret
 
-##############################################################################
-## To enable users to log in, you need either (or both) Google or Microsoft ##
-## OAuth configured. Without them, only userless guest access is possible.  ##
-##############################################################################
+####################################################################################
+## To enable users to log in, configure one or more providers: Google, Microsoft, ##
+## or Login.gov OAuth/OIDC. Without them, only userless guest access is possible. ##
+####################################################################################
 
 # Google client id and secret.
 GOOGLE_CLIENT_ID=client_id_here
@@ -49,6 +49,22 @@ MICROSOFT_CLIENT_ID=client_id_here
 MICROSOFT_CLIENT_SECRET=client_secret_here
 # Alternatively, can be a path to a file with the client secret
 # MICROSOFT_CLIENT_SECRET_FILE=/run/secrets/microsoft-client-secret
+
+# Login.gov client id and secret.
+# Endpoints default to the Login.gov production issuer when omitted.
+# You must register/allowlist your exact callback endpoint before enabling this.
+LOGINGOV_CLIENT_ID=client_id_here
+# Alternatively, can be a path to a file with the client ID
+# LOGINGOV_CLIENT_ID_FILE=/run/secrets/logingov-client-id
+LOGINGOV_CLIENT_SECRET=client_secret_here
+# Alternatively, can be a path to a file with the client secret
+# LOGINGOV_CLIENT_SECRET_FILE=/run/secrets/logingov-client-secret
+# Optional overrides for OIDC endpoints and scope
+# LOGINGOV_ISSUER_BASE_URL=https://secure.login.gov
+# LOGINGOV_AUTHORIZATION_URL=https://secure.login.gov/openid_connect/authorize
+# LOGINGOV_TOKEN_URL=https://secure.login.gov/api/openid_connect/token
+# LOGINGOV_USER_INFO_URL=https://secure.login.gov/api/openid_connect/userinfo
+# LOGINGOV_SCOPE=openid email profile
 
 ##############
 ## OPTIONAL ##

@@ -13,7 +13,12 @@ import React, { useEffect, useState } from 'react'
 import { Dialog } from '../../components/Dialog'
 import { createFetchErrorMessage } from '../../util'
 
-import { GoogleButton, GuestButton, MicrosoftButton } from './LoginButtons'
+import {
+  GoogleButton,
+  GuestButton,
+  LoginGovButton,
+  MicrosoftButton,
+} from './LoginButtons'
 
 const useStyles = makeStyles()((theme) => ({
   divider: {
@@ -29,7 +34,9 @@ export const AuthTypeSelector = ({
 }: {
   baseURL: string
   name: string
-  handleClose: (type?: 'google' | 'microsoft' | 'guest' | Error) => void
+  handleClose: (
+    type?: 'google' | 'microsoft' | 'logingov' | 'guest' | Error,
+  ) => void
 }) => {
   const { classes } = useStyles()
   const [errorMessage, setErrorMessage] = useState('')
@@ -66,11 +73,13 @@ export const AuthTypeSelector = ({
     }
   }, [baseURL])
 
-  function handleClick(authType: 'google' | 'microsoft' | 'guest') {
+  function handleClick(authType: 'google' | 'microsoft' | 'logingov' | 'guest') {
     if (authType === 'google') {
       handleClose('google')
     } else if (authType === 'microsoft') {
       handleClose('microsoft')
+    } else if (authType === 'logingov') {
+      handleClose('logingov')
     } else {
       handleClose('guest')
     }
@@ -78,6 +87,7 @@ export const AuthTypeSelector = ({
 
   const allowGoogle = loginTypes.includes('google')
   const allowMicrosoft = loginTypes.includes('microsoft')
+  const allowLoginGov = loginTypes.includes('logingov')
   const allowGuest = loginTypes.includes('guest')
   return (
     <Dialog
@@ -103,6 +113,14 @@ export const AuthTypeSelector = ({
             disabled={!allowMicrosoft}
             onClick={() => {
               handleClick('microsoft')
+            }}
+          />
+        ) : null}
+        {allowLoginGov ? (
+          <LoginGovButton
+            disabled={!allowLoginGov}
+            onClick={() => {
+              handleClick('logingov')
             }}
           />
         ) : null}

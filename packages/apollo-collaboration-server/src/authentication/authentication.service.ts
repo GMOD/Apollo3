@@ -33,6 +33,8 @@ interface ConfigValues {
   MICROSOFT_CLIENT_ID_FILE?: string
   GOOGLE_CLIENT_ID?: string
   GOOGLE_CLIENT_ID_FILE?: string
+  LOGINGOV_CLIENT_ID?: string
+  LOGINGOV_CLIENT_ID_FILE?: string
   ALLOW_GUEST_USER: boolean
   DEFAULT_NEW_USER_ROLE: Role
   ROOT_USER_PASSWORD: string
@@ -92,6 +94,16 @@ export class AuthenticationService {
       googleClientID = clientIDFile && (await fs.readFile(clientIDFile, 'utf8'))
       googleClientID = clientIDFile?.trim()
     }
+    let loginGovClientID = this.configService.get('LOGINGOV_CLIENT_ID', {
+      infer: true,
+    })
+    if (!loginGovClientID) {
+      const clientIDFile = this.configService.get('LOGINGOV_CLIENT_ID_FILE', {
+        infer: true,
+      })
+      loginGovClientID =
+        clientIDFile && (await fs.readFile(clientIDFile, 'utf8')).trim()
+    }
     const allowGuestUser = this.configService.get('ALLOW_GUEST_USER', {
       infer: true,
     })
@@ -100,6 +112,9 @@ export class AuthenticationService {
     }
     if (googleClientID) {
       loginTypes.push('google')
+    }
+    if (loginGovClientID) {
+      loginTypes.push('logingov')
     }
     if (allowGuestUser) {
       loginTypes.push('guest')
@@ -132,6 +147,21 @@ export class AuthenticationService {
     }
     const { displayName } = profile
     return this.logIn(displayName, email.value)
+  }
+
+  async loginGovLogin(profile: {
+    id: string
+    displayName?: string
+    emails?: { value: string }[]
+    _json?: { email?: string; sub?: string }
+  }) {
+    const email = profile.emails?.[0]?.value ?? profile._json?.email
+    if (!email) {
+      throw new UnauthorizedException('No email provided')
+    }
+    const displayName =
+      profile.displayName ?? profile._json?.sub ?? 'login.gov user'
+    return this.logIn(displayName, email)
   }
 
   /**

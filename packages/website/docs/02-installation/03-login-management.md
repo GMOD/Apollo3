@@ -2,11 +2,18 @@
 
 Apollo itself does not handle user logins. This lets us keep Apollo simpler and
 more secure, since it doesn't store passwords, but means you'll have to set up
-third-party logins through Google or Microsoft.
+third-party logins through Google, Microsoft, or Login.gov.
 
 Apollo also allows a single admin-level access root user with a password,
 usually for use with the CLI, and a passwordless guest user with configurable
 access level.
+
+## Login.gov status
+
+Login.gov support is scaffolded in Apollo3, but rollout should be treated as
+pending until your final callback endpoint is registered/allowlisted with
+Login.gov. Keep the provider disabled in production until endpoint approval is
+complete.
 
 In order to set up these logins, you'll need Apollo to be hosted at a domain
 name that you own (e.g. the "Public IPv4 DNS" of an AWS EC2 instance will not

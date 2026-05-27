@@ -47,6 +47,20 @@ export function MicrosoftButton(props: ButtonProps) {
   )
 }
 
+export function LoginGovButton(props: ButtonProps) {
+  const { classes } = useStyles()
+  return (
+    <Button
+      className={classes.loginButton}
+      variant="outlined"
+      startIcon={<AccountCircleIcon fontSize="small" />}
+      {...props}
+    >
+      Sign in with Login.gov
+    </Button>
+  )
+}
+
 export function GuestButton(props: ButtonProps) {
   const { classes } = useStyles()
   return (

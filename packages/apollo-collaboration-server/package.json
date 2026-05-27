@@ -78,6 +78,7 @@
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
     "passport-microsoft": "^1.0.0",
+    "passport-openidconnect": "^0.1.2",
     "prop-types": "^15.8.1",
     "quick-lru": "^7.3.0",
     "react": "^18.2.0",

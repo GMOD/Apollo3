@@ -51,6 +51,15 @@ const validationSchema = Joi.object({
   MICROSOFT_CLIENT_ID_FILE: Joi.string(),
   MICROSOFT_CLIENT_SECRET: Joi.string(),
   MICROSOFT_CLIENT_SECRET_FILE: Joi.string(),
+  LOGINGOV_CLIENT_ID: Joi.string(),
+  LOGINGOV_CLIENT_ID_FILE: Joi.string(),
+  LOGINGOV_CLIENT_SECRET: Joi.string(),
+  LOGINGOV_CLIENT_SECRET_FILE: Joi.string(),
+  LOGINGOV_ISSUER_BASE_URL: Joi.string().uri(),
+  LOGINGOV_AUTHORIZATION_URL: Joi.string().uri(),
+  LOGINGOV_TOKEN_URL: Joi.string().uri(),
+  LOGINGOV_USER_INFO_URL: Joi.string().uri(),
+  LOGINGOV_SCOPE: Joi.string(),
   JWT_SECRET: Joi.string(),
   JWT_SECRET_FILE: Joi.string(),
   SESSION_SECRET: Joi.string(),
@@ -119,6 +128,8 @@ const validationSchema = Joi.object({
   .oxor('GOOGLE_CLIENT_SECRET', 'GOOGLE_CLIENT_SECRET_FILE')
   .oxor('MICROSOFT_CLIENT_ID', 'MICROSOFT_CLIENT_ID_FILE')
   .oxor('MICROSOFT_CLIENT_SECRET', 'MICROSOFT_CLIENT_SECRET_FILE')
+  .oxor('LOGINGOV_CLIENT_ID', 'LOGINGOV_CLIENT_ID_FILE')
+  .oxor('LOGINGOV_CLIENT_SECRET', 'LOGINGOV_CLIENT_SECRET_FILE')
   .xor('JWT_SECRET', 'JWT_SECRET_FILE')
   .xor('SESSION_SECRET', 'SESSION_SECRET_FILE')
   .xor('PLUGIN_URLS', 'PLUGIN_URLS_FILE')

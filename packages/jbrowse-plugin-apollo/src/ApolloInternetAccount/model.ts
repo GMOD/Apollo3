@@ -41,7 +41,7 @@ import { createFetchErrorMessage } from '../util'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import type { ApolloInternetAccountConfigModel } from './configSchema'
 
-type AuthType = 'google' | 'microsoft' | 'guest'
+type AuthType = 'google' | 'microsoft' | 'logingov' | 'guest'
 
 type Role = 'admin' | 'user' | 'readOnly' | 'none'
 

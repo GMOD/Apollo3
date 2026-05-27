@@ -89,3 +89,35 @@ declare module 'connect-mongodb-session' {
 
   export default connectMongoDBSession
 }
+
+declare module 'passport-openidconnect' {
+  import type { Strategy as PassportStrategyBase } from 'passport'
+
+  interface Profile {
+    id: string
+    displayName?: string
+    emails?: { value: string }[]
+    _json?: Record<string, unknown>
+  }
+
+  interface StrategyOptions {
+    issuer: string
+    authorizationURL: string
+    tokenURL: string
+    userInfoURL: string
+    clientID: string
+    clientSecret: string
+    callbackURL?: string
+    scope?: string
+    state?: boolean
+  }
+
+  class Strategy extends PassportStrategyBase {
+    constructor(
+      options: StrategyOptions,
+      verify: (issuer: string, profile: Profile, done: Function) => void,
+    )
+  }
+
+  export { Profile, Strategy, StrategyOptions }
+}

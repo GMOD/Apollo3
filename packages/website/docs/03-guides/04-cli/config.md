@@ -30,7 +30,7 @@ DESCRIPTION
   Address and port e.g http://localhost:3999
 
   - accessType:
-  How to access Apollo. accessType is typically one of: google, microsoft, guest, root. Allowed types depend on your
+  How to access Apollo. accessType is typically one of: google, microsoft, logingov, guest, root. Allowed types depend on your
   Apollo setup
 
   - accessToken:

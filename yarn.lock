@@ -423,6 +423,7 @@ __metadata:
     passport-jwt: "npm:^4.0.0"
     passport-local: "npm:^1.0.0"
     passport-microsoft: "npm:^1.0.0"
+    passport-openidconnect: "npm:^0.1.2"
     prop-types: "npm:^15.8.1"
     quick-lru: "npm:^7.3.0"
     react: "npm:^18.2.0"
@@ -26770,6 +26771,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"oauth@npm:0.10.x":
+  version: 0.10.2
+  resolution: "oauth@npm:0.10.2"
+  checksum: 10c0/5660d652b31eb2a90509989955a75b02311591d2e3cfb04a3fb91deae0d22c259aa5c31a9e8845f760d749af901032e3cfd06d151bbda9a5ebb9b76268d3aef9
+  languageName: node
+  linkType: hard
+
 "oauth@npm:0.9.x":
   version: 0.9.15
   resolution: "oauth@npm:0.9.15"
@@ -27554,6 +27562,16 @@ __metadata:
     uid2: "npm:0.0.x"
     utils-merge: "npm:1.x.x"
   checksum: 10c0/adf7bdb09cdec3278357a576db2e534b9df1fe92eddd25e52b754273e8c13e3c3fbfa22f3720f941a90372355a366b97da31f438c0be1d6e2593d4722f180dfd
+  languageName: node
+  linkType: hard
+
+"passport-openidconnect@npm:^0.1.2":
+  version: 0.1.2
+  resolution: "passport-openidconnect@npm:0.1.2"
+  dependencies:
+    oauth: "npm:0.10.x"
+    passport-strategy: "npm:1.x.x"
+  checksum: 10c0/4d4662b91e2580baa7cf2f341904c352de9ec776a3897f8bf51a90f248ee7dab26b94e2e3c590d14821b04b0fa95cb8d7cfad6edc095e3966b7666e8779b0b68
   languageName: node
   linkType: hard
 

@@ -8,6 +8,7 @@ import { PassportModule } from '@nestjs/passport'
 import { UsersModule } from '../users/users.module.js'
 import { GoogleStrategy } from '../utils/strategies/google.strategy.js'
 import { JwtStrategy } from '../utils/strategies/jwt.strategy.js'
+import { LoginGovStrategy } from '../utils/strategies/login-gov.strategy.js'
 import { MicrosoftStrategy } from '../utils/strategies/microsoft.strategy.js'
 
 import { AuthenticationController } from './authentication.controller.js'
@@ -47,6 +48,7 @@ async function jwtConfigFactory(
     AuthenticationService,
     JwtStrategy,
     GoogleStrategy,
+    LoginGovStrategy,
     MicrosoftStrategy,
   ],
   exports: [AuthenticationService],

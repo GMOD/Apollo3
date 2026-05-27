@@ -21,6 +21,7 @@ import {
   AuthenticationService,
   type RequestWithUserToken,
 } from './authentication.service.js'
+import { LoginGovAuthGuard } from '../utils/logingov.guard.js'
 
 @Validations(Role.None)
 @Controller('auth')
@@ -44,7 +45,7 @@ export class AuthenticationController {
     if (redirect_uri) {
       params.set('redirect_uri', redirect_uri)
     }
-    if (['google', 'microsoft', 'guest'].includes(type)) {
+    if (['google', 'microsoft', 'logingov', 'guest'].includes(type)) {
       const url = redirect_uri
         ? `${type}?${new URLSearchParams({ redirect_uri }).toString()}`
         : type
@@ -64,6 +65,13 @@ export class AuthenticationController {
   @Redirect()
   @UseGuards(MicrosoftAuthGuard)
   async microsoftHandleRedirect(@Req() req: RequestWithUserToken) {
+    return this.authService.handleRedirect(req)
+  }
+
+  @Get('logingov')
+  @Redirect()
+  @UseGuards(LoginGovAuthGuard)
+  async loginGovHandleRedirect(@Req() req: RequestWithUserToken) {
     return this.authService.handleRedirect(req)
   }
 
