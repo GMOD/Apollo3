@@ -1,5 +1,6 @@
 import { makeStyles } from '@jbrowse/core/util/tss-react'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
+import BusinessIcon from '@mui/icons-material/Business'
 import { Button, type ButtonProps } from '@mui/material'
 import React from 'react'
 
@@ -17,38 +18,43 @@ const useStyles = makeStyles()((theme) => ({
   },
 }))
 
-export function GoogleButton(props: ButtonProps) {
+interface LoginButtonProps extends ButtonProps {
+  message: string
+}
+
+export function GoogleButton(props: LoginButtonProps) {
   const { classes } = useStyles()
-  const { disabled } = props
+  const { message } = props
   return (
     <Button
       className={classes.loginButton}
       variant="outlined"
-      startIcon={<Google color={disabled ? 'disabled' : undefined} />}
+      startIcon={<Google />}
       {...props}
     >
-      Sign in with Google
+      {message}
     </Button>
   )
 }
 
-export function MicrosoftButton(props: ButtonProps) {
+export function MicrosoftButton(props: LoginButtonProps) {
   const { classes } = useStyles()
-  const { disabled } = props
+  const { message } = props
   return (
     <Button
       className={classes.loginButton}
       variant="outlined"
-      startIcon={<Microsoft color={disabled ? 'disabled' : undefined} />}
+      startIcon={<Microsoft />}
       {...props}
     >
-      Sign in with Microsoft
+      {message}
     </Button>
   )
 }
 
-export function GuestButton(props: ButtonProps) {
+export function GuestButton(props: LoginButtonProps) {
   const { classes } = useStyles()
+  const { message } = props
   return (
     <Button
       className={classes.loginButton}
@@ -56,7 +62,22 @@ export function GuestButton(props: ButtonProps) {
       startIcon={<AccountCircleIcon fontSize="small" />}
       {...props}
     >
-      Continue as Guest
+      {message}
+    </Button>
+  )
+}
+
+export function GenericButton(props: LoginButtonProps) {
+  const { classes } = useStyles()
+  const { message } = props
+  return (
+    <Button
+      className={classes.loginButton}
+      variant="outlined"
+      startIcon={<BusinessIcon fontSize="small" />}
+      {...props}
+    >
+      {message}
     </Button>
   )
 }
