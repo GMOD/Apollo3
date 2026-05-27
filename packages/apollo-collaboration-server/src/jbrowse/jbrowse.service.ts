@@ -231,7 +231,7 @@ export class JBrowseService {
   }
 
   async getConfig(role?: Role) {
-    if (!role || role === Role.None) {
+    if (!role) {
       return {
         configuration: this.getConfiguration(role),
         plugins: this.getPlugins(),
