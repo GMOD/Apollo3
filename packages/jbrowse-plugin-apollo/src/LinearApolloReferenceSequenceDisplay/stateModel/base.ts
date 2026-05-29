@@ -5,6 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
+import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import {
   type AnyConfigurationSchemaType,
   ConfigurationReference,
@@ -115,7 +116,9 @@ export function baseModelFactory(
         const { assemblyName } = region
         const { assemblyManager } =
           self.session as unknown as AbstractSessionModel
-        const assembly = assemblyManager.get(assemblyName)
+        const assembly = assemblyManager.get(assemblyName) as
+          | Assembly
+          | undefined
         if (!assembly) {
           throw new Error(`No assembly found with name ${assemblyName}`)
         }
