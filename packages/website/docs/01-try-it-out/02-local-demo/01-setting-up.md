@@ -35,7 +35,7 @@ file:
 name: apollo-local-testing
 services:
   apollo-collaboration-server:
-    image: 'ghcr.io/gmod/apollo-collaboration-server'
+    image: 'ghcr.io/gmod/apollo-collaboration-server:latest'
     depends_on:
       db:
         condition: service_healthy
@@ -75,13 +75,19 @@ services:
         set -o errexit
         set -o nounset
         set -o pipefail
+        apk add jq
         cat /usr/local/apache2/conf/httpd.conf.append >> /usr/local/apache2/conf/httpd.conf
-        wget https://github.com/GMOD/jbrowse-components/releases/download/v2.18.0/jbrowse-web-v2.18.0.zip --output-document=jbrowse-web.zip
+        wget https://s3.amazonaws.com/jbrowse.org/code/jb2/latest/jbrowse-web-latest.zip --output-document=jbrowse-web.zip
         unzip -o jbrowse-web.zip
         rm jbrowse-web.zip
-        wget --output-document=- --quiet https://registry.npmjs.org/@apollo-annotation/jbrowse-plugin-apollo/-/jbrowse-plugin-apollo-0.3.4.tgz | \
-        tar --extract --gzip --file=- --strip=2 package/dist/jbrowse-plugin-apollo.umd.production.min.js
+        wget --output-document=- --quiet https://registry.npmjs.org/@apollo-annotation/jbrowse-plugin-apollo/ > jpa.json
+        LATEST_VERSION=$(jq --raw-output '."dist-tags".latest' jpa.json)
+        TARBALL=$(jq --raw-output ".versions.\"$${LATEST_VERSION}\".dist.tarball" jpa.json)
+        wget --output-document=- --quiet $${TARBALL} | \
+          tar --extract --gzip --file=- --strip=2 package/dist/jbrowse-plugin-apollo.umd.production.min.js package/dist/jbrowse-plugin-apollo.umd.production.min.js.map
         mv jbrowse-plugin-apollo.umd.production.min.js apollo.js
+        mv jbrowse-plugin-apollo.umd.production.min.js.map apollo.js.map
+        rm jpa.json
         wget --quiet https://github.com/The-Sequence-Ontology/SO-Ontologies/raw/refs/heads/master/Ontology_Files/so.json
         mv so.json sequence_ontology.json
         EOF
