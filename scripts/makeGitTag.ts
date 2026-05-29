@@ -87,7 +87,7 @@ exec('git', ['add', '--force', 'packages/**/package.json'])
 exec('sed', [
   '--in-place',
   '--regexp-extended',
-  String.raw`"s/APOLLO_VERSION=[0-9]+\.[0-9]+\.[0-9]+/APOLLO_VERSION=${newVersion}/"`,
+  String.raw`s/APOLLO_VERSION=[0-9]+\.[0-9]+\.[0-9]+/APOLLO_VERSION=${newVersion}/`,
   'packages/website/docs/02-installation/02-examples/01-docker-compose.md',
 ])
 exec('git', [
