@@ -395,7 +395,7 @@ We're now ready to start Apollo. Inside your `~/apollo/` directory, run this
 command:
 
 ```sh
-APOLLO_VERSION=1.0.0 JBROWSE_VERSION=4.3.0 docker compose up
+APOLLO_VERSION=1.0.1 JBROWSE_VERSION=4.3.0 docker compose up
 ```
 
 You should see logs start to print to the screen as the various pieces start up.
@@ -404,7 +404,7 @@ Once you've confirmed that everything starts without errors, go ahead and press
 similar to the one run before:
 
 ```sh
-APOLLO_VERSION=1.0.0 JBROWSE_VERSION=4.3.0 docker compose up -d
+APOLLO_VERSION=1.0.1 JBROWSE_VERSION=4.3.0 docker compose up -d
 ```
 
 The `-d` instructs Docker to run in detached mode, so instead of seeing logs
