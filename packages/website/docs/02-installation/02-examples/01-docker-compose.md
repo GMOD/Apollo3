@@ -60,7 +60,9 @@ name: my-apollo-site
 
 services:
   apollo-collaboration-server:
-    image: ghcr.io/gmod/apollo-collaboration-server
+    image:
+      ghcr.io/gmod/apollo-collaboration-server:${APOLLO_VERSION:?Please specify
+      APOLLO_VERSION}
     depends_on:
       mongo-node-1:
         condition: service_healthy
@@ -74,8 +76,8 @@ services:
   client:
     build:
       args:
-        JBROWSE_VERSION: 3.0.3
-        APOLLO_VERSION: 0.3.4
+        JBROWSE_VERSION: ${JBROWSE_VERSION:?Please specify JBROWSE_VERSION}
+        APOLLO_VERSION: ${APOLLO_VERSION:?Please specify APOLLO_VERSION}
       context: .
     depends_on:
       - apollo-collaboration-server
@@ -393,7 +395,7 @@ We're now ready to start Apollo. Inside your `~/apollo/` directory, run this
 command:
 
 ```sh
-docker compose up
+APOLLO_VERSION=1.0.0 JBROWSE_VERSION=4.3.0 docker compose up
 ```
 
 You should see logs start to print to the screen as the various pieces start up.
@@ -402,7 +404,7 @@ Once you've confirmed that everything starts without errors, go ahead and press
 similar to the one run before:
 
 ```sh
-docker compose up -d
+APOLLO_VERSION=1.0.0 JBROWSE_VERSION=4.3.0 docker compose up -d
 ```
 
 The `-d` instructs Docker to run in detached mode, so instead of seeing logs

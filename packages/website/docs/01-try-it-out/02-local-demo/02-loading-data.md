@@ -58,6 +58,7 @@ function apollo() {
     --add-host host.docker.internal=host-gateway \
     --volume ./cli:/root/.config/apollo-cli \
     --volume ./data:/data \
+    --workdir / \
     ghcr.io/gmod/apollo-cli \
     "$@"
 }
@@ -76,7 +77,7 @@ one. Create a file called jbrowse.Dockerfile and paste the following contents
 into it:
 
 ```Dockerfile title="jbrowse.Dockerfile"
-FROM node:18-alpine
+FROM node:24-alpine
 RUN mkdir data && yarn global add @jbrowse/cli
 ENTRYPOINT ["jbrowse"]
 ```
@@ -97,6 +98,7 @@ function jbrowse() {
     --rm \
     --interactive \
     --volume ./data:/data \
+    --workdir / \
     jbrowse-cli \
     "$@"
 }
