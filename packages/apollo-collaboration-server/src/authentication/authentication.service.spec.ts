@@ -1,19 +1,59 @@
-import { Test, type TestingModule } from '@nestjs/testing'
-
 import { AuthenticationService } from './authentication.service.js'
+import { Role } from '../utils/role/role.enum.js'
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
 
 describe('AuthenticationService', () => {
-  let service: AuthenticationService
+  function makeService(config: Record<string, unknown>) {
+    const configService = {
+      get: (key: string) => config[key],
+    }
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [AuthenticationService],
-    }).compile()
+    return new AuthenticationService({} as any, {} as any, configService as any)
+  }
 
-    service = module.get<AuthenticationService>(AuthenticationService)
+  it('returns login types from direct client ID values', async () => {
+    const service = makeService({
+      DEFAULT_NEW_USER_ROLE: Role.None,
+      MICROSOFT_CLIENT_ID: 'ms-direct',
+      GOOGLE_CLIENT_ID: 'google-direct',
+      LOGINGOV_CLIENT_ID: 'logingov-direct',
+      ALLOW_GUEST_USER: true,
+    })
+
+    await expect(service.getLoginTypes()).resolves.toEqual([
+      'microsoft',
+      'google',
+      'logingov',
+      'guest',
+    ])
   })
 
-  it('should be defined', () => {
-    expect(service).toBeDefined()
+  it('returns login types when microsoft and google IDs are configured via files', async () => {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-auth-'))
+    const msClientIDPath = path.join(tempDir, 'microsoft-client-id')
+    const googleClientIDPath = path.join(tempDir, 'google-client-id')
+    const loginGovClientIDPath = path.join(tempDir, 'logingov-client-id')
+
+    await fs.writeFile(msClientIDPath, ' ms-file-id \n')
+    await fs.writeFile(googleClientIDPath, ' google-file-id \n')
+    await fs.writeFile(loginGovClientIDPath, ' logingov-file-id \n')
+
+    const service = makeService({
+      DEFAULT_NEW_USER_ROLE: Role.None,
+      MICROSOFT_CLIENT_ID_FILE: msClientIDPath,
+      GOOGLE_CLIENT_ID_FILE: googleClientIDPath,
+      LOGINGOV_CLIENT_ID_FILE: loginGovClientIDPath,
+      ALLOW_GUEST_USER: false,
+    })
+
+    await expect(service.getLoginTypes()).resolves.toEqual([
+      'microsoft',
+      'google',
+      'logingov',
+    ])
+
+    await fs.rm(tempDir, { recursive: true, force: true })
   })
 })

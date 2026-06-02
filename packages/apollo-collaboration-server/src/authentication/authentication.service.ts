@@ -82,7 +82,7 @@ export class AuthenticationService {
       })
       microsoftClientID =
         clientIDFile && (await fs.readFile(clientIDFile, 'utf8'))
-      microsoftClientID = clientIDFile?.trim()
+      microsoftClientID = microsoftClientID?.trim()
     }
     let googleClientID = this.configService.get('GOOGLE_CLIENT_ID', {
       infer: true,
@@ -92,7 +92,7 @@ export class AuthenticationService {
         infer: true,
       })
       googleClientID = clientIDFile && (await fs.readFile(clientIDFile, 'utf8'))
-      googleClientID = clientIDFile?.trim()
+      googleClientID = googleClientID?.trim()
     }
     let loginGovClientID = this.configService.get('LOGINGOV_CLIENT_ID', {
       infer: true,
