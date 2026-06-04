@@ -1,6 +1,8 @@
 import { UnprocessableEntityException } from '@nestjs/common'
+import { DeleteFeatureChange } from '@apollo-annotation/shared'
 
 import { ChangesService } from './changes.service.js'
+import { jest } from '@jest/globals'
 
 describe('ChangesService', () => {
   let service: ChangesService
@@ -19,15 +21,27 @@ describe('ChangesService', () => {
   const countersService = {
     getNextSequenceValue: jest.fn(),
   }
+  const emptyExec = { exec: jest.fn().mockResolvedValue([]) }
+  const assemblyModel = { deleteMany: jest.fn(() => emptyExec) }
+  const refSeqModel = { deleteMany: jest.fn(() => emptyExec) }
+  const refSeqChunkModel = { deleteMany: jest.fn(() => emptyExec) }
+  const featureModel = {
+    db: {
+      transaction: jest.fn(async (cb: (session: unknown) => Promise<unknown>) =>
+        cb({}),
+      ),
+    },
+    deleteMany: jest.fn(() => emptyExec),
+  }
 
   beforeEach(() => {
     jest.clearAllMocks()
     service = new ChangesService(
-      {} as never,
-      {} as never,
-      {} as never,
+      featureModel as never,
+      assemblyModel as never,
+      refSeqModel as never,
+      refSeqChunkModel as never,
       changeModel as never,
-      {} as never,
       // Slice 2 dependency
       assemblyPermissionsService as never,
       countersService as never,
@@ -42,10 +56,18 @@ describe('ChangesService', () => {
 
   it('denies non-admin assembly change when user lacks edit permission', async () => {
     assemblyPermissionsService.canEdit.mockResolvedValueOnce(false)
-    const change = {
+    const change = new DeleteFeatureChange({
       typeName: 'DeleteFeatureChange',
       assembly: 'assembly123',
-    }
+      changedIds: ['feature123'],
+      deletedFeature: {
+        _id: 'feature123',
+        refSeq: 'refSeq1',
+        type: 'gene',
+        min: 1,
+        max: 10,
+      } as never,
+    })
     const user = {
       id: 'user123',
       username: 'user1',
