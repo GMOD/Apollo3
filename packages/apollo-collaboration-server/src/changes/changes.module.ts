@@ -5,6 +5,7 @@ import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import idValidator from 'mongoose-id-validator'
 
 import { AssembliesModule } from '../assemblies/assemblies.module.js'
+import { AssemblyPermissionsModule } from '../assemblyPermissions/assemblyPermissions.module.js'
 import { ChecksModule } from '../checks/checks.module.js'
 import { CountersModule } from '../counters/counters.module.js'
 import { FeaturesModule } from '../features/features.module.js'
@@ -34,6 +35,7 @@ import { ChangesService } from './changes.service.js'
       },
     ]),
     AssembliesModule,
+    AssemblyPermissionsModule,
     RefSeqsModule,
     RefSeqChunksModule,
     FeaturesModule,

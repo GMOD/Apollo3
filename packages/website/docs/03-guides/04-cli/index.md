@@ -37,6 +37,9 @@ be configured for a different collaboration server. To use a profile other than
 the default one, pass the `--profile` flag with the profile name in the CLI
 command.
 
+Administrators can also manage assembly-level annotation access using the
+`apollo permissions` command group.
+
 If you want to configure Apollo programmatically instead of using the
 interactive `apollo config` prompt, you can pass individual configuration values
 to the `apollo config` command as well. For example:

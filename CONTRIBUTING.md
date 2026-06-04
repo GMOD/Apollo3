@@ -10,6 +10,27 @@ git clone https://github.com/GMOD/Apollo3
 
 You'll need `yarn` to be installed.
 
+## Node version compatibility
+
+Apollo3 test tooling currently expects Node 20 or 22.
+
+- Node 26 is known to break Jest 29 in this repository with errors such as
+  `TypeError: require.resolve.paths is not a function`.
+- Run `yarn check:node` before running tests.
+
+If you use `nvm`, you can pin a compatible runtime with:
+
+```sh
+nvm use
+```
+
+If you do not use a Node version manager, you can still run commands with Node
+22 ad hoc:
+
+```sh
+npx -y node@22 .yarn/releases/yarn-4.14.1.cjs <yarn command>
+```
+
 You then have two options to start Apollo3 for development purposes. In both
 cases, the instance is then accessible via
 

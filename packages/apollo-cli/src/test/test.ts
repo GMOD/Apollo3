@@ -32,6 +32,7 @@ import { Shell, deleteAllChecks } from './utils.js'
 
 const apollo = 'yarn dev'
 const P = '--profile testAdmin'
+const testAddress = process.env.APOLLO_TEST_ADDRESS ?? 'http://localhost:3999'
 // let client = MongoClient
 let client: MongoClient
 let configFile = ''
@@ -49,7 +50,7 @@ void describe('Test CLI', () => {
         `Backup config file ${configFileBak} already exists. If safe to do so, delete it before testing`,
       )
     }
-    new Shell(`${apollo} config ${P} address http://localhost:3999`)
+    new Shell(`${apollo} config ${P} address ${testAddress}`)
     new Shell(`${apollo} config ${P} accessType root`)
     new Shell(`${apollo} config ${P} rootPassword pass`)
     new Shell(`${apollo} login ${P} -f`)
@@ -98,7 +99,7 @@ void describe('Test CLI', () => {
     assert.strictEqual(1, p.returncode)
     assert.ok(p.stderr.includes('Invalid setting:'))
 
-    p = new Shell(`${apollo} config ${P} ADDRESS http://localhost:3999`, false)
+    p = new Shell(`${apollo} config ${P} ADDRESS ${testAddress}`, false)
     assert.strictEqual(1, p.returncode)
     assert.ok(p.stderr.includes('Invalid setting:'))
 
@@ -912,7 +913,7 @@ EOF`,
     const token = p.stdout.trim()
     const newChildFeatureID = '69408088d502fc21aea1bb0a'
     new Shell(
-      `curl -X POST http://127.0.0.1:3999/changes -d '{"typeName":"AddFeatureChange","changedIds":["${newChildFeatureID}"],"assembly":"${assembly}","addedFeature":{"_id":"${newChildFeatureID}","refSeq":"${refSeq}","min":311,"max":315,"type":"match_part","attributes":{"gff_id":["matchPart2"]}},"parentFeatureId":"${_id}"}' -H "Content-Type: application/json" -H "Authorization: Bearer ${token}"`,
+      `curl -X POST ${testAddress}/changes -d '{"typeName":"AddFeatureChange","changedIds":["${newChildFeatureID}"],"assembly":"${assembly}","addedFeature":{"_id":"${newChildFeatureID}","refSeq":"${refSeq}","min":311,"max":315,"type":"match_part","attributes":{"gff_id":["matchPart2"]}},"parentFeatureId":"${_id}"}' -H "Content-Type: application/json" -H "Authorization: Bearer ${token}"`,
     )
     p = new Shell(`${apollo} feature get-indexed-id ${P} matchPart2 -a vv1`)
     out = JSON.parse(p.stdout)
@@ -1429,10 +1430,36 @@ EOF`,
     assert.strictEqual(out.length, 0)
   })
 
+  void globalThis.itName('Permissions grant/list/revoke', () => {
+    new Shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a permAsm -e -f`,
+    )
+
+    let p = new Shell(`${apollo} user get ${P} -r admin -u root`)
+    const adminUser = JSON.parse(p.stdout)[0]
+    const userId = adminUser._id
+
+    new Shell(`${apollo} permissions grant ${P} -u ${userId} -a permAsm --edit`)
+
+    p = new Shell(`${apollo} permissions list ${P} -u ${userId} -a permAsm`)
+    let out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.strictEqual(out[0].canViewAnnotations, true)
+    assert.strictEqual(out[0].canEditAnnotations, true)
+
+    new Shell(`${apollo} permissions revoke ${P} -u ${userId} -a permAsm`)
+
+    p = new Shell(`${apollo} permissions list ${P} -u ${userId} -a permAsm`)
+    out = JSON.parse(p.stdout)
+    assert.strictEqual(out.length, 1)
+    assert.strictEqual(out[0].canViewAnnotations, false)
+    assert.strictEqual(out[0].canEditAnnotations, false)
+  })
+
   void globalThis.itName('Apollo profile env', () => {
     const p = new Shell(
       `export APOLLO_PROFILE=testAdmin2
-          ${apollo} config address http://localhost:3999
+          ${apollo} config address ${testAddress}
           ${apollo} config accessType root
           ${apollo} config rootPassword pass
           ${apollo} login -f
@@ -1448,7 +1475,7 @@ EOF`,
       `\
             export APOLLO_DISABLE_CONFIG_CREATE=1
             rm -f tmp.yml
-            ${apollo} config --config-file tmp.yml address http://localhost:3999`,
+            ${apollo} config --config-file tmp.yml address ${testAddress}`,
       false,
     )
     assert.ok(p.returncode != 0)
@@ -1459,7 +1486,7 @@ EOF`,
       `\
             export APOLLO_DISABLE_CONFIG_CREATE=0
             rm -f tmp.yml
-            ${apollo} config --config-file tmp.yml address http://localhost:3999`,
+                ${apollo} config --config-file tmp.yml address ${testAddress}`,
     )
     assert.strictEqual(0, p.returncode)
     assert.ok(fs.existsSync('tmp.yml'))
@@ -1468,7 +1495,7 @@ EOF`,
       `\
             unset APOLLO_DISABLE_CONFIG_CREATE
             rm -f tmp.yml
-            ${apollo} config --config-file tmp.yml address http://localhost:3999`,
+                ${apollo} config --config-file tmp.yml address ${testAddress}`,
     )
     assert.strictEqual(0, p.returncode)
     assert.ok(fs.existsSync('tmp.yml'))

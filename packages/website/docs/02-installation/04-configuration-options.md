@@ -129,4 +129,9 @@ LOGINGOV_CLIENT_SECRET=client_secret_here
 
 # HTTP/HTTPS proxy for OAuth requests, if your server is behind a proxy
 # OAUTH_HTTP_PROXY=http://proxy.example.com:8080
+
+# Assembly ACL is persisted in the database collection `assemblypermissions`.
+# There is no dedicated environment toggle for this behavior in the current
+# release. Manage grants via the Apollo UI (Manage Users) or CLI:
+#   apollo permissions list|grant|revoke
 ```

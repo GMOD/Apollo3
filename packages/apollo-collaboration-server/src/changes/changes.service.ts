@@ -33,8 +33,10 @@ import {
 import { InjectModel } from '@nestjs/mongoose'
 import { type FilterQuery, Model, Types } from 'mongoose'
 
+import { AssemblyPermissionsService } from '../assemblyPermissions/assemblyPermissions.service.js'
 import { CountersService } from '../counters/counters.service.js'
 import { MessagesGateway } from '../messages/messages.gateway.js'
+import { Role } from '../utils/role/role.enum.js'
 
 import { ChangeHandlersService } from './changeHandlers.service.js'
 import { FindChangeDto } from './dto/find-change.dto.js'
@@ -57,6 +59,7 @@ export class ChangesService {
     private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
+    private readonly assemblyPermissionsService: AssemblyPermissionsService,
     private readonly countersService: CountersService,
     private readonly messagesGateway: MessagesGateway,
     private readonly changeHandlersService: ChangeHandlersService,
@@ -66,6 +69,20 @@ export class ChangesService {
 
   async create(change: BaseChange, user: DecodedJWT) {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
+
+    // Slice 2: write operations on assembly-scoped changes require edit grant
+    // unless the caller is a global admin.
+    if (isAssemblySpecificChange(change) && user.role !== Role.Admin) {
+      const canEdit = await this.assemblyPermissionsService.canEdit(
+        user.id,
+        change.assembly,
+      )
+      if (!canEdit) {
+        throw new UnprocessableEntityException(
+          `User '${user.username}' does not have edit permission for assembly '${change.assembly}'`,
+        )
+      }
+    }
 
     const sequence =
       await this.countersService.getNextSequenceValue('changeCounter')
@@ -264,7 +281,7 @@ export class ChangesService {
     return changeDoc
   }
 
-  async findAll(changeFilter: FindChangeDto) {
+  async findAll(changeFilter: FindChangeDto, callingUser: DecodedJWT) {
     const {
       assembly,
       changedIds,
@@ -283,6 +300,21 @@ export class ChangesService {
     } = changeFilter
 
     const queryCond: FilterQuery<ChangeDocument> = {}
+    if (callingUser.role !== Role.Admin) {
+      const allowedAssemblyIds =
+        await this.assemblyPermissionsService.getViewableAssemblyIds(
+          callingUser.id,
+        )
+      if (assembly) {
+        if (!allowedAssemblyIds.includes(assembly)) {
+          return { changes: [], totalCount: 0 }
+        }
+        queryCond.assembly = assembly
+      } else {
+        queryCond.assembly = { $in: allowedAssemblyIds }
+      }
+    }
+
     if (assembly) {
       queryCond.assembly = assembly
     }

@@ -38,8 +38,9 @@ export class ChangesController {
   }
 
   @Get()
-  async findAll(@Query() changeFilter: FindChangeDto) {
+  async findAll(@Query() changeFilter: FindChangeDto, @Req() request: Request) {
+    const { user } = request as unknown as { user: DecodedJWT }
     this.logger.debug(`ChangeFilter: ${JSON.stringify(changeFilter)}`)
-    return this.changesService.findAll(changeFilter)
+    return this.changesService.findAll(changeFilter, user)
   }
 }

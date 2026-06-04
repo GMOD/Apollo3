@@ -16,7 +16,7 @@ $ npm install -g @apollo-annotation/cli
 $ apollo COMMAND
 running command...
 $ apollo (--version)
-@apollo-annotation/cli/1.0.0 linux-x64 node-v24.15.0
+@apollo-annotation/cli/1.0.0 darwin-arm64 node-v26.0.0
 $ apollo --help [COMMAND]
 USAGE
   $ apollo COMMAND
@@ -62,6 +62,9 @@ USAGE
 - [`apollo jbrowse set-config INPUTFILE`](#apollo-jbrowse-set-config-inputfile)
 - [`apollo login`](#apollo-login)
 - [`apollo logout`](#apollo-logout)
+- [`apollo permissions grant`](#apollo-permissions-grant)
+- [`apollo permissions list`](#apollo-permissions-list)
+- [`apollo permissions revoke`](#apollo-permissions-revoke)
 - [`apollo refseq add-alias INPUT-FILE`](#apollo-refseq-add-alias-input-file)
 - [`apollo refseq get`](#apollo-refseq-get)
 - [`apollo status`](#apollo-status)
@@ -335,8 +338,8 @@ DESCRIPTION
   Address and port e.g http://localhost:3999
 
   - accessType:
-  How to access Apollo. accessType is typically one of: google, microsoft, logingov, guest, root. Allowed types depend on your
-  Apollo setup
+  How to access Apollo. accessType is typically one of: google, microsoft, logingov, guest, root. Allowed types depend
+  on your Apollo setup
 
   - accessToken:
   Access token. Usually inserted by `apollo login`
@@ -1019,7 +1022,7 @@ DESCRIPTION
 ```
 
 _See code:
-[@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.8//workspaces/Apollo3/.yarn/cache/@oclif-plugin-help-npm-6.0.8-336726b8e7-4b3be03d8a.zip/node_modules/@oclif/plugin-help/lib/commands/help.ts)_
+[@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.8//Users/cchilders/git-repos/Apollo3/.yarn/cache/@oclif-plugin-help-npm-6.0.8-336726b8e7-4b3be03d8a.zip/node_modules/@oclif/plugin-help/lib/commands/help.ts)_
 
 ## `apollo jbrowse desktop JBROWSEFILE`
 
@@ -1189,6 +1192,104 @@ EXAMPLES
 
 _See code:
 [src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/logout.ts)_
+
+## `apollo permissions grant`
+
+Grant assembly permissions to a user
+
+```
+USAGE
+  $ apollo permissions grant -u <value> -a <value> [--profile <value>] [--config-file <value>] [--view] [--edit]
+
+FLAGS
+  -a, --assembly=<value>...  (required) Assembly name or id
+  -u, --user=<value>         (required) User id, username, or email
+      --config-file=<value>  Use this config file (mostly for testing)
+      --edit                 Grant edit permission (implies view)
+      --profile=<value>      Use credentials from this profile
+      --view                 Grant view permission
+
+DESCRIPTION
+  Grant assembly permissions to a user
+
+  Grants annotation permissions for one user across one or more assemblies.
+
+EXAMPLES
+  Grant view access to one assembly:
+
+    $ apollo permissions grant -u user@example.org -a myAssembly --view
+
+  Grant edit access to multiple assemblies (implies view):
+
+    $ apollo permissions grant -u user@example.org -a asm1 asm2 --edit
+```
+
+_See code:
+[src/commands/permissions/grant.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/permissions/grant.ts)_
+
+## `apollo permissions list`
+
+List assembly permissions
+
+```
+USAGE
+  $ apollo permissions list [--profile <value>] [--config-file <value>] [-u <value>] [-a <value>]
+
+FLAGS
+  -a, --assembly=<value>     Filter by one assembly name or id
+  -u, --user=<value>         Filter by user id, username, or email
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      Use credentials from this profile
+
+DESCRIPTION
+  List assembly permissions
+
+  Lists assembly permission documents, optionally filtered by user and/or assembly.
+
+EXAMPLES
+  List all permissions:
+
+    $ apollo permissions list
+
+  List permissions for one user:
+
+    $ apollo permissions list -u user@example.org
+
+  List permissions for one assembly:
+
+    $ apollo permissions list -a myAssembly
+```
+
+_See code:
+[src/commands/permissions/list.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/permissions/list.ts)_
+
+## `apollo permissions revoke`
+
+Revoke assembly permissions from a user
+
+```
+USAGE
+  $ apollo permissions revoke -u <value> -a <value> [--profile <value>] [--config-file <value>]
+
+FLAGS
+  -a, --assembly=<value>...  (required) Assembly name or id
+  -u, --user=<value>         (required) User id, username, or email
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      Use credentials from this profile
+
+DESCRIPTION
+  Revoke assembly permissions from a user
+
+  Revokes annotation permissions for one user across one or more assemblies.
+
+EXAMPLES
+  Revoke access from one assembly:
+
+    $ apollo permissions revoke -u user@example.org -a myAssembly
+```
+
+_See code:
+[src/commands/permissions/revoke.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/permissions/revoke.ts)_
 
 ## `apollo refseq add-alias INPUT-FILE`
 

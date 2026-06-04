@@ -7,7 +7,10 @@ import {
   ParseBoolPipe,
   Post,
   Query,
+  Req,
 } from '@nestjs/common'
+import type { DecodedJWT } from '@apollo-annotation/shared'
+import type { Request } from 'express'
 
 import type {
   FeatureIdsSearchDto,
@@ -34,8 +37,12 @@ export class FeaturesController {
    * http://localhost:3999/features/searchFeatures?term=exonerate
    */
   @Get('searchFeatures')
-  async searchFeatures(@Query() request: { term: string; assemblies: string }) {
-    return this.featuresService.searchFeatures(request)
+  async searchFeatures(
+    @Query() request: { term: string; assemblies: string },
+    @Req() req: Request,
+  ) {
+    const { user } = req as unknown as { user: DecodedJWT }
+    return this.featuresService.searchFeatures(request, user)
   }
 
   /**
@@ -45,36 +52,52 @@ export class FeaturesController {
    * or if search data was not found or in case of error throw exception
    */
   @Get('getFeatures')
-  getFeaturesByRange(@Query() request: FeatureRangeSearchDto) {
+  getFeaturesByRange(
+    @Query() request: FeatureRangeSearchDto,
+    @Req() req: Request,
+  ) {
     this.logger.debug(
       `getFeatures endpoint: refSeq: ${request.refSeq}, start: ${request.start}, end: ${request.end}`,
     )
+    const { user } = req as unknown as { user: DecodedJWT }
 
-    return this.featuresService.findByRange(request)
+    return this.featuresService.findByRange(request, user)
   }
 
   @Post('getByIds')
-  findByFeatureIds(@Body() request: FeatureIdsSearchDto) {
+  findByFeatureIds(@Body() request: FeatureIdsSearchDto, @Req() req: Request) {
     this.logger.debug(`: featureIds: ${JSON.stringify(request.featureIds)}`)
+    const { user } = req as unknown as { user: DecodedJWT }
     return this.featuresService.findByFeatureIds(
       request.featureIds,
       request.topLevel,
+      user,
     )
   }
 
   @Get('count')
-  async getFeatureCount(@Query() featureCountRequest: FeatureCountRequest) {
+  async getFeatureCount(
+    @Query() featureCountRequest: FeatureCountRequest,
+    @Req() req: Request,
+  ) {
     this.logger.debug(
       `Get features count by ${JSON.stringify(featureCountRequest)}`,
     )
-    const count =
-      await this.featuresService.getFeatureCount(featureCountRequest)
+    const { user } = req as unknown as { user: DecodedJWT }
+    const count = await this.featuresService.getFeatureCount(
+      featureCountRequest,
+      user,
+    )
     return { count }
   }
 
   @Get('getByIndexedId')
-  async getById(@Query() getByIndexedIdRequest: GetByIndexedIdRequest) {
-    return this.featuresService.getByIndexedId(getByIndexedIdRequest)
+  async getById(
+    @Query() getByIndexedIdRequest: GetByIndexedIdRequest,
+    @Req() req: Request,
+  ) {
+    const { user } = req as unknown as { user: DecodedJWT }
+    return this.featuresService.getByIndexedId(getByIndexedIdRequest, user)
   }
 
   /**
@@ -88,9 +111,11 @@ export class FeaturesController {
     @Param('featureid') featureid: string,
     @Query('topLevel', new ParseBoolPipe({ optional: true }))
     topLevel: boolean | undefined,
+    @Req() req: Request,
   ) {
     this.logger.debug(`Get feature by featureId: ${featureid}`)
-    return this.featuresService.findById(featureid, topLevel)
+    const { user } = req as unknown as { user: DecodedJWT }
+    return this.featuresService.findById(featureid, topLevel, user)
   }
 
   @Get('check/:featureid')
@@ -104,8 +129,9 @@ export class FeaturesController {
    * or if search data was not found or in case of error throw exception
    */
   @Get()
-  getAll() {
+  getAll(@Req() req: Request) {
     this.logger.debug('Get all features')
-    return this.featuresService.findAll()
+    const { user } = req as unknown as { user: DecodedJWT }
+    return this.featuresService.findAll(user)
   }
 }

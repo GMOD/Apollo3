@@ -27,6 +27,7 @@
     "prepare": "yarn build",
     "test": "yarn tsx src/test/test.ts",
     "test:ci": "yarn tsx src/test/test.ts",
+    "test:permissions": "yarn tsx --test-name-pattern='Permissions grant/list/revoke' src/test/test.ts",
     "version": "oclif readme --multi --dir ../website/docs/03-guides/04-cli/ && oclif readme && git add README.md"
   },
   "oclif": {
@@ -60,6 +61,9 @@
       },
       "jbrowse": {
         "description": "Commands to manage the JBrowse configuration"
+      },
+      "permissions": {
+        "description": "Commands to manage assembly permissions"
       },
       "refseq": {
         "description": "Commands to manage reference sequences"

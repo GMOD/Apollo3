@@ -11,6 +11,7 @@ import Joi from 'joi'
 import type { Connection } from 'mongoose'
 
 import { AssembliesModule } from './assemblies/assemblies.module.js'
+import { AssemblyPermissionsModule } from './assemblyPermissions/assemblyPermissions.module.js'
 import { AuthenticationModule } from './authentication/authentication.module.js'
 import { ChangesModule } from './changes/changes.module.js'
 import { ChecksModule } from './checks/checks.module.js'
@@ -157,6 +158,7 @@ async function mongoDBURIFactory(
 @Module({
   imports: [
     AssembliesModule,
+    AssemblyPermissionsModule,
     AuthenticationModule,
     ChangesModule,
     ChecksModule,

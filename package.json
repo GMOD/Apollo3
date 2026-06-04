@@ -7,6 +7,7 @@
     "packages/*"
   ],
   "scripts": {
+    "check:node": "node -e \"const major=Number(process.versions.node.split('.')[0]); if (major>=26){console.error('Apollo3 test tooling is not compatible with Node '+process.versions.node+'. Use Node 20 or 22.'); process.exit(1)} console.log('Node version OK for Apollo3 test tooling:', process.versions.node)\"",
     "lint": "cross-env NODE_OPTIONS='--max-old-space-size=4096' yarn eslint --max-warnings 0",
     "build:shared": "yarn workspace @apollo-annotation/shared run build",
     "release": "tsx scripts/makeGitTag.ts",
@@ -14,7 +15,7 @@
     "start:server": "yarn workspace @apollo-annotation/collaboration-server run start",
     "start:plugin": "yarn workspace @apollo-annotation/jbrowse-plugin-apollo run start",
     "start": "npm-run-all --print-label --parallel start:shared start:server start:plugin",
-    "test": "yarn workspaces foreach --all run test:ci",
+    "test": "yarn check:node && yarn workspaces foreach --all run test:ci",
     "postinstall": "husky"
   },
   "devDependencies": {

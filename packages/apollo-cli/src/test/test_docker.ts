@@ -9,6 +9,7 @@ const hostTmpDir = path.resolve('tmpTestDocker')
 const hostDataDir = path.resolve('test_data')
 const apollo = `docker run --network host -v ${hostTmpDir}:/root/.config/apollo-cli -v ${hostDataDir}:/data apollo`
 const configFile = '/root/.config/apollo-cli/config.yml'
+const testAddress = process.env.APOLLO_TEST_ADDRESS ?? 'http://localhost:3999'
 
 void describe('Test Docker', () => {
   before(() => {
@@ -22,7 +23,7 @@ void describe('Test Docker', () => {
 
     // See apollo-collaboration-server/.development.env for credentials etc.
     new Shell(
-      `${apollo} config --config-file ${configFile} address http://localhost:3999`,
+      `${apollo} config --config-file ${configFile} address ${testAddress}`,
     )
     new Shell(`${apollo} config --config-file ${configFile} accessType root`)
     new Shell(`${apollo} config --config-file ${configFile} rootPassword pass`)
@@ -55,14 +56,14 @@ void describe('Test Docker', () => {
 
   void globalThis.itName('Missing config', () => {
     let p = new Shell(
-      `${apollo} config address --config-file {hostTmpDir}/new.yml http://localhost:3999`,
+      `${apollo} config address --config-file {hostTmpDir}/new.yml ${testAddress}`,
       false,
     )
     assert.ok(p.returncode != 0)
     assert.ok(p.stderr.includes('does not exist yet'))
 
     p = new Shell(
-      `${apollo} config address --config-file /root/.config/apollo-cli/new.yml http://localhost:3999`,
+      `${apollo} config address --config-file /root/.config/apollo-cli/new.yml ${testAddress}`,
       false,
     )
     assert.ok(p.returncode != 0)
@@ -70,7 +71,7 @@ void describe('Test Docker', () => {
 
     fs.writeFileSync(path.join(hostTmpDir, 'new.yml'), '')
     p = new Shell(
-      `${apollo} config address --config-file /root/.config/apollo-cli/new.yml http://localhost:3999`,
+      `${apollo} config address --config-file /root/.config/apollo-cli/new.yml ${testAddress}`,
     )
     assert.strictEqual(p.returncode, 0)
   })

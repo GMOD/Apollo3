@@ -3,19 +3,21 @@
 
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { DeleteUserChange, UserChange } from '@apollo-annotation/shared'
 import { getRoot } from '@jbrowse/mobx-state-tree'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
+  Box,
   Button,
   DialogActions,
   DialogContent,
   DialogContentText,
+  FormControl,
+  InputLabel,
   MenuItem,
   Select,
   type SelectChangeEvent,
+  Typography,
 } from '@mui/material'
 import {
   DataGrid,
@@ -36,6 +38,16 @@ import { type ApolloRootModel, isApolloInternetAccount } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import { Dialog } from './Dialog'
+import type {
+  AssemblyPermissionResponse,
+  AssemblyPermissionRow,
+  AssemblyResponse,
+} from './manageUsersAssemblyPermissions'
+import {
+  buildAssemblyPermissionRows,
+  indexPermissionsByAssemblyId,
+  normalizeAssemblyPermissionUpdate,
+} from './manageUsersAssemblyPermissions'
 
 interface UserResponse {
   _id: string
@@ -57,8 +69,11 @@ export function ManageUsers({
 }: ManageUsersProps) {
   const { internetAccounts } = getRoot<ApolloRootModel>(session)
   const apolloInternetAccounts: ApolloInternetAccountModel[] = internetAccounts
-    .filter((ia) => isApolloInternetAccount(ia))
-    .filter((ia) => ia.role?.includes('admin'))
+    .filter((ia: unknown) => isApolloInternetAccount(ia))
+    .filter(
+      (ia: ApolloInternetAccountModel & { role?: string }) =>
+        ia.role?.includes('admin') ?? false,
+    )
   if (apolloInternetAccounts.length === 0) {
     throw new Error('No Apollo internet account found')
   }
@@ -67,11 +82,70 @@ export function ManageUsers({
     apolloInternetAccounts[0],
   )
   const [users, setUsers] = useState<UserResponse[]>([])
+  const [assemblies, setAssemblies] = useState<AssemblyResponse[]>([])
+  const [selectedUserId, setSelectedUserId] = useState('')
+  const [assemblyPermissionsByAssemblyId, setAssemblyPermissionsByAssemblyId] =
+    useState<Partial<Record<string, AssemblyPermissionResponse>>>({})
 
   useEffect(() => {
     async function getUsers() {
       const { baseURL } = selectedInternetAccount
-      const uri = new URL('users', baseURL).href
+      const usersUri = new URL('users', baseURL).href
+      const assembliesUri = new URL('assemblies', baseURL).href
+      const usersFetcher = selectedInternetAccount.getFetcher({
+        locationType: 'UriLocation',
+        uri: usersUri,
+      })
+      const assembliesFetcher = selectedInternetAccount.getFetcher({
+        locationType: 'UriLocation',
+        uri: assembliesUri,
+      })
+      const [usersResponse, assembliesResponse] = await Promise.all([
+        usersFetcher(usersUri, { method: 'GET' }),
+        assembliesFetcher(assembliesUri, { method: 'GET' }),
+      ])
+      if (!usersResponse.ok) {
+        const newErrorMessage = await createFetchErrorMessage(
+          usersResponse,
+          'Error when getting user data from db',
+        )
+        throw new Error(newErrorMessage)
+      }
+      if (!assembliesResponse.ok) {
+        const newErrorMessage = await createFetchErrorMessage(
+          assembliesResponse,
+          'Error when getting assemblies from db',
+        )
+        throw new Error(newErrorMessage)
+      }
+      const userData = (await usersResponse.json()) as UserResponse[]
+      const assemblyData =
+        (await assembliesResponse.json()) as AssemblyResponse[]
+      const normalizedUsers = userData.map((u) =>
+        u.role === undefined ? { ...u, role: '' } : u,
+      )
+      setUsers(normalizedUsers)
+      setAssemblies(assemblyData)
+      if (normalizedUsers[0]?._id) {
+        setSelectedUserId(normalizedUsers[0]._id)
+      }
+    }
+    getUsers().catch((error) => {
+      setErrorMessage(String(error))
+    })
+  }, [selectedInternetAccount])
+
+  useEffect(() => {
+    async function getAssemblyPermissionsForUser() {
+      if (!selectedUserId) {
+        setAssemblyPermissionsByAssemblyId({})
+        return
+      }
+      const { baseURL } = selectedInternetAccount
+      const uri = new URL(
+        `assemblyPermissions/byUser/${selectedUserId}`,
+        baseURL,
+      ).href
       const apolloFetch = selectedInternetAccount.getFetcher({
         locationType: 'UriLocation',
         uri,
@@ -80,18 +154,20 @@ export function ManageUsers({
       if (!response.ok) {
         const newErrorMessage = await createFetchErrorMessage(
           response,
-          'Error when getting user data from db',
+          'Error when getting assembly permissions from db',
         )
-        setErrorMessage(newErrorMessage)
-        return
+        throw new Error(newErrorMessage)
       }
-      const data = (await response.json()) as UserResponse[]
-      setUsers(data.map((u) => (u.role === undefined ? { ...u, role: '' } : u)))
+      const permissionData =
+        (await response.json()) as AssemblyPermissionResponse[]
+      setAssemblyPermissionsByAssemblyId(
+        indexPermissionsByAssemblyId(permissionData),
+      )
     }
-    getUsers().catch((error) => {
+    getAssemblyPermissionsForUser().catch((error) => {
       setErrorMessage(String(error))
     })
-  }, [selectedInternetAccount])
+  }, [selectedInternetAccount, selectedUserId])
 
   async function deleteUser(id: GridRowId) {
     const change = new DeleteUserChange({
@@ -101,7 +177,9 @@ export function ManageUsers({
     await changeManager.submit(change, {
       internetAccountId: selectedInternetAccount.internetAccountId,
     })
-    setUsers((prevUsers) => prevUsers.filter((row) => row._id !== id))
+    setUsers((prevUsers: UserResponse[]) =>
+      prevUsers.filter((row: UserResponse) => row._id !== id),
+    )
   }
 
   function isCurrentUser(id: GridRowId) {
@@ -120,7 +198,7 @@ export function ManageUsers({
       width: 140,
       type: 'singleSelect',
       valueOptions: ['readOnly', 'user', 'admin', 'none'],
-      getOptionLabel(value) {
+      getOptionLabel(value: string) {
         switch (value) {
           case 'readOnly': {
             return 'Read-only'
@@ -162,7 +240,9 @@ export function ManageUsers({
 
   function handleChangeInternetAccount(e: SelectChangeEvent) {
     const newlySelectedInternetAccount = apolloInternetAccounts.find(
-      (ia) => ia.internetAccountId === e.target.value,
+      (ia) =>
+        (ia as ApolloInternetAccountModel & { internetAccountId: string })
+          .internetAccountId === e.target.value,
     )
     if (!newlySelectedInternetAccount) {
       throw new Error(
@@ -170,6 +250,10 @@ export function ManageUsers({
       )
     }
     setSelectedInternetAccount(newlySelectedInternetAccount)
+  }
+
+  function handleChangeManagedUser(e: SelectChangeEvent) {
+    setSelectedUserId(e.target.value)
   }
 
   async function processRowUpdate(newRow: GridRowModel) {
@@ -183,6 +267,90 @@ export function ManageUsers({
     })
     return newRow
   }
+
+  async function processAssemblyPermissionRowUpdate(newRow: GridRowModel) {
+    if (!selectedUserId) {
+      return newRow
+    }
+    const { canViewAnnotations, canEditAnnotations } =
+      normalizeAssemblyPermissionUpdate({
+        canViewAnnotations: Boolean(newRow.canViewAnnotations),
+        canEditAnnotations: Boolean(newRow.canEditAnnotations),
+      })
+
+    const { baseURL } = selectedInternetAccount
+    const uri = new URL(
+      `assemblyPermissions/${selectedUserId}/${newRow.assemblyId as string}`,
+      baseURL,
+    ).href
+    const apolloFetch = selectedInternetAccount.getFetcher({
+      locationType: 'UriLocation',
+      uri,
+    })
+    const response = await apolloFetch(uri, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        canViewAnnotations,
+        canEditAnnotations,
+      }),
+    })
+
+    if (!response.ok) {
+      const newErrorMessage = await createFetchErrorMessage(
+        response,
+        'Error when updating assembly permission',
+      )
+      throw new Error(newErrorMessage)
+    }
+
+    const savedPermission =
+      (await response.json()) as AssemblyPermissionResponse
+    setAssemblyPermissionsByAssemblyId(
+      (prev: Partial<Record<string, AssemblyPermissionResponse>>) => ({
+        ...prev,
+        [savedPermission.assemblyId]: savedPermission,
+      }),
+    )
+
+    return {
+      ...newRow,
+      canViewAnnotations,
+      canEditAnnotations,
+    }
+  }
+
+  const selectedManagedUser = users.find(
+    (user: UserResponse) => user._id === selectedUserId,
+  )
+
+  const assemblyPermissionRows: AssemblyPermissionRow[] =
+    buildAssemblyPermissionRows(assemblies, assemblyPermissionsByAssemblyId)
+
+  const assemblyPermissionColumns: GridColDef[] = [
+    {
+      field: 'assemblyName',
+      headerName: 'Assembly',
+      width: 280,
+      editable: false,
+    },
+    {
+      field: 'canViewAnnotations',
+      headerName: 'Can view annotations',
+      width: 210,
+      type: 'boolean',
+      editable: true,
+    },
+    {
+      field: 'canEditAnnotations',
+      headerName: 'Can edit annotations',
+      width: 210,
+      type: 'boolean',
+      editable: true,
+    },
+  ]
 
   return (
     <Dialog
@@ -201,31 +369,80 @@ export function ManageUsers({
               onChange={handleChangeInternetAccount}
               disabled={!errorMessage}
             >
-              {internetAccounts.map((option) => (
-                <MenuItem key={option.id} value={option.internetAccountId}>
-                  {option.name}
-                </MenuItem>
-              ))}
+              {internetAccounts.map(
+                (
+                  option: ApolloInternetAccountModel & {
+                    id: string
+                    internetAccountId: string
+                    name: string
+                  },
+                ) => (
+                  <MenuItem key={option.id} value={option.internetAccountId}>
+                    {option.name}
+                  </MenuItem>
+                ),
+              )}
             </Select>
           </>
         ) : null}
         <div style={{ height: '100%', width: '100%' }}>
+          <Typography variant="h6" sx={{ marginBottom: 1 }}>
+            User roles
+          </Typography>
           <DataGrid
             pagination
             rows={users}
             columns={gridColumns}
-            getRowId={(row) => row._id}
+            getRowId={(row: UserResponse) => row._id}
             slots={{ toolbar: GridToolbar }}
             getRowHeight={() => 'auto'}
             isCellEditable={(params: GridCellParams) =>
               !isCurrentUser(params.id)
             }
             processRowUpdate={processRowUpdate}
-            onProcessRowUpdateError={(error) => {
+            onProcessRowUpdateError={(error: unknown) => {
               setErrorMessage(String(error))
             }}
           />
         </div>
+
+        <Box sx={{ marginTop: 4 }}>
+          <Typography variant="h6" sx={{ marginBottom: 1 }}>
+            Assembly permissions
+          </Typography>
+          <FormControl size="small" sx={{ minWidth: 320, marginBottom: 2 }}>
+            <InputLabel id="managed-user-select-label">Managed user</InputLabel>
+            <Select
+              labelId="managed-user-select-label"
+              value={selectedUserId}
+              label="Managed user"
+              onChange={handleChangeManagedUser}
+            >
+              {users.map((user: UserResponse) => (
+                <MenuItem key={user._id} value={user._id}>
+                  {`${user.username} (${user.email})`}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          {selectedManagedUser ? (
+            <Typography variant="body2" sx={{ marginBottom: 1 }}>
+              {`Managing assembly access for ${selectedManagedUser.username}`}
+            </Typography>
+          ) : null}
+          <div style={{ height: 460, width: '100%' }}>
+            <DataGrid
+              rows={assemblyPermissionRows}
+              columns={assemblyPermissionColumns}
+              slots={{ toolbar: GridToolbar }}
+              processRowUpdate={processAssemblyPermissionRowUpdate}
+              onProcessRowUpdateError={(error: unknown) => {
+                setErrorMessage(String(error))
+              }}
+              disableRowSelectionOnClick
+            />
+          </div>
+        </Box>
       </DialogContent>
       <DialogActions>
         <Button variant="outlined" type="submit" onClick={handleClose}>

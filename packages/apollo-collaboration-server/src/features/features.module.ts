@@ -8,6 +8,7 @@ import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import type { Connection } from 'mongoose'
 import idValidator from 'mongoose-id-validator'
 
+import { AssemblyPermissionsModule } from '../assemblyPermissions/assemblyPermissions.module.js'
 import { ChecksModule } from '../checks/checks.module.js'
 import { ChecksService } from '../checks/checks.service.js'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module.js'
@@ -21,6 +22,7 @@ import { FeaturesService } from './features.service.js'
   providers: [FeaturesService],
   imports: [
     ChecksModule,
+    AssemblyPermissionsModule,
     RefSeqsModule,
     SequenceModule,
     MongooseModule.forFeatureAsync([

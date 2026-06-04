@@ -8,6 +8,56 @@ Apollo also allows a single admin-level access root user with a password,
 usually for use with the CLI, and a passwordless guest user with configurable
 access level.
 
+## Assembly ACL rollout
+
+Apollo now supports assembly-level annotation permissions in addition to global
+roles.
+
+### Authorization model
+
+- Global role still gates broad capabilities (`none`, `readOnly`, `user`,
+  `admin`).
+- Assembly permissions provide per-assembly view/edit grants.
+- `admin` role bypasses assembly grants.
+- `canEditAnnotations=true` always implies `canViewAnnotations=true`.
+
+### Recommended rollout sequence
+
+1. Verify at least one administrator account can access the server.
+2. Upgrade Apollo server and plugin to versions that include assembly ACL
+   support.
+3. Seed permissions for existing users and required assemblies.
+4. Validate read and write behavior using representative users before broad
+   rollout.
+
+### Seeding permissions with CLI
+
+Use the CLI permissions commands as an admin:
+
+```sh
+apollo permissions grant -u admin@example.org -a myAssembly --edit
+apollo permissions grant -u annotator@example.org -a myAssembly --edit
+apollo permissions grant -u reviewer@example.org -a myAssembly --view
+apollo permissions list -u reviewer@example.org
+```
+
+To remove access:
+
+```sh
+apollo permissions revoke -u reviewer@example.org -a myAssembly
+```
+
+### Backward compatibility notes
+
+- Existing deployments remain role-based if assembly permissions are not
+  created.
+- Non-admin users without grants for a given assembly cannot read or write
+  Apollo annotations for that assembly.
+- Existing non-Apollo tracks remain unaffected by assembly ACL.
+
+For a step-by-step production procedure, see
+[Assembly ACL Rollout Runbook](./assembly-acl-rollout).
+
 ## Login.gov status
 
 Login.gov support is scaffolded in Apollo3, but rollout should be treated as

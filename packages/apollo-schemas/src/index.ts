@@ -1,4 +1,5 @@
 export * from './assembly.schema.js'
+export * from './assemblyPermission.schema.js'
 export * from './change.schema.js'
 export * from './check.schema.js'
 export * from './checkResult.schema.js'

@@ -35,7 +35,7 @@ cd Apollo3/packages/apollo-cli
 - To run all tests:
 
 ```
-* yarn tsx src/test/test.ts
+yarn tsx src/test/test.ts
 ```
 
 - To run only tests matching aregular expression:
@@ -44,8 +44,15 @@ cd Apollo3/packages/apollo-cli
  yarn tsx --test-name-pattern='Print help|Feature get' src/test/test.ts
 ```
 
+- To run against a non-default Apollo server address (default is
+  `http://localhost:3999`):
+
+```
+APOLLO_TEST_ADDRESS=http://localhost:4001 yarn tsx src/test/test.ts
+```
+
 # Run docker test
 
 ```
-yarn tsx ./src/test/test_docker.ts
+APOLLO_TEST_ADDRESS=http://localhost:4001 yarn tsx ./src/test/test_docker.ts
 ```
