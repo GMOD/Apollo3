@@ -1,4 +1,5 @@
 import { Test, type TestingModule } from '@nestjs/testing'
+import { jest } from '@jest/globals'
 
 import { AssemblyPermissionsController } from './assemblyPermissions.controller.js'
 import { AssemblyPermissionsService } from './assemblyPermissions.service.js'

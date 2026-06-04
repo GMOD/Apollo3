@@ -1,5 +1,6 @@
 import { Test, type TestingModule } from '@nestjs/testing'
 import { getModelToken } from '@nestjs/mongoose'
+import { jest } from '@jest/globals'
 
 import { AssemblyPermissionsService } from './assemblyPermissions.service.js'
 import { UpdateAssemblyPermissionDto } from './dto/update-assembly-permission.dto.js'

@@ -1,5 +1,6 @@
-import { INestApplication } from '@nestjs/common'
+import type { INestApplication } from '@nestjs/common'
 import { Test, type TestingModule } from '@nestjs/testing'
+import { jest } from '@jest/globals'
 import request from 'supertest'
 
 import { AssemblyPermissionsController } from './assemblyPermissions.controller.js'
