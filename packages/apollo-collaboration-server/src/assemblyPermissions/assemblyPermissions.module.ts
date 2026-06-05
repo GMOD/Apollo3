@@ -1,6 +1,12 @@
 import {
   AssemblyPermission,
   AssemblyPermissionSchema,
+  Group,
+  GroupAssemblyPermission,
+  GroupAssemblyPermissionSchema,
+  GroupMembership,
+  GroupMembershipSchema,
+  GroupSchema,
 } from '@apollo-annotation/schemas'
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
@@ -14,6 +20,12 @@ import { AssemblyPermissionsService } from './assemblyPermissions.service.js'
   imports: [
     MongooseModule.forFeature([
       { name: AssemblyPermission.name, schema: AssemblyPermissionSchema },
+      { name: Group.name, schema: GroupSchema },
+      { name: GroupMembership.name, schema: GroupMembershipSchema },
+      {
+        name: GroupAssemblyPermission.name,
+        schema: GroupAssemblyPermissionSchema,
+      },
     ]),
   ],
   exports: [AssemblyPermissionsService, MongooseModule],

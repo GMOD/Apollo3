@@ -11,6 +11,7 @@ import type { ChangeManager } from '../ChangeManager'
 import type { ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
+import { apolloDataGridSx } from './dataGridStyles'
 
 interface AddAssemblyAliasProps {
   session: ApolloSessionModel
@@ -91,6 +92,7 @@ export function AddAssemblyAliases({
           <DataGrid
             rows={rows}
             columns={columns}
+            sx={apolloDataGridSx}
             initialState={{
               pagination: {
                 paginationModel: {

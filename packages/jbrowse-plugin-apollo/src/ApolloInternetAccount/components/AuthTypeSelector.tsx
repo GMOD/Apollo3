@@ -2,11 +2,13 @@
 import { isAbortException } from '@jbrowse/core/util/aborting'
 import { makeStyles } from '@jbrowse/core/util/tss-react'
 import {
+  Box,
   Button,
   DialogActions,
   DialogContent,
   DialogContentText,
   Divider,
+  TextField,
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 
@@ -35,12 +37,20 @@ export const AuthTypeSelector = ({
   baseURL: string
   name: string
   handleClose: (
-    type?: 'google' | 'microsoft' | 'logingov' | 'guest' | Error,
+    type?:
+      | 'google'
+      | 'microsoft'
+      | 'logingov'
+      | 'guest'
+      | { type: 'local'; identifier: string; password: string }
+      | Error,
   ) => void
 }) => {
   const { classes } = useStyles()
   const [errorMessage, setErrorMessage] = useState('')
   const [loginTypes, setLoginTypes] = useState<string[]>([])
+  const [identifier, setIdentifier] = useState('')
+  const [password, setPassword] = useState('')
   useEffect(() => {
     const controller = new AbortController()
     const { signal } = controller
@@ -73,7 +83,9 @@ export const AuthTypeSelector = ({
     }
   }, [baseURL])
 
-  function handleClick(authType: 'google' | 'microsoft' | 'logingov' | 'guest') {
+  function handleClick(
+    authType: 'google' | 'microsoft' | 'logingov' | 'guest',
+  ) {
     if (authType === 'google') {
       handleClose('google')
     } else if (authType === 'microsoft') {
@@ -88,6 +100,7 @@ export const AuthTypeSelector = ({
   const allowGoogle = loginTypes.includes('google')
   const allowMicrosoft = loginTypes.includes('microsoft')
   const allowLoginGov = loginTypes.includes('logingov')
+  const allowLocal = loginTypes.includes('local')
   const allowGuest = loginTypes.includes('guest')
   return (
     <Dialog
@@ -123,6 +136,51 @@ export const AuthTypeSelector = ({
               handleClick('logingov')
             }}
           />
+        ) : null}
+        {allowLocal ? (
+          <>
+            <Divider className={classes.divider} />
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1,
+                width: 280,
+              }}
+            >
+              <TextField
+                label="Username or email"
+                size="small"
+                value={identifier}
+                onChange={(event) => {
+                  setIdentifier(event.target.value)
+                }}
+              />
+              <TextField
+                label="Password"
+                size="small"
+                type="password"
+                value={password}
+                onChange={(event) => {
+                  setPassword(event.target.value)
+                }}
+              />
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  if (!identifier || !password) {
+                    setErrorMessage(
+                      'Local login requires username/email and password',
+                    )
+                    return
+                  }
+                  handleClose({ type: 'local', identifier, password })
+                }}
+              >
+                Sign in locally
+              </Button>
+            </Box>
+          </>
         ) : null}
         {allowGuest ? (
           <>

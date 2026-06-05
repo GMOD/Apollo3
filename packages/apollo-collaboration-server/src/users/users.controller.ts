@@ -7,7 +7,7 @@ import type { Request } from 'express'
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'
 
-import { UserLocationDto } from './dto/create-user.dto.js'
+import { CreateLocalUserDto, UserLocationDto } from './dto/create-user.dto.js'
 import { UsersService } from './users.service.js'
 
 @Controller('users')
@@ -50,6 +50,12 @@ export class UsersController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findById(id)
+  }
+
+  @Validations(Role.Admin)
+  @Post('local')
+  createLocalUser(@Body() createLocalUserDto: CreateLocalUserDto) {
+    return this.usersService.createLocalUser(createLocalUserDto)
   }
 
   // NOTE: It's important that all GET endpoints are before POST endpoint, otherwise GET endpoint that is after POST may not be called properly!!

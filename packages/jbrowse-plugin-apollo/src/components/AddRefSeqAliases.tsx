@@ -34,6 +34,7 @@ import type { ChangeManager } from '../ChangeManager'
 import type { ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
+import { apolloDataGridSx } from './dataGridStyles'
 
 const columns: GridColDef[] = [
   { field: 'refName', headerName: 'Ref Name' },
@@ -264,6 +265,7 @@ export const AddRefSeqAliases = observer(function AddRefSeqAliases({
             <DataGrid
               rows={getTableRows()}
               columns={columns}
+              sx={apolloDataGridSx}
               initialState={{
                 pagination: {
                   paginationModel: { page: 0, pageSize: 5 },

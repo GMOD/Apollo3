@@ -62,6 +62,7 @@ import { CountersService } from '../counters/counters.service.js'
 import { FilesService } from '../files/files.service.js'
 import { MessagesGateway } from '../messages/messages.gateway.js'
 import { PluginsService } from '../plugins/plugins.service.js'
+import { AssemblyPermissionsService } from '../assemblyPermissions/assemblyPermissions.service.js'
 
 type ChangeHandlers = {
   [K in keyof typeof changes]: (
@@ -94,6 +95,7 @@ export class ChangeHandlersService implements ChangeHandlers {
     private readonly countersService: CountersService,
     private readonly pluginsService: PluginsService,
     private readonly messagesGateway: MessagesGateway,
+    private readonly assemblyPermissionsService: AssemblyPermissionsService,
   ) {}
 
   private readonly logger = new Logger(ChangeHandlersService.name)
@@ -1185,6 +1187,20 @@ export class ChangeHandlersService implements ChangeHandlers {
     await assemblyModel.create([
       { _id: assembly, name: assemblyName, user, status: -1, fileIds, checks },
     ])
+    const accessGroup =
+      await this.assemblyPermissionsService.ensureAssemblyAccessGroup(
+        assemblyName,
+        user,
+      )
+    await this.assemblyPermissionsService.upsertGroupPermission(
+      accessGroup._id.toString(),
+      assembly,
+      {
+        canViewAnnotations: true,
+        canEditAnnotations: true,
+      },
+      user,
+    )
     this.logger.debug(
       `Added new assembly "${assemblyName}", docId "${assembly}"`,
     )
@@ -1235,6 +1251,20 @@ export class ChangeHandlersService implements ChangeHandlers {
         checks,
       },
     ])
+    const accessGroup =
+      await this.assemblyPermissionsService.ensureAssemblyAccessGroup(
+        assemblyName,
+        user,
+      )
+    await this.assemblyPermissionsService.upsertGroupPermission(
+      accessGroup._id.toString(),
+      assembly,
+      {
+        canViewAnnotations: true,
+        canEditAnnotations: true,
+      },
+      user,
+    )
     this.logger.debug(
       `Added new assembly "${assemblyName}", docId "${assembly}"`,
     )
@@ -1399,6 +1429,20 @@ export class ChangeHandlersService implements ChangeHandlers {
           checks,
         },
       ])
+      const accessGroup =
+        await this.assemblyPermissionsService.ensureAssemblyAccessGroup(
+          assemblyName,
+          user,
+        )
+      await this.assemblyPermissionsService.upsertGroupPermission(
+        accessGroup._id.toString(),
+        assembly,
+        {
+          canViewAnnotations: true,
+          canEditAnnotations: true,
+        },
+        user,
+      )
       this.logger.debug(
         `Added new assembly "${assemblyName}", docId "${assembly}"`,
       )
@@ -1474,6 +1518,20 @@ export class ChangeHandlersService implements ChangeHandlers {
       await assemblyModel.create([
         { _id: assembly, name: assemblyName, user, status: -1, fileId, checks },
       ])
+      const accessGroup =
+        await this.assemblyPermissionsService.ensureAssemblyAccessGroup(
+          assemblyName,
+          user,
+        )
+      await this.assemblyPermissionsService.upsertGroupPermission(
+        accessGroup._id.toString(),
+        assembly,
+        {
+          canViewAnnotations: true,
+          canEditAnnotations: true,
+        },
+        user,
+      )
       this.logger.debug(
         `Added new assembly "${assemblyName}", docId "${assembly}"`,
       )

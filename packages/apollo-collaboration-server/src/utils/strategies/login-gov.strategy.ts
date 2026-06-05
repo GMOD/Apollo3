@@ -8,6 +8,10 @@ import { Strategy } from 'passport-openidconnect'
 
 import { AuthenticationService } from '../../authentication/authentication.service.js'
 
+function isRemoteAuthEnabled(value?: string): boolean {
+  return Boolean(value) && value !== 'disabled'
+}
+
 interface ConfigValues {
   LOGINGOV_CLIENT_ID?: string
   LOGINGOV_CLIENT_ID_FILE?: string
@@ -44,7 +48,7 @@ export class LoginGovStrategy extends PassportStrategy(Strategy, 'logingov') {
       })
       clientID = clientIDFile && fs.readFileSync(clientIDFile, 'utf8').trim()
     }
-    const configured = Boolean(clientID)
+    const configured = isRemoteAuthEnabled(clientID)
     if (!configured) {
       clientID = 'none'
     }

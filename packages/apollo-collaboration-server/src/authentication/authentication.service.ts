@@ -35,12 +35,17 @@ interface ConfigValues {
   GOOGLE_CLIENT_ID_FILE?: string
   LOGINGOV_CLIENT_ID?: string
   LOGINGOV_CLIENT_ID_FILE?: string
+  ALLOW_LOCAL_USER_LOGIN: boolean
   ALLOW_GUEST_USER: boolean
   DEFAULT_NEW_USER_ROLE: Role
   ROOT_USER_PASSWORD: string
 }
 
 const ROOT_USER_NAME = 'root'
+
+function hasRemoteAuthValue(value?: string): boolean {
+  return Boolean(value) && value !== 'disabled'
+}
 
 @Injectable()
 export class AuthenticationService {
@@ -104,17 +109,26 @@ export class AuthenticationService {
       loginGovClientID =
         clientIDFile && (await fs.readFile(clientIDFile, 'utf8')).trim()
     }
+    const allowLocalUserLogin = this.configService.get(
+      'ALLOW_LOCAL_USER_LOGIN',
+      {
+        infer: true,
+      },
+    )
     const allowGuestUser = this.configService.get('ALLOW_GUEST_USER', {
       infer: true,
     })
-    if (microsoftClientID) {
+    if (hasRemoteAuthValue(microsoftClientID)) {
       loginTypes.push('microsoft')
     }
-    if (googleClientID) {
+    if (hasRemoteAuthValue(googleClientID)) {
       loginTypes.push('google')
     }
-    if (loginGovClientID) {
+    if (hasRemoteAuthValue(loginGovClientID)) {
       loginTypes.push('logingov')
+    }
+    if (allowLocalUserLogin) {
+      loginTypes.push('local')
     }
     if (allowGuestUser) {
       loginTypes.push('guest')
@@ -178,6 +192,31 @@ export class AuthenticationService {
     throw new UnauthorizedException('Guest users are not allowed')
   }
 
+  async localLogin(identifier: string, password: string) {
+    const allowLocalUserLogin = this.configService.get(
+      'ALLOW_LOCAL_USER_LOGIN',
+      {
+        infer: true,
+      },
+    )
+    if (!allowLocalUserLogin) {
+      throw new UnauthorizedException('Local users are not allowed')
+    }
+
+    const user = await this.usersService.findLocalByIdentifier(identifier)
+    if (!user) {
+      throw new UnauthorizedException('Invalid username/email or password')
+    }
+    const passwordValid = await this.usersService.verifyPassword(
+      password,
+      user.passwordHash,
+    )
+    if (!passwordValid) {
+      throw new UnauthorizedException('Invalid username/email or password')
+    }
+    return this.issueToken(user)
+  }
+
   async rootLogin(password: string) {
     if (password === this.configService.get('ROOT_USER_PASSWORD')) {
       return this.logIn(ROOT_USER_NAME, ROOT_USER_EMAIL)
@@ -223,13 +262,22 @@ export class AuthenticationService {
     }
     this.logger.debug(`User found in Mongo: ${JSON.stringify(user)}`)
 
+    return this.issueToken(user)
+  }
+
+  private issueToken(user: {
+    username: string
+    email: string
+    role: string
+    id?: string
+    _id?: { toString(): string }
+  }) {
     const payload: JWTPayload = {
       username: user.username,
       email: user.email,
-      role: user.role,
-      id: user.id,
+      role: user.role as Role,
+      id: user.id ?? user._id?.toString() ?? '',
     }
-    // Return token with SUCCESS status
     const returnToken = this.jwtService.sign(payload)
     this.logger.debug(`User "${user.username}" has logged in`)
     return { token: returnToken }

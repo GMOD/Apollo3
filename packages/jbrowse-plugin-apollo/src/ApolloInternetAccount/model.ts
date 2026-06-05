@@ -42,6 +42,12 @@ import { AuthTypeSelector } from './components/AuthTypeSelector'
 import type { ApolloInternetAccountConfigModel } from './configSchema'
 
 type AuthType = 'google' | 'microsoft' | 'logingov' | 'guest'
+type LocalAuthSelection = {
+  type: 'local'
+  identifier: string
+  password: string
+}
+type AuthSelection = AuthType | LocalAuthSelection
 
 type Role = 'admin' | 'user' | 'readOnly' | 'none'
 
@@ -231,7 +237,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       ): Promise<void> {
         const { baseURL } = self
         const authType = await new Promise(
-          (resolve: (authType: AuthType) => void, reject) => {
+          (resolve: (authType: AuthSelection) => void, reject) => {
             const { session } = getRoot<ApolloRootModel>(self)
             const { baseURL, name } = self
             ;(session as unknown as AbstractSessionModel).queueDialog(
@@ -239,7 +245,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
                 AuthTypeSelector,
                 {
                   name,
-                  handleClose: (newAuthType?: AuthType | Error) => {
+                  handleClose: (newAuthType?: AuthSelection | Error) => {
                     if (!newAuthType) {
                       reject(new Error('user cancelled entry'))
                     } else if (newAuthType instanceof Error) {
@@ -255,13 +261,38 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             )
           },
         )
-        if (authType !== 'guest') {
+        if (typeof authType !== 'string' && authType.type === 'local') {
+          const uri = new URL('auth/local', baseURL).href
+          const response = await fetch(uri, {
+            method: 'POST',
+            signal: self.controller.signal,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              identifier: authType.identifier,
+              password: authType.password,
+            }),
+          })
+          if (!response.ok) {
+            const errorMessage = await createFetchErrorMessage(
+              response,
+              'Error when logging in locally',
+            )
+            reject(new Error(errorMessage))
+            return
+          }
+          const { token } = await response.json()
+          resolve(token)
+          return
+        }
+        if (typeof authType === 'string' && authType !== 'guest') {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           self.openAuthWindow(authType, resolve, reject)
           return
         }
         const url = new URL('auth/login', baseURL)
-        const searchParams = new URLSearchParams({ type: authType })
+        const searchParams = new URLSearchParams({ type: 'guest' })
         url.search = searchParams.toString()
         const uri = url.toString()
         const response = await fetch(uri, { signal: self.controller.signal })

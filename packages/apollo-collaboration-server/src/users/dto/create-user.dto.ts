@@ -6,6 +6,10 @@ export class CreateUserDto {
   role?: Role
 }
 
+export class CreateLocalUserDto extends CreateUserDto {
+  readonly password: string
+}
+
 export class UserLocationDto {
   readonly assemblyId: string
   readonly refSeq: string

@@ -8,6 +8,10 @@ import { type Profile, Strategy } from 'passport-google-oauth20'
 
 import { AuthenticationService } from '../../authentication/authentication.service.js'
 
+function isRemoteAuthEnabled(value?: string): boolean {
+  return Boolean(value) && value !== 'disabled'
+}
+
 interface ConfigValues {
   GOOGLE_CLIENT_ID?: string
   GOOGLE_CLIENT_ID_FILE?: string
@@ -33,7 +37,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       })
       clientID = clientIDFile && fs.readFileSync(clientIDFile, 'utf8').trim()
     }
-    const configured = Boolean(clientID)
+    const configured = isRemoteAuthEnabled(clientID)
     if (!configured) {
       clientID = 'none'
     }

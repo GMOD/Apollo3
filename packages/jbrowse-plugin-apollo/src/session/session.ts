@@ -69,6 +69,41 @@ export function extendSession(
   pluginManager: PluginManager,
   sessionModel: ReturnType<typeof types.model>,
 ) {
+  const normalizeConfigAssemblyNames = (config: JBrowseConfig) => {
+    type ConfigTrack = NonNullable<JBrowseConfig['tracks']>[number]
+
+    const assemblies = config.assemblies ?? []
+    const displayNameToAssemblyName = new Map<string, string>()
+    for (const assembly of assemblies) {
+      if (assembly.displayName && assembly.displayName !== assembly.name) {
+        displayNameToAssemblyName.set(assembly.displayName, assembly.name)
+      }
+    }
+
+    if (displayNameToAssemblyName.size === 0 || !config.tracks?.length) {
+      return config
+    }
+
+    const normalizedTracks = config.tracks.map((track: ConfigTrack) => {
+      if (!track.assemblyNames?.length) {
+        return track
+      }
+      const normalizedAssemblyNames = track.assemblyNames.map(
+        (assemblyName: string) =>
+          displayNameToAssemblyName.get(assemblyName) ?? assemblyName,
+      )
+      return {
+        ...track,
+        assemblyNames: normalizedAssemblyNames,
+      }
+    })
+
+    return {
+      ...config,
+      tracks: normalizedTracks,
+    }
+  }
+
   const AnnotationFeatureExtended = pluginManager.evaluateExtensionPoint(
     'Apollo-extendAnnotationFeature',
     AnnotationFeatureModel,
@@ -306,6 +341,17 @@ export function extendSession(
               const hasApolloInternetAccount = internetAccounts.some((ia) =>
                 isApolloInternetAccount(ia),
               )
+              // Re-run this autorun after login/logout so role-gated config can be reloaded.
+              const apolloAuthSignature = internetAccounts
+                .filter(isApolloInternetAccount)
+                .map(
+                  (ia) =>
+                    `${ia.internetAccountId}:${ia.role ?? ''}:${Boolean(
+                      ia.retrieveToken(),
+                    )}`,
+                )
+                .join('|')
+              void apolloAuthSignature
               const nonApolloAssemblies = (
                 self as unknown as AbstractSessionModel
               ).assemblyManager.assemblies.filter(
@@ -391,9 +437,12 @@ export function extendSession(
                 if (!jbrowseConfig.configuration.ApolloPlugin.hasRole) {
                   continue
                 }
+                const normalizedJBrowseConfig = normalizeConfigAssemblyNames(
+                  jbrowseConfig as JBrowseConfig,
+                )
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                 reloadPluginManagerCallback(
-                  jbrowseConfig,
+                  normalizedJBrowseConfig,
                   self.previousSnapshot,
                 )
                 reaction.dispose()

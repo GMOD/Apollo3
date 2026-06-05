@@ -1,4 +1,11 @@
 import {
+  randomBytes,
+  scrypt as scryptCallback,
+  timingSafeEqual,
+} from 'node:crypto'
+import { promisify } from 'node:util'
+
+import {
   User as UserSchema,
   type UserDocument,
 } from '@apollo-annotation/schemas'
@@ -8,7 +15,7 @@ import {
   type UserLocationMessage,
   makeUserSessionId,
 } from '@apollo-annotation/shared'
-import { Injectable, Logger } from '@nestjs/common'
+import { ConflictException, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
@@ -17,7 +24,13 @@ import { MessagesGateway } from '../messages/messages.gateway.js'
 import { GUEST_USER_EMAIL, GUEST_USER_NAME } from '../utils/constants.js'
 import { Role } from '../utils/role/role.enum.js'
 
-import { CreateUserDto, UserLocationDto } from './dto/create-user.dto.js'
+import {
+  CreateLocalUserDto,
+  CreateUserDto,
+  UserLocationDto,
+} from './dto/create-user.dto.js'
+
+const scrypt = promisify(scryptCallback)
 
 export interface User {
   email: string
@@ -57,6 +70,15 @@ export class UsersService {
     return this.userModel.findOne({ email }).exec()
   }
 
+  async findLocalByIdentifier(identifier: string) {
+    return this.userModel
+      .findOne({
+        $or: [{ email: identifier }, { username: identifier }],
+      })
+      .select('+passwordHash')
+      .exec()
+  }
+
   async findByRole(role: Role) {
     return this.userModel.findOne({ role }).sort('createdAt').exec()
   }
@@ -71,6 +93,58 @@ export class UsersService {
 
   async addNew(user: CreateUserDto) {
     return this.userModel.create(user)
+  }
+
+  async createLocalUser(user: CreateLocalUserDto) {
+    const existingEmail = await this.findByEmail(user.email)
+    if (existingEmail) {
+      throw new ConflictException(
+        `User with email '${user.email}' already exists`,
+      )
+    }
+
+    const existingUsername = await this.findByUsername(user.username)
+    if (existingUsername) {
+      throw new ConflictException(
+        `User with username '${user.username}' already exists`,
+      )
+    }
+
+    const passwordHash = await this.hashPassword(user.password)
+    const createdUser = await this.userModel.create({
+      email: user.email,
+      username: user.username,
+      role: user.role,
+      passwordHash,
+    })
+    return {
+      _id: createdUser._id,
+      email: createdUser.email,
+      username: createdUser.username,
+      role: createdUser.role,
+    }
+  }
+
+  async hashPassword(password: string) {
+    const salt = randomBytes(16)
+    const derivedKey = (await scrypt(password, salt, 64)) as Buffer
+    return `scrypt:${salt.toString('hex')}:${derivedKey.toString('hex')}`
+  }
+
+  async verifyPassword(password: string, passwordHash?: string) {
+    if (!passwordHash) {
+      return false
+    }
+    const [algorithm, saltHex, hashHex] = passwordHash.split(':')
+    if (algorithm !== 'scrypt' || !saltHex || !hashHex) {
+      return false
+    }
+    const derivedKey = (await scrypt(
+      password,
+      Buffer.from(saltHex, 'hex'),
+      64,
+    )) as Buffer
+    return timingSafeEqual(derivedKey, Buffer.from(hashHex, 'hex'))
   }
 
   async getCount() {

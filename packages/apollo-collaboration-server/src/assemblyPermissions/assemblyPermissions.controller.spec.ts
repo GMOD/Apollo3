@@ -10,8 +10,17 @@ describe('AssemblyPermissionsController', () => {
   const serviceMock = {
     find: jest.fn(),
     findByUser: jest.fn(),
+    findEffectiveByUser: jest.fn(),
     findByAssembly: jest.fn(),
     upsertPermission: jest.fn(),
+    findGroups: jest.fn(),
+    createGroup: jest.fn(),
+    deleteGroup: jest.fn(),
+    findGroupMembershipsByUser: jest.fn(),
+    findGroupMembershipsByGroup: jest.fn(),
+    setGroupMembership: jest.fn(),
+    findGroupPermissions: jest.fn(),
+    upsertGroupPermission: jest.fn(),
   }
 
   beforeEach(async () => {

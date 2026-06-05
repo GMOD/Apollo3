@@ -8,6 +8,10 @@ import { Strategy } from 'passport-microsoft'
 
 import { AuthenticationService } from '../../authentication/authentication.service.js'
 
+function isRemoteAuthEnabled(value?: string): boolean {
+  return Boolean(value) && value !== 'disabled'
+}
+
 export interface Profile {
   provider: 'microsoft'
   name: { familyName: string; givenName: string }
@@ -42,7 +46,7 @@ export class MicrosoftStrategy extends PassportStrategy(Strategy) {
       })
       clientID = clientIDFile && fs.readFileSync(clientIDFile, 'utf8').trim()
     }
-    const configured = Boolean(clientID)
+    const configured = isRemoteAuthEnabled(clientID)
     if (!configured) {
       clientID = 'none'
     }

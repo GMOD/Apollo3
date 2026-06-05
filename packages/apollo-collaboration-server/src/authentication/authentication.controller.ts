@@ -80,6 +80,13 @@ export class AuthenticationController {
     return this.authService.guestLogin()
   }
 
+  @Post('local')
+  localLogin(
+    @Body() { identifier, password }: { identifier: string; password: string },
+  ) {
+    return this.authService.localLogin(identifier, password)
+  }
+
   @Post('root')
   rootLogin(@Body() { password }: { password: string }) {
     return this.authService.rootLogin(password)

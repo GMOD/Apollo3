@@ -13,6 +13,9 @@ export class User {
   @Prop({ required: true, unique: true })
   email: string
 
+  @Prop({ select: false })
+  passwordHash?: string
+
   @Prop({ type: String, enum: ['readOnly', 'admin', 'user', 'none'] })
   role: Role
 }

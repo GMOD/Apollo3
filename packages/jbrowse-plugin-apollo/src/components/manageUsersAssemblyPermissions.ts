@@ -12,6 +12,12 @@ export interface AssemblyPermissionResponse {
   canEditAnnotations: boolean
 }
 
+export interface AssemblyPermissionLike {
+  assemblyId: string
+  canViewAnnotations: boolean
+  canEditAnnotations: boolean
+}
+
 export interface AssemblyPermissionRow {
   id: string
   assemblyId: string
@@ -47,7 +53,7 @@ export function normalizeAssemblyPermissionUpdate(
 
 export function buildAssemblyPermissionRows(
   assemblies: AssemblyResponse[],
-  permissionsByAssemblyId: Partial<Record<string, AssemblyPermissionResponse>>,
+  permissionsByAssemblyId: Partial<Record<string, AssemblyPermissionLike>>,
 ): AssemblyPermissionRow[] {
   return assemblies.map((assembly) => {
     const permission = permissionsByAssemblyId[assembly._id]

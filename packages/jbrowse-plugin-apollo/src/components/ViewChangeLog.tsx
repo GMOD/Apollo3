@@ -26,6 +26,7 @@ import type { GetChangesOpts } from '../BackendDrivers/BackendDriver'
 import type { ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
+import { apolloDataGridSx } from './dataGridStyles'
 
 interface ViewChangeLogProps {
   session: ApolloSessionModel
@@ -216,6 +217,7 @@ export function ViewChangeLog({
           columns={gridColumns}
           getRowId={(row) => row.sequence}
           showToolbar
+          sx={apolloDataGridSx}
           pageSizeOptions={[5, 15, 25, 50, 100]}
           initialState={{
             columns: { columnVisibilityModel: { sequence: false } },

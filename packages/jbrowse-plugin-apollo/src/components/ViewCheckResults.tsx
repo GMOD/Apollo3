@@ -14,6 +14,7 @@ import React, { useEffect, useState } from 'react'
 import type { ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
+import { apolloDataGridSx } from './dataGridStyles'
 
 interface ViewCheckResultsProps {
   session: ApolloSessionModel
@@ -75,6 +76,7 @@ export function ViewCheckResults({
           columns={gridColumns}
           getRowId={(row) => row._id}
           showToolbar
+          sx={apolloDataGridSx}
           initialState={{
             sorting: { sortModel: [{ field: 'name', sort: 'asc' }] },
             columns: { columnVisibilityModel: { name: true } },

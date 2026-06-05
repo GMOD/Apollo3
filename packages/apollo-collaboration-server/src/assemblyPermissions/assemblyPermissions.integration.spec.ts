@@ -12,12 +12,28 @@ describe('AssemblyPermissionsController (integration)', () => {
   const serviceMock = {
     find: jest.fn().mockResolvedValue([]),
     findByUser: jest.fn().mockResolvedValue([]),
+    findEffectiveByUser: jest.fn().mockResolvedValue([]),
     findByAssembly: jest.fn().mockResolvedValue([]),
     upsertPermission: jest.fn().mockResolvedValue({
       userId: 'user1',
       assemblyId: 'assembly1',
       canViewAnnotations: true,
       canEditAnnotations: true,
+    }),
+    findGroups: jest.fn().mockResolvedValue([]),
+    createGroup: jest.fn().mockResolvedValue({ _id: 'group1', name: 'group1' }),
+    deleteGroup: jest.fn().mockResolvedValue({ deleted: true }),
+    findGroupMembershipsByUser: jest.fn().mockResolvedValue([]),
+    findGroupMembershipsByGroup: jest.fn().mockResolvedValue([]),
+    setGroupMembership: jest
+      .fn()
+      .mockResolvedValue({ groupId: 'group1', userId: 'u1', isMember: true }),
+    findGroupPermissions: jest.fn().mockResolvedValue([]),
+    upsertGroupPermission: jest.fn().mockResolvedValue({
+      groupId: 'group1',
+      assemblyId: 'a1',
+      canViewAnnotations: true,
+      canEditAnnotations: false,
     }),
   }
 
@@ -86,6 +102,28 @@ describe('AssemblyPermissionsController (integration)', () => {
         canViewAnnotations: false,
         canEditAnnotations: true,
       },
+      'admin@test',
+    )
+  })
+
+  it('GET /assemblyPermissions/groups forwards to service', async () => {
+    await request(app.getHttpServer())
+      .get('/assemblyPermissions/groups')
+      .expect(200)
+
+    expect(serviceMock.findGroups).toHaveBeenCalled()
+  })
+
+  it('PUT /assemblyPermissions/groups/memberships/:groupId/:userId forwards body and actor', async () => {
+    await request(app.getHttpServer())
+      .put('/assemblyPermissions/groups/memberships/group1/u1')
+      .send({ isMember: true })
+      .expect(200)
+
+    expect(serviceMock.setGroupMembership).toHaveBeenCalledWith(
+      'group1',
+      'u1',
+      true,
       'admin@test',
     )
   })
