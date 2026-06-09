@@ -20,7 +20,7 @@
   ],
   "scripts": {
     "setup": "rimraf .jbrowse && jbrowse create .jbrowse",
-    "clean": "rimraf dist",
+    "clean": "mkdir -p dist && find dist -mindepth 1 -maxdepth 1 -exec rm -rf {} +",
     "start": "yarn clean && npm-run-all --parallel start:watch start:server",
     "start:watch": "JB_NPM=false NODE_ENV=development rollup --config rollup/rollup.config.mjs --watch",
     "start:server": "serve --no-request-logging --cors --listen 9000 --no-port-switching .",

@@ -5,6 +5,7 @@ import type {
 import AddIcon from '@mui/icons-material/Add'
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import DeleteIcon from '@mui/icons-material/Delete'
+import EditIcon from '@mui/icons-material/Edit'
 import InputIcon from '@mui/icons-material/Input'
 import PersonIcon from '@mui/icons-material/Person'
 import RuleIcon from '@mui/icons-material/Rule'
@@ -14,6 +15,7 @@ import {
   AddAssemblyAliases,
   AddRefSeqAliases,
   DeleteAssembly,
+  EditAssemblies,
   ImportFeatures,
   ManageChecks,
   ManageUsers,
@@ -57,6 +59,23 @@ export function addTopLevelAdminMenus(rootModel: AbstractMenuManager) {
                   doneCallback()
                 },
                 changeManager: session.apolloDataStore.changeManager,
+              },
+            ],
+          )
+        },
+      },
+      {
+        label: 'Edit Assemblies',
+        icon: EditIcon,
+        onClick: (session: ApolloSessionModel) => {
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              EditAssemblies,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
               },
             ],
           )

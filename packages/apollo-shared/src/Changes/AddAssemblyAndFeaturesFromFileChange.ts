@@ -11,6 +11,7 @@ export interface SerializedAddAssemblyAndFeaturesFromFileChangeBase
 
 export interface AddAssemblyAndFeaturesFromFileChangeDetails {
   assemblyName: string
+  scientificName?: string
   fileIds: { fa: string }
   parseOptions?: { bufferSize?: number; strict?: boolean }
 }
@@ -47,8 +48,8 @@ export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange
   toJSON(): SerializedAddAssemblyAndFeaturesFromFileChange {
     const { assembly, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ assemblyName, fileIds }] = changes
-      return { typeName, assembly, assemblyName, fileIds }
+      const [{ assemblyName, scientificName, fileIds }] = changes
+      return { typeName, assembly, assemblyName, scientificName, fileIds }
     }
     return { typeName, assembly, changes }
   }

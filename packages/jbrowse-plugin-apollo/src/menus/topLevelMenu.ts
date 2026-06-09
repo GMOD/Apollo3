@@ -108,18 +108,22 @@ export function addTopLevelMenus(rootModel: AbstractMenuManager) {
     isApolloInternetAccount(ia),
   )
   if (hasApolloInternetAccount) {
-    rootModel.appendToMenu('Apollo', {
-      label: React.createElement(ApolloUserMenuLabel, {
-        rootModel: rootModel as unknown as ApolloRootModel,
-      }),
-      icon: AccountCircleIcon,
-      onClick: (session: ApolloSessionModel) => {
-        notifyCurrentApolloUser(
-          rootModel as unknown as ApolloRootModel,
-          session,
-        )
+    rootModel.insertInMenu(
+      'Apollo',
+      {
+        label: React.createElement(ApolloUserMenuLabel, {
+          rootModel: rootModel as unknown as ApolloRootModel,
+        }),
+        icon: AccountCircleIcon,
+        onClick: (session: ApolloSessionModel) => {
+          notifyCurrentApolloUser(
+            rootModel as unknown as ApolloRootModel,
+            session,
+          )
+        },
       },
-    })
+      0,
+    )
 
     rootModel.appendToMenu('Apollo', {
       label: 'My workspace',

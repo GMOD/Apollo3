@@ -2,6 +2,7 @@ export interface AssemblyResponse {
   _id: string
   name: string
   displayName?: string
+  scientificName?: string
 }
 
 export interface AssemblyPermissionResponse {
@@ -22,6 +23,7 @@ export interface AssemblyPermissionRow {
   id: string
   assemblyId: string
   assemblyName: string
+  genusSpecies: string
   canViewAnnotations: boolean
   canEditAnnotations: boolean
 }
@@ -57,10 +59,15 @@ export function buildAssemblyPermissionRows(
 ): AssemblyPermissionRow[] {
   return assemblies.map((assembly) => {
     const permission = permissionsByAssemblyId[assembly._id]
+    const scientificName =
+      typeof assembly.scientificName === 'string'
+        ? assembly.scientificName.trim()
+        : ''
     return {
       id: assembly._id,
       assemblyId: assembly._id,
       assemblyName: assembly.displayName ?? assembly.name,
+      genusSpecies: scientificName || 'Unknown',
       canViewAnnotations: permission?.canViewAnnotations ?? false,
       canEditAnnotations: permission?.canEditAnnotations ?? false,
     }

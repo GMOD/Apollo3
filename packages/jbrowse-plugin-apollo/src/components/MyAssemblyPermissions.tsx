@@ -29,6 +29,7 @@ interface AssemblyResponse {
   _id: string
   name: string
   displayName?: string
+  scientificName?: string
 }
 
 interface AssemblyPermissionResponse {
@@ -43,6 +44,7 @@ interface PermissionRow {
   id: string
   assemblyId: string
   assemblyName: string
+  genusSpecies: string
   access: 'Edit' | 'View'
 }
 
@@ -130,11 +132,16 @@ export function MyAssemblyPermissions({
           const assembly = assemblyById.get(permission.assemblyId)
           const assemblyName =
             assembly?.displayName ?? assembly?.name ?? permission.assemblyId
+          const scientificName =
+            typeof assembly?.scientificName === 'string'
+              ? assembly.scientificName.trim()
+              : ''
           return {
             id:
               permission._id ?? `${permission.userId}-${permission.assemblyId}`,
             assemblyId: permission.assemblyId,
             assemblyName,
+            genusSpecies: scientificName || 'Unknown',
             access: permission.canEditAnnotations
               ? ('Edit' as const)
               : ('View' as const),
@@ -249,6 +256,12 @@ export function MyAssemblyPermissions({
           Load
         </Button>
       ),
+    },
+    {
+      field: 'genusSpecies',
+      headerName: 'Organism',
+      flex: 1,
+      minWidth: 220,
     },
     {
       field: 'assemblyName',

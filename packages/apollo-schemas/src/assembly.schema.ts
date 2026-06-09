@@ -17,6 +17,9 @@ export class Assembly {
   @Prop()
   displayName: string
 
+  @Prop()
+  scientificName: string
+
   @Prop({ type: [String] })
   aliases: string[]
 

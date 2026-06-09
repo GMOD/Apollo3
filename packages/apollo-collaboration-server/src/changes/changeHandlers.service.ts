@@ -1146,6 +1146,7 @@ export class ChangeHandlersService implements ChangeHandlers {
   private async addAssemblyFromFileIndexed(
     assembly: string,
     assemblyName: string,
+    scientificName: string | undefined,
     fileIds: { fa: string; fai: string; gzi: string },
     user: string,
   ): Promise<void> {
@@ -1184,8 +1185,17 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
     const checkDocs = await checkModel.find({ isDefault: true }).exec()
     const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
+    const normalizedScientificName = scientificName?.trim() || undefined
     await assemblyModel.create([
-      { _id: assembly, name: assemblyName, user, status: -1, fileIds, checks },
+      {
+        _id: assembly,
+        name: assemblyName,
+        scientificName: normalizedScientificName,
+        user,
+        status: -1,
+        fileIds,
+        checks,
+      },
     ])
     const accessGroup =
       await this.assemblyPermissionsService.ensureAssemblyAccessGroup(
@@ -1224,6 +1234,7 @@ export class ChangeHandlersService implements ChangeHandlers {
   private async addAssemblyFromFileFasta(
     assembly: string,
     assemblyName: string,
+    scientificName: string | undefined,
     fileId: string,
     user: string,
   ): Promise<void> {
@@ -1241,10 +1252,12 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
     const checkDocs = await checkModel.find({ default: true }).exec()
     const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
+    const normalizedScientificName = scientificName?.trim() || undefined
     await assemblyModel.create([
       {
         _id: assembly,
         name: assemblyName,
+        scientificName: normalizedScientificName,
         user,
         status: -1,
         fileIds: { fa: fileId },
@@ -1395,7 +1408,7 @@ export class ChangeHandlersService implements ChangeHandlers {
     const { CHUNK_SIZE } = process.env
     const customChunkSize = CHUNK_SIZE && Number(CHUNK_SIZE)
     for (const c of changes) {
-      const { assemblyName, externalLocation } = c
+      const { assemblyName, scientificName, externalLocation } = c
       const { fa, fai, gzi } = externalLocation
       const sequenceAdapter = gzi
         ? new BgzipIndexedFasta({
@@ -1419,10 +1432,12 @@ export class ChangeHandlersService implements ChangeHandlers {
       }
       const checkDocs = await checkModel.find({ default: true }).exec()
       const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
+      const normalizedScientificName = scientificName?.trim() || undefined
       await assemblyModel.create([
         {
           _id: assembly,
           name: assemblyName,
+          scientificName: normalizedScientificName,
           user,
           status: -1,
           externalLocation,
@@ -1471,17 +1486,19 @@ export class ChangeHandlersService implements ChangeHandlers {
     const { changes } = change
     const { user } = context
     for (const c of changes) {
-      const { assemblyName, fileIds } = c
+      const { assemblyName, scientificName, fileIds } = c
       await ('gzi' in fileIds
         ? this.addAssemblyFromFileIndexed(
             change.assembly,
             assemblyName,
+            scientificName,
             fileIds,
             user,
           )
         : this.addAssemblyFromFileFasta(
             change.assembly,
             assemblyName,
+            scientificName,
             fileIds.fa,
             user,
           ))
@@ -1496,7 +1513,7 @@ export class ChangeHandlersService implements ChangeHandlers {
     const { assembly, changes } = change
     const { user } = context
     for (const c of changes) {
-      const { assemblyName, fileIds, parseOptions } = c
+      const { assemblyName, scientificName, fileIds, parseOptions } = c
       const fileId = fileIds.fa
       const { FILE_UPLOAD_FOLDER } = process.env
       if (!FILE_UPLOAD_FOLDER) {
@@ -1515,8 +1532,17 @@ export class ChangeHandlersService implements ChangeHandlers {
       }
       const checkDocs = await checkModel.find({ isDefault: true }).exec()
       const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
+      const normalizedScientificName = scientificName?.trim() || undefined
       await assemblyModel.create([
-        { _id: assembly, name: assemblyName, user, status: -1, fileId, checks },
+        {
+          _id: assembly,
+          name: assemblyName,
+          scientificName: normalizedScientificName,
+          user,
+          status: -1,
+          fileId,
+          checks,
+        },
       ])
       const accessGroup =
         await this.assemblyPermissionsService.ensureAssemblyAccessGroup(

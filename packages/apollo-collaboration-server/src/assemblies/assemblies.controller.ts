@@ -6,12 +6,14 @@ import {
   Logger,
   Param,
   Post,
+  Put,
 } from '@nestjs/common'
 
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'
 
 import { AssembliesService } from './assemblies.service.js'
+import { UpdateAssemblyDto } from './dto/update-assembly.dto.js'
 
 interface AssemblyDocument {
   _id: string
@@ -45,5 +47,14 @@ export class AssembliesController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.assembliesService.findOne(id)
+  }
+
+  @Put(':id')
+  @Validations(Role.Admin)
+  update(
+    @Param('id') id: string,
+    @Body() updateAssemblyDto: UpdateAssemblyDto,
+  ) {
+    return this.assembliesService.update(id, updateAssemblyDto)
   }
 }

@@ -19,10 +19,10 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  type SelectChangeEvent,
   Switch,
   Tab,
   Tabs,
-  type SelectChangeEvent,
   TextField,
   Typography,
 } from '@mui/material'
@@ -91,10 +91,20 @@ interface GroupMembershipRow {
   isMember: boolean
 }
 
+interface UserGroupMembershipRow {
+  id: string
+  groupId: string
+  groupName: string
+  genusSpecies: string
+  description: string
+  isMember: boolean
+}
+
 interface EffectiveAssemblyPermissionRow {
   id: string
   assemblyId: string
   assemblyName: string
+  genusSpecies: string
   canViewAnnotations: boolean
   canEditAnnotations: boolean
   source: 'none' | 'direct' | 'group' | 'mixed'
@@ -109,11 +119,11 @@ interface EffectiveAssemblyPermissionResponse {
   source: 'direct' | 'group' | 'mixed'
 }
 
-type PermissionView =
-  | 'effective'
-  | 'assembly'
-  | 'groupMemberships'
-  | 'groupPermissions'
+type ManagementSection = 'users' | 'groups'
+
+type UserPermissionView = 'effective' | 'assembly' | 'userGroupMemberships'
+
+type GroupManagementView = 'memberships' | 'permissions'
 
 type GroupPermissionView = 'current' | 'edit'
 
@@ -133,12 +143,12 @@ export function ManageUsers({
   session,
 }: ManageUsersProps) {
   const { internetAccounts } = getRoot<ApolloRootModel>(session)
-  const apolloInternetAccounts: ApolloInternetAccountModel[] = internetAccounts
-    .filter(isApolloInternetAccount)
+  const apolloInternetAccounts = internetAccounts
+    .filter((ia) => isApolloInternetAccount(ia))
     .filter(
       (ia: ApolloInternetAccountModel & { role?: string }) =>
         ia.role?.includes('admin') ?? false,
-    )
+    ) as ApolloInternetAccountModel[]
   if (apolloInternetAccounts.length === 0) {
     throw new Error('No Apollo internet account found')
   }
@@ -152,8 +162,12 @@ export function ManageUsers({
   const [groupFilterText, setGroupFilterText] = useState('')
   const [selectedUserId, setSelectedUserId] = useState('')
   const [selectedGroupId, setSelectedGroupId] = useState('')
+  const [managementSection, setManagementSection] =
+    useState<ManagementSection>('users')
   const [permissionView, setPermissionView] =
-    useState<PermissionView>('effective')
+    useState<UserPermissionView>('effective')
+  const [groupManagementView, setGroupManagementView] =
+    useState<GroupManagementView>('memberships')
   const [groupMembershipView, setGroupMembershipView] =
     useState<GroupMembershipView>('edit')
   const [groupPermissionView, setGroupPermissionView] =
@@ -165,6 +179,9 @@ export function ManageUsers({
     setEffectiveAssemblyPermissionsByAssemblyId,
   ] = useState<Partial<Record<string, EffectiveAssemblyPermissionResponse>>>({})
   const [groupMembershipByUserId, setGroupMembershipByUserId] = useState<
+    Partial<Record<string, boolean>>
+  >({})
+  const [groupMembershipByGroupId, setGroupMembershipByGroupId] = useState<
     Partial<Record<string, boolean>>
   >({})
   const [groupPermissionsByAssemblyId, setGroupPermissionsByAssemblyId] =
@@ -317,6 +334,42 @@ export function ManageUsers({
       setEffectiveAssemblyPermissionsByAssemblyId(byAssemblyId)
     }
     getEffectiveAssemblyPermissionsForUser().catch((error) => {
+      setErrorMessage(String(error))
+    })
+  }, [selectedInternetAccount, selectedUserId])
+
+  useEffect(() => {
+    async function getMembershipsForUser() {
+      if (!selectedUserId) {
+        setGroupMembershipByGroupId({})
+        return
+      }
+      const { baseURL } = selectedInternetAccount
+      const uri = new URL(
+        `assemblyPermissions/groups/memberships/byUser/${selectedUserId}`,
+        baseURL,
+      ).href
+      const apolloFetch = selectedInternetAccount.getFetcher({
+        locationType: 'UriLocation',
+        uri,
+      })
+      const response = await apolloFetch(uri, { method: 'GET' })
+      if (!response.ok) {
+        const newErrorMessage = await createFetchErrorMessage(
+          response,
+          'Error when getting user group memberships from db',
+        )
+        throw new Error(newErrorMessage)
+      }
+      const membershipData =
+        (await response.json()) as GroupMembershipResponse[]
+      const next: Partial<Record<string, boolean>> = {}
+      for (const membership of membershipData) {
+        next[membership.groupId] = true
+      }
+      setGroupMembershipByGroupId(next)
+    }
+    getMembershipsForUser().catch((error) => {
       setErrorMessage(String(error))
     })
   }, [selectedInternetAccount, selectedUserId])
@@ -733,6 +786,48 @@ export function ManageUsers({
     }
   }
 
+  async function processUserGroupMembershipRowUpdate(newRow: GridRowModel) {
+    if (!selectedUserId) {
+      return newRow
+    }
+    const groupId = String(newRow.groupId)
+    const isMember = Boolean(newRow.isMember)
+    const { baseURL } = selectedInternetAccount
+    const uri = new URL(
+      `assemblyPermissions/groups/memberships/${groupId}/${selectedUserId}`,
+      baseURL,
+    ).href
+    const apolloFetch = selectedInternetAccount.getFetcher({
+      locationType: 'UriLocation',
+      uri,
+    })
+    const response = await apolloFetch(uri, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ isMember }),
+    })
+
+    if (!response.ok) {
+      const newErrorMessage = await createFetchErrorMessage(
+        response,
+        'Error when updating user group membership',
+      )
+      throw new Error(newErrorMessage)
+    }
+
+    setGroupMembershipByGroupId((prev: Partial<Record<string, boolean>>) => ({
+      ...prev,
+      [groupId]: isMember,
+    }))
+
+    return {
+      ...newRow,
+      isMember,
+    }
+  }
+
   async function processGroupAssemblyPermissionRowUpdate(newRow: GridRowModel) {
     if (!selectedGroupId) {
       return newRow
@@ -892,6 +987,99 @@ export function ManageUsers({
     (group: GroupResponse) => group._id === selectedGroupId,
   )
 
+  const assembliesByLookup = useMemo(() => {
+    const next = new Map<string, AssemblyResponse>()
+    for (const assembly of assemblies) {
+      next.set(assembly._id, assembly)
+      next.set(assembly.name, assembly)
+      next.set(assembly.name.toLowerCase(), assembly)
+      if (assembly.displayName) {
+        next.set(assembly.displayName, assembly)
+        next.set(assembly.displayName.toLowerCase(), assembly)
+      }
+    }
+    return next
+  }, [assemblies])
+
+  const defaultScientificName = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const assembly of assemblies) {
+      const scientificName =
+        typeof assembly.scientificName === 'string'
+          ? assembly.scientificName.trim()
+          : ''
+      if (scientificName) {
+        counts.set(scientificName, (counts.get(scientificName) ?? 0) + 1)
+      }
+    }
+    const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1])
+    return ranked[0]?.[0]
+  }, [assemblies])
+
+  function findAssemblyForGroupToken(token?: string) {
+    if (!token) {
+      return
+    }
+    const cleanedToken = token.trim()
+    if (!cleanedToken) {
+      return
+    }
+    return (
+      assembliesByLookup.get(cleanedToken) ??
+      assembliesByLookup.get(cleanedToken.toLowerCase())
+    )
+  }
+
+  function getGroupGenusSpecies(group: GroupResponse) {
+    const assemblyPrefix = 'assembly:'
+    if (group.name.startsWith(assemblyPrefix)) {
+      const assemblyToken = group.name.slice(assemblyPrefix.length).trim()
+      const assembly = findAssemblyForGroupToken(assemblyToken)
+      if (assembly) {
+        const scientificName =
+          typeof assembly.scientificName === 'string'
+            ? assembly.scientificName.trim()
+            : ''
+        if (scientificName.length > 0) {
+          return scientificName
+        }
+      }
+      return defaultScientificName || 'Unknown'
+    }
+
+    const directAssemblyMatch = findAssemblyForGroupToken(group.name)
+    if (directAssemblyMatch) {
+      const scientificName =
+        typeof directAssemblyMatch.scientificName === 'string'
+          ? directAssemblyMatch.scientificName.trim()
+          : ''
+      if (scientificName.length > 0) {
+        return scientificName
+      }
+      return defaultScientificName || 'Unknown'
+    }
+
+    const descriptionMatch = group.description?.match(/assembly\s+(.+)$/i)
+    const assemblyTokenFromDescription = descriptionMatch?.[1]
+      ?.replace(/[.,;:]$/, '')
+      .trim()
+    if (assemblyTokenFromDescription) {
+      const assembly = findAssemblyForGroupToken(assemblyTokenFromDescription)
+      if (assembly) {
+        const scientificName =
+          typeof assembly.scientificName === 'string'
+            ? assembly.scientificName.trim()
+            : ''
+        if (scientificName.length > 0) {
+          return scientificName
+        }
+      }
+      return defaultScientificName || 'Unknown'
+    }
+
+    return defaultScientificName || 'Unknown'
+  }
+
   const filteredGroups = useMemo(() => {
     const query = groupFilterText.trim().toLowerCase()
     if (!query) {
@@ -926,13 +1114,19 @@ export function ManageUsers({
       .map((assembly: AssemblyResponse) => {
         const permission =
           effectiveAssemblyPermissionsByAssemblyId[assembly._id]
+        const scientificName =
+          typeof assembly.scientificName === 'string'
+            ? assembly.scientificName.trim()
+            : ''
         return {
           id: assembly._id,
           assemblyId: assembly._id,
           assemblyName: assembly.displayName ?? assembly.name,
+          genusSpecies: scientificName || 'Unknown',
           canViewAnnotations: permission?.canViewAnnotations ?? false,
           canEditAnnotations: permission?.canEditAnnotations ?? false,
-          source: permission?.source ?? 'none',
+          source: (permission?.source ??
+            'none') as EffectiveAssemblyPermissionRow['source'],
         }
       })
       .sort(
@@ -952,6 +1146,19 @@ export function ManageUsers({
     }))
     .sort((a: GroupMembershipRow, b: GroupMembershipRow) =>
       a.username.localeCompare(b.username),
+    )
+
+  const userGroupMembershipRows: UserGroupMembershipRow[] = groups
+    .map((group: GroupResponse) => ({
+      id: group._id,
+      groupId: group._id,
+      groupName: group.name,
+      genusSpecies: getGroupGenusSpecies(group),
+      description: group.description ?? '',
+      isMember: Boolean(groupMembershipByGroupId[group._id]),
+    }))
+    .sort((a: UserGroupMembershipRow, b: UserGroupMembershipRow) =>
+      a.groupName.localeCompare(b.groupName),
     )
 
   const groupAssemblyPermissionRows: AssemblyPermissionRow[] =
@@ -974,6 +1181,13 @@ export function ManageUsers({
     : 'Create or select a group to manage inherited access.'
 
   const assemblyPermissionColumns: GridColDef[] = [
+    {
+      field: 'genusSpecies',
+      headerName: 'Organism',
+      width: 220,
+      editable: false,
+      filterable: true,
+    },
     {
       field: 'assemblyName',
       headerName: 'Assembly',
@@ -1000,6 +1214,13 @@ export function ManageUsers({
 
   const effectiveAssemblyPermissionColumns: GridColDef[] = [
     {
+      field: 'genusSpecies',
+      headerName: 'Organism',
+      width: 220,
+      editable: false,
+      filterable: true,
+    },
+    {
       field: 'assemblyName',
       headerName: 'Assembly',
       width: 280,
@@ -1023,12 +1244,14 @@ export function ManageUsers({
       headerName: 'User',
       width: 180,
       editable: false,
+      filterable: true,
     },
     {
       field: 'email',
       headerName: 'Email',
       width: 240,
       editable: false,
+      filterable: true,
     },
     {
       field: 'isMember',
@@ -1036,6 +1259,7 @@ export function ManageUsers({
       width: 140,
       sortable: false,
       editable: false,
+      filterable: true,
       renderCell: (params: GridRenderCellParams<GroupMembershipRow>) => (
         <Switch
           checked={Boolean(params.row.isMember)}
@@ -1063,14 +1287,101 @@ export function ManageUsers({
       headerName: 'User',
       width: 180,
       editable: false,
+      filterable: true,
     },
     {
       field: 'email',
       headerName: 'Email',
       width: 240,
       editable: false,
+      filterable: true,
     },
   ]
+
+  const userGroupMembershipColumns: GridColDef[] = [
+    {
+      field: 'genusSpecies',
+      headerName: 'Organism',
+      width: 220,
+      editable: false,
+      filterable: true,
+    },
+    {
+      field: 'groupName',
+      headerName: 'Group',
+      width: 260,
+      editable: false,
+      filterable: true,
+    },
+    {
+      field: 'description',
+      headerName: 'Description',
+      width: 320,
+      editable: false,
+      filterable: true,
+    },
+    {
+      field: 'isMember',
+      headerName: 'Member',
+      width: 140,
+      sortable: false,
+      editable: false,
+      filterable: true,
+      renderCell: (params: GridRenderCellParams<UserGroupMembershipRow>) => (
+        <Switch
+          checked={Boolean(params.row.isMember)}
+          disabled={!selectedUserId}
+          size="small"
+          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+            event.stopPropagation()
+          }}
+          onChange={(
+            _event: React.ChangeEvent<HTMLInputElement>,
+            checked: boolean,
+          ) => {
+            processUserGroupMembershipRowUpdate({
+              ...params.row,
+              isMember: checked,
+            }).catch((error) => {
+              setErrorMessage(String(error))
+            })
+          }}
+        />
+      ),
+    },
+  ]
+
+  const groupDirectoryColumns: GridColDef[] = [
+    {
+      field: 'genusSpecies',
+      headerName: 'Organism',
+      width: 220,
+      editable: false,
+      filterable: true,
+    },
+    {
+      field: 'name',
+      headerName: 'Group',
+      width: 260,
+      editable: false,
+      filterable: true,
+    },
+    {
+      field: 'description',
+      headerName: 'Description',
+      width: 320,
+      editable: false,
+      filterable: true,
+    },
+  ]
+
+  const groupDirectoryRows = groups.map((group: GroupResponse) => ({
+    id: group._id,
+    _id: group._id,
+    name: group.name,
+    genusSpecies: getGroupGenusSpecies(group),
+    description: group.description ?? '',
+  }))
 
   const groupManagementControls = (
     <>
@@ -1144,11 +1455,29 @@ export function ManageUsers({
         >
           {selectableGroups.map((group: GroupResponse) => (
             <MenuItem key={group._id} value={group._id}>
-              {group.name}
+              {`${group.name} (${getGroupGenusSpecies(group)})`}
             </MenuItem>
           ))}
         </Select>
       </FormControl>
+
+      <div style={{ height: 280, width: '100%', marginBottom: 16 }}>
+        <DataGrid
+          rows={groupDirectoryRows}
+          columns={groupDirectoryColumns}
+          slots={{ toolbar: GridToolbar }}
+          slotProps={{ toolbar: { showQuickFilter: true } }}
+          sx={apolloDataGridSx}
+          disableRowSelectionOnClick
+          rowSelectionModel={{
+            type: 'include',
+            ids: selectedGroupId ? new Set([selectedGroupId]) : new Set(),
+          }}
+          onRowClick={(params: GridRowParams) => {
+            setSelectedGroupId(String(params.id))
+          }}
+        />
+      </div>
       {selectedManagedGroup ? (
         <Typography variant="body2" sx={{ marginBottom: 1 }}>
           {`Managing ${selectedManagedGroup.name}: ${groupSummary}`}
@@ -1168,10 +1497,18 @@ export function ManageUsers({
 
   const groupAssemblyPermissionColumns: GridColDef[] = [
     {
+      field: 'genusSpecies',
+      headerName: 'Organism',
+      width: 220,
+      editable: false,
+      filterable: true,
+    },
+    {
       field: 'assemblyName',
       headerName: 'Assembly',
       width: 280,
       editable: false,
+      filterable: true,
     },
     buildTogglePermissionColumn(
       'canViewAnnotations',
@@ -1193,10 +1530,18 @@ export function ManageUsers({
 
   const groupAssemblyPermissionStateColumns: GridColDef[] = [
     {
+      field: 'genusSpecies',
+      headerName: 'Organism',
+      width: 220,
+      editable: false,
+      filterable: true,
+    },
+    {
       field: 'assemblyName',
       headerName: 'Assembly',
       width: 280,
       editable: false,
+      filterable: true,
     },
     buildEffectivePermissionColumn('canViewAnnotations', 'View enabled'),
     buildEffectivePermissionColumn('canEditAnnotations', 'Edit enabled'),
@@ -1245,288 +1590,383 @@ export function ManageUsers({
           </>
         ) : null}
         <div style={{ height: '100%', width: '100%' }}>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: 1,
-            }}
-          >
-            <Typography variant="h6">User roles</Typography>
-            <Button
-              variant="contained"
-              onClick={() => {
-                setLocalUserErrorMessage('')
-                setLocalUserDialogOpen(true)
-              }}
-            >
-              Add local user
-            </Button>
-          </Box>
-          <DataGrid
-            pagination
-            rows={users}
-            columns={gridColumns}
-            getRowId={(row: UserResponse) => row._id}
-            slots={{ toolbar: GridToolbar }}
-            sx={apolloDataGridSx}
-            getRowHeight={() => 'auto'}
-            isCellEditable={(params: GridCellParams) =>
-              !isCurrentUser(params.id)
-            }
-            processRowUpdate={processRowUpdate}
-            onProcessRowUpdateError={(error: unknown) => {
-              setErrorMessage(String(error))
-            }}
-          />
-        </div>
-
-        <Box sx={{ marginTop: 4 }}>
-          <Typography variant="h6" sx={{ marginBottom: 1 }}>
-            Permission management
-          </Typography>
           <Tabs
-            value={permissionView}
-            onChange={(_event: React.SyntheticEvent, value: PermissionView) => {
-              setPermissionView(value)
+            value={managementSection}
+            onChange={(
+              _event: React.SyntheticEvent,
+              value: ManagementSection,
+            ) => {
+              setManagementSection(value)
             }}
             sx={{ marginBottom: 2 }}
           >
-            <Tab value="effective" label="Effective access" />
-            <Tab value="assembly" label="Assembly permissions" />
-            <Tab value="groupMemberships" label="Group memberships" />
-            <Tab value="groupPermissions" label="Group permissions" />
+            <Tab value="users" label="User management" />
+            <Tab value="groups" label="Group management" />
           </Tabs>
 
-          {permissionView === 'effective' || permissionView === 'assembly' ? (
-            <FormControl size="small" sx={{ minWidth: 320, marginBottom: 2 }}>
-              <InputLabel id="managed-user-select-label">
-                Managed user
-              </InputLabel>
-              <Select
-                labelId="managed-user-select-label"
-                value={selectedUserId}
-                label="Managed user"
-                onChange={handleChangeManagedUser}
-              >
-                {users.map((user: UserResponse) => (
-                  <MenuItem key={user._id} value={user._id}>
-                    {`${user.username} (${user.email})`}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          ) : null}
-
-          {permissionView === 'effective' ? (
+          {managementSection === 'users' ? (
             <>
-              {selectedManagedUser ? (
-                <Typography variant="body2" sx={{ marginBottom: 1 }}>
-                  {`Effective access for ${selectedManagedUser.username}`}
-                </Typography>
-              ) : null}
-              <div style={{ height: 460, width: '100%' }}>
-                <DataGrid
-                  rows={effectiveAssemblyPermissionRows}
-                  columns={effectiveAssemblyPermissionColumns}
-                  slots={{ toolbar: GridToolbar }}
-                  sx={apolloDataGridSx}
-                  disableRowSelectionOnClick
-                />
-              </div>
-            </>
-          ) : null}
-
-          {permissionView === 'assembly' ? (
-            <>
-              {selectedManagedUser ? (
-                <Typography variant="body2" sx={{ marginBottom: 1 }}>
-                  {`Editing direct user access for ${selectedManagedUser.username}`}
-                </Typography>
-              ) : null}
-              <div style={{ height: 460, width: '100%' }}>
-                <DataGrid
-                  rows={assemblyPermissionRows}
-                  columns={assemblyPermissionColumns}
-                  slots={{ toolbar: GridToolbar }}
-                  sx={apolloDataGridSx}
-                  processRowUpdate={processAssemblyPermissionRowUpdate}
-                  onProcessRowUpdateError={(error: unknown) => {
-                    setErrorMessage(String(error))
-                  }}
-                  disableRowSelectionOnClick
-                />
-              </div>
-            </>
-          ) : null}
-
-          {permissionView === 'groupMemberships' ? (
-            <>
-              <Typography variant="h6" sx={{ marginBottom: 1, marginTop: 1 }}>
-                Group memberships
-              </Typography>
-              {groupManagementControls}
-
-              <Tabs
-                value={groupMembershipView}
-                onChange={(
-                  _event: React.SyntheticEvent,
-                  value: GroupMembershipView,
-                ) => {
-                  setGroupMembershipView(value)
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 1,
                 }}
-                sx={{ marginBottom: 2 }}
               >
-                <Tab value="current" label="Current state" />
-                <Tab value="edit" label="Edit memberships" />
-              </Tabs>
+                <Typography variant="h6">User roles</Typography>
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    setLocalUserErrorMessage('')
+                    setLocalUserDialogOpen(true)
+                  }}
+                >
+                  Add local user
+                </Button>
+              </Box>
+              <DataGrid
+                pagination
+                rows={users}
+                columns={gridColumns}
+                getRowId={(row: UserResponse) => row._id}
+                slots={{ toolbar: GridToolbar }}
+                slotProps={{ toolbar: { showQuickFilter: true } }}
+                sx={apolloDataGridSx}
+                getRowHeight={() => 'auto'}
+                isCellEditable={(params: GridCellParams) =>
+                  !isCurrentUser(params.id)
+                }
+                processRowUpdate={processRowUpdate}
+                onProcessRowUpdateError={(error: unknown) => {
+                  setErrorMessage(String(error))
+                }}
+              />
 
-              {groupMembershipView === 'current' ? (
-                <>
-                  <Typography variant="body2" sx={{ marginBottom: 2 }}>
-                    {selectedManagedGroup
-                      ? `${enabledGroupMembershipRows.length} users are currently members of this group.`
-                      : 'Select a group to review its current memberships.'}
-                  </Typography>
+              <Box sx={{ marginTop: 4 }}>
+                <Typography variant="h6" sx={{ marginBottom: 1 }}>
+                  Permission management
+                </Typography>
+                <Tabs
+                  value={permissionView}
+                  onChange={(
+                    _event: React.SyntheticEvent,
+                    value: UserPermissionView,
+                  ) => {
+                    setPermissionView(value)
+                  }}
+                  sx={{ marginBottom: 2 }}
+                >
+                  <Tab value="effective" label="Effective access" />
+                  <Tab value="assembly" label="Assembly permissions" />
+                  <Tab
+                    value="userGroupMemberships"
+                    label="User group memberships"
+                  />
+                </Tabs>
 
-                  <Typography variant="subtitle1" sx={{ marginBottom: 1 }}>
-                    Active group memberships
-                  </Typography>
-                  {enabledGroupMembershipRows.length ? (
-                    <div
-                      style={{ height: 320, width: '100%', marginBottom: 24 }}
-                    >
+                <FormControl
+                  size="small"
+                  sx={{ minWidth: 320, marginBottom: 2 }}
+                >
+                  <InputLabel id="managed-user-select-label">
+                    Managed user
+                  </InputLabel>
+                  <Select
+                    labelId="managed-user-select-label"
+                    value={selectedUserId}
+                    label="Managed user"
+                    onChange={handleChangeManagedUser}
+                  >
+                    {users.map((user: UserResponse) => (
+                      <MenuItem key={user._id} value={user._id}>
+                        {`${user.username} (${user.email})`}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                {permissionView === 'effective' ? (
+                  <>
+                    {selectedManagedUser ? (
+                      <Typography variant="body2" sx={{ marginBottom: 1 }}>
+                        {`Effective access for ${selectedManagedUser.username}`}
+                      </Typography>
+                    ) : null}
+                    <div style={{ height: 460, width: '100%' }}>
                       <DataGrid
-                        rows={enabledGroupMembershipRows}
-                        columns={groupMembershipStateColumns}
+                        rows={effectiveAssemblyPermissionRows}
+                        columns={effectiveAssemblyPermissionColumns}
                         slots={{ toolbar: GridToolbar }}
+                        slotProps={{ toolbar: { showQuickFilter: true } }}
                         sx={apolloDataGridSx}
                         disableRowSelectionOnClick
                       />
                     </div>
-                  ) : (
-                    <Typography variant="body2" sx={{ marginBottom: 3 }}>
-                      No users are currently members of this group.
-                    </Typography>
-                  )}
-                </>
-              ) : null}
+                  </>
+                ) : null}
 
-              {groupMembershipView === 'edit' ? (
+                {permissionView === 'assembly' ? (
+                  <>
+                    {selectedManagedUser ? (
+                      <Typography variant="body2" sx={{ marginBottom: 1 }}>
+                        {`Editing direct user access for ${selectedManagedUser.username}`}
+                      </Typography>
+                    ) : null}
+                    <div style={{ height: 460, width: '100%' }}>
+                      <DataGrid
+                        rows={assemblyPermissionRows}
+                        columns={assemblyPermissionColumns}
+                        slots={{ toolbar: GridToolbar }}
+                        slotProps={{ toolbar: { showQuickFilter: true } }}
+                        sx={apolloDataGridSx}
+                        processRowUpdate={processAssemblyPermissionRowUpdate}
+                        onProcessRowUpdateError={(error: unknown) => {
+                          setErrorMessage(String(error))
+                        }}
+                        disableRowSelectionOnClick
+                      />
+                    </div>
+                  </>
+                ) : null}
+
+                {permissionView === 'userGroupMemberships' ? (
+                  <>
+                    {selectedManagedUser ? (
+                      <Typography variant="body2" sx={{ marginBottom: 2 }}>
+                        {`Toggle group membership for ${selectedManagedUser.username}. Changes are saved row by row.`}
+                      </Typography>
+                    ) : null}
+                    <div style={{ height: 460, width: '100%' }}>
+                      <DataGrid
+                        rows={userGroupMembershipRows}
+                        columns={userGroupMembershipColumns}
+                        slots={{ toolbar: GridToolbar }}
+                        slotProps={{ toolbar: { showQuickFilter: true } }}
+                        sx={apolloDataGridSx}
+                        processRowUpdate={processUserGroupMembershipRowUpdate}
+                        onProcessRowUpdateError={(error: unknown) => {
+                          setErrorMessage(String(error))
+                        }}
+                        disableRowSelectionOnClick
+                        isCellEditable={(params: GridCellParams) =>
+                          Boolean(selectedUserId) && params.field === 'isMember'
+                        }
+                      />
+                    </div>
+                  </>
+                ) : null}
+              </Box>
+            </>
+          ) : null}
+
+          {managementSection === 'groups' ? (
+            <>
+              <Typography variant="h6" sx={{ marginBottom: 1 }}>
+                Group management
+              </Typography>
+              <Tabs
+                value={groupManagementView}
+                onChange={(
+                  _event: React.SyntheticEvent,
+                  value: GroupManagementView,
+                ) => {
+                  setGroupManagementView(value)
+                }}
+                sx={{ marginBottom: 2 }}
+              >
+                <Tab value="memberships" label="Group memberships" />
+                <Tab value="permissions" label="Group permissions" />
+              </Tabs>
+
+              {groupManagementControls}
+
+              {groupManagementView === 'memberships' ? (
                 <>
-                  <Typography variant="body2" sx={{ marginBottom: 2 }}>
-                    Toggle group membership here. Changes are saved row by row.
-                  </Typography>
-
-                  <Typography variant="subtitle1" sx={{ marginBottom: 1 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{ marginBottom: 1, marginTop: 1 }}
+                  >
                     Group memberships
                   </Typography>
-                  <div style={{ height: 360, width: '100%', marginBottom: 24 }}>
-                    <DataGrid
-                      rows={groupMembershipRows}
-                      columns={groupMembershipColumns}
-                      slots={{ toolbar: GridToolbar }}
-                      sx={apolloDataGridSx}
-                      processRowUpdate={processGroupMembershipRowUpdate}
-                      onProcessRowUpdateError={(error: unknown) => {
-                        setErrorMessage(String(error))
-                      }}
-                      disableRowSelectionOnClick
-                      isCellEditable={(params: GridCellParams) =>
-                        Boolean(selectedGroupId) && params.field === 'isMember'
-                      }
-                    />
-                  </div>
+
+                  <Tabs
+                    value={groupMembershipView}
+                    onChange={(
+                      _event: React.SyntheticEvent,
+                      value: GroupMembershipView,
+                    ) => {
+                      setGroupMembershipView(value)
+                    }}
+                    sx={{ marginBottom: 2 }}
+                  >
+                    <Tab value="current" label="Current state" />
+                    <Tab value="edit" label="Edit memberships" />
+                  </Tabs>
+
+                  {groupMembershipView === 'current' ? (
+                    <>
+                      <Typography variant="body2" sx={{ marginBottom: 2 }}>
+                        {selectedManagedGroup
+                          ? `${enabledGroupMembershipRows.length} users are currently members of this group.`
+                          : 'Select a group to review its current memberships.'}
+                      </Typography>
+
+                      <Typography variant="subtitle1" sx={{ marginBottom: 1 }}>
+                        Active group memberships
+                      </Typography>
+                      {enabledGroupMembershipRows.length > 0 ? (
+                        <div
+                          style={{
+                            height: 320,
+                            width: '100%',
+                            marginBottom: 24,
+                          }}
+                        >
+                          <DataGrid
+                            rows={enabledGroupMembershipRows}
+                            columns={groupMembershipStateColumns}
+                            slots={{ toolbar: GridToolbar }}
+                            slotProps={{ toolbar: { showQuickFilter: true } }}
+                            sx={apolloDataGridSx}
+                            disableRowSelectionOnClick
+                          />
+                        </div>
+                      ) : (
+                        <Typography variant="body2" sx={{ marginBottom: 3 }}>
+                          No users are currently members of this group.
+                        </Typography>
+                      )}
+                    </>
+                  ) : null}
+
+                  {groupMembershipView === 'edit' ? (
+                    <>
+                      <Typography variant="body2" sx={{ marginBottom: 2 }}>
+                        Toggle group membership here. Changes are saved row by
+                        row.
+                      </Typography>
+
+                      <Typography variant="subtitle1" sx={{ marginBottom: 1 }}>
+                        Group memberships
+                      </Typography>
+                      <div
+                        style={{ height: 360, width: '100%', marginBottom: 24 }}
+                      >
+                        <DataGrid
+                          rows={groupMembershipRows}
+                          columns={groupMembershipColumns}
+                          slots={{ toolbar: GridToolbar }}
+                          slotProps={{ toolbar: { showQuickFilter: true } }}
+                          sx={apolloDataGridSx}
+                          processRowUpdate={processGroupMembershipRowUpdate}
+                          onProcessRowUpdateError={(error: unknown) => {
+                            setErrorMessage(String(error))
+                          }}
+                          disableRowSelectionOnClick
+                          isCellEditable={(params: GridCellParams) =>
+                            Boolean(selectedGroupId) &&
+                            params.field === 'isMember'
+                          }
+                        />
+                      </div>
+                    </>
+                  ) : null}
+                </>
+              ) : null}
+
+              {groupManagementView === 'permissions' ? (
+                <>
+                  <Typography
+                    variant="h6"
+                    sx={{ marginBottom: 1, marginTop: 1 }}
+                  >
+                    Group permissions
+                  </Typography>
+
+                  <Tabs
+                    value={groupPermissionView}
+                    onChange={(
+                      _event: React.SyntheticEvent,
+                      value: GroupPermissionView,
+                    ) => {
+                      setGroupPermissionView(value)
+                    }}
+                    sx={{ marginBottom: 2 }}
+                  >
+                    <Tab value="current" label="Current state" />
+                    <Tab value="edit" label="Edit permissions" />
+                  </Tabs>
+
+                  {groupPermissionView === 'current' ? (
+                    <>
+                      <Typography variant="body2" sx={{ marginBottom: 2 }}>
+                        {selectedManagedGroup
+                          ? `${enabledGroupAssemblyPermissionRows.length} assemblies currently have inherited access in this group.`
+                          : 'Select a group to review its current assembly permissions.'}
+                      </Typography>
+
+                      <Typography variant="subtitle1" sx={{ marginBottom: 1 }}>
+                        Enabled assembly permissions
+                      </Typography>
+                      {enabledGroupAssemblyPermissionRows.length > 0 ? (
+                        <div style={{ height: 360, width: '100%' }}>
+                          <DataGrid
+                            rows={enabledGroupAssemblyPermissionRows}
+                            columns={groupAssemblyPermissionStateColumns}
+                            slots={{ toolbar: GridToolbar }}
+                            slotProps={{ toolbar: { showQuickFilter: true } }}
+                            sx={apolloDataGridSx}
+                            disableRowSelectionOnClick
+                          />
+                        </div>
+                      ) : (
+                        <Typography variant="body2">
+                          No assembly permissions are currently enabled for this
+                          group.
+                        </Typography>
+                      )}
+                    </>
+                  ) : null}
+
+                  {groupPermissionView === 'edit' ? (
+                    <>
+                      <Typography variant="body2" sx={{ marginBottom: 2 }}>
+                        Toggle group assembly access here. Changes are saved row
+                        by row.
+                      </Typography>
+
+                      <Typography variant="subtitle1" sx={{ marginBottom: 1 }}>
+                        Group assembly permissions
+                      </Typography>
+                      <div style={{ height: 420, width: '100%' }}>
+                        <DataGrid
+                          rows={groupAssemblyPermissionRows}
+                          columns={groupAssemblyPermissionColumns}
+                          slots={{ toolbar: GridToolbar }}
+                          slotProps={{ toolbar: { showQuickFilter: true } }}
+                          sx={apolloDataGridSx}
+                          processRowUpdate={
+                            processGroupAssemblyPermissionRowUpdate
+                          }
+                          onProcessRowUpdateError={(error: unknown) => {
+                            setErrorMessage(String(error))
+                          }}
+                          disableRowSelectionOnClick
+                          isCellEditable={(params: GridCellParams) =>
+                            Boolean(selectedGroupId) &&
+                            (params.field === 'canViewAnnotations' ||
+                              params.field === 'canEditAnnotations')
+                          }
+                        />
+                      </div>
+                    </>
+                  ) : null}
                 </>
               ) : null}
             </>
           ) : null}
-
-          {permissionView === 'groupPermissions' ? (
-            <>
-              <Typography variant="h6" sx={{ marginBottom: 1, marginTop: 1 }}>
-                Group permissions
-              </Typography>
-              {groupManagementControls}
-
-              <Tabs
-                value={groupPermissionView}
-                onChange={(
-                  _event: React.SyntheticEvent,
-                  value: GroupPermissionView,
-                ) => {
-                  setGroupPermissionView(value)
-                }}
-                sx={{ marginBottom: 2 }}
-              >
-                <Tab value="current" label="Current state" />
-                <Tab value="edit" label="Edit permissions" />
-              </Tabs>
-
-              {groupPermissionView === 'current' ? (
-                <>
-                  <Typography variant="body2" sx={{ marginBottom: 2 }}>
-                    {selectedManagedGroup
-                      ? `${enabledGroupAssemblyPermissionRows.length} assemblies currently have inherited access in this group.`
-                      : 'Select a group to review its current assembly permissions.'}
-                  </Typography>
-
-                  <Typography variant="subtitle1" sx={{ marginBottom: 1 }}>
-                    Enabled assembly permissions
-                  </Typography>
-                  {enabledGroupAssemblyPermissionRows.length ? (
-                    <div style={{ height: 360, width: '100%' }}>
-                      <DataGrid
-                        rows={enabledGroupAssemblyPermissionRows}
-                        columns={groupAssemblyPermissionStateColumns}
-                        slots={{ toolbar: GridToolbar }}
-                        sx={apolloDataGridSx}
-                        disableRowSelectionOnClick
-                      />
-                    </div>
-                  ) : (
-                    <Typography variant="body2">
-                      No assembly permissions are currently enabled for this
-                      group.
-                    </Typography>
-                  )}
-                </>
-              ) : null}
-
-              {groupPermissionView === 'edit' ? (
-                <>
-                  <Typography variant="body2" sx={{ marginBottom: 2 }}>
-                    Toggle group assembly access here. Changes are saved row by
-                    row.
-                  </Typography>
-
-                  <Typography variant="subtitle1" sx={{ marginBottom: 1 }}>
-                    Group assembly permissions
-                  </Typography>
-                  <div style={{ height: 420, width: '100%' }}>
-                    <DataGrid
-                      rows={groupAssemblyPermissionRows}
-                      columns={groupAssemblyPermissionColumns}
-                      slots={{ toolbar: GridToolbar }}
-                      sx={apolloDataGridSx}
-                      processRowUpdate={processGroupAssemblyPermissionRowUpdate}
-                      onProcessRowUpdateError={(error: unknown) => {
-                        setErrorMessage(String(error))
-                      }}
-                      disableRowSelectionOnClick
-                      isCellEditable={(params: GridCellParams) =>
-                        Boolean(selectedGroupId) &&
-                        (params.field === 'canViewAnnotations' ||
-                          params.field === 'canEditAnnotations')
-                      }
-                    />
-                  </div>
-                </>
-              ) : null}
-            </>
-          ) : null}
-        </Box>
+        </div>
       </DialogContent>
       <DialogActions>
         <Button variant="outlined" type="submit" onClick={handleClose}>

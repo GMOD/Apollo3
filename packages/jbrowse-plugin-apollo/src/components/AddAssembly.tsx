@@ -134,6 +134,7 @@ export function AddAssembly({
     throw new Error('No Apollo internet account found')
   }
   const [assemblyName, setAssemblyName] = useState('')
+  const [organismName, setOrganismName] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [validAsm, setValidAsm] = useState(false)
   const [fileType, setFileType] = useState(FileType.BGZIP_FASTA)
@@ -249,12 +250,14 @@ export function AddAssembly({
       | AddAssemblyFromExternalChange
       | AddAssemblyAndFeaturesFromFileChange
       | AddAssemblyFromFileChange
+    const scientificName = organismName.trim() || undefined
 
     if (fileType === FileType.EXTERNAL) {
       change = new AddAssemblyFromExternalChange({
         typeName: 'AddAssemblyFromExternalChange',
         assembly: new ObjectID().toHexString(),
         assemblyName,
+        scientificName,
         externalLocation: {
           fa: fastaUrl,
           fai: fastaIndexUrl,
@@ -271,6 +274,7 @@ export function AddAssembly({
           typeName: 'AddAssemblyAndFeaturesFromFileChange',
           assembly: new ObjectID().toHexString(),
           assemblyName,
+          scientificName,
           fileIds: { fa: faId },
           parseOptions: { strict },
         })
@@ -280,6 +284,7 @@ export function AddAssembly({
           typeName: 'AddAssemblyFromFileChange',
           assembly: new ObjectID().toHexString(),
           assemblyName,
+          scientificName,
           fileIds: {
             fa: faId,
           },
@@ -290,6 +295,7 @@ export function AddAssembly({
           typeName: 'AddAssemblyFromFileChange',
           assembly: new ObjectID().toHexString(),
           assemblyName,
+          scientificName,
           fileIds: {
             fa: faId,
           },
@@ -306,6 +312,7 @@ export function AddAssembly({
           typeName: 'AddAssemblyFromFileChange',
           assembly: new ObjectID().toHexString(),
           assemblyName,
+          scientificName,
           fileIds: {
             fa: faId,
             fai: faiId,
@@ -383,6 +390,21 @@ export function AddAssembly({
               setSubmitted(false)
               setAssemblyName(e.target.value)
               checkAssemblyName(e.target.value)
+            }}
+            disabled={submitted && !errorMessage}
+          />
+
+          <TextField
+            margin="dense"
+            id="organism-name"
+            label="Organism name"
+            helperText="Optional genus/species label for Organism columns"
+            type="TextField"
+            fullWidth
+            variant="outlined"
+            value={organismName}
+            onChange={(e) => {
+              setOrganismName(e.target.value)
             }}
             disabled={submitted && !errorMessage}
           />

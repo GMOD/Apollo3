@@ -27,8 +27,19 @@ export class AssembliesService {
 
   private readonly logger = new Logger(AssembliesService.name)
 
+  private normalizeScientificName(scientificName?: string) {
+    const normalized = scientificName?.trim()
+    return normalized || undefined
+  }
+
   async create(createAssemblyDto: CreateAssemblyDto) {
-    return this.assemblyModel.create(createAssemblyDto)
+    const scientificName = this.normalizeScientificName(
+      createAssemblyDto.scientificName,
+    )
+    return this.assemblyModel.create({
+      ...createAssemblyDto,
+      scientificName,
+    })
   }
 
   async updateChecks(_id: string, checks: string[]) {
@@ -82,10 +93,24 @@ export class AssembliesService {
   }
 
   update(id: string, updateAssemblyDto: UpdateAssemblyDto) {
+    const normalizedUpdateDto: Record<string, unknown> = {
+      ...updateAssemblyDto,
+    }
+    if ('scientificName' in updateAssemblyDto) {
+      normalizedUpdateDto.scientificName = this.normalizeScientificName(
+        updateAssemblyDto.scientificName,
+      )
+    }
+
     return this.assemblyModel
-      .findByIdAndUpdate({ id, status: 0 }, updateAssemblyDto, {
-        runValidators: true,
-      })
+      .findOneAndUpdate(
+        { _id: id, status: 0 },
+        { $set: normalizedUpdateDto },
+        {
+          runValidators: true,
+          new: true,
+        },
+      )
       .exec()
   }
 

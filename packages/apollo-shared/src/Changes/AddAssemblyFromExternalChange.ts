@@ -11,6 +11,7 @@ export interface SerializedAddAssemblyFromExternalChangeBase
 
 export interface AddAssemblyFromExternalChangeDetails {
   assemblyName: string
+  scientificName?: string
   externalLocation: { fa: string; fai: string; gzi?: string }
 }
 
@@ -46,8 +47,14 @@ export class AddAssemblyFromExternalChange extends AssemblySpecificChange {
   toJSON(): SerializedAddAssemblyFromExternalChange {
     const { assembly, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ assemblyName, externalLocation }] = changes
-      return { typeName, assembly, assemblyName, externalLocation }
+      const [{ assemblyName, scientificName, externalLocation }] = changes
+      return {
+        typeName,
+        assembly,
+        assemblyName,
+        scientificName,
+        externalLocation,
+      }
     }
     return { typeName, assembly, changes }
   }
