@@ -51,6 +51,7 @@ export const AuthTypeSelector = ({
   const [loginTypes, setLoginTypes] = useState<string[]>([])
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
+  const [isSubmittingLocal, setIsSubmittingLocal] = useState(false)
   useEffect(() => {
     const controller = new AbortController()
     const { signal } = controller
@@ -94,6 +95,45 @@ export const AuthTypeSelector = ({
       handleClose('logingov')
     } else {
       handleClose('guest')
+    }
+  }
+
+  async function submitLocalLogin() {
+    if (!identifier || !password) {
+      setErrorMessage('Local login requires username/email and password')
+      return
+    }
+
+    setIsSubmittingLocal(true)
+    setErrorMessage('')
+    try {
+      const uri = new URL('auth/local', baseURL).href
+      const response = await fetch(uri, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ identifier, password }),
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          setErrorMessage('Invalid username/email or password')
+          return
+        }
+        const newErrorMessage = await createFetchErrorMessage(
+          response,
+          'Error when logging in locally',
+        )
+        setErrorMessage(newErrorMessage)
+        return
+      }
+
+      handleClose({ type: 'local', identifier, password })
+    } catch (error) {
+      setErrorMessage(String(error))
+    } finally {
+      setIsSubmittingLocal(false)
     }
   }
 
@@ -167,17 +207,12 @@ export const AuthTypeSelector = ({
               />
               <Button
                 variant="outlined"
+                disabled={isSubmittingLocal}
                 onClick={() => {
-                  if (!identifier || !password) {
-                    setErrorMessage(
-                      'Local login requires username/email and password',
-                    )
-                    return
-                  }
-                  handleClose({ type: 'local', identifier, password })
+                  void submitLocalLogin()
                 }}
               >
-                Sign in locally
+                {isSubmittingLocal ? 'Signing in...' : 'Sign in locally'}
               </Button>
             </Box>
           </>

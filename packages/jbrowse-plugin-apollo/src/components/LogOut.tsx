@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
-import { getRoot } from '@jbrowse/mobx-state-tree'
 import {
   Button,
   DialogActions,
@@ -12,18 +10,17 @@ import {
 import React, { useState } from 'react'
 
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import type { ApolloSessionModel } from '../session'
 import type { ApolloRootModel } from '../types'
 
 import { Dialog } from './Dialog'
 
 interface DeleteAssemblyProps {
-  session: ApolloSessionModel
+  rootModel: ApolloRootModel
   handleClose(): void
 }
 
-export function LogOut({ handleClose, session }: DeleteAssemblyProps) {
-  const { internetAccounts } = getRoot<ApolloRootModel>(session)
+export function LogOut({ handleClose, rootModel }: DeleteAssemblyProps) {
+  const { internetAccounts } = rootModel
   const [errorMessage, setErrorMessage] = useState('')
   const apolloInternetAccounts = internetAccounts.filter(
     (ia) => ia.type === 'ApolloInternetAccount',

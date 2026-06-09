@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { getRoot } from '@jbrowse/mobx-state-tree'
+import { getRoot, isAlive } from '@jbrowse/mobx-state-tree'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import type { AbstractSessionModel } from '@jbrowse/core/util'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import {
   Box,
@@ -48,11 +47,11 @@ interface PermissionRow {
 }
 
 interface MyAssemblyPermissionsProps {
-  session: ApolloSessionModel
+  rootModel: ApolloRootModel
   handleClose(): void
 }
 
-interface SessionWithLinearGenomeView extends AbstractSessionModel {
+type SessionWithLinearGenomeView = {
   views: unknown[]
   addView?: (viewType: string, ...args: unknown[]) => unknown
 }
@@ -65,17 +64,12 @@ function wait(ms: number) {
 
 export function MyAssemblyPermissions({
   handleClose,
-  session,
+  rootModel,
 }: MyAssemblyPermissionsProps) {
-  const { internetAccounts } = getRoot<ApolloRootModel>(session)
+  const { internetAccounts } = rootModel
   const apolloInternetAccounts: ApolloInternetAccountModel[] = internetAccounts
     .filter(isApolloInternetAccount)
     .filter((ia) => Boolean(ia.retrieveToken()))
-
-  if (apolloInternetAccounts.length === 0) {
-    throw new Error('No authenticated Apollo internet account found')
-  }
-
   const [selectedInternetAccount] = useState(apolloInternetAccounts[0])
   const [rows, setRows] = useState<PermissionRow[]>([])
   const [errorMessage, setErrorMessage] = useState('')
@@ -84,6 +78,12 @@ export function MyAssemblyPermissions({
 
   useEffect(() => {
     async function loadPermissions() {
+      if (!selectedInternetAccount) {
+        setRows([])
+        setLoading(false)
+        setErrorMessage('Sign in to Apollo, then reopen My workspace.')
+        return
+      }
       setLoading(true)
       setErrorMessage('')
       const { baseURL } = selectedInternetAccount
@@ -160,7 +160,24 @@ export function MyAssemblyPermissions({
 
   async function loadAssembly(assemblyId: string) {
     setErrorMessage('')
-    const sessionModel = session as unknown as SessionWithLinearGenomeView
+    if (
+      !isAlive(rootModel) ||
+      !rootModel.session ||
+      !isAlive(rootModel.session)
+    ) {
+      setErrorMessage(
+        'The current session is no longer available. Reopen My workspace.',
+      )
+      return
+    }
+    const sessionModel =
+      rootModel.session as unknown as SessionWithLinearGenomeView
+    if (!sessionModel) {
+      setErrorMessage(
+        'The current session is no longer available. Reopen My workspace.',
+      )
+      return
+    }
     let linearGenomeView = sessionModel.views.find(
       (view) =>
         (view as { type?: string } | undefined)?.type === 'LinearGenomeView',
@@ -256,6 +273,30 @@ export function MyAssemblyPermissions({
   ]
 
   const editCount = rows.filter((row) => row.access === 'Edit').length
+
+  if (!selectedInternetAccount) {
+    return (
+      <Dialog
+        open
+        title="My workspace"
+        handleClose={handleClose}
+        maxWidth={false}
+        data-testid="my-assembly-permissions"
+      >
+        <DialogContent>
+          <DialogContentText>
+            No authenticated Apollo session was found. Sign in from the Apollo
+            menu and reopen My workspace.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="contained" onClick={handleClose}>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+    )
+  }
 
   return (
     <Dialog

@@ -1,5 +1,22 @@
 # jbrowse-plugin-apollo
 
+## Current auth UX behavior (2026-06-09)
+
+- Local login now validates credentials before closing the dialog.
+- Invalid credentials show an in-dialog error
+  (`Invalid username/email or password`).
+- While local auth is in flight, the local sign-in button is disabled and shows
+  `Signing in...`.
+- Top-level Apollo menu includes a signed-in indicator when a token is present.
+
+## Quick local auth verification
+
+1. Open JBrowse and select Apollo login.
+2. Attempt local login with an incorrect password.
+3. Confirm the dialog remains open and shows an explicit error.
+4. Retry with valid credentials.
+5. Confirm login succeeds and menu label updates to signed-in identity.
+
 ## Testing with cypress
 
 These notes setup cypress and run tests. These notes are likely to change.

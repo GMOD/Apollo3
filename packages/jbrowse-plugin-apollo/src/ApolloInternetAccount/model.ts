@@ -103,7 +103,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           const fetcher = superGetFetcher(loc)
           return async (input: RequestInfo, init?: RequestInit) => {
             const response = await fetcher(input, init)
-            if (response.status === 403) {
+            // Only invalidate local token on explicit auth failure.
+            if (response.status === 401) {
               self.removeToken()
               self.setRole()
               return fetcher(input, init)
@@ -238,7 +239,21 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         const { baseURL } = self
         const authType = await new Promise(
           (resolve: (authType: AuthSelection) => void, reject) => {
-            const { session } = getRoot<ApolloRootModel>(self)
+            if (!isAlive(self)) {
+              reject(new Error('Apollo session is no longer available'))
+              return
+            }
+            let session: ApolloRootModel['session'] | undefined
+            try {
+              session = getRoot<ApolloRootModel>(self).session
+            } catch {
+              reject(new Error('No active session available for login dialog'))
+              return
+            }
+            if (!session || !isAlive(session)) {
+              reject(new Error('No active session available for login dialog'))
+              return
+            }
             const { baseURL, name } = self
             ;(session as unknown as AbstractSessionModel).queueDialog(
               (doneCallback: () => void) => [
@@ -354,7 +369,18 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         },
       ),
       getMissingChanges: flow(function* getMissingChanges() {
-        const { session } = getRoot<ApolloRootModel>(self)
+        if (!isAlive(self)) {
+          return
+        }
+        let session: ApolloRootModel['session'] | undefined
+        try {
+          session = getRoot<ApolloRootModel>(self).session
+        } catch {
+          return
+        }
+        if (!session || !isAlive(session)) {
+          return
+        }
         const { changeManager } = session.apolloDataStore
         if (!self.lastChangeSequenceNumber) {
           throw new Error(
@@ -404,68 +430,100 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       const { origin, pathname: path } = new URL('socket.io/', self.baseURL)
       return { socket: io(origin, { path }) }
     })
-    .actions((self) => ({
-      addSocketListeners() {
-        const { session } = getRoot<ApolloRootModel>(self)
-        const { notify } = session as unknown as AbstractSessionModel
-        const token = self.retrieveToken()
-        if (!token) {
-          throw new Error('No Token found')
+    .actions((self) => {
+      function getLiveSession() {
+        if (!isAlive(self)) {
+          return undefined
         }
-        const user = getDecodedToken(token)
-        const localSessionId = makeUserSessionId(user)
-        const { socket } = self
-        const { addCheckResult, changeManager, deleteCheckResult } =
-          session.apolloDataStore
-        socket.on('connect', () => {
-          void self.getMissingChanges()
-        })
-        socket.on('connect_error', (error) => {
-          console.error(error)
-          notify('Could not connect to the Apollo server.', 'error')
-        })
-        socket.on('COMMON', (message: ChangeMessage | CheckResultUpdate) => {
-          if ('checkResult' in message) {
-            if (message.deleted) {
-              deleteCheckResult(message.checkResult._id.toString())
-            } else {
-              addCheckResult(message.checkResult)
-            }
-            return
+        try {
+          const { session } = getRoot<ApolloRootModel>(self)
+          return session && isAlive(session) ? session : undefined
+        } catch {
+          return undefined
+        }
+      }
+
+      return {
+        addSocketListeners() {
+          const token = self.retrieveToken()
+          if (!token) {
+            throw new Error('No Token found')
           }
-          // Save server last change sequence into session storage
-          sessionStorage.setItem(
-            'LastChangeSequence',
-            String(message.changeSequence),
+          const user = getDecodedToken(token)
+          const localSessionId = makeUserSessionId(user)
+          const { socket } = self
+          socket.on('connect', () => {
+            void self.getMissingChanges()
+          })
+          socket.on('connect_error', (error) => {
+            console.error(error)
+            ;(
+              getLiveSession() as unknown as AbstractSessionModel | undefined
+            )?.notify('Could not connect to the Apollo server.', 'error')
+          })
+          socket.on('COMMON', (message: ChangeMessage | CheckResultUpdate) => {
+            const session = getLiveSession()
+            if (!session) {
+              return
+            }
+            const { addCheckResult, changeManager, deleteCheckResult } =
+              session.apolloDataStore
+            if ('checkResult' in message) {
+              if (message.deleted) {
+                deleteCheckResult(message.checkResult._id.toString())
+              } else {
+                addCheckResult(message.checkResult)
+              }
+              return
+            }
+            // Save server last change sequence into session storage
+            sessionStorage.setItem(
+              'LastChangeSequence',
+              String(message.changeSequence),
+            )
+            if (message.userSessionId === localSessionId) {
+              return // we did this change, no need to apply it again
+            }
+            const change = Change.fromJSON(message.changeInfo)
+            void changeManager.submit(change, { submitToBackend: false })
+          })
+          socket.on('USER_LOCATION', (message: UserLocationMessage) => {
+            const session = getLiveSession()
+            if (!session) {
+              return
+            }
+            const { channel, locations, userName, userSessionId } = message
+            if (
+              channel === 'USER_LOCATION' &&
+              userSessionId !== localSessionId
+            ) {
+              const collaborator: Collaborator = {
+                name: userName,
+                id: userSessionId,
+                locations,
+              }
+              session.addOrUpdateCollaborator(collaborator)
+            }
+          })
+          socket.on(
+            'REQUEST_INFORMATION',
+            (message: RequestUserInformationMessage) => {
+              const session = getLiveSession()
+              if (!session) {
+                return
+              }
+              const { channel, userSessionId } = message
+              if (
+                channel === 'REQUEST_INFORMATION' &&
+                userSessionId !== token
+              ) {
+                session.broadcastLocations()
+              }
+            },
           )
-          if (message.userSessionId === localSessionId) {
-            return // we did this change, no need to apply it again
-          }
-          const change = Change.fromJSON(message.changeInfo)
-          void changeManager.submit(change, { submitToBackend: false })
-        })
-        socket.on('USER_LOCATION', (message: UserLocationMessage) => {
-          const { channel, locations, userName, userSessionId } = message
-          if (channel === 'USER_LOCATION' && userSessionId !== localSessionId) {
-            const collaborator: Collaborator = {
-              name: userName,
-              id: userSessionId,
-              locations,
-            }
-            session.addOrUpdateCollaborator(collaborator)
-          }
-        })
-        socket.on(
-          'REQUEST_INFORMATION',
-          (message: RequestUserInformationMessage) => {
-            const { channel, userSessionId } = message
-            if (channel === 'REQUEST_INFORMATION' && userSessionId !== token) {
-              session.broadcastLocations()
-            }
-          },
-        )
-      },
-    }))
+        },
+      }
+    })
     .actions((self) => {
       async function postUserLocation(userLoc: UserLocation[]) {
         if (!isAlive(self) || self.role === 'none') {
@@ -508,6 +566,18 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
     })
     .volatile(() => ({ roleNotificationSent: false }))
     .actions((self) => {
+      function getLiveSession() {
+        if (!isAlive(self)) {
+          return undefined
+        }
+        try {
+          const { session } = getRoot<ApolloRootModel>(self)
+          return session && isAlive(session) ? session : undefined
+        } catch {
+          return undefined
+        }
+      }
+
       function beforeUnloadListener() {
         self.postUserLocation([])
       }
@@ -518,16 +588,19 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
         // fires when app transitions from prerender, user returns to the app / tab.
         if (document.visibilityState === 'visible') {
-          const { session } = getRoot<ApolloRootModel>(self)
-          session.broadcastLocations()
+          getLiveSession()?.broadcastLocations()
         }
       }
       return {
         initialize: flow(function* initialize(role: Role) {
+          if (!isAlive(self)) {
+            return
+          }
           if (role === 'none') {
             if (!self.roleNotificationSent) {
-              const { session } = getRoot<ApolloRootModel>(self)
-              ;(session as unknown as AbstractSessionModel).notify(
+              ;(
+                getLiveSession() as unknown as AbstractSessionModel | undefined
+              )?.notify(
                 'You have registered as an Apollo user but have not been given access. Ask your administrator to enable access for your account.',
                 'warning',
               )
@@ -536,7 +609,15 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             return
           }
           if (role === 'admin') {
-            const rootModel = getRoot(self)
+            if (!isAlive(self)) {
+              return
+            }
+            let rootModel: unknown
+            try {
+              rootModel = getRoot(self)
+            } catch {
+              return
+            }
             if (isAbstractMenuManager(rootModel)) {
               addTopLevelAdminMenus(rootModel)
             }
@@ -552,10 +633,16 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             locationType: 'UriLocation',
             uri,
           })
-          yield apolloFetch(uri, {
-            method: 'GET',
-            signal: self.controller.signal,
-          })
+          try {
+            yield apolloFetch(uri, {
+              method: 'GET',
+              signal: self.controller.signal,
+            })
+          } catch {
+            if (!self.controller.signal.aborted) {
+              console.error('Fetching user locations failed')
+            }
+          }
           window.addEventListener('beforeunload', beforeUnloadListener)
           document.addEventListener(
             'visibilitychange',
@@ -581,11 +668,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             if (inWebWorker) {
               return
             }
-            const { session } = getRoot<ApolloRootModel>(self)
-            // This can be undefined if there is no session loaded, e.g. on
-            // the start screen
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-            if (!session) {
+            if (!isAlive(self)) {
               return
             }
             if (self.role) {

@@ -176,6 +176,8 @@ export function ManageUsers({
   const [newLocalEmail, setNewLocalEmail] = useState('')
   const [newLocalPassword, setNewLocalPassword] = useState('')
   const [newLocalRole, setNewLocalRole] = useState<UserRoleOption>('user')
+  const [localUserErrorMessage, setLocalUserErrorMessage] = useState('')
+  const [isCreatingLocalUser, setIsCreatingLocalUser] = useState(false)
 
   useEffect(() => {
     async function getUsers() {
@@ -407,41 +409,62 @@ export function ManageUsers({
   }
 
   async function createLocalUser() {
-    const { baseURL } = selectedInternetAccount
-    const uri = new URL('users/local', baseURL).href
-    const apolloFetch = selectedInternetAccount.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
-    const response = await apolloFetch(uri, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username: newLocalUsername,
-        email: newLocalEmail,
-        password: newLocalPassword,
-        role: newLocalRole === 'none' ? undefined : newLocalRole,
-      }),
-    })
+    const username = newLocalUsername.trim()
+    const password = newLocalPassword.trim()
+    const email = newLocalEmail.trim() || username
 
-    if (!response.ok) {
-      const newErrorMessage = await createFetchErrorMessage(
-        response,
-        'Error when creating local user',
-      )
-      throw new Error(newErrorMessage)
+    if (!username || !password) {
+      setLocalUserErrorMessage('Username and password are required.')
+      return
     }
 
-    const createdUser = (await response.json()) as UserResponse
-    setUsers((prevUsers: UserResponse[]) => [...prevUsers, createdUser])
-    setSelectedUserId(createdUser._id)
-    setLocalUserDialogOpen(false)
-    setNewLocalUsername('')
-    setNewLocalEmail('')
-    setNewLocalPassword('')
-    setNewLocalRole('user')
+    setIsCreatingLocalUser(true)
+    setLocalUserErrorMessage('')
+
+    try {
+      const { baseURL } = selectedInternetAccount
+      const uri = new URL('users/local', baseURL).href
+      const apolloFetch = selectedInternetAccount.getFetcher({
+        locationType: 'UriLocation',
+        uri,
+      })
+      const response = await apolloFetch(uri, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          email,
+          password,
+          role: newLocalRole === 'none' ? undefined : newLocalRole,
+        }),
+      })
+
+      if (!response.ok) {
+        const newErrorMessage = await createFetchErrorMessage(
+          response,
+          'Error when creating local user',
+        )
+        throw new Error(newErrorMessage)
+      }
+
+      const createdUser = (await response.json()) as UserResponse
+      setUsers((prevUsers: UserResponse[]) => [...prevUsers, createdUser])
+      setSelectedUserId(createdUser._id)
+      setLocalUserDialogOpen(false)
+      setNewLocalUsername('')
+      setNewLocalEmail('')
+      setNewLocalPassword('')
+      setNewLocalRole('user')
+      setLocalUserErrorMessage('')
+    } catch (error) {
+      const message = String(error)
+      setLocalUserErrorMessage(message)
+      setErrorMessage(message)
+    } finally {
+      setIsCreatingLocalUser(false)
+    }
   }
 
   function isCurrentUser(id: GridRowId) {
@@ -1234,6 +1257,7 @@ export function ManageUsers({
             <Button
               variant="contained"
               onClick={() => {
+                setLocalUserErrorMessage('')
                 setLocalUserDialogOpen(true)
               }}
             >
@@ -1519,6 +1543,7 @@ export function ManageUsers({
           open
           title="Add local user"
           handleClose={() => {
+            setLocalUserErrorMessage('')
             setLocalUserDialogOpen(false)
           }}
           maxWidth="sm"
@@ -1569,6 +1594,7 @@ export function ManageUsers({
             <Button
               variant="outlined"
               onClick={() => {
+                setLocalUserErrorMessage('')
                 setLocalUserDialogOpen(false)
               }}
             >
@@ -1576,15 +1602,23 @@ export function ManageUsers({
             </Button>
             <Button
               variant="contained"
+              disabled={isCreatingLocalUser}
               onClick={() => {
-                createLocalUser().catch((error) => {
-                  setErrorMessage(String(error))
+                createLocalUser().catch(() => {
+                  // errors are handled in createLocalUser
                 })
               }}
             >
-              Create user
+              {isCreatingLocalUser ? 'Creating...' : 'Create user'}
             </Button>
           </DialogActions>
+          {localUserErrorMessage ? (
+            <DialogContent sx={{ pt: 0 }}>
+              <DialogContentText color="error">
+                {localUserErrorMessage}
+              </DialogContentText>
+            </DialogContent>
+          ) : null}
         </Dialog>
       ) : null}
     </Dialog>
