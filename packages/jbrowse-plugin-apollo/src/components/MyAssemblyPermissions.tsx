@@ -64,14 +64,26 @@ function wait(ms: number) {
   })
 }
 
+function safeRetrieveToken(account: ApolloInternetAccountModel) {
+  try {
+    if (!isAlive(account)) {
+      return undefined
+    }
+    return account.retrieveToken() || undefined
+  } catch {
+    return undefined
+  }
+}
+
 export function MyAssemblyPermissions({
   handleClose,
   rootModel,
 }: MyAssemblyPermissionsProps) {
   const { internetAccounts } = rootModel
   const apolloInternetAccounts: ApolloInternetAccountModel[] = internetAccounts
+    .filter((ia) => isAlive(ia))
     .filter(isApolloInternetAccount)
-    .filter((ia) => Boolean(ia.retrieveToken()))
+    .filter((ia) => Boolean(safeRetrieveToken(ia)))
   const [selectedInternetAccount] = useState(apolloInternetAccounts[0])
   const [rows, setRows] = useState<PermissionRow[]>([])
   const [errorMessage, setErrorMessage] = useState('')

@@ -61,7 +61,17 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
     })
     .views((self) => ({
       get baseURL(): string {
-        return getConf(self, 'baseURL')
+        const configuredBaseURL = String(getConf(self, 'baseURL') ?? '')
+        if (!configuredBaseURL) {
+          return globalThis.location?.origin || 'http://localhost'
+        }
+        try {
+          const fallbackBase = globalThis.location?.origin || 'http://localhost'
+          const resolved = new URL(configuredBaseURL, fallbackBase).href
+          return resolved.endsWith('/') ? resolved : `${resolved}/`
+        } catch {
+          return configuredBaseURL
+        }
       },
       getUserId() {
         const token = self.retrieveToken()

@@ -29,6 +29,7 @@ import {
   applySnapshot,
   getRoot,
   getSnapshot,
+  isAlive,
   types,
 } from '@jbrowse/mobx-state-tree'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
@@ -45,6 +46,17 @@ import {
   type ClientDataStoreModel,
   clientDataStoreFactory,
 } from './ClientDataStore'
+
+function safeRetrieveToken(account: ApolloInternetAccountModel) {
+  try {
+    if (!isAlive(account)) {
+      return undefined
+    }
+    return account.retrieveToken() || undefined
+  } catch {
+    return undefined
+  }
+}
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreModel
@@ -343,11 +355,12 @@ export function extendSession(
               )
               // Re-run this autorun after login/logout so role-gated config can be reloaded.
               const apolloAuthSignature = internetAccounts
+                .filter((ia) => isAlive(ia))
                 .filter(isApolloInternetAccount)
                 .map(
                   (ia) =>
                     `${ia.internetAccountId}:${ia.role ?? ''}:${Boolean(
-                      ia.retrieveToken(),
+                      safeRetrieveToken(ia),
                     )}`,
                 )
                 .join('|')

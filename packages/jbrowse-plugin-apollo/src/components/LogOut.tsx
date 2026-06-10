@@ -7,10 +7,11 @@ import {
   Select,
   type SelectChangeEvent,
 } from '@mui/material'
+import { isAlive } from '@jbrowse/mobx-state-tree'
 import React, { useState } from 'react'
 
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import type { ApolloRootModel } from '../types'
+import { type ApolloRootModel, isApolloInternetAccount } from '../types'
 
 import { Dialog } from './Dialog'
 
@@ -22,12 +23,21 @@ interface DeleteAssemblyProps {
 export function LogOut({ handleClose, rootModel }: DeleteAssemblyProps) {
   const { internetAccounts } = rootModel
   const [errorMessage, setErrorMessage] = useState('')
-  const apolloInternetAccounts = internetAccounts.filter(
-    (ia) => ia.type === 'ApolloInternetAccount',
-  ) as ApolloInternetAccountModel[]
+  const apolloInternetAccounts = internetAccounts.filter((account) => {
+    try {
+      if (!isAlive(account)) {
+        return false
+      }
+      return isApolloInternetAccount(account)
+    } catch {
+      return false
+    }
+  }) as ApolloInternetAccountModel[]
+
   if (apolloInternetAccounts.length === 0) {
-    throw new Error('No Apollo internet account found')
+    return null
   }
+
   const [selectedInternetAccount, setSelectedInternetAccount] = useState(
     apolloInternetAccounts[0],
   )
@@ -47,8 +57,12 @@ export function LogOut({ handleClose, rootModel }: DeleteAssemblyProps) {
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    selectedInternetAccount.removeToken()
-    globalThis.location.reload()
+    try {
+      selectedInternetAccount.removeToken()
+      globalThis.location.reload()
+    } catch {
+      setErrorMessage('Could not log out from this account. Please retry.')
+    }
   }
 
   return (
@@ -68,7 +82,7 @@ export function LogOut({ handleClose, rootModel }: DeleteAssemblyProps) {
                 value={selectedInternetAccount.internetAccountId}
                 onChange={handleChangeInternetAccount}
               >
-                {internetAccounts.map((option) => (
+                {apolloInternetAccounts.map((option) => (
                   <MenuItem key={option.id} value={option.internetAccountId}>
                     {option.name}
                   </MenuItem>
@@ -89,7 +103,7 @@ export function LogOut({ handleClose, rootModel }: DeleteAssemblyProps) {
           >
             Log Out
           </Button>
-          <Button variant="outlined" type="submit" onClick={handleClose}>
+          <Button variant="outlined" type="button" onClick={handleClose}>
             Cancel
           </Button>
         </DialogActions>
