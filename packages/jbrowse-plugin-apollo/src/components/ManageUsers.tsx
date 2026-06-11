@@ -196,6 +196,35 @@ export function ManageUsers({
   const [localUserErrorMessage, setLocalUserErrorMessage] = useState('')
   const [isCreatingLocalUser, setIsCreatingLocalUser] = useState(false)
 
+  async function fetchEffectiveAssemblyPermissionsForUser(userId: string) {
+    const { baseURL } = selectedInternetAccount
+    const uri = new URL(
+      `assemblyPermissions/effective/byUser/${userId}`,
+      baseURL,
+    ).href
+    const apolloFetch = selectedInternetAccount.getFetcher({
+      locationType: 'UriLocation',
+      uri,
+    })
+    const response = await apolloFetch(uri, { method: 'GET' })
+    if (!response.ok) {
+      const newErrorMessage = await createFetchErrorMessage(
+        response,
+        'Error when getting effective assembly permissions from db',
+      )
+      throw new Error(newErrorMessage)
+    }
+    const permissionData =
+      (await response.json()) as EffectiveAssemblyPermissionResponse[]
+    const byAssemblyId: Partial<
+      Record<string, EffectiveAssemblyPermissionResponse>
+    > = {}
+    for (const permission of permissionData) {
+      byAssemblyId[permission.assemblyId] = permission
+    }
+    setEffectiveAssemblyPermissionsByAssemblyId(byAssemblyId)
+  }
+
   useEffect(() => {
     async function getUsers() {
       const { baseURL } = selectedInternetAccount
@@ -306,32 +335,7 @@ export function ManageUsers({
         setEffectiveAssemblyPermissionsByAssemblyId({})
         return
       }
-      const { baseURL } = selectedInternetAccount
-      const uri = new URL(
-        `assemblyPermissions/effective/byUser/${selectedUserId}`,
-        baseURL,
-      ).href
-      const apolloFetch = selectedInternetAccount.getFetcher({
-        locationType: 'UriLocation',
-        uri,
-      })
-      const response = await apolloFetch(uri, { method: 'GET' })
-      if (!response.ok) {
-        const newErrorMessage = await createFetchErrorMessage(
-          response,
-          'Error when getting effective assembly permissions from db',
-        )
-        throw new Error(newErrorMessage)
-      }
-      const permissionData =
-        (await response.json()) as EffectiveAssemblyPermissionResponse[]
-      const byAssemblyId: Partial<
-        Record<string, EffectiveAssemblyPermissionResponse>
-      > = {}
-      for (const permission of permissionData) {
-        byAssemblyId[permission.assemblyId] = permission
-      }
-      setEffectiveAssemblyPermissionsByAssemblyId(byAssemblyId)
+      await fetchEffectiveAssemblyPermissionsForUser(selectedUserId)
     }
     getEffectiveAssemblyPermissionsForUser().catch((error) => {
       setErrorMessage(String(error))
@@ -657,6 +661,7 @@ export function ManageUsers({
         [savedPermission.assemblyId]: savedPermission,
       }),
     )
+    await fetchEffectiveAssemblyPermissionsForUser(selectedUserId)
 
     return {
       ...newRow,
@@ -779,6 +784,9 @@ export function ManageUsers({
       ...prev,
       [userId]: isMember,
     }))
+    if (selectedUserId && selectedUserId === userId) {
+      await fetchEffectiveAssemblyPermissionsForUser(selectedUserId)
+    }
 
     return {
       ...newRow,
@@ -821,6 +829,7 @@ export function ManageUsers({
       ...prev,
       [groupId]: isMember,
     }))
+    await fetchEffectiveAssemblyPermissionsForUser(selectedUserId)
 
     return {
       ...newRow,
@@ -873,6 +882,11 @@ export function ManageUsers({
         [savedPermission.assemblyId]: savedPermission,
       }),
     )
+    // Refresh the selected user's effective view only when this group currently
+    // contributes to that user's inherited permissions.
+    if (selectedUserId && Boolean(groupMembershipByGroupId[selectedGroupId])) {
+      await fetchEffectiveAssemblyPermissionsForUser(selectedUserId)
+    }
 
     return {
       ...newRow,

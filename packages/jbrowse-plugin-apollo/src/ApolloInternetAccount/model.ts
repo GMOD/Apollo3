@@ -35,11 +35,12 @@ import { io } from 'socket.io-client'
 
 import { addTopLevelAdminMenus } from '../menus/topLevelMenuAdmin'
 import type { Collaborator } from '../session'
-import type { ApolloRootModel } from '../types'
+import { isApolloInternetAccount, type ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import type { ApolloInternetAccountConfigModel } from './configSchema'
+import { revokeOtherApolloTokens } from './tokenUtils'
 
 type AuthType = 'google' | 'microsoft' | 'logingov' | 'guest'
 type LocalAuthSelection = {
@@ -50,6 +51,13 @@ type LocalAuthSelection = {
 type AuthSelection = AuthType | LocalAuthSelection
 
 type Role = 'admin' | 'user' | 'readOnly' | 'none'
+
+function isGuestIdentity(decodedToken: { username?: string; email?: string }) {
+  return (
+    decodedToken.username?.toLowerCase() === 'guest' ||
+    decodedToken.email?.toLowerCase() === 'guest_user'
+  )
+}
 
 const inWebWorker = typeof sessionStorage === 'undefined'
 
@@ -101,8 +109,11 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           self.removeToken()
           return
         }
-        if (self.role !== role) {
-          self.role = role
+        const normalizedRole: Role = isGuestIdentity(dec)
+          ? 'readOnly'
+          : role ?? 'none'
+        if (self.role !== normalizedRole) {
+          self.role = normalizedRole
         }
       },
     }))
@@ -129,6 +140,23 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         sessionStorage.removeItem(self.tokenKey)
         self.tokenPromise = undefined
       },
+      removeOtherApolloTokens() {
+        let rootModel: ApolloRootModel
+        try {
+          rootModel = getRoot<ApolloRootModel>(self)
+        } catch {
+          return
+        }
+        const apolloAccounts = rootModel.internetAccounts.filter(
+          isApolloInternetAccount,
+        )
+        revokeOtherApolloTokens(apolloAccounts, self.tokenKey)
+      },
+      applyLoggedInToken(token: string) {
+        this.removeOtherApolloTokens()
+        self.storeToken(token)
+        self.setRole()
+      },
     }))
     .actions((self) => ({
       async getToken(location?: UriLocation): Promise<string> {
@@ -153,7 +181,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         self.tokenPromise = new Promise((resolve, reject) => {
           self.getTokenFromUser(
             (token) => {
-              self.storeToken(token)
+              self.applyLoggedInToken(token)
               resolve(token)
             },
             (error) => {
@@ -201,8 +229,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             reject(new Error('Error with token endpoint'))
             return
           }
-          self.storeToken(token)
-          self.setRole()
+          self.applyLoggedInToken(token)
           resolve(token)
         },
         async openAuthWindow(
@@ -242,9 +269,10 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       }
     })
     .actions((self) => ({
-      async getTokenFromUser(
+      async getTokenFromUserWithPreference(
         resolve: (token: string) => void,
         reject: (error: Error) => void,
+        preferGuest: boolean,
       ): Promise<void> {
         const { baseURL } = self
         const authType = await new Promise(
@@ -270,6 +298,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
                 AuthTypeSelector,
                 {
                   name,
+                  preferGuest,
                   handleClose: (newAuthType?: AuthSelection | Error) => {
                     if (!newAuthType) {
                       reject(new Error('user cancelled entry'))
@@ -331,6 +360,27 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
         const { token } = await response.json()
         resolve(token)
+      },
+      async getTokenFromUser(
+        resolve: (token: string) => void,
+        reject: (error: Error) => void,
+      ): Promise<void> {
+        return this.getTokenFromUserWithPreference(resolve, reject, true)
+      },
+      async loginWithPrompt(): Promise<string> {
+        const token = await new Promise<string>((resolve, reject) => {
+          this.getTokenFromUserWithPreference(
+            (newToken: string) => {
+              self.applyLoggedInToken(newToken)
+              resolve(newToken)
+            },
+            (error: Error) => {
+              reject(error)
+            },
+            false,
+          )
+        })
+        return token
       },
     }))
     .volatile(() => ({

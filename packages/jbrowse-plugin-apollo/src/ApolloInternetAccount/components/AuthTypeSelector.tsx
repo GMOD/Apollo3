@@ -10,7 +10,7 @@ import {
   Divider,
   TextField,
 } from '@mui/material'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 import { Dialog } from '../../components/Dialog'
 import { createFetchErrorMessage } from '../../util'
@@ -33,9 +33,11 @@ export const AuthTypeSelector = ({
   baseURL,
   handleClose,
   name,
+  preferGuest,
 }: {
   baseURL: string
   name: string
+  preferGuest?: boolean
   handleClose: (
     type?:
       | 'google'
@@ -52,6 +54,7 @@ export const AuthTypeSelector = ({
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmittingLocal, setIsSubmittingLocal] = useState(false)
+  const didAutoSelectGuest = useRef(false)
   useEffect(() => {
     const controller = new AbortController()
     const { signal } = controller
@@ -68,6 +71,14 @@ export const AuthTypeSelector = ({
       }
       const data = (await response.json()) as string[]
       setLoginTypes(data)
+      if (
+        preferGuest &&
+        data.includes('guest') &&
+        !didAutoSelectGuest.current
+      ) {
+        didAutoSelectGuest.current = true
+        handleClose('guest')
+      }
     }
     getAuthTypes().catch((error) => {
       if (!isAbortException(error)) {
@@ -82,7 +93,7 @@ export const AuthTypeSelector = ({
         ),
       )
     }
-  }, [baseURL])
+  }, [baseURL, preferGuest])
 
   function handleClick(
     authType: 'google' | 'microsoft' | 'logingov' | 'guest',
@@ -208,6 +219,8 @@ export const AuthTypeSelector = ({
               <Button
                 variant="outlined"
                 disabled={isSubmittingLocal}
+                disableRipple
+                disableFocusRipple
                 onClick={() => {
                   void submitLocalLogin()
                 }}

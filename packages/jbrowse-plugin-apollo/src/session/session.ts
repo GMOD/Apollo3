@@ -8,6 +8,7 @@ import {
   ImportJBrowseConfigChange,
   type JBrowseConfig,
   type UserLocation,
+  getDecodedToken,
   filterJBrowseConfig,
 } from '@apollo-annotation/shared'
 import type PluginManager from '@jbrowse/core/PluginManager'
@@ -77,6 +78,18 @@ export interface HoveredFeature {
 
 type Assembly = Instance<ReturnType<typeof assemblyManager>>['assemblies'][0]
 
+interface AssemblyPermissionResponse {
+  assemblyId?: string
+  assembly?: string
+  canViewAnnotations: boolean
+  canEditAnnotations: boolean
+}
+
+interface AssemblyResponse {
+  _id: string
+  name: string
+}
+
 export function extendSession(
   pluginManager: PluginManager,
   sessionModel: ReturnType<typeof types.model>,
@@ -114,6 +127,95 @@ export function extendSession(
       ...config,
       tracks: normalizedTracks,
     }
+  }
+
+  const isGuestToken = (token: string) => {
+    try {
+      const { username, email } = getDecodedToken(token)
+      return (
+        username?.toLowerCase() === 'guest' ||
+        email?.toLowerCase() === 'guest_user'
+      )
+    } catch {
+      return false
+    }
+  }
+
+  const removeApolloTracksFromSession = (session: AbstractSessionModel) => {
+    const sessionWithDelete = session as AbstractSessionModel & {
+      deleteTrackConf?: (conf: BaseTrackConfig) => void
+    }
+    const jbrowseWithDelete = getRoot<ApolloRootModel>(
+      session as unknown as ApolloSessionModel,
+    ).jbrowse as {
+      tracks?: BaseTrackConfig[]
+      deleteTrackConf?: (conf: BaseTrackConfig) => void
+    }
+
+    const apolloTracks = new Map<string, BaseTrackConfig>()
+    const collectApolloTracks = (trackList?: BaseTrackConfig[]) => {
+      for (const track of trackList ?? []) {
+        const trackType = (track as unknown as { type?: string }).type
+        const trackId = readConfObject(track, 'trackId') as string | undefined
+        if (
+          trackType === 'ApolloTrack' ||
+          trackId?.startsWith('apollo_track_')
+        ) {
+          apolloTracks.set(trackId ?? String(apolloTracks.size), track)
+        }
+      }
+    }
+
+    collectApolloTracks([...session.tracks])
+    collectApolloTracks(jbrowseWithDelete.tracks)
+
+    for (const track of apolloTracks.values()) {
+      sessionWithDelete.deleteTrackConf?.(track)
+      jbrowseWithDelete.deleteTrackConf?.(track)
+    }
+  }
+
+  const getViewableAssemblyNamesForAccount = async (
+    internetAccount: ApolloInternetAccountModel,
+    signal: AbortSignal,
+  ) => {
+    const { baseURL } = internetAccount
+    const assembliesUri = new URL('assemblies', baseURL).href
+    const permissionsUri = new URL('assemblyPermissions/mine', baseURL).href
+    const apolloFetch = internetAccount.getFetcher({
+      locationType: 'UriLocation',
+      uri: permissionsUri,
+    })
+
+    const [assembliesResponse, permissionsResponse] = await Promise.all([
+      apolloFetch(assembliesUri, { method: 'GET', signal }),
+      apolloFetch(permissionsUri, { method: 'GET', signal }),
+    ])
+
+    if (!assembliesResponse.ok || !permissionsResponse.ok) {
+      return new Set<string>()
+    }
+
+    const assemblies = (await assembliesResponse.json()) as AssemblyResponse[]
+    const permissions =
+      (await permissionsResponse.json()) as AssemblyPermissionResponse[]
+    const assemblyIdToName = new Map(
+      assemblies.map((assembly) => [assembly._id, assembly.name]),
+    )
+
+    return new Set(
+      permissions
+        .filter(
+          (permission) =>
+            permission.canViewAnnotations || permission.canEditAnnotations,
+        )
+        .map((permission) =>
+          assemblyIdToName.get(
+            permission.assemblyId ?? permission.assembly ?? '',
+          ),
+        )
+        .filter((name): name is string => Boolean(name)),
+    )
   }
 
   const AnnotationFeatureExtended = pluginManager.evaluateExtensionPoint(
@@ -382,6 +484,31 @@ export function extendSession(
                 if (assemblies.length === 0) {
                   return
                 }
+
+                const sessionModel = self as unknown as AbstractSessionModel
+                const signedInApolloAccount = internetAccounts
+                  .filter((ia): ia is ApolloInternetAccountModel =>
+                    isApolloInternetAccount(ia),
+                  )
+                  .filter((ia) => Boolean(safeRetrieveToken(ia)))
+                  .sort((a, b) => {
+                    const aToken = safeRetrieveToken(a)
+                    const bToken = safeRetrieveToken(b)
+                    const aGuest = aToken ? isGuestToken(aToken) : true
+                    const bGuest = bToken ? isGuestToken(bToken) : true
+                    return Number(aGuest) - Number(bGuest)
+                  })[0]
+                const signedInToken = signedInApolloAccount
+                  ? safeRetrieveToken(signedInApolloAccount)
+                  : undefined
+
+                if (!signedInToken || isGuestToken(signedInToken)) {
+                  self.apolloSetSelectedFeature(undefined)
+                  removeApolloTracksFromSession(sessionModel)
+                  reaction.dispose()
+                  return
+                }
+
                 const { pluginConfiguration } = self.apolloDataStore
                 const configuredOntologies =
                   pluginConfiguration.ontologies as AnyConfigurationModel[]
@@ -400,11 +527,23 @@ export function extendSession(
                     },
                   })
                 }
-                for (const a of nonApolloAssemblies) {
-                  self.addApolloLocalTrackConfig(a)
-                }
+
+                const viewableAssemblyNames =
+                  await getViewableAssemblyNamesForAccount(
+                    signedInApolloAccount,
+                    self.abortController.signal,
+                  )
+
+                self.apolloSetSelectedFeature(undefined)
                 // @ts-expect-error not sure why snapshot type is wrong for snapshot
                 applySnapshot(self, self.previousSnapshot)
+                removeApolloTracksFromSession(sessionModel)
+                for (const a of nonApolloAssemblies) {
+                  if (!viewableAssemblyNames.has(a.name)) {
+                    continue
+                  }
+                  self.addApolloLocalTrackConfig(a)
+                }
                 reaction.dispose()
                 return
               }

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { getRoot, isAlive } from '@jbrowse/mobx-state-tree'
+import { getDecodedToken } from '@apollo-annotation/shared'
+import { applySnapshot, getRoot, isAlive } from '@jbrowse/mobx-state-tree'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import {
@@ -43,6 +44,7 @@ interface AssemblyPermissionResponse {
 interface PermissionRow {
   id: string
   assemblyId: string
+  assemblyRefName: string
   assemblyName: string
   genusSpecies: string
   access: 'Edit' | 'View'
@@ -56,6 +58,15 @@ interface MyAssemblyPermissionsProps {
 type SessionWithLinearGenomeView = {
   views: unknown[]
   addView?: (viewType: string, ...args: unknown[]) => unknown
+  id?: string
+  name?: string
+}
+
+type ApolloRegion = {
+  assemblyName?: string
+  refName: string
+  start: number
+  end: number
 }
 
 function wait(ms: number) {
@@ -75,6 +86,18 @@ function safeRetrieveToken(account: ApolloInternetAccountModel) {
   }
 }
 
+function isGuestToken(token: string) {
+  try {
+    const { username, email } = getDecodedToken(token)
+    return (
+      username?.toLowerCase() === 'guest' ||
+      email?.toLowerCase() === 'guest_user'
+    )
+  } catch {
+    return false
+  }
+}
+
 export function MyAssemblyPermissions({
   handleClose,
   rootModel,
@@ -84,7 +107,12 @@ export function MyAssemblyPermissions({
     .filter((ia) => isAlive(ia))
     .filter(isApolloInternetAccount)
     .filter((ia) => Boolean(safeRetrieveToken(ia)))
-  const [selectedInternetAccount] = useState(apolloInternetAccounts[0])
+  const preferredInternetAccount =
+    apolloInternetAccounts.find((ia) => {
+      const token = safeRetrieveToken(ia)
+      return token ? !isGuestToken(token) : false
+    }) ?? apolloInternetAccounts[0]
+  const [selectedInternetAccount] = useState(preferredInternetAccount)
   const [rows, setRows] = useState<PermissionRow[]>([])
   const [errorMessage, setErrorMessage] = useState('')
   const [loading, setLoading] = useState(true)
@@ -152,6 +180,7 @@ export function MyAssemblyPermissions({
             id:
               permission._id ?? `${permission.userId}-${permission.assemblyId}`,
             assemblyId: permission.assemblyId,
+            assemblyRefName: assembly?.name ?? permission.assemblyId,
             assemblyName,
             genusSpecies: scientificName || 'Unknown',
             access: permission.canEditAnnotations
@@ -177,7 +206,10 @@ export function MyAssemblyPermissions({
     [editOnly, rows],
   )
 
-  async function loadAssembly(assemblyId: string) {
+  async function loadAssembly(
+    assemblyName: string,
+    options?: { openInNewView?: boolean },
+  ) {
     setErrorMessage('')
     if (
       !isAlive(rootModel) ||
@@ -190,19 +222,57 @@ export function MyAssemblyPermissions({
       return
     }
     const sessionModel =
-      rootModel.session as unknown as SessionWithLinearGenomeView
+      rootModel.session as unknown as SessionWithLinearGenomeView & {
+        apolloSetSelectedFeature?: (feature?: unknown) => void
+      }
     if (!sessionModel) {
       setErrorMessage(
         'The current session is no longer available. Reopen My workspace.',
       )
       return
     }
-    let linearGenomeView = sessionModel.views.find(
-      (view) =>
-        (view as { type?: string } | undefined)?.type === 'LinearGenomeView',
-    ) as unknown as LinearGenomeViewModel | undefined
+    const openInNewView = options?.openInNewView ?? false
+    let linearGenomeView: LinearGenomeViewModel | undefined
 
-    if (!linearGenomeView && sessionModel.addView) {
+    if (!openInNewView) {
+      // Replace semantics: reset to an empty session and create one fresh view.
+      const baseSnapshot = {
+        id: sessionModel.id,
+        name: sessionModel.name,
+      }
+      applySnapshot(rootModel.session as unknown as object, baseSnapshot)
+
+      const freshSession =
+        rootModel.session as unknown as SessionWithLinearGenomeView & {
+          apolloSetSelectedFeature?: (feature?: unknown) => void
+        }
+      const createdView = freshSession.addView?.('LinearGenomeView')
+      linearGenomeView =
+        (createdView as LinearGenomeViewModel | undefined) ??
+        (freshSession.views.find(
+          (view) =>
+            (view as { type?: string } | undefined)?.type ===
+            'LinearGenomeView',
+        ) as unknown as LinearGenomeViewModel | undefined)
+    } else if (openInNewView && sessionModel.addView) {
+      const existingViews = new Set(sessionModel.views)
+      const createdView = sessionModel.addView('LinearGenomeView')
+      linearGenomeView =
+        (createdView as LinearGenomeViewModel | undefined) ??
+        (sessionModel.views.find(
+          (view) =>
+            !existingViews.has(view) &&
+            (view as { type?: string } | undefined)?.type ===
+              'LinearGenomeView',
+        ) as unknown as LinearGenomeViewModel | undefined)
+    } else {
+      linearGenomeView = sessionModel.views.find(
+        (view) =>
+          (view as { type?: string } | undefined)?.type === 'LinearGenomeView',
+      ) as unknown as LinearGenomeViewModel | undefined
+    }
+
+    if (!linearGenomeView && sessionModel.addView && !openInNewView) {
       // Create a linear genome view on-demand so Load works from the start screen.
       const createdView = sessionModel.addView('LinearGenomeView')
       linearGenomeView =
@@ -219,10 +289,52 @@ export function MyAssemblyPermissions({
       return
     }
 
+    sessionModel.apolloSetSelectedFeature?.(undefined)
+
+    const getDisplayedAssemblyName = () => {
+      const regions = (
+        linearGenomeView as unknown as {
+          displayedRegions?: { assemblyName?: string }[]
+        }
+      ).displayedRegions
+      return regions?.[0]?.assemblyName
+    }
+
+    const openByExplicitRegion = async () => {
+      const apolloSession = rootModel.session as unknown as ApolloSessionModel
+      const backendDriver =
+        apolloSession.apolloDataStore.getBackendDriver(assemblyName)
+      if (!backendDriver) {
+        return false
+      }
+      const regions = (await backendDriver.getRegions(
+        assemblyName,
+      )) as ApolloRegion[]
+      const firstRegion = regions[0]
+      if (!firstRegion) {
+        return false
+      }
+      linearGenomeView.navToLocation({
+        assemblyName,
+        refName: firstRegion.refName,
+        start: firstRegion.start,
+        end: firstRegion.end,
+      })
+      return true
+    }
+
     let lastError: unknown
     for (let attempt = 0; attempt < 8; attempt++) {
       try {
-        linearGenomeView.showAllRegionsInAssembly(assemblyId)
+        linearGenomeView.showAllRegionsInAssembly(assemblyName)
+        if (getDisplayedAssemblyName() !== assemblyName) {
+          const opened = await openByExplicitRegion()
+          if (!opened) {
+            throw new Error(
+              `Could not resolve selected assembly regions for ${assemblyName}`,
+            )
+          }
+        }
         handleClose()
         return
       } catch (error) {
@@ -237,36 +349,60 @@ export function MyAssemblyPermissions({
   const gridColumns: GridColDef[] = [
     {
       field: 'loadAssembly',
-      headerName: 'Load',
+      headerName: 'Open',
       sortable: false,
       filterable: false,
-      minWidth: 110,
-      maxWidth: 120,
+      minWidth: 220,
+      maxWidth: 240,
       renderCell: ({ row }) => (
-        <Button
-          size="small"
-          variant="contained"
-          color="primary"
-          onClick={() => {
-            void loadAssembly(row.assemblyId as string)
-          }}
-          sx={{
-            borderRadius: '999px',
-            textTransform: 'none',
-            minWidth: 0,
-            px: 1.25,
-            py: 0,
-            minHeight: 24,
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            boxShadow: 'none',
-            '&:hover': {
+        <Box sx={{ display: 'flex', gap: 0.75 }}>
+          <Button
+            size="small"
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              void loadAssembly(row.assemblyRefName as string)
+            }}
+            sx={{
+              borderRadius: '999px',
+              textTransform: 'none',
+              minWidth: 0,
+              px: 1.25,
+              py: 0,
+              minHeight: 24,
+              fontSize: '0.75rem',
+              fontWeight: 600,
               boxShadow: 'none',
-            },
-          }}
-        >
-          Load
-        </Button>
+              '&:hover': {
+                boxShadow: 'none',
+              },
+            }}
+          >
+            Replace
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            color="primary"
+            onClick={() => {
+              void loadAssembly(row.assemblyRefName as string, {
+                openInNewView: true,
+              })
+            }}
+            sx={{
+              borderRadius: '999px',
+              textTransform: 'none',
+              minWidth: 0,
+              px: 1.25,
+              py: 0,
+              minHeight: 24,
+              fontSize: '0.75rem',
+              fontWeight: 600,
+            }}
+          >
+            Add view
+          </Button>
+        </Box>
       ),
     },
     {

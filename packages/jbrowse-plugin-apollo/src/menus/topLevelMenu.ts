@@ -14,25 +14,7 @@ import React from 'react'
 import { LogOut, MyAssemblyPermissions } from '../components'
 import type { ApolloSessionModel } from '../session'
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import type { ApolloRootModel } from '../types'
-
-function isUsableApolloAccount(
-  account: unknown,
-): account is ApolloInternetAccountModel {
-  if (!account) {
-    return false
-  }
-  const maybeAccount = account as {
-    getToken?: unknown
-    removeToken?: unknown
-    internetAccountId?: unknown
-  }
-  return (
-    typeof maybeAccount.getToken === 'function' &&
-    typeof maybeAccount.removeToken === 'function' &&
-    typeof maybeAccount.internetAccountId === 'string'
-  )
-}
+import { isApolloInternetAccount, type ApolloRootModel } from '../types'
 
 function getApolloInternetAccounts(rootModel: ApolloRootModel) {
   const { internetAccounts } = rootModel
@@ -41,7 +23,7 @@ function getApolloInternetAccounts(rootModel: ApolloRootModel) {
       if (!isAlive(account)) {
         return false
       }
-      return isUsableApolloAccount(account)
+      return isApolloInternetAccount(account)
     } catch {
       return false
     }
@@ -70,14 +52,41 @@ function getStoredToken(account?: ApolloInternetAccountModel) {
   }
 }
 
+function isGuestToken(token: string) {
+  try {
+    const { username, email } = getDecodedToken(token)
+    return (
+      username?.toLowerCase() === 'guest' ||
+      email?.toLowerCase() === 'guest_user'
+    )
+  } catch {
+    return false
+  }
+}
+
 function getSignedInApolloAccount(rootModel: ApolloRootModel) {
-  return getApolloInternetAccounts(rootModel).find((account) =>
-    Boolean(getStoredToken(account)),
+  const signedInAccounts = getApolloInternetAccounts(rootModel).filter(
+    (account) => Boolean(getStoredToken(account)),
   )
+  const nonGuestSignedInAccount = signedInAccounts.find((account) => {
+    const token = getStoredToken(account)
+    return token ? !isGuestToken(token) : false
+  })
+  return nonGuestSignedInAccount ?? signedInAccounts[0]
 }
 
 function getDefaultApolloAccount(rootModel: ApolloRootModel) {
   return getApolloInternetAccounts(rootModel).find(Boolean)
+}
+
+function promptApolloLogin(account: ApolloInternetAccountModel) {
+  const maybePromptableAccount = account as ApolloInternetAccountModel & {
+    loginWithPrompt?: () => Promise<string>
+  }
+  if (typeof maybePromptableAccount.loginWithPrompt === 'function') {
+    return maybePromptableAccount.loginWithPrompt()
+  }
+  return account.getToken()
 }
 
 function isApolloSignedIn(rootModel: ApolloRootModel) {
@@ -101,10 +110,6 @@ function getCurrentApolloUserLabel(rootModel: ApolloRootModel) {
 
 function ApolloUserMenuLabel({ rootModel }: { rootModel: ApolloRootModel }) {
   return getCurrentApolloUserLabel(rootModel)
-}
-
-function ApolloAuthMenuLabel({ rootModel }: { rootModel: ApolloRootModel }) {
-  return isApolloSignedIn(rootModel) ? 'Log out' : 'Log in'
 }
 
 function notifyCurrentApolloUser(
@@ -200,26 +205,11 @@ export function addTopLevelMenus(rootModel: AbstractMenuManager) {
     })
 
     rootModel.appendToMenu('Apollo', {
-      label: React.createElement(ApolloAuthMenuLabel, {
-        rootModel: rootModel as unknown as ApolloRootModel,
-      }),
-      icon: LogoutIcon,
+      label: 'Log in',
+      icon: AccountCircleIcon,
       onClick: (session: ApolloSessionModel) => {
         const apolloRootModel = rootModel as unknown as ApolloRootModel
         const sessionModel = session as unknown as AbstractSessionModel
-        if (isApolloSignedIn(apolloRootModel)) {
-          sessionModel.queueDialog((doneCallback) => [
-            LogOut,
-            {
-              rootModel: apolloRootModel,
-              handleClose: () => {
-                doneCallback()
-              },
-            },
-          ])
-          return
-        }
-
         const defaultAccount = getDefaultApolloAccount(apolloRootModel)
         if (!defaultAccount) {
           sessionModel.notify(
@@ -229,8 +219,7 @@ export function addTopLevelMenus(rootModel: AbstractMenuManager) {
           return
         }
 
-        void defaultAccount
-          .getToken()
+        void promptApolloLogin(defaultAccount)
           .then((token) => {
             try {
               const { username, email, role } = getDecodedToken(token)
@@ -240,8 +229,14 @@ export function addTopLevelMenus(rootModel: AbstractMenuManager) {
                 `Apollo login successful: ${identity}${roleText}`,
                 'success',
               )
+              // Rebuild session/view track selector state after auth changes.
+              // This avoids stale "Available tracks" panels after guest <-> user.
+              globalThis.location.reload()
+              return
             } catch {
               sessionModel.notify('Apollo login successful', 'success')
+              globalThis.location.reload()
+              return
             }
           })
           .catch((error: unknown) => {
@@ -255,6 +250,29 @@ export function addTopLevelMenus(rootModel: AbstractMenuManager) {
               error instanceof Error ? error.message : 'Apollo login failed'
             sessionModel.notify(message, 'error')
           })
+      },
+    })
+
+    rootModel.appendToMenu('Apollo', {
+      label: 'Log out',
+      icon: LogoutIcon,
+      onClick: (session: ApolloSessionModel) => {
+        const apolloRootModel = rootModel as unknown as ApolloRootModel
+        const sessionModel = session as unknown as AbstractSessionModel
+        if (!isApolloSignedIn(apolloRootModel)) {
+          sessionModel.notify('Apollo is already signed out', 'info')
+          return
+        }
+
+        sessionModel.queueDialog((doneCallback) => [
+          LogOut,
+          {
+            rootModel: apolloRootModel,
+            handleClose: () => {
+              doneCallback()
+            },
+          },
+        ])
       },
     })
   }

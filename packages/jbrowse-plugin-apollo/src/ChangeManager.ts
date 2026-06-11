@@ -5,6 +5,7 @@ import {
 import {
   type ValidationResultSet,
   validationRegistry,
+  getDecodedToken,
 } from '@apollo-annotation/shared'
 import { getSession } from '@jbrowse/core/util'
 
@@ -38,6 +39,46 @@ export class ChangeManager {
     // pre-validate
     const session = getSession(this.dataStore)
     const controller = new AbortController()
+
+    const internetAccounts = this.dataStore.internetAccounts as Array<{
+      type?: string
+      internetAccountId?: string
+      role?: string
+      retrieveToken?: () => string | undefined
+    }>
+    const apolloAccounts = internetAccounts.filter(
+      (account) => account.type === 'ApolloInternetAccount',
+    )
+    const accountForSubmit = opts.internetAccountId
+      ? apolloAccounts.find(
+          (account) => account.internetAccountId === opts.internetAccountId,
+        )
+      : apolloAccounts.find((account) => Boolean(account.retrieveToken?.()))
+    const token = accountForSubmit?.retrieveToken?.()
+    if (!token) {
+      session.notify('Cannot submit changes while signed out')
+      return
+    }
+
+    let isGuest = false
+    let decodedRole: string | undefined
+    try {
+      const decoded = getDecodedToken(token)
+      decodedRole = decoded.role
+      isGuest =
+        decoded.username?.toLowerCase() === 'guest' ||
+        decoded.email?.toLowerCase() === 'guest_user'
+    } catch {
+      // ignore decode errors here and fall back to account role below
+    }
+
+    const effectiveRole = isGuest
+      ? 'readOnly'
+      : accountForSubmit?.role ?? decodedRole ?? 'none'
+    if (!['admin', 'user'].includes(effectiveRole)) {
+      session.notify('Cannot submit changes while signed in as guest/read-only')
+      return
+    }
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { jobsManager, isLocked, changeInProgress, setChangeInProgress } =

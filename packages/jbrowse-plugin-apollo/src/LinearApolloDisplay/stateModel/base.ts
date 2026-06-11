@@ -163,8 +163,12 @@ export function baseModelFactory(
         return assembly.name
       },
       get selectedFeature(): AnnotationFeature | undefined {
-        return (self.session as unknown as ApolloSessionModel)
-          .apolloSelectedFeature
+        try {
+          return (self.session as unknown as ApolloSessionModel)
+            .apolloSelectedFeature
+        } catch {
+          return undefined
+        }
       },
       get hoveredFeature(): HoveredFeature | undefined {
         return (self.session as unknown as ApolloSessionModel)

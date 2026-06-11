@@ -17,6 +17,47 @@
 4. Retry with valid credentials.
 5. Confirm login succeeds and menu label updates to signed-in identity.
 
+## Auth and access behavior updates (2026-06-11)
+
+- Successful Apollo login now revokes tokens from other Apollo internet accounts
+  in the same session.
+- Apollo top-level menu now has explicit `Log in` and `Log out` actions.
+- Log out now transitions directly to guest auth without a full page reload.
+- Guest users are normalized to `readOnly` role and cannot submit changes.
+
+## Permission management updates (2026-06-11)
+
+- `Manage users -> Effective access` now refreshes immediately after:
+  - direct user assembly permission changes,
+  - user group membership changes,
+  - group membership changes affecting the currently selected user,
+  - group assembly permission changes when the selected user is a member.
+- `My workspace` now supports:
+  - `Replace` to reset open views and load the selected assembly in one fresh
+    view,
+  - `Add view` to open the selected assembly in an additional view.
+
+## Unit test runtime (Node)
+
+- Apollo plugin Jest tooling is not compatible with Node 26+.
+- The package `test` and `test:ci` scripts now run a Node version check first.
+- On unsupported versions, the command fails fast with:
+  `Apollo plugin Jest tooling is not compatible with Node <version>. Use Node 20 or 22.`
+
+Run plugin tests with Node 22 (without changing your global Node):
+
+```bash
+cd repos/Apollo3/packages/jbrowse-plugin-apollo
+JEST_BIN=$(npx -y node@22 $(which yarn) bin jest)
+npx -y node@22 $(which yarn) node --experimental-vm-modules "$JEST_BIN" src/ApolloInternetAccount/tokenUtils.test.ts
+```
+
+If you have Node 20 or 22 active in your shell, the normal command also works:
+
+```bash
+yarn --cwd repos/Apollo3/packages/jbrowse-plugin-apollo test
+```
+
 ## Testing with cypress
 
 These notes setup cypress and run tests. These notes are likely to change.

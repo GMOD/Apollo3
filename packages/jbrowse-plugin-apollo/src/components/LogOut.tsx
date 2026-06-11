@@ -7,6 +7,8 @@ import {
   Select,
   type SelectChangeEvent,
 } from '@mui/material'
+import type { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
+import { readConfObject } from '@jbrowse/core/configuration'
 import { isAlive } from '@jbrowse/mobx-state-tree'
 import React, { useState } from 'react'
 
@@ -20,9 +22,68 @@ interface DeleteAssemblyProps {
   handleClose(): void
 }
 
+function isPrivilegedApolloTrack(track: BaseTrackConfig) {
+  const trackType = (track as unknown as { type?: string }).type
+  const trackId = readConfObject(track, 'trackId') as string | undefined
+  const displays =
+    (readConfObject(track, 'displays') as
+      | Array<{ type?: string }>
+      | undefined) ?? []
+  const hasApolloDisplay = displays.some((display) =>
+    ['LinearApolloDisplay', 'LinearApolloSixFrameDisplay'].includes(
+      display.type ?? '',
+    ),
+  )
+  return (
+    trackType === 'ApolloTrack' ||
+    trackId?.startsWith('apollo_track_') ||
+    hasApolloDisplay
+  )
+}
+
+function removePrivilegedTracksForGuest(rootModel: ApolloRootModel) {
+  const session = rootModel.session as unknown as
+    | {
+        tracks: BaseTrackConfig[]
+        views?: unknown[]
+        deleteTrackConf?: (conf: BaseTrackConfig) => void
+        apolloSetSelectedFeature?: (feature?: unknown) => void
+      }
+    | undefined
+  if (!session || !isAlive(rootModel.session)) {
+    return
+  }
+
+  const jbrowse = rootModel.jbrowse as {
+    tracks?: BaseTrackConfig[]
+    deleteTrackConf?: (conf: BaseTrackConfig) => void
+  }
+
+  const byTrackId = new Map<string, BaseTrackConfig>()
+  const collect = (tracks?: BaseTrackConfig[]) => {
+    for (const track of tracks ?? []) {
+      if (!isPrivilegedApolloTrack(track)) {
+        continue
+      }
+      const trackId = readConfObject(track, 'trackId') as string | undefined
+      byTrackId.set(trackId ?? String(byTrackId.size), track)
+    }
+  }
+
+  collect(session.tracks)
+  collect(jbrowse.tracks)
+
+  session.apolloSetSelectedFeature?.(undefined)
+  for (const track of byTrackId.values()) {
+    session.deleteTrackConf?.(track)
+    jbrowse.deleteTrackConf?.(track)
+  }
+}
+
 export function LogOut({ handleClose, rootModel }: DeleteAssemblyProps) {
   const { internetAccounts } = rootModel
   const [errorMessage, setErrorMessage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const apolloInternetAccounts = internetAccounts.filter((account) => {
     try {
       if (!isAlive(account)) {
@@ -54,14 +115,32 @@ export function LogOut({ handleClose, rootModel }: DeleteAssemblyProps) {
     setSelectedInternetAccount(newlySelectedInternetAccount)
   }
 
-  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
+    setIsSubmitting(true)
     try {
       selectedInternetAccount.removeToken()
-      globalThis.location.reload()
+      const guestLoginUrl = new URL(
+        'auth/login',
+        selectedInternetAccount.baseURL,
+      )
+      guestLoginUrl.search = new URLSearchParams({ type: 'guest' }).toString()
+      const response = await fetch(guestLoginUrl.toString(), { method: 'GET' })
+      if (!response.ok) {
+        throw new Error(`Guest login failed (${response.status})`)
+      }
+      const { token } = (await response.json()) as { token?: string }
+      if (!token) {
+        throw new Error('Guest login did not return a token')
+      }
+      selectedInternetAccount.applyLoggedInToken(token)
+      removePrivilegedTracksForGuest(rootModel)
+      handleClose()
     } catch {
       setErrorMessage('Could not log out from this account. Please retry.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -97,11 +176,11 @@ export function LogOut({ handleClose, rootModel }: DeleteAssemblyProps) {
 
         <DialogActions>
           <Button
-            disabled={!selectedInternetAccount}
+            disabled={!selectedInternetAccount || isSubmitting}
             variant="contained"
             type="submit"
           >
-            Log Out
+            {isSubmitting ? 'Logging out...' : 'Log Out'}
           </Button>
           <Button variant="outlined" type="button" onClick={handleClose}>
             Cancel
