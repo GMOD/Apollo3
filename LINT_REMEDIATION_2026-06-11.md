@@ -194,6 +194,20 @@ Bring the repository toward passing strict lint in CI
   - replaced the final `deletedFeature as never` cast with constructor-derived
     `DeleteFeatureChange` init typing
 
+### Wave 9
+
+- Scope:
+  - `packages/apollo-collaboration-server/src/features/features.controller.spec.ts`
+  - `packages/apollo-collaboration-server/src/features/features.service.spec.ts`
+  - `packages/apollo-collaboration-server/src/changes/changes.controller.spec.ts`
+- Focused rule families:
+  - test typing hardening for environments where jest globals are not ambient
+- Status: completed
+- What was fixed:
+  - added explicit `@jest/globals` imports (`beforeEach`, `describe`, `expect`,
+    `it`) in small specs
+  - reduced reliance on tsconfig-level ambient jest declarations for these files
+
 ## Upstream contribution path
 
 Yes, this cleanup is suitable to submit upstream.
