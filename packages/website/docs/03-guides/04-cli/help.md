@@ -1,9 +1,8 @@
-`apollo help`
-=============
+# `apollo help`
 
 Display help for apollo.
 
-* [`apollo help [COMMANDS]`](#apollo-help-commands)
+- [`apollo help [COMMANDS]`](#apollo-help-commands)
 
 ## `apollo help [COMMANDS]`
 
@@ -23,4 +22,5 @@ DESCRIPTION
   Display help for apollo.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.8//Users/cchilders/git-repos/nal-i5k-apollo-orchestrator/repos/Apollo3/.yarn/cache/@oclif-plugin-help-npm-6.0.8-336726b8e7-4b3be03d8a.zip/node_modules/@oclif/plugin-help/lib/commands/help.ts)_
+_See code:
+[@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.8/src/commands/help.ts)_

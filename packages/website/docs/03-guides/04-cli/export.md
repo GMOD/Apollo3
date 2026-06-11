@@ -1,9 +1,8 @@
-`apollo export`
-===============
+# `apollo export`
 
 Commands to export data
 
-* [`apollo export gff3 ASSEMBLY`](#apollo-export-gff3-assembly)
+- [`apollo export gff3 ASSEMBLY`](#apollo-export-gff3-assembly)
 
 ## `apollo export gff3 ASSEMBLY`
 
@@ -30,4 +29,5 @@ EXAMPLES
     $ apollo export gff3 myAssembly > out.gff3
 ```
 
-_See code: [src/commands/export/gff3.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/export/gff3.ts)_
+_See code:
+[src/commands/export/gff3.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/export/gff3.ts)_

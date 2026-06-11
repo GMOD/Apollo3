@@ -1,12 +1,11 @@
-`apollo file`
-=============
+# `apollo file`
 
 Commands to manage files
 
-* [`apollo file delete`](#apollo-file-delete)
-* [`apollo file download`](#apollo-file-download)
-* [`apollo file get`](#apollo-file-get)
-* [`apollo file upload INPUT-FILE`](#apollo-file-upload-input-file)
+- [`apollo file delete`](#apollo-file-delete)
+- [`apollo file download`](#apollo-file-download)
+- [`apollo file get`](#apollo-file-get)
+- [`apollo file upload INPUT-FILE`](#apollo-file-upload-input-file)
 
 ## `apollo file delete`
 
@@ -32,7 +31,8 @@ EXAMPLES
     $ apollo file delete -i 123...abc xyz...789
 ```
 
-_See code: [src/commands/file/delete.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/file/delete.ts)_
+_See code:
+[src/commands/file/delete.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/file/delete.ts)_
 
 ## `apollo file download`
 
@@ -59,7 +59,8 @@ EXAMPLES
     $ apollo file download -i xyz -o genome.fa
 ```
 
-_See code: [src/commands/file/download.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/file/download.ts)_
+_See code:
+[src/commands/file/download.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/file/download.ts)_
 
 ## `apollo file get`
 
@@ -85,7 +86,8 @@ EXAMPLES
     $ apollo file get -i xyz abc
 ```
 
-_See code: [src/commands/file/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/file/get.ts)_
+_See code:
+[src/commands/file/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/file/get.ts)_
 
 ## `apollo file upload INPUT-FILE`
 
@@ -121,4 +123,5 @@ EXAMPLES
     $ apollo file upload genome.fa > file.json
 ```
 
-_See code: [src/commands/file/upload.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/file/upload.ts)_
+_See code:
+[src/commands/file/upload.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/file/upload.ts)_

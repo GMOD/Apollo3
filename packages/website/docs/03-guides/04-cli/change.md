@@ -1,9 +1,8 @@
-`apollo change`
-===============
+# `apollo change`
 
 Commands to manage the change log
 
-* [`apollo change get`](#apollo-change-get)
+- [`apollo change get`](#apollo-change-get)
 
 ## `apollo change get`
 
@@ -26,4 +25,5 @@ DESCRIPTION
   cases you need to use the assembly ID.
 ```
 
-_See code: [src/commands/change/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/change/get.ts)_
+_See code:
+[src/commands/change/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/change/get.ts)_

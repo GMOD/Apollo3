@@ -1,14 +1,13 @@
-`apollo assembly`
-=================
+# `apollo assembly`
 
 Commands to manage assemblies
 
-* [`apollo assembly add-from-fasta INPUT`](#apollo-assembly-add-from-fasta-input)
-* [`apollo assembly add-from-gff INPUT-FILE`](#apollo-assembly-add-from-gff-input-file)
-* [`apollo assembly check`](#apollo-assembly-check)
-* [`apollo assembly delete`](#apollo-assembly-delete)
-* [`apollo assembly get`](#apollo-assembly-get)
-* [`apollo assembly sequence`](#apollo-assembly-sequence)
+- [`apollo assembly add-from-fasta INPUT`](#apollo-assembly-add-from-fasta-input)
+- [`apollo assembly add-from-gff INPUT-FILE`](#apollo-assembly-add-from-gff-input-file)
+- [`apollo assembly check`](#apollo-assembly-check)
+- [`apollo assembly delete`](#apollo-assembly-delete)
+- [`apollo assembly get`](#apollo-assembly-get)
+- [`apollo assembly sequence`](#apollo-assembly-sequence)
 
 ## `apollo assembly add-from-fasta INPUT`
 
@@ -59,7 +58,8 @@ EXAMPLES
     $ apollo assembly add-from-fasta https://.../genome.fa.gz -a myAssembly
 ```
 
-_See code: [src/commands/assembly/add-from-fasta.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/add-from-fasta.ts)_
+_See code:
+[src/commands/assembly/add-from-fasta.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/add-from-fasta.ts)_
 
 ## `apollo assembly add-from-gff INPUT-FILE`
 
@@ -97,7 +97,8 @@ EXAMPLES
     $ apollo assembly add-from-gff genome.gff -a myAssembly -o
 ```
 
-_See code: [src/commands/assembly/add-from-gff.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/add-from-gff.ts)_
+_See code:
+[src/commands/assembly/add-from-gff.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/add-from-gff.ts)_
 
 ## `apollo assembly check`
 
@@ -138,7 +139,8 @@ EXAMPLES
     $ apollo assembly check -a hg19 -c CDSCheck --delete
 ```
 
-_See code: [src/commands/assembly/check.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/check.ts)_
+_See code:
+[src/commands/assembly/check.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/check.ts)_
 
 ## `apollo assembly delete`
 
@@ -165,7 +167,8 @@ EXAMPLES
     $ apollo assembly delete -a mouse 6605826fbd0eee691f83e73f
 ```
 
-_See code: [src/commands/assembly/delete.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/delete.ts)_
+_See code:
+[src/commands/assembly/delete.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/delete.ts)_
 
 ## `apollo assembly get`
 
@@ -186,7 +189,8 @@ DESCRIPTION
   Print to stdout the list of assemblies in json format
 ```
 
-_See code: [src/commands/assembly/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/get.ts)_
+_See code:
+[src/commands/assembly/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/get.ts)_
 
 ## `apollo assembly sequence`
 
@@ -220,4 +224,5 @@ EXAMPLES
     $ apollo assembly sequence -a myAssembly -r chr1 -s 1 -e 1000
 ```
 
-_See code: [src/commands/assembly/sequence.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/sequence.ts)_
+_See code:
+[src/commands/assembly/sequence.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/sequence.ts)_

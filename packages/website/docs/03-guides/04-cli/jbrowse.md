@@ -1,11 +1,10 @@
-`apollo jbrowse`
-================
+# `apollo jbrowse`
 
 Commands to manage the JBrowse configuration
 
-* [`apollo jbrowse desktop JBROWSEFILE`](#apollo-jbrowse-desktop-jbrowsefile)
-* [`apollo jbrowse get-config`](#apollo-jbrowse-get-config)
-* [`apollo jbrowse set-config INPUTFILE`](#apollo-jbrowse-set-config-inputfile)
+- [`apollo jbrowse desktop JBROWSEFILE`](#apollo-jbrowse-desktop-jbrowsefile)
+- [`apollo jbrowse get-config`](#apollo-jbrowse-get-config)
+- [`apollo jbrowse set-config INPUTFILE`](#apollo-jbrowse-set-config-inputfile)
 
 ## `apollo jbrowse desktop JBROWSEFILE`
 
@@ -49,7 +48,8 @@ EXAMPLES
     $ apollo jbrowse desktop apollo.jbrowse --gff3-file=path/to/file.gff3
 ```
 
-_See code: [src/commands/jbrowse/desktop.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/jbrowse/desktop.ts)_
+_See code:
+[src/commands/jbrowse/desktop.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/jbrowse/desktop.ts)_
 
 ## `apollo jbrowse get-config`
 
@@ -74,7 +74,8 @@ EXAMPLES
     $ apollo jbrowse get-config > config.json
 ```
 
-_See code: [src/commands/jbrowse/get-config.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/jbrowse/get-config.ts)_
+_See code:
+[src/commands/jbrowse/get-config.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/jbrowse/get-config.ts)_
 
 ## `apollo jbrowse set-config INPUTFILE`
 
@@ -102,4 +103,5 @@ EXAMPLES
     $ apollo jbrowse set-config config.json
 ```
 
-_See code: [src/commands/jbrowse/set-config.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/jbrowse/set-config.ts)_
+_See code:
+[src/commands/jbrowse/set-config.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/jbrowse/set-config.ts)_

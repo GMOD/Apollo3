@@ -1,9 +1,8 @@
-`apollo config`
-===============
+# `apollo config`
 
 Get or set apollo configuration options
 
-* [`apollo config [KEY] [VALUE]`](#apollo-config-key-value)
+- [`apollo config [KEY] [VALUE]`](#apollo-config-key-value)
 
 ## `apollo config [KEY] [VALUE]`
 
@@ -54,4 +53,5 @@ EXAMPLES
     $ apollo config address
 ```
 
-_See code: [src/commands/config.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/config.ts)_
+_See code:
+[src/commands/config.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/config.ts)_

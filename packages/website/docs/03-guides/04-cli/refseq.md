@@ -1,10 +1,9 @@
-`apollo refseq`
-===============
+# `apollo refseq`
 
 Commands to manage reference sequences
 
-* [`apollo refseq add-alias INPUT-FILE`](#apollo-refseq-add-alias-input-file)
-* [`apollo refseq get`](#apollo-refseq-get)
+- [`apollo refseq add-alias INPUT-FILE`](#apollo-refseq-add-alias-input-file)
+- [`apollo refseq get`](#apollo-refseq-get)
 
 ## `apollo refseq add-alias INPUT-FILE`
 
@@ -34,7 +33,8 @@ EXAMPLES
     $ apollo refseq add-alias alias.txt -a myAssembly
 ```
 
-_See code: [src/commands/refseq/add-alias.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/refseq/add-alias.ts)_
+_See code:
+[src/commands/refseq/add-alias.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/refseq/add-alias.ts)_
 
 ## `apollo refseq get`
 
@@ -65,4 +65,5 @@ EXAMPLES
     $ apollo refseq get -a mm9 mm10
 ```
 
-_See code: [src/commands/refseq/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/refseq/get.ts)_
+_See code:
+[src/commands/refseq/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/refseq/get.ts)_

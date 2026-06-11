@@ -1,9 +1,8 @@
-`apollo status`
-===============
+# `apollo status`
 
 View authentication status
 
-* [`apollo status`](#apollo-status)
+- [`apollo status`](#apollo-status)
 
 ## `apollo status`
 
@@ -24,4 +23,5 @@ DESCRIPTION
   otherwise.Note that this command does not check the validity of the access token.
 ```
 
-_See code: [src/commands/status.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/status.ts)_
+_See code:
+[src/commands/status.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/status.ts)_
