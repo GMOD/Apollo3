@@ -1,12 +1,11 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { getDecodedToken } from '@apollo-annotation/shared'
-import { applySnapshot, getRoot, isAlive } from '@jbrowse/mobx-state-tree'
+import { applySnapshot, isAlive } from '@jbrowse/mobx-state-tree'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import {
   Box,
   Button,
+  type ChangeEvent,
   Chip,
   DialogActions,
   DialogContent,
@@ -15,7 +14,12 @@ import {
   Switch,
   Typography,
 } from '@mui/material'
-import { DataGrid, type GridColDef, GridToolbar } from '@mui/x-data-grid'
+import {
+  DataGrid,
+  type GridColDef,
+  type GridRenderCellParams,
+  GridToolbar,
+} from '@mui/x-data-grid'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
@@ -354,14 +358,14 @@ export function MyAssemblyPermissions({
       filterable: false,
       minWidth: 220,
       maxWidth: 240,
-      renderCell: ({ row }) => (
+      renderCell: ({ row }: GridRenderCellParams<PermissionRow>) => (
         <Box sx={{ display: 'flex', gap: 0.75 }}>
           <Button
             size="small"
             variant="contained"
             color="primary"
             onClick={() => {
-              void loadAssembly(row.assemblyRefName as string)
+              void loadAssembly(row.assemblyRefName)
             }}
             sx={{
               borderRadius: '999px',
@@ -385,7 +389,7 @@ export function MyAssemblyPermissions({
             variant="outlined"
             color="primary"
             onClick={() => {
-              void loadAssembly(row.assemblyRefName as string, {
+              void loadAssembly(row.assemblyRefName, {
                 openInNewView: true,
               })
             }}
@@ -421,7 +425,7 @@ export function MyAssemblyPermissions({
       field: 'access',
       headerName: 'Annotation access',
       minWidth: 180,
-      renderCell: ({ row }) => (
+      renderCell: ({ row }: GridRenderCellParams<PermissionRow>) => (
         <Chip
           label={row.access}
           size="small"
@@ -477,7 +481,7 @@ export function MyAssemblyPermissions({
             control={
               <Switch
                 checked={editOnly}
-                onChange={(event) => {
+                onChange={(event: ChangeEvent<HTMLInputElement>) => {
                   setEditOnly(event.target.checked)
                 }}
               />

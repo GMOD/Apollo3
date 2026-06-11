@@ -59,6 +59,13 @@ function safeRetrieveToken(account: ApolloInternetAccountModel) {
   }
 }
 
+function getApolloInternetAccounts(internetAccounts: unknown[]) {
+  return internetAccounts.filter(
+    (internetAccount): internetAccount is ApolloInternetAccountModel =>
+      isApolloInternetAccount(internetAccount),
+  )
+}
+
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreModel
   apolloSelectedFeature?: AnnotationFeature
@@ -550,11 +557,9 @@ export function extendSession(
 
               const { signal } = self.abortController
               // fetch and initialize assemblies for each of our Apollo internet accounts
-              for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
-                if (internetAccount.type !== 'ApolloInternetAccount') {
-                  continue
-                }
-
+              for (const internetAccount of getApolloInternetAccounts(
+                internetAccounts,
+              )) {
                 const { baseURL } = internetAccount
                 const uri = new URL('jbrowse/config.json', baseURL).href
                 const fetch = internetAccount.getFetcher({
@@ -648,10 +653,9 @@ export function extendSession(
                       ...trackConfigSnapshot,
                       trackId: newTrackId,
                     }
-                    for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
-                      if (internetAccount.type !== 'ApolloInternetAccount') {
-                        continue
-                      }
+                    for (const internetAccount of getApolloInternetAccounts(
+                      internetAccounts,
+                    )) {
                       const change = new ImportJBrowseConfigChange({
                         typeName: 'ImportJBrowseConfigChange',
                         oldJBrowseConfig: filteredConfig,
@@ -695,10 +699,9 @@ export function extendSession(
                     const filteredTracks = filteredConfig?.tracks?.filter(
                       (t) => t.trackId !== trackId,
                     )
-                    for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
-                      if (internetAccount.type !== 'ApolloInternetAccount') {
-                        continue
-                      }
+                    for (const internetAccount of getApolloInternetAccounts(
+                      internetAccounts,
+                    )) {
                       const change = new ImportJBrowseConfigChange({
                         typeName: 'ImportJBrowseConfigChange',
                         oldJBrowseConfig: filteredConfig,

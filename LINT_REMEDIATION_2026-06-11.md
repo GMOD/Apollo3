@@ -120,6 +120,29 @@ Bring the repository toward passing strict lint in CI
   - replaced login.gov strategy non-null assertions and `any` cast with explicit
     guards and typed oauth2 agent handling
 
+### Wave 3 (in progress)
+
+- Scope:
+  - `packages/jbrowse-plugin-apollo/src/components/MyAssemblyPermissions.tsx`
+  - `packages/jbrowse-plugin-apollo/src/session/session.ts`
+- Focused rule families:
+  - `@typescript-eslint/no-unnecessary-type-assertion`
+  - `@typescript-eslint/no-unsafe-assignment`
+  - `@typescript-eslint/no-unsafe-call`
+  - callback typing and explicit render param typing in UI code
+
+### Wave 3 status
+
+- Completed edits in:
+  - `packages/jbrowse-plugin-apollo/src/components/MyAssemblyPermissions.tsx`
+  - `packages/jbrowse-plugin-apollo/src/session/session.ts`
+- What was fixed in this wave:
+  - removed broad top-level eslint suppressions in My workspace dialog file
+  - added explicit DataGrid render-cell typing and typed switch change handler
+  - removed unnecessary string casts when loading assemblies from row data
+  - introduced typed Apollo account filtering helper in session model
+  - replaced repeated array-cast loops with type-guarded account iteration
+
 ## Upstream contribution path
 
 Yes, this cleanup is suitable to submit upstream.
