@@ -143,6 +143,25 @@ Bring the repository toward passing strict lint in CI
   - introduced typed Apollo account filtering helper in session model
   - replaced repeated array-cast loops with type-guarded account iteration
 
+### Wave 4 (in progress)
+
+- Scope:
+  - `packages/jbrowse-plugin-apollo/src/ApolloInternetAccount/model.ts`
+- Focused rule families:
+  - `@typescript-eslint/no-unsafe-member-access`
+  - `@typescript-eslint/no-unsafe-assignment`
+  - reduction of repeated `unknown as` casts around live session access
+
+### Wave 4 status
+
+- Completed edits in:
+  - `packages/jbrowse-plugin-apollo/src/ApolloInternetAccount/model.ts`
+- What was fixed in this wave:
+  - introduced a typed `LiveApolloSession` helper interface
+  - updated live-session retrieval helpers to return typed session objects
+  - removed repeated `unknown as AbstractSessionModel` casts at socket and
+    role-notification call sites
+
 ## Upstream contribution path
 
 Yes, this cleanup is suitable to submit upstream.

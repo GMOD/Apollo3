@@ -50,6 +50,19 @@ interface LocalAuthSelection {
 }
 type AuthSelection = AuthType | LocalAuthSelection
 
+interface LiveApolloSession extends AbstractSessionModel {
+  notify(message: string, level?: string): void
+  broadcastLocations(): void
+  addOrUpdateCollaborator(collaborator: Collaborator): void
+  apolloDataStore: {
+    addCheckResult(checkResult: unknown): void
+    deleteCheckResult(id: string): void
+    changeManager: {
+      submit(change: Change, options?: { submitToBackend?: boolean }): unknown
+    }
+  }
+}
+
 type Role = 'admin' | 'user' | 'readOnly' | 'none'
 
 function isGuestIdentity(decodedToken: { username?: string; email?: string }) {
@@ -495,7 +508,9 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
         try {
           const { session } = getRoot<ApolloRootModel>(self)
-          return session && isAlive(session) ? session : undefined
+          return session && isAlive(session)
+            ? (session as unknown as LiveApolloSession)
+            : undefined
         } catch {
           return undefined
         }
@@ -515,9 +530,10 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           })
           socket.on('connect_error', (error) => {
             console.error(error)
-            ;(
-              getLiveSession() as unknown as AbstractSessionModel | undefined
-            )?.notify('Could not connect to the Apollo server.', 'error')
+            getLiveSession()?.notify(
+              'Could not connect to the Apollo server.',
+              'error',
+            )
           })
           socket.on('COMMON', (message: ChangeMessage | CheckResultUpdate) => {
             const session = getLiveSession()
@@ -630,7 +646,9 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
         try {
           const { session } = getRoot<ApolloRootModel>(self)
-          return session && isAlive(session) ? session : undefined
+          return session && isAlive(session)
+            ? (session as unknown as LiveApolloSession)
+            : undefined
         } catch {
           return undefined
         }
@@ -656,9 +674,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           }
           if (role === 'none') {
             if (!self.roleNotificationSent) {
-              ;(
-                getLiveSession() as unknown as AbstractSessionModel | undefined
-              )?.notify(
+              getLiveSession()?.notify(
                 'You have registered as an Apollo user but have not been given access. Ask your administrator to enable access for your account.',
                 'warning',
               )
