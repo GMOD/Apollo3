@@ -20,8 +20,7 @@ import {
   type GridRenderCellParams,
   GridToolbar,
 } from '@mui/x-data-grid'
-import React, { useEffect, useMemo, useState } from 'react'
-import type { ChangeEvent } from 'react'
+import React, { type ChangeEvent, useEffect, useMemo, useState } from 'react'
 
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import type { ApolloSessionModel } from '../session'

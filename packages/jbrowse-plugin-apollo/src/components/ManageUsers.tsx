@@ -591,7 +591,12 @@ export function ManageUsers({
       type: 'singleSelect',
       valueOptions: ['readOnly', 'user', 'admin', 'none'],
       getOptionLabel(value) {
-        const option = String(value)
+        let option = ''
+        if (typeof value === 'string') {
+          option = value
+        } else if (typeof value === 'number') {
+          option = `${value}`
+        }
         switch (option) {
           case 'readOnly': {
             return 'Read-only'

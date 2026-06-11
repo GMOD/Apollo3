@@ -327,7 +327,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             )
           },
         )
-        if (typeof authType !== 'string' && authType.type === 'local') {
+        if (typeof authType !== 'string') {
           const uri = new URL('auth/local', baseURL).href
           const response = await fetch(uri, {
             method: 'POST',
