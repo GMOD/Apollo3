@@ -1,10 +1,11 @@
-# `apollo permissions`
+`apollo permissions`
+====================
 
 Commands to manage assembly permissions
 
-- [`apollo permissions grant`](#apollo-permissions-grant)
-- [`apollo permissions list`](#apollo-permissions-list)
-- [`apollo permissions revoke`](#apollo-permissions-revoke)
+* [`apollo permissions grant`](#apollo-permissions-grant)
+* [`apollo permissions list`](#apollo-permissions-list)
+* [`apollo permissions revoke`](#apollo-permissions-revoke)
 
 ## `apollo permissions grant`
 
@@ -37,8 +38,7 @@ EXAMPLES
     $ apollo permissions grant -u user@example.org -a asm1 asm2 --edit
 ```
 
-_See code:
-[src/commands/permissions/grant.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/permissions/grant.ts)_
+_See code: [src/commands/permissions/grant.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/permissions/grant.ts)_
 
 ## `apollo permissions list`
 
@@ -73,8 +73,7 @@ EXAMPLES
     $ apollo permissions list -a myAssembly
 ```
 
-_See code:
-[src/commands/permissions/list.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/permissions/list.ts)_
+_See code: [src/commands/permissions/list.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/permissions/list.ts)_
 
 ## `apollo permissions revoke`
 
@@ -101,5 +100,4 @@ EXAMPLES
     $ apollo permissions revoke -u user@example.org -a myAssembly
 ```
 
-_See code:
-[src/commands/permissions/revoke.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/permissions/revoke.ts)_
+_See code: [src/commands/permissions/revoke.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/permissions/revoke.ts)_

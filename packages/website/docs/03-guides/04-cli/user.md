@@ -1,8 +1,9 @@
-# `apollo user`
+`apollo user`
+=============
 
 Commands to manage users
 
-- [`apollo user get`](#apollo-user-get)
+* [`apollo user get`](#apollo-user-get)
 
 ## `apollo user get`
 
@@ -37,5 +38,4 @@ EXAMPLES
     $ apollo user get | jq '.[] | select(.createdAt > "2024-03-18")'
 ```
 
-_See code:
-[src/commands/user/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/user/get.ts)_
+_See code: [src/commands/user/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/user/get.ts)_

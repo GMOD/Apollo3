@@ -1,16 +1,14 @@
 # Table of contents
 
 <!-- toc -->
-
-- [Table of contents](#table-of-contents)
-- [Usage](#usage)
-- [Commands](#commands)
+* [Table of contents](#table-of-contents)
+* [Usage](#usage)
+* [Commands](#commands)
 <!-- tocstop -->
 
 # Usage
 
 <!-- usage -->
-
 ```sh-session
 $ npm install -g @apollo-annotation/cli
 $ apollo COMMAND
@@ -22,53 +20,51 @@ USAGE
   $ apollo COMMAND
 ...
 ```
-
 <!-- usagestop -->
 
 # Commands
 
 <!-- commands -->
-
-- [`apollo assembly add-from-fasta INPUT`](#apollo-assembly-add-from-fasta-input)
-- [`apollo assembly add-from-gff INPUT-FILE`](#apollo-assembly-add-from-gff-input-file)
-- [`apollo assembly check`](#apollo-assembly-check)
-- [`apollo assembly delete`](#apollo-assembly-delete)
-- [`apollo assembly get`](#apollo-assembly-get)
-- [`apollo assembly sequence`](#apollo-assembly-sequence)
-- [`apollo change get`](#apollo-change-get)
-- [`apollo config [KEY] [VALUE]`](#apollo-config-key-value)
-- [`apollo export gff3 ASSEMBLY`](#apollo-export-gff3-assembly)
-- [`apollo feature add [FEATURE-JSON]`](#apollo-feature-add-feature-json)
-- [`apollo feature add-child`](#apollo-feature-add-child)
-- [`apollo feature check`](#apollo-feature-check)
-- [`apollo feature copy`](#apollo-feature-copy)
-- [`apollo feature delete`](#apollo-feature-delete)
-- [`apollo feature edit`](#apollo-feature-edit)
-- [`apollo feature edit-attribute`](#apollo-feature-edit-attribute)
-- [`apollo feature edit-coords`](#apollo-feature-edit-coords)
-- [`apollo feature edit-type`](#apollo-feature-edit-type)
-- [`apollo feature get`](#apollo-feature-get)
-- [`apollo feature get-id`](#apollo-feature-get-id)
-- [`apollo feature get-indexed-id ID`](#apollo-feature-get-indexed-id-id)
-- [`apollo feature import INPUT-FILE`](#apollo-feature-import-input-file)
-- [`apollo feature search`](#apollo-feature-search)
-- [`apollo file delete`](#apollo-file-delete)
-- [`apollo file download`](#apollo-file-download)
-- [`apollo file get`](#apollo-file-get)
-- [`apollo file upload INPUT-FILE`](#apollo-file-upload-input-file)
-- [`apollo help [COMMANDS]`](#apollo-help-commands)
-- [`apollo jbrowse desktop JBROWSEFILE`](#apollo-jbrowse-desktop-jbrowsefile)
-- [`apollo jbrowse get-config`](#apollo-jbrowse-get-config)
-- [`apollo jbrowse set-config INPUTFILE`](#apollo-jbrowse-set-config-inputfile)
-- [`apollo login`](#apollo-login)
-- [`apollo logout`](#apollo-logout)
-- [`apollo permissions grant`](#apollo-permissions-grant)
-- [`apollo permissions list`](#apollo-permissions-list)
-- [`apollo permissions revoke`](#apollo-permissions-revoke)
-- [`apollo refseq add-alias INPUT-FILE`](#apollo-refseq-add-alias-input-file)
-- [`apollo refseq get`](#apollo-refseq-get)
-- [`apollo status`](#apollo-status)
-- [`apollo user get`](#apollo-user-get)
+* [`apollo assembly add-from-fasta INPUT`](#apollo-assembly-add-from-fasta-input)
+* [`apollo assembly add-from-gff INPUT-FILE`](#apollo-assembly-add-from-gff-input-file)
+* [`apollo assembly check`](#apollo-assembly-check)
+* [`apollo assembly delete`](#apollo-assembly-delete)
+* [`apollo assembly get`](#apollo-assembly-get)
+* [`apollo assembly sequence`](#apollo-assembly-sequence)
+* [`apollo change get`](#apollo-change-get)
+* [`apollo config [KEY] [VALUE]`](#apollo-config-key-value)
+* [`apollo export gff3 ASSEMBLY`](#apollo-export-gff3-assembly)
+* [`apollo feature add [FEATURE-JSON]`](#apollo-feature-add-feature-json)
+* [`apollo feature add-child`](#apollo-feature-add-child)
+* [`apollo feature check`](#apollo-feature-check)
+* [`apollo feature copy`](#apollo-feature-copy)
+* [`apollo feature delete`](#apollo-feature-delete)
+* [`apollo feature edit`](#apollo-feature-edit)
+* [`apollo feature edit-attribute`](#apollo-feature-edit-attribute)
+* [`apollo feature edit-coords`](#apollo-feature-edit-coords)
+* [`apollo feature edit-type`](#apollo-feature-edit-type)
+* [`apollo feature get`](#apollo-feature-get)
+* [`apollo feature get-id`](#apollo-feature-get-id)
+* [`apollo feature get-indexed-id ID`](#apollo-feature-get-indexed-id-id)
+* [`apollo feature import INPUT-FILE`](#apollo-feature-import-input-file)
+* [`apollo feature search`](#apollo-feature-search)
+* [`apollo file delete`](#apollo-file-delete)
+* [`apollo file download`](#apollo-file-download)
+* [`apollo file get`](#apollo-file-get)
+* [`apollo file upload INPUT-FILE`](#apollo-file-upload-input-file)
+* [`apollo help [COMMANDS]`](#apollo-help-commands)
+* [`apollo jbrowse desktop JBROWSEFILE`](#apollo-jbrowse-desktop-jbrowsefile)
+* [`apollo jbrowse get-config`](#apollo-jbrowse-get-config)
+* [`apollo jbrowse set-config INPUTFILE`](#apollo-jbrowse-set-config-inputfile)
+* [`apollo login`](#apollo-login)
+* [`apollo logout`](#apollo-logout)
+* [`apollo permissions grant`](#apollo-permissions-grant)
+* [`apollo permissions list`](#apollo-permissions-list)
+* [`apollo permissions revoke`](#apollo-permissions-revoke)
+* [`apollo refseq add-alias INPUT-FILE`](#apollo-refseq-add-alias-input-file)
+* [`apollo refseq get`](#apollo-refseq-get)
+* [`apollo status`](#apollo-status)
+* [`apollo user get`](#apollo-user-get)
 
 ## `apollo assembly add-from-fasta INPUT`
 
@@ -119,8 +115,7 @@ EXAMPLES
     $ apollo assembly add-from-fasta https://.../genome.fa.gz -a myAssembly
 ```
 
-_See code:
-[src/commands/assembly/add-from-fasta.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/add-from-fasta.ts)_
+_See code: [src/commands/assembly/add-from-fasta.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/add-from-fasta.ts)_
 
 ## `apollo assembly add-from-gff INPUT-FILE`
 
@@ -158,8 +153,7 @@ EXAMPLES
     $ apollo assembly add-from-gff genome.gff -a myAssembly -o
 ```
 
-_See code:
-[src/commands/assembly/add-from-gff.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/add-from-gff.ts)_
+_See code: [src/commands/assembly/add-from-gff.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/add-from-gff.ts)_
 
 ## `apollo assembly check`
 
@@ -200,8 +194,7 @@ EXAMPLES
     $ apollo assembly check -a hg19 -c CDSCheck --delete
 ```
 
-_See code:
-[src/commands/assembly/check.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/check.ts)_
+_See code: [src/commands/assembly/check.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/check.ts)_
 
 ## `apollo assembly delete`
 
@@ -228,8 +221,7 @@ EXAMPLES
     $ apollo assembly delete -a mouse 6605826fbd0eee691f83e73f
 ```
 
-_See code:
-[src/commands/assembly/delete.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/delete.ts)_
+_See code: [src/commands/assembly/delete.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/delete.ts)_
 
 ## `apollo assembly get`
 
@@ -250,8 +242,7 @@ DESCRIPTION
   Print to stdout the list of assemblies in json format
 ```
 
-_See code:
-[src/commands/assembly/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/get.ts)_
+_See code: [src/commands/assembly/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/get.ts)_
 
 ## `apollo assembly sequence`
 
@@ -285,8 +276,7 @@ EXAMPLES
     $ apollo assembly sequence -a myAssembly -r chr1 -s 1 -e 1000
 ```
 
-_See code:
-[src/commands/assembly/sequence.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/sequence.ts)_
+_See code: [src/commands/assembly/sequence.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/assembly/sequence.ts)_
 
 ## `apollo change get`
 
@@ -309,8 +299,7 @@ DESCRIPTION
   cases you need to use the assembly ID.
 ```
 
-_See code:
-[src/commands/change/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/change/get.ts)_
+_See code: [src/commands/change/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/change/get.ts)_
 
 ## `apollo config [KEY] [VALUE]`
 
@@ -361,8 +350,7 @@ EXAMPLES
     $ apollo config address
 ```
 
-_See code:
-[src/commands/config.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/config.ts)_
+_See code: [src/commands/config.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/config.ts)_
 
 ## `apollo export gff3 ASSEMBLY`
 
@@ -389,8 +377,7 @@ EXAMPLES
     $ apollo export gff3 myAssembly > out.gff3
 ```
 
-_See code:
-[src/commands/export/gff3.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/export/gff3.ts)_
+_See code: [src/commands/export/gff3.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/export/gff3.ts)_
 
 ## `apollo feature add [FEATURE-JSON]`
 
@@ -445,8 +432,7 @@ EXAMPLES
       atureType>","children":[{"min":1,"max":50,"type":"<featureType>"}]}'
 ```
 
-_See code:
-[src/commands/feature/add.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/add.ts)_
+_See code: [src/commands/feature/add.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/add.ts)_
 
 ## `apollo feature add-child`
 
@@ -476,8 +462,7 @@ EXAMPLES
     $ apollo feature add-child -i 660...73f -t exon -s 10 -e 20
 ```
 
-_See code:
-[src/commands/feature/add-child.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/add-child.ts)_
+_See code: [src/commands/feature/add-child.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/add-child.ts)_
 
 ## `apollo feature check`
 
@@ -509,8 +494,7 @@ EXAMPLES
     $ apollo feature check -a hg19
 ```
 
-_See code:
-[src/commands/feature/check.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/check.ts)_
+_See code: [src/commands/feature/check.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/check.ts)_
 
 ## `apollo feature copy`
 
@@ -540,8 +524,7 @@ EXAMPLES
     $ apollo feature copy -i 6605826fbd0eee691f83e73f -r chr1 -s 100 -a hg38
 ```
 
-_See code:
-[src/commands/feature/copy.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/copy.ts)_
+_See code: [src/commands/feature/copy.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/copy.ts)_
 
 ## `apollo feature delete`
 
@@ -564,8 +547,7 @@ DESCRIPTION
   Note that deleting a child feature after deleting its parent will result in an error unless you set -f/--force.
 ```
 
-_See code:
-[src/commands/feature/delete.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/delete.ts)_
+_See code: [src/commands/feature/delete.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/delete.ts)_
 
 ## `apollo feature edit`
 
@@ -606,8 +588,7 @@ EXAMPLES
     echo '{"typeName": ... "newType": "G_quartet"}' | apollo feature edit -j -
 ```
 
-_See code:
-[src/commands/feature/edit.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/edit.ts)_
+_See code: [src/commands/feature/edit.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/edit.ts)_
 
 ## `apollo feature edit-attribute`
 
@@ -646,8 +627,7 @@ EXAMPLES
     $ apollo feature edit-attribute -i 66...3f -a domains -d
 ```
 
-_See code:
-[src/commands/feature/edit-attribute.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/edit-attribute.ts)_
+_See code: [src/commands/feature/edit-attribute.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/edit-attribute.ts)_
 
 ## `apollo feature edit-coords`
 
@@ -680,8 +660,7 @@ EXAMPLES
     $ apollo feature edit-coords -i abc...xyz -e 2000
 ```
 
-_See code:
-[src/commands/feature/edit-coords.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/edit-coords.ts)_
+_See code: [src/commands/feature/edit-coords.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/edit-coords.ts)_
 
 ## `apollo feature edit-type`
 
@@ -704,8 +683,7 @@ DESCRIPTION
   term is not checked.
 ```
 
-_See code:
-[src/commands/feature/edit-type.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/edit-type.ts)_
+_See code: [src/commands/feature/edit-type.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/edit-type.ts)_
 
 ## `apollo feature get`
 
@@ -738,8 +716,7 @@ EXAMPLES
     $ apollo feature get -a myAssembly -r chr1 -s 1 -e 1000
 ```
 
-_See code:
-[src/commands/feature/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/get.ts)_
+_See code: [src/commands/feature/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/get.ts)_
 
 ## `apollo feature get-id`
 
@@ -766,8 +743,7 @@ EXAMPLES
     $ apollo feature get-id -i abc...zyz def...foo
 ```
 
-_See code:
-[src/commands/feature/get-id.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/get-id.ts)_
+_See code: [src/commands/feature/get-id.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/get-id.ts)_
 
 ## `apollo feature get-indexed-id ID`
 
@@ -798,8 +774,7 @@ EXAMPLES
     $ apollo feature get-indexed-id -i abc...zyz def...foo
 ```
 
-_See code:
-[src/commands/feature/get-indexed-id.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/get-indexed-id.ts)_
+_See code: [src/commands/feature/get-indexed-id.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/get-indexed-id.ts)_
 
 ## `apollo feature import INPUT-FILE`
 
@@ -830,8 +805,7 @@ EXAMPLES
     $ apollo feature import features.gff3 -d -a myAssembly
 ```
 
-_See code:
-[src/commands/feature/import.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/import.ts)_
+_See code: [src/commands/feature/import.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/import.ts)_
 
 ## `apollo feature search`
 
@@ -881,8 +855,7 @@ EXAMPLES
     $ apollo feature search -a mm9 mm10 -t bac
 ```
 
-_See code:
-[src/commands/feature/search.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/search.ts)_
+_See code: [src/commands/feature/search.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/search.ts)_
 
 ## `apollo file delete`
 
@@ -908,8 +881,7 @@ EXAMPLES
     $ apollo file delete -i 123...abc xyz...789
 ```
 
-_See code:
-[src/commands/file/delete.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/file/delete.ts)_
+_See code: [src/commands/file/delete.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/file/delete.ts)_
 
 ## `apollo file download`
 
@@ -936,8 +908,7 @@ EXAMPLES
     $ apollo file download -i xyz -o genome.fa
 ```
 
-_See code:
-[src/commands/file/download.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/file/download.ts)_
+_See code: [src/commands/file/download.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/file/download.ts)_
 
 ## `apollo file get`
 
@@ -963,8 +934,7 @@ EXAMPLES
     $ apollo file get -i xyz abc
 ```
 
-_See code:
-[src/commands/file/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/file/get.ts)_
+_See code: [src/commands/file/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/file/get.ts)_
 
 ## `apollo file upload INPUT-FILE`
 
@@ -1000,8 +970,7 @@ EXAMPLES
     $ apollo file upload genome.fa > file.json
 ```
 
-_See code:
-[src/commands/file/upload.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/file/upload.ts)_
+_See code: [src/commands/file/upload.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/file/upload.ts)_
 
 ## `apollo help [COMMANDS]`
 
@@ -1021,8 +990,7 @@ DESCRIPTION
   Display help for apollo.
 ```
 
-_See code:
-[@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.8//Users/cchilders/git-repos/nal-i5k-apollo-orchestrator/repos/Apollo3/.yarn/cache/@oclif-plugin-help-npm-6.0.8-336726b8e7-4b3be03d8a.zip/node_modules/@oclif/plugin-help/lib/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.8//Users/cchilders/git-repos/nal-i5k-apollo-orchestrator/repos/Apollo3/.yarn/cache/@oclif-plugin-help-npm-6.0.8-336726b8e7-4b3be03d8a.zip/node_modules/@oclif/plugin-help/lib/commands/help.ts)_
 
 ## `apollo jbrowse desktop JBROWSEFILE`
 
@@ -1066,8 +1034,7 @@ EXAMPLES
     $ apollo jbrowse desktop apollo.jbrowse --gff3-file=path/to/file.gff3
 ```
 
-_See code:
-[src/commands/jbrowse/desktop.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/jbrowse/desktop.ts)_
+_See code: [src/commands/jbrowse/desktop.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/jbrowse/desktop.ts)_
 
 ## `apollo jbrowse get-config`
 
@@ -1092,8 +1059,7 @@ EXAMPLES
     $ apollo jbrowse get-config > config.json
 ```
 
-_See code:
-[src/commands/jbrowse/get-config.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/jbrowse/get-config.ts)_
+_See code: [src/commands/jbrowse/get-config.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/jbrowse/get-config.ts)_
 
 ## `apollo jbrowse set-config INPUTFILE`
 
@@ -1121,8 +1087,7 @@ EXAMPLES
     $ apollo jbrowse set-config config.json
 ```
 
-_See code:
-[src/commands/jbrowse/set-config.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/jbrowse/set-config.ts)_
+_See code: [src/commands/jbrowse/set-config.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/jbrowse/set-config.ts)_
 
 ## `apollo login`
 
@@ -1160,8 +1125,7 @@ EXAMPLES
     $ apollo login --profile my-profile
 ```
 
-_See code:
-[src/commands/login.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/login.ts)_
+_See code: [src/commands/login.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/login.ts)_
 
 ## `apollo logout`
 
@@ -1190,8 +1154,7 @@ EXAMPLES
     $ apollo logout --profile my-profile
 ```
 
-_See code:
-[src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/logout.ts)_
+_See code: [src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/logout.ts)_
 
 ## `apollo permissions grant`
 
@@ -1224,8 +1187,7 @@ EXAMPLES
     $ apollo permissions grant -u user@example.org -a asm1 asm2 --edit
 ```
 
-_See code:
-[src/commands/permissions/grant.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/permissions/grant.ts)_
+_See code: [src/commands/permissions/grant.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/permissions/grant.ts)_
 
 ## `apollo permissions list`
 
@@ -1260,8 +1222,7 @@ EXAMPLES
     $ apollo permissions list -a myAssembly
 ```
 
-_See code:
-[src/commands/permissions/list.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/permissions/list.ts)_
+_See code: [src/commands/permissions/list.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/permissions/list.ts)_
 
 ## `apollo permissions revoke`
 
@@ -1288,8 +1249,7 @@ EXAMPLES
     $ apollo permissions revoke -u user@example.org -a myAssembly
 ```
 
-_See code:
-[src/commands/permissions/revoke.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/permissions/revoke.ts)_
+_See code: [src/commands/permissions/revoke.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/permissions/revoke.ts)_
 
 ## `apollo refseq add-alias INPUT-FILE`
 
@@ -1319,8 +1279,7 @@ EXAMPLES
     $ apollo refseq add-alias alias.txt -a myAssembly
 ```
 
-_See code:
-[src/commands/refseq/add-alias.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/refseq/add-alias.ts)_
+_See code: [src/commands/refseq/add-alias.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/refseq/add-alias.ts)_
 
 ## `apollo refseq get`
 
@@ -1351,8 +1310,7 @@ EXAMPLES
     $ apollo refseq get -a mm9 mm10
 ```
 
-_See code:
-[src/commands/refseq/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/refseq/get.ts)_
+_See code: [src/commands/refseq/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/refseq/get.ts)_
 
 ## `apollo status`
 
@@ -1373,8 +1331,7 @@ DESCRIPTION
   otherwise.Note that this command does not check the validity of the access token.
 ```
 
-_See code:
-[src/commands/status.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/status.ts)_
+_See code: [src/commands/status.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/status.ts)_
 
 ## `apollo user get`
 
@@ -1409,7 +1366,5 @@ EXAMPLES
     $ apollo user get | jq '.[] | select(.createdAt > "2024-03-18")'
 ```
 
-_See code:
-[src/commands/user/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/user/get.ts)_
-
+_See code: [src/commands/user/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/user/get.ts)_
 <!-- commandsstop -->

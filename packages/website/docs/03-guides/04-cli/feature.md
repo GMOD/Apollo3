@@ -1,21 +1,22 @@
-# `apollo feature`
+`apollo feature`
+================
 
 Commands to manage features
 
-- [`apollo feature add [FEATURE-JSON]`](#apollo-feature-add-feature-json)
-- [`apollo feature add-child`](#apollo-feature-add-child)
-- [`apollo feature check`](#apollo-feature-check)
-- [`apollo feature copy`](#apollo-feature-copy)
-- [`apollo feature delete`](#apollo-feature-delete)
-- [`apollo feature edit`](#apollo-feature-edit)
-- [`apollo feature edit-attribute`](#apollo-feature-edit-attribute)
-- [`apollo feature edit-coords`](#apollo-feature-edit-coords)
-- [`apollo feature edit-type`](#apollo-feature-edit-type)
-- [`apollo feature get`](#apollo-feature-get)
-- [`apollo feature get-id`](#apollo-feature-get-id)
-- [`apollo feature get-indexed-id ID`](#apollo-feature-get-indexed-id-id)
-- [`apollo feature import INPUT-FILE`](#apollo-feature-import-input-file)
-- [`apollo feature search`](#apollo-feature-search)
+* [`apollo feature add [FEATURE-JSON]`](#apollo-feature-add-feature-json)
+* [`apollo feature add-child`](#apollo-feature-add-child)
+* [`apollo feature check`](#apollo-feature-check)
+* [`apollo feature copy`](#apollo-feature-copy)
+* [`apollo feature delete`](#apollo-feature-delete)
+* [`apollo feature edit`](#apollo-feature-edit)
+* [`apollo feature edit-attribute`](#apollo-feature-edit-attribute)
+* [`apollo feature edit-coords`](#apollo-feature-edit-coords)
+* [`apollo feature edit-type`](#apollo-feature-edit-type)
+* [`apollo feature get`](#apollo-feature-get)
+* [`apollo feature get-id`](#apollo-feature-get-id)
+* [`apollo feature get-indexed-id ID`](#apollo-feature-get-indexed-id-id)
+* [`apollo feature import INPUT-FILE`](#apollo-feature-import-input-file)
+* [`apollo feature search`](#apollo-feature-search)
 
 ## `apollo feature add [FEATURE-JSON]`
 
@@ -70,8 +71,7 @@ EXAMPLES
       atureType>","children":[{"min":1,"max":50,"type":"<featureType>"}]}'
 ```
 
-_See code:
-[src/commands/feature/add.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/add.ts)_
+_See code: [src/commands/feature/add.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/add.ts)_
 
 ## `apollo feature add-child`
 
@@ -101,8 +101,7 @@ EXAMPLES
     $ apollo feature add-child -i 660...73f -t exon -s 10 -e 20
 ```
 
-_See code:
-[src/commands/feature/add-child.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/add-child.ts)_
+_See code: [src/commands/feature/add-child.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/add-child.ts)_
 
 ## `apollo feature check`
 
@@ -134,8 +133,7 @@ EXAMPLES
     $ apollo feature check -a hg19
 ```
 
-_See code:
-[src/commands/feature/check.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/check.ts)_
+_See code: [src/commands/feature/check.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/check.ts)_
 
 ## `apollo feature copy`
 
@@ -165,8 +163,7 @@ EXAMPLES
     $ apollo feature copy -i 6605826fbd0eee691f83e73f -r chr1 -s 100 -a hg38
 ```
 
-_See code:
-[src/commands/feature/copy.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/copy.ts)_
+_See code: [src/commands/feature/copy.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/copy.ts)_
 
 ## `apollo feature delete`
 
@@ -189,8 +186,7 @@ DESCRIPTION
   Note that deleting a child feature after deleting its parent will result in an error unless you set -f/--force.
 ```
 
-_See code:
-[src/commands/feature/delete.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/delete.ts)_
+_See code: [src/commands/feature/delete.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/delete.ts)_
 
 ## `apollo feature edit`
 
@@ -231,8 +227,7 @@ EXAMPLES
     echo '{"typeName": ... "newType": "G_quartet"}' | apollo feature edit -j -
 ```
 
-_See code:
-[src/commands/feature/edit.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/edit.ts)_
+_See code: [src/commands/feature/edit.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/edit.ts)_
 
 ## `apollo feature edit-attribute`
 
@@ -271,8 +266,7 @@ EXAMPLES
     $ apollo feature edit-attribute -i 66...3f -a domains -d
 ```
 
-_See code:
-[src/commands/feature/edit-attribute.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/edit-attribute.ts)_
+_See code: [src/commands/feature/edit-attribute.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/edit-attribute.ts)_
 
 ## `apollo feature edit-coords`
 
@@ -305,8 +299,7 @@ EXAMPLES
     $ apollo feature edit-coords -i abc...xyz -e 2000
 ```
 
-_See code:
-[src/commands/feature/edit-coords.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/edit-coords.ts)_
+_See code: [src/commands/feature/edit-coords.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/edit-coords.ts)_
 
 ## `apollo feature edit-type`
 
@@ -329,8 +322,7 @@ DESCRIPTION
   term is not checked.
 ```
 
-_See code:
-[src/commands/feature/edit-type.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/edit-type.ts)_
+_See code: [src/commands/feature/edit-type.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/edit-type.ts)_
 
 ## `apollo feature get`
 
@@ -363,8 +355,7 @@ EXAMPLES
     $ apollo feature get -a myAssembly -r chr1 -s 1 -e 1000
 ```
 
-_See code:
-[src/commands/feature/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/get.ts)_
+_See code: [src/commands/feature/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/get.ts)_
 
 ## `apollo feature get-id`
 
@@ -391,8 +382,7 @@ EXAMPLES
     $ apollo feature get-id -i abc...zyz def...foo
 ```
 
-_See code:
-[src/commands/feature/get-id.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/get-id.ts)_
+_See code: [src/commands/feature/get-id.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/get-id.ts)_
 
 ## `apollo feature get-indexed-id ID`
 
@@ -423,8 +413,7 @@ EXAMPLES
     $ apollo feature get-indexed-id -i abc...zyz def...foo
 ```
 
-_See code:
-[src/commands/feature/get-indexed-id.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/get-indexed-id.ts)_
+_See code: [src/commands/feature/get-indexed-id.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/get-indexed-id.ts)_
 
 ## `apollo feature import INPUT-FILE`
 
@@ -455,8 +444,7 @@ EXAMPLES
     $ apollo feature import features.gff3 -d -a myAssembly
 ```
 
-_See code:
-[src/commands/feature/import.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/import.ts)_
+_See code: [src/commands/feature/import.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/import.ts)_
 
 ## `apollo feature search`
 
@@ -506,5 +494,4 @@ EXAMPLES
     $ apollo feature search -a mm9 mm10 -t bac
 ```
 
-_See code:
-[src/commands/feature/search.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/search.ts)_
+_See code: [src/commands/feature/search.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/feature/search.ts)_

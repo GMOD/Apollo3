@@ -1,8 +1,9 @@
-# `apollo login`
+`apollo login`
+==============
 
 Login to Apollo
 
-- [`apollo login`](#apollo-login)
+* [`apollo login`](#apollo-login)
 
 ## `apollo login`
 
@@ -40,5 +41,4 @@ EXAMPLES
     $ apollo login --profile my-profile
 ```
 
-_See code:
-[src/commands/login.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/login.ts)_
+_See code: [src/commands/login.ts](https://github.com/GMOD/Apollo3/blob/v1.0.0/packages/apollo-cli/src/commands/login.ts)_
