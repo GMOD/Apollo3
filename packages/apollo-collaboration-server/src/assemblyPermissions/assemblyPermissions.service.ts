@@ -261,19 +261,23 @@ export class AssemblyPermissionsService {
       }
     }
 
-    return [...permissionsByAssembly.entries()].map(([assemblyId, value]) => ({
-      _id: `${userId}-${assemblyId}`,
-      userId,
-      assemblyId,
-      canViewAnnotations: value.canViewAnnotations,
-      canEditAnnotations: value.canEditAnnotations,
-      source:
-        value.hasDirect && value.hasGroup
-          ? 'mixed'
-          : value.hasGroup
-            ? 'group'
-            : 'direct',
-    }))
+    return [...permissionsByAssembly.entries()].map(([assemblyId, value]) => {
+      let source: 'mixed' | 'group' | 'direct' = 'direct'
+      if (value.hasDirect && value.hasGroup) {
+        source = 'mixed'
+      } else if (value.hasGroup) {
+        source = 'group'
+      }
+
+      return {
+        _id: `${userId}-${assemblyId}`,
+        userId,
+        assemblyId,
+        canViewAnnotations: value.canViewAnnotations,
+        canEditAnnotations: value.canEditAnnotations,
+        source,
+      }
+    })
   }
 
   findOne(
