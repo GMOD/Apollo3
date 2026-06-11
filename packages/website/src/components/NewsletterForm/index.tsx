@@ -3,9 +3,8 @@ import React, { useEffect } from 'react'
 type MailerLiteFn = ((...args: unknown[]) => void) & { q?: unknown[] }
 
 declare global {
-  interface Window {
-    ml?: MailerLiteFn
-  }
+  // eslint-disable-next-line no-var
+  var ml: MailerLiteFn | undefined
 }
 
 const ACCOUNT_ID = '770673'
@@ -17,25 +16,25 @@ export default function NewsletterForm(): React.JSX.Element {
   useEffect(() => {
     // Define the MailerLite command queue (matches their universal snippet) if
     // it isn't present yet.
-    if (!window.ml) {
+    if (!globalThis.ml) {
       const ml = ((...args: unknown[]) => {
         ;(ml.q = ml.q ?? []).push(args)
       }) as MailerLiteFn
-      window.ml = ml
+      globalThis.ml = ml
     }
-    window.ml('account', ACCOUNT_ID)
+    globalThis.ml('account', ACCOUNT_ID)
 
     // universal.js scans the DOM for `.ml-embedded` elements exactly once when
     // it loads (no MutationObserver). Injecting it here, from an effect,
     // ensures the div below is already in the DOM when that scan runs, fixing
     // the race where the form would intermittently fail to appear. Guard
     // against adding the loader more than once across client-side navigations.
-    if (!document.getElementById(SCRIPT_ID)) {
+    if (!document.querySelector(`#${SCRIPT_ID}`)) {
       const script = document.createElement('script')
       script.id = SCRIPT_ID
       script.async = true
       script.src = SCRIPT_SRC
-      document.head.appendChild(script)
+      document.head.append(script)
     }
   }, [])
 
