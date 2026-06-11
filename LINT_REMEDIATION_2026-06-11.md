@@ -182,6 +182,18 @@ Bring the repository toward passing strict lint in CI
   - replaced `mockResolvedValue(... as never)` in JBrowse spec with
     method-return-type-based typing
 
+### Wave 8
+
+- Scope:
+  - `packages/apollo-collaboration-server/src/changes/changes.service.spec.ts`
+- Focused rule families:
+  - `@typescript-eslint/no-unnecessary-type-assertion`
+  - replacement of remaining `never` cast in change fixture setup
+- Status: completed
+- What was fixed:
+  - replaced the final `deletedFeature as never` cast with constructor-derived
+    `DeleteFeatureChange` init typing
+
 ## Upstream contribution path
 
 Yes, this cleanup is suitable to submit upstream.

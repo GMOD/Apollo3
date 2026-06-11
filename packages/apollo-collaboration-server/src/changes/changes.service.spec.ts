@@ -9,6 +9,9 @@ function makeExec<T>(value: T) {
 }
 
 type ChangesServiceCtorArgs = ConstructorParameters<typeof ChangesService>
+type DeleteFeatureChangeInit = ConstructorParameters<
+  typeof DeleteFeatureChange
+>[0]
 
 describe('ChangesService', () => {
   let service: ChangesService
@@ -69,7 +72,7 @@ describe('ChangesService', () => {
         type: 'gene',
         min: 1,
         max: 10,
-      } as never,
+      } as DeleteFeatureChangeInit['deletedFeature'],
     })
     const user: DecodedJWT = {
       id: 'user123',
