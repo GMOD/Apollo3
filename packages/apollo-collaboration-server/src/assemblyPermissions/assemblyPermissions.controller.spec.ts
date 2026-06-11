@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { Test, type TestingModule } from '@nestjs/testing'
-import { jest } from '@jest/globals'
 
 import { AssemblyPermissionsController } from './assemblyPermissions.controller.js'
 import { AssemblyPermissionsService } from './assemblyPermissions.service.js'

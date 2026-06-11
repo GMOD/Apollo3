@@ -15,8 +15,8 @@ import type { Request } from 'express'
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'
 
-import { UpdateAssemblyPermissionDto } from './dto/update-assembly-permission.dto.js'
 import { AssemblyPermissionsService } from './assemblyPermissions.service.js'
+import { UpdateAssemblyPermissionDto } from './dto/update-assembly-permission.dto.js'
 
 interface CreateGroupDto {
   name: string
@@ -39,6 +39,7 @@ export class AssemblyPermissionsController {
     @Query('userId') userId?: string,
     @Query('assemblyId') assemblyId?: string,
   ) {
+    // eslint-disable-next-line unicorn/no-array-callback-reference, unicorn/no-array-method-this-argument
     return this.assemblyPermissionsService.find(userId, assemblyId)
   }
 
@@ -75,7 +76,7 @@ export class AssemblyPermissionsController {
     @Req() req: Request,
   ) {
     const { user } = req as unknown as { user?: DecodedJWT }
-    const actor = user?.email || user?.username
+    const actor = user?.email ?? user?.username
     return this.assemblyPermissionsService.upsertPermission(
       userId,
       assemblyId,
@@ -92,7 +93,7 @@ export class AssemblyPermissionsController {
   @Post('groups')
   createGroup(@Body() body: CreateGroupDto, @Req() req: Request) {
     const { user } = req as unknown as { user?: DecodedJWT }
-    const actor = user?.email || user?.username
+    const actor = user?.email ?? user?.username
     return this.assemblyPermissionsService.createGroup(
       body.name,
       body.description,
@@ -123,7 +124,7 @@ export class AssemblyPermissionsController {
     @Req() req: Request,
   ) {
     const { user } = req as unknown as { user?: DecodedJWT }
-    const actor = user?.email || user?.username
+    const actor = user?.email ?? user?.username
     return this.assemblyPermissionsService.setGroupMembership(
       groupId,
       userId,
@@ -145,7 +146,7 @@ export class AssemblyPermissionsController {
     @Req() req: Request,
   ) {
     const { user } = req as unknown as { user?: DecodedJWT }
-    const actor = user?.email || user?.username
+    const actor = user?.email ?? user?.username
     return this.assemblyPermissionsService.upsertGroupPermission(
       groupId,
       assemblyId,

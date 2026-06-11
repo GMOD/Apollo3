@@ -13,7 +13,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model } from 'mongoose'
+import { Model, Types } from 'mongoose'
 
 import { AssemblyPermissionsService } from '../assemblyPermissions/assemblyPermissions.service.js'
 import { ChecksService } from '../checks/checks.service.js'
@@ -40,6 +40,16 @@ export class FeaturesService {
 
   private isAdmin(user: DecodedJWT) {
     return user.role === Role.Admin
+  }
+
+  private toAssemblyId(assembly: RefSeqDocument['assembly']) {
+    if (typeof assembly === 'string') {
+      return assembly
+    }
+    if (assembly instanceof Types.ObjectId) {
+      return assembly.toHexString()
+    }
+    throw new UnprocessableEntityException('Invalid refSeq assembly id type')
   }
 
   private async ensureCanViewAssembly(user: DecodedJWT, assemblyId: string) {
@@ -110,7 +120,10 @@ export class FeaturesService {
       if (!refSeqDoc) {
         throw new NotFoundException(`RefSeq with id '${refSeqId}' not found`)
       }
-      await this.ensureCanViewAssembly(user, refSeqDoc.assembly.toString())
+      await this.ensureCanViewAssembly(
+        user,
+        this.toAssemblyId(refSeqDoc.assembly),
+      )
       filter.refSeq = refSeqId
       count = await this.featureModel.countDocuments(filter)
     } else if (assemblyId) {
@@ -264,7 +277,10 @@ export class FeaturesService {
           `RefSeq for feature '${featureId}' was not found`,
         )
       }
-      await this.ensureCanViewAssembly(user, refSeqDoc.assembly.toString())
+      await this.ensureCanViewAssembly(
+        user,
+        this.toAssemblyId(refSeqDoc.assembly),
+      )
     }
 
     // Now we need to find correct top level feature or sub-feature inside the feature
@@ -335,7 +351,10 @@ export class FeaturesService {
       )
     }
     if (user) {
-      await this.ensureCanViewAssembly(user, refSeqDoc.assembly.toString())
+      await this.ensureCanViewAssembly(
+        user,
+        this.toAssemblyId(refSeqDoc.assembly),
+      )
     }
 
     const featureDocs = await this.featureModel

@@ -1,11 +1,11 @@
 import { describe, expect, it } from '@jest/globals'
 
 import {
+  type AssemblyPermissionResponse,
+  type AssemblyResponse,
   buildAssemblyPermissionRows,
   indexPermissionsByAssemblyId,
   normalizeAssemblyPermissionUpdate,
-  type AssemblyPermissionResponse,
-  type AssemblyResponse,
 } from './manageUsersAssemblyPermissions'
 
 describe('manageUsersAssemblyPermissions', () => {

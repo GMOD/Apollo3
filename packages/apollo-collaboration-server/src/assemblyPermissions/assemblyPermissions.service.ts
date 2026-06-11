@@ -2,11 +2,11 @@ import {
   AssemblyPermission,
   type AssemblyPermissionDocument,
   Group,
-  type GroupAssemblyPermissionDocument,
   GroupAssemblyPermission,
+  type GroupAssemblyPermissionDocument,
   type GroupDocument,
-  type GroupMembershipDocument,
   GroupMembership,
+  type GroupMembershipDocument,
 } from '@apollo-annotation/schemas'
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
@@ -31,14 +31,14 @@ export class AssemblyPermissionsService {
     userId?: string,
     assemblyId?: string,
   ): Promise<AssemblyPermissionDocument[]> {
-    const query: FilterQuery<AssemblyPermissionDocument> = {}
+    const filters: FilterQuery<AssemblyPermissionDocument> = {}
     if (userId) {
-      query.userId = userId
+      filters.userId = userId
     }
     if (assemblyId) {
-      query.assemblyId = assemblyId
+      filters.assemblyId = assemblyId
     }
-    return this.assemblyPermissionModel.find(query).exec()
+    return this.assemblyPermissionModel.find({ ...filters }).exec()
   }
 
   findByUser(userId: string): Promise<AssemblyPermissionDocument[]> {
@@ -81,7 +81,7 @@ export class AssemblyPermissionsService {
   ): Promise<GroupDocument> {
     return this.groupModel.create({
       name: name.trim(),
-      description: description?.trim() || undefined,
+      description: description?.trim() ?? undefined,
       createdBy: actor,
       updatedBy: actor,
     })
@@ -205,14 +205,14 @@ export class AssemblyPermissionsService {
   }
 
   async findEffectiveByUser(userId: string): Promise<
-    Array<{
+    {
       _id: string
       userId: string
       assemblyId: string
       canViewAnnotations: boolean
       canEditAnnotations: boolean
       source: 'direct' | 'group' | 'mixed'
-    }>
+    }[]
   > {
     const directPermissions = await this.findByUser(userId)
     const permissionsByAssembly = new Map<

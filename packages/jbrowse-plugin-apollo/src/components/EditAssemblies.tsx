@@ -79,7 +79,7 @@ export function EditAssemblies({ handleClose, session }: EditAssembliesProps) {
       const sorted = [...data].sort((a, b) => a.name.localeCompare(b.name))
       setAssemblies(sorted)
       if (sorted.length > 0) {
-        const first = sorted[0]
+        const [first] = sorted
         setSelectedAssemblyId(first._id)
         setDisplayName(first.displayName ?? first.name)
         setOrganismName(first.scientificName ?? '')
@@ -90,7 +90,7 @@ export function EditAssemblies({ handleClose, session }: EditAssembliesProps) {
       }
     }
 
-    loadAssemblies().catch((error) => {
+    loadAssemblies().catch((error: unknown) => {
       setErrorMessage(String(error))
     })
   }, [selectedInternetAccount])

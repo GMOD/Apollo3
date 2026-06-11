@@ -58,11 +58,11 @@ import { InjectModel } from '@nestjs/mongoose'
 import { RemoteFile } from 'generic-filehandle2'
 import { type ClientSession, Model } from 'mongoose'
 
+import { AssemblyPermissionsService } from '../assemblyPermissions/assemblyPermissions.service.js'
 import { CountersService } from '../counters/counters.service.js'
 import { FilesService } from '../files/files.service.js'
 import { MessagesGateway } from '../messages/messages.gateway.js'
 import { PluginsService } from '../plugins/plugins.service.js'
-import { AssemblyPermissionsService } from '../assemblyPermissions/assemblyPermissions.service.js'
 
 type ChangeHandlers = {
   [K in keyof typeof changes]: (
@@ -1185,12 +1185,15 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
     const checkDocs = await checkModel.find({ isDefault: true }).exec()
     const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
-    const normalizedScientificName = scientificName?.trim() || undefined
+    const normalizedScientificName = scientificName?.trim()
     await assemblyModel.create([
       {
         _id: assembly,
         name: assemblyName,
-        scientificName: normalizedScientificName,
+        scientificName:
+          normalizedScientificName === ''
+            ? undefined
+            : normalizedScientificName,
         user,
         status: -1,
         fileIds,
@@ -1252,12 +1255,15 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
     const checkDocs = await checkModel.find({ default: true }).exec()
     const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
-    const normalizedScientificName = scientificName?.trim() || undefined
+    const normalizedScientificName = scientificName?.trim()
     await assemblyModel.create([
       {
         _id: assembly,
         name: assemblyName,
-        scientificName: normalizedScientificName,
+        scientificName:
+          normalizedScientificName === ''
+            ? undefined
+            : normalizedScientificName,
         user,
         status: -1,
         fileIds: { fa: fileId },
@@ -1432,12 +1438,15 @@ export class ChangeHandlersService implements ChangeHandlers {
       }
       const checkDocs = await checkModel.find({ default: true }).exec()
       const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
-      const normalizedScientificName = scientificName?.trim() || undefined
+      const normalizedScientificName = scientificName?.trim()
       await assemblyModel.create([
         {
           _id: assembly,
           name: assemblyName,
-          scientificName: normalizedScientificName,
+          scientificName:
+            normalizedScientificName === ''
+              ? undefined
+              : normalizedScientificName,
           user,
           status: -1,
           externalLocation,
@@ -1532,12 +1541,15 @@ export class ChangeHandlersService implements ChangeHandlers {
       }
       const checkDocs = await checkModel.find({ isDefault: true }).exec()
       const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
-      const normalizedScientificName = scientificName?.trim() || undefined
+      const normalizedScientificName = scientificName?.trim()
       await assemblyModel.create([
         {
           _id: assembly,
           name: assemblyName,
-          scientificName: normalizedScientificName,
+          scientificName:
+            normalizedScientificName === ''
+              ? undefined
+              : normalizedScientificName,
           user,
           status: -1,
           fileId,

@@ -1,10 +1,11 @@
-import { DeleteFeatureChange, type DecodedJWT } from '@apollo-annotation/shared'
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+import { type DecodedJWT, DeleteFeatureChange } from '@apollo-annotation/shared'
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { UnprocessableEntityException } from '@nestjs/common'
 
 import { ChangesService } from './changes.service.js'
 
-function makeExec<T>(value: T) {
+function makeExec<T>(value: T): { exec: () => Promise<T> } {
   return { exec: jest.fn<() => Promise<T>>().mockResolvedValue(value) }
 }
 
@@ -34,7 +35,7 @@ describe('ChangesService', () => {
   const refSeqChunkModel = { deleteMany: jest.fn(() => emptyExec) }
   const featureModel = {
     db: {
-      transaction: jest.fn(async () => Promise.resolve()),
+      transaction: jest.fn(() => Promise.resolve()),
     },
     deleteMany: jest.fn(() => emptyExec),
   }

@@ -2,8 +2,8 @@ import { Flags } from '@oclif/core'
 import { type RequestInit, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { createFetchErrorMessage, localhostToAddress } from '../../utils.js'
 import { resolveAssemblyIds, resolveUserId } from '../../permissionsUtils.js'
+import { createFetchErrorMessage, localhostToAddress } from '../../utils.js'
 
 export default class Revoke extends BaseCommand<typeof Revoke> {
   static summary = 'Revoke assembly permissions from a user'

@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common'
 
 import { GoogleAuthGuard } from '../utils/google.guard.js'
+import { LoginGovAuthGuard } from '../utils/logingov.guard.js'
 import { MicrosoftAuthGuard } from '../utils/microsoft.guard.js'
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'
@@ -21,7 +22,6 @@ import {
   AuthenticationService,
   type RequestWithUserToken,
 } from './authentication.service.js'
-import { LoginGovAuthGuard } from '../utils/logingov.guard.js'
 
 @Validations(Role.None)
 @Controller('auth')

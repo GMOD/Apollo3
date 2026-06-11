@@ -1,11 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 
 import { describe, expect, it } from '@jest/globals'
 
-import { AuthenticationService } from './authentication.service.js'
 import { Role } from '../utils/role/role.enum.js'
+
+import { AuthenticationService } from './authentication.service.js'
 
 type AuthServiceCtorParams = ConstructorParameters<typeof AuthenticationService>
 

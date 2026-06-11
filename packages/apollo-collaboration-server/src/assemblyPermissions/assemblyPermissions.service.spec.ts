@@ -1,23 +1,38 @@
-import { Test, type TestingModule } from '@nestjs/testing'
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
+import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { getModelToken } from '@nestjs/mongoose'
-import { jest } from '@jest/globals'
+import { Test, type TestingModule } from '@nestjs/testing'
 
 import { AssemblyPermissionsService } from './assemblyPermissions.service.js'
-import { UpdateAssemblyPermissionDto } from './dto/update-assembly-permission.dto.js'
+import type { UpdateAssemblyPermissionDto } from './dto/update-assembly-permission.dto.js'
 
 describe('AssemblyPermissionsService', () => {
   let service: AssemblyPermissionsService
 
-  const execMock = jest.fn()
-  const findMock = jest.fn(() => ({ exec: execMock }))
-  const findOneMock = jest.fn(() => ({ exec: execMock }))
-  const findOneAndUpdateMock = jest.fn(() => ({ exec: execMock }))
+  type AnyCall<R> = (...args: unknown[]) => R
+  interface AsyncExec<T = unknown> {
+    exec: jest.MockedFunction<() => Promise<T>>
+  }
 
-  const groupExecMock = jest.fn()
-  const groupFindMock = jest.fn(() => ({ exec: groupExecMock }))
-  const groupFindOneAndUpdateMock = jest.fn(() => ({ exec: groupExecMock }))
-  const groupDeleteOneMock = jest.fn(() => ({ exec: groupExecMock }))
-  const groupDeleteManyMock = jest.fn(() => ({ exec: groupExecMock }))
+  const makeExec = <T = unknown>(): jest.MockedFunction<() => Promise<T>> =>
+    jest.fn<() => Promise<T>>()
+  const makeQuery = <T = unknown>(exec: AsyncExec<T>) =>
+    jest.fn<AnyCall<AsyncExec<T>>>(() => exec)
+
+  const execMock = makeExec()
+  const findMock = makeQuery({ exec: execMock })
+  const findOneMock = makeQuery({ exec: execMock })
+  const findOneAndUpdateMock = makeQuery({ exec: execMock })
+
+  const groupExecMock = makeExec()
+  const groupFindMock = makeQuery({ exec: groupExecMock })
+  const groupFindOneAndUpdateMock = makeQuery({ exec: groupExecMock })
+  const groupDeleteOneMock = makeQuery({ exec: groupExecMock })
+  const groupDeleteManyMock = makeQuery({ exec: groupExecMock })
+
+  const groupFindOneMock = makeQuery({ exec: groupExecMock })
+  const groupCreateMock =
+    jest.fn<AnyCall<Promise<{ _id: string; name: string }>>>()
 
   const modelMock = {
     find: findMock,
@@ -27,8 +42,8 @@ describe('AssemblyPermissionsService', () => {
 
   const groupModelMock = {
     find: groupFindMock,
-    findOne: jest.fn(() => ({ exec: groupExecMock })),
-    create: jest.fn(),
+    findOne: groupFindOneMock,
+    create: groupCreateMock,
     deleteOne: groupDeleteOneMock,
   }
 
@@ -154,7 +169,7 @@ describe('AssemblyPermissionsService', () => {
   it('ensureAssemblyAccessGroup should create group when not present', async () => {
     groupExecMock.mockResolvedValueOnce(null)
     const createdGroup = { _id: 'group2', name: 'assembly:bar' }
-    ;(groupModelMock.create as jest.Mock).mockResolvedValueOnce(createdGroup)
+    groupCreateMock.mockResolvedValueOnce(createdGroup)
 
     const result = await service.ensureAssemblyAccessGroup('bar', 'admin@test')
 

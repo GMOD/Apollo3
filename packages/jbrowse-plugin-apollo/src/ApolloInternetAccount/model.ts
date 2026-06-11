@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -35,7 +34,7 @@ import { io } from 'socket.io-client'
 
 import { addTopLevelAdminMenus } from '../menus/topLevelMenuAdmin'
 import type { Collaborator } from '../session'
-import { isApolloInternetAccount, type ApolloRootModel } from '../types'
+import { type ApolloRootModel, isApolloInternetAccount } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import { AuthTypeSelector } from './components/AuthTypeSelector'
@@ -83,10 +82,10 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       get baseURL(): string {
         const configuredBaseURL = String(getConf(self, 'baseURL') ?? '')
         if (!configuredBaseURL) {
-          return globalThis.location?.origin || 'http://localhost'
+          return globalThis.location.origin || 'http://localhost'
         }
         try {
-          const fallbackBase = globalThis.location?.origin || 'http://localhost'
+          const fallbackBase = globalThis.location.origin || 'http://localhost'
           const resolved = new URL(configuredBaseURL, fallbackBase).href
           return resolved.endsWith('/') ? resolved : `${resolved}/`
         } catch {
@@ -295,12 +294,13 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             }
             let session: ApolloRootModel['session'] | undefined
             try {
-              session = getRoot<ApolloRootModel>(self).session
+              const { session: rootSession } = getRoot<ApolloRootModel>(self)
+              session = rootSession
             } catch {
               reject(new Error('No active session available for login dialog'))
               return
             }
-            if (!session || !isAlive(session)) {
+            if (!isAlive(session)) {
               reject(new Error('No active session available for login dialog'))
               return
             }
@@ -327,7 +327,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             )
           },
         )
-        if (typeof authType !== 'string' && authType.type === 'local') {
+        if (authType.type === 'local') {
           const uri = new URL('auth/local', baseURL).href
           const response = await fetch(uri, {
             method: 'POST',
@@ -380,7 +380,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       },
       async loginWithPrompt(): Promise<string> {
         const token = await new Promise<string>((resolve, reject) => {
-          this.getTokenFromUserWithPreference(
+          void this.getTokenFromUserWithPreference(
             (newToken: string) => {
               self.applyLoggedInToken(newToken)
               resolve(newToken)
@@ -445,11 +445,12 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
         let session: ApolloRootModel['session'] | undefined
         try {
-          session = getRoot<ApolloRootModel>(self).session
+          const { session: rootSession } = getRoot<ApolloRootModel>(self)
+          session = rootSession
         } catch {
           return
         }
-        if (!session || !isAlive(session)) {
+        if (!isAlive(session)) {
           return
         }
         const { changeManager } = session.apolloDataStore
@@ -504,15 +505,15 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
     .actions((self) => {
       function getLiveSession() {
         if (!isAlive(self)) {
-          return undefined
+          return
         }
         try {
           const { session } = getRoot<ApolloRootModel>(self)
-          return session && isAlive(session)
+          return isAlive(session)
             ? (session as unknown as LiveApolloSession)
             : undefined
         } catch {
-          return undefined
+          return
         }
       }
 
@@ -642,15 +643,15 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
     .actions((self) => {
       function getLiveSession() {
         if (!isAlive(self)) {
-          return undefined
+          return
         }
         try {
           const { session } = getRoot<ApolloRootModel>(self)
-          return session && isAlive(session)
+          return isAlive(session)
             ? (session as unknown as LiveApolloSession)
             : undefined
         } catch {
-          return undefined
+          return
         }
       }
 

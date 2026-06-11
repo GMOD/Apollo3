@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { getDecodedToken } from '@apollo-annotation/shared'
 import { applySnapshot, isAlive } from '@jbrowse/mobx-state-tree'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
@@ -56,17 +57,17 @@ interface PermissionRow {
 
 interface MyAssemblyPermissionsProps {
   rootModel: ApolloRootModel
-  handleClose(): void
+  handleClose: () => void
 }
 
-type SessionWithLinearGenomeView = {
+interface SessionWithLinearGenomeView {
   views: unknown[]
   addView?: (viewType: string, ...args: unknown[]) => unknown
   id?: string
   name?: string
 }
 
-type ApolloRegion = {
+interface ApolloRegion {
   assemblyName?: string
   refName: string
   start: number
@@ -82,11 +83,11 @@ function wait(ms: number) {
 function safeRetrieveToken(account: ApolloInternetAccountModel) {
   try {
     if (!isAlive(account)) {
-      return undefined
+      return
     }
-    return account.retrieveToken() || undefined
+    return account.retrieveToken() ?? undefined
   } catch {
-    return undefined
+    return
   }
 }
 
@@ -94,8 +95,7 @@ function isGuestToken(token: string) {
   try {
     const { username, email } = getDecodedToken(token)
     return (
-      username?.toLowerCase() === 'guest' ||
-      email?.toLowerCase() === 'guest_user'
+      username.toLowerCase() === 'guest' || email.toLowerCase() === 'guest_user'
     )
   } catch {
     return false
@@ -109,7 +109,7 @@ export function MyAssemblyPermissions({
   const { internetAccounts } = rootModel
   const apolloInternetAccounts: ApolloInternetAccountModel[] = internetAccounts
     .filter((ia) => isAlive(ia))
-    .filter(isApolloInternetAccount)
+    .filter((ia) => isApolloInternetAccount(ia))
     .filter((ia) => Boolean(safeRetrieveToken(ia)))
   const preferredInternetAccount =
     apolloInternetAccounts.find((ia) => {
@@ -198,7 +198,7 @@ export function MyAssemblyPermissions({
       setLoading(false)
     }
 
-    loadPermissions().catch((error) => {
+    loadPermissions().catch((error: unknown) => {
       setErrorMessage(String(error))
       setRows([])
       setLoading(false)
@@ -257,7 +257,7 @@ export function MyAssemblyPermissions({
           (view) =>
             (view as { type?: string } | undefined)?.type ===
             'LinearGenomeView',
-        ) as unknown as LinearGenomeViewModel | undefined)
+        ) as LinearGenomeViewModel | undefined)
     } else if (openInNewView && sessionModel.addView) {
       const existingViews = new Set(sessionModel.views)
       const createdView = sessionModel.addView('LinearGenomeView')
@@ -268,12 +268,12 @@ export function MyAssemblyPermissions({
             !existingViews.has(view) &&
             (view as { type?: string } | undefined)?.type ===
               'LinearGenomeView',
-        ) as unknown as LinearGenomeViewModel | undefined)
+        ) as LinearGenomeViewModel | undefined)
     } else {
       linearGenomeView = sessionModel.views.find(
         (view) =>
           (view as { type?: string } | undefined)?.type === 'LinearGenomeView',
-      ) as unknown as LinearGenomeViewModel | undefined
+      ) as LinearGenomeViewModel | undefined
     }
 
     if (!linearGenomeView && sessionModel.addView && !openInNewView) {
@@ -285,7 +285,7 @@ export function MyAssemblyPermissions({
           (view) =>
             (view as { type?: string } | undefined)?.type ===
             'LinearGenomeView',
-        ) as unknown as LinearGenomeViewModel | undefined)
+        ) as LinearGenomeViewModel | undefined)
     }
 
     if (!linearGenomeView) {
@@ -293,7 +293,7 @@ export function MyAssemblyPermissions({
       return
     }
 
-    sessionModel.apolloSetSelectedFeature?.(undefined)
+    sessionModel.apolloSetSelectedFeature?.()
 
     const getDisplayedAssemblyName = () => {
       const regions = (
@@ -314,11 +314,11 @@ export function MyAssemblyPermissions({
       const regions = (await backendDriver.getRegions(
         assemblyName,
       )) as ApolloRegion[]
-      const firstRegion = regions[0]
+      const [firstRegion] = regions
       if (!firstRegion) {
         return false
       }
-      linearGenomeView.navToLocation({
+      await linearGenomeView.navToLocation({
         assemblyName,
         refName: firstRegion.refName,
         start: firstRegion.start,
@@ -439,6 +439,13 @@ export function MyAssemblyPermissions({
 
   const editCount = rows.filter((row) => row.access === 'Edit').length
 
+  const handleEditOnlyChange = (
+    _event: ChangeEvent<HTMLInputElement>,
+    checked: boolean,
+  ) => {
+    setEditOnly(checked)
+  }
+
   if (!selectedInternetAccount) {
     return (
       <Dialog
@@ -479,12 +486,7 @@ export function MyAssemblyPermissions({
           </DialogContentText>
           <FormControlLabel
             control={
-              <Switch
-                checked={editOnly}
-                onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                  setEditOnly(event.target.checked)
-                }}
-              />
+              <Switch checked={editOnly} onChange={handleEditOnlyChange} />
             }
             label="Edit-only"
           />

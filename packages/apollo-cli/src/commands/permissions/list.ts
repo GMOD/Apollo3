@@ -61,7 +61,8 @@ export default class List extends BaseCommand<typeof List> {
           `Assembly '${flags.assembly}' resolved to multiple ids, use an id to disambiguate`,
         )
       }
-      assemblyId = assemblyIds[0]
+      const [resolvedAssemblyId] = assemblyIds
+      assemblyId = resolvedAssemblyId
     }
 
     const queryParams = new URLSearchParams()
@@ -72,9 +73,10 @@ export default class List extends BaseCommand<typeof List> {
       queryParams.set('assemblyId', assemblyId)
     }
 
-    const endpoint = queryParams.size
-      ? `assemblyPermissions?${queryParams.toString()}`
-      : 'assemblyPermissions'
+    const endpoint =
+      queryParams.size > 0
+        ? `assemblyPermissions?${queryParams.toString()}`
+        : 'assemblyPermissions'
 
     const response: Response = await queryApollo(
       access.address,

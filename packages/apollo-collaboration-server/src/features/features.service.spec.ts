@@ -1,5 +1,7 @@
-import { FeaturesService } from './features.service.js'
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 import { beforeEach, describe, expect, it } from '@jest/globals'
+
+import { FeaturesService } from './features.service.js'
 
 type FeaturesServiceCtorArgs = ConstructorParameters<typeof FeaturesService>
 

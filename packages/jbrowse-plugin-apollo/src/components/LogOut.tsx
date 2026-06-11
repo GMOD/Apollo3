@@ -19,7 +19,7 @@ import { Dialog } from './Dialog'
 
 interface DeleteAssemblyProps {
   rootModel: ApolloRootModel
-  handleClose(): void
+  handleClose: () => void
 }
 
 function isPrivilegedApolloTrack(track: BaseTrackConfig) {
@@ -34,7 +34,7 @@ function isPrivilegedApolloTrack(track: BaseTrackConfig) {
   )
   return (
     trackType === 'ApolloTrack' ||
-    trackId?.startsWith('apollo_track_') ||
+    (trackId?.startsWith('apollo_track_') ?? false) ||
     hasApolloDisplay
   )
 }
@@ -91,7 +91,7 @@ export function LogOut({ handleClose, rootModel }: DeleteAssemblyProps) {
     }
   }) as ApolloInternetAccountModel[]
 
-  const initialSelectedAccount = apolloInternetAccounts[0]
+  const [initialSelectedAccount] = apolloInternetAccounts
   const [errorMessage, setErrorMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedInternetAccount, setSelectedInternetAccount] = useState(
@@ -116,9 +116,6 @@ export function LogOut({ handleClose, rootModel }: DeleteAssemblyProps) {
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!selectedInternetAccount) {
-      return
-    }
     setErrorMessage('')
     setIsSubmitting(true)
     void (async () => {
@@ -181,11 +178,7 @@ export function LogOut({ handleClose, rootModel }: DeleteAssemblyProps) {
         </DialogContent>
 
         <DialogActions>
-          <Button
-            disabled={!selectedInternetAccount || isSubmitting}
-            variant="contained"
-            type="submit"
-          >
+          <Button disabled={isSubmitting} variant="contained" type="submit">
             {isSubmitting ? 'Logging out...' : 'Log Out'}
           </Button>
           <Button variant="outlined" type="button" onClick={handleClose}>

@@ -115,7 +115,11 @@ declare module 'passport-openidconnect' {
   class Strategy extends PassportStrategyBase {
     constructor(
       options: StrategyOptions,
-      verify: (issuer: string, profile: Profile, done: Function) => void,
+      verify: (
+        issuer: string,
+        profile: Profile,
+        done: (error: unknown, user?: unknown, info?: unknown) => void,
+      ) => void,
     )
   }
 

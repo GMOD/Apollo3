@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, unicorn/consistent-function-scoping */
 import {
   type AnnotationFeature,
   AnnotationFeatureModel,
@@ -8,8 +10,8 @@ import {
   ImportJBrowseConfigChange,
   type JBrowseConfig,
   type UserLocation,
-  getDecodedToken,
   filterJBrowseConfig,
+  getDecodedToken,
 } from '@apollo-annotation/shared'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import type assemblyManager from '@jbrowse/core/assemblyManager'
@@ -51,11 +53,11 @@ import {
 function safeRetrieveToken(account: ApolloInternetAccountModel) {
   try {
     if (!isAlive(account)) {
-      return undefined
+      return
     }
-    return account.retrieveToken() || undefined
+    return account.retrieveToken() ?? undefined
   } catch {
-    return undefined
+    return
   }
 }
 
@@ -229,7 +231,7 @@ export function extendSession(
             permission.assemblyId ?? permission.assembly ?? '',
           ),
         )
-        .filter((name): name is string => Boolean(name)),
+        .filter(Boolean),
     )
   }
 
@@ -308,11 +310,8 @@ export function extendSession(
       },
       getPluginConfiguration() {
         const { jbrowse } = getRoot<ApolloRootModel>(self)
-        const pluginConfiguration =
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          jbrowse.configuration.ApolloPlugin as Instance<
-            typeof ApolloPluginConfigurationSchema
-          >
+        const pluginConfiguration = jbrowse.configuration
+          .ApolloPlugin as Instance<typeof ApolloPluginConfigurationSchema>
         return pluginConfiguration
       },
       broadcastLocations() {
@@ -453,11 +452,10 @@ export function extendSession(
               // if any tracks are open. Here we copy the session snapshot, apply an
               // empty session snapshot, and then restore the original session
               // snapshot after the updated config.json loads.
-              const pluginConfiguration =
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                jbrowse.configuration.ApolloPlugin as Instance<
-                  typeof ApolloPluginConfigurationSchema
-                >
+              const pluginConfiguration = jbrowse.configuration
+                .ApolloPlugin as Instance<
+                typeof ApolloPluginConfigurationSchema
+              >
               const hasRole = readConfObject(
                 pluginConfiguration,
                 'hasRole',
@@ -472,7 +470,7 @@ export function extendSession(
               // Re-run this autorun after login/logout so role-gated config can be reloaded.
               const apolloAuthSignature = internetAccounts
                 .filter((ia) => isAlive(ia))
-                .filter(isApolloInternetAccount)
+                .filter((ia) => isApolloInternetAccount(ia))
                 .map(
                   (ia) =>
                     `${ia.internetAccountId}:${ia.role ?? ''}:${Boolean(
@@ -500,7 +498,7 @@ export function extendSession(
                 }
 
                 const sessionModel = asAbstractSessionModel(self)
-                const signedInApolloAccount = internetAccounts
+                const [signedInApolloAccount] = internetAccounts
                   .filter((ia): ia is ApolloInternetAccountModel =>
                     isApolloInternetAccount(ia),
                   )
@@ -511,13 +509,13 @@ export function extendSession(
                     const aGuest = aToken ? isGuestToken(aToken) : true
                     const bGuest = bToken ? isGuestToken(bToken) : true
                     return Number(aGuest) - Number(bGuest)
-                  })[0]
+                  })
                 const signedInToken = signedInApolloAccount
                   ? safeRetrieveToken(signedInApolloAccount)
                   : undefined
 
                 if (!signedInToken || isGuestToken(signedInToken)) {
-                  self.apolloSetSelectedFeature(undefined)
+                  self.apolloSetSelectedFeature()
                   removeApolloTracksFromSession(sessionModel)
                   reaction.dispose()
                   return
@@ -531,7 +529,6 @@ export function extendSession(
                     readConfObject(ont, 'name') === featureTypeOntologyName,
                 )
                 if (!featureTypeOntology) {
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                   pluginConfiguration.addOntology({
                     name: 'Sequence Ontology',
                     version: '01c33c6d9b6c8dca12e7d3e37b49ee113093c2fa',
@@ -548,7 +545,7 @@ export function extendSession(
                     self.abortController.signal,
                   )
 
-                self.apolloSetSelectedFeature(undefined)
+                self.apolloSetSelectedFeature()
                 // @ts-expect-error not sure why snapshot type is wrong for snapshot
                 applySnapshot(self, self.previousSnapshot)
                 removeApolloTracksFromSession(sessionModel)
@@ -597,14 +594,14 @@ export function extendSession(
                   console.error(error)
                   continue
                 }
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
                 if (!jbrowseConfig.configuration.ApolloPlugin.hasRole) {
                   continue
                 }
                 const normalizedJBrowseConfig = normalizeConfigAssemblyNames(
                   jbrowseConfig as JBrowseConfig,
                 )
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
                 reloadPluginManagerCallback(
                   normalizedJBrowseConfig,
                   self.previousSnapshot,
@@ -684,7 +681,7 @@ export function extendSession(
                     }
                     // @ts-expect-error This method is missing in the JB types
                     self.deleteTrackConf(conf)
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
                     jbrowse.addTrackConf(newTrackConfigSnapshot)
                   },
                   icon: SaveIcon,
@@ -726,7 +723,7 @@ export function extendSession(
                     }
                     // @ts-expect-error This method is missing in the JB types
                     self.deleteTrackConf(conf)
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
                     jbrowse.deleteTrackConf(conf)
                   },
                   icon: SaveIcon,

@@ -1,3 +1,4 @@
+import type { DecodedJWT } from '@apollo-annotation/shared'
 import {
   Body,
   Controller,
@@ -9,7 +10,6 @@ import {
   Query,
   Req,
 } from '@nestjs/common'
-import type { DecodedJWT } from '@apollo-annotation/shared'
 import type { Request } from 'express'
 
 import type {

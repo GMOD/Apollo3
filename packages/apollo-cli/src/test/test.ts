@@ -1436,7 +1436,7 @@ EOF`,
     )
 
     let p = new Shell(`${apollo} user get ${P} -r admin -u root`)
-    const adminUser = JSON.parse(p.stdout)[0]
+    const [adminUser] = JSON.parse(p.stdout)
     const userId = adminUser._id
 
     new Shell(`${apollo} permissions grant ${P} -u ${userId} -a permAsm --edit`)

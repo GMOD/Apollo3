@@ -52,6 +52,81 @@ Bring the repository toward passing strict lint in CI
 
 ## Fix wave log
 
+### Current status (latest local run)
+
+- Command:
+  - `npx -y node@22 .yarn/releases/yarn-4.14.1.cjs lint`
+- Result:
+  - lint passes cleanly
+  - `0 errors, 0 warnings`
+  - exit code `0`
+
+### Wave 10
+
+- Scope:
+  - `packages/apollo-collaboration-server/src/assemblies/assemblies.service.ts`
+  - `packages/apollo-collaboration-server/src/assemblyPermissions/assemblyPermissions.controller.ts`
+  - `packages/apollo-collaboration-server/src/assemblyPermissions/assemblyPermissions.service.ts`
+  - `packages/apollo-collaboration-server/src/changes/changeHandlers.service.ts`
+  - `packages/apollo-collaboration-server/src/features/features.service.ts`
+- Focused rule families:
+  - `@typescript-eslint/prefer-nullish-coalescing`
+  - `@typescript-eslint/no-misused-spread`
+  - `@typescript-eslint/no-base-to-string`
+  - unicorn callback-reference false positives on `find(...)`
+- Status: completed
+- What was fixed:
+  - replaced `||` defaulting with explicit empty-string handling / `??`
+  - replaced object spread on DTO/class-like values with `Object.assign`
+  - added safe assembly-id conversion helper in features service
+  - resolved strict unicorn callback-reference issues around service/controller
+    `find` usage
+
+### Wave 11
+
+- Scope:
+  - `packages/apollo-collaboration-server/src/declare.d.ts`
+  - `packages/jbrowse-plugin-apollo/src/components/EditAssemblies.tsx`
+  - `packages/jbrowse-plugin-apollo/src/components/LogOut.tsx`
+  - `packages/jbrowse-plugin-apollo/src/ApolloInternetAccount/model.ts`
+  - `packages/jbrowse-plugin-apollo/src/components/MyAssemblyPermissions.tsx`
+  - `packages/jbrowse-plugin-apollo/src/session/session.ts`
+- Focused rule families:
+  - `@typescript-eslint/no-unsafe-function-type`
+  - `@typescript-eslint/use-unknown-in-catch-callback-variable`
+  - `@typescript-eslint/no-floating-promises`
+  - `@typescript-eslint/await-thenable`
+  - `@typescript-eslint/no-confusing-void-expression`
+  - `@typescript-eslint/no-unsafe-argument`
+- Status: completed
+- What was fixed:
+  - replaced untyped passport callback `Function` with explicit callback
+    signature
+  - typed catch callbacks as `unknown`
+  - corrected async handling for region-navigation flow in My workspace
+  - fixed typed switch handler in My workspace (`onChange` second arg)
+  - reduced remaining model/session false positives to warnings-only state
+
+### Wave 12
+
+- Scope:
+  - `packages/apollo-cli/src/commands/permissions/list.ts`
+  - `packages/apollo-cli/src/test/test.ts`
+  - `packages/jbrowse-plugin-apollo/src/ApolloInternetAccount/model.ts`
+  - `packages/jbrowse-plugin-apollo/src/components/EditAssemblies.tsx`
+  - `packages/jbrowse-plugin-apollo/src/components/LogOut.tsx`
+  - `packages/jbrowse-plugin-apollo/src/components/ManageUsers.tsx`
+  - `packages/jbrowse-plugin-apollo/src/components/MyAssemblyPermissions.tsx`
+  - `packages/jbrowse-plugin-apollo/src/session/session.ts`
+- Focused rule families:
+  - `prefer-destructuring`
+  - `react-hooks/exhaustive-deps`
+- Status: completed
+- What was fixed:
+  - replaced last remaining index-based selections with array destructuring
+  - added the missing hook dependency in ManageUsers effect
+  - preserved behavior while eliminating warning-only lint debt
+
 ### Wave 1
 
 - Scope:
@@ -223,3 +298,8 @@ Each PR should include:
 - Before/after lint counts for impacted paths.
 - Notes on behavior-preserving refactors.
 - Any intentionally deferred rules with justification.
+
+## Suggested next step
+
+1. Split this remediation into reviewable commits by wave or by package boundary
+   before opening upstream PRs.

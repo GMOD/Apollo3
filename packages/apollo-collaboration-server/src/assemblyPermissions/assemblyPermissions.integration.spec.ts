@@ -1,6 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals'
 import type { INestApplication } from '@nestjs/common'
 import { Test, type TestingModule } from '@nestjs/testing'
-import { jest } from '@jest/globals'
 import request from 'supertest'
 
 import { AssemblyPermissionsController } from './assemblyPermissions.controller.js'
@@ -9,27 +17,33 @@ import { AssemblyPermissionsService } from './assemblyPermissions.service.js'
 describe('AssemblyPermissionsController (integration)', () => {
   let app: INestApplication
 
+  type AnyAsyncCall = (...args: unknown[]) => Promise<unknown>
+  const asyncMock = (value: unknown) =>
+    jest.fn<AnyAsyncCall>().mockResolvedValue(value)
+
   const serviceMock = {
-    find: jest.fn().mockResolvedValue([]),
-    findByUser: jest.fn().mockResolvedValue([]),
-    findEffectiveByUser: jest.fn().mockResolvedValue([]),
-    findByAssembly: jest.fn().mockResolvedValue([]),
-    upsertPermission: jest.fn().mockResolvedValue({
+    find: asyncMock<unknown[]>([]),
+    findByUser: asyncMock<unknown[]>([]),
+    findEffectiveByUser: asyncMock<unknown[]>([]),
+    findByAssembly: asyncMock<unknown[]>([]),
+    upsertPermission: asyncMock({
       userId: 'user1',
       assemblyId: 'assembly1',
       canViewAnnotations: true,
       canEditAnnotations: true,
     }),
-    findGroups: jest.fn().mockResolvedValue([]),
-    createGroup: jest.fn().mockResolvedValue({ _id: 'group1', name: 'group1' }),
-    deleteGroup: jest.fn().mockResolvedValue({ deleted: true }),
-    findGroupMembershipsByUser: jest.fn().mockResolvedValue([]),
-    findGroupMembershipsByGroup: jest.fn().mockResolvedValue([]),
-    setGroupMembership: jest
-      .fn()
-      .mockResolvedValue({ groupId: 'group1', userId: 'u1', isMember: true }),
-    findGroupPermissions: jest.fn().mockResolvedValue([]),
-    upsertGroupPermission: jest.fn().mockResolvedValue({
+    findGroups: asyncMock<unknown[]>([]),
+    createGroup: asyncMock({ _id: 'group1', name: 'group1' }),
+    deleteGroup: asyncMock({ deleted: true }),
+    findGroupMembershipsByUser: asyncMock<unknown[]>([]),
+    findGroupMembershipsByGroup: asyncMock<unknown[]>([]),
+    setGroupMembership: asyncMock({
+      groupId: 'group1',
+      userId: 'u1',
+      isMember: true,
+    }),
+    findGroupPermissions: asyncMock<unknown[]>([]),
+    upsertGroupPermission: asyncMock({
       groupId: 'group1',
       assemblyId: 'a1',
       canViewAnnotations: true,

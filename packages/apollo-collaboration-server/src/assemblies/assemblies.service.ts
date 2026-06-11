@@ -29,17 +29,18 @@ export class AssembliesService {
 
   private normalizeScientificName(scientificName?: string) {
     const normalized = scientificName?.trim()
-    return normalized || undefined
+    return normalized === '' ? undefined : normalized
   }
 
   async create(createAssemblyDto: CreateAssemblyDto) {
     const scientificName = this.normalizeScientificName(
       createAssemblyDto.scientificName,
     )
-    return this.assemblyModel.create({
-      ...createAssemblyDto,
-      scientificName,
-    })
+    return this.assemblyModel.create(
+      Object.assign({}, createAssemblyDto, {
+        scientificName,
+      }),
+    )
   }
 
   async updateChecks(_id: string, checks: string[]) {
@@ -93,9 +94,10 @@ export class AssembliesService {
   }
 
   update(id: string, updateAssemblyDto: UpdateAssemblyDto) {
-    const normalizedUpdateDto: Record<string, unknown> = {
-      ...updateAssemblyDto,
-    }
+    const normalizedUpdateDto: Record<string, unknown> = Object.assign(
+      {},
+      updateAssemblyDto,
+    )
     if ('scientificName' in updateAssemblyDto) {
       normalizedUpdateDto.scientificName = this.normalizeScientificName(
         updateAssemblyDto.scientificName,

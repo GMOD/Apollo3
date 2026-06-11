@@ -2,8 +2,8 @@ import { Flags } from '@oclif/core'
 import { type RequestInit, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { createFetchErrorMessage, localhostToAddress } from '../../utils.js'
 import { resolveAssemblyIds, resolveUserId } from '../../permissionsUtils.js'
+import { createFetchErrorMessage, localhostToAddress } from '../../utils.js'
 
 export default class Grant extends BaseCommand<typeof Grant> {
   static summary = 'Grant assembly permissions to a user'

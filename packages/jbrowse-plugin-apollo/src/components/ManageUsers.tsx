@@ -349,7 +349,11 @@ export function ManageUsers({
     getEffectiveAssemblyPermissionsForUser().catch((error) => {
       setErrorMessage(String(error))
     })
-  }, [selectedInternetAccount, selectedUserId])
+  }, [
+    fetchEffectiveAssemblyPermissionsForUser,
+    selectedInternetAccount,
+    selectedUserId,
+  ])
 
   useEffect(() => {
     async function getMembershipsForUser() {

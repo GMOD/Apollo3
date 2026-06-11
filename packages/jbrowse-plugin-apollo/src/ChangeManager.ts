@@ -3,8 +3,8 @@ import {
   isAssemblySpecificChange,
 } from '@apollo-annotation/common'
 import {
-  getDecodedToken,
   type ValidationResultSet,
+  getDecodedToken,
   validationRegistry,
 } from '@apollo-annotation/shared'
 import { getSession } from '@jbrowse/core/util'

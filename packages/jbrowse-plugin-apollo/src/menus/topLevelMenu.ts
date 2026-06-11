@@ -1,8 +1,8 @@
+import { getDecodedToken } from '@apollo-annotation/shared'
 import type {
   AbstractMenuManager,
   AbstractSessionModel,
 } from '@jbrowse/core/util'
-import { getDecodedToken } from '@apollo-annotation/shared'
 import { isAlive } from '@jbrowse/mobx-state-tree'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import FactCheckIcon from '@mui/icons-material/FactCheck'
@@ -11,10 +11,10 @@ import RedoIcon from '@mui/icons-material/Redo'
 import UndoIcon from '@mui/icons-material/Undo'
 import React from 'react'
 
+import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { LogOut, MyAssemblyPermissions } from '../components'
 import type { ApolloSessionModel } from '../session'
-import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { isApolloInternetAccount, type ApolloRootModel } from '../types'
+import { type ApolloRootModel, isApolloInternetAccount } from '../types'
 
 function getApolloInternetAccounts(rootModel: ApolloRootModel) {
   const { internetAccounts } = rootModel
