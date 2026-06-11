@@ -1,35 +1,35 @@
-import { UnprocessableEntityException } from '@nestjs/common'
 import { DeleteFeatureChange } from '@apollo-annotation/shared'
+import { beforeEach, describe, expect, it, jest } from '@jest/globals'
+import { UnprocessableEntityException } from '@nestjs/common'
 
 import { ChangesService } from './changes.service.js'
-import { jest } from '@jest/globals'
+
+function makeExec<T>(value: T) {
+  return { exec: jest.fn<() => Promise<T>>().mockResolvedValue(value) }
+}
 
 describe('ChangesService', () => {
   let service: ChangesService
   const assemblyPermissionsService = {
-    canEdit: jest.fn(),
-    getViewableAssemblyIds: jest.fn(),
+    canEdit: jest.fn<(userId: string, assembly: string) => Promise<boolean>>(),
+    getViewableAssemblyIds: jest.fn<(userId: string) => Promise<string[]>>(),
   }
+  const findExec = makeExec([])
+  const findSort = { sort: jest.fn(() => findExec) }
   const changeModel = {
-    find: jest.fn(() => ({
-      sort: jest.fn(() => ({
-        exec: jest.fn().mockResolvedValue([]),
-      })),
-    })),
-    countDocuments: jest.fn(() => ({ exec: jest.fn().mockResolvedValue(0) })),
+    find: jest.fn(() => findSort),
+    countDocuments: jest.fn(() => makeExec(0)),
   }
   const countersService = {
-    getNextSequenceValue: jest.fn(),
+    getNextSequenceValue: jest.fn<(counterName: string) => Promise<number>>(),
   }
-  const emptyExec = { exec: jest.fn().mockResolvedValue([]) }
+  const emptyExec = makeExec([])
   const assemblyModel = { deleteMany: jest.fn(() => emptyExec) }
   const refSeqModel = { deleteMany: jest.fn(() => emptyExec) }
   const refSeqChunkModel = { deleteMany: jest.fn(() => emptyExec) }
   const featureModel = {
     db: {
-      transaction: jest.fn(async (cb: (session: unknown) => Promise<unknown>) =>
-        cb({}),
-      ),
+      transaction: jest.fn(async () => Promise.resolve()),
     },
     deleteMany: jest.fn(() => emptyExec),
   }
@@ -48,6 +48,7 @@ describe('ChangesService', () => {
       {} as never,
       {} as never,
     )
+    countersService.getNextSequenceValue.mockResolvedValue(1)
   })
 
   it('should be defined', () => {

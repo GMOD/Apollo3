@@ -1,18 +1,27 @@
-import { AuthenticationService } from './authentication.service.js'
-import { Role } from '../utils/role/role.enum.js'
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 
+import { describe, expect, it } from '@jest/globals'
+
+import { AuthenticationService } from './authentication.service.js'
+import { Role } from '../utils/role/role.enum.js'
+
+type AuthServiceCtorParams = ConstructorParameters<typeof AuthenticationService>
+
+function makeService(config: Record<string, unknown>) {
+  const configService = {
+    get: (key: string) => config[key],
+  } as AuthServiceCtorParams[2]
+
+  return new AuthenticationService(
+    {} as AuthServiceCtorParams[0],
+    {} as AuthServiceCtorParams[1],
+    configService,
+  )
+}
+
 describe('AuthenticationService', () => {
-  function makeService(config: Record<string, unknown>) {
-    const configService = {
-      get: (key: string) => config[key],
-    }
-
-    return new AuthenticationService({} as any, {} as any, configService as any)
-  }
-
   it('returns login types from direct client ID values', async () => {
     const service = makeService({
       DEFAULT_NEW_USER_ROLE: Role.None,

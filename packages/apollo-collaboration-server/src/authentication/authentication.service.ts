@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import fs from 'node:fs/promises'
 
 import type { JWTPayload } from '@apollo-annotation/shared'
@@ -106,8 +105,13 @@ export class AuthenticationService {
       const clientIDFile = this.configService.get('LOGINGOV_CLIENT_ID_FILE', {
         infer: true,
       })
-      loginGovClientID =
-        clientIDFile && (await fs.readFile(clientIDFile, 'utf8')).trim()
+      if (clientIDFile) {
+        const loginGovClientIdFileValue = await fs.readFile(
+          clientIDFile,
+          'utf8',
+        )
+        loginGovClientID = loginGovClientIdFileValue.trim()
+      }
     }
     const allowLocalUserLogin = this.configService.get(
       'ALLOW_LOCAL_USER_LOGIN',

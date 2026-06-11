@@ -89,6 +89,37 @@ Bring the repository toward passing strict lint in CI
   - fixed hook ordering issue in logout dialog
   - added `useCallback` for effect dependency stability in ManageUsers
 
+### Wave 2 (in progress)
+
+- Scope:
+  - `packages/apollo-collaboration-server/src/changes/changes.service.spec.ts`
+  - `packages/apollo-collaboration-server/src/authentication/authentication.service.spec.ts`
+  - `packages/apollo-collaboration-server/src/authentication/authentication.service.ts`
+  - `packages/apollo-collaboration-server/src/utils/strategies/login-gov.strategy.ts`
+- Focused rule families:
+  - `@typescript-eslint/no-unsafe-assignment`
+  - `@typescript-eslint/no-unsafe-call`
+  - `@typescript-eslint/no-unsafe-member-access`
+  - `@typescript-eslint/no-explicit-any`
+  - `unicorn/no-await-expression-member`
+  - `unicorn/consistent-function-scoping`
+
+### Wave 2 status
+
+- Completed edits in:
+  - `packages/apollo-collaboration-server/src/changes/changes.service.spec.ts`
+  - `packages/apollo-collaboration-server/src/authentication/authentication.service.spec.ts`
+  - `packages/apollo-collaboration-server/src/authentication/authentication.service.ts`
+  - `packages/apollo-collaboration-server/src/utils/strategies/login-gov.strategy.ts`
+- What was fixed in this wave:
+  - introduced typed jest imports/mocks and helper exec factory for specs
+  - removed `any`-based constructor wiring in auth service spec
+  - moved auth spec factory to module scope
+  - rewrote login.gov client-id file read flow to avoid await-expression-member
+    lint violation
+  - replaced login.gov strategy non-null assertions and `any` cast with explicit
+    guards and typed oauth2 agent handling
+
 ## Upstream contribution path
 
 Yes, this cleanup is suitable to submit upstream.

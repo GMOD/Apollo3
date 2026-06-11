@@ -33,6 +33,10 @@ interface LoginGovProfile {
   _json?: { email?: string; sub?: string }
 }
 
+interface OAuth2ClientWithAgent {
+  setAgent(agent: HttpsProxyAgent): void
+}
+
 @Injectable()
 export class LoginGovStrategy extends PassportStrategy(Strategy, 'logingov') {
   private readonly logger = new Logger(LoginGovStrategy.name)
@@ -54,7 +58,7 @@ export class LoginGovStrategy extends PassportStrategy(Strategy, 'logingov') {
     }
 
     let clientSecret = 'none'
-    let callbackURL
+    let callbackURL: string | undefined
     const issuerBaseURL =
       configService.get('LOGINGOV_ISSUER_BASE_URL', { infer: true }) ??
       'https://secure.login.gov'
@@ -79,7 +83,12 @@ export class LoginGovStrategy extends PassportStrategy(Strategy, 'logingov') {
         const clientSecretFile = configService.get(
           'LOGINGOV_CLIENT_SECRET_FILE',
           { infer: true },
-        )!
+        )
+        if (!clientSecretFile) {
+          throw new Error(
+            'LOGINGOV_CLIENT_SECRET or LOGINGOV_CLIENT_SECRET_FILE must be configured when login.gov auth is enabled',
+          )
+        }
         clientSecret = fs.readFileSync(clientSecretFile, 'utf8').trim()
       }
       const urlString = configService.get('URL', { infer: true })
@@ -105,7 +114,8 @@ export class LoginGovStrategy extends PassportStrategy(Strategy, 'logingov') {
     const proxy = configService.get('OAUTH_HTTP_PROXY', { infer: true })
     if (proxy) {
       const agent = new HttpsProxyAgent(proxy)
-      const oauth2 = (this as any)._oauth2
+      const oauth2 = (this as unknown as { _oauth2?: OAuth2ClientWithAgent })
+        ._oauth2
       if (oauth2) {
         oauth2.setAgent(agent)
         this.logger.debug(`LoginGovStrategy configured to use proxy: ${proxy}`)
@@ -113,7 +123,7 @@ export class LoginGovStrategy extends PassportStrategy(Strategy, 'logingov') {
     }
   }
 
-  async validate(issuer: string, profile: LoginGovProfile) {
+  async validate(_issuer: string, profile: LoginGovProfile) {
     return this.authService.loginGovLogin(profile)
   }
 }
