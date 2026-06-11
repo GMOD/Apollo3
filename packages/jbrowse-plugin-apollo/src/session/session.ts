@@ -66,6 +66,14 @@ function getApolloInternetAccounts(internetAccounts: unknown[]) {
   )
 }
 
+function asAbstractSessionModel(model: unknown) {
+  return model as AbstractSessionModel
+}
+
+function asLinearGenomeViewModel(view: unknown) {
+  return view as LinearGenomeViewModel
+}
+
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreModel
   apolloSelectedFeature?: AnnotationFeature
@@ -275,7 +283,7 @@ export function extendSession(
       },
       addApolloLocalTrackConfig(assembly: Assembly) {
         const trackId = `apollo_track_${assembly.name}`
-        const hasTrack = (self as unknown as AbstractSessionModel).tracks.some(
+        const hasTrack = asAbstractSessionModel(self).tracks.some(
           (track) => track.trackId === trackId,
         )
         if (!hasTrack) {
@@ -315,11 +323,11 @@ export function extendSession(
           start: number
           end: number
         }[] = []
-        for (const view of (self as unknown as AbstractSessionModel).views) {
+        for (const view of asAbstractSessionModel(self).views) {
           if (view.type !== 'LinearGenomeView') {
             return
           }
-          const lgv = view as unknown as LinearGenomeViewModel
+          const lgv = asLinearGenomeViewModel(view)
           if (lgv.initialized) {
             const { dynamicBlocks } = lgv
             for (const block of dynamicBlocks.contentBlocks) {
@@ -335,28 +343,28 @@ export function extendSession(
           }
         }
         if (locations.length === 0) {
-          for (const internetAccount of internetAccounts) {
-            if (isApolloInternetAccount(internetAccount)) {
-              internetAccount.postUserLocation([])
-            }
+          for (const internetAccount of getApolloInternetAccounts(
+            internetAccounts,
+          )) {
+            internetAccount.postUserLocation([])
           }
           return
         }
 
         const allLocations: UserLocation[] = []
-        for (const internetAccount of internetAccounts) {
-          if (isApolloInternetAccount(internetAccount)) {
-            for (const location of locations) {
-              const tmpLoc: UserLocation = {
-                assemblyId: location.assemblyName,
-                refSeq: location.refName,
-                start: location.start,
-                end: location.end,
-              }
-              allLocations.push(tmpLoc)
+        for (const internetAccount of getApolloInternetAccounts(
+          internetAccounts,
+        )) {
+          for (const location of locations) {
+            const tmpLoc: UserLocation = {
+              assemblyId: location.assemblyName,
+              refSeq: location.refName,
+              start: location.start,
+              end: location.end,
             }
-            internetAccount.postUserLocation(allLocations)
+            allLocations.push(tmpLoc)
           }
+          internetAccount.postUserLocation(allLocations)
         }
       },
     }))
@@ -388,12 +396,11 @@ export function extendSession(
                 start: number
                 end: number
               }[] = []
-              for (const view of (self as unknown as AbstractSessionModel)
-                .views) {
+              for (const view of asAbstractSessionModel(self).views) {
                 if (view.type !== 'LinearGenomeView') {
                   return
                 }
-                const lgv = view as unknown as LinearGenomeViewModel
+                const lgv = asLinearGenomeViewModel(view)
                 if (lgv.initialized) {
                   const { dynamicBlocks } = lgv
                   for (const block of dynamicBlocks.contentBlocks) {
@@ -410,28 +417,28 @@ export function extendSession(
                 }
               }
               if (locations.length === 0) {
-                for (const internetAccount of internetAccounts) {
-                  if (isApolloInternetAccount(internetAccount)) {
-                    internetAccount.postUserLocation([])
-                  }
+                for (const internetAccount of getApolloInternetAccounts(
+                  internetAccounts,
+                )) {
+                  internetAccount.postUserLocation([])
                 }
                 return
               }
 
               const allLocations: UserLocation[] = []
-              for (const internetAccount of internetAccounts) {
-                if (isApolloInternetAccount(internetAccount)) {
-                  for (const location of locations) {
-                    const tmpLoc: UserLocation = {
-                      assemblyId: location.assemblyName,
-                      refSeq: location.refName,
-                      start: location.start,
-                      end: location.end,
-                    }
-                    allLocations.push(tmpLoc)
+              for (const internetAccount of getApolloInternetAccounts(
+                internetAccounts,
+              )) {
+                for (const location of locations) {
+                  const tmpLoc: UserLocation = {
+                    assemblyId: location.assemblyName,
+                    refSeq: location.refName,
+                    start: location.start,
+                    end: location.end,
                   }
-                  internetAccount.postUserLocation(allLocations)
+                  allLocations.push(tmpLoc)
                 }
+                internetAccount.postUserLocation(allLocations)
               }
             },
             { name: 'ApolloSessionBroadcastLocations' },
@@ -474,8 +481,8 @@ export function extendSession(
                 )
                 .join('|')
               void apolloAuthSignature
-              const nonApolloAssemblies = (
-                self as unknown as AbstractSessionModel
+              const nonApolloAssemblies = asAbstractSessionModel(
+                self,
               ).assemblyManager.assemblies.filter(
                 (a) =>
                   !(
@@ -486,13 +493,13 @@ export function extendSession(
               )
               if (!hasApolloInternetAccount || hasRole) {
                 // Wait for assemblyManager to load before we do this part
-                const { assemblies } = (self as unknown as AbstractSessionModel)
-                  .assemblyManager
+                const { assemblies } =
+                  asAbstractSessionModel(self).assemblyManager
                 if (assemblies.length === 0) {
                   return
                 }
 
-                const sessionModel = self as unknown as AbstractSessionModel
+                const sessionModel = asAbstractSessionModel(self)
                 const signedInApolloAccount = internetAccounts
                   .filter((ia): ia is ApolloInternetAccountModel =>
                     isApolloInternetAccount(ia),

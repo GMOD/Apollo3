@@ -75,6 +75,25 @@ Bring the repository toward passing strict lint in CI
 - Completed edits in:
   - `packages/jbrowse-plugin-apollo/src/menus/topLevelMenu.ts`
   - `packages/jbrowse-plugin-apollo/src/ChangeManager.ts`
+
+### Wave 5 (in progress)
+
+- Scope:
+  - `packages/jbrowse-plugin-apollo/src/session/session.ts`
+- Focused rule families:
+  - `@typescript-eslint/no-unsafe-assignment`
+  - `@typescript-eslint/no-unsafe-member-access`
+  - reduction of repeated cast patterns in session/view handling
+
+### Wave 5 status
+
+- Completed edits in:
+  - `packages/jbrowse-plugin-apollo/src/session/session.ts`
+- What was fixed in this wave:
+  - added helper narrowers for abstract session and linear genome view access
+  - replaced repeated `self as unknown as ...` cast sites with helper usage
+  - switched broadcast loops to type-guarded Apollo account iteration
+  - aligned duplicated autorun location-broadcast path with typed helper flow
   - `packages/jbrowse-plugin-apollo/src/ApolloInternetAccount/tokenUtils.ts`
   - `packages/jbrowse-plugin-apollo/src/ApolloInternetAccount/components/AuthTypeSelector.tsx`
   - `packages/jbrowse-plugin-apollo/src/components/LogOut.tsx`
