@@ -127,6 +127,20 @@ Bring the repository toward passing strict lint in CI
    - add a dedicated plugin type-check script/job that fails on TypeScript
      diagnostics to prevent regressions
 
+### Phase 2 execution result (2026-06-11)
+
+- Status: completed
+- Result:
+  - plugin build now emits no `TSxxxx` diagnostics in rollup output.
+- Validation command:
+  - `JB_NPM=false npx -y node@24 ../../.yarn/releases/yarn-4.14.1.cjs build 2>&1 | rg -n "TS[0-9]+|src/"`
+  - output contains build entry line only, with no TypeScript diagnostic lines.
+- Files fixed in this pass:
+  - `packages/jbrowse-plugin-apollo/src/components/MyAssemblyPermissions.tsx`
+  - `packages/jbrowse-plugin-apollo/src/ApolloInternetAccount/model.ts`
+  - `packages/jbrowse-plugin-apollo/src/components/ManageUsers.tsx`
+  - `packages/jbrowse-plugin-apollo/src/session/session.ts`
+
 ### Current status (latest local run)
 
 - Command:

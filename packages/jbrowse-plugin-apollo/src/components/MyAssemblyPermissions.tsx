@@ -6,7 +6,6 @@ import FilterListIcon from '@mui/icons-material/FilterList'
 import {
   Box,
   Button,
-  type ChangeEvent,
   Chip,
   DialogActions,
   DialogContent,
@@ -22,6 +21,7 @@ import {
   GridToolbar,
 } from '@mui/x-data-grid'
 import React, { useEffect, useMemo, useState } from 'react'
+import type { ChangeEvent } from 'react'
 
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import type { ApolloSessionModel } from '../session'

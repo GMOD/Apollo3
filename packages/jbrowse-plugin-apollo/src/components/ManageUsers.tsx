@@ -590,7 +590,7 @@ export function ManageUsers({
       width: 140,
       type: 'singleSelect',
       valueOptions: ['readOnly', 'user', 'admin', 'none'],
-      getOptionLabel(value: string) {
+      getOptionLabel(value) {
         const option = String(value)
         switch (option) {
           case 'readOnly': {
@@ -1178,6 +1178,8 @@ export function ManageUsers({
       .map((assembly: AssemblyResponse) => {
         const permission =
           effectiveAssemblyPermissionsByAssemblyId[assembly._id]
+        const source: EffectiveAssemblyPermissionRow['source'] =
+          permission?.source ?? 'none'
         const scientificName =
           typeof assembly.scientificName === 'string'
             ? assembly.scientificName.trim()
@@ -1189,7 +1191,7 @@ export function ManageUsers({
           genusSpecies: scientificName || 'Unknown',
           canViewAnnotations: permission?.canViewAnnotations ?? false,
           canEditAnnotations: permission?.canEditAnnotations ?? false,
-          source: permission?.source ?? 'none',
+          source,
         }
       })
       .sort(

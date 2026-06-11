@@ -61,7 +61,9 @@ function safeRetrieveToken(account: ApolloInternetAccountModel) {
   }
 }
 
-function getApolloInternetAccounts(internetAccounts: unknown[]) {
+function getApolloInternetAccounts(
+  internetAccounts: ApolloRootModel['internetAccounts'],
+) {
   return internetAccounts.filter(
     (internetAccount): internetAccount is ApolloInternetAccountModel =>
       isApolloInternetAccount(internetAccount),
@@ -112,9 +114,16 @@ export function extendSession(
   sessionModel: ReturnType<typeof types.model>,
 ) {
   const normalizeConfigAssemblyNames = (config: JBrowseConfig) => {
-    type ConfigTrack = NonNullable<JBrowseConfig['tracks']>[number]
+    interface ConfigAssembly {
+      name: string
+      displayName?: string
+    }
+    interface ConfigTrack {
+      assemblyNames?: string[]
+      [key: string]: unknown
+    }
 
-    const assemblies = config.assemblies ?? []
+    const assemblies = (config.assemblies ?? []) as unknown as ConfigAssembly[]
     const displayNameToAssemblyName = new Map<string, string>()
     for (const assembly of assemblies) {
       if (assembly.displayName && assembly.displayName !== assembly.name) {
@@ -122,11 +131,12 @@ export function extendSession(
       }
     }
 
-    if (displayNameToAssemblyName.size === 0 || !config.tracks?.length) {
+    const tracks = (config.tracks ?? []) as unknown as ConfigTrack[]
+    if (displayNameToAssemblyName.size === 0 || tracks.length === 0) {
       return config
     }
 
-    const normalizedTracks = config.tracks.map((track: ConfigTrack) => {
+    const normalizedTracks = tracks.map((track: ConfigTrack) => {
       if (!track.assemblyNames?.length) {
         return track
       }
