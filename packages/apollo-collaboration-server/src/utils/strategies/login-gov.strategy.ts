@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import type { Agent as HttpsAgent } from 'node:https'
 
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
@@ -34,7 +35,7 @@ interface LoginGovProfile {
 }
 
 interface OAuth2ClientWithAgent {
-  setAgent(agent: HttpsProxyAgent): void
+  setAgent(agent: HttpsAgent): void
 }
 
 @Injectable()

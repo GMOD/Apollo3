@@ -137,6 +137,43 @@ interface ManageUsersProps {
   changeManager: ChangeManager
 }
 
+const manageUsersTabsSx = {
+  marginBottom: 2,
+  minHeight: 34,
+  '& .MuiTabs-flexContainer': {
+    gap: 1,
+    flexWrap: 'wrap',
+  },
+  '& .MuiTabs-indicator': {
+    display: 'none',
+  },
+  '& .MuiTab-root': {
+    textTransform: 'none',
+    fontWeight: 600,
+    fontSize: '0.84rem',
+    letterSpacing: 0.1,
+    minHeight: 34,
+    borderRadius: 2,
+    border: '1px solid',
+    borderColor: 'divider',
+    backgroundColor: 'background.paper',
+    color: 'text.secondary',
+    paddingInline: 10,
+    paddingBlock: 3,
+    transition: 'all 120ms ease-in-out',
+  },
+  '& .MuiTab-root:hover': {
+    backgroundColor: 'action.hover',
+    color: 'text.primary',
+  },
+  '& .MuiTab-root.Mui-selected': {
+    backgroundColor: 'primary.main',
+    color: 'primary.contrastText',
+    borderColor: 'primary.main',
+    boxShadow: 1,
+  },
+}
+
 export function ManageUsers({
   changeManager,
   handleClose,
@@ -1624,7 +1661,7 @@ export function ManageUsers({
             ) => {
               setManagementSection(value)
             }}
-            sx={{ marginBottom: 2 }}
+            sx={manageUsersTabsSx}
           >
             <Tab value="users" label="User management" />
             <Tab value="groups" label="Group management" />
@@ -1681,7 +1718,7 @@ export function ManageUsers({
                   ) => {
                     setPermissionView(value)
                   }}
-                  sx={{ marginBottom: 2 }}
+                  sx={manageUsersTabsSx}
                 >
                   <Tab value="effective" label="Effective access" />
                   <Tab value="assembly" label="Assembly permissions" />
@@ -1799,7 +1836,7 @@ export function ManageUsers({
                 ) => {
                   setGroupManagementView(value)
                 }}
-                sx={{ marginBottom: 2 }}
+                sx={manageUsersTabsSx}
               >
                 <Tab value="memberships" label="Group memberships" />
                 <Tab value="permissions" label="Group permissions" />
@@ -1824,7 +1861,7 @@ export function ManageUsers({
                     ) => {
                       setGroupMembershipView(value)
                     }}
-                    sx={{ marginBottom: 2 }}
+                    sx={manageUsersTabsSx}
                   >
                     <Tab value="current" label="Current state" />
                     <Tab value="edit" label="Edit memberships" />
@@ -1918,7 +1955,7 @@ export function ManageUsers({
                     ) => {
                       setGroupPermissionView(value)
                     }}
-                    sx={{ marginBottom: 2 }}
+                    sx={manageUsersTabsSx}
                   >
                     <Tab value="current" label="Current state" />
                     <Tab value="edit" label="Edit permissions" />

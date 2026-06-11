@@ -94,10 +94,10 @@ export class AssembliesService {
   }
 
   update(id: string, updateAssemblyDto: UpdateAssemblyDto) {
-    const normalizedUpdateDto: Record<string, unknown> = Object.assign(
-      {},
-      updateAssemblyDto,
-    )
+    const normalizedUpdateDto = Object.assign({}, updateAssemblyDto) as Record<
+      string,
+      unknown
+    >
     if ('scientificName' in updateAssemblyDto) {
       normalizedUpdateDto.scientificName = this.normalizeScientificName(
         updateAssemblyDto.scientificName,
