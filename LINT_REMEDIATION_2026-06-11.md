@@ -64,6 +64,69 @@ Bring the repository toward passing strict lint in CI
   - `https://github.com/USDA-REE-ARS/nal-i5k-apollo3/actions/runs/27367273968`
   - completed successfully
 
+### Phase 2 plan (plugin TypeScript diagnostics)
+
+- Goal:
+  - eliminate remaining rollup TypeScript diagnostics in
+    `packages/jbrowse-plugin-apollo` so local and CI quality gates align.
+- Current diagnostics source:
+  - `JB_NPM=false npx -y node@24 ../../.yarn/releases/yarn-4.14.1.cjs build`
+  - run from `packages/jbrowse-plugin-apollo`
+
+1. `src/ApolloInternetAccount/model.ts` (TS2339 around `authType`)
+
+   - Symptoms:
+     - `Property 'type' does not exist on type '"guest" | ... | LocalAuthSelection'`
+     - `identifier/password` access not narrowed
+   - Plan:
+     - replace `if (authType.type === 'local')` with explicit narrowing
+       (`typeof authType !== 'string'`) before property access
+     - keep string-provider branch (`google|microsoft|logingov|guest`) separate
+       from local credential branch
+
+2. `src/components/ManageUsers.tsx` (TS2322, TS2322, TS2345)
+
+   - Symptoms:
+     - `GridColDef` mismatch for `getOptionLabel` parameter type
+     - inferred `source: string` where union is expected
+   - Plan:
+     - type `getOptionLabel` parameter as grid `ValueOptions` and normalize to
+       string in implementation
+     - explicitly type-map effective permission rows so `source` is narrowed to
+       `'none' | 'direct' | 'group' | 'mixed'`
+     - ensure sort callback receives the same concrete row type as array element
+
+3. `src/components/MyAssemblyPermissions.tsx` (TS2305)
+
+   - Symptoms:
+     - `@mui/material` has no exported member `ChangeEvent`
+   - Plan:
+     - import `type ChangeEvent` from `react`
+     - keep MUI imports for component symbols only
+
+4. `src/session/session.ts` (TS2345 + TS2339 family)
+
+   - Symptoms:
+     - account filter helper accepts `unknown[]`, causing predicate mismatch
+     - `JBrowseAssembly` and `JBrowseTrack` structural fields (`displayName`,
+       `name`, `assemblyNames`) not declared on inferred types
+   - Plan:
+     - type internet accounts input as union expected by
+       `isApolloInternetAccount` guard instead of raw `unknown`
+     - introduce local structural interfaces for config assembly/track shape in
+       `normalizeConfigAssemblyNames`
+     - narrow config-driven objects before property access instead of relying on
+       inferred JBrowse manager types
+
+5. Validation steps (after each file group)
+
+   - run plugin build command above and capture zero TS diagnostics
+   - run branch CI push workflow and verify `Build` + `Lint` remain green
+
+6. Follow-up quality gate (optional but recommended)
+   - add a dedicated plugin type-check script/job that fails on TypeScript
+     diagnostics to prevent regressions
+
 ### Current status (latest local run)
 
 - Command:
