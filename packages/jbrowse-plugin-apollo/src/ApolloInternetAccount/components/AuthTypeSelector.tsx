@@ -93,19 +93,27 @@ export const AuthTypeSelector = ({
         ),
       )
     }
-  }, [baseURL, preferGuest])
+  }, [baseURL, handleClose, preferGuest])
 
   function handleClick(
     authType: 'google' | 'microsoft' | 'logingov' | 'guest',
   ) {
-    if (authType === 'google') {
-      handleClose('google')
-    } else if (authType === 'microsoft') {
-      handleClose('microsoft')
-    } else if (authType === 'logingov') {
-      handleClose('logingov')
-    } else {
-      handleClose('guest')
+    switch (authType) {
+      case 'google': {
+        handleClose('google')
+        break
+      }
+      case 'microsoft': {
+        handleClose('microsoft')
+        break
+      }
+      case 'logingov': {
+        handleClose('logingov')
+        break
+      }
+      default: {
+        handleClose('guest')
+      }
     }
   }
 

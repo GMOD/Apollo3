@@ -37,7 +37,7 @@ import {
   type GridRowParams,
   GridToolbar,
 } from '@mui/x-data-grid'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import type { ChangeManager } from '../ChangeManager'
@@ -144,11 +144,13 @@ export function ManageUsers({
 }: ManageUsersProps) {
   const { internetAccounts } = getRoot<ApolloRootModel>(session)
   const apolloInternetAccounts = internetAccounts
-    .filter((ia) => isApolloInternetAccount(ia))
+    .filter((ia): ia is ApolloInternetAccountModel =>
+      isApolloInternetAccount(ia),
+    )
     .filter(
       (ia: ApolloInternetAccountModel & { role?: string }) =>
         ia.role?.includes('admin') ?? false,
-    ) as ApolloInternetAccountModel[]
+    )
   if (apolloInternetAccounts.length === 0) {
     throw new Error('No Apollo internet account found')
   }
@@ -196,34 +198,37 @@ export function ManageUsers({
   const [localUserErrorMessage, setLocalUserErrorMessage] = useState('')
   const [isCreatingLocalUser, setIsCreatingLocalUser] = useState(false)
 
-  async function fetchEffectiveAssemblyPermissionsForUser(userId: string) {
-    const { baseURL } = selectedInternetAccount
-    const uri = new URL(
-      `assemblyPermissions/effective/byUser/${userId}`,
-      baseURL,
-    ).href
-    const apolloFetch = selectedInternetAccount.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
-    const response = await apolloFetch(uri, { method: 'GET' })
-    if (!response.ok) {
-      const newErrorMessage = await createFetchErrorMessage(
-        response,
-        'Error when getting effective assembly permissions from db',
-      )
-      throw new Error(newErrorMessage)
-    }
-    const permissionData =
-      (await response.json()) as EffectiveAssemblyPermissionResponse[]
-    const byAssemblyId: Partial<
-      Record<string, EffectiveAssemblyPermissionResponse>
-    > = {}
-    for (const permission of permissionData) {
-      byAssemblyId[permission.assemblyId] = permission
-    }
-    setEffectiveAssemblyPermissionsByAssemblyId(byAssemblyId)
-  }
+  const fetchEffectiveAssemblyPermissionsForUser = useCallback(
+    async (userId: string) => {
+      const { baseURL } = selectedInternetAccount
+      const uri = new URL(
+        `assemblyPermissions/effective/byUser/${userId}`,
+        baseURL,
+      ).href
+      const apolloFetch = selectedInternetAccount.getFetcher({
+        locationType: 'UriLocation',
+        uri,
+      })
+      const response = await apolloFetch(uri, { method: 'GET' })
+      if (!response.ok) {
+        const newErrorMessage = await createFetchErrorMessage(
+          response,
+          'Error when getting effective assembly permissions from db',
+        )
+        throw new Error(newErrorMessage)
+      }
+      const permissionData =
+        (await response.json()) as EffectiveAssemblyPermissionResponse[]
+      const byAssemblyId: Partial<
+        Record<string, EffectiveAssemblyPermissionResponse>
+      > = {}
+      for (const permission of permissionData) {
+        byAssemblyId[permission.assemblyId] = permission
+      }
+      setEffectiveAssemblyPermissionsByAssemblyId(byAssemblyId)
+    },
+    [selectedInternetAccount],
+  )
 
   useEffect(() => {
     async function getUsers() {
@@ -327,7 +332,11 @@ export function ManageUsers({
     getAssemblyPermissionsForUser().catch((error) => {
       setErrorMessage(String(error))
     })
-  }, [selectedInternetAccount, selectedUserId])
+  }, [
+    fetchEffectiveAssemblyPermissionsForUser,
+    selectedInternetAccount,
+    selectedUserId,
+  ])
 
   useEffect(() => {
     async function getEffectiveAssemblyPermissionsForUser() {
@@ -1139,8 +1148,7 @@ export function ManageUsers({
           genusSpecies: scientificName || 'Unknown',
           canViewAnnotations: permission?.canViewAnnotations ?? false,
           canEditAnnotations: permission?.canEditAnnotations ?? false,
-          source: (permission?.source ??
-            'none') as EffectiveAssemblyPermissionRow['source'],
+          source: permission?.source ?? 'none',
         }
       })
       .sort(

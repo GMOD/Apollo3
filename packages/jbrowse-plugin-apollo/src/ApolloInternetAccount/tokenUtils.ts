@@ -1,4 +1,4 @@
-export type ApolloTokenAccount = {
+export interface ApolloTokenAccount {
   tokenKey: string
   removeToken(): void
 }

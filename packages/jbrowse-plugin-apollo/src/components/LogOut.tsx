@@ -1,3 +1,6 @@
+import { readConfObject } from '@jbrowse/core/configuration'
+import type { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
+import { isAlive } from '@jbrowse/mobx-state-tree'
 import {
   Button,
   DialogActions,
@@ -7,9 +10,6 @@ import {
   Select,
   type SelectChangeEvent,
 } from '@mui/material'
-import type { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
-import { readConfObject } from '@jbrowse/core/configuration'
-import { isAlive } from '@jbrowse/mobx-state-tree'
 import React, { useState } from 'react'
 
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
@@ -26,9 +26,7 @@ function isPrivilegedApolloTrack(track: BaseTrackConfig) {
   const trackType = (track as unknown as { type?: string }).type
   const trackId = readConfObject(track, 'trackId') as string | undefined
   const displays =
-    (readConfObject(track, 'displays') as
-      | Array<{ type?: string }>
-      | undefined) ?? []
+    (readConfObject(track, 'displays') as { type?: string }[] | undefined) ?? []
   const hasApolloDisplay = displays.some((display) =>
     ['LinearApolloDisplay', 'LinearApolloSixFrameDisplay'].includes(
       display.type ?? '',
@@ -73,7 +71,7 @@ function removePrivilegedTracksForGuest(rootModel: ApolloRootModel) {
   collect(session.tracks)
   collect(jbrowse.tracks)
 
-  session.apolloSetSelectedFeature?.(undefined)
+  session.apolloSetSelectedFeature?.()
   for (const track of byTrackId.values()) {
     session.deleteTrackConf?.(track)
     jbrowse.deleteTrackConf?.(track)
@@ -82,8 +80,6 @@ function removePrivilegedTracksForGuest(rootModel: ApolloRootModel) {
 
 export function LogOut({ handleClose, rootModel }: DeleteAssemblyProps) {
   const { internetAccounts } = rootModel
-  const [errorMessage, setErrorMessage] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const apolloInternetAccounts = internetAccounts.filter((account) => {
     try {
       if (!isAlive(account)) {
@@ -95,13 +91,16 @@ export function LogOut({ handleClose, rootModel }: DeleteAssemblyProps) {
     }
   }) as ApolloInternetAccountModel[]
 
+  const initialSelectedAccount = apolloInternetAccounts[0]
+  const [errorMessage, setErrorMessage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [selectedInternetAccount, setSelectedInternetAccount] = useState(
+    initialSelectedAccount,
+  )
+
   if (apolloInternetAccounts.length === 0) {
     return null
   }
-
-  const [selectedInternetAccount, setSelectedInternetAccount] = useState(
-    apolloInternetAccounts[0],
-  )
 
   function handleChangeInternetAccount(e: SelectChangeEvent) {
     const newlySelectedInternetAccount = apolloInternetAccounts.find(
@@ -115,33 +114,40 @@ export function LogOut({ handleClose, rootModel }: DeleteAssemblyProps) {
     setSelectedInternetAccount(newlySelectedInternetAccount)
   }
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!selectedInternetAccount) {
+      return
+    }
     setErrorMessage('')
     setIsSubmitting(true)
-    try {
-      selectedInternetAccount.removeToken()
-      const guestLoginUrl = new URL(
-        'auth/login',
-        selectedInternetAccount.baseURL,
-      )
-      guestLoginUrl.search = new URLSearchParams({ type: 'guest' }).toString()
-      const response = await fetch(guestLoginUrl.toString(), { method: 'GET' })
-      if (!response.ok) {
-        throw new Error(`Guest login failed (${response.status})`)
+    void (async () => {
+      try {
+        selectedInternetAccount.removeToken()
+        const guestLoginUrl = new URL(
+          'auth/login',
+          selectedInternetAccount.baseURL,
+        )
+        guestLoginUrl.search = new URLSearchParams({ type: 'guest' }).toString()
+        const response = await fetch(guestLoginUrl.toString(), {
+          method: 'GET',
+        })
+        if (!response.ok) {
+          throw new Error(`Guest login failed (${response.status})`)
+        }
+        const { token } = (await response.json()) as { token?: string }
+        if (!token) {
+          throw new Error('Guest login did not return a token')
+        }
+        selectedInternetAccount.applyLoggedInToken(token)
+        removePrivilegedTracksForGuest(rootModel)
+        handleClose()
+      } catch {
+        setErrorMessage('Could not log out from this account. Please retry.')
+      } finally {
+        setIsSubmitting(false)
       }
-      const { token } = (await response.json()) as { token?: string }
-      if (!token) {
-        throw new Error('Guest login did not return a token')
-      }
-      selectedInternetAccount.applyLoggedInToken(token)
-      removePrivilegedTracksForGuest(rootModel)
-      handleClose()
-    } catch {
-      setErrorMessage('Could not log out from this account. Please retry.')
-    } finally {
-      setIsSubmitting(false)
-    }
+    })()
   }
 
   return (

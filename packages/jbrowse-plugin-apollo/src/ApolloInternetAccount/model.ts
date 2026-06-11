@@ -43,7 +43,7 @@ import type { ApolloInternetAccountConfigModel } from './configSchema'
 import { revokeOtherApolloTokens } from './tokenUtils'
 
 type AuthType = 'google' | 'microsoft' | 'logingov' | 'guest'
-type LocalAuthSelection = {
+interface LocalAuthSelection {
   type: 'local'
   identifier: string
   password: string
@@ -53,10 +53,9 @@ type AuthSelection = AuthType | LocalAuthSelection
 type Role = 'admin' | 'user' | 'readOnly' | 'none'
 
 function isGuestIdentity(decodedToken: { username?: string; email?: string }) {
-  return (
-    decodedToken.username?.toLowerCase() === 'guest' ||
-    decodedToken.email?.toLowerCase() === 'guest_user'
-  )
+  const normalizedUsername = String(decodedToken.username).toLowerCase()
+  const normalizedEmail = String(decodedToken.email).toLowerCase()
+  return normalizedUsername === 'guest' || normalizedEmail === 'guest_user'
 }
 
 const inWebWorker = typeof sessionStorage === 'undefined'
@@ -147,8 +146,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         } catch {
           return
         }
-        const apolloAccounts = rootModel.internetAccounts.filter(
-          isApolloInternetAccount,
+        const apolloAccounts = rootModel.internetAccounts.filter((account) =>
+          isApolloInternetAccount(account),
         )
         revokeOtherApolloTokens(apolloAccounts, self.tokenKey)
       },
@@ -341,8 +340,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           return
         }
         if (typeof authType === 'string' && authType !== 'guest') {
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          self.openAuthWindow(authType, resolve, reject)
+          void self.openAuthWindow(authType, resolve, reject)
           return
         }
         const url = new URL('auth/login', baseURL)

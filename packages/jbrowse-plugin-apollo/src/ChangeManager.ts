@@ -3,9 +3,9 @@ import {
   isAssemblySpecificChange,
 } from '@apollo-annotation/common'
 import {
+  getDecodedToken,
   type ValidationResultSet,
   validationRegistry,
-  getDecodedToken,
 } from '@apollo-annotation/shared'
 import { getSession } from '@jbrowse/core/util'
 
@@ -40,12 +40,12 @@ export class ChangeManager {
     const session = getSession(this.dataStore)
     const controller = new AbortController()
 
-    const internetAccounts = this.dataStore.internetAccounts as Array<{
+    const internetAccounts = this.dataStore.internetAccounts as {
       type?: string
       internetAccountId?: string
       role?: string
       retrieveToken?: () => string | undefined
-    }>
+    }[]
     const apolloAccounts = internetAccounts.filter(
       (account) => account.type === 'ApolloInternetAccount',
     )
@@ -66,8 +66,8 @@ export class ChangeManager {
       const decoded = getDecodedToken(token)
       decodedRole = decoded.role
       isGuest =
-        decoded.username?.toLowerCase() === 'guest' ||
-        decoded.email?.toLowerCase() === 'guest_user'
+        decoded.username.toLowerCase() === 'guest' ||
+        decoded.email.toLowerCase() === 'guest_user'
     } catch {
       // ignore decode errors here and fall back to account role below
     }

@@ -32,33 +32,33 @@ function getApolloInternetAccounts(rootModel: ApolloRootModel) {
 
 function getStoredToken(account?: ApolloInternetAccountModel) {
   if (!account) {
-    return undefined
+    return
   }
   try {
     if (!isAlive(account)) {
-      return undefined
+      return
     }
     const accountWithTokenKey = account as ApolloInternetAccountModel & {
       tokenKey?: string
     }
     if (!accountWithTokenKey.tokenKey) {
-      return undefined
+      return
     }
-    return globalThis.sessionStorage
-      .getItem(accountWithTokenKey.tokenKey)
-      ?.trim()
+    const token = globalThis.sessionStorage.getItem(
+      accountWithTokenKey.tokenKey,
+    )
+    return token ? token.trim() : undefined
   } catch {
-    return undefined
+    return
   }
 }
 
 function isGuestToken(token: string) {
   try {
     const { username, email } = getDecodedToken(token)
-    return (
-      username?.toLowerCase() === 'guest' ||
-      email?.toLowerCase() === 'guest_user'
-    )
+    const normalizedUsername = String(username).toLowerCase()
+    const normalizedEmail = String(email).toLowerCase()
+    return normalizedUsername === 'guest' || normalizedEmail === 'guest_user'
   } catch {
     return false
   }
