@@ -52,6 +52,18 @@ Bring the repository toward passing strict lint in CI
 
 ## Fix wave log
 
+### Post-remediation CI follow-ups
+
+- Commit `0017a2a`:
+  - fixed collaboration-server TypeScript CI blockers
+  - compacted and improved visibility of Manage Users tabs
+- Commit `5d2985e`:
+  - fixed final CI lint blocker (`unicorn/no-nested-ternary`) in
+    `assemblyPermissions.service.ts`
+- CI status:
+  - `https://github.com/USDA-REE-ARS/nal-i5k-apollo3/actions/runs/27367273968`
+  - completed successfully
+
 ### Current status (latest local run)
 
 - Command:
