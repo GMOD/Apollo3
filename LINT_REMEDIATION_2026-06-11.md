@@ -45,15 +45,14 @@ Bring the repository toward passing strict lint in CI
 
 ## Fix strategy
 
-1. Fix changed plugin files first (security/auth/session work already in
-   progress).
+1. Fix touched plugin files first to avoid regressions in auth/session UX.
 2. Land cleanup in small, reviewable commits by rule family.
-3. Expand to collaboration-server files next, focusing on high-count files.
-4. Re-run lint in CI after each fix wave and record delta here.
+3. Expand to collaboration-server files next, prioritizing highest-error tests.
+4. Re-run lint in CI after each wave and record deltas here.
 
 ## Fix wave log
 
-### Wave 1 (in progress)
+### Wave 1
 
 - Scope:
   - `packages/jbrowse-plugin-apollo/src/menus/topLevelMenu.ts`
@@ -62,63 +61,16 @@ Bring the repository toward passing strict lint in CI
   - `packages/jbrowse-plugin-apollo/src/ApolloInternetAccount/components/AuthTypeSelector.tsx`
   - `packages/jbrowse-plugin-apollo/src/components/LogOut.tsx`
   - `packages/jbrowse-plugin-apollo/src/components/ManageUsers.tsx`
+  - `packages/jbrowse-plugin-apollo/src/ApolloInternetAccount/model.ts`
 - Focused rule families:
   - `unicorn/no-useless-undefined`
   - `@typescript-eslint/array-type`
   - `@typescript-eslint/no-unnecessary-condition`
   - `@typescript-eslint/consistent-type-definitions`
   - `unicorn/prefer-switch`
-  - `react-hooks/rules-of-hooks` (structural fixes only)
-
-### Wave 1 status
-
-- Completed edits in:
-  - `packages/jbrowse-plugin-apollo/src/menus/topLevelMenu.ts`
-  - `packages/jbrowse-plugin-apollo/src/ChangeManager.ts`
-
-### Wave 5 (in progress)
-
-- Scope:
-  - `packages/jbrowse-plugin-apollo/src/session/session.ts`
-- Focused rule families:
-  - `@typescript-eslint/no-unsafe-assignment`
-  - `@typescript-eslint/no-unsafe-member-access`
-  - reduction of repeated cast patterns in session/view handling
-
-### Wave 5 status
-
-- Completed edits in:
-  - `packages/jbrowse-plugin-apollo/src/session/session.ts`
-- What was fixed in this wave:
-  - added helper narrowers for abstract session and linear genome view access
-  - replaced repeated `self as unknown as ...` cast sites with helper usage
-  - switched broadcast loops to type-guarded Apollo account iteration
-  - aligned duplicated autorun location-broadcast path with typed helper flow
-
-### Wave 6 (in progress)
-
-- Scope:
-  - `packages/apollo-collaboration-server/src/changes/changes.service.spec.ts`
-- Focused rule families:
-  - `@typescript-eslint/no-unnecessary-type-assertion`
-  - `@typescript-eslint/no-unsafe-assignment`
-  - test fixture typing cleanup in constructor wiring and JWT test inputs
-
-### Wave 6 status
-
-- Completed edits in:
-  - `packages/apollo-collaboration-server/src/changes/changes.service.spec.ts`
-- What was fixed in this wave:
-  - switched constructor dependency casts from `never` to constructor-derived
-    argument types
-  - introduced explicit `DecodedJWT` typing for test users
-  - removed `change/user as never` call-site casts for create/findAll assertions
-  - `packages/jbrowse-plugin-apollo/src/ApolloInternetAccount/tokenUtils.ts`
-  - `packages/jbrowse-plugin-apollo/src/ApolloInternetAccount/components/AuthTypeSelector.tsx`
-  - `packages/jbrowse-plugin-apollo/src/components/LogOut.tsx`
-  - `packages/jbrowse-plugin-apollo/src/components/ManageUsers.tsx`
-  - `packages/jbrowse-plugin-apollo/src/ApolloInternetAccount/model.ts`
-- What was fixed in this wave:
+  - `react-hooks/rules-of-hooks`
+- Status: completed
+- What was fixed:
   - replaced `type` with `interface` where required
   - removed useless `undefined` returns
   - simplified unnecessary optional chains
@@ -127,7 +79,7 @@ Bring the repository toward passing strict lint in CI
   - fixed hook ordering issue in logout dialog
   - added `useCallback` for effect dependency stability in ManageUsers
 
-### Wave 2 (in progress)
+### Wave 2
 
 - Scope:
   - `packages/apollo-collaboration-server/src/changes/changes.service.spec.ts`
@@ -141,15 +93,8 @@ Bring the repository toward passing strict lint in CI
   - `@typescript-eslint/no-explicit-any`
   - `unicorn/no-await-expression-member`
   - `unicorn/consistent-function-scoping`
-
-### Wave 2 status
-
-- Completed edits in:
-  - `packages/apollo-collaboration-server/src/changes/changes.service.spec.ts`
-  - `packages/apollo-collaboration-server/src/authentication/authentication.service.spec.ts`
-  - `packages/apollo-collaboration-server/src/authentication/authentication.service.ts`
-  - `packages/apollo-collaboration-server/src/utils/strategies/login-gov.strategy.ts`
-- What was fixed in this wave:
+- Status: completed
+- What was fixed:
   - introduced typed jest imports/mocks and helper exec factory for specs
   - removed `any`-based constructor wiring in auth service spec
   - moved auth spec factory to module scope
@@ -158,7 +103,7 @@ Bring the repository toward passing strict lint in CI
   - replaced login.gov strategy non-null assertions and `any` cast with explicit
     guards and typed oauth2 agent handling
 
-### Wave 3 (in progress)
+### Wave 3
 
 - Scope:
   - `packages/jbrowse-plugin-apollo/src/components/MyAssemblyPermissions.tsx`
@@ -166,22 +111,16 @@ Bring the repository toward passing strict lint in CI
 - Focused rule families:
   - `@typescript-eslint/no-unnecessary-type-assertion`
   - `@typescript-eslint/no-unsafe-assignment`
-  - `@typescript-eslint/no-unsafe-call`
-  - callback typing and explicit render param typing in UI code
-
-### Wave 3 status
-
-- Completed edits in:
-  - `packages/jbrowse-plugin-apollo/src/components/MyAssemblyPermissions.tsx`
-  - `packages/jbrowse-plugin-apollo/src/session/session.ts`
-- What was fixed in this wave:
-  - removed broad top-level eslint suppressions in My workspace dialog file
+  - callback and render-parameter typing in UI code
+- Status: completed
+- What was fixed:
+  - removed broad top-level suppressions in My workspace dialog file
   - added explicit DataGrid render-cell typing and typed switch change handler
   - removed unnecessary string casts when loading assemblies from row data
   - introduced typed Apollo account filtering helper in session model
   - replaced repeated array-cast loops with type-guarded account iteration
 
-### Wave 4 (in progress)
+### Wave 4
 
 - Scope:
   - `packages/jbrowse-plugin-apollo/src/ApolloInternetAccount/model.ts`
@@ -189,16 +128,59 @@ Bring the repository toward passing strict lint in CI
   - `@typescript-eslint/no-unsafe-member-access`
   - `@typescript-eslint/no-unsafe-assignment`
   - reduction of repeated `unknown as` casts around live session access
-
-### Wave 4 status
-
-- Completed edits in:
-  - `packages/jbrowse-plugin-apollo/src/ApolloInternetAccount/model.ts`
-- What was fixed in this wave:
+- Status: completed
+- What was fixed:
   - introduced a typed `LiveApolloSession` helper interface
   - updated live-session retrieval helpers to return typed session objects
   - removed repeated `unknown as AbstractSessionModel` casts at socket and
     role-notification call sites
+
+### Wave 5
+
+- Scope:
+  - `packages/jbrowse-plugin-apollo/src/session/session.ts`
+- Focused rule families:
+  - `@typescript-eslint/no-unsafe-assignment`
+  - `@typescript-eslint/no-unsafe-member-access`
+  - reduction of repeated cast patterns in session/view handling
+- Status: completed
+- What was fixed:
+  - added helper narrowers for abstract session and linear genome view access
+  - replaced repeated `self as unknown as ...` cast sites with helper usage
+  - switched broadcast loops to type-guarded Apollo account iteration
+  - aligned duplicated autorun location-broadcast path with typed helper flow
+
+### Wave 6
+
+- Scope:
+  - `packages/apollo-collaboration-server/src/changes/changes.service.spec.ts`
+- Focused rule families:
+  - `@typescript-eslint/no-unnecessary-type-assertion`
+  - `@typescript-eslint/no-unsafe-assignment`
+  - test fixture typing cleanup in constructor wiring and JWT test inputs
+- Status: completed
+- What was fixed:
+  - switched constructor dependency casts from `never` to constructor-derived
+    argument types
+  - introduced explicit `DecodedJWT` typing for test users
+  - removed `change/user as never` call-site casts for create/findAll assertions
+
+### Wave 7
+
+- Scope:
+  - `packages/apollo-collaboration-server/src/jbrowse/jbrowse.service.spec.ts`
+  - `packages/apollo-collaboration-server/src/features/features.controller.spec.ts`
+  - `packages/apollo-collaboration-server/src/features/features.service.spec.ts`
+  - `packages/apollo-collaboration-server/src/changes/changes.controller.spec.ts`
+- Focused rule families:
+  - `@typescript-eslint/no-unnecessary-type-assertion`
+  - `@typescript-eslint/no-unsafe-assignment`
+  - replacement of `never` placeholder casts in small controller/service specs
+- Status: completed
+- What was fixed:
+  - replaced constructor `never` casts with constructor-derived argument types
+  - replaced `mockResolvedValue(... as never)` in JBrowse spec with
+    method-return-type-based typing
 
 ## Upstream contribution path
 
