@@ -1,4 +1,4 @@
-import { DeleteFeatureChange } from '@apollo-annotation/shared'
+import { DeleteFeatureChange, type DecodedJWT } from '@apollo-annotation/shared'
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { UnprocessableEntityException } from '@nestjs/common'
 
@@ -7,6 +7,8 @@ import { ChangesService } from './changes.service.js'
 function makeExec<T>(value: T) {
   return { exec: jest.fn<() => Promise<T>>().mockResolvedValue(value) }
 }
+
+type ChangesServiceCtorArgs = ConstructorParameters<typeof ChangesService>
 
 describe('ChangesService', () => {
   let service: ChangesService
@@ -37,16 +39,16 @@ describe('ChangesService', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     service = new ChangesService(
-      featureModel as never,
-      assemblyModel as never,
-      refSeqModel as never,
-      refSeqChunkModel as never,
-      changeModel as never,
+      featureModel as ChangesServiceCtorArgs[0],
+      assemblyModel as ChangesServiceCtorArgs[1],
+      refSeqModel as ChangesServiceCtorArgs[2],
+      refSeqChunkModel as ChangesServiceCtorArgs[3],
+      changeModel as ChangesServiceCtorArgs[4],
       // Slice 2 dependency
-      assemblyPermissionsService as never,
-      countersService as never,
-      {} as never,
-      {} as never,
+      assemblyPermissionsService as ChangesServiceCtorArgs[5],
+      countersService as ChangesServiceCtorArgs[6],
+      {} as ChangesServiceCtorArgs[7],
+      {} as ChangesServiceCtorArgs[8],
     )
     countersService.getNextSequenceValue.mockResolvedValue(1)
   })
@@ -69,7 +71,7 @@ describe('ChangesService', () => {
         max: 10,
       } as never,
     })
-    const user = {
+    const user: DecodedJWT = {
       id: 'user123',
       username: 'user1',
       email: 'user1@test',
@@ -78,9 +80,9 @@ describe('ChangesService', () => {
       exp: 2,
     }
 
-    await expect(
-      service.create(change as never, user as never),
-    ).rejects.toThrow(UnprocessableEntityException)
+    await expect(service.create(change, user)).rejects.toThrow(
+      UnprocessableEntityException,
+    )
     expect(assemblyPermissionsService.canEdit).toHaveBeenCalledWith(
       'user123',
       'assembly123',
@@ -93,14 +95,15 @@ describe('ChangesService', () => {
       'assembly123',
     ])
 
-    await service.findAll({ typeName: 'DeleteFeatureChange' }, {
+    const user: DecodedJWT = {
       id: 'user123',
       username: 'user1',
       email: 'user1@test',
       role: 'user',
       iat: 1,
       exp: 2,
-    } as never)
+    }
+    await service.findAll({ typeName: 'DeleteFeatureChange' }, user)
 
     expect(changeModel.find).toHaveBeenCalledWith(
       expect.objectContaining({

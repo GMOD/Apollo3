@@ -94,6 +94,25 @@ Bring the repository toward passing strict lint in CI
   - replaced repeated `self as unknown as ...` cast sites with helper usage
   - switched broadcast loops to type-guarded Apollo account iteration
   - aligned duplicated autorun location-broadcast path with typed helper flow
+
+### Wave 6 (in progress)
+
+- Scope:
+  - `packages/apollo-collaboration-server/src/changes/changes.service.spec.ts`
+- Focused rule families:
+  - `@typescript-eslint/no-unnecessary-type-assertion`
+  - `@typescript-eslint/no-unsafe-assignment`
+  - test fixture typing cleanup in constructor wiring and JWT test inputs
+
+### Wave 6 status
+
+- Completed edits in:
+  - `packages/apollo-collaboration-server/src/changes/changes.service.spec.ts`
+- What was fixed in this wave:
+  - switched constructor dependency casts from `never` to constructor-derived
+    argument types
+  - introduced explicit `DecodedJWT` typing for test users
+  - removed `change/user as never` call-site casts for create/findAll assertions
   - `packages/jbrowse-plugin-apollo/src/ApolloInternetAccount/tokenUtils.ts`
   - `packages/jbrowse-plugin-apollo/src/ApolloInternetAccount/components/AuthTypeSelector.tsx`
   - `packages/jbrowse-plugin-apollo/src/components/LogOut.tsx`
