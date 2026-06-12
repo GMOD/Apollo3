@@ -1,3 +1,5 @@
+/* eslint-disable @eslint-react/set-state-in-effect */
+/* eslint-disable @eslint-react/static-components */
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import styled from '@emotion/styled'
 import {
@@ -66,7 +68,7 @@ export const ApolloTranscriptDetailsWidget = observer(
 
     useEffect(() => {
       setPanelState(DEFAULT_PANELS)
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+      // eslint-disable-next-line @eslint-react/exhaustive-deps
     }, [feature])
 
     const session = getSession(model) as unknown as AbstractSessionModel

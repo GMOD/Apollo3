@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @eslint-react/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/unbound-method */
 
@@ -192,30 +192,35 @@ export function CreateApolloAnnotation({
   const refSeq = apolloAssembly?.refSeqs.get(refSeqId)
   const features = refSeq?.getFeatures(region.start, region.end)
 
-  const getDestinationFeatures = () => {
-    const filteredFeatures: AnnotationFeatureSnapshot[] = []
-
-    for (const f of features ?? []) {
-      if (f.min > region.end || f.max < region.start) {
-        continue
-      }
-
-      // Destination feature should be of type gene
-      if (featureTypeOntology?.isTypeOf(f.type, 'gene')) {
-        const featureSnapshot = getSnapshot(f)
-        filteredFeatures.push(featureSnapshot)
-      }
-    }
-
-    return filteredFeatures
-  }
-
   useEffect(() => {
+    const getDestinationFeatures = () => {
+      const filteredFeatures: AnnotationFeatureSnapshot[] = []
+
+      for (const f of features ?? []) {
+        if (f.min > region.end || f.max < region.start) {
+          continue
+        }
+
+        // Destination feature should be of type gene
+        if (featureTypeOntology?.isTypeOf(f.type, 'gene')) {
+          const featureSnapshot = getSnapshot(f)
+          filteredFeatures.push(featureSnapshot)
+        }
+      }
+
+      return filteredFeatures
+    }
     setErrorMessage('')
-    const features = getDestinationFeatures()
-    setDestinationFeatures(features)
-    setSelectedDestinationFeature(features[0])
-  }, [checkedChildrens, parentFeatureChecked, region])
+    const destinationFeatures = getDestinationFeatures()
+    setDestinationFeatures(destinationFeatures)
+    setSelectedDestinationFeature(destinationFeatures[0])
+  }, [
+    checkedChildrens,
+    featureTypeOntology,
+    features,
+    parentFeatureChecked,
+    region,
+  ])
 
   const handleParentFeatureCheck = (
     event: React.ChangeEvent<HTMLInputElement>,

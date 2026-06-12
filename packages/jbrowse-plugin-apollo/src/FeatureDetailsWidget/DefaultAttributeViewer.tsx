@@ -10,6 +10,7 @@ export function DefaultAttributeViewer({ values }: AttributeViewerProps) {
     <>
       {values?.map((value, idx) => (
         <Typography
+          // eslint-disable-next-line @eslint-react/no-array-index-key
           key={`${idx}.${value}`}
           variant="body2"
           color="textSecondary"

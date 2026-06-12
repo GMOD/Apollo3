@@ -68,7 +68,7 @@ export const AddRefSeqAliases = observer(function AddRefSeqAliases({
     }[]
   >([])
   const [refNameAliasMap, setRefNameAliasMap] = useState<Map<string, string[]>>(
-    new Map(),
+    () => new Map(),
   )
 
   const { apolloDataStore } = session
@@ -83,6 +83,7 @@ export const AddRefSeqAliases = observer(function AddRefSeqAliases({
 
   useEffect(() => {
     if (assemblies.length > 0) {
+      // eslint-disable-next-line @eslint-react/set-state-in-effect
       setSelectedAssembly(assemblies[0])
       collaborationServerDriver
         .getRefNameAliases(assemblies[0].name)
@@ -94,7 +95,7 @@ export const AddRefSeqAliases = observer(function AddRefSeqAliases({
           setErrorMessage('Error fetching refName aliases for assembly')
         })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line @eslint-react/exhaustive-deps
   }, [])
 
   const initializeRefNameAliasMap = (refNameAliasesList: RefNameAliases[]) => {

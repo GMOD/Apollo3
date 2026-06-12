@@ -1,3 +1,4 @@
+/* eslint-disable @eslint-react/set-state-in-effect */
 /* eslint-disable @typescript-eslint/unbound-method */
 import { makeStyles } from '@jbrowse/core/util/tss-react'
 import { observer } from 'mobx-react'
@@ -41,7 +42,7 @@ export const NumberCell = observer(function NumberCell({
     if (initialValue !== value) {
       setValue(initialValue)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line @eslint-react/exhaustive-deps
   }, [initialValue])
 
   useEffect(() => {

@@ -40,7 +40,7 @@ export function DeleteAssembly({
 }: DeleteAssemblyProps) {
   const { internetAccounts } = getRoot<ApolloRootModel>(session)
   const [errorMessage, setErrorMessage] = useState('')
-  const [confirmDelete, setconfirmDelete] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const apolloInternetAccounts = internetAccounts.filter(
     (ia) => ia.type === 'ApolloInternetAccount',
@@ -151,7 +151,7 @@ export function DeleteAssembly({
                 <Checkbox
                   checked={confirmDelete}
                   onChange={() => {
-                    setconfirmDelete(!confirmDelete)
+                    setConfirmDelete(!confirmDelete)
                   }}
                 />
               }
