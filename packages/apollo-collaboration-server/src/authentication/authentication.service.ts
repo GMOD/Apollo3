@@ -80,7 +80,7 @@ export class AuthenticationService {
       })
       microsoftClientID =
         clientIDFile && (await fs.readFile(clientIDFile, 'utf8'))
-      microsoftClientID = clientIDFile?.trim()
+      microsoftClientID = microsoftClientID?.trim()
     }
     let googleClientID = this.configService.get('GOOGLE_CLIENT_ID', {
       infer: true,
@@ -90,7 +90,7 @@ export class AuthenticationService {
         infer: true,
       })
       googleClientID = clientIDFile && (await fs.readFile(clientIDFile, 'utf8'))
-      googleClientID = clientIDFile?.trim()
+      googleClientID = googleClientID?.trim()
     }
     const allowGuestUser = this.configService.get('ALLOW_GUEST_USER', {
       infer: true,
@@ -165,7 +165,7 @@ export class AuthenticationService {
     // Find user from Mongo
     let user = await this.usersService.findByEmail(email)
     if (!user) {
-      let newUserRole = this.defaultNewUserRole
+      let newUserRole
       const isRootUser = name === ROOT_USER_NAME && email === ROOT_USER_EMAIL
       if (isRootUser) {
         newUserRole = Role.Admin

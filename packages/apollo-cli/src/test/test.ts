@@ -414,7 +414,7 @@ void describe('Test CLI', () => {
       `${apollo} feature edit-coords ${P} -i ${cds_id} --start 4 --end 24`,
     )
     p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
-    let checks = JSON.parse(p.stdout)
+    const checks = JSON.parse(p.stdout)
     assert.strictEqual(checks.length, 2)
     assert.ok(p.stdout.includes('InternalStopCodon'))
     assert.ok(p.stdout.includes('MissingStopCodon'))
@@ -428,8 +428,8 @@ void describe('Test CLI', () => {
     assert.ok(p.stderr.includes('exceeds the bounds of its parent'))
 
     // FIXME: Checks should be the same as before the invalid edit
-    p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
-    checks = JSON.parse(p.stdout)
+    // p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
+    // checks = JSON.parse(p.stdout)
     //assert.strictEqual(checks.length, 2)
     //assert.ok(p.stdout.includes('InternalStopCodon'))
     //assert.ok(p.stdout.includes('MissingStopCodon'))
@@ -564,7 +564,7 @@ void describe('Test CLI', () => {
     const contig_id = contig.at(0)._id
 
     // Edit type of "contig" feature
-    p = new Shell(`${apollo} feature edit-type ${P} -i ${contig_id} -t region`)
+    new Shell(`${apollo} feature edit-type ${P} -i ${contig_id} -t region`)
 
     p = new Shell(
       `${apollo} feature get ${P} -r ${refseq} | jq '.[] | select(._id == "${contig_id}")'`,
@@ -613,9 +613,7 @@ void describe('Test CLI', () => {
     assert.strictEqual(contig.min, 20 - 1)
     assert.strictEqual(contig.max, 100)
 
-    p = new Shell(
-      `${apollo} feature edit-coords ${P} -i ${contig_id} -s 1 -e 1`,
-    )
+    new Shell(`${apollo} feature edit-coords ${P} -i ${contig_id} -s 1 -e 1`)
     p = new Shell(
       `${apollo} feature get ${P} -r ${refseq} | jq '.[] | select(._id == "${contig_id}")'`,
     )
@@ -678,7 +676,7 @@ void describe('Test CLI', () => {
     const fid = p.stdout.trim()
 
     // Edit existing attribute value
-    p = new Shell(
+    new Shell(
       `${apollo} feature edit-attribute ${P} -i ${fid} -a source -v 'Eggs & Stuff'`,
     )
     p = new Shell(`${apollo} feature edit-attribute ${P} -i ${fid} -a source`)
@@ -697,7 +695,7 @@ void describe('Test CLI', () => {
     assert.deepStrictEqual(p.stdout.trim(), '')
 
     // List of values
-    p = new Shell(
+    new Shell(
       `${apollo} feature edit-attribute ${P} -i ${fid} -a newAttr -v A B C`,
     )
     p = new Shell(`${apollo} feature edit-attribute ${P} -i ${fid} -a newAttr`)
@@ -712,7 +710,7 @@ void describe('Test CLI', () => {
     new Shell(`${apollo} feature edit-attribute ${P} -i ${fid} -a newAttr -d`)
 
     // Special fields
-    p = new Shell(
+    new Shell(
       `${apollo} feature edit-attribute ${P} -i ${fid} -a 'Gene Ontology' -v GO:0051728 GO:0019090`,
     )
     p = new Shell(
@@ -722,7 +720,7 @@ void describe('Test CLI', () => {
     assert.deepStrictEqual(out, ['GO:0051728', 'GO:0019090'])
 
     // This should fail
-    p = new Shell(
+    new Shell(
       `${apollo} feature edit-attribute ${P} -i ${fid} -a 'Gene Ontology' -v FOOBAR`,
     )
   })
@@ -847,7 +845,7 @@ void describe('Test CLI', () => {
     assert.ok(out.at(0)?.type === 'gene')
 
     // Gets feature and child feature that were added manually (not imported)
-    p = new Shell(
+    new Shell(
       `${apollo} feature add ${P} <<EOF
 {
   "assembly": "vv1",
@@ -967,27 +965,27 @@ EOF`,
     p = new Shell(
       `${apollo} feature add ${P} -a tiny -r ctgA -s 1 -e 10 -t remark`,
     )
-    out = JSON.parse(p.stdout)
+    JSON.parse(p.stdout)
     p = new Shell(`${apollo} feature get ${P} -a tiny`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(out.length, 1)
     const refSeqId = out[0].refSeq
     // Can add a feature using assembly and refSeq ids
-    p = new Shell(
+    new Shell(
       `${apollo} feature add ${P} -a ${assemblyId} -r ${refSeqId} -s 11 -e 20 -t remark`,
     )
     p = new Shell(`${apollo} feature get ${P} -a ${assemblyId}`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(out.length, 2)
     // Can add a feature using JSON arg
-    p = new Shell(
+    new Shell(
       `${apollo} feature add ${P} '{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":21,"max":30,"type":"remark"}'`,
     )
-    p = new Shell(`${apollo} feature get ${P} -a ${assemblyId}`)
+    new Shell(`${apollo} feature get ${P} -a ${assemblyId}`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(out.length, 3)
     // Can add a feature using JSON from stdin
-    p = new Shell(
+    new Shell(
       `${apollo} feature add ${P} <<EOF
 {
   "assembly": "${assemblyId}",
@@ -1006,7 +1004,7 @@ EOF`,
       'test_data/tmp.json',
       `{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":41,"max":50,"type":"remark"}\n`,
     )
-    p = new Shell(
+    new Shell(
       `${apollo} feature add ${P} --feature-json-file test_data/tmp.json`,
     )
     fs.unlinkSync('test_data/tmp.json')
@@ -1014,14 +1012,14 @@ EOF`,
     out = JSON.parse(p.stdout)
     assert.strictEqual(out.length, 5)
     // Can add multiple features using JSON
-    p = new Shell(
+    new Shell(
       `${apollo} feature add ${P} '[{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":51,"max":60,"type":"remark"},{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":61,"max":70,"type":"remark"}]'`,
     )
-    p = new Shell(`${apollo} feature get ${P} -a ${assemblyId}`)
+    new Shell(`${apollo} feature get ${P} -a ${assemblyId}`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(out.length, 7)
     // Can add a feature with children from JSON
-    p = new Shell(
+    new Shell(
       `${apollo} feature add ${P} '{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":71,"max":80,"type":"match","children":[{"min":71,"max":75,"type":"match_part"}]}'`,
     )
     p = new Shell(
@@ -1031,7 +1029,7 @@ EOF`,
     let feature = out.at(0)
     assert.strictEqual(Object.keys(feature?.children).length, 1)
     // Can add a feature with attributes from JSON
-    p = new Shell(
+    new Shell(
       `${apollo} feature add ${P} '{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":81,"max":90,"type":"remark","attributes":{"key1":["val1"]}}'`,
     )
     p = new Shell(
@@ -1041,7 +1039,7 @@ EOF`,
     feature = out.at(0)
     assert.strictEqual(feature?.attributes?.key1?.[0], 'val1')
     // Can add a feature with children from JSON
-    p = new Shell(
+    new Shell(
       `${apollo} feature add ${P} '{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":91,"max":100,"type":"match","children":[{"min":91,"max":95,"type":"match_part","attributes":{"key2":["val2"]}}]}'`,
     )
     p = new Shell(
@@ -1094,22 +1092,20 @@ EOF`,
     assert.strictEqual(out.length, 2)
 
     // Import again: Add to existing feature
-    p = new Shell(
-      `${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`,
-    )
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t contig`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(out.length, 4)
 
     // Import again: delete ${P} existing
-    p = new Shell(
+    new Shell(
       `${apollo} feature import ${P} -d test_data/tiny.fasta.gff3 -a vv1`,
     )
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t contig`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(out.length, 2)
 
-    p = new Shell(`${apollo} assembly delete ${P} -a vv2`)
+    new Shell(`${apollo} assembly delete ${P} -a vv2`)
     p = new Shell(
       `${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv2`,
       false,
@@ -1147,7 +1143,7 @@ EOF`,
       (x: any) => x.name === 'ctgA',
     )._id
 
-    p = new Shell(`${apollo} feature copy ${P} -i ${fid} -r ${destRefSeq} -s 2`)
+    new Shell(`${apollo} feature copy ${P} -i ${fid} -r ${destRefSeq} -s 2`)
     p = new Shell(`${apollo} feature search ${P} -a dest2 -t contig`)
     out = JSON.parse(p.stdout).at(0)
     assert.strictEqual(out.min, 1)
@@ -1156,7 +1152,7 @@ EOF`,
     // Copy to same assembly
     new Shell(`${apollo} feature copy ${P} -i ${fid} -r ctgA -a source -s 10`)
     p = new Shell(`${apollo} feature search ${P} -a source -t contig`)
-    out = JSON.parse(p.stdout)
+    JSON.parse(p.stdout)
 
     // Copy non-existant feature or refseq
     p = new Shell(

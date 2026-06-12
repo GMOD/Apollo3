@@ -104,8 +104,8 @@ function getOriginalCodonLocation(
       ? cdsLocation.toSorted((a, b) => (a.min < b.min ? 1 : -1))
       : cdsLocation.toSorted((a, b) => (a.min < b.min ? -1 : 1))
   let i = 0
-  let currentStart: number | undefined = undefined
-  let currentEnd: number | undefined = undefined
+  let currentStart: number | undefined
+  let currentEnd: number | undefined
   for (let iloc = 0; iloc < sortedLocation.length; iloc++) {
     const loc = sortedLocation[iloc]
     const { phase } = loc

@@ -75,8 +75,7 @@ the database or by name and assembly or by identifier.'
     }
     const feature: AnnotationFeatureSnapshot =
       (await res.json()) as AnnotationFeatureSnapshot
-    let refseqIds: string[] = []
-    refseqIds = await getRefseqId(
+    const refseqIds = await getRefseqId(
       access.address,
       access.accessToken,
       flags.refseq,

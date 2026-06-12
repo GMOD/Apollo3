@@ -261,7 +261,7 @@ function getTranscriptParts(
 function getCdsLocations(
   feature: AnnotationFeatureSnapshot,
 ): TranscriptPartCoding[][] {
-  let transcriptParts: TranscriptParts[] = []
+  let transcriptParts: TranscriptParts[]
   try {
     transcriptParts = getTranscriptParts(feature)
   } catch {

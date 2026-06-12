@@ -109,8 +109,7 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
     const address: string = config.get(
       `${profileName}.${KEYS[KEYS.address]}`,
     ) as string
-    let accessType = ''
-    accessType = await this.selectAccessType(address)
+    const accessType = await this.selectAccessType(address)
 
     config.setAccessType(profileName, accessType)
     if (accessType === 'root') {

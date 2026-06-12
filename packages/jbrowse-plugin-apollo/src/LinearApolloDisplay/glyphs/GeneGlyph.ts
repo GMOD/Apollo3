@@ -30,12 +30,10 @@ function draw(
   const [top, left, width] = getFeatureBox(display, gene, row, block)
   const height = getRowCount(display, gene) * apolloRowHeight
   if (width > 2) {
-    let selectedColor = readConfObject(
-      session.getPluginConfiguration(),
-      'geneBackgroundColor',
-      { featureType: gene.type },
-    ) as string
-    selectedColor = alpha(theme.palette.background.paper, 0.6)
+    const selectedColor =
+      (readConfObject(session.getPluginConfiguration(), 'geneBackgroundColor', {
+        featureType: gene.type,
+      }) as string | undefined) ?? alpha(theme.palette.background.paper, 0.6)
     ctx.fillStyle = selectedColor
     ctx.fillRect(left, top, width, height)
   }
