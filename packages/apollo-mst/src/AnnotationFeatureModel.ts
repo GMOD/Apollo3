@@ -90,6 +90,7 @@ export const AnnotationFeatureModel = types
      */
     get minWithChildren() {
       let { min } = self
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       const children = self.children as Children
       if (!children) {
         return min
@@ -106,6 +107,7 @@ export const AnnotationFeatureModel = types
      */
     get maxWithChildren() {
       let { max } = self
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       const children = self.children as Children
       if (!children) {
         return max
@@ -116,7 +118,7 @@ export const AnnotationFeatureModel = types
       return max
     },
     hasDescendant(featureId: string) {
-      const children = self.children as Children
+      const { children } = self
       if (!children) {
         return false
       }
@@ -143,7 +145,7 @@ export const AnnotationFeatureModel = types
           'Feature is not a transcript or equivalent, cannot calculate exon locations',
         )
       }
-      const children = self.children as Children
+      const { children } = self
       if (!children) {
         throw new Error('No exons in transcript')
       }
@@ -192,6 +194,7 @@ export const AnnotationFeatureModel = types
           'Only features of type "transcript" or equivalent can calculate CDS locations',
         )
       }
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       const children = self.children as Children
       if (!children) {
         throw new Error('no CDS or exons in transcript')

@@ -6,7 +6,7 @@ import type { LinearApolloSixFrameDisplay } from '../stateModel'
 export const TrackLines = observer(function TrackLines({
   model,
   hrStyle = { margin: 0, top: 0, color: 'black' },
-  idx = 0,
+  idx,
 }: {
   model: LinearApolloSixFrameDisplay
   hrStyle?: React.CSSProperties

@@ -57,15 +57,13 @@ export class SequenceService {
   private readonly logger = new Logger(SequenceService.name)
 
   async getSequence({ end, refSeq: refSeqId, start }: GetSequenceDto) {
-    let refSeq: RefSeqDocument | null | undefined = refSeqDocLRU.get(
-      String(refSeqId),
-    )
+    let refSeq: RefSeqDocument | null | undefined = refSeqDocLRU.get(refSeqId)
     if (!refSeq) {
       refSeq = await this.refSeqModel.findById(refSeqId)
       if (!refSeq) {
         throw new Error(`RefSeq "${refSeqId}" not found`)
       }
-      refSeqDocLRU.set(String(refSeqId), refSeq)
+      refSeqDocLRU.set(refSeqId, refSeq)
     }
 
     const { assembly, chunkSize, name } = refSeq
@@ -112,7 +110,7 @@ export class SequenceService {
 
     if (assemblyDoc.fileIds?.fai) {
       const { fa: faId, fai: faiId, gzi: gziId } = assemblyDoc.fileIds
-      const adapterCacheEntry = adapterLRU.get(String(faId))
+      const adapterCacheEntry = adapterLRU.get(faId)
       let sequenceAdapter = adapterCacheEntry?.adapter
       if (!sequenceAdapter) {
         const faDoc = await this.fileModel.findById(faId)
@@ -140,7 +138,7 @@ export class SequenceService {
         if (gzi) {
           fileHandles.push(gzi)
         }
-        adapterLRU.set(String(faId), { adapter: sequenceAdapter, fileHandles })
+        adapterLRU.set(faId, { adapter: sequenceAdapter, fileHandles })
       }
       const sequence = await sequenceAdapter.getSequence(name, start, end)
       if (sequence === undefined) {

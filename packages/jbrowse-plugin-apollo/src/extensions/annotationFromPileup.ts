@@ -8,11 +8,7 @@ import type {
   DisplayType,
   PluggableElementType,
 } from '@jbrowse/core/pluggableElementTypes'
-import {
-  type AbstractSessionModel,
-  getContainingView,
-  getSession,
-} from '@jbrowse/core/util'
+import { getContainingView, getSession } from '@jbrowse/core/util'
 import type { Feature } from '@jbrowse/core/util/simpleFeature'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import ObjectID from 'bson-objectid'
@@ -81,9 +77,7 @@ export function annotationFromPileup(pluggableElement: PluggableElementType) {
             case 'M':
             case '=':
             case 'X': {
-              if (currentExonStart === undefined) {
-                currentExonStart = position
-              }
+              currentExonStart ??= position
               position += len
               break
             }
@@ -190,24 +184,22 @@ export function annotationFromPileup(pluggableElement: PluggableElementType) {
                   }
                   refSeqId = backendRefSeqId
                 }
-                ;(session as unknown as AbstractSessionModel).queueDialog(
-                  (doneCallback) => [
-                    CreateApolloAnnotation,
-                    {
-                      session,
-                      handleClose: () => {
-                        doneCallback()
-                      },
-                      annotationFeature: self.getAnnotationFeature(
-                        jbrowseFeature,
-                        refSeqId,
-                      ),
-                      assembly,
-                      refSeqId,
-                      region,
+                session.queueDialog((doneCallback) => [
+                  CreateApolloAnnotation,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
                     },
-                  ],
-                )
+                    annotationFeature: self.getAnnotationFeature(
+                      jbrowseFeature,
+                      refSeqId,
+                    ),
+                    assembly,
+                    refSeqId,
+                    region,
+                  },
+                ])
               },
             },
           ]

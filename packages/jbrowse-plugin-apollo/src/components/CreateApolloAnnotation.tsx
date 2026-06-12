@@ -354,7 +354,7 @@ export function CreateApolloAnnotation({
   const copyGeneFeature = async () => {
     const copiedAnnotationFeature = {
       ...annotationFeature,
-    } as AnnotationFeatureSnapshot
+    }
     removeSkippedAttributes(copiedAnnotationFeature, skippedAttributesOnCopy)
 
     let change
@@ -399,7 +399,7 @@ export function CreateApolloAnnotation({
     for (const transcriptId of Object.keys(transcripts)) {
       const transcript = {
         ...transcripts[transcriptId],
-      } as AnnotationFeatureSnapshot
+      }
       removeSkippedAttributes(transcript, skippedAttributesOnCopy)
       transcript.strand = selectedDestinationFeature.strand
 
@@ -427,7 +427,7 @@ export function CreateApolloAnnotation({
   ) => {
     const copiedChildrens: Record<string, AnnotationFeatureSnapshot> = {}
     for (const [childId, child] of Object.entries(childrens)) {
-      const copiedChild = { ...child } as AnnotationFeatureSnapshot
+      const copiedChild = { ...child }
       removeSkippedAttributes(copiedChild, skippedAttributesOnCopy)
       copiedChildrens[childId] = copiedChild
     }

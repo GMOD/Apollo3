@@ -173,6 +173,7 @@ export class AuthenticationService {
         const users = await this.usersService.findAll()
         const hasAdmin = users.some(
           (user) =>
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
             user.role === Role.Admin &&
             user.email !== 'root_user' &&
             user.email !== 'guest_user',

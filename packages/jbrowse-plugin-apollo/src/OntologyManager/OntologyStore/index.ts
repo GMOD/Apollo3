@@ -357,7 +357,7 @@ export default class OntologyStore {
       startingNodes,
       (edge) => edge.pred === subclassRelation,
       direction === 'subclasses' ? 'sub' : 'obj',
-      myTx as unknown as Transaction<['edges']>,
+      myTx,
     )
     for (const n of startingNodes) {
       yield n

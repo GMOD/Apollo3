@@ -1,5 +1,4 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
-import type { BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
 import type { MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
@@ -111,9 +110,7 @@ function getContextMenuItems(
   const admin = role === 'admin'
   const menuItems: MenuItem[] = []
   const adjacentExons = getAdjacentExons(feature, display)
-  const lgv = getContainingView(
-    display as BaseDisplayModel,
-  ) as unknown as LinearGenomeViewModel
+  const lgv = getContainingView(display) as unknown as LinearGenomeViewModel
   if (adjacentExons.upstream) {
     const exon = adjacentExons.upstream
     menuItems.push({

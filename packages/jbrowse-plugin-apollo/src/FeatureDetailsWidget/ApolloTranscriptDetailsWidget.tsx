@@ -71,7 +71,7 @@ export const ApolloTranscriptDetailsWidget = observer(
       // eslint-disable-next-line @eslint-react/exhaustive-deps
     }, [feature])
 
-    const session = getSession(model) as unknown as AbstractSessionModel
+    const session = getSession(model)
     const { pluginManager } = getEnv(session)
     const apolloSession = getSession(model) as unknown as ApolloSessionModel
     const currentAssembly =

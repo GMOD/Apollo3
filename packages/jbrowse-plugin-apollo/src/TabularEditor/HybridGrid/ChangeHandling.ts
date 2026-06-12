@@ -18,8 +18,8 @@ export function handleFeatureTypeChange(
     typeName: 'TypeChange',
     changedIds: [featureId],
     featureId,
-    oldType: String(oldType),
-    newType: String(newType),
+    oldType,
+    newType,
     assembly: feature.assemblyId,
   })
   return changeManager.submit(change)

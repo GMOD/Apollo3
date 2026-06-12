@@ -170,7 +170,7 @@ export function CopyFeature({
     const featureIds: string[] = []
     // Let's add featureId to each child recursively
     const newFeatureLine = generateNewIds(
-      getSnapshot(sourceFeature) as unknown as AnnotationFeatureSnapshot,
+      getSnapshot(sourceFeature),
       featureIds,
     )
     // Clear possible parentId -attribute.
@@ -198,10 +198,7 @@ export function CopyFeature({
         min: newFeatureLine.min,
         max: newFeatureLine.max,
         type: newFeatureLine.type,
-        children: updatedChildren.children as unknown as Record<
-          string,
-          AnnotationFeatureSnapshot
-        >,
+        children: updatedChildren.children,
         attributes: attributeMap,
         strand: newFeatureLine.strand,
       },

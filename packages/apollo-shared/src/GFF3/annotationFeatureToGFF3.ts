@@ -96,8 +96,8 @@ export function annotationFeatureToGFF3(
     }
 
     return {
-      start: Number(featureLoc.min) + 1,
-      end: Number(featureLoc.max),
+      start: featureLoc.min + 1,
+      end: featureLoc.max,
       seq_id: refSeqNames
         ? refSeqNames[featureLoc.refSeq] ?? null
         : featureLoc.refSeq,

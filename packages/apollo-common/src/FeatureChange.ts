@@ -3,7 +3,6 @@
 import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import type { Feature } from '@apollo-annotation/schemas'
 import ObjectID from 'bson-objectid'
-import type { Types } from 'mongoose'
 
 import {
   AssemblySpecificChange,
@@ -106,7 +105,7 @@ export abstract class FeatureChange extends AssemblySpecificChange {
     const refSeq =
       typeof feature.refSeq === 'string'
         ? feature.refSeq
-        : (feature.refSeq as unknown as Types.ObjectId).toHexString()
+        : feature.refSeq.toHexString()
 
     return {
       // eslint-disable-next-line @typescript-eslint/no-misused-spread
@@ -119,10 +118,7 @@ export abstract class FeatureChange extends AssemblySpecificChange {
 
   addChild(parentFeature: Feature, child: AnnotationFeatureSnapshot) {
     if (!parentFeature.attributes?._id) {
-      let { attributes } = parentFeature
-      if (!attributes) {
-        attributes = {}
-      }
+      let { attributes = {} } = parentFeature
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       attributes = {
         _id: [parentFeature._id.toString()],
@@ -132,9 +128,7 @@ export abstract class FeatureChange extends AssemblySpecificChange {
       parentFeature.attributes = attributes
     }
     const { _id } = child
-    if (!parentFeature.children) {
-      parentFeature.children = new Map()
-    }
+    parentFeature.children ??= new Map()
     parentFeature.children.set(_id, {
       allIds: [],
       ...child,

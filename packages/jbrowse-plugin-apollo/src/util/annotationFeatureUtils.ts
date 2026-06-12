@@ -131,7 +131,7 @@ export function removeSkippedAttributes(
   if (feature.children) {
     const newChildren: Record<string, AnnotationFeatureSnapshot> = {}
     for (const [childId, child] of Object.entries(feature.children)) {
-      const newChild = { ...child } as AnnotationFeatureSnapshot
+      const newChild = { ...child }
       removeSkippedAttributes(newChild, skippedAttributes)
       newChildren[childId] = newChild
     }

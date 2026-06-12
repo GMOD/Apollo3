@@ -160,7 +160,7 @@ describe('annotationFeatureToGFF3', () => {
     const [mrna] = children
     const cds10001 = mrna.child_features.filter((child) => {
       const id = child[0].attributes?.ID
-      return id !== undefined && id[0] === 'cds10001'
+      return id?.[0] === 'cds10001'
     })
     assert.deepEqual(cds10001.length, 2)
 
@@ -185,7 +185,7 @@ describe('annotationFeatureToGFF3', () => {
 
     const cds10004 = mrna.child_features.filter((child) => {
       const id = child[0].attributes?.ID
-      return id !== undefined && id[0] === 'cds10004'
+      return id?.[0] === 'cds10004'
     })
     assert.deepEqual(cds10004.length, 2)
     const cds4_1 = cds10004[0][0]

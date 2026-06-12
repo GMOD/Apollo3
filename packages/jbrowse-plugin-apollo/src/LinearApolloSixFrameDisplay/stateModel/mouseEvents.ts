@@ -60,53 +60,46 @@ export function mouseEventsModelIntermediateFactory(
         if (!featureTypeOntology) {
           throw new Error('featureTypeOntology is undefined')
         }
-        let foundFeature
-        if (self.geneTrackRowNums.includes(row)) {
-          foundFeature = layoutRow.find(
-            (f) =>
-              f.feature.type == 'exon' &&
-              bp >= f.feature.min &&
-              bp <= f.feature.max,
-          )
-          if (!foundFeature) {
-            foundFeature = layoutRow.find(
-              (f) => bp >= f.feature.min && bp <= f.feature.max,
-            )
-          }
-        } else {
-          foundFeature = layoutRow.find((f) => {
-            const { feature } = f
-            const featureID = feature.attributes.get('gff_id')?.toString()
-            const isTranscript = featureTypeOntology.isTypeOf(
-              feature.type,
-              'transcript',
-            )
-            if (!isTranscript) {
-              return false
-            }
-            for (const loc of feature.cdsLocations) {
-              for (const cds of loc) {
-                const frame = getFrame(
-                  cds.min,
-                  cds.max,
-                  feature.strand ?? 1,
-                  cds.phase,
-                )
-                const frameOffsets = self.showFeatureLabels
-                  ? [0, 5, 3, 1, 15, 13, 11]
-                  : [0, 2, 1, 0, 8, 7, 6]
-                const rowNum = frameOffsets.at(frame)
-                if (row === rowNum && bp >= cds.min && bp <= cds.max) {
-                  return (
-                    featureID === undefined ||
-                    !self.filteredTranscripts.includes(featureID)
+        const foundFeature = self.geneTrackRowNums.includes(row)
+          ? layoutRow.find(
+              (f) =>
+                f.feature.type == 'exon' &&
+                bp >= f.feature.min &&
+                bp <= f.feature.max,
+            ) ??
+            layoutRow.find((f) => bp >= f.feature.min && bp <= f.feature.max)
+          : layoutRow.find((f) => {
+              const { feature } = f
+              const featureID = feature.attributes.get('gff_id')?.toString()
+              const isTranscript = featureTypeOntology.isTypeOf(
+                feature.type,
+                'transcript',
+              )
+              if (!isTranscript) {
+                return false
+              }
+              for (const loc of feature.cdsLocations) {
+                for (const cds of loc) {
+                  const frame = getFrame(
+                    cds.min,
+                    cds.max,
+                    feature.strand ?? 1,
+                    cds.phase,
                   )
+                  const frameOffsets = self.showFeatureLabels
+                    ? [0, 5, 3, 1, 15, 13, 11]
+                    : [0, 2, 1, 0, 8, 7, 6]
+                  const rowNum = frameOffsets.at(frame)
+                  if (row === rowNum && bp >= cds.min && bp <= cds.max) {
+                    return (
+                      featureID === undefined ||
+                      !self.filteredTranscripts.includes(featureID)
+                    )
+                  }
                 }
               }
-            }
-            return false
-          })
-        }
+              return false
+            })
         if (!foundFeature) {
           return mousePosition
         }

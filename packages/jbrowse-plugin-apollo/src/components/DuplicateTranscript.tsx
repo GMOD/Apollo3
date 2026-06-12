@@ -68,7 +68,7 @@ export function DuplicateTranscript({
           newChildren[newChildId] = {
             ...child,
             _id: newChildId,
-          } as AnnotationFeatureSnapshot
+          }
         }
         duplicateTranscript.children = newChildren
       }

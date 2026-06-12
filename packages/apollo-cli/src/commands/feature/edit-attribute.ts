@@ -88,9 +88,7 @@ terms to non-existing terms'
     const featureJson = JSON.parse(
       await response.text(),
     ) as AnnotationFeatureSnapshot
-    if (featureJson.attributes === undefined) {
-      featureJson.attributes = {}
-    }
+    featureJson.attributes ??= {}
 
     const oldAttributes: Record<string, string[]> = {}
     for (const [key, val] of Object.entries(featureJson.attributes)) {

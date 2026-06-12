@@ -79,7 +79,7 @@ function TermTagWithTooltip({
         .objectStore('nodes')
         .get(termUrl)
 
-      if (term && term.lbl && !signal.aborted) {
+      if (term?.lbl && !signal.aborted) {
         setDescription(term.lbl || 'no label')
       }
     }

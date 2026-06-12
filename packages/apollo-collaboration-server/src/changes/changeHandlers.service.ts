@@ -390,9 +390,7 @@ export class ChangeHandlersService implements ChangeHandlers {
         `*** TOP level feature found: ${JSON.stringify(topLevelFeature)}`,
       )
 
-      if (!feature) {
-        feature = change.getFeatureFromId(topLevelFeature, featureId)
-      }
+      feature ??= change.getFeatureFromId(topLevelFeature, featureId)
       if (!feature) {
         const errMsg = 'ERROR when searching feature by featureId'
         this.logger.error(errMsg)
@@ -461,9 +459,7 @@ export class ChangeHandlersService implements ChangeHandlers {
         `*** TOP level feature found: ${JSON.stringify(topLevelFeature)}`,
       )
 
-      if (!feature) {
-        feature = change.getFeatureFromId(topLevelFeature, featureId)
-      }
+      feature ??= change.getFeatureFromId(topLevelFeature, featureId)
       if (!feature) {
         const errMsg = 'ERROR when searching feature by featureId'
         this.logger.error(errMsg)
@@ -817,9 +813,7 @@ export class ChangeHandlersService implements ChangeHandlers {
           `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature._id.toString()}"`,
         )
       }
-      if (!parentFeature.children) {
-        parentFeature.children = new Map()
-      }
+      parentFeature.children ??= new Map()
       for (const exon of exonsToRestore) {
         change.addChild(parentFeature, exon)
         const childIds = change.getChildFeatureIds(exon)
@@ -859,9 +853,7 @@ export class ChangeHandlersService implements ChangeHandlers {
           `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature._id.toString()}"`,
         )
       }
-      if (!parentFeature.children) {
-        parentFeature.children = new Map()
-      }
+      parentFeature.children ??= new Map()
       for (const transcript of transcriptsToRestore) {
         change.addChild(parentFeature, transcript)
         const childIds = change.getChildFeatureIds(transcript)
@@ -896,9 +888,7 @@ export class ChangeHandlersService implements ChangeHandlers {
           `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature._id.toString()}"`,
         )
       }
-      if (!parentFeature.children) {
-        parentFeature.children = new Map()
-      }
+      parentFeature.children ??= new Map()
       change.addChild(parentFeature, exonToRestore)
       const childIds = change.getChildFeatureIds(exonToRestore)
       topLevelFeature.allIds.push(exonToRestore._id, ...childIds)

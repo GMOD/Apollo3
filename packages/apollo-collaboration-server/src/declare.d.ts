@@ -48,6 +48,7 @@ declare module 'connect-mongodb-session' {
     fn: typeof session,
   ): typeof ConnectMongoDBSession.MongoDBStore
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   declare namespace ConnectMongoDBSession {
     class MongoDBStore extends Store {
       constructor(

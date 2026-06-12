@@ -70,10 +70,7 @@ if (!newVersion) {
   throw new Error('Could not determine next version')
 }
 
-let m: string | undefined = message
-if (m === undefined) {
-  m = `Tag release v${newVersion}`
-}
+const m = message ?? `Tag release v${newVersion}`
 
 exec('yarn', [
   'workspaces',

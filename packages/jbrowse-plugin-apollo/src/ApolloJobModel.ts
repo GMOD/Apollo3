@@ -34,14 +34,10 @@ export const ApolloJobModel = types
   .views((self) => ({
     get jobStatusWidget() {
       const { widgets } = getSession(self) as SessionWithWidgets
-      let jobStatusWidget = widgets.get('JobsList')
-      if (!jobStatusWidget) {
+      const jobStatusWidget =
+        widgets.get('JobsList') ??
         // @ts-expect-error: addWidget function not detected on the session
-        jobStatusWidget = getSession(self).addWidget(
-          'JobsListWidget',
-          'JobsList',
-        )
-      }
+        getSession(self).addWidget('JobsListWidget', 'JobsList')
       return jobStatusWidget as unknown as JobsListModel
     },
   }))
