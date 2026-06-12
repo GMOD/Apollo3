@@ -981,7 +981,7 @@ EOF`,
     new Shell(
       `${apollo} feature add ${P} '{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":21,"max":30,"type":"remark"}'`,
     )
-    new Shell(`${apollo} feature get ${P} -a ${assemblyId}`)
+    p = new Shell(`${apollo} feature get ${P} -a ${assemblyId}`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(out.length, 3)
     // Can add a feature using JSON from stdin
@@ -1015,7 +1015,7 @@ EOF`,
     new Shell(
       `${apollo} feature add ${P} '[{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":51,"max":60,"type":"remark"},{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":61,"max":70,"type":"remark"}]'`,
     )
-    new Shell(`${apollo} feature get ${P} -a ${assemblyId}`)
+    p = new Shell(`${apollo} feature get ${P} -a ${assemblyId}`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(out.length, 7)
     // Can add a feature with children from JSON
