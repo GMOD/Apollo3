@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 
 import type { CheckResultI } from '@apollo-annotation/mst'
+import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { Menu, type MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
@@ -157,7 +158,9 @@ export const LinearApolloSixFrameDisplay = observer(
               />
               {lgv.displayedRegions.flatMap((region, idx) => {
                 const widthBp = lgv.bpPerPx * apolloRowHeight
-                const assembly = assemblyManager.get(region.assemblyName)
+                const assembly = assemblyManager.get(region.assemblyName) as
+                  | Assembly
+                  | undefined
                 if (showCheckResults) {
                   const filteredCheckResults = [
                     ...session.apolloDataStore.checkResults.values(),
