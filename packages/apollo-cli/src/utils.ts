@@ -138,9 +138,7 @@ export async function getRefseqId(
   if (refseqNameOrId === undefined && inAssemblyNameOrId === undefined) {
     throw new Error('Please provide refseq and/or assembly')
   }
-  if (inAssemblyNameOrId === undefined) {
-    inAssemblyNameOrId = ''
-  }
+  inAssemblyNameOrId ??= ''
   let assemblyId: string[] = []
   if (inAssemblyNameOrId !== '') {
     assemblyId = await convertAssemblyNameToId(address, accessToken, [

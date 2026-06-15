@@ -235,8 +235,6 @@ async function getValidTerms(
     }
   }
 
-  if (!result) {
-    result = await ontologyStore.getAllTerms()
-  }
+  result ??= await ontologyStore.getAllTerms()
   return filterTerms ? result.filter((element) => filterTerms(element)) : result
 }

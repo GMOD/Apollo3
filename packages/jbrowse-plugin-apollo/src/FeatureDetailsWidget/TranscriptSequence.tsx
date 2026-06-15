@@ -1,3 +1,4 @@
+/* eslint-disable @eslint-react/set-state-in-effect */
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import { splitStringIntoChunks } from '@apollo-annotation/shared'
 import { defaultCodonTable, revcom } from '@jbrowse/core/util'
@@ -214,7 +215,7 @@ export const TranscriptSequence = observer(function TranscriptSequence({
     } else {
       setSequenceOptions(defaultSequenceOptions)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line @eslint-react/exhaustive-deps
   }, [feature])
 
   if (!(currentAssembly && refData)) {

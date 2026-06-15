@@ -8,7 +8,6 @@ import { type AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
 import { addDisposer, isAlive } from '@jbrowse/mobx-state-tree'
 import { autorun, observable } from 'mobx'
 
-import type { ApolloSessionModel } from '../../session'
 import {
   isCDSFeature,
   isExonFeature,
@@ -301,9 +300,9 @@ export function layoutsModelFactory(
               }
               // Add features that are in the current view
               for (const region of self.regions) {
-                const assembly = (
-                  self.session as unknown as ApolloSessionModel
-                ).apolloDataStore.assemblies.get(region.assemblyName)
+                const assembly = self.session.apolloDataStore.assemblies.get(
+                  region.assemblyName,
+                )
                 const ref = assembly?.getByRefName(region.refName)
                 const features = ref?.features
                 if (!features) {

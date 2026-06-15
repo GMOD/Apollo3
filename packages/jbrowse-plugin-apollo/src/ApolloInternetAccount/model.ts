@@ -396,7 +396,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         socket.on('COMMON', (message: ChangeMessage | CheckResultUpdate) => {
           if ('checkResult' in message) {
             if (message.deleted) {
-              deleteCheckResult(message.checkResult._id.toString())
+              deleteCheckResult(message.checkResult._id)
             } else {
               addCheckResult(message.checkResult)
             }

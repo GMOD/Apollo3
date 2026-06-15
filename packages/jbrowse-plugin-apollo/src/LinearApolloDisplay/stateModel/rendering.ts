@@ -6,8 +6,6 @@ import { type Instance, addDisposer, types } from '@jbrowse/mobx-state-tree'
 import { type Theme, createTheme } from '@mui/material'
 import { autorun } from 'mobx'
 
-import type { ApolloSessionModel } from '../../session'
-
 import { layoutsModelFactory } from './layouts'
 
 export function renderingModelFactory(
@@ -125,9 +123,7 @@ export function renderingModelFactory(
                 self.lgv.dynamicBlocks.totalWidthPx,
                 self.featuresHeight(self.lgv.assemblyNames[0]),
               )
-              for (const collaborator of (
-                self.session as unknown as ApolloSessionModel
-              ).collaborators) {
+              for (const collaborator of self.session.collaborators) {
                 const { locations } = collaborator
                 if (locations.length === 0) {
                   continue

@@ -63,8 +63,8 @@ export const FilterTranscripts = observer(function FilterTranscripts({
           <Grid size={8}>
             <FormGroup>
               {allTranscripts.map((item) => (
-                // eslint-disable-next-line react/jsx-key
                 <FormControlLabel
+                  key={item}
                   control={
                     <Checkbox
                       checked={!excludedTranscripts.includes(item)}

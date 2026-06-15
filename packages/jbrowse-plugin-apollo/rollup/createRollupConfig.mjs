@@ -30,7 +30,7 @@ const appPath = fs.realpathSync(process.cwd())
 const packageJsonPath = path.join(appPath, 'package.json')
 const packageJsonText = fs.readFileSync(packageJsonPath, 'utf8')
 const packageJson = JSON.parse(packageJsonText)
-const packageName = safePackageName(packageJson.name || '')
+const packageName = safePackageName(packageJson.name ?? '')
 const umdName = `JBrowsePlugin${packageJson.config?.jbrowse?.plugin?.name}`
 
 const distPath = path.join(appPath, 'dist')
@@ -100,14 +100,12 @@ function getPlugins(mode, jbrowseGlobals) {
 }
 
 export function createRollupConfig(jbrowseGlobals, options) {
-  const includeUMD = Boolean(
-    options?.includeUMD === true || options?.includeUMD === undefined,
-  )
-  const includeCJS = Boolean(options?.includeCJS === true)
-  const includeESMBundle = Boolean(options?.includeESMBundle === true)
-  const includeNPM = Boolean(
-    options?.includeNPM === true || options?.includeNPM === undefined,
-  )
+  const includeUMD =
+    options?.includeUMD === true || options?.includeUMD === undefined
+  const includeCJS = options?.includeCJS === true
+  const includeESMBundle = options?.includeESMBundle === true
+  const includeNPM =
+    options?.includeNPM === true || options?.includeNPM === undefined
   const npmConfig =
     includeNPM &&
     defineConfig({

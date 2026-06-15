@@ -166,9 +166,7 @@ export class CollaborationServerDriver extends BackendDriver {
         const localSessionId = makeUserSessionId(token)
         const changeManager = new ChangeManager(this.clientStore)
         // Save server last change sequence into session storage
-        internetAccount.setLastChangeSequenceNumber(
-          Number(message.changeSequence),
-        )
+        internetAccount.setLastChangeSequenceNumber(message.changeSequence)
         if (message.userSessionId === localSessionId) {
           return // we did this change, no need to apply it again
         }
@@ -218,14 +216,12 @@ export class CollaborationServerDriver extends BackendDriver {
       const seq = await inFlightPromise
       return { seq, refSeq }
     }
-    let apolloAssembly = this.clientStore.assemblies.get(assemblyName)
-    if (!apolloAssembly) {
-      apolloAssembly = this.clientStore.addAssembly(assemblyName)
-    }
-    let apolloRefSeq = apolloAssembly.refSeqs.get(refSeq)
-    if (!apolloRefSeq) {
-      apolloRefSeq = apolloAssembly.addRefSeq(refSeq, refName)
-    }
+    const apolloAssembly =
+      this.clientStore.assemblies.get(assemblyName) ??
+      this.clientStore.addAssembly(assemblyName)
+    const apolloRefSeq =
+      apolloAssembly.refSeqs.get(refSeq) ??
+      apolloAssembly.addRefSeq(refSeq, refName)
     const clientStoreSequence = apolloRefSeq.getSequence(start, end)
     if (clientStoreSequence.length === end - start) {
       return { seq: clientStoreSequence, refSeq }

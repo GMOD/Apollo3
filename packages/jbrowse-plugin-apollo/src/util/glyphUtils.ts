@@ -275,7 +275,7 @@ export function isSelectedFeature(
   feature: AnnotationFeature,
   selectedFeature: AnnotationFeature | undefined,
 ) {
-  return Boolean(selectedFeature && feature._id === selectedFeature._id)
+  return feature._id === selectedFeature?._id
 }
 
 function makeFeatureLabel(feature: AnnotationFeature) {

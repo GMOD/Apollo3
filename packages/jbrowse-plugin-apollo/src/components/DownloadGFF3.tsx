@@ -50,7 +50,7 @@ export function DownloadGFF3({
   session,
   assembly: assemblyName,
 }: DownloadGFF3Props) {
-  const [includeFASTA, setincludeFASTA] = useState(false)
+  const [includeFASTA, setIncludeFASTA] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
   const { getInternetAccount } = session.apolloDataStore as {
@@ -141,7 +141,7 @@ export function DownloadGFF3({
                 <Checkbox
                   checked={includeFASTA}
                   onChange={() => {
-                    setincludeFASTA(!includeFASTA)
+                    setIncludeFASTA(!includeFASTA)
                   }}
                   disabled={!internetAccountConfigId}
                 />

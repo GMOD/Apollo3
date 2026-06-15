@@ -59,7 +59,7 @@ export function AddAssemblyAliases({
       id: assembly.name,
       name: assembly.displayName,
       aliases: assembly.aliases.join(', '),
-    } as AssemblyAlias
+    }
   })
 
   const [errorMessage, setErrorMessage] = React.useState('')

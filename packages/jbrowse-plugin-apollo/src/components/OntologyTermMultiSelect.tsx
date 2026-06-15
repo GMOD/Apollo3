@@ -1,3 +1,4 @@
+/* eslint-disable @eslint-react/set-state-in-effect */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
@@ -78,7 +79,7 @@ function TermTagWithTooltip({
         .objectStore('nodes')
         .get(termUrl)
 
-      if (term && term.lbl && !signal.aborted) {
+      if (term?.lbl && !signal.aborted) {
         setDescription(term.lbl || 'no label')
       }
     }
@@ -304,6 +305,7 @@ function HighlightedText(props: { str: string; search: string }) {
     <>
       {parts.map((part, index) => (
         <Typography
+          // eslint-disable-next-line @eslint-react/no-array-index-key
           key={index}
           component="span"
           sx={{ fontWeight: part.highlight ? 'bold' : 'regular' }}

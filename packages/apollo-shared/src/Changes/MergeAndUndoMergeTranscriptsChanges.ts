@@ -129,9 +129,7 @@ export class MergeTranscriptsChange extends FeatureChange {
     secondFeatureChild: AnnotationFeatureSnapshot,
     firstTranscript: Feature,
   ) {
-    if (!firstTranscript.children) {
-      firstTranscript.children = new Map<string, Feature>()
-    }
+    firstTranscript.children ??= new Map<string, Feature>()
     let merged = false
     let mrgChild: Feature | undefined
     let toDelete
@@ -169,9 +167,7 @@ export class MergeTranscriptsChange extends FeatureChange {
           firstFeatureChild.max,
         )
 
-        if (!mrgChild.attributes) {
-          mrgChild.attributes = {}
-        }
+        mrgChild.attributes ??= {}
 
         const mrgChildAttr: Record<string, string[]> = JSON.parse(
           JSON.stringify(mrgChild.attributes),
@@ -256,9 +252,7 @@ export class MergeTranscriptsChange extends FeatureChange {
     secondFeatureChild: AnnotationFeatureSnapshot,
     firstTranscript: AnnotationFeature,
   ) {
-    if (!firstTranscript.children) {
-      firstTranscript.children = new Map<string, AnnotationFeature>()
-    }
+    firstTranscript.children ??= new Map<string, AnnotationFeature>()
     let merged = false
     let mrgChild: AnnotationFeature | undefined
     let toDelete

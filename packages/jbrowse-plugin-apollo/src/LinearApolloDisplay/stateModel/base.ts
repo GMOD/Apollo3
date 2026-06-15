@@ -153,8 +153,7 @@ export function baseModelFactory(
         ) as ApolloInternetAccountModel | undefined
       },
       get changeManager() {
-        return (self.session as unknown as ApolloSessionModel).apolloDataStore
-          .changeManager
+        return self.session.apolloDataStore.changeManager
       },
       getAssemblyId(assemblyName: string) {
         const { assemblyManager } =
@@ -166,12 +165,10 @@ export function baseModelFactory(
         return assembly.name
       },
       get selectedFeature(): AnnotationFeature | undefined {
-        return (self.session as unknown as ApolloSessionModel)
-          .apolloSelectedFeature
+        return self.session.apolloSelectedFeature
       },
       get hoveredFeature(): HoveredFeature | undefined {
-        return (self.session as unknown as ApolloSessionModel)
-          .apolloHoveredFeature
+        return self.session.apolloHoveredFeature
       },
     }))
     .actions((self) => ({
@@ -269,7 +266,7 @@ export function baseModelFactory(
             {
               label: 'Filter features by type',
               onClick: () => {
-                const session = self.session as unknown as ApolloSessionModel
+                const { session } = self
                 ;(self.session as unknown as AbstractSessionModel).queueDialog(
                   (doneCallback) => [
                     FilterFeatures,
@@ -297,7 +294,7 @@ export function baseModelFactory(
                 if (!assembly) {
                   return
                 }
-                const session = self.session as unknown as ApolloSessionModel
+                const { session } = self
                 ;(session as unknown as AbstractSessionModel).queueDialog(
                   (doneCallback) => [
                     DownloadGFF3,
@@ -322,7 +319,7 @@ export function baseModelFactory(
                 if (!assembly) {
                   return
                 }
-                const session = self.session as unknown as ApolloSessionModel
+                const { session } = self
                 ;(session as unknown as AbstractSessionModel).queueDialog(
                   (doneCallback) => [
                     ViewChangeLog,
@@ -347,7 +344,7 @@ export function baseModelFactory(
                 if (!assembly) {
                   return
                 }
-                const session = self.session as unknown as ApolloSessionModel
+                const { session } = self
                 ;(session as unknown as AbstractSessionModel).queueDialog(
                   (doneCallback) => [
                     ViewCheckResults,
@@ -368,14 +365,10 @@ export function baseModelFactory(
     })
     .actions((self) => ({
       setSelectedFeature(feature?: AnnotationFeature) {
-        ;(
-          self.session as unknown as ApolloSessionModel
-        ).apolloSetSelectedFeature(feature)
+        self.session.apolloSetSelectedFeature(feature)
       },
       setHoveredFeature(hoveredFeature?: HoveredFeature) {
-        ;(
-          self.session as unknown as ApolloSessionModel
-        ).apolloSetHoveredFeature(hoveredFeature)
+        self.session.apolloSetHoveredFeature(hoveredFeature)
       },
       showFeatureDetailsWidget(
         feature: AnnotationFeature,
@@ -414,9 +407,7 @@ export function baseModelFactory(
                 return
               }
               self.setLoading(true)
-              void (
-                self.session as unknown as ApolloSessionModel
-              ).apolloDataStore
+              void self.session.apolloDataStore
                 .loadFeatures(self.regions)
                 .then(() => {
                   setTimeout(() => {

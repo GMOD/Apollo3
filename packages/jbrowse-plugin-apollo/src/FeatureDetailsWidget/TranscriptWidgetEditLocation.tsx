@@ -1054,6 +1054,7 @@ export const TranscriptWidgetEditLocation = observer(
           </div>
           {transcriptExonParts.map((loc, index) => {
             return (
+              // eslint-disable-next-line @eslint-react/no-array-index-key
               <div key={index}>
                 {loc.type === 'exon' && (
                   <Grid
@@ -1066,6 +1067,7 @@ export const TranscriptWidgetEditLocation = observer(
                       {index !== 0 &&
                         getFivePrimeSpliceSite(loc, index).map((site, idx) => (
                           <Typography
+                            // eslint-disable-next-line @eslint-react/no-array-index-key
                             key={idx}
                             component={'span'}
                             color={site.color}
@@ -1151,6 +1153,7 @@ export const TranscriptWidgetEditLocation = observer(
                       {index !== transcriptExonParts.length - 1 &&
                         getThreePrimeSpliceSite(loc, index).map((site, idx) => (
                           <Typography
+                            // eslint-disable-next-line @eslint-react/no-array-index-key
                             key={idx}
                             component={'span'}
                             color={site.color}

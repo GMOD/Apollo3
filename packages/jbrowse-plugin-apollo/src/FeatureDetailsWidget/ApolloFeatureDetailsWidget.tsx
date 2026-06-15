@@ -35,6 +35,7 @@ export const ApolloFeatureDetailsWidget = observer(
     const [panelState, setPanelState] = useState<string[]>(['attributes'])
 
     useEffect(() => {
+      // eslint-disable-next-line @eslint-react/set-state-in-effect
       setPanelState(['attributes'])
     }, [feature])
 

@@ -330,10 +330,7 @@ export function DeleteFeature({
       }
     }
 
-    if (
-      featureTypeOntology &&
-      featureTypeOntology.isTypeOf(sourceFeature.type, 'exon')
-    ) {
+    if (featureTypeOntology?.isTypeOf(sourceFeature.type, 'exon')) {
       const cdsChange = trimCDS(sourceFeature)
       if (cdsChange) {
         if (cdsChange.typeName === 'DeleteFeatureChange') {

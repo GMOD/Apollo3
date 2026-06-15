@@ -98,8 +98,7 @@ export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
       ;[assembly] = await idReader([flags.assembly])
     }
 
-    let refseqIds: string[] = []
-    refseqIds = await getRefseqId(
+    const refseqIds = await getRefseqId(
       access.address,
       access.accessToken,
       flags.refseq,

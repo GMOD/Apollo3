@@ -131,8 +131,7 @@ export function baseModelFactory(
         ) as ApolloInternetAccountModel | undefined
       },
       get changeManager() {
-        return (self.session as unknown as ApolloSessionModel).apolloDataStore
-          .changeManager
+        return self.session.apolloDataStore.changeManager
       },
       getAssemblyId(assemblyName: string) {
         const { assemblyManager } =
@@ -144,12 +143,10 @@ export function baseModelFactory(
         return assembly.name
       },
       get selectedFeature(): AnnotationFeature | undefined {
-        return (self.session as unknown as ApolloSessionModel)
-          .apolloSelectedFeature
+        return self.session.apolloSelectedFeature
       },
       get hoveredFeature(): HoveredFeature | undefined {
-        return (self.session as unknown as ApolloSessionModel)
-          .apolloHoveredFeature
+        return self.session.apolloHoveredFeature
       },
       get height() {
         const { sequenceRowHeight } = self
@@ -235,9 +232,9 @@ export function baseModelFactory(
                 return
               }
               if (self.lgv.bpPerPx <= 3) {
-                void (
-                  self.session as unknown as ApolloSessionModel
-                ).apolloDataStore.loadRefSeq(self.expandedRegions)
+                void self.session.apolloDataStore.loadRefSeq(
+                  self.expandedRegions,
+                )
               }
             },
             {

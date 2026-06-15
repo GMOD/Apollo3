@@ -169,10 +169,7 @@ export function extendSession(
             for (const block of dynamicBlocks.contentBlocks) {
               const { assemblyName, end, refName, start } = block
               const assembly = self.apolloDataStore.assemblies.get(assemblyName)
-              if (
-                assembly &&
-                assembly.backendDriverType === 'CollaborationServerDriver'
-              ) {
+              if (assembly?.backendDriverType === 'CollaborationServerDriver') {
                 locations.push({ assemblyName, refName, start, end })
               }
             }
@@ -245,8 +242,8 @@ export function extendSession(
                     const assembly =
                       self.apolloDataStore.assemblies.get(assemblyName)
                     if (
-                      assembly &&
-                      assembly.backendDriverType === 'CollaborationServerDriver'
+                      assembly?.backendDriverType ===
+                      'CollaborationServerDriver'
                     ) {
                       locations.push({ assemblyName, refName, start, end })
                     }

@@ -1,3 +1,4 @@
+/* eslint-disable @eslint-react/static-components */
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import { FeatureAttributeChange } from '@apollo-annotation/shared'
 import { type AbstractSessionModel, getEnv } from '@jbrowse/core/util'

@@ -2,7 +2,6 @@ import type {
   AnnotationFeature,
   TranscriptPartCoding,
 } from '@apollo-annotation/mst'
-import type { BaseDisplayModel } from '@jbrowse/core/pluggableElementTypes'
 import type { MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
@@ -888,7 +887,7 @@ function getContextMenuItems(
       if (isExonFeature(feature, session)) {
         const adjacentExons = getAdjacentExons(feature, display)
         const lgv = getContainingView(
-          display as BaseDisplayModel,
+          display,
         ) as unknown as LinearGenomeViewModel
         if (adjacentExons.upstream) {
           const exon = adjacentExons.upstream

@@ -73,15 +73,10 @@ need to execute this command again unless the token has expired. To setup a new 
   public async run(): Promise<void> {
     const { flags } = await this.parse(Login)
 
-    let configFile = flags['config-file']
-    if (configFile === undefined) {
-      configFile = path.join(this.config.configDir, 'config.yml')
-    }
+    const configFile =
+      flags['config-file'] ?? path.join(this.config.configDir, 'config.yml')
 
-    let profileName = flags.profile
-    if (profileName === undefined) {
-      profileName = process.env.APOLLO_PROFILE ?? 'default'
-    }
+    const profileName = flags.profile ?? process.env.APOLLO_PROFILE ?? 'default'
     basicCheckConfig(configFile, profileName)
     const config: ApolloConf = new ApolloConf(configFile)
     const accessType: string = config.get(`${profileName}.accessType`) as string

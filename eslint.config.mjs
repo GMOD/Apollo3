@@ -2,9 +2,9 @@ import pluginCypress from 'eslint-plugin-cypress/flat'
 import tseslint from 'typescript-eslint'
 
 import js from '@eslint/js'
+import pluginReact from '@eslint-react/eslint-plugin'
 import pluginImport from 'eslint-plugin-import'
 import pluginJSXA11y from 'eslint-plugin-jsx-a11y'
-import pluginReact from 'eslint-plugin-react'
 import pluginReactHooks from 'eslint-plugin-react-hooks'
 import pluginTSDoc from 'eslint-plugin-tsdoc'
 import pluginUnicorn from 'eslint-plugin-unicorn'
@@ -30,16 +30,11 @@ export default [
   pluginImport.flatConfigs.typescript,
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
-  pluginReact.configs.flat.recommended,
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  pluginJSXA11y.flatConfigs.recommended,
-  pluginCypress.configs.recommended,
   {
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },
       parserOptions: { projectService: true },
     },
-    settings: { react: { version: 'detect' } },
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     plugins: { tsdoc: pluginTSDoc, import: pluginImport },
     rules: {
@@ -109,14 +104,38 @@ export default [
     },
   },
   {
-    name: 'eslint-plugin-react-hooks/recommended',
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    ...pluginReactHooks.configs.flat.recommended,
     files: [
       'packages/jbrowse-plugin-apollo/src/**/*.{jsx,tsx}',
       'packages/website/src/**/*.{jsx,tsx}',
     ],
-    plugins: { 'react-hooks': pluginReactHooks },
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    rules: { ...pluginReactHooks.configs.recommended.rules },
+  },
+  {
+    ...pluginReact.configs['disable-conflict-eslint-plugin-react-hooks'],
+    files: [
+      'packages/jbrowse-plugin-apollo/src/**/*.{jsx,tsx}',
+      'packages/website/src/**/*.{jsx,tsx}',
+    ],
+  },
+  {
+    ...pluginReact.configs['recommended-typescript'],
+    files: [
+      'packages/jbrowse-plugin-apollo/src/**/*.{jsx,tsx}',
+      'packages/website/src/**/*.{jsx,tsx}',
+    ],
+  },
+  {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    ...pluginJSXA11y.flatConfigs.recommended,
+    files: [
+      'packages/jbrowse-plugin-apollo/src/**/*.{jsx,tsx}',
+      'packages/website/src/**/*.{jsx,tsx}',
+    ],
+  },
+  {
+    ...pluginCypress.configs.recommended,
+    files: ['packages/jbrowse-plugin-apollo/cypress/**/*'],
   },
   // Don't enforce tsdoc syntax in JS files
   {

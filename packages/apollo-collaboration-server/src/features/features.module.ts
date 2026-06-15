@@ -50,7 +50,7 @@ import { FeaturesService } from './features.service.js'
           })
           FeatureSchema.post('updateMany', async function () {
             const query = this.getQuery()
-            if (query.$and && query.$and[0]) {
+            if (query.$and?.[0]) {
               delete query.$and[0].status
             }
             const features = await this.model.find<FeatureDocument>(query)

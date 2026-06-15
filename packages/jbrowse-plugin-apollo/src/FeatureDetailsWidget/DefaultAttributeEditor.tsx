@@ -49,6 +49,7 @@ export const DefaultAttributeEditor = observer(function DefaultAttributeEditor({
   return (
     <>
       {newValues.map((value, idx) => (
+        // eslint-disable-next-line @eslint-react/no-array-index-key
         <div key={`${idx}-${value}`} style={{ display: 'flex' }}>
           <StringTextField
             value={value}

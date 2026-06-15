@@ -12,7 +12,7 @@ Cypress.Commands.add('deleteAssemblies', () => {
   for (const x of ['assemblies', 'features']) {
     cy.log(x)
     cy.deleteMany({}, { collection: x }).then((results: undefined) => {
-      cy.log(`Collection ${x}: ${results}` as unknown as string)
+      cy.log(`Collection ${x}: ${results}`)
     })
   }
 })
@@ -41,6 +41,7 @@ async function loadOntology(
     Object.entries(ontologyData.meta[0].storeOptions.prefixes),
   )
   await openDB(name, version, {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     async upgrade(database: IDBPDatabase): Promise<void> {
       const meta = database.createObjectStore('meta')
       await meta.add(ontologyData.meta[0], 'meta')

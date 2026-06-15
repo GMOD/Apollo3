@@ -104,8 +104,8 @@ function getOriginalCodonLocation(
       ? cdsLocation.toSorted((a, b) => (a.min < b.min ? 1 : -1))
       : cdsLocation.toSorted((a, b) => (a.min < b.min ? -1 : 1))
   let i = 0
-  let currentStart: number | undefined = undefined
-  let currentEnd: number | undefined = undefined
+  let currentStart: number | undefined
+  let currentEnd: number | undefined
   for (let iloc = 0; iloc < sortedLocation.length; iloc++) {
     const loc = sortedLocation[iloc]
     const { phase } = loc
@@ -172,7 +172,7 @@ async function checkMRNA(
           name: CHECK_NAME,
           cause: CAUSES[CAUSES.MissingStartCodon],
           ids,
-          refSeq: refSeq.toString(),
+          refSeq,
           start: cdsStart,
           end: cdsStart,
           message: `Unexpected start codon "${start_codon}" in feature "${getPrintableId(feature)}": `,
@@ -186,7 +186,7 @@ async function checkMRNA(
           name: CHECK_NAME,
           cause: CAUSES[CAUSES.MissingStopCodon],
           ids,
-          refSeq: refSeq.toString(),
+          refSeq,
           start: cdsEnd,
           end: cdsEnd,
           message: `Missing stop codon in feature "${getPrintableId(feature)}"`,
@@ -198,7 +198,7 @@ async function checkMRNA(
         name: CHECK_NAME,
         cause: CAUSES[CAUSES.MissingStopCodon],
         ids,
-        refSeq: refSeq.toString(),
+        refSeq,
         start: cdsEnd,
         end: cdsEnd,
         message: `Missing stop codon in feature "${getPrintableId(feature)}"`,
@@ -217,7 +217,7 @@ async function checkMRNA(
           name: CHECK_NAME,
           cause: CAUSES[CAUSES.InternalStopCodon],
           ids,
-          refSeq: refSeq.toString(),
+          refSeq,
           start: codonStart,
           end: codonEnd,
           message: `Internal stop codon in feature "${getPrintableId(feature)}"`,

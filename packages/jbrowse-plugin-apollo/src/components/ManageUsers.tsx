@@ -25,7 +25,6 @@ import {
   type GridRowId,
   type GridRowModel,
   type GridRowParams,
-  GridToolbar,
 } from '@mui/x-data-grid'
 import React, { useEffect, useState } from 'react'
 
@@ -215,7 +214,7 @@ export function ManageUsers({
             rows={users}
             columns={gridColumns}
             getRowId={(row) => row._id}
-            slots={{ toolbar: GridToolbar }}
+            showToolbar
             getRowHeight={() => 'auto'}
             isCellEditable={(params: GridCellParams) =>
               !isCurrentUser(params.id)

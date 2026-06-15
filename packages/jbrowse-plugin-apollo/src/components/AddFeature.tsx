@@ -233,7 +233,7 @@ export function AddFeature({
     }
   }
 
-  let submitDisabled: boolean = Boolean(error) || !(start && end && type)
+  let submitDisabled: boolean = error || !(start && end && type)
   if (
     (type === NewFeature.CUSTOM && !customType) ||
     (!strand && type === NewFeature.GENE_AND_SUBFEATURES) ||

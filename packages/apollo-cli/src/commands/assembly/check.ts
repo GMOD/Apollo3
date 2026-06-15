@@ -159,8 +159,7 @@ these checks use `apollo feature check`.'
       return
     }
 
-    let inputCheckIds: string[] = []
-    inputCheckIds = await convertCheckNameToId(
+    const inputCheckIds = await convertCheckNameToId(
       access.address,
       access.accessToken,
       flags.check,
