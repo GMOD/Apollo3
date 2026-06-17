@@ -23,7 +23,7 @@
     "clean": "rimraf dist",
     "start": "yarn clean && npm-run-all --parallel start:watch start:server",
     "start:watch": "JB_NPM=false NODE_ENV=development rollup --config rollup/rollup.config.mjs --watch",
-    "start:server": "serve --no-request-logging --cors --listen 9000 --no-port-switching .",
+    "start:server": "node scripts/devServer.mjs",
     "build": "yarn build:shared && yarn clean && rollup --config rollup/rollup.config.mjs",
     "browse": "serve --no-request-logging --listen 8999 --no-port-switching --symlinks .jbrowse",
     "test": "yarn node --experimental-vm-modules $(yarn bin jest)",
