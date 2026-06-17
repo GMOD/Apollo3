@@ -45,10 +45,11 @@ let forwardFillLight: CanvasPattern | null = null
 let backwardFillLight: CanvasPattern | null = null
 let forwardFillDark: CanvasPattern | null = null
 let backwardFillDark: CanvasPattern | null = null
-const canvas = globalThis.document.createElement('canvas')
-// @ts-expect-error getContext is undefined in the web worker
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-if (canvas?.getContext) {
+// globalThis.document is undefined in the web worker, where this module is
+// also loaded (but never uses these patterns, which are main-thread-only
+// rendering fills)
+const canvas = globalThis.document?.createElement('canvas')
+if (canvas) {
   for (const direction of ['forward', 'backward']) {
     for (const themeMode of ['light', 'dark']) {
       const canvas = document.createElement('canvas')
