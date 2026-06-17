@@ -186,7 +186,7 @@ export const LinearApolloSixFrameDisplay = observer(
                       (lgv.bpToPx({
                         refName: region.refName,
                         coord: checkResult.start,
-                        regionNumber: idx,
+                        displayedRegionIndex: idx,
                       })?.offsetPx ?? 0) - lgv.offsetPx
                     const [feature] = checkResult.featureIds
                     if (
