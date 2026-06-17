@@ -174,7 +174,7 @@ function draw(
     (lgv.bpToPx({
       refName,
       coord: min,
-      regionNumber: displayedRegionIndex,
+      displayedRegionIndex,
     })?.offsetPx ?? 0) - offsetPx
   const topLevelFeatureWidthPx = topLevelFeature.length / bpPerPx
   const topLevelFeatureStartPx = reversed
@@ -275,7 +275,7 @@ function draw(
         (lgv.bpToPx({
           refName,
           coord: exon.min,
-          regionNumber: displayedRegionIndex,
+          displayedRegionIndex,
         })?.offsetPx ?? 0) - offsetPx
       const widthPx = exon.length / bpPerPx
       const startPx = reversed ? minX - widthPx : minX
@@ -341,7 +341,7 @@ function draw(
             (lgv.bpToPx({
               refName,
               coord: cds.min,
-              regionNumber: displayedRegionIndex,
+              displayedRegionIndex,
             })?.offsetPx ?? 0) - offsetPx
           cdsStartPx = reversed ? minX - cdsWidthPx : minX
           ctx.fillStyle = theme.palette.text.primary
@@ -525,7 +525,7 @@ function drawOverlay(
         (lgv.bpToPx({
           refName,
           coord: cds.min,
-          regionNumber: layoutIndex,
+          displayedRegionIndex: layoutIndex,
         })?.offsetPx ?? 0) - offsetPx
       const cdsStartPx = reversed ? minX - cdsWidthPx : minX
       const frame = getFrame(cds.min, cds.max, strand ?? 1, cds.phase)
@@ -788,7 +788,7 @@ function drawTooltip(
     (lgv.bpToPx({
       refName,
       coord: reversed ? max : min,
-      regionNumber: layoutIndex,
+      displayedRegionIndex: layoutIndex,
     })?.offsetPx ?? 0) - offsetPx
   const frame = getFrame(min, max, strand ?? 1, phase)
   const frameOffsets = showFeatureLabels
