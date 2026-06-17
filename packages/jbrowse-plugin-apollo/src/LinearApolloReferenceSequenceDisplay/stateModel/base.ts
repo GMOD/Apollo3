@@ -14,7 +14,6 @@ import {
 import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
 import {
   type AbstractSessionModel,
-  type Region,
   getContainingView,
   getSession,
 } from '@jbrowse/core/util'
@@ -95,8 +94,9 @@ export function baseModelFactory(
     .views((self) => ({
       get expandedRegions() {
         const regions = self.lgv.dynamicBlocks.contentBlocks.map((block) => {
-          const { assemblyName, end, refName, start } = block
-          const { parentRegion } = block as unknown as { parentRegion: Region }
+          const { assemblyName, displayedRegionIndex, end, refName, start } =
+            block
+          const parentRegion = self.lgv.displayedRegions[displayedRegionIndex]
           const expandedStart = Math.round(
             Math.max(start - 5, parentRegion.start),
           )
