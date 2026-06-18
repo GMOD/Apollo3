@@ -10,9 +10,7 @@ import type { OntologyDBNode } from './indexeddb-schema'
 import { applyPrefixes } from './prefixes'
 import type { TextIndexFieldDefinition } from './types'
 
-// eslint-disable-next-line import/no-duplicates
 import type OntologyStore from '.'
-// eslint-disable-next-line import/no-duplicates
 import type { Transaction } from '.'
 
 /** special value of jsonPath that gets the IRI (that is, ID) of the node with the configured prefixes applied */

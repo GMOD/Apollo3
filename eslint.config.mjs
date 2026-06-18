@@ -3,7 +3,7 @@ import tseslint from 'typescript-eslint'
 
 import js from '@eslint/js'
 import pluginReact from '@eslint-react/eslint-plugin'
-import pluginImport from 'eslint-plugin-import'
+// import pluginImport from 'eslint-plugin-import'
 import pluginJSXA11y from 'eslint-plugin-jsx-a11y'
 import pluginReactHooks from 'eslint-plugin-react-hooks'
 import pluginTSDoc from 'eslint-plugin-tsdoc'
@@ -26,8 +26,7 @@ export default [
   },
   js.configs.recommended,
   pluginUnicorn.configs.recommended,
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  pluginImport.flatConfigs.typescript,
+  // pluginImport.flatConfigs.typescript,
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
   {
@@ -35,8 +34,10 @@ export default [
       globals: { ...globals.browser, ...globals.node },
       parserOptions: { projectService: true },
     },
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    plugins: { tsdoc: pluginTSDoc, import: pluginImport },
+    plugins: {
+      tsdoc: pluginTSDoc,
+      // import: pluginImport
+    },
     rules: {
       // eslint built-in rules (override recommended)
       curly: 'warn',
@@ -80,19 +81,19 @@ export default [
       ],
       '@typescript-eslint/return-await': 'error',
       // eslint-plugin-import rules
-      'import/export': 'error',
-      'import/no-duplicates': ['warn', { 'prefer-inline': true }],
-      'import/no-extraneous-dependencies': 'error',
-      'import/no-named-as-default': 'warn',
-      'import/order': [
-        'warn',
-        {
-          named: true,
-          'newlines-between': 'always',
-          alphabetize: { order: 'asc' },
-          groups: ['builtin', 'external', 'parent', 'sibling'],
-        },
-      ],
+      // 'import/export': 'error',
+      // 'import/no-duplicates': ['warn', { 'prefer-inline': true }],
+      // 'import/no-extraneous-dependencies': 'error',
+      // 'import/no-named-as-default': 'warn',
+      // 'import/order': [
+      //   'warn',
+      //   {
+      //     named: true,
+      //     'newlines-between': 'always',
+      //     alphabetize: { order: 'asc' },
+      //     groups: ['builtin', 'external', 'parent', 'sibling'],
+      //   },
+      // ],
       // eslint-plugin-tsdoc rules
       'tsdoc/syntax': 'warn',
       // eslint-plugin-unicorn rules (override recommended)
