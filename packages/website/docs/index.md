@@ -41,7 +41,11 @@ see this guide for links to installing an Apollo Collaboration Server.
 <a href="docs/multi-user" target="\_blank" className="button button--primary button--lg">Go
 to multi-user setup guide</a>
 
-<!-- ## Developers
+## Developers
 
-If you want to develop your own customizations for Apollo, visit our
-[developers guide](developers) for information on how to get started. -->
+Apollo provides advanced customization options through Apollo plugins. If you'd
+like more information on how to create plugins for Apollo, see our developer
+guide.
+
+<a href="docs/developer-guide" target="\_blank" className="button button--primary button--lg">Go
+to developer guide</a>
