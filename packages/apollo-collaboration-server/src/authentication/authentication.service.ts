@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
-import type { Request } from 'express'
+import type { Request, Response } from 'express'
 import type { Profile as GoogleProfile } from 'passport-google-oauth20'
 
 import { PluginsService } from '../plugins/plugins.service.js'
@@ -192,6 +192,7 @@ export class AuthenticationService {
   async fallbackLogin(
     id: string,
     request: Request,
+    response: Response,
     redirectUri?: string,
     state?: string,
   ) {
@@ -211,14 +212,21 @@ export class AuthenticationService {
       throw new UnauthorizedException(error)
     }
     if ('url' in result) {
+      response.redirect(result.url)
       return result
     }
-    if ('name' in result && 'email' in result && state) {
-      const { token } = await this.logIn(result.name, result.email)
-      const url = new URL(state)
-      const searchParams = new URLSearchParams({ access_token: token })
-      url.search = searchParams.toString()
-      return { url: url.toString() }
+    if ('name' in result && 'email' in result) {
+      const logInResult = await this.logIn(result.name, result.email)
+      if (customAuth.needsPopup && state) {
+        const { redirect_uri } = JSON.parse(state) as { redirect_uri: string }
+        const url = new URL(redirect_uri)
+        const searchParams = new URLSearchParams({
+          access_token: logInResult.token,
+        })
+        url.search = searchParams.toString()
+        response.redirect(url.toString())
+      }
+      return logInResult
     }
     throw new UnauthorizedException('Malformed authentication handler response')
   }

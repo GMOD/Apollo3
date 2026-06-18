@@ -9,9 +9,10 @@ import {
   Query,
   Redirect,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common'
-import type { Request } from 'express'
+import type { Request, Response } from 'express'
 
 import { GoogleAuthGuard } from '../utils/google.guard.js'
 import { MicrosoftAuthGuard } from '../utils/microsoft.guard.js'
@@ -72,13 +73,22 @@ export class AuthenticationController {
   }
 
   @Get(':id')
-  @Redirect()
   async fallbackLogin(
     @Param('id') id: string,
     @Req() req: Request,
+    @Res() res: Response,
     @Query('redirect_uri') redirectUri?: string,
     @Query('state') state?: string,
   ) {
-    return this.authService.fallbackLogin(id, req, redirectUri, state)
+    const result = await this.authService.fallbackLogin(
+      id,
+      req,
+      res,
+      redirectUri,
+      state,
+    )
+    if (!res.headersSent) {
+      res.json(result)
+    }
   }
 }
