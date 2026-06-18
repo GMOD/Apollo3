@@ -76,8 +76,9 @@ export class AuthenticationController {
   async fallbackLogin(
     @Param('id') id: string,
     @Req() req: Request,
-    @Query('redirect_uri') redirectUri: string,
+    @Query('redirect_uri') redirectUri?: string,
+    @Query('state') state?: string,
   ) {
-    return this.authService.fallbackLogin(id, req, redirectUri)
+    return this.authService.fallbackLogin(id, req, redirectUri, state)
   }
 }

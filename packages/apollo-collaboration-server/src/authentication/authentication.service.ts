@@ -189,7 +189,12 @@ export class AuthenticationService {
     throw new UnauthorizedException('Guest users are not allowed')
   }
 
-  async fallbackLogin(id: string, request: Request, redirectUri: string) {
+  async fallbackLogin(
+    id: string,
+    request: Request,
+    redirectUri?: string,
+    state?: string,
+  ) {
     const defaultAuthTypes = new Map<string, CustomAuthHandler>()
     const customAuthTypes = this.pluginsService.evaluateExtensionPoint(
       'Apollo-RegisterCustomAuth',
@@ -208,8 +213,12 @@ export class AuthenticationService {
     if ('url' in result) {
       return result
     }
-    if ('name' in result && 'email' in result) {
-      return this.logIn(result.name, result.email)
+    if ('name' in result && 'email' in result && state) {
+      const { token } = await this.logIn(result.name, result.email)
+      const url = new URL(state)
+      const searchParams = new URLSearchParams({ access_token: token })
+      url.search = searchParams.toString()
+      return { url: url.toString() }
     }
     throw new UnauthorizedException('Malformed authentication handler response')
   }
