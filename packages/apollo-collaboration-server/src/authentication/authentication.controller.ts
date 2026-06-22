@@ -1,16 +1,18 @@
 /* eslint-disable @typescript-eslint/require-await */
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
   Logger,
+  Param,
   Post,
   Query,
   Redirect,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common'
+import type { Request, Response } from 'express'
 
 import { GoogleAuthGuard } from '../utils/google.guard.js'
 import { MicrosoftAuthGuard } from '../utils/microsoft.guard.js'
@@ -40,17 +42,10 @@ export class AuthenticationController {
     @Query('type') type: string,
     @Query('redirect_uri') redirect_uri?: string,
   ) {
-    const params = new URLSearchParams({ type })
-    if (redirect_uri) {
-      params.set('redirect_uri', redirect_uri)
-    }
-    if (['google', 'microsoft', 'guest'].includes(type)) {
-      const url = redirect_uri
-        ? `${type}?${new URLSearchParams({ redirect_uri }).toString()}`
-        : type
-      return { url }
-    }
-    throw new BadRequestException(`Unknown login type "${type}"`)
+    const url = redirect_uri
+      ? `${type}?${new URLSearchParams({ redirect_uri }).toString()}`
+      : type
+    return { url }
   }
 
   @Get('google')
@@ -75,5 +70,25 @@ export class AuthenticationController {
   @Post('root')
   rootLogin(@Body() { password }: { password: string }) {
     return this.authService.rootLogin(password)
+  }
+
+  @Get(':id')
+  async fallbackLogin(
+    @Param('id') id: string,
+    @Req() req: Request,
+    @Res() res: Response,
+    @Query('redirect_uri') redirectUri?: string,
+    @Query('state') state?: string,
+  ) {
+    const result = await this.authService.fallbackLogin(
+      id,
+      req,
+      res,
+      redirectUri,
+      state,
+    )
+    if (!res.headersSent) {
+      res.json(result)
+    }
   }
 }

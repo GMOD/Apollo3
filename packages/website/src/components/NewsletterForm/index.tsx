@@ -3,7 +3,6 @@ import React, { useEffect } from 'react'
 type MailerLiteFn = ((...args: unknown[]) => void) & { q?: unknown[] }
 
 declare global {
-  // eslint-disable-next-line no-var
   var ml: MailerLiteFn | undefined
 }
 
