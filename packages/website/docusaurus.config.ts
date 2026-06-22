@@ -105,6 +105,7 @@ const config: Config = {
       darkTheme: prismThemes.vsDark,
       additionalLanguages: ['docker', 'shell-session', 'bash'],
     },
+    respectPrefersColorScheme: true,
   } satisfies Preset.ThemeConfig,
 }
 

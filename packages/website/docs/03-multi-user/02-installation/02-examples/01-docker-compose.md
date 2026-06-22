@@ -231,8 +231,8 @@ compose file:
 client:
   build:
     args:
-      JBROWSE_VERSION: 2.18.0
-      APOLLO_VERSION: 0.3.4
+      JBROWSE_VERSION: ${JBROWSE_VERSION:?Please specify JBROWSE_VERSION}
+      APOLLO_VERSION: ${APOLLO_VERSION:?Please specify APOLLO_VERSION}
     context: .
   depends_on:
     - apollo-collaboration-server
@@ -275,7 +275,9 @@ compose file:
 
 ```yml
 apollo-collaboration-server:
-  image: ghcr.io/gmod/apollo-collaboration-server
+  image:
+    ghcr.io/gmod/apollo-collaboration-server:${APOLLO_VERSION:?Please specify
+    APOLLO_VERSION}
   depends_on:
     mongo-node-1:
       condition: service_healthy
@@ -379,6 +381,7 @@ mongo-node-1:
   volumes:
     - mongo-node-1_data:/data/db
     - mongo-node-1_config:/data/configdb
+  restart: unless-stopped
 ```
 
 This uses the official MongoDB image, runs on port 27017, and uses two volumes
