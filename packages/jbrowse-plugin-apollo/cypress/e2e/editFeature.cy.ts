@@ -175,22 +175,6 @@ describe('Different ways of editing features', () => {
     })
   })
 
-  it.skip('Can select region on rubber-band and zoom into it', () => {
-    const assemblyName = 'space.gff3'
-    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
-    cy.selectAssemblyToView(assemblyName, 'ctgA:1..10000')
-    cy.get('[data-testid="rubberband_controls"]').trigger('mouseover')
-    cy.get('[data-testid="rubberband_controls"]').trigger('mousedown', 100, 5)
-    cy.get('[data-testid="rubberband_controls"]').trigger('mousemove', 200, 5)
-    cy.get('[data-testid="rubberband_controls"]').trigger('mouseup', 200, 5, {
-      force: true,
-    })
-    cy.intercept('POST', '/users/userLocation').as('done')
-    cy.contains('Zoom to region').click()
-    cy.wait('@done')
-    cy.currentLocationEquals('ctgA', 1021, 2041, 10)
-  })
-
   it.skip('Can drag and move position', () => {
     const assemblyName = 'space.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)

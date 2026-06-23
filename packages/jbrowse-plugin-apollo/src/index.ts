@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { changeRegistry, checkRegistry } from '@apollo-annotation/common'
@@ -78,8 +77,10 @@ import { addTopLevelMenus } from './menus'
 import { type ApolloSessionModel, extendSession } from './session'
 
 interface RpcHandle {
-  on(event: string, listener: (event: MessageEvent) => void): this
-  workers: Worker[]
+  client: {
+    on?(event: string, listener: (event: MessageEvent) => void): void
+  }
+  worker: Worker
 }
 
 interface ApolloMessageData {
@@ -356,10 +357,10 @@ export default class ApolloPlugin extends Plugin {
       pluginManager.addToExtensionPoint(
         'Core-extendWorker',
         (handle: RpcHandle) => {
-          if (!('on' in handle && handle.on)) {
+          if (!('on' in handle.client && handle.client.on)) {
             return handle
           }
-          handle.on('apollo', async (event: MessageEvent) => {
+          handle.client.on('apollo', async (event: MessageEvent) => {
             if (!isApolloMessageData(event)) {
               return
             }
@@ -382,7 +383,7 @@ export default class ApolloPlugin extends Plugin {
                 }
                 const { seq: sequence } =
                   await backendDriver.getSequence(region)
-                handle.workers[0].postMessage({
+                handle.worker.postMessage({
                   apollo,
                   messageId,
                   sequence,
@@ -404,7 +405,7 @@ export default class ApolloPlugin extends Plugin {
                   break
                 }
                 const regions = await backendDriver.getRegions(assembly)
-                handle.workers[0].postMessage({
+                handle.worker.postMessage({
                   apollo,
                   messageId,
                   regions,
@@ -427,7 +428,7 @@ export default class ApolloPlugin extends Plugin {
                 }
                 const refNameAliases =
                   await backendDriver.getRefNameAliases(assembly)
-                handle.workers[0].postMessage({
+                handle.worker.postMessage({
                   apollo,
                   messageId,
                   refNameAliases,
