@@ -29,6 +29,7 @@ import {
 } from '@jbrowse/mobx-state-tree'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import FactCheckIcon from '@mui/icons-material/FactCheck'
+import InputIcon from '@mui/icons-material/Input'
 import TrackChangesIcon from '@mui/icons-material/TrackChanges'
 import { autorun } from 'mobx'
 
@@ -38,11 +39,13 @@ import {
   Export as ExportIcon,
 } from '../../components/DownloadGFF3'
 import { FilterFeatures } from '../../components/FilterFeatures'
+import { ImportAnnotations } from '../../components/ImportAnnotations'
 import { ViewChangeLog } from '../../components/ViewChangeLog'
 import { ViewCheckResults } from '../../components/ViewCheckResults'
 import type { ApolloSessionModel, HoveredFeature } from '../../session'
 import type { ApolloRootModel } from '../../types'
 import { EditZoomThresholdDialog } from '../../util/displayUtils'
+import { LocalDriver } from '../../BackendDrivers'
 
 const minDisplayHeight = 20
 
@@ -213,8 +216,12 @@ export function baseModelFactory(
       const { filteredFeatureTypes, trackMenuItems: superTrackMenuItems } = self
       return {
         trackMenuItems() {
-          const { graphical, table, showCheckResults } = self
-          return [
+          const { graphical, table, showCheckResults, session } = self
+          const [region] = self.regions
+          const { assemblyName } = region
+          const backendDriver =
+            session.apolloDataStore.getBackendDriver(assemblyName)
+          const items = [
             ...superTrackMenuItems(),
             {
               type: 'subMenu',
@@ -284,6 +291,28 @@ export function baseModelFactory(
                 )
               },
             },
+          ]
+          if (backendDriver instanceof LocalDriver) {
+            items.push({
+              label: 'Import annotations',
+              icon: InputIcon,
+              onClick: () => {
+                ;(session as unknown as AbstractSessionModel).queueDialog(
+                  (doneCallback) => [
+                    ImportAnnotations,
+                    {
+                      session,
+                      assemblyName,
+                      handleClose: () => {
+                        doneCallback()
+                      },
+                    },
+                  ],
+                )
+              },
+            })
+          }
+          items.push(
             {
               label: 'Export annotations',
               icon: ExportIcon,
@@ -359,7 +388,8 @@ export function baseModelFactory(
                 )
               },
             },
-          ]
+          )
+          return items
         },
       }
     })
