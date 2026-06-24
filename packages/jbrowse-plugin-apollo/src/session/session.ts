@@ -18,9 +18,10 @@ import {
   readConfObject,
 } from '@jbrowse/core/configuration'
 import type { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
-import type {
-  AbstractSessionModel,
-  SessionWithAddTracks,
+import {
+  isElectron,
+  type AbstractSessionModel,
+  type SessionWithAddTracks,
 } from '@jbrowse/core/util'
 import {
   type Instance,
@@ -45,6 +46,7 @@ import {
   type ClientDataStoreModel,
   clientDataStoreFactory,
 } from './ClientDataStore'
+import { handleApolloFeaturesUrlParam } from './handleApolloFeaturesUrlParam'
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreModel
@@ -404,6 +406,29 @@ export function extendSession(
         self.abortController.abort(
           new DOMException('Clean up Apollo session', 'AbortError'),
         )
+      },
+    }))
+    .actions((self) => ({
+      async afterCreate() {
+        if (isElectron) {
+          return
+        }
+        const url = new URL(globalThis.location.href)
+        const apolloFeatures = url.searchParams.get('apolloFeatures')
+        if (!apolloFeatures) {
+          return
+        }
+        const { assemblyManager } = self as unknown as AbstractSessionModel
+        await handleApolloFeaturesUrlParam(
+          apolloFeatures,
+          self.apolloDataStore,
+          assemblyManager,
+          self as unknown as AbstractSessionModel,
+        )
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        const updatedURL = new URL(globalThis.location.href)
+        updatedURL.searchParams.delete('apolloFeatures')
+        globalThis.history.replaceState(null, '', updatedURL.toString())
       },
     }))
 
