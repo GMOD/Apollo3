@@ -236,12 +236,12 @@ export function getMinAndMaxPx(
   const minPxInfo = lgv.bpToPx({
     refName,
     coord: feature.min,
-    regionNumber,
+    displayedRegionIndex: regionNumber,
   })
   const maxPxInfo = lgv.bpToPx({
     refName,
     coord: feature.max,
-    regionNumber,
+    displayedRegionIndex: regionNumber,
   })
   if (minPxInfo === undefined || maxPxInfo === undefined) {
     return

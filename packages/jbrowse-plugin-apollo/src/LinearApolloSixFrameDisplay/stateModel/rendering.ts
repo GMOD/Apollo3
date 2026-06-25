@@ -151,7 +151,7 @@ export function renderingModelFactory(
                     const locationStartPxInfo = self.lgv.bpToPx({
                       refName: refSeq,
                       coord: start,
-                      regionNumber: idx,
+                      displayedRegionIndex: idx,
                     })
                     if (!locationStartPxInfo) {
                       continue
