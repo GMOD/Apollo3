@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
 import type { AbstractSessionModel } from '@jbrowse/core/util'
 import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import equal from 'fast-deep-equal/es6'
 
 import { LocalDriver } from '../BackendDrivers'
 import { openDb } from '../BackendDrivers/LocalDriver/db'
@@ -82,7 +82,14 @@ export async function handleApolloFeaturesUrlParam(
     const db = await openDb(assemblyName, refNames)
     for (const featureSnapshot of featureSnapshots) {
       const storeName = `features-${featureSnapshot.refSeq}`
-      const existing = await db.get(storeName, featureSnapshot._id)
+      const existing = (await db.get(storeName, featureSnapshot._id)) as
+        | AnnotationFeatureSnapshot
+        | undefined
+      // get rid of undefined values in JSON
+      // eslint-disable-next-line unicorn/prefer-structured-clone
+      const existingFeature = JSON.parse(
+        JSON.stringify(existing),
+      ) as AnnotationFeatureSnapshot
       if (existing === undefined) {
         const change = new AddFeatureChange({
           typeName: 'AddFeatureChange',
@@ -91,13 +98,13 @@ export async function handleApolloFeaturesUrlParam(
           addedFeature: featureSnapshot,
         })
         await apolloDataStore.changeManager.submit(change)
-      } else {
+      } else if (!equal(featureSnapshot, existingFeature)) {
         await new Promise<void>((resolve) => {
           session.queueDialog((doneCallback) => [
             DuplicateFeatureDialog,
             {
               featureSnapshot,
-              existingFeature: existing as AnnotationFeatureSnapshot,
+              existingFeature,
               assemblyName,
               changeManager: apolloDataStore.changeManager,
               handleClose: () => {
