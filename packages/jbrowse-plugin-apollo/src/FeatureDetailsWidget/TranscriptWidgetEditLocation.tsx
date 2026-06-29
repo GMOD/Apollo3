@@ -858,7 +858,7 @@ export const TranscriptWidgetEditLocation = observer(
 
       // Trim any sequence before first start codon and after stop codon
       const startCodonIndex = translationSequence.indexOf('M')
-      const stopCodonIndex = translationSequence.indexOf('*')
+      const stopCodonIndex = translationSequence.lastIndexOf('*')
 
       const startCodonPos =
         translSeqCodonStartGenomicPosArr[startCodonIndex].codonGenomicPos
