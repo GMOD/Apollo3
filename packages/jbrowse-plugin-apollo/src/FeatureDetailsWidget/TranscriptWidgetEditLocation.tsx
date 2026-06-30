@@ -1,40 +1,22 @@
 /* eslint-disable unicorn/no-nested-ternary */
 /* eslint-disable unicorn/prefer-at */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import type { AnnotationFeature, TranscriptPart } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
 } from '@apollo-annotation/shared'
 import styled from '@emotion/styled'
-import {
-  type AbstractSessionModel,
-  defaultCodonTable,
-  revcom,
-} from '@jbrowse/core/util'
+import { type AbstractSessionModel, revcom } from '@jbrowse/core/util'
 import AddIcon from '@mui/icons-material/Add'
-import ContentCopyIcon from '@mui/icons-material/ContentCopy'
-import ContentCutIcon from '@mui/icons-material/ContentCut'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import RemoveIcon from '@mui/icons-material/Remove'
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Grid,
-  Tooltip,
-  Typography,
-} from '@mui/material'
+import { Grid, Typography } from '@mui/material'
 import { observer } from 'mobx-react'
-import React, { useRef } from 'react'
 
 import type { OntologyRecord } from '../OntologyManager'
 import type { ApolloSessionModel } from '../session'
-import { copyToClipboard } from '../util/copyToClipboard'
 
 import { NumberTextField } from './NumberTextField'
+import { Translation } from './Translation'
 
 const StyledTextField = styled(NumberTextField)(() => ({
   '&.MuiFormControl-root': {
@@ -47,29 +29,6 @@ const StyledTextField = styled(NumberTextField)(() => ({
     height: 20,
     padding: 1,
     paddingLeft: 10,
-  },
-}))
-
-const SequenceContainer = styled('div')({
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  textAlign: 'left',
-  width: '100%',
-  overflowWrap: 'break-word',
-  wordWrap: 'break-word',
-  wordBreak: 'break-all',
-  '& span': {
-    fontSize: 12,
-  },
-})
-
-const StyledAccordionSummary = styled(AccordionSummary)(() => ({
-  minHeight: 30,
-  maxHeight: 30,
-  '&.Mui-expanded': {
-    minHeight: 30,
-    maxHeight: 30,
   },
 }))
 
@@ -118,7 +77,6 @@ export const TranscriptWidgetEditLocation = observer(
     const currentAssembly = session.apolloDataStore.assemblies.get(assembly)
     const refData = currentAssembly?.getByRefName(refName)
     const { changeManager } = session.apolloDataStore
-    const seqRef = useRef<HTMLDivElement>(null)
     const { changeInProgress } = session
 
     if (!refData) {
@@ -699,263 +657,6 @@ export const TranscriptWidgetEditLocation = observer(
       ]
     }
 
-    const getTranslationSequence = () => {
-      let wholeSequence = ''
-      const [firstLocation] = cdsLocations
-      const sortedCDSLocations = firstLocation.toSorted(
-        ({ min: a }, { min: b }) => a - b,
-      )
-      for (const loc of sortedCDSLocations) {
-        wholeSequence += refData.getSequence(loc.min, loc.max)
-      }
-      if (strand === -1) {
-        // Original: ACGCAT
-        // Complement: TGCGTA
-        // Reverse complement: ATGCGT
-        wholeSequence = revcom(wholeSequence)
-      }
-      const elements = []
-      for (
-        let codonGenomicPos = 0;
-        codonGenomicPos < wholeSequence.length;
-        codonGenomicPos += 3
-      ) {
-        const codonSeq = wholeSequence
-          .slice(codonGenomicPos, codonGenomicPos + 3)
-          .toUpperCase()
-        const protein =
-          defaultCodonTable[codonSeq as keyof typeof defaultCodonTable] || '&'
-        // highlight start codon and stop codons
-        if (codonSeq === 'ATG') {
-          elements.push(
-            <Typography
-              component={'span'}
-              style={{
-                backgroundColor: changeInProgress ? 'lightgray' : 'yellow',
-                cursor: 'pointer',
-                border: '1px solid black',
-              }}
-              key={codonGenomicPos}
-              onClick={() => {
-                if (changeInProgress) {
-                  return
-                }
-                // NOTE: codonGenomicPos is important here for calculating the genomic location
-                // of the start codon. We are using the codonGenomicPos as the key in the typography
-                // elements to maintain the genomic postion of the codon start
-                const startCodonGenomicLocation =
-                  getCodonGenomicLocation(codonGenomicPos)
-                if (startCodonGenomicLocation !== cdsMin && strand === 1) {
-                  updateCDSLocation(
-                    cdsMin,
-                    startCodonGenomicLocation,
-                    feature,
-                    true,
-                  )
-                }
-                if (startCodonGenomicLocation !== cdsMax && strand === -1) {
-                  updateCDSLocation(
-                    cdsMax,
-                    startCodonGenomicLocation,
-                    feature,
-                    false,
-                  )
-                }
-              }}
-            >
-              {protein}
-            </Typography>,
-          )
-        } else if (['TAA', 'TAG', 'TGA'].includes(codonSeq)) {
-          elements.push(
-            <Typography
-              style={{ backgroundColor: 'red', color: 'white' }}
-              component={'span'}
-              // Pass the codonGenomicPos as the key to maintain the genomic position of the codon
-              key={codonGenomicPos}
-            >
-              {protein}
-            </Typography>,
-          )
-        } else {
-          elements.push(
-            // Pass the codonGenomicPos as the key to maintain the genomic position of the codon
-            <Typography component={'span'} key={codonGenomicPos}>
-              {protein}
-            </Typography>,
-          )
-        }
-      }
-      return elements
-    }
-
-    // Codon position is the index of the start codon in the CDS genomic sequence
-    // Calculate the genomic location of the start codon based on the codon position in the CDS
-    const getCodonGenomicLocation = (codonGenomicPosition: number) => {
-      const [firstLocation] = cdsLocations
-      let cdsLen = 0
-      const sortedCDSLocations = firstLocation.toSorted(
-        ({ min: a }, { min: b }) => a - b,
-      )
-
-      // Suppose CDS locations are [{min: 0, max: 10}, {min: 20, max: 30}, {min: 40, max: 50}]
-      // and codonGenomicPosition is 25
-      // ((10 - 0) + (30 - 20) + (50 - 40)) > 25
-      // So, start codon is in (40, 50)
-      // 40 + (25-20) = 45 is the genomic location of the start codon
-      if (strand === 1) {
-        for (const loc of sortedCDSLocations) {
-          const locLength = loc.max - loc.min
-          if (cdsLen + locLength > codonGenomicPosition) {
-            return loc.min + (codonGenomicPosition - cdsLen)
-          }
-          cdsLen += locLength
-        }
-      } else if (strand === -1) {
-        for (let i = sortedCDSLocations.length - 1; i >= 0; i--) {
-          const loc = sortedCDSLocations[i]
-          const locLength = loc.max - loc.min
-          if (cdsLen + locLength > codonGenomicPosition) {
-            return loc.max - (codonGenomicPosition - cdsLen)
-          }
-          cdsLen += locLength
-        }
-      }
-
-      if (strand === 1) {
-        return cdsMin
-      }
-
-      return cdsMax
-    }
-
-    const trimTranslationSequence = () => {
-      const sequenceElements = getTranslationSequence()
-      const translationSequence = sequenceElements
-        .map((el) => el.props.children)
-        .join('')
-
-      if (
-        translationSequence.startsWith('M') &&
-        translationSequence.endsWith('*')
-      ) {
-        return
-      }
-
-      // NOTE: We are maintaining the genomic location of the codon start as the "key"
-      // in typography elements. See getTranslationSequence function
-      const translSeqCodonStartGenomicPosArr = []
-      for (const el of sequenceElements) {
-        translSeqCodonStartGenomicPosArr.push({
-          codonGenomicPos: el.key,
-          sequenceLetter: el.props.children,
-        })
-      }
-
-      if (translSeqCodonStartGenomicPosArr.length === 0) {
-        return
-      }
-
-      // Trim any sequence before first start codon and after stop codon
-      const startCodonIndex = translationSequence.indexOf('M')
-      const stopCodonIndex = translationSequence.indexOf('*')
-
-      const startCodonPos =
-        translSeqCodonStartGenomicPosArr[startCodonIndex].codonGenomicPos
-      const stopCodonPos =
-        translSeqCodonStartGenomicPosArr[stopCodonIndex].codonGenomicPos
-
-      if (!startCodonPos || !stopCodonPos) {
-        return
-      }
-      const startCodonGenomicLoc = getCodonGenomicLocation(
-        startCodonPos as unknown as number,
-      )
-      let stopCodonGenomicLoc = getCodonGenomicLocation(
-        stopCodonPos as unknown as number,
-      )
-
-      if (strand === 1) {
-        if (startCodonGenomicLoc > stopCodonGenomicLoc) {
-          notify(
-            'Start codon genomic location should be less than stop codon genomic location',
-            'error',
-          )
-          return
-        }
-        let promise
-        stopCodonGenomicLoc += 3 // move to end of stop codon
-        if (startCodonGenomicLoc !== cdsMin) {
-          promise = new Promise((resolve) => {
-            updateCDSLocation(
-              cdsMin,
-              startCodonGenomicLoc,
-              feature,
-              true,
-              () => {
-                resolve(true)
-              },
-            )
-          })
-        }
-
-        if (stopCodonGenomicLoc !== cdsMax) {
-          if (promise) {
-            void promise.then(() => {
-              updateCDSLocation(cdsMax, stopCodonGenomicLoc, feature, false)
-            })
-          } else {
-            updateCDSLocation(cdsMax, stopCodonGenomicLoc, feature, false)
-          }
-        }
-      }
-
-      if (strand === -1) {
-        // reverse strand
-        if (startCodonGenomicLoc < stopCodonGenomicLoc) {
-          notify(
-            'Start codon genomic location should be less than stop codon genomic location',
-            'error',
-          )
-          return
-        }
-        let promise
-        stopCodonGenomicLoc -= 3 // move to end of stop codon
-        if (startCodonGenomicLoc !== cdsMax) {
-          promise = new Promise((resolve) => {
-            updateCDSLocation(
-              cdsMax,
-              startCodonGenomicLoc,
-              feature,
-              false,
-              () => {
-                resolve(true)
-              },
-            )
-          })
-        }
-
-        if (stopCodonGenomicLoc !== cdsMin) {
-          if (promise) {
-            void promise.then(() => {
-              updateCDSLocation(cdsMin, stopCodonGenomicLoc, feature, true)
-            })
-          } else {
-            updateCDSLocation(cdsMin, stopCodonGenomicLoc, feature, true)
-          }
-        }
-      }
-      notify('Translation sequence trimmed to start and stop codons', 'success')
-    }
-
-    const onCopyClick = () => {
-      const seqDiv = seqRef.current
-      if (!seqDiv) {
-        return
-      }
-      void copyToClipboard(seqDiv)
-    }
-
     return (
       <div>
         {cdsPresent && (
@@ -1169,58 +870,17 @@ export const TranscriptWidgetEditLocation = observer(
           })}
         </div>
         {cdsPresent && (
-          <div>
-            <Accordion>
-              <StyledAccordionSummary
-                expandIcon={<ExpandMoreIcon style={{ color: 'white' }} />}
-                aria-controls="panel1-content"
-                id="panel1-header"
-              >
-                <Typography component="span" fontWeight={'bold'}>
-                  Translation
-                </Typography>
-              </StyledAccordionSummary>
-              <AccordionDetails>
-                <SequenceContainer>
-                  <Typography
-                    component={'span'}
-                    ref={seqRef}
-                    style={{ maxHeight: 120, overflowY: 'scroll' }}
-                  >
-                    {getTranslationSequence()}
-                  </Typography>
-                </SequenceContainer>
-                <div
-                  style={{
-                    marginTop: 10,
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 10,
-                  }}
-                >
-                  <Tooltip title="Copy">
-                    <button
-                      onClick={onCopyClick}
-                      style={{ border: 'none', background: 'none', padding: 0 }}
-                      disabled={changeInProgress}
-                    >
-                      <ContentCopyIcon style={{ fontSize: 15 }} />
-                    </button>
-                  </Tooltip>
-                  <Tooltip title="Trim">
-                    <button
-                      onClick={trimTranslationSequence}
-                      style={{ border: 'none', background: 'none', padding: 0 }}
-                      disabled={changeInProgress}
-                    >
-                      <ContentCutIcon style={{ fontSize: 15 }} />
-                    </button>
-                  </Tooltip>
-                </div>
-              </AccordionDetails>
-            </Accordion>
-          </div>
+          <Translation
+            changeInProgress={changeInProgress}
+            cdsLocations={cdsLocations}
+            refData={refData}
+            strand={strand}
+            updateCDSLocation={updateCDSLocation}
+            cdsMin={cdsMin}
+            cdsMax={cdsMax}
+            feature={feature}
+            session={session}
+          />
         )}
       </div>
     )
