@@ -6,7 +6,11 @@ import {
 } from '@jbrowse/core/util'
 import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
-import { DuplicateTranscript, MergeTranscripts } from '../../components'
+import {
+  AddCodingSequence,
+  DuplicateTranscript,
+  MergeTranscripts,
+} from '../../components'
 import {
   isCDSFeature,
   isExonFeature,
@@ -201,7 +205,7 @@ function getLayout(display: LinearApolloDisplay, feature: AnnotationFeature) {
 
 function getContextMenuItems(
   display: LinearApolloDisplay,
-  feature: AnnotationFeature,
+  transcript: AnnotationFeature,
 ): MenuItem[] {
   const { changeManager, regions, selectedFeature, session } = display
   const [region] = regions
@@ -215,7 +219,7 @@ function getContextMenuItems(
           'ApolloTranscriptDetails',
           'apolloTranscriptDetails',
           {
-            feature,
+            feature: transcript,
             assembly: currentAssemblyId,
             changeManager,
             refName: region.refName,
@@ -238,7 +242,7 @@ function getContextMenuItems(
                 doneCallback()
               },
               changeManager,
-              sourceFeature: feature,
+              sourceFeature: transcript,
               sourceAssemblyId: currentAssemblyId,
               selectedFeature,
               setSelectedFeature: (feature?: AnnotationFeature) => {
@@ -261,7 +265,7 @@ function getContextMenuItems(
                 doneCallback()
               },
               changeManager,
-              sourceFeature: feature,
+              sourceFeature: transcript,
               sourceAssemblyId: currentAssemblyId,
               selectedFeature,
               setSelectedFeature: (feature?: AnnotationFeature) => {
@@ -273,6 +277,35 @@ function getContextMenuItems(
       },
     },
   )
+  const { children } = transcript
+  if (!children) {
+    return []
+  }
+  const cdsChildren = [...children.values()].filter((child) =>
+    isCDSFeature(child, session),
+  )
+  if (cdsChildren.length === 0) {
+    menuItems.push({
+      label: 'Add coding sequence',
+      onClick: () => {
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback) => [
+            AddCodingSequence,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature: transcript,
+              sourceAssemblyId: currentAssemblyId,
+              refName: region.refName,
+            },
+          ],
+        )
+      },
+    })
+  }
   return menuItems
 }
 

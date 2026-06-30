@@ -1,6 +1,7 @@
 export * from './AddAssembly'
 export * from './AddAssemblyAliases'
 export * from './AddChildFeature'
+export * from './AddCodingSequence'
 export * from './AddFeature'
 export * from './ColorFeature'
 export * from './CopyFeature'
