@@ -55,8 +55,24 @@ export function annotationFromPileup(pluggableElement: PluggableElementType) {
       getAnnotationFeature(jbrowseFeature: Feature, refSeqId: string) {
         const start: number = jbrowseFeature.get('start')
         const end: number = jbrowseFeature.get('end')
-        const strand = jbrowseFeature.get('strand') as 1 | -1 | undefined
         const name = jbrowseFeature.get('name') as string | undefined
+
+        let strand: 1 | -1 | undefined
+        const tags = jbrowseFeature.get('tags') as Record<
+          string,
+          string | number | undefined
+        >
+        const { ts, TS, XS } = tags
+        for (const tag of [ts, TS, XS]) {
+          if (!strand && tag) {
+            if ([1, '1', '+'].includes(tag)) {
+              strand = 1
+            } else if ([-1, '-1', '-'].includes(tag)) {
+              strand = -1
+            }
+          }
+        }
+        strand ??= jbrowseFeature.get('strand') as 1 | -1 | undefined
 
         const cigarData = jbrowseFeature.get('CIGAR') as string
         const ops = parseCigar(cigarData)
