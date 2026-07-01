@@ -85,11 +85,6 @@ export async function handleApolloFeaturesUrlParam(
       const existing = (await db.get(storeName, featureSnapshot._id)) as
         | AnnotationFeatureSnapshot
         | undefined
-      // get rid of undefined values in JSON
-      // eslint-disable-next-line unicorn/prefer-structured-clone
-      const existingFeature = JSON.parse(
-        JSON.stringify(existing),
-      ) as AnnotationFeatureSnapshot
       if (existing === undefined) {
         const change = new AddFeatureChange({
           typeName: 'AddFeatureChange',
@@ -98,22 +93,29 @@ export async function handleApolloFeaturesUrlParam(
           addedFeature: featureSnapshot,
         })
         await apolloDataStore.changeManager.submit(change)
-      } else if (!equal(featureSnapshot, existingFeature)) {
-        await new Promise<void>((resolve) => {
-          session.queueDialog((doneCallback) => [
-            DuplicateFeatureDialog,
-            {
-              featureSnapshot,
-              existingFeature,
-              assemblyName,
-              changeManager: apolloDataStore.changeManager,
-              handleClose: () => {
-                doneCallback()
-                resolve()
+      } else {
+        // get rid of undefined values in JSON
+        // eslint-disable-next-line unicorn/prefer-structured-clone
+        const existingFeature = JSON.parse(
+          JSON.stringify(existing),
+        ) as AnnotationFeatureSnapshot
+        if (!equal(featureSnapshot, existingFeature)) {
+          await new Promise<void>((resolve) => {
+            session.queueDialog((doneCallback) => [
+              DuplicateFeatureDialog,
+              {
+                featureSnapshot,
+                existingFeature,
+                assemblyName,
+                changeManager: apolloDataStore.changeManager,
+                handleClose: () => {
+                  doneCallback()
+                  resolve()
+                },
               },
-            },
-          ])
-        })
+            ])
+          })
+        }
       }
     }
   }
