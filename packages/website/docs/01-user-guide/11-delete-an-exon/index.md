@@ -1,5 +1,7 @@
 # Delete an exon
 
+Delete an exon in a transcript.
+
 :::tip
 
 Every page in this guide has a "Try it out" button. This will take you to a page

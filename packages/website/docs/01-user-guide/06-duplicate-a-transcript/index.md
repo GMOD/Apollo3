@@ -1,5 +1,7 @@
 # Duplicate a transcript
 
+Duplicate an existing transcript within a gene annotation.
+
 :::tip
 
 Every page in this guide has a "Try it out" button. This will take you to a page

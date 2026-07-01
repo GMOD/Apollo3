@@ -1,5 +1,7 @@
 # Merge transcripts
 
+Merge two transcripts into a single one.
+
 :::tip
 
 Every page in this guide has a "Try it out" button. This will take you to a page

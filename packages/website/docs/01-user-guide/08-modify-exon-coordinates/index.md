@@ -1,5 +1,7 @@
 # Modify an exon's coordinates
 
+A few different ways to modify the coordinates of an exon.
+
 :::tip
 
 Every page in this guide has a "Try it out" button. This will take you to a page

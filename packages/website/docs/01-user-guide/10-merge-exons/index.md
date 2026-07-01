@@ -1,5 +1,7 @@
 # Merge exons
 
+Merge two existing exons in a transcript.
+
 :::tip
 
 Every page in this guide has a "Try it out" button. This will take you to a page

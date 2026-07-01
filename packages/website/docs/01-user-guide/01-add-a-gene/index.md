@@ -1,6 +1,6 @@
 # Add a gene
 
-How to add a gene from a JBrowse evidence track.
+Add a gene from a JBrowse evidence track.
 
 :::tip
 

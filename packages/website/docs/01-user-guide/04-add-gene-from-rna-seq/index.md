@@ -1,5 +1,7 @@
 # Add gene from RNA-seq
 
+Add a gene from an JBrowse alignments track RNA-seq read.
+
 :::tip
 
 Every page in this guide has a "Try it out" button. This will take you to a page
@@ -12,6 +14,8 @@ anyone else using this guide sees.
 <a href="/demo//?assembly=Trichuris%20trichiura&loc=TTRE_chr2:19010000..19,012,000&tracks=Trichuris trichiura-ReferenceSequenceTrack,apollo_track_Trichuris%20trichiura,TTRE_all_isoseq.chr2&tracklist=true"
 className="button button--primary button--lg" target="\_blank">Try
 it out</a>
+
+---
 
 In this JBrowse evidence track, we have RNA-seq reads that show evidence for a
 gene in this location. To add a gene annotation from this evidence, right-click

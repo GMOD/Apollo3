@@ -1,5 +1,7 @@
 # Flip strand
 
+Change the strand of a feature between forward and reverse.
+
 :::tip
 
 Every page in this guide has a "Try it out" button. This will take you to a page

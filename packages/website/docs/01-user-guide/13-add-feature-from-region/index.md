@@ -1,5 +1,7 @@
 # Add a feature from a region
 
+Add a new annotation by selecting a region for its boundaries.
+
 :::tip
 
 Every page in this guide has a "Try it out" button. This will take you to a page
