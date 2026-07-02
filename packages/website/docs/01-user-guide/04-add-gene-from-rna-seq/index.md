@@ -11,7 +11,7 @@ anyone else using this guide sees.
 
 :::
 
-<a href="/demo//?assembly=Trichuris%20trichiura&loc=TTRE_chr2:19010000..19,012,000&tracks=Trichuris trichiura-ReferenceSequenceTrack,apollo_track_Trichuris%20trichiura,TTRE_all_isoseq.chr2&tracklist=true"
+<a href="/demo/?assembly=Trichuris%20trichiura&loc=TTRE_chr2:19010000..19,012,000&tracks=Trichuris trichiura-ReferenceSequenceTrack,apollo_track_Trichuris%20trichiura,TTRE_all_isoseq.chr2&tracklist=true"
 className="button button--primary button--lg" target="\_blank">Try
 it out</a>
 
