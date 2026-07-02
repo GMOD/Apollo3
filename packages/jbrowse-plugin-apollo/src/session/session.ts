@@ -22,6 +22,7 @@ import {
   isElectron,
   type AbstractSessionModel,
   type SessionWithAddTracks,
+  type SessionWithDrawerWidgets,
 } from '@jbrowse/core/util'
 import {
   type Instance,
@@ -429,6 +430,23 @@ export function extendSession(
         const updatedURL = new URL(globalThis.location.href)
         updatedURL.searchParams.delete('apolloFeatures')
         globalThis.history.replaceState(null, '', updatedURL.toString())
+      },
+      afterAttach() {
+        addDisposer(
+          self,
+          autorun((reaction) => {
+            const { focusedViewId, activeWidgets } =
+              self as unknown as SessionWithDrawerWidgets
+            if (!(focusedViewId && activeWidgets)) {
+              return
+            }
+            const trackSelector = activeWidgets.get('hierarchicalTrackSelector')
+            // @ts-expect-error Don't have type for track selector
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+            trackSelector?.setView(focusedViewId)
+            reaction.dispose()
+          }),
+        )
       },
     }))
 
