@@ -12,7 +12,7 @@ anyone else using this guide sees.
 :::
 
 <a href="/demo/?assembly=Onchocerca%20volvulus&loc=OVOC_OM2:21267500-21270000&tracks=onchocerca_volvulus.PRJEB513.WBPS19.genomic-ReferenceSequenceTrack,apollo_track_Onchocerca%20volvulus,onchocerca_volvulus.PRJEB513.WBPS19.annotations.genes.sorted.gff3&tracklist=true"
-className="button button--primary button--lg" target="\_blank">Try
+className="button button--primary button--lg" target="_blank">Try
 it out</a>
 
 ---

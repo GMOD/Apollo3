@@ -12,7 +12,7 @@ anyone else using this guide sees.
 :::
 
 <a href="/demo/?assembly=Onchocerca%20volvulus&loc=OVOC_OM2:2689000-2695000&tracks=onchocerca_volvulus.PRJEB513.WBPS19.genomic-ReferenceSequenceTrack,apollo_track_Onchocerca%20volvulus,onchocerca_volvulus.PRJEB513.WBPS19.annotations.genes.sorted.gff3&tracklist=true&apolloFeatures=H4sIAAAAAAAAA7XWXW-bMBQG4L8ynWs6-SsGc7dm0q62TOu0XkQRcoyTWgs2NZB1ivjvE6RbPrrEomNXCF4fzoNlYe9gZtWDU9or-WbrNttm01SQzneQmRxS4JJxyZIliRleqpgiTjHmhEMEXq_u9COkMPs2m2azjwQiqH-WGlJYa6shgsJYSAkXiGMeQSGf-jvGYxpBVXtpc0hxBOrBbHKvLaS7C_2w6rJrIqyui4ovn96NKkJBEbou0k_OXhShOMEnIlnX3iybWldd3_VqlVWu8UpDOod754tbWWlYtG10SYODXjzIiwlmBy9miI7rJUEvGeaNKTnyJoyN66VBLx3mFYwevASRkdcDC3rZIC_Bx-uBECLG9U6C3skwL0PHXhbzcb086A38Q8-9_GR-Ezzy_MZBbzzMKwQ-eClKRvYmQW8yyEupoFd2hH_2iqBXXPdO39-dbBeTo-2CTnDyCm7UJ51p3r0-7ZoyzJH8HVlZ9CUnQel1blRtnM2qWtb9cQGmzq6ML3TejfjhfFHqcl_5GYmEke7xxqn94NnW3ZTF9xvczVj7Gu1XL22lvCnrA_otvsjeR_-f9UFbnd7fdheECEOCi3PTy_Rv_SOo9GOjrdIvPqYLl8btV8UcSu9qbWymXG7suq90Wa198afwdETWn80WEajGm2fRBbLcGHkGi44YbbtofwG7y3-IPwoAAA"
-className="button button--primary button--lg" target="\_blank">Try
+className="button button--primary button--lg" target="_blank">Try
 it out</a>
 
 ---
