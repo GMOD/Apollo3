@@ -7,7 +7,10 @@ import {
   ParseBoolPipe,
   Post,
   Query,
+  Response,
+  StreamableFile,
 } from '@nestjs/common'
+import type { Response as ExpressResponse } from 'express'
 
 import type {
   FeatureIdsSearchDto,
@@ -45,12 +48,27 @@ export class FeaturesController {
    * or if search data was not found or in case of error throw exception
    */
   @Get('getFeatures')
-  getFeaturesByRange(@Query() request: FeatureRangeSearchDto) {
+  getFeaturesByRange(
+    @Query() request: FeatureRangeSearchDto,
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ) {
     this.logger.debug(
       `getFeatures endpoint: refSeq: ${request.refSeq}, start: ${request.start}, end: ${request.end}`,
     )
 
-    return this.featuresService.findByRange(request)
+    const stream = this.featuresService.findByRangeStream(request)
+    res.set({ 'Content-Type': 'application/json' })
+    return new StreamableFile(stream).setErrorHandler((error, response) => {
+      if (response.destroyed) {
+        return
+      }
+      if (response.headersSent) {
+        response.end()
+        return
+      }
+      response.statusCode = 400
+      response.send(error.message)
+    })
   }
 
   @Post('getByIds')
