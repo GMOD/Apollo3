@@ -163,14 +163,27 @@ export class ChecksService {
    * @returns an array of checkResult-documents
    */
   async findByRange(searchDto: FeatureRangeSearchDto) {
-    return this.checkResultModel
-      .find({
-        refSeq: searchDto.refSeq,
-        start: { $lte: searchDto.end },
-        end: { $gte: searchDto.start },
-        status: 0,
-      })
-      .exec()
+    return this.checkResultModel.find(this.byRangeQuery(searchDto)).exec()
+  }
+
+  /**
+   * Get all possible checkResults for given range (refSeq, start, end) as a
+   * cursor, so callers can stream results instead of loading them all into
+   * memory at once.
+   * @param searchDto - range
+   * @returns a cursor over matching checkResult-documents
+   */
+  findByRangeCursor(searchDto: FeatureRangeSearchDto) {
+    return this.checkResultModel.find(this.byRangeQuery(searchDto)).cursor()
+  }
+
+  private byRangeQuery(searchDto: FeatureRangeSearchDto) {
+    return {
+      refSeq: searchDto.refSeq,
+      start: { $lte: searchDto.end },
+      end: { $gte: searchDto.start },
+      status: 0,
+    }
   }
 
   update(id: string, updatedCheckReport: CheckDocument) {
