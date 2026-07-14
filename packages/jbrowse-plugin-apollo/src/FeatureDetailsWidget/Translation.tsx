@@ -157,7 +157,7 @@ export function Translation({
 
     // Trim any sequence before first start codon and after stop codon
     const startCodonIndex = proteinSequence.indexOf('M')
-    const stopCodonIndex = proteinSequence.lastIndexOf('*')
+    const stopCodonIndex = proteinSequence.indexOf('*', startCodonIndex)
 
     const startCodonPos = startCodonIndex * 3
     const stopCodonPos = stopCodonIndex * 3
