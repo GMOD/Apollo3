@@ -190,7 +190,10 @@ export function CreateApolloAnnotation({
     assembly.name,
   )
   const refSeq = apolloAssembly?.refSeqs.get(refSeqId)
-  const features = refSeq?.getFeatures(region.start, region.end)
+  const features = useMemo(
+    () => refSeq?.getFeatures(region.start, region.end),
+    [refSeq, region.start, region.end],
+  )
 
   useEffect(() => {
     const getDestinationFeatures = () => {
