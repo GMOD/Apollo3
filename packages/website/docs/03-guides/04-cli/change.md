@@ -10,7 +10,7 @@ Get list of changes
 
 ```
 USAGE
-  $ apollo change get [--profile <value>] [--config-file <value>] [-a <value>]
+  $ apollo change get [--profile <value>] [--config-file <value>] [-a <value>...]
 
 FLAGS
   -a, --assembly=<value>...  Get changes only for these assembly names or IDs (but see description)

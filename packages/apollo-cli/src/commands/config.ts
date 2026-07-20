@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import path from 'node:path'
 
-import input from '@inquirer/input'
-import password from '@inquirer/password'
-import select from '@inquirer/select'
+import { input, password, select } from '@inquirer/prompts'
 import { Args, Flags } from '@oclif/core'
 import { fetch } from 'undici'
 

@@ -42,7 +42,7 @@ Get reference sequences
 
 ```
 USAGE
-  $ apollo refseq get [--profile <value>] [--config-file <value>] [-a <value>]
+  $ apollo refseq get [--profile <value>] [--config-file <value>] [-a <value>...]
 
 FLAGS
   -a, --assembly=<value>...  Get reference sequences for these assembly names or IDs; use - to read it from stdin
