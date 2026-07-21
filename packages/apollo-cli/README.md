@@ -56,7 +56,7 @@ USAGE
 - [`apollo file download`](#apollo-file-download)
 - [`apollo file get`](#apollo-file-get)
 - [`apollo file upload INPUT-FILE`](#apollo-file-upload-input-file)
-- [`apollo help [COMMANDS]`](#apollo-help-commands)
+- [`apollo help [COMMAND]`](#apollo-help-command)
 - [`apollo jbrowse desktop JBROWSEFILE`](#apollo-jbrowse-desktop-jbrowsefile)
 - [`apollo jbrowse get-config`](#apollo-jbrowse-get-config)
 - [`apollo jbrowse set-config INPUTFILE`](#apollo-jbrowse-set-config-inputfile)
@@ -164,7 +164,7 @@ Add, view, or delete checks to assembly
 
 ```
 USAGE
-  $ apollo assembly check [--profile <value>] [--config-file <value>] [-a <value>] [-c <value>] [-d]
+  $ apollo assembly check [--profile <value>] [--config-file <value>] [-a <value>] [-c <value>...] [-d]
 
 FLAGS
   -a, --assembly=<value>     Manage checks in this assembly
@@ -206,7 +206,7 @@ Delete assemblies
 
 ```
 USAGE
-  $ apollo assembly delete -a <value> [--profile <value>] [--config-file <value>] [-v]
+  $ apollo assembly delete -a <value>... [--profile <value>] [--config-file <value>] [-v]
 
 FLAGS
   -a, --assembly=<value>...  (required) Assembly names or IDs to delete
@@ -234,7 +234,7 @@ Get available assemblies
 
 ```
 USAGE
-  $ apollo assembly get [--profile <value>] [--config-file <value>] [-a <value>]
+  $ apollo assembly get [--profile <value>] [--config-file <value>] [-a <value>...]
 
 FLAGS
   -a, --assembly=<value>...  Get assemblies in this list of names or IDs
@@ -291,7 +291,7 @@ Get list of changes
 
 ```
 USAGE
-  $ apollo change get [--profile <value>] [--config-file <value>] [-a <value>]
+  $ apollo change get [--profile <value>] [--config-file <value>] [-a <value>...]
 
 FLAGS
   -a, --assembly=<value>...  Get changes only for these assembly names or IDs (but see description)
@@ -315,11 +315,11 @@ Get or set apollo configuration options
 
 ```
 USAGE
-  $ apollo config [KEY] [VALUE] [--profile <value>] [---file <value>] [--get-config-file]
+  $ apollo config [KEY] [VALUE] [--profile <value>] [--config-file <value>] [--get-config-file]
 
 ARGUMENTS
-  KEY    Name of configuration parameter
-  VALUE  Parameter value
+  [KEY]    Name of configuration parameter
+  [VALUE]  Parameter value
 
 FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
@@ -399,7 +399,7 @@ USAGE
     <value> -e <value> -t <value>] [-F <value>]
 
 ARGUMENTS
-  FEATURE-JSON  Inline JSON describing the feature(s) to add. Can also be provided via stdin.
+  [FEATURE-JSON]  Inline JSON describing the feature(s) to add. Can also be provided via stdin.
 
 FLAGS
   -F, --feature-json-file=<value>  File with JSON describing the feature(s) to add
@@ -482,7 +482,7 @@ Get check results
 
 ```
 USAGE
-  $ apollo feature check [--profile <value>] [--config-file <value>] [-i <value>] [-a <value>]
+  $ apollo feature check [--profile <value>] [--config-file <value>] [-i <value>...] [-a <value>]
 
 FLAGS
   -a, --assembly=<value>       Get checks for this assembly
@@ -546,7 +546,7 @@ Delete one or more features by ID
 
 ```
 USAGE
-  $ apollo feature delete [--profile <value>] [--config-file <value>] [-i <value>] [-f] [-n]
+  $ apollo feature delete [--profile <value>] [--config-file <value>] [-i <value>...] [-f] [-n]
 
 FLAGS
   -f, --force                  Ignore non-existing features
@@ -612,7 +612,8 @@ Add, edit, or view a feature attribute
 
 ```
 USAGE
-  $ apollo feature edit-attribute -a <value> [--profile <value>] [--config-file <value>] [-i <value>] [-v <value>] [-d]
+  $ apollo feature edit-attribute -a <value> [--profile <value>] [--config-file <value>] [-i <value>] [-v <value>...]
+  [-d]
 
 FLAGS
   -a, --attribute=<value>    (required) Attribute key to add or edit
@@ -744,7 +745,7 @@ Get features given their identifiers
 
 ```
 USAGE
-  $ apollo feature get-id [--profile <value>] [--config-file <value>] [-i <value>]
+  $ apollo feature get-id [--profile <value>] [--config-file <value>] [-i <value>...]
 
 FLAGS
   -i, --feature-id=<value>...  [default: -] Retrieves feature with these IDs. Use "-" to read IDs from stdin (one per
@@ -772,7 +773,7 @@ Get features given an indexed identifier
 
 ```
 USAGE
-  $ apollo feature get-indexed-id ID [--profile <value>] [--config-file <value>] [-a <value>] [--topLevel]
+  $ apollo feature get-indexed-id ID [--profile <value>] [--config-file <value>] [-a <value>...] [--topLevel]
 
 ARGUMENTS
   ID  Indexed identifier to search for
@@ -836,7 +837,7 @@ Free text search for feature in one or more assemblies
 
 ```
 USAGE
-  $ apollo feature search -t <value> [--profile <value>] [--config-file <value>] [-a <value>]
+  $ apollo feature search -t <value> [--profile <value>] [--config-file <value>] [-a <value>...]
 
 FLAGS
   -a, --assembly=<value>...  Assembly names or IDs to search; use "-" to read it from stdin. If omitted search all
@@ -887,7 +888,7 @@ Delete files from the Apollo server
 
 ```
 USAGE
-  $ apollo file delete [--profile <value>] [--config-file <value>] [-i <value>]
+  $ apollo file delete [--profile <value>] [--config-file <value>] [-i <value>...]
 
 FLAGS
   -i, --file-id=<value>...   [default: -] IDs of the files to delete
@@ -942,7 +943,7 @@ Get list of files uploaded to the Apollo server
 
 ```
 USAGE
-  $ apollo file get [--profile <value>] [--config-file <value>] [-i <value>]
+  $ apollo file get [--profile <value>] [--config-file <value>] [-i <value>...]
 
 FLAGS
   -i, --file-id=<value>...   Get files matching this IDs
@@ -1000,16 +1001,16 @@ EXAMPLES
 _See code:
 [src/commands/file/upload.ts](https://github.com/GMOD/Apollo3/blob/v1.1.1/packages/apollo-cli/src/commands/file/upload.ts)_
 
-## `apollo help [COMMANDS]`
+## `apollo help [COMMAND]`
 
 Display help for apollo.
 
 ```
 USAGE
-  $ apollo help [COMMANDS] [-n]
+  $ apollo help [COMMAND...] [-n]
 
 ARGUMENTS
-  COMMANDS  Command to show help for.
+  [COMMAND...]  Command to show help for.
 
 FLAGS
   -n, --nested-commands  Include all nested commands in the output.
@@ -1019,7 +1020,7 @@ DESCRIPTION
 ```
 
 _See code:
-[@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.8/src/commands/help.ts)_
+[@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/6.2.53/src/commands/help.ts)_
 
 ## `apollo jbrowse desktop JBROWSEFILE`
 
@@ -1227,7 +1228,7 @@ Get reference sequences
 
 ```
 USAGE
-  $ apollo refseq get [--profile <value>] [--config-file <value>] [-a <value>]
+  $ apollo refseq get [--profile <value>] [--config-file <value>] [-a <value>...]
 
 FLAGS
   -a, --assembly=<value>...  Get reference sequences for these assembly names or IDs; use - to read it from stdin

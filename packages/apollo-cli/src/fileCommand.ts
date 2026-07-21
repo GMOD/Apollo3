@@ -8,7 +8,7 @@ import {
 } from 'node:stream'
 
 import { SingleBar } from 'cli-progress'
-import { Agent, type RequestInit, fetch } from 'undici'
+import { Agent, type RequestInit, fetch, Headers } from 'undici'
 
 import { ConfigError } from './ApolloConf.js'
 import { BaseCommand } from './baseCommand.js'

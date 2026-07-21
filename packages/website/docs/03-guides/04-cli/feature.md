@@ -27,7 +27,7 @@ USAGE
     <value> -e <value> -t <value>] [-F <value>]
 
 ARGUMENTS
-  FEATURE-JSON  Inline JSON describing the feature(s) to add. Can also be provided via stdin.
+  [FEATURE-JSON]  Inline JSON describing the feature(s) to add. Can also be provided via stdin.
 
 FLAGS
   -F, --feature-json-file=<value>  File with JSON describing the feature(s) to add
@@ -110,7 +110,7 @@ Get check results
 
 ```
 USAGE
-  $ apollo feature check [--profile <value>] [--config-file <value>] [-i <value>] [-a <value>]
+  $ apollo feature check [--profile <value>] [--config-file <value>] [-i <value>...] [-a <value>]
 
 FLAGS
   -a, --assembly=<value>       Get checks for this assembly
@@ -174,7 +174,7 @@ Delete one or more features by ID
 
 ```
 USAGE
-  $ apollo feature delete [--profile <value>] [--config-file <value>] [-i <value>] [-f] [-n]
+  $ apollo feature delete [--profile <value>] [--config-file <value>] [-i <value>...] [-f] [-n]
 
 FLAGS
   -f, --force                  Ignore non-existing features
@@ -240,7 +240,8 @@ Add, edit, or view a feature attribute
 
 ```
 USAGE
-  $ apollo feature edit-attribute -a <value> [--profile <value>] [--config-file <value>] [-i <value>] [-v <value>] [-d]
+  $ apollo feature edit-attribute -a <value> [--profile <value>] [--config-file <value>] [-i <value>] [-v <value>...]
+  [-d]
 
 FLAGS
   -a, --attribute=<value>    (required) Attribute key to add or edit
@@ -372,7 +373,7 @@ Get features given their identifiers
 
 ```
 USAGE
-  $ apollo feature get-id [--profile <value>] [--config-file <value>] [-i <value>]
+  $ apollo feature get-id [--profile <value>] [--config-file <value>] [-i <value>...]
 
 FLAGS
   -i, --feature-id=<value>...  [default: -] Retrieves feature with these IDs. Use "-" to read IDs from stdin (one per
@@ -400,7 +401,7 @@ Get features given an indexed identifier
 
 ```
 USAGE
-  $ apollo feature get-indexed-id ID [--profile <value>] [--config-file <value>] [-a <value>] [--topLevel]
+  $ apollo feature get-indexed-id ID [--profile <value>] [--config-file <value>] [-a <value>...] [--topLevel]
 
 ARGUMENTS
   ID  Indexed identifier to search for
@@ -464,7 +465,7 @@ Free text search for feature in one or more assemblies
 
 ```
 USAGE
-  $ apollo feature search -t <value> [--profile <value>] [--config-file <value>] [-a <value>]
+  $ apollo feature search -t <value> [--profile <value>] [--config-file <value>] [-a <value>...]
 
 FLAGS
   -a, --assembly=<value>...  Assembly names or IDs to search; use "-" to read it from stdin. If omitted search all

@@ -106,7 +106,7 @@ Add, view, or delete checks to assembly
 
 ```
 USAGE
-  $ apollo assembly check [--profile <value>] [--config-file <value>] [-a <value>] [-c <value>] [-d]
+  $ apollo assembly check [--profile <value>] [--config-file <value>] [-a <value>] [-c <value>...] [-d]
 
 FLAGS
   -a, --assembly=<value>     Manage checks in this assembly
@@ -148,7 +148,7 @@ Delete assemblies
 
 ```
 USAGE
-  $ apollo assembly delete -a <value> [--profile <value>] [--config-file <value>] [-v]
+  $ apollo assembly delete -a <value>... [--profile <value>] [--config-file <value>] [-v]
 
 FLAGS
   -a, --assembly=<value>...  (required) Assembly names or IDs to delete
@@ -176,7 +176,7 @@ Get available assemblies
 
 ```
 USAGE
-  $ apollo assembly get [--profile <value>] [--config-file <value>] [-a <value>]
+  $ apollo assembly get [--profile <value>] [--config-file <value>] [-a <value>...]
 
 FLAGS
   -a, --assembly=<value>...  Get assemblies in this list of names or IDs

@@ -13,7 +13,7 @@ Delete files from the Apollo server
 
 ```
 USAGE
-  $ apollo file delete [--profile <value>] [--config-file <value>] [-i <value>]
+  $ apollo file delete [--profile <value>] [--config-file <value>] [-i <value>...]
 
 FLAGS
   -i, --file-id=<value>...   [default: -] IDs of the files to delete
@@ -68,7 +68,7 @@ Get list of files uploaded to the Apollo server
 
 ```
 USAGE
-  $ apollo file get [--profile <value>] [--config-file <value>] [-i <value>]
+  $ apollo file get [--profile <value>] [--config-file <value>] [-i <value>...]
 
 FLAGS
   -i, --file-id=<value>...   Get files matching this IDs

@@ -10,11 +10,11 @@ Get or set apollo configuration options
 
 ```
 USAGE
-  $ apollo config [KEY] [VALUE] [--profile <value>] [---file <value>] [--get-config-file]
+  $ apollo config [KEY] [VALUE] [--profile <value>] [--config-file <value>] [--get-config-file]
 
 ARGUMENTS
-  KEY    Name of configuration parameter
-  VALUE  Parameter value
+  [KEY]    Name of configuration parameter
+  [VALUE]  Parameter value
 
 FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
