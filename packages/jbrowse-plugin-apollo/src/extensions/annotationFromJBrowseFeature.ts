@@ -37,9 +37,9 @@ function simpleFeatureToGFF3Feature(
           : '-'
         : null,
       phase:
-        feature.get('phase') !== null || feature.get('phase') !== undefined
-          ? (feature.get('phase') as string)
-          : null,
+        feature.get('phase') === undefined
+          ? null
+          : String(feature.get('phase')),
       attributes: convertFeatureAttributes(feature),
       derived_features: [],
       child_features: children
@@ -110,10 +110,10 @@ function convertFeatureAttributes(feature: Feature): Record<string, string[]> {
 
 function getTopLevelSimpleFeature(feature: Feature) {
   let topLevel = feature
-  let parent = feature.get('parent')
+  let parent = feature.parent?.()
   while (parent) {
     topLevel = parent
-    parent = parent.get('parent')
+    parent = parent.parent?.()
   }
   return topLevel
 }

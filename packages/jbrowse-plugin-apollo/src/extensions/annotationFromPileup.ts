@@ -55,7 +55,7 @@ export function annotationFromPileup(pluggableElement: PluggableElementType) {
       getAnnotationFeature(jbrowseFeature: Feature, refSeqId: string) {
         const start: number = jbrowseFeature.get('start')
         const end: number = jbrowseFeature.get('end')
-        const name = jbrowseFeature.get('name') as string | undefined
+        const name = jbrowseFeature.get('name')
 
         let strand: 1 | -1 | undefined
         const tags = jbrowseFeature.get('tags') as Record<
