@@ -526,7 +526,7 @@ export function CreateApolloAnnotation({
       fullWidth={true}
       maxWidth="sm"
     >
-      <DialogTitle fontSize={15}>
+      <DialogTitle sx={{ fontSize: 15 }}>
         Select the feature to be copied to apollo track
       </DialogTitle>
       <DialogContent>
@@ -578,7 +578,7 @@ export function CreateApolloAnnotation({
               }}
             >
               <Box sx={{ ml: 3 }}>
-                <Typography variant="caption" fontSize={12}>
+                <Typography variant="caption" sx={{ fontSize: 12 }}>
                   Select the destination feature to copy the selected features
                 </Typography>
 
