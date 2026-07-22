@@ -1,7 +1,6 @@
 import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
 import type { AbstractSessionModel } from '@jbrowse/core/util'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import equal from 'fast-deep-equal/es6'
 
 import { LocalDriver } from '../BackendDrivers'
@@ -68,9 +67,7 @@ export async function handleApolloFeaturesUrlParam(
     if (!(backendDriver instanceof LocalDriver)) {
       continue
     }
-    const assembly = (await assemblyManager.waitForAssembly(assemblyName)) as
-      | Assembly
-      | undefined
+    const assembly = await assemblyManager.waitForAssembly(assemblyName)
     if (!assembly) {
       throw new Error(`Assembly not found: "${assemblyName}"`)
     }

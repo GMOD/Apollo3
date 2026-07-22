@@ -231,9 +231,9 @@ export default class ApolloPlugin extends Plugin {
       })
     })
 
+    // @ts-expect-error extension point name is missing from registry
     pluginManager.addToExtensionPoint(
       'Core-extendSession',
-      // @ts-expect-error not sure how to deal with snapshot model types
       extendSession.bind(this, pluginManager),
     )
 
