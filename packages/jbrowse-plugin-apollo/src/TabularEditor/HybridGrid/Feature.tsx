@@ -191,10 +191,10 @@ export const Feature = observer(function Feature({
               fetchValidTerms={fetchValidTypeTerms.bind(null, feature)}
               renderInput={(params) => {
                 return (
-                  <div ref={params.InputProps.ref}>
+                  <div ref={params.slotProps.input.ref}>
                     <input
                       type="text"
-                      {...params.inputProps}
+                      {...params.slotProps.input}
                       className={classes.typeInputElement}
                       style={{ width: 170 }}
                     />

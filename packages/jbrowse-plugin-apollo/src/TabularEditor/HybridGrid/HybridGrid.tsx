@@ -114,7 +114,7 @@ const HybridGrid = observer(function HybridGrid({
       </table>
       <Menu
         open={Boolean(contextMenu)}
-        onMenuItemClick={(_, callback) => {
+        onMenuItemClick={(callback) => {
           callback()
           setContextMenu(null)
         }}
