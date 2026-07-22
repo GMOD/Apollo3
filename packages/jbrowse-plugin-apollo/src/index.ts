@@ -75,6 +75,7 @@ import {
 } from './makeDisplayComponent'
 import { addTopLevelMenus } from './menus'
 import { type ApolloSessionModel, extendSession } from './session'
+import type { ApolloSearchResult } from './ApolloTextSearchAdapter/ApolloTextSearchAdapter'
 
 interface RpcHandle {
   client: {
@@ -338,14 +339,13 @@ export default class ApolloPlugin extends Plugin {
       (_: any, props: Record<string, unknown>) => {
         const { session, result } = props as {
           session: ApolloSessionModel
-          result: BaseResult
+          result: ApolloSearchResult
         }
         const trackId = result.getTrackId()
-        const matchedFeature = result.matchedObject
+        const { matchedFeature } = result
 
-        if (trackId?.startsWith('apollo_track_') && matchedFeature) {
-          const geneFeature = matchedFeature as AnnotationFeature
-          void session.apolloSetEventualSelectedFeature(geneFeature._id)
+        if (trackId?.startsWith('apollo_track_')) {
+          void session.apolloSetEventualSelectedFeature(matchedFeature._id)
         }
 
         /* eslint-disable-next-line @typescript-eslint/no-unsafe-return */
