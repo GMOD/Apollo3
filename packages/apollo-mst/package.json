@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@jbrowse/core": "^4.3.0",
-    "@jbrowse/mobx-state-tree": "^5.8.7",
+    "@jbrowse/mobx-state-tree": "^5.13.0",
     "mobx": "^6.6.1",
     "react-dom": "^18.2.0",
     "rxjs": "^7.4.0",
