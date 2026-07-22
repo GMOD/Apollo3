@@ -1,5 +1,7 @@
 import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import BaseResult from '@jbrowse/core/TextSearch/BaseResults'
+import BaseResult, {
+  type BaseResultArgs,
+} from '@jbrowse/core/TextSearch/BaseResults'
 import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { readConfObject } from '@jbrowse/core/configuration'
 import {
@@ -10,6 +12,19 @@ import {
 import type { AbstractSessionModel, UriLocation } from '@jbrowse/core/util'
 
 import type { ApolloSessionModel } from '../session'
+
+interface ApolloResultArgs extends BaseResultArgs {
+  matchedFeature: AnnotationFeatureSnapshot
+}
+
+export class ApolloSearchResult extends BaseResult {
+  matchedFeature: AnnotationFeatureSnapshot
+
+  constructor(args: ApolloResultArgs) {
+    super(args)
+    this.matchedFeature = args.matchedFeature
+  }
+}
 
 function getMatchedFeature(
   query: string,
@@ -54,13 +69,13 @@ export class ApolloTextSearchAdapter
     query: string,
   ) {
     return features.map((feature) => {
-      const matchedObject = getMatchedFeature(query, feature) ?? feature
+      const matchedFeature = getMatchedFeature(query, feature) ?? feature
       const refName = assembly.getCanonicalRefName(feature.refSeq)
-      return new BaseResult({
+      return new ApolloSearchResult({
         label: query,
         trackId: this.trackId,
-        locString: `${refName}:${matchedObject.min + 1}..${matchedObject.max}`,
-        matchedObject,
+        locString: `${refName}:${matchedFeature.min + 1}..${matchedFeature.max}`,
+        matchedFeature,
       })
     })
   }
