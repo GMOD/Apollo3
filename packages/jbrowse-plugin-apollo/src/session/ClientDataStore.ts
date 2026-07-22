@@ -12,7 +12,6 @@ import {
   CheckResult,
   type CheckResultSnapshot,
 } from '@apollo-annotation/mst'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import {
   type AnyConfigurationModel,
   getConf,
@@ -107,9 +106,7 @@ export function clientDataStoreFactory(
         let ref = apolloAssembly.refSeqs.get(feature.refSeq)
         if (!ref) {
           // maybe it's a valid refName that we haven't loaded yet
-          const assembly = assemblyManager.get(assemblyId) as
-            | Assembly
-            | undefined
+          const assembly = assemblyManager.get(assemblyId)
           if (!assembly) {
             throw new Error(
               `Could not find assembly "${assemblyId}" to add feature "${feature._id}"`,
