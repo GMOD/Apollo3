@@ -534,7 +534,7 @@ __metadata:
     "@jbrowse/mobx-state-tree": "npm:^5.13.0"
     "@jbrowse/plugin-linear-genome-view": "npm:^4.3.0"
     "@jest/globals": "npm:^29.0.3"
-    "@mui/icons-material": "npm:^9.2.0"
+    "@mui/icons-material": "npm:^7.3.11"
     "@mui/material": "npm:^9.2.0"
     "@mui/system": "npm:^9.2.0"
     "@mui/x-data-grid": "npm:^9.10.0"
@@ -8148,22 +8148,6 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 10c0/eb3ac873e9dcb40273909ef44b669a751dc5cee893088422ff373796c2cfe59c1338263b5a59d5a453d37b00c4ec494dbb836b275d778d20ea335f6d029b4742
-  languageName: node
-  linkType: hard
-
-"@mui/icons-material@npm:^9.2.0":
-  version: 9.4.0
-  resolution: "@mui/icons-material@npm:9.4.0"
-  dependencies:
-    "@babel/runtime": "npm:^7.29.7"
-  peerDependencies:
-    "@mui/material": ^9.4.0
-    "@types/react": ^17.0.0 || ^18.0.0 || ^19.0.0
-    react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-  checksum: 10c0/929f818e1d514a9478776eac33063956732f353a24cb061221e889c9ee1f69b9b1a16d78157d5c01ab9647a9ba33af37dacd255a3c5f4dff2e1bd3fc4386a55c
   languageName: node
   linkType: hard
 
