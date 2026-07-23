@@ -288,7 +288,6 @@ export default class ApolloPlugin extends Plugin {
 
     pluginManager.addToExtensionPoint(
       'Core-extendPluggableElement',
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       annotationFromAlignmentRead,
     )
     pluginManager.addToExtensionPoint(
