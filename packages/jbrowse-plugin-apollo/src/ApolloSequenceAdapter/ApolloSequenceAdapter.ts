@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -72,10 +71,10 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
     const regions = await new Promise(
       (
         resolve: (sequence: Region[]) => void,
-        reject: (reason: string) => void,
+        reject: (reason: Error) => void,
       ) => {
         const timeoutId = setTimeout(() => {
-          reject('timeout')
+          reject(new Error(`getRegions timed out for assembly "${assemblyId}"`))
         }, 20_000)
         const messageId = nanoid()
         const messageListener = (event: MessageEvent) => {
@@ -155,10 +154,12 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
       const seq = await new Promise(
         (
           resolve: (sequence: string) => void,
-          reject: (reason: string) => void,
+          reject: (reason: Error) => void,
         ) => {
           const timeoutId = setTimeout(() => {
-            reject('timeout')
+            reject(
+              new Error(`getSequence timed out for ${refName}:${start}-${end}`),
+            )
           }, 20_000)
           const messageId = nanoid()
           const messageListener = (event: MessageEvent) => {
