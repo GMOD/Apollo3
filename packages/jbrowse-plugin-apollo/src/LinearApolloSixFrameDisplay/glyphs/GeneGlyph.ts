@@ -48,42 +48,48 @@ let backwardFillDark: CanvasPattern | null = null
 // globalThis.document is undefined in the web worker, where this module is
 // also loaded (but never uses these patterns, which are main-thread-only
 // rendering fills)
-for (const direction of ['forward', 'backward']) {
-  for (const themeMode of ['light', 'dark']) {
-    const canvas = document.createElement('canvas')
-    const canvasSize = 10
-    canvas.width = canvas.height = canvasSize
-    const ctx = canvas.getContext('2d')
-    if (ctx) {
-      const stripeColor1 =
-        themeMode === 'light' ? 'rgba(0,0,0,0)' : 'rgba(0,0,0,0.75)'
-      const stripeColor2 =
-        themeMode === 'light' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.50)'
-      const gradient =
-        direction === 'forward'
-          ? ctx.createLinearGradient(0, canvasSize, canvasSize, 0)
-          : ctx.createLinearGradient(0, 0, canvasSize, canvasSize)
-      gradient.addColorStop(0, stripeColor1)
-      gradient.addColorStop(0.25, stripeColor1)
-      gradient.addColorStop(0.25, stripeColor2)
-      gradient.addColorStop(0.5, stripeColor2)
-      gradient.addColorStop(0.5, stripeColor1)
-      gradient.addColorStop(0.75, stripeColor1)
-      gradient.addColorStop(0.75, stripeColor2)
-      gradient.addColorStop(1, stripeColor2)
-      ctx.fillStyle = gradient
-      ctx.fillRect(0, 0, 10, 10)
-      if (direction === 'forward') {
-        if (themeMode === 'light') {
-          forwardFillLight = ctx.createPattern(canvas, 'repeat')
+// eslint disables are for when the script loads in a web worker
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+const canvas = globalThis.document?.createElement('canvas')
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+if (canvas) {
+  for (const direction of ['forward', 'backward']) {
+    for (const themeMode of ['light', 'dark']) {
+      const canvas = document.createElement('canvas')
+      const canvasSize = 10
+      canvas.width = canvas.height = canvasSize
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        const stripeColor1 =
+          themeMode === 'light' ? 'rgba(0,0,0,0)' : 'rgba(0,0,0,0.75)'
+        const stripeColor2 =
+          themeMode === 'light' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.50)'
+        const gradient =
+          direction === 'forward'
+            ? ctx.createLinearGradient(0, canvasSize, canvasSize, 0)
+            : ctx.createLinearGradient(0, 0, canvasSize, canvasSize)
+        gradient.addColorStop(0, stripeColor1)
+        gradient.addColorStop(0.25, stripeColor1)
+        gradient.addColorStop(0.25, stripeColor2)
+        gradient.addColorStop(0.5, stripeColor2)
+        gradient.addColorStop(0.5, stripeColor1)
+        gradient.addColorStop(0.75, stripeColor1)
+        gradient.addColorStop(0.75, stripeColor2)
+        gradient.addColorStop(1, stripeColor2)
+        ctx.fillStyle = gradient
+        ctx.fillRect(0, 0, 10, 10)
+        if (direction === 'forward') {
+          if (themeMode === 'light') {
+            forwardFillLight = ctx.createPattern(canvas, 'repeat')
+          } else {
+            forwardFillDark = ctx.createPattern(canvas, 'repeat')
+          }
         } else {
-          forwardFillDark = ctx.createPattern(canvas, 'repeat')
-        }
-      } else {
-        if (themeMode === 'light') {
-          backwardFillLight = ctx.createPattern(canvas, 'repeat')
-        } else {
-          backwardFillDark = ctx.createPattern(canvas, 'repeat')
+          if (themeMode === 'light') {
+            backwardFillLight = ctx.createPattern(canvas, 'repeat')
+          } else {
+            backwardFillDark = ctx.createPattern(canvas, 'repeat')
+          }
         }
       }
     }
