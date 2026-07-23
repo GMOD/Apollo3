@@ -30,8 +30,10 @@ function parseCigar(cigar: string): [string, number][] {
   return result
 }
 
-export function annotationFromPileup(pluggableElement: PluggableElementType) {
-  if (pluggableElement.name !== 'LinearPileupDisplay') {
+export function annotationFromAlignmentRead(
+  pluggableElement: PluggableElementType,
+) {
+  if (pluggableElement.name !== 'LinearAlignmentsDisplay') {
     return pluggableElement
   }
   const { stateModel } = pluggableElement as DisplayType

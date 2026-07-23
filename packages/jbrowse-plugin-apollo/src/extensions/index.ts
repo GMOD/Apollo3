@@ -1,2 +1,2 @@
-export * from './annotationFromPileup'
+export * from './annotationFromAlignmentRead'
 export * from './annotationFromJBrowseFeature'
