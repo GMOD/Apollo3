@@ -54,7 +54,7 @@
     "@gmod/gff": "^2.1.0",
     "@jbrowse/plugin-authentication": "^4.3.0",
     "@jbrowse/plugin-linear-genome-view": "^4.3.0",
-    "@mui/icons-material": "^9.2.0",
+    "@mui/icons-material": "^7.3.11",
     "@types/jsonpath": "^0.2.0",
     "autosuggest-highlight": "^3.3.4",
     "bson-objectid": "^2.0.4",
