@@ -16,6 +16,7 @@ import { CollaborationServerDriver } from '../BackendDrivers'
 import { CreateApolloAnnotation } from '../components/CreateApolloAnnotation'
 import { Apollo as ApolloIcon } from '../menus/Icons'
 import type { ApolloSessionModel } from '../session'
+import { isAlive } from '@jbrowse/mobx-state-tree'
 
 function simpleFeatureToGFF3Feature(
   feature: Feature,
@@ -108,16 +109,6 @@ function convertFeatureAttributes(feature: Feature): Record<string, string[]> {
   return attributes
 }
 
-function getTopLevelSimpleFeature(feature: Feature) {
-  let topLevel = feature
-  let parent = feature.parent?.()
-  while (parent) {
-    topLevel = parent
-    parent = parent.parent?.()
-  }
-  return topLevel
-}
-
 export function annotationFromJBrowseFeature(
   pluggableElement: PluggableElementType,
 ) {
@@ -152,17 +143,30 @@ export function annotationFromJBrowseFeature(
           const session = getSession(self)
           const assembly = self.getAssembly()
           const region = self.getFirstRegion()
-          const feature = self.contextMenuFeature
-          if (!feature) {
+          const info = self.contextMenuInfo
+          if (!info) {
             return superContextMenuItems()
           }
-          const topLevelFeature = getTopLevelSimpleFeature(feature)
+          const {
+            item: { featureId, kind },
+            displayedRegionIndex,
+          } = info
+          if (!(featureId && kind)) {
+            return superContextMenuItems()
+          }
           return [
             ...superContextMenuItems(),
             {
               label: 'Create Apollo annotation',
               icon: ApolloIcon,
               onClick: async () => {
+                const feature = await self.fetchFullFeature(
+                  featureId,
+                  displayedRegionIndex,
+                )
+                if (!feature || !isAlive(self)) {
+                  return superContextMenuItems()
+                }
                 const backendDriver = (
                   session as unknown as ApolloSessionModel
                 ).apolloDataStore.getBackendDriver(region.assemblyName)
@@ -180,7 +184,7 @@ export function annotationFromJBrowseFeature(
                   refSeqId = backendRefSeqId
                 }
                 const annotationFeature = jbrowseFeatureToAnnotationFeature(
-                  topLevelFeature,
+                  feature,
                   refSeqId,
                 )
                 session.queueDialog((doneCallback) => [
