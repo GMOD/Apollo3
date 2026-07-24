@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { changeRegistry, checkRegistry } from '@apollo-annotation/common'
-import type { AnnotationFeature } from '@apollo-annotation/mst'
 import {
   CDSCheck,
   CoreValidation,
@@ -13,7 +12,6 @@ import {
 } from '@apollo-annotation/shared'
 import Plugin from '@jbrowse/core/Plugin'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import type BaseResult from '@jbrowse/core/TextSearch/BaseResults'
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import {
   DisplayType,
@@ -67,7 +65,7 @@ import { AddFeature } from './components'
 import ApolloPluginConfigurationSchema from './config'
 import {
   annotationFromJBrowseFeature,
-  annotationFromPileup,
+  annotationFromAlignmentRead,
 } from './extensions'
 import {
   LinearApolloDisplayComponent,
@@ -75,6 +73,7 @@ import {
 } from './makeDisplayComponent'
 import { addTopLevelMenus } from './menus'
 import { type ApolloSessionModel, extendSession } from './session'
+import type { ApolloSearchResult } from './ApolloTextSearchAdapter/ApolloTextSearchAdapter'
 
 interface RpcHandle {
   client: {
@@ -231,9 +230,9 @@ export default class ApolloPlugin extends Plugin {
       })
     })
 
+    // @ts-expect-error extension point name is missing from registry
     pluginManager.addToExtensionPoint(
       'Core-extendSession',
-      // @ts-expect-error not sure how to deal with snapshot model types
       extendSession.bind(this, pluginManager),
     )
 
@@ -289,7 +288,7 @@ export default class ApolloPlugin extends Plugin {
 
     pluginManager.addToExtensionPoint(
       'Core-extendPluggableElement',
-      annotationFromPileup,
+      annotationFromAlignmentRead,
     )
     pluginManager.addToExtensionPoint(
       'Core-extendPluggableElement',
@@ -338,14 +337,13 @@ export default class ApolloPlugin extends Plugin {
       (_: any, props: Record<string, unknown>) => {
         const { session, result } = props as {
           session: ApolloSessionModel
-          result: BaseResult
+          result: ApolloSearchResult
         }
         const trackId = result.getTrackId()
-        const matchedFeature = result.matchedObject
+        const { matchedFeature } = result
 
-        if (trackId?.startsWith('apollo_track_') && matchedFeature) {
-          const geneFeature = matchedFeature as AnnotationFeature
-          void session.apolloSetEventualSelectedFeature(geneFeature._id)
+        if (trackId?.startsWith('apollo_track_')) {
+          void session.apolloSetEventualSelectedFeature(matchedFeature._id)
         }
 
         /* eslint-disable-next-line @typescript-eslint/no-unsafe-return */

@@ -663,8 +663,7 @@ export const TranscriptWidgetEditLocation = observer(
           <div>
             <Grid
               container
-              justifyContent="center"
-              alignItems="center"
+              sx={{ justifyContent: 'center', alignItems: 'center' }}
               style={{ textAlign: 'center' }}
             >
               <Grid size={1} />
@@ -760,8 +759,7 @@ export const TranscriptWidgetEditLocation = observer(
                 {loc.type === 'exon' && (
                   <Grid
                     container
-                    justifyContent="center"
-                    alignItems="center"
+                    sx={{ justifyContent: 'center', alignItems: 'center' }}
                     style={{ textAlign: 'center' }}
                   >
                     <Grid size={1}>

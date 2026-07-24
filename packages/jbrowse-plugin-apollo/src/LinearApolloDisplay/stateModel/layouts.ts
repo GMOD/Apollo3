@@ -2,7 +2,6 @@
 
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import type { AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
 import { type AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
 import { addDisposer, isAlive } from '@jbrowse/mobx-state-tree'
@@ -72,9 +71,7 @@ export function layoutsModelFactory(
       getCanonicalRefName(assemblyName: string, refSeq: string) {
         const { assemblyManager } =
           self.session as unknown as AbstractSessionModel
-        const assembly = assemblyManager.get(assemblyName) as
-          | Assembly
-          | undefined
+        const assembly = assemblyManager.get(assemblyName)
         if (!assembly) {
           throw new Error('no assembly in layout')
         }

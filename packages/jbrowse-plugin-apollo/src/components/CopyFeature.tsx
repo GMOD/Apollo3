@@ -8,7 +8,6 @@ import type {
   AnnotationFeatureSnapshot,
 } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { readConfObject } from '@jbrowse/core/configuration'
 import type { AbstractSessionModel } from '@jbrowse/core/util'
 import { getSnapshot } from '@jbrowse/mobx-state-tree'
@@ -106,9 +105,7 @@ export function CopyFeature({
         setErrorMessage('No assemblies to copy to')
         return
       }
-      const assembly = (await assemblyManager.waitForAssembly(
-        selectedAssemblyId,
-      )) as Assembly | undefined
+      const assembly = await assemblyManager.waitForAssembly(selectedAssemblyId)
       if (!assembly) {
         return
       }
@@ -139,9 +136,7 @@ export function CopyFeature({
     event.preventDefault()
     setErrorMessage('')
     const featureLength = sourceFeature.length
-    const assembly = (await assemblyManager.waitForAssembly(
-      selectedAssemblyId,
-    )) as Assembly | undefined
+    const assembly = await assemblyManager.waitForAssembly(selectedAssemblyId)
     if (!assembly) {
       setErrorMessage(`Assembly not found: ${selectedAssemblyId}.`)
       return

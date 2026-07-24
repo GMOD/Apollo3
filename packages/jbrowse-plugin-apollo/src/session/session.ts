@@ -344,7 +344,6 @@ export function extendSession(
                 for (const a of nonApolloAssemblies) {
                   self.addApolloLocalTrackConfig(a)
                 }
-                // @ts-expect-error not sure why snapshot type is wrong for snapshot
                 applySnapshot(self, self.previousSnapshot)
                 reaction.dispose()
                 return
