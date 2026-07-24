@@ -6,6 +6,8 @@
 ##############
 
 # URL
+# For local development: http://localhost:3999
+# For production (required for OAuth): https://example.com
 URL=http://localhost:3999
 
 # Name of your server (shown during the login process)
