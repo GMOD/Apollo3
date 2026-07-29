@@ -68,7 +68,7 @@ describe('Add Assembly', () => {
       })
   })
 
-  it.skip('Can add assembly from editable uncompressed fasta', () => {
+  it('Can add assembly from editable uncompressed fasta', () => {
     cy.selectFromApolloMenu(['Admin', 'Add Assembly'])
     cy.get('form[data-testid="submit-form"]').within(() => {
       cy.get('input[type="TextField"]').type('volvox')
@@ -96,7 +96,7 @@ describe('Add Assembly', () => {
       })
   })
 
-  it.skip('Can add assembly from remote url', () => {
+  it('Can add assembly from remote url', () => {
     cy.selectFromApolloMenu(['Admin', 'Add Assembly'])
     cy.get('form[data-testid="submit-form"]').within(() => {
       cy.get('input[type="TextField"]').type('volvox')
@@ -134,7 +134,7 @@ describe('Add Assembly', () => {
       })
   })
 
-  it.skip('Can add assembly and features from gff3', () => {
+  it('Can add assembly and features from gff3', () => {
     cy.selectFromApolloMenu(['Admin', 'Add Assembly'])
     cy.get('form[data-testid="submit-form"]').within(() => {
       cy.get('input[type="TextField"]').type('volvox')
@@ -163,7 +163,7 @@ describe('Add Assembly', () => {
     })
   })
 
-  it.skip('Can add assembly from gff3 without importing features', () => {
+  it('Can add assembly from gff3 without importing features', () => {
     cy.selectFromApolloMenu(['Admin', 'Add Assembly'])
     cy.get('form[data-testid="submit-form"]').within(() => {
       cy.get('input[type="TextField"]').type('volvox')
@@ -195,7 +195,7 @@ describe('Add Assembly', () => {
     })
   })
 
-  it.skip('Keep original defaults when switching panels', () => {
+  it('Keep original defaults when switching panels', () => {
     // We select, but don't submit, a gff3 input. This should switch to "sequence is editable" mode.
     // Then we select fasta input: Ensure "Allow sequence to be edited" is unchecked and index files are required.
     // Basically, defaults don't change after having implicitly switched to editable mode.
@@ -231,7 +231,7 @@ describe('Add Assembly', () => {
     })
   })
 
-  it.skip('Add assembly from gzip GFF3 file', () => {
+  it('Add assembly from gzip GFF3 file', () => {
     cy.exec(
       'gzip -c test_data/volvox.fasta.gff3 > test_data/volvox.fasta.gff3.gz',
     )
@@ -239,7 +239,7 @@ describe('Add Assembly', () => {
     cy.exec('rm test_data/volvox.fasta.gff3.gz')
   })
 
-  it.skip('Can override autodetection of gzip compression in FASTA', () => {
+  it('Can override autodetection of gzip compression in FASTA', () => {
     cy.exec('cp test_data/volvox.fa test_data/tmp.fake.gz')
     cy.selectFromApolloMenu(['Admin', 'Add Assembly'])
     cy.get('form[data-testid="submit-form"]').within(() => {
@@ -268,7 +268,7 @@ describe('Add Assembly', () => {
     cy.exec('rm test_data/tmp.fake.gz')
   })
 
-  it.skip('Can override autodetection of gzip compression in GFF3', () => {
+  it('Can override autodetection of gzip compression in GFF3', () => {
     cy.exec('cp test_data/volvox.fasta.gff3 test_data/tmp.fake.gz')
     cy.selectFromApolloMenu(['Admin', 'Add Assembly'])
     cy.get('form[data-testid="submit-form"]').within(() => {
