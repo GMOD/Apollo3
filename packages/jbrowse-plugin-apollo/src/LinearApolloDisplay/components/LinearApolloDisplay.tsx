@@ -81,7 +81,6 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
         </div>
       ) : null}
       {/* This type is wrong in @jbrowse/core */}
-      {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
       {message ? (
         <Alert
           severity="warning"
