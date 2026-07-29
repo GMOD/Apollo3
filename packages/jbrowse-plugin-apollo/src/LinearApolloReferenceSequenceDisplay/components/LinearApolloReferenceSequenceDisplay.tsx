@@ -35,8 +35,6 @@ export const LinearApolloReferenceSequenceDisplay = observer(
     const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
     const message = regionCannotBeRendered()
 
-    // This type is wrong in @jbrowse/core
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (message) {
       return (
         <Alert
