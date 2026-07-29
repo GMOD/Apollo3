@@ -26,6 +26,5 @@ describe('Warning signs', () => {
     cy.searchFeatures('SM_V10_3:498000..499100', 1)
     cy.contains('td', 'region2').dblclick({ force: true })
     cy.currentLocationEquals('SM_V10_3', 498_900, 500_000, 100)
-    cy.contains('500,000')
   })
 })

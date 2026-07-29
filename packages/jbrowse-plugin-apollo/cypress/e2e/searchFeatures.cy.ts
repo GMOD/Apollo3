@@ -90,15 +90,12 @@ describe('Search features', () => {
     cy.searchFeatures('hgb', 2)
   })
 
-  it.only('Can handle space in attribute values', () => {
+  it('Can handle space in attribute values', () => {
     cy.addAssemblyFromGff('space.gff3', 'test_data/space.gff3')
     cy.selectAssemblyToView('space.gff3')
 
     cy.searchFeatures('agt 2', 1)
     cy.currentLocationEquals('ctgA', 1, 8410, 10)
-
-    // TODO: see if there's a way to get this search to work
-    cy.searchFeatures('spam"foo"eggs', 0)
 
     cy.searchFeatures('thisDoesNotExist', 0)
     // Make sure we didn't change location after a failed search
@@ -106,6 +103,9 @@ describe('Search features', () => {
 
     cy.searchFeatures('agt B', 1)
     cy.currentLocationEquals('ctgA', 7800, 9200, 10)
+
+    cy.searchFeatures('spam"foo"eggs', 1)
+    cy.currentLocationEquals('ctgA', 1, 8410, 10)
 
     cy.searchFeatures('agt 1', 2)
   })
