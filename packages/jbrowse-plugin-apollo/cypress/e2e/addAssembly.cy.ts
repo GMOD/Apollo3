@@ -60,9 +60,12 @@ describe('Add Assembly', () => {
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
     cy.contains('Launch view').click()
-    cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
-      cy.contains('volvox')
-    })
+    cy.get('div')
+      .contains('Assembly')
+      .parent()
+      .within(() => {
+        cy.contains('volvox')
+      })
   })
 
   it('Can add assembly from editable uncompressed fasta', () => {
@@ -85,9 +88,12 @@ describe('Add Assembly', () => {
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
     cy.contains('Launch view').click()
-    cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
-      cy.contains('volvox')
-    })
+    cy.get('div')
+      .contains('Assembly')
+      .parent()
+      .within(() => {
+        cy.contains('volvox')
+      })
   })
 
   it('Can add assembly from remote url', () => {
@@ -120,9 +126,12 @@ describe('Add Assembly', () => {
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
     cy.contains('Launch view').click()
-    cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
-      cy.contains('volvox')
-    })
+    cy.get('div')
+      .contains('Assembly')
+      .parent()
+      .within(() => {
+        cy.contains('volvox')
+      })
   })
 
   it('Can add assembly and features from gff3', () => {
@@ -250,9 +259,12 @@ describe('Add Assembly', () => {
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
     cy.contains('Launch view').click()
-    cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
-      cy.contains('volvox')
-    })
+    cy.get('div')
+      .contains('Assembly')
+      .parent()
+      .within(() => {
+        cy.contains('volvox')
+      })
     cy.exec('rm test_data/tmp.fake.gz')
   })
 

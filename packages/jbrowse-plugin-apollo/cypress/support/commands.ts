@@ -2,6 +2,7 @@ import { type IDBPDatabase, openDB } from 'idb'
 
 Cypress.Commands.add('loginAsGuest', () => {
   cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
+  cy.contains('Yes, I trust it', { timeout: 10_000 }).click()
   cy.contains('Continue as Guest', { timeout: 10_000 }).click()
   // eslint-disable-next-line cypress/no-unnecessary-waiting
   cy.wait(2000)
@@ -218,11 +219,14 @@ Cypress.Commands.add(
   (assemblyName, locationOrSearch) => {
     cy.contains('Select assembly to view', { timeout: 10_000 })
 
-    cy.get('input[data-testid="assembly-selector"]')
+    cy.contains('Assembly')
+
+    cy.get('div')
+      .contains('Assembly')
       .parent()
       .then((el) => {
         if (!el.text().includes(assemblyName)) {
-          cy.get('input[data-testid="assembly-selector"]').parent().click()
+          cy.get('div').contains('Assembly').parent().click()
           cy.get('li').contains(assemblyName).click()
         }
       })
