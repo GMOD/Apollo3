@@ -194,7 +194,7 @@ export const Feature = observer(function Feature({
                   <div ref={params.slotProps.input.ref}>
                     <input
                       type="text"
-                      {...params.slotProps.input}
+                      {...params.slotProps.htmlInput}
                       className={classes.typeInputElement}
                       style={{ width: 170 }}
                     />
