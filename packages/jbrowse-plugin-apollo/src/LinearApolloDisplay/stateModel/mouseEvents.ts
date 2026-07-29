@@ -312,8 +312,6 @@ export function mouseEventsModelFactory(
               const { lgv, overlayCanvas } = self
               if (
                 !lgv.initialized ||
-                // This type is wrong in @jbrowse/core
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 self.regionCannotBeRendered() ||
                 !overlayCanvas
               ) {
