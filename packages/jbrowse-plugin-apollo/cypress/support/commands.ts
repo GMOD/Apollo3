@@ -253,7 +253,7 @@ Cypress.Commands.add('searchFeatures', (query, expectedNumOfHits) => {
     `{selectall}{backspace}${query}{enter}`,
   )
   if (expectedNumOfHits === 0) {
-    cy.contains(`Error: Unknown feature or sequence "${query}"`)
+    cy.contains(`No results found for "${query}"`)
   } else if (expectedNumOfHits === 1) {
     cy.wait(`@search ${query}`)
   } else {
