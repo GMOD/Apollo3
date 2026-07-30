@@ -193,7 +193,7 @@ Cypress.Commands.add(
       cy.wait('@changes').its('response.statusCode').should('match', /2../)
     })
 
-    cy.contains('UploadAssemblyFile')
+    cy.contains(`UploadAssemblyFile for ${assemblyName}`)
       .parent()
       .should('contain', 'All operations successful')
     cy.contains(
