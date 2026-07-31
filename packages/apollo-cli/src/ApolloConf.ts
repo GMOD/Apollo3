@@ -52,9 +52,6 @@ function optionDocs(): { key: string; description: string }[] {
         })
         break
       }
-      default: {
-        throw new ConfigError(`Unexpected key: ${v}`)
-      }
     }
   }
   return docs
