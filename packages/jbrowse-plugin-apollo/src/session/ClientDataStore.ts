@@ -120,6 +120,9 @@ export function clientDataStoreFactory(
           }
           ref = apolloAssembly.addRefSeq(feature.refSeq, canonicalRefName)
         }
+        if (!ref) {
+          throw new Error(`Could not find or create refSeq "${feature.refSeq}"`)
+        }
         ref.features.put(feature)
       },
       deleteFeature(featureId: string) {
