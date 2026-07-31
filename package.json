@@ -50,7 +50,7 @@
     "typescript-eslint": "^8.61.0",
     "yargs": "^17.7.2"
   },
-  "packageManager": "yarn@4.16.0",
+  "packageManager": "yarn@4.18.0",
   "resolutions": {
     "@jbrowse/core": "file:./jbrowse-core-6c3280fc0b.tgz",
     "@jbrowse/plugin-authentication": "file:./jbrowse-plugin-authentication-6c3280fc0b.tgz",
