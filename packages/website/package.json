@@ -29,6 +29,6 @@
     "@docusaurus/types": "^3.10.1",
     "@types/node": "^24.10.9",
     "@types/react": "^18.3.4",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   }
 }

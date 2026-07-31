@@ -26,7 +26,7 @@
     "@types/node": "^24.10.9",
     "generic-filehandle2": "^2.2.1",
     "mongoose": "^6.12.0",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "peerDependencies": {
     "@jbrowse/mobx-state-tree": "^5.13.0",
