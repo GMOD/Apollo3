@@ -130,7 +130,7 @@
     "ts-jest": "^29.4.6",
     "ts-node": "^10.3.0",
     "tss-react": "^4.6.1",
-    "typescript": "^5.5.3"
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "@jbrowse/core": "^4.3.0",
