@@ -21,7 +21,7 @@ Cypress.Commands.add('deleteAssemblies', () => {
 type OntologyKey = 'nodes' | 'edges' | 'meta'
 
 async function loadOntology(
-  ontologyGZip: Buffer,
+  ontologyGZip: ArrayBuffer,
   name: string,
   version: number,
 ) {
@@ -90,7 +90,7 @@ Cypress.Commands.add('addOntologies', () => {
   )
   // so.json.gz was generated from an IndexedDB dump using the script found at
   // https://gist.github.com/loilo/ed43739361ec718129a15ae5d531095b
-  cy.readFile('cypress/data/so.json.gz', null).then((soGZip: Buffer) => {
+  cy.readFile<ArrayBuffer>('cypress/data/so.json.gz', null).then((soGZip) => {
     cy.wrap<Promise<void>>(
       loadOntology(
         soGZip,
