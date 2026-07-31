@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
-
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { DeleteUserChange, UserChange } from '@apollo-annotation/shared'
 import { getRoot } from '@jbrowse/mobx-state-tree'
