@@ -423,11 +423,26 @@ export type Children = IMSTMap<typeof AnnotationFeatureModel> | undefined
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface AnnotationFeatureRaw
   extends Instance<typeof AnnotationFeatureModel> {}
-// This type isn't exactly right, since "children" is actually an IMSTMap and
-// not a Map, but it's better than typing it as any.
+/**
+ * Mirrors the read-only subset of IMSTMap's API that AnnotationFeature
+ * consumers actually use. IMSTMap doesn't extend Map and its iterator
+ * methods predate TypeScript's Iterator Helper additions to Map's types,
+ * so it no longer structurally satisfies Map\<K, V\>.
+ */
+export interface ReadonlyFeatureMap<V> {
+  readonly size: number
+  get(key: string | number): V | undefined
+  has(key: string | number): boolean
+  keys(): IterableIterator<string>
+  values(): IterableIterator<V>
+  entries(): IterableIterator<[string, V]>
+  forEach(callback: (value: V, key: string, map: this) => void): void
+  [Symbol.iterator](): IterableIterator<[string, V]>
+}
+
 export interface AnnotationFeature
   extends Omit<AnnotationFeatureRaw, 'children'> {
-  children?: Map<string | number, AnnotationFeature>
+  children?: ReadonlyFeatureMap<AnnotationFeature>
 }
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface AnnotationFeatureSnapshotRaw
