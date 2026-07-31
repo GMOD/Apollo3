@@ -15,6 +15,7 @@ import StreamConcat from 'stream-concat'
 
 import { ChecksService } from '../checks/checks.service.js'
 import type { FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
+import { cursorToReadable } from '../utils/mongooseCursor.js'
 
 import type {
   FeatureCountRequest,
@@ -245,13 +246,15 @@ export class FeaturesService {
    */
   findByRangeStream(searchDto: FeatureRangeSearchDto): Readable {
     const featuresStream = Readable.toWeb(
-      this.featureModel.find(this.byRangeQuery(searchDto)).cursor(),
+      cursorToReadable(
+        this.featureModel.find(this.byRangeQuery(searchDto)).cursor(),
+      ),
     )
       .pipeThrough(new CheckFeatureStream(this.checksService))
       .pipeThrough(new DocToJSONArrayStream())
 
     const checkResultsStream = Readable.toWeb(
-      this.checksService.findByRangeCursor(searchDto),
+      cursorToReadable(this.checksService.findByRangeCursor(searchDto)),
     ).pipeThrough(new DocToJSONArrayStream())
 
     const openBracket = new ReadableStream<string>({
