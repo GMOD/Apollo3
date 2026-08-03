@@ -105,8 +105,7 @@ export function getSequenceSegments(
       let protein = ''
       for (let i = 0; i < wholeSequence.length; i += 3) {
         const codonSeq: string = wholeSequence.slice(i, i + 3).toUpperCase()
-        protein +=
-          defaultCodonTable[codonSeq as keyof typeof defaultCodonTable] || '&'
+        protein += defaultCodonTable[codonSeq] || '&'
       }
       segments.push({ type: 'protein', sequence: protein, locs })
       return segments
