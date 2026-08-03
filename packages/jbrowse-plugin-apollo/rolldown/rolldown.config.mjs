@@ -1,8 +1,8 @@
-/** @type {import('rollup').RollupOptions} */
+/** @type {import('rolldown').RolldownOptions} */
 
 import globals from '@jbrowse/core/ReExports/list'
 
-import { createRollupConfig } from './createRollupConfig.mjs'
+import { createRolldownConfig } from './createRolldownConfig.mjs'
 
 function stringToBoolean(string) {
   if (string === undefined) {
@@ -22,23 +22,23 @@ const includeCJS = stringToBoolean(process.env.JB_CJS)
 const includeESMBundle = stringToBoolean(process.env.JB_ESM_BUNDLE)
 const includeNPM = stringToBoolean(process.env.JB_NPM)
 
-const rollupConfig = createRollupConfig(globals, {
+const rolldownConfig = createRolldownConfig(globals, {
   includeUMD,
   includeCJS,
   includeESMBundle,
   includeNPM,
 })
 
-for (const config of rollupConfig) {
-  config.onwarn = (warning, warn) => {
+for (const config of rolldownConfig) {
+  config.onLog = (level, log, defaultHandler) => {
     if (
-      warning.code === 'MODULE_LEVEL_DIRECTIVE' &&
-      warning.message.includes(`use client`)
+      log.code === 'MODULE_LEVEL_DIRECTIVE' &&
+      log.message.includes(`use client`)
     ) {
       return
     }
-    warn(warning)
+    defaultHandler(level, log)
   }
 }
 
-export default rollupConfig
+export default rolldownConfig
