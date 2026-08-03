@@ -8,7 +8,7 @@
     "./.*.mjs",
     "./*.cjs",
     "./.*.cjs",
-    "./rollup/*.mjs",
+    "./rolldown/*.mjs",
     "cypress.config.ts",
   ],
 }
