@@ -394,7 +394,7 @@ __metadata:
     "@gmod/gff": "npm:^2.1.0"
     "@gmod/indexedfasta": "npm:^5.0.2"
     "@jbrowse/core": "npm:^4.3.0"
-    "@jbrowse/mobx-state-tree": "npm:^5.13.0"
+    "@jbrowse/mobx-state-tree": "npm:^6.0.0"
     "@mui/material": "npm:^9.2.0"
     "@nestjs/cli": "npm:^10.1.10"
     "@nestjs/common": "npm:^10.1.0"
@@ -431,8 +431,8 @@ __metadata:
     jest: "npm:^29.6.2"
     joi: "npm:^17.7.0"
     material-ui-popup-state: "npm:^5.0.4"
-    mobx: "npm:^6.6.1"
-    mobx-react: "npm:^7.2.1"
+    mobx: "npm:^7.0.0"
+    mobx-react: "npm:^10.0.0"
     mongodb: "npm:^4.7.0"
     mongoose: "npm:^6.12.0"
     mongoose-id-validator: "npm:^0.6.0"
@@ -483,11 +483,11 @@ __metadata:
     tslib: "npm:^2.3.1"
     typescript: "npm:^6.0.3"
   peerDependencies:
-    "@jbrowse/mobx-state-tree": ^5.13.0
+    "@jbrowse/mobx-state-tree": ^6.0.0
     "@mui/material": ^9.2.0
     "@mui/x-data-grid": ^9.10.0
-    mobx: ^6.6.1
-    mobx-react: ^7.2.1
+    mobx: ^7.0.0
+    mobx-react: ^10.0.0
     prop-types: ^15.8.1
     react: ^18.2.0
     react-dom: ^18.2.0
@@ -513,7 +513,7 @@ __metadata:
     "@jbrowse/cli": "npm:^4.3.0"
     "@jbrowse/core": "npm:^4.3.0"
     "@jbrowse/development-tools": "npm:^2.2.1"
-    "@jbrowse/mobx-state-tree": "npm:^5.13.0"
+    "@jbrowse/mobx-state-tree": "npm:^6.0.0"
     "@jbrowse/plugin-authentication": "npm:^4.3.0"
     "@jbrowse/plugin-linear-genome-view": "npm:^4.3.0"
     "@jest/globals": "npm:^29.0.3"
@@ -561,8 +561,8 @@ __metadata:
     jsonpath: "npm:^1.1.1"
     librpc-web-mod: "npm:^1.1.9"
     lodash.merge: "npm:^4.6.2"
-    mobx: "npm:^6.6.1"
-    mobx-react: "npm:^7.2.1"
+    mobx: "npm:^7.0.0"
+    mobx-react: "npm:^10.0.0"
     nanoid: "npm:^4.0.2"
     npm-run-all: "npm:^4.1.5"
     prop-types: "npm:^15.8.1"
@@ -586,9 +586,9 @@ __metadata:
     typescript: "npm:^6.0.3"
   peerDependencies:
     "@jbrowse/core": ^4.3.0
-    "@jbrowse/mobx-state-tree": ^5.13.0
+    "@jbrowse/mobx-state-tree": ^6.0.0
     "@mui/material": ^9.2.0
-    mobx: ^6.6.1
+    mobx: ^7.0.0
     mobx-react: ^9.0.0
     prop-types: ^15.8.1
     react: ^18.2.0
@@ -603,8 +603,8 @@ __metadata:
   resolution: "@apollo-annotation/mst@workspace:packages/apollo-mst"
   dependencies:
     "@jbrowse/core": "npm:^4.3.0"
-    "@jbrowse/mobx-state-tree": "npm:^5.13.0"
-    mobx: "npm:^6.6.1"
+    "@jbrowse/mobx-state-tree": "npm:^6.0.0"
+    mobx: "npm:^7.0.0"
     react-dom: "npm:^18.2.0"
     rxjs: "npm:^7.4.0"
     tslib: "npm:^2.3.1"
@@ -639,7 +639,7 @@ __metadata:
     "@gmod/gff": "npm:^2.1.0"
     "@gmod/indexedfasta": "npm:^5.0.2"
     "@jbrowse/core": "npm:^4.3.0"
-    "@jbrowse/mobx-state-tree": "npm:^5.13.0"
+    "@jbrowse/mobx-state-tree": "npm:^6.0.0"
     "@nestjs/common": "npm:^10.1.0"
     "@nestjs/core": "npm:^10.1.0"
     "@types/chai": "npm:^4.3.19"
@@ -650,7 +650,7 @@ __metadata:
     generic-filehandle2: "npm:^2.2.1"
     glob: "npm:^11.0.0"
     jwt-decode: "npm:^3.1.2"
-    mobx: "npm:^6.6.1"
+    mobx: "npm:^7.0.0"
     mongoose: "npm:^6.12.0"
     react-dom: "npm:^18.2.0"
     rimraf: "npm:^3.0.2"
@@ -659,11 +659,11 @@ __metadata:
     tsx: "npm:^4.6.2"
     typescript: "npm:^6.0.3"
   peerDependencies:
-    "@jbrowse/mobx-state-tree": ^5.13.0
+    "@jbrowse/mobx-state-tree": ^6.0.0
     "@mui/material": ^9.2.0
     "@mui/x-data-grid": ^9.10.0
-    mobx: ^6.6.1
-    mobx-react: ^7.2.1
+    mobx: ^7.0.0
+    mobx-react: ^10.0.0
     prop-types: ^15.8.1
     react: ^18.2.0
     react-dom: ^18.2.0
@@ -9498,9 +9498,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/core@file:./jbrowse-core-458d001002.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/core@file:./jbrowse-core-6c3280fc0b.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/core@file:./jbrowse-core-458d001002.tgz#./jbrowse-core-458d001002.tgz::hash=15f1ba&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/core@file:./jbrowse-core-6c3280fc0b.tgz#./jbrowse-core-6c3280fc0b.tgz::hash=52d5bf&locator=apollo3%40workspace%3A."
   dependencies:
     "@emotion/cache": "npm:^11.14.0"
     "@emotion/react": "npm:^11.14.0"
@@ -9509,7 +9509,7 @@ __metadata:
     "@floating-ui/react": "npm:^0.27.20"
     "@gmod/bgzf-filehandle": "npm:^6.3.1"
     "@jbrowse/jexl": "npm:^3.0.2"
-    "@jbrowse/mobx-state-tree": "npm:^5.13.0"
+    "@jbrowse/mobx-state-tree": "npm:^6.0.0"
     "@jbrowse/quick-lru": "npm:^7.3.5"
     "@leeoniya/ufuzzy": "npm:^1.0.19"
     "@mui/icons-material": "npm:^9.2.0"
@@ -9523,15 +9523,15 @@ __metadata:
     fast-deep-equal: "npm:^3.1.3"
     generic-filehandle2: "npm:^2.2.1"
     idb: "npm:^8.0.3"
-    mobx: "npm:^6.16.1"
-    mobx-react: "npm:^9.2.2"
+    mobx: "npm:^7.0.0"
+    mobx-react: "npm:^10.0.0"
     pako-esm2: "npm:^2.0.2"
     rxjs: "npm:^7.8.2"
     source-map-js: "npm:^1.2.1"
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/12a9516ef76bb7fed9c8757c09ab8f470a3e4e6d326edf4445d0b1f3ef41770d92d57f304d1d1fcff68898f442737179a62a71b4cbb1f08b29934bf2e990e7ab
+  checksum: 10c0/8cfdae6ee2732d835ad00d377c4b7caf98b3d1035cf4b0eed64fa55de8758c1b08a3675dd2cc26ee34b53d8a9418713d5d03997a233f9327ca1b76bf97fdf57e
   languageName: node
   linkType: hard
 
@@ -9576,64 +9576,64 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/mobx-state-tree@npm:^5.13.0":
-  version: 5.13.0
-  resolution: "@jbrowse/mobx-state-tree@npm:5.13.0"
+"@jbrowse/mobx-state-tree@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "@jbrowse/mobx-state-tree@npm:6.0.0"
   peerDependencies:
-    mobx: ^6.3.0
-  checksum: 10c0/317999f7dd56422cfa1ce1664074721bac136de9cd129c73e469397ee27715ceaede25875ec3db6286061eb0cc2c4cbb6f5687c776bda318175e3dc82fca6ff0
+    mobx: ^7.0.0
+  checksum: 10c0/56a774af51341ed17f95bf5bb7283c6090fb40421eac1e48964d3073aaffb81c0f62566a7b908e252bbc868adfa03c375042f24fc06ff158f8646121e5a5f816
   languageName: node
   linkType: hard
 
-"@jbrowse/plugin-authentication@file:./jbrowse-plugin-authentication-458d001002.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/plugin-authentication@file:./jbrowse-plugin-authentication-6c3280fc0b.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/plugin-authentication@file:./jbrowse-plugin-authentication-458d001002.tgz#./jbrowse-plugin-authentication-458d001002.tgz::hash=aabad6&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/plugin-authentication@file:./jbrowse-plugin-authentication-6c3280fc0b.tgz#./jbrowse-plugin-authentication-6c3280fc0b.tgz::hash=1577ee&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/core": "npm:^4.3.0"
-    "@jbrowse/mobx-state-tree": "npm:^5.13.0"
+    "@jbrowse/mobx-state-tree": "npm:^6.0.0"
     "@mui/material": "npm:^9.2.0"
     generic-filehandle2: "npm:^2.2.1"
-    mobx: "npm:^6.16.1"
+    mobx: "npm:^7.0.0"
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/2645b3eea6e6b9aeed259924bbda0306f36c584d5e63d7e39ce720d6722bb7036ed5bca16698edb30bc300164426fe139c73c71ac7893ad121966cdbac23f83a
+  checksum: 10c0/79e02b58c3e7a5f078ca80a8030169ab98713076032e60b404c2cd8b820471b0acdf7acba86c1262c7ed8cd266c80e06260ca841ee6568163a8898938eb599b0
   languageName: node
   linkType: hard
 
-"@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-458d001002.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-6c3280fc0b.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-458d001002.tgz#./jbrowse-plugin-linear-genome-view-458d001002.tgz::hash=0409dd&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-6c3280fc0b.tgz#./jbrowse-plugin-linear-genome-view-6c3280fc0b.tgz::hash=6a9a50&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/core": "npm:^4.3.0"
-    "@jbrowse/mobx-state-tree": "npm:^5.13.0"
+    "@jbrowse/mobx-state-tree": "npm:^6.0.0"
     "@jbrowse/product-core": "npm:^4.3.0"
     "@jbrowse/render-core": "npm:^4.3.0"
     "@mui/icons-material": "npm:^9.2.0"
     "@mui/material": "npm:^9.2.0"
-    mobx: "npm:^6.16.1"
-    mobx-react: "npm:^9.2.2"
+    mobx: "npm:^7.0.0"
+    mobx-react: "npm:^10.0.0"
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/6c8cef270caa19d8f7c7cd65682710bfaddfb055ec9e43afadd303a11c81d2bcc06353672439a4c7c4cf2b1f10ea0d524d8cdd36acd232d30075170946be329a
+  checksum: 10c0/fba01af21ea58c8d593d8fd1498cdbcc6fdce21de70e0b4dabfdda6494f835c6721b39b1cace96bacc1e948e01c6544b9644eeaad3bc4837c9e13484cea94fbc
   languageName: node
   linkType: hard
 
-"@jbrowse/product-core@file:./jbrowse-product-core-458d001002.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/product-core@file:./jbrowse-product-core-6c3280fc0b.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/product-core@file:./jbrowse-product-core-458d001002.tgz#./jbrowse-product-core-458d001002.tgz::hash=ac22cf&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/product-core@file:./jbrowse-product-core-6c3280fc0b.tgz#./jbrowse-product-core-6c3280fc0b.tgz::hash=dbb006&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/core": "npm:^4.3.0"
-    "@jbrowse/mobx-state-tree": "npm:^5.13.0"
+    "@jbrowse/mobx-state-tree": "npm:^6.0.0"
     "@mui/icons-material": "npm:^9.2.0"
     "@mui/material": "npm:^9.2.0"
-    mobx: "npm:^6.16.1"
-    mobx-react: "npm:^9.2.2"
+    mobx: "npm:^7.0.0"
+    mobx-react: "npm:^10.0.0"
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/a6d3d9adf09519ba88ffaac5ab8788ccb305e17ab935237ff3ca3de2c00b51c5545b75caf44f9d52bad0e58dede6e43c7e695005d3a17d4f12ba70bf822f0d4a
+  checksum: 10c0/1e92d902d2e7002d2492a934d56809f67ebfbb9ed96a58426e683864d9a026c38bdb6755184af400449771091d7cb8e456d8712105d4116b5e97775004726fc8
   languageName: node
   linkType: hard
 
@@ -9644,15 +9644,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/render-core@file:./jbrowse-render-core-458d001002.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/render-core@file:./jbrowse-render-core-6c3280fc0b.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/render-core@file:./jbrowse-render-core-458d001002.tgz#./jbrowse-render-core-458d001002.tgz::hash=fbfcc8&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/render-core@file:./jbrowse-render-core-6c3280fc0b.tgz#./jbrowse-render-core-6c3280fc0b.tgz::hash=9bd225&locator=apollo3%40workspace%3A."
   dependencies:
-    "@jbrowse/mobx-state-tree": "npm:^5.13.0"
-    mobx: "npm:^6.16.1"
+    "@jbrowse/mobx-state-tree": "npm:^6.0.0"
+    mobx: "npm:^7.0.0"
   peerDependencies:
     react: ">=19.0.0"
-  checksum: 10c0/3c7ba8faaaaa69acf6c3e85c51b0402b38538b9aed857ceb1bf5edd9dcba0de9b52a88814da0a8decc5417865e92cf47b3677fccee39f5bea2c808bf1682a23d
+  checksum: 10c0/f7e67aa36a966bd2198fd86bc041c8f2277b2fef0ae8f7707e382ecbe7ab7004a3b74668385b99cc4a702a8908d9e89674e9e2aba954f57831d2257d2c2ecb27
   languageName: node
   linkType: hard
 
@@ -26481,83 +26481,32 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mobx-react-lite@npm:^3.4.0":
-  version: 3.4.3
-  resolution: "mobx-react-lite@npm:3.4.3"
+"mobx-react-lite@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "mobx-react-lite@npm:5.0.0"
   peerDependencies:
-    mobx: ^6.1.0
-    react: ^16.8.0 || ^17 || ^18
-  peerDependenciesMeta:
-    react-dom:
-      optional: true
-    react-native:
-      optional: true
-  checksum: 10c0/c58692751ac69b4e9fcf840c43b3aac99869b0268aa8ba06189de5737a8ad27b1d3a2ec20699554e7e5a670e6957d22e3cb0f451448491a640240d7b9e98325a
+    mobx: ^7.0.0
+    react: ^18 || ^19
+  checksum: 10c0/8948e7b221c35cefae0b6981a4e45c8a2ae105765c48ffd94264801d5443aac41c08f92772c52f2fdfe5c0a0a64e3b8ceb863f9de317b83de25474c571fc03ed
   languageName: node
   linkType: hard
 
-"mobx-react-lite@npm:^4.1.1":
-  version: 4.1.1
-  resolution: "mobx-react-lite@npm:4.1.1"
+"mobx-react@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "mobx-react@npm:10.0.0"
   dependencies:
-    use-sync-external-store: "npm:^1.4.0"
+    mobx-react-lite: "npm:^5.0.0"
   peerDependencies:
-    mobx: ^6.9.0
-    react: ^16.8.0 || ^17 || ^18 || ^19
-  peerDependenciesMeta:
-    react-dom:
-      optional: true
-    react-native:
-      optional: true
-  checksum: 10c0/296b29487dc9fae7b7dd8eb39454d980fcfe59bf4c160ac911faa55469f9ebe2953661efca588f6d7929a2b071f234c7c4d717beaf5819d548be9b58c39874f1
+    mobx: ^7.0.0
+    react: ^18 || ^19
+  checksum: 10c0/1a90b75c60ce4024cc6cdb60ea9b2472081b7156ab93aa673a6222cde8b4cd137b6a1b3e402a3c304e971539ed61fcc2a7548f165b6e77521394e9c5dea59adc
   languageName: node
   linkType: hard
 
-"mobx-react@npm:^7.2.1":
-  version: 7.6.0
-  resolution: "mobx-react@npm:7.6.0"
-  dependencies:
-    mobx-react-lite: "npm:^3.4.0"
-  peerDependencies:
-    mobx: ^6.1.0
-    react: ^16.8.0 || ^17 || ^18
-  peerDependenciesMeta:
-    react-dom:
-      optional: true
-    react-native:
-      optional: true
-  checksum: 10c0/60f619edb999b9c66a86baa7ab5cf8b1f3651c85c16f2aa8adf3c0c553d52bc0ec083bbd42e8fe0c785f2435a7b1afdf20f103553b80bbf6d28616f160baa144
-  languageName: node
-  linkType: hard
-
-"mobx-react@npm:^9.2.2":
-  version: 9.2.2
-  resolution: "mobx-react@npm:9.2.2"
-  dependencies:
-    mobx-react-lite: "npm:^4.1.1"
-  peerDependencies:
-    mobx: ^6.9.0
-    react: ^16.8.0 || ^17 || ^18 || ^19
-  peerDependenciesMeta:
-    react-dom:
-      optional: true
-    react-native:
-      optional: true
-  checksum: 10c0/f2aeb194d1b3f405d1f4f89164cf004b38575fb004f0d4cbb7219927bac47ecc0c668521b24406b78f6d1ec71ac39bd6ae02b7b7dc2762188508888b4fb2a1c7
-  languageName: node
-  linkType: hard
-
-"mobx@npm:^6.16.1":
-  version: 6.16.1
-  resolution: "mobx@npm:6.16.1"
-  checksum: 10c0/8450dab51fa133c9dde9f6c9b42cdc9f16c70cf2b989acc25b2cf2c66948def053ad3f1fdfc3bc256ece394e607e9c15dbfe88792ffa81a041e2ec92ae268cdb
-  languageName: node
-  linkType: hard
-
-"mobx@npm:^6.6.1":
-  version: 6.10.2
-  resolution: "mobx@npm:6.10.2"
-  checksum: 10c0/c874e3531047dcd1c0ffa7c118ecab2e1abebd924e3cf361bcfce4304e75529d8c0143b8b72e35e4592eed417b3186b755e56f4e03983461ba1816c1d47499e3
+"mobx@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "mobx@npm:7.0.0"
+  checksum: 10c0/19e4d11a96efdbb21c14c6a7fb1b96bfc78810e0a8f382b4fce6778ff35fdb0c80c60b30b6282231258d9258ed80deded8f8d88b50ab51a2062cf6faef191d0f
   languageName: node
   linkType: hard
 
@@ -33951,15 +33900,6 @@ __metadata:
     file-loader:
       optional: true
   checksum: 10c0/71b6300e02ce26c70625eae1a2297c0737635038c62691bb3007ac33e85c0130efc74bfb444baf5c6b3bad5953491159d31d66498967d1417865d0c7e7cd1a64
-  languageName: node
-  linkType: hard
-
-"use-sync-external-store@npm:^1.4.0":
-  version: 1.4.0
-  resolution: "use-sync-external-store@npm:1.4.0"
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10c0/ec011a5055962c0f6b509d6e78c0b143f8cd069890ae370528753053c55e3b360d3648e76cfaa854faa7a59eb08d6c5fb1015e60ffde9046d32f5b2a295acea5
   languageName: node
   linkType: hard
 
