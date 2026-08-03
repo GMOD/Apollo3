@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 // jsonpath triggers this rule for some reason. import { query } from 'jsonpath' does not work
 
-import { checkAbortSignal } from '@jbrowse/core/util/aborting'
+import { makeAbortError } from '@jbrowse/core/util/aborting'
 import jsonpath from 'jsonpath'
 
 import { stopwords } from './fulltext-stopwords'
@@ -15,6 +15,30 @@ import type { Transaction } from '.'
 
 /** special value of jsonPath that gets the IRI (that is, ID) of the node with the configured prefixes applied */
 export const PREFIXED_ID_PATH = '$PREFIXED_ID'
+
+/**
+ * properly check if the given AbortSignal is aborted. per the standard, if the
+ * signal reads as aborted, this function throws either a DOMException
+ * AbortError, or a regular error with a `code` attribute set to `ERR_ABORTED`.
+ *
+ * for convenience, passing `undefined` is a no-op
+ *
+ * @param signal -
+ * @returns nothing
+ */
+function checkAbortSignal(signal?: AbortSignal): void {
+  if (!signal) {
+    return
+  }
+
+  if (!(signal instanceof AbortSignal)) {
+    throw new TypeError('must pass an AbortSignal')
+  }
+
+  if (signal.aborted) {
+    throw makeAbortError()
+  }
+}
 
 /** small wrapper for jsonpath.query that intercepts requests for the special prefixed ID path */
 function jsonPathQuery(

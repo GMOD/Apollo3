@@ -95,8 +95,7 @@ export function Translation({
     const codonSeq = cdsSequence
       .slice(codonGenomicPos, codonGenomicPos + 3)
       .toUpperCase()
-    const protein =
-      defaultCodonTable[codonSeq as keyof typeof defaultCodonTable] || '&'
+    const protein = defaultCodonTable[codonSeq] || '&'
     proteinSequence.push(protein)
   }
 
