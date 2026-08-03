@@ -116,6 +116,8 @@ Cypress.Commands.add(
       cy.get('[data-testid="track_menu_icon"]').click()
       cy.contains('Appearance').trigger('mouseover')
       cy.contains(appearance).click()
+      cy.press(Cypress.Keyboard.Keys.ESC)
+      cy.press(Cypress.Keyboard.Keys.ESC)
     })
   },
 )
