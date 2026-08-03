@@ -1,4 +1,4 @@
-import { doesIntersect2, isContainedWithin } from '@jbrowse/core/util'
+import { doesIntersect2 } from '@jbrowse/core/util'
 import {
   type Instance,
   type SnapshotIn,
@@ -22,6 +22,23 @@ interface SequenceSnapshot {
   start: number
   stop: number
   sequence: string
+}
+
+/**
+ * Return whether the first region is completely contained within the second region
+ *
+ * @param left1 - candidate inner region left
+ * @param right1 - candidate inner region right
+ * @param left2 - candidate outer region left
+ * @param right2 - candidate outer region right
+ */
+function isContainedWithin(
+  left1: number,
+  right1: number,
+  left2: number,
+  right2: number,
+) {
+  return left2 <= left1 && right2 >= right1
 }
 
 export const ApolloRefSeq = types
