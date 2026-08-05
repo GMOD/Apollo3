@@ -4,7 +4,14 @@ import { stderr } from 'node:process'
 import { Command, Flags, type Interfaces } from '@oclif/core'
 import { ObjectId } from 'bson'
 import ms, { type StringValue } from 'ms'
-import { Agent, fetch, type RequestInit, type BodyInit, Headers } from 'undici'
+import {
+  Agent,
+  fetch,
+  type RequestInit,
+  type Response,
+  type BodyInit,
+  Headers,
+} from 'undici'
 
 import { ApolloConf, ConfigError } from './ApolloConf.js'
 import {
@@ -103,7 +110,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     return new URL(endpoint, localhostToAddress(address))
   }
 
-  private async getHeaders(options?: RequestInit, json = true) {
+  private async getHeaders(options?: RequestInit, json = false) {
     const { accessToken } = await this.getAccess()
     const headers = new Headers(options?.headers)
     headers.set('authorization', `Bearer ${accessToken}`)
@@ -113,60 +120,64 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     return headers
   }
 
-  private async fetchAndCheck(input: URL, init: RequestInit) {
-    const response = await fetch(input, init)
+  public async check(response: Response) {
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(
         response,
-        `Request to "${input.href}" failed`,
+        `Request to "${response.url}" failed`,
       )
       throw new Error(errorMessage)
     }
     return response
   }
 
-  public async fetch(endpoint: string, options?: RequestInit) {
+  public async fetchWithoutCheck(
+    endpoint: string,
+    requestInit?: RequestInit,
+    opts?: { json?: boolean },
+  ) {
     const url = await this.getURL(endpoint)
-    const headers = await this.getHeaders(options, false)
+    const headers = await this.getHeaders(requestInit, opts?.json)
     const dispatcher = this.getDispatcher()
     const optionsWithAuth: RequestInit = {
-      ...options,
+      ...requestInit,
       dispatcher,
       headers,
     }
-    return this.fetchAndCheck(url, optionsWithAuth)
+    return fetch(url, optionsWithAuth)
+  }
+
+  public async fetch(
+    endpoint: string,
+    requestInit?: RequestInit,
+    opts?: { json?: boolean },
+  ) {
+    return this.check(await this.fetchWithoutCheck(endpoint, requestInit, opts))
   }
 
   public async post(
     endpoint: string,
     body: BodyInit,
-    options?: RequestInit,
+    requestInit?: RequestInit,
   ): Promise<unknown> {
-    const url = await this.getURL(endpoint)
-    const headers = await this.getHeaders(options)
-    const dispatcher = this.getDispatcher()
     const optionsWithAuth: RequestInit = {
-      ...options,
+      ...requestInit,
       body,
-      dispatcher,
-      headers,
       method: 'POST',
     }
-    const response = await this.fetchAndCheck(url, optionsWithAuth)
+    const response = await this.fetch(endpoint, optionsWithAuth, { json: true })
     return response.json()
   }
 
-  public async get(endpoint: string, options?: RequestInit): Promise<unknown> {
-    const url = await this.getURL(endpoint)
-    const headers = await this.getHeaders(options)
-    const dispatcher = this.getDispatcher()
+  public async get(
+    endpoint: string,
+    requestInit?: RequestInit,
+  ): Promise<unknown> {
     const optionsWithAuth: RequestInit = {
-      ...options,
-      headers,
-      dispatcher,
+      ...requestInit,
       method: 'GET',
     }
-    const response = await this.fetchAndCheck(url, optionsWithAuth)
+    const response = await this.fetch(endpoint, optionsWithAuth, { json: true })
     return response.json()
   }
 

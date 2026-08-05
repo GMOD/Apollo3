@@ -103,14 +103,18 @@ often has unintended side effects.',
         )
       }
       const fai = flags.fai ?? `${args.input}.fai`
-      const faiExists = await this.fetch(fai, { method: 'HEAD' })
-      if (!faiExists.ok) {
-        this.error(`Index file ${fai} does not exist`)
+      const faiResponse = await this.fetchWithoutCheck(fai, { method: 'HEAD' })
+      if (faiResponse.status === 404) {
+        this.error(`Index file does not exist: ${fai}`)
+      } else if (!faiResponse.ok) {
+        this.error(`Could not access index file ${fai}`)
       }
       const gzi = flags.gzi ?? `${args.input}.gzi`
-      const gziExists = await this.fetch(gzi, { method: 'HEAD' })
-      if (!gziExists.ok) {
-        this.error(`Index file ${gzi} does not exist`)
+      const gziResponse = await this.fetchWithoutCheck(gzi, { method: 'HEAD' })
+      if (gziResponse.status === 404) {
+        this.error(`Index file does not exist: ${gzi}`)
+      } else if (!gziResponse.ok) {
+        this.error(`Could not access index file ${gzi}`)
       }
       body = {
         assemblyName,

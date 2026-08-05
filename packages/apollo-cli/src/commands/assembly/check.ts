@@ -112,6 +112,10 @@ these checks use `apollo feature check`.'
       checks: [...newChecks.values()],
       name: '',
     }
-    await this.post('assemblies/checks', JSON.stringify(check))
+    await this.fetch(
+      'assemblies/checks',
+      { method: 'POST', body: JSON.stringify(check) },
+      { json: true },
+    )
   }
 }

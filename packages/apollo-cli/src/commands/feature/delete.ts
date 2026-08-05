@@ -37,9 +37,12 @@ export default class Delete extends BaseCommand<typeof Delete> {
     }
 
     for (const featureId of featureIds) {
-      const response = await this.fetch(`features/${featureId}`)
-      if (response.status === 404 && flags.force) {
-        continue
+      const response = await this.fetchWithoutCheck(`features/${featureId}`)
+      if (!response.ok) {
+        if (response.status === 404 && flags.force) {
+          continue
+        }
+        await this.check(response)
       }
       const feature = (await response.json()) as AnnotationFeatureSnapshot
       if (flags['dry-run']) {

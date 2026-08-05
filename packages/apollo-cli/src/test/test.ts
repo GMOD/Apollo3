@@ -493,9 +493,7 @@ void describe('Test CLI', () => {
       false,
     )
     assert.ok(p.returncode != 0)
-    assert.ok(
-      p.stderr.includes('Index file') && p.stderr.includes('does not exist'),
-    )
+    assert.ok(p.stderr.includes('Index file does not exist'))
   })
 
   void globalThis.itName(
