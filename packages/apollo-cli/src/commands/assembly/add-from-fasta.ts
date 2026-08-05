@@ -10,7 +10,6 @@ import { Args, Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 
 import { FileCommand } from '../../fileCommand.js'
-import { isFileId, submitAssembly } from '../../utils.js'
 
 export default class AddFasta extends FileCommand {
   static summary = 'Add a new assembly from fasta input'
@@ -89,15 +88,9 @@ often has unintended side effects.',
   public async run(): Promise<void> {
     const { args, flags } = await this.parse(AddFasta)
 
-    const access = await this.getAccess()
-
     const assemblyName = flags.assembly ?? path.basename(args.input)
 
-    const fastaIsFileId = await isFileId(
-      args.input,
-      access.address,
-      access.accessToken,
-    )
+    const fastaIsFileId = await this.isFileId(args.input)
     const isExternal = isValidHttpUrl(args.input)
 
     let body:
@@ -110,12 +103,12 @@ often has unintended side effects.',
         )
       }
       const fai = flags.fai ?? `${args.input}.fai`
-      const faiExists = await fetch(fai)
+      const faiExists = await this.fetch(fai, { method: 'HEAD' })
       if (!faiExists.ok) {
         this.error(`Index file ${fai} does not exist`)
       }
       const gzi = flags.gzi ?? `${args.input}.gzi`
-      const gziExists = await fetch(gzi)
+      const gziExists = await this.fetch(gzi, { method: 'HEAD' })
       if (!gziExists.ok) {
         this.error(`Index file ${gzi} does not exist`)
       }
@@ -139,13 +132,7 @@ often has unintended side effects.',
 
       const fileId = fastaIsFileId
         ? args.input
-        : await this.uploadFile(
-            access.address,
-            access.accessToken,
-            args.input,
-            'text/x-fasta',
-            isGzip,
-          )
+        : await this.uploadFile(args.input, 'text/x-fasta', isGzip)
       body = {
         assemblyName,
         fileIds: { fa: fileId },
@@ -156,16 +143,8 @@ often has unintended side effects.',
       const gzi = flags.gzi ?? `${args.input}.gzi`
       const fai = flags.fai ?? `${args.input}.fai`
 
-      const gziIsFileId = await isFileId(
-        gzi,
-        access.address,
-        access.accessToken,
-      )
-      const faiIsFileId = await isFileId(
-        fai,
-        access.address,
-        access.accessToken,
-      )
+      const gziIsFileId = await this.isFileId(gzi)
+      const faiIsFileId = await this.isFileId(fai)
 
       if (!fs.existsSync(gzi) && !gziIsFileId && !flags.editable) {
         this.error(
@@ -180,33 +159,15 @@ often has unintended side effects.',
 
       const faId = fastaIsFileId
         ? args.input
-        : await this.uploadFile(
-            access.address,
-            access.accessToken,
-            args.input,
-            'application/x-bgzip-fasta',
-            true,
-          )
+        : await this.uploadFile(args.input, 'application/x-bgzip-fasta', true)
 
       const faiId = faiIsFileId
         ? fai
-        : await this.uploadFile(
-            access.address,
-            access.accessToken,
-            fai,
-            'text/x-fai',
-            false,
-          )
+        : await this.uploadFile(fai, 'text/x-fai', false)
 
       const gziId = gziIsFileId
         ? gzi
-        : await this.uploadFile(
-            access.address,
-            access.accessToken,
-            gzi,
-            'application/x-gzi',
-            false,
-          )
+        : await this.uploadFile(gzi, 'application/x-gzi', false)
 
       body = {
         assemblyName,
@@ -215,12 +176,7 @@ often has unintended side effects.',
         assembly: new ObjectId().toHexString(),
       }
     }
-    const rec = await submitAssembly(
-      access.address,
-      access.accessToken,
-      body,
-      flags.force,
-    )
+    const rec = await this.submitAssembly(body, flags.force)
     this.log(JSON.stringify(rec, null, 2))
   }
 }

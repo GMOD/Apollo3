@@ -10,7 +10,6 @@ import { Args, Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 
 import { FileCommand } from '../../fileCommand.js'
-import { submitAssembly } from '../../utils.js'
 
 export default class AddGff extends FileCommand {
   static summary = 'Add new assembly from gff or gft file'
@@ -62,11 +61,7 @@ export default class AddGff extends FileCommand {
       this.error(`File ${args['input-file']} does not exist`)
     }
 
-    const access = await this.getAccess()
-
     const fileId = await this.uploadFile(
-      access.address,
-      access.accessToken,
       args['input-file'],
       'text/x-gff3',
       args['input-file'].endsWith('.gz'),
@@ -91,12 +86,7 @@ export default class AddGff extends FileCommand {
           assembly: new ObjectId().toHexString(),
           parseOptions: { strict: !flags['no-strict'] },
         }
-    const rec = await submitAssembly(
-      access.address,
-      access.accessToken,
-      body,
-      flags.force,
-    )
+    const rec = await this.submitAssembly(body, flags.force)
     this.log(JSON.stringify(rec, null, 2))
   }
 }

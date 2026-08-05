@@ -2,14 +2,9 @@
 import * as fs from 'node:fs'
 
 import { Flags } from '@oclif/core'
-import { fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  createFetchErrorMessage,
-  localhostToAddress,
-  readStdin,
-} from '../../utils.js'
+import { readStdin } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Edit features using an appropiate json input'
@@ -59,28 +54,8 @@ export default class Get extends BaseCommand<typeof Get> {
       json = [json]
     }
 
-    const access = await this.getAccess()
-
     for (const change of json) {
-      const str = JSON.stringify(change)
-
-      const url = new URL(localhostToAddress(`${access.address}/changes`))
-      const auth = {
-        method: 'POST',
-        body: str,
-        headers: {
-          authorization: `Bearer ${access.accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
-      const response = await fetch(url, auth)
-      if (!response.ok) {
-        const errorMessage = await createFetchErrorMessage(
-          response,
-          'edit failed',
-        )
-        throw new Error(errorMessage)
-      }
+      await this.post('changes', JSON.stringify(change))
     }
   }
 }

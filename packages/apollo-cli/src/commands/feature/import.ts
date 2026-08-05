@@ -2,15 +2,8 @@ import * as fs from 'node:fs'
 
 import type { SerializedAddFeaturesFromFileChange } from '@apollo-annotation/shared'
 import { Args, Flags } from '@oclif/core'
-import { Agent, type RequestInit, fetch } from 'undici'
 
 import { FileCommand } from '../../fileCommand.js'
-import {
-  convertAssemblyNameToId,
-  createFetchErrorMessage,
-  isFileId,
-  localhostToAddress,
-} from '../../utils.js'
 
 export default class Import extends FileCommand {
   static summary = 'Import features from local gff file'
@@ -53,13 +46,7 @@ export default class Import extends FileCommand {
 
     const inputFile = args['input-file']
 
-    const access = await this.getAccess()
-
-    const assembly = await convertAssemblyNameToId(
-      access.address,
-      access.accessToken,
-      [flags.assembly],
-    )
+    const assembly = await this.convertAssemblyNameToId([flags.assembly])
     if (assembly.length === 0) {
       this.error(
         `Assembly "${flags.assembly}" does not exist. Perhaps you want to create this assembly first`,
@@ -67,24 +54,14 @@ export default class Import extends FileCommand {
     }
 
     let uploadId
-    const inputFileIsFileId = await isFileId(
-      inputFile,
-      access.address,
-      access.accessToken,
-    )
+    const inputFileIsFileId = await this.isFileId(inputFile)
     if (inputFileIsFileId) {
       uploadId = inputFile
     } else {
       if (!fs.existsSync(inputFile)) {
         this.error(`File "${inputFile}" does not exist`)
       }
-      uploadId = await this.uploadFile(
-        access.address,
-        access.accessToken,
-        inputFile,
-        'text/x-gff3',
-        false,
-      )
+      uploadId = await this.uploadFile(inputFile, 'text/x-gff3', false)
     }
 
     const body: SerializedAddFeaturesFromFileChange = {
@@ -94,24 +71,6 @@ export default class Import extends FileCommand {
       deleteExistingFeatures: flags['delete-existing'],
       parseOptions: { strict: !flags['no-strict'] },
     }
-    const auth: RequestInit = {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {
-        Authorization: `Bearer ${access.accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      dispatcher: new Agent({ headersTimeout: 60 * 60 * 1000 }),
-    }
-
-    const url = new URL(localhostToAddress(`${access.address}/changes`))
-    const response = await fetch(url, auth)
-    if (!response.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        response,
-        'importFeatures failed',
-      )
-      throw new Error(errorMessage)
-    }
+    await this.post('changes', JSON.stringify(body))
   }
 }

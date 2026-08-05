@@ -1,13 +1,7 @@
 import { Args, Flags } from '@oclif/core'
-import { fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  convertAssemblyNameToId,
-  createFetchErrorMessage,
-  idReader,
-  localhostToAddress,
-} from '../../utils.js'
+import { idReader } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Get features given an indexed identifier'
@@ -44,28 +38,18 @@ export default class Get extends BaseCommand<typeof Get> {
   public async run(): Promise<void> {
     const { args, flags } = await this.parse(Get)
 
-    const access = await this.getAccess()
-
     const { topLevel } = flags
     const { id } = args
 
     const assembly = flags.assembly && (await idReader(flags.assembly))
     const assemblyIds =
-      assembly &&
-      (await convertAssemblyNameToId(
-        access.address,
-        access.accessToken,
-        assembly,
-      ))
+      assembly && (await this.convertAssemblyNameToId(assembly))
 
     if (assemblyIds?.length === 0) {
       this.log(JSON.stringify([], null, 2))
       this.exit(0)
     }
 
-    const url = new URL(
-      localhostToAddress(`${access.address}/features/getByIndexedId`),
-    )
     const searchParams = new URLSearchParams({ id })
     if (assemblyIds) {
       searchParams.append('assemblies', assemblyIds.join(','))
@@ -73,23 +57,9 @@ export default class Get extends BaseCommand<typeof Get> {
     if (topLevel) {
       searchParams.append('topLevel', 'true')
     }
-    url.search = searchParams.toString()
-    const uri = url.toString()
-    const auth = {
-      headers: {
-        authorization: `Bearer ${access.accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    }
-    const response = await fetch(uri, auth)
-    if (!response.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        response,
-        'Failed to access Apollo with the current address and/or access token\nThe server returned:\n',
-      )
-      throw new Error(errorMessage)
-    }
-    const results = (await response.json()) as object
+    const results = await this.get(
+      `features/getByIndexedId?${searchParams.toString()}`,
+    )
 
     this.log(JSON.stringify(results, null, 2))
   }

@@ -7,10 +7,8 @@ import type {
 } from '@apollo-annotation/shared'
 import { Args, Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
-import { type Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { createFetchErrorMessage, localhostToAddress } from '../../utils.js'
 
 interface BaseFeatureJSON {
   min: number
@@ -299,48 +297,6 @@ To add multiple features, features with more details, or features with children,
     return [assemblyDocument._id, refSeqDocument._id]
   }
 
-  async getAssembly(
-    assemblyNameOrId: string,
-  ): Promise<{ _id: string; name: string; aliases?: string[] }> {
-    if (ObjectId.isValid(assemblyNameOrId)) {
-      const response = await this.fetch(`assemblies/${assemblyNameOrId}`)
-      if (!response.ok) {
-        const errorMessage = await createFetchErrorMessage(
-          response,
-          `Could not find assembly: "${assemblyNameOrId}"`,
-        )
-        this.error(errorMessage)
-      }
-      return response.json() as Promise<{
-        _id: string
-        name: string
-        aliases?: string[]
-      }>
-    }
-    const response = await this.fetch('assemblies')
-    if (!response.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        response,
-        `Could not find assembly: "${assemblyNameOrId}"`,
-      )
-      this.error(errorMessage)
-    }
-    const assemblies = (await response.json()) as {
-      _id: string
-      name: string
-      aliases?: string[]
-    }[]
-    for (const assembly of assemblies) {
-      if (
-        assembly.name === assemblyNameOrId ||
-        assembly.aliases?.includes(assemblyNameOrId)
-      ) {
-        return assembly
-      }
-    }
-    throw new Error(`Could not find assembly: "${assemblyNameOrId}"`)
-  }
-
   async getRefSeq(
     refSeqNameOrId: string,
     assemblyId?: string,
@@ -351,35 +307,19 @@ To add multiple features, features with more details, or features with children,
     aliases?: string[]
   }> {
     if (ObjectId.isValid(refSeqNameOrId)) {
-      const response = await this.fetch(`refSeqs/${refSeqNameOrId}`)
-      if (!response.ok) {
-        const errorMessage = await createFetchErrorMessage(
-          response,
-          `Could not find refSeq: "${refSeqNameOrId}"`,
-        )
-        this.error(errorMessage)
-      }
-      return response.json() as Promise<{
+      return (await this.get(`refSeqs/${refSeqNameOrId}`)) as {
         _id: string
         name: string
         assembly: string
         aliases?: string[]
-      }>
+      }
     }
     let endpoint = 'refSeqs'
     if (assemblyId) {
       const searchParams = new URLSearchParams({ assembly: assemblyId })
       endpoint = `${endpoint}?${searchParams.toString()}`
     }
-    const response = await this.fetch(endpoint)
-    if (!response.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        response,
-        `Could not find refSeq: "${refSeqNameOrId}"`,
-      )
-      this.error(errorMessage)
-    }
-    const refSeqs = (await response.json()) as {
+    const refSeqs = (await this.get(endpoint)) as {
       _id: string
       name: string
       assembly: string
@@ -397,37 +337,8 @@ To add multiple features, features with more details, or features with children,
   }
 
   async submitChange(change: SerializedAddFeatureChange) {
-    const options = { method: 'POST', body: JSON.stringify(change) }
-    const response = await this.fetch('changes', options)
-    if (!response.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        response,
-        'Could not add feature',
-      )
-      this.error(errorMessage)
-    }
-    this.log(await response.text())
-  }
-
-  async fetch(
-    endpoint: string,
-    options?: {
-      method?: string
-      body?: string
-      headers?: Record<string, string>
-    },
-  ): Promise<Response> {
-    const { address, accessToken } = await this.getAccess()
-    const url = new URL(localhostToAddress(`${address}/${endpoint}`))
-    const optionsWithAuth = {
-      ...options,
-      headers: {
-        authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
-    }
-    return fetch(url, optionsWithAuth)
+    const result = await this.post('changes', JSON.stringify(change))
+    this.log(JSON.stringify(result))
   }
 }
 

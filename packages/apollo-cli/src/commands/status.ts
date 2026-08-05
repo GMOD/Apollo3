@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import path from 'node:path'
 
-import { ApolloConf, KEYS } from '../ApolloConf.js'
+import { KEYS } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
 import { basicCheckConfig } from '../utils.js'
 
@@ -21,7 +21,7 @@ Note that this command does not check the validity of the access token.'
       flags['config-file'] ?? path.join(this.config.configDir, 'config.yml')
     basicCheckConfig(configFile, profileName)
 
-    const config: ApolloConf = new ApolloConf(configFile)
+    const config = this.getConfig()
     const accessToken: string = config.get(
       `${profileName}.${KEYS.accessToken}`,
     ) as string

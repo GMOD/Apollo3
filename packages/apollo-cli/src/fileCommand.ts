@@ -8,11 +8,10 @@ import {
 } from 'node:stream'
 
 import { SingleBar } from 'cli-progress'
-import { Agent, type RequestInit, fetch, Headers } from 'undici'
+import { type RequestInit, Headers } from 'undici'
 
-import { ConfigError } from './ApolloConf.js'
 import { BaseCommand } from './baseCommand.js'
-import { createFetchErrorMessage, localhostToAddress } from './utils.js'
+import { createFetchErrorMessage } from './utils.js'
 
 interface ProgressTransformOptions extends TransformOptions {
   progressBar: SingleBar
@@ -45,8 +44,6 @@ export abstract class FileCommand extends BaseCommand<typeof FileCommand> {
   }
 
   public async uploadFile(
-    address: string,
-    accessToken: string,
     file: string,
     type: string,
     isGzip: boolean,
@@ -65,7 +62,6 @@ export abstract class FileCommand extends BaseCommand<typeof FileCommand> {
     })
 
     const headers = new Headers({
-      Authorization: `Bearer ${accessToken}`,
       'Content-Type': type,
       'Content-Length': String(size),
     })
@@ -77,23 +73,23 @@ export abstract class FileCommand extends BaseCommand<typeof FileCommand> {
       method: 'POST',
       body,
       duplex: 'half',
-      dispatcher: new Agent({ headersTimeout: 60 * 60 * 1000 }),
       headers,
     }
 
     const fileName = path.basename(file)
-    const url = new URL(localhostToAddress(`${address}/files`))
-    url.searchParams.set('name', fileName)
-    url.searchParams.set('type', type)
+    const searchParams = new URLSearchParams({ name: fileName, type })
     progressBar.start(size, 0)
     try {
-      const response = await fetch(url, init)
+      const response = await this.fetch(
+        `files?${searchParams.toString()}`,
+        init,
+      )
       if (!response.ok) {
         const errorMessage = await createFetchErrorMessage(
           response,
           'uploadFile failed',
         )
-        throw new ConfigError(errorMessage)
+        throw new Error(errorMessage)
       }
       const json = (await response.json()) as object
       return json['_id' as keyof typeof json]
@@ -103,5 +99,18 @@ export abstract class FileCommand extends BaseCommand<typeof FileCommand> {
     } finally {
       progressBar.stop()
     }
+  }
+
+  async isFileId(x: string) {
+    if (x.length != 24) {
+      return false
+    }
+    const json = (await this.get('files')) as object[]
+    for (const fileDoc of json) {
+      if (fileDoc['_id' as keyof typeof fileDoc] === x) {
+        return true
+      }
+    }
+    return false
   }
 }

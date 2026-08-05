@@ -1,12 +1,7 @@
 import { Flags } from '@oclif/core'
-import { fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  createFetchErrorMessage,
-  idReader,
-  localhostToAddress,
-} from '../../utils.js'
+import { createFetchErrorMessage, idReader } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Get features given their identifiers'
@@ -33,18 +28,12 @@ export default class Get extends BaseCommand<typeof Get> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Get)
 
-    const access = await this.getAccess()
-
     let ids = await idReader(flags['feature-id'])
     ids = [...new Set(ids)]
 
     const results: object[] = []
     for (const id of ids) {
-      const res = await this.getFeatureId(
-        access.address,
-        access.accessToken,
-        id,
-      )
+      const res = await this.getFeatureId(id)
       if (Object.keys(res).length === 0) {
         continue
       }
@@ -53,19 +42,8 @@ export default class Get extends BaseCommand<typeof Get> {
     this.log(JSON.stringify(results, null, 2))
   }
 
-  private async getFeatureId(
-    address: string,
-    token: string,
-    featureId: string,
-  ): Promise<object> {
-    const url = new URL(localhostToAddress(`${address}/features/${featureId}`))
-    const auth = {
-      headers: {
-        authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    }
-    const response = await fetch(url, auth)
+  private async getFeatureId(featureId: string): Promise<object> {
+    const response = await this.fetch(`features/${featureId}`)
     if (!response.ok) {
       if (response.status === 404) {
         return {}

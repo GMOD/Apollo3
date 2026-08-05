@@ -1,8 +1,7 @@
 import { Args, Flags } from '@oclif/core'
-import type { Response } from 'undici'
 
 import { FileCommand } from '../../fileCommand.js'
-import { filterJsonList, queryApollo } from '../../utils.js'
+import { filterJsonList } from '../../utils.js'
 
 export default class Upload extends FileCommand {
   static summary = 'Upload a local file to the Apollo server'
@@ -54,8 +53,6 @@ export default class Upload extends FileCommand {
   public async run(): Promise<void> {
     const { args, flags } = await this.parse(Upload)
 
-    const access = await this.getAccess()
-
     let { type } = flags
     const { gzip, decompressed } = flags
     if (type === undefined) {
@@ -93,23 +90,9 @@ export default class Upload extends FileCommand {
 
     this.logToStderr(`Input is gzip'd: ${isGzip}`)
 
-    const fileId = await this.uploadFile(
-      access.address,
-      access.accessToken,
-      args['input-file'],
-      type,
+    const fileId = await this.uploadFile(args['input-file'], type, isGzip)
 
-      isGzip,
-    )
-
-    const res: Response = await queryApollo(
-      access.address,
-      access.accessToken,
-      'files',
-    )
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const json = JSON.parse(await res.text())
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const json = (await this.get('files')) as object[]
     const [rec] = filterJsonList(json, [fileId], '_id')
     this.log(JSON.stringify(rec, null, 2))
   }

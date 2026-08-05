@@ -1,16 +1,8 @@
-import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import type { SerializedFeatureAttributeChange } from '@apollo-annotation/shared'
 import { Flags } from '@oclif/core'
-import { type Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  createFetchErrorMessage,
-  getAssemblyFromRefseq,
-  getFeatureById,
-  idReader,
-  localhostToAddress,
-} from '../../utils.js'
+import { idReader } from '../../utils.js'
 
 export default class EditAttibute extends BaseCommand<typeof EditAttibute> {
   static summary = 'Add, edit, or view a feature attribute'
@@ -71,23 +63,7 @@ terms to non-existing terms'
     }
     const [featureId] = ff
 
-    const access = await this.getAccess()
-
-    const response: Response = await getFeatureById(
-      access.address,
-      access.accessToken,
-      featureId,
-    )
-    if (!response.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        response,
-        'getFeatureById failed',
-      )
-      throw new Error(errorMessage)
-    }
-    const featureJson = JSON.parse(
-      await response.text(),
-    ) as AnnotationFeatureSnapshot
+    const featureJson = await this.getFeatureById(featureId)
     featureJson.attributes ??= {}
 
     const oldAttributes: Record<string, string[]> = {}
@@ -117,11 +93,7 @@ terms to non-existing terms'
       throw new Error(`Unexpected condition: value is "${flags.value}"`)
     }
 
-    const assembly = await getAssemblyFromRefseq(
-      access.address,
-      access.accessToken,
-      featureJson.refSeq,
-    )
+    const assembly = await this.getAssemblyFromRefseq(featureJson.refSeq)
 
     const changeJson: SerializedFeatureAttributeChange = {
       typeName: 'FeatureAttributeChange',
@@ -132,22 +104,6 @@ terms to non-existing terms'
       newAttributes,
     }
 
-    const url = new URL(localhostToAddress(`${access.address}/changes`))
-    const auth = {
-      method: 'POST',
-      body: JSON.stringify(changeJson),
-      headers: {
-        authorization: `Bearer ${access.accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    }
-    const res = await fetch(url, auth)
-    if (!res.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        res,
-        'edit-attribute failed',
-      )
-      throw new Error(errorMessage)
-    }
+    await this.post('changes', JSON.stringify(changeJson))
   }
 }

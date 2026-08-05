@@ -4,9 +4,14 @@ import path from 'node:path'
 
 import Conf from 'conf'
 import Joi from 'joi'
+import { type RequestInit, fetch } from 'undici'
 import YAML from 'yaml'
 
-import { checkProfileExists, queryApollo } from './utils.js'
+import {
+  checkProfileExists,
+  createFetchErrorMessage,
+  localhostToAddress,
+} from './utils.js'
 
 export class ConfigError extends Error {}
 
@@ -139,8 +144,21 @@ export class ApolloConf extends Conf {
         `Profile "${profileName}" has no access token. Please run "apollo login" to set it up.`,
       )
     }
-
-    await queryApollo(address, accessToken, 'assemblies')
+    const auth: RequestInit = {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    }
+    const url = new URL(localhostToAddress(`${address}/assemblies`))
+    const response = await fetch(url, auth)
+    if (!response.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'getAccess failed',
+      )
+      throw new ConfigError(errorMessage)
+    }
     return { address, accessToken }
   }
 }

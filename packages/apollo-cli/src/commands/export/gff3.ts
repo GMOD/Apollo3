@@ -1,15 +1,9 @@
 import { Readable } from 'node:stream'
 
 import { Args, Flags } from '@oclif/core'
-import { fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  convertAssemblyNameToId,
-  createFetchErrorMessage,
-  idReader,
-  localhostToAddress,
-} from '../../utils.js'
+import { idReader } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description =
@@ -39,41 +33,18 @@ export default class Get extends BaseCommand<typeof Get> {
   public async run(): Promise<void> {
     const { args } = await this.parse(Get)
 
-    const access = await this.getAccess()
-
     const assembly = await idReader([args.assembly])
-    const [assemblyId] = await convertAssemblyNameToId(
-      access.address,
-      access.accessToken,
-      assembly,
-    )
+    const [assemblyId] = await this.convertAssemblyNameToId(assembly)
     if (!assemblyId) {
       this.error(`Invalid assembly name or id: ${args.assembly}`)
     }
 
-    const url = new URL(localhostToAddress(`${access.address}/export/getID`))
     const searchParams = new URLSearchParams({
       assembly: assemblyId,
     })
-    url.search = searchParams.toString()
-    const uri = url.toString()
-    const auth = {
-      headers: {
-        authorization: `Bearer ${access.accessToken}`,
-      },
-    }
-    const response = await fetch(uri, auth)
-    if (!response.ok) {
-      const newErrorMessage = await createFetchErrorMessage(
-        response,
-        'Error when exporting ID',
-      )
-      throw new Error(newErrorMessage)
-    }
-
-    const { exportID } = (await response.json()) as { exportID: string }
-
-    const exportURL = new URL(localhostToAddress(`${access.address}/export`))
+    const { exportID } = (await this.get(
+      `export/getID?${searchParams.toString()}`,
+    )) as { exportID: string }
 
     const params: Record<string, string> = {
       exportID,
@@ -81,17 +52,10 @@ export default class Get extends BaseCommand<typeof Get> {
       includeFASTA: this.flags['include-fasta'] ? 'true' : 'false',
     }
     const exportSearchParams = new URLSearchParams(params)
-    exportURL.search = exportSearchParams.toString()
-    const exportUri = exportURL.toString()
 
-    const responseExport = await fetch(exportUri, auth)
-    if (!responseExport.ok) {
-      const newErrorMessage = await createFetchErrorMessage(
-        responseExport,
-        'Error when exporting gff',
-      )
-      throw new Error(newErrorMessage)
-    }
+    const responseExport = await this.fetch(
+      `export?${exportSearchParams.toString()}`,
+    )
     const { body } = responseExport
     if (body) {
       const readable = Readable.from(body)
