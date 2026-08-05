@@ -10,8 +10,8 @@ Login to Apollo
 
 ```
 USAGE
-  $ apollo login [--profile <value>] [--config-file <value>] [-a <value>] [-u <value>] [-p <value>] [-f]
-    [--port <value>]
+  $ apollo login [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>] [-u <value>]
+    [-p <value>] [-f] [--port <value>]
 
 FLAGS
   -a, --address=<value>      Address of Apollo server
@@ -22,6 +22,7 @@ FLAGS
       --port=<value>         [default: 3000] Get token by listening to this port number (usually this is >= 1024 and <
                              65536)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Login to Apollo

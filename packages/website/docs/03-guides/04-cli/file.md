@@ -13,12 +13,13 @@ Delete files from the Apollo server
 
 ```
 USAGE
-  $ apollo file delete [--profile <value>] [--config-file <value>] [-i <value>...]
+  $ apollo file delete [--profile <value>] [--config-file <value>] [--timeout <value>] [-i <value>...]
 
 FLAGS
   -i, --file-id=<value>...   [default: -] IDs of the files to delete
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Delete files from the Apollo server
@@ -40,13 +41,14 @@ Download a file from the Apollo server
 
 ```
 USAGE
-  $ apollo file download [--profile <value>] [--config-file <value>] [-i <value>] [-o <value>]
+  $ apollo file download [--profile <value>] [--config-file <value>] [--timeout <value>] [-i <value>] [-o <value>]
 
 FLAGS
   -i, --file-id=<value>      [default: -] ID of the file to download
   -o, --output=<value>       Write output to this file or "-" for stdout. Default to the name of the uploaded file.
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Download a file from the Apollo server
@@ -68,12 +70,13 @@ Get list of files uploaded to the Apollo server
 
 ```
 USAGE
-  $ apollo file get [--profile <value>] [--config-file <value>] [-i <value>...]
+  $ apollo file get [--profile <value>] [--config-file <value>] [--timeout <value>] [-i <value>...]
 
 FLAGS
   -i, --file-id=<value>...   Get files matching this IDs
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get list of files uploaded to the Apollo server
@@ -95,7 +98,7 @@ Upload a local file to the Apollo server
 
 ```
 USAGE
-  $ apollo file upload INPUT-FILE [--profile <value>] [--config-file <value>] [-t
+  $ apollo file upload INPUT-FILE [--profile <value>] [--config-file <value>] [--timeout <value>] [-t
     text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi] [-z | -d]
 
 ARGUMENTS
@@ -109,6 +112,7 @@ FLAGS
   -z, --gzip                 Override autodetection and instruct that input is gzip compressed
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Upload a local file to the Apollo server

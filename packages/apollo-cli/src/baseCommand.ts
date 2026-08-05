@@ -3,7 +3,8 @@ import { stderr } from 'node:process'
 
 import { Command, Flags, type Interfaces } from '@oclif/core'
 import { ObjectId } from 'bson'
-import { fetch, type RequestInit, type BodyInit, Headers } from 'undici'
+import ms, { type StringValue } from 'ms'
+import { Agent, fetch, type RequestInit, type BodyInit, Headers } from 'undici'
 
 import { ApolloConf } from './ApolloConf.js'
 import {
@@ -43,6 +44,10 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     'config-file': Flags.string({
       description: 'Use this config file (mostly for testing)',
     }),
+    timeout: Flags.string({
+      description: 'Timeout for each request to the server',
+      default: '1h',
+    }),
   }
 
   protected flags!: Flags<T>
@@ -77,6 +82,12 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     return config.getAccess(profileName)
   }
 
+  getDispatcher() {
+    const { timeout } = this.flags
+    const timeoutMs = ms(timeout as StringValue)
+    return new Agent({ headersTimeout: timeoutMs })
+  }
+
   private async getURL(endpoint: string) {
     const { address } = await this.getAccess()
     return new URL(endpoint, localhostToAddress(address))
@@ -107,8 +118,10 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
   public async fetch(endpoint: string, options?: RequestInit) {
     const url = await this.getURL(endpoint)
     const headers = await this.getHeaders(options, false)
+    const dispatcher = this.getDispatcher()
     const optionsWithAuth: RequestInit = {
       ...options,
+      dispatcher,
       headers,
     }
     return this.fetchAndCheck(url, optionsWithAuth)
@@ -121,9 +134,11 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
   ): Promise<unknown> {
     const url = await this.getURL(endpoint)
     const headers = await this.getHeaders(options)
+    const dispatcher = this.getDispatcher()
     const optionsWithAuth: RequestInit = {
       ...options,
       body,
+      dispatcher,
       headers,
       method: 'POST',
     }
@@ -134,9 +149,11 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
   public async get(endpoint: string, options?: RequestInit): Promise<unknown> {
     const url = await this.getURL(endpoint)
     const headers = await this.getHeaders(options)
+    const dispatcher = this.getDispatcher()
     const optionsWithAuth: RequestInit = {
       ...options,
       headers,
+      dispatcher,
       method: 'GET',
     }
     const response = await this.fetchAndCheck(url, optionsWithAuth)

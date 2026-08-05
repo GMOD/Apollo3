@@ -10,7 +10,8 @@ Get or set apollo configuration options
 
 ```
 USAGE
-  $ apollo config [KEY] [VALUE] [--profile <value>] [--config-file <value>] [--get-config-file]
+  $ apollo config [KEY] [VALUE] [--profile <value>] [--config-file <value>] [--timeout <value>]
+    [--get-config-file]
 
 ARGUMENTS
   [KEY]    Name of configuration parameter
@@ -20,6 +21,7 @@ FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
   --get-config-file      Return the path to the config file and exit (this file may not exist yet)
   --profile=<value>      Profile to create or edit
+  --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get or set apollo configuration options

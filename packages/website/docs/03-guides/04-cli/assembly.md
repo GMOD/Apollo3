@@ -15,8 +15,8 @@ Add a new assembly from fasta input
 
 ```
 USAGE
-  $ apollo assembly add-from-fasta INPUT [--profile <value>] [--config-file <value>] [-a <value>] [-f] [-e] [--fai <value>]
-    [--gzi <value>] [-z | -d]
+  $ apollo assembly add-from-fasta INPUT [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>] [-f]
+    [-e] [--fai <value>] [--gzi <value>] [-z | -d]
 
 ARGUMENTS
   INPUT  Input fasta file, local or remote, or id of a previously uploaded file. For local or remote files, it is
@@ -35,6 +35,7 @@ FLAGS
       --fai=<value>          Fasta index of the (not-editable) fasta file
       --gzi=<value>          Gzi index of the (not-editable) fasta file
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Add a new assembly from fasta input
@@ -67,8 +68,8 @@ Add new assembly from gff or gft file
 
 ```
 USAGE
-  $ apollo assembly add-from-gff INPUT-FILE [--profile <value>] [--config-file <value>] [-a <value>] [-o] [-f]
-  [--no-strict]
+  $ apollo assembly add-from-gff INPUT-FILE [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>]
+    [-o] [-f] [--no-strict]
 
 ARGUMENTS
   INPUT-FILE  Input gff file
@@ -81,6 +82,7 @@ FLAGS
       --no-strict            If any feature lines in the GFF3 can't be processed, skip them instead of aborting the
                              import
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Add new assembly from gff or gft file
@@ -106,7 +108,8 @@ Add, view, or delete checks to assembly
 
 ```
 USAGE
-  $ apollo assembly check [--profile <value>] [--config-file <value>] [-a <value>] [-c <value>...] [-d]
+  $ apollo assembly check [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>] [-c
+    <value>...] [-d]
 
 FLAGS
   -a, --assembly=<value>     Manage checks in this assembly
@@ -114,6 +117,7 @@ FLAGS
   -d, --delete               Delete (instead of adding) checks
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Add, view, or delete checks to assembly
@@ -148,13 +152,14 @@ Delete assemblies
 
 ```
 USAGE
-  $ apollo assembly delete -a <value>... [--profile <value>] [--config-file <value>] [-v]
+  $ apollo assembly delete -a <value>... [--profile <value>] [--config-file <value>] [--timeout <value>] [-v]
 
 FLAGS
   -a, --assembly=<value>...  (required) Assembly names or IDs to delete
   -v, --verbose              Print to stdout the array of assemblies deleted
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Delete assemblies
@@ -176,12 +181,13 @@ Get available assemblies
 
 ```
 USAGE
-  $ apollo assembly get [--profile <value>] [--config-file <value>] [-a <value>...]
+  $ apollo assembly get [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>...]
 
 FLAGS
   -a, --assembly=<value>...  Get assemblies in this list of names or IDs
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get available assemblies
@@ -198,8 +204,8 @@ Get reference sequence in fasta format
 
 ```
 USAGE
-  $ apollo assembly sequence [--profile <value>] [--config-file <value>] [-a <value>] [-r <value>] [-s <value>] [-e
-    <value>]
+  $ apollo assembly sequence [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>] [-r <value>]
+    [-s <value>] [-e <value>]
 
 FLAGS
   -a, --assembly=<value>     Find input reference sequence in this assembly
@@ -208,6 +214,7 @@ FLAGS
   -s, --start=<value>        [default: 1] Start coordinate (1-based)
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get reference sequence in fasta format
