@@ -62,8 +62,13 @@ jobs:
         run: |
           yarn --cwd packages/apollo-shared start &
           yarn --cwd packages/apollo-collaboration-server test:cli:start &
+      - name: Install CLI
+        run: |
+          yarn pack
+          npm install --global package.tgz
+        working-directory: packages/apollo-cli
       - name: Run CLI tests
-        run: yarn run test:ci
+        run: APOLLO_BIN=apollo yarn run test:ci
         working-directory: packages/apollo-cli
 
       # - name: Run docker tests

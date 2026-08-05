@@ -30,7 +30,7 @@ import { MongoClient } from 'mongodb'
 
 import { Shell, deleteAllChecks } from './utils.js'
 
-const apollo = 'yarn dev'
+const apollo = process.env.APOLLO_BIN ?? 'yarn dev'
 const P = '--profile testAdmin'
 // let client = MongoClient
 let client: MongoClient
