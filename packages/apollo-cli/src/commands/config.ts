@@ -5,7 +5,12 @@ import { input, password, select } from '@inquirer/prompts'
 import { Args, Flags } from '@oclif/core'
 import { fetch } from 'undici'
 
-import { type ApolloConf, KEYS, optionDesc } from '../ApolloConf.js'
+import {
+  type ApolloConf,
+  ConfigError,
+  KEYS,
+  optionDesc,
+} from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
 import { createFetchErrorMessage, localhostToAddress } from '../utils.js'
 
@@ -76,6 +81,11 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
         profileName = flags.profile
       }
       if (args.value === undefined) {
+        if (!config.getProfileNames().includes(profileName)) {
+          throw new ConfigError(
+            `Profile "${profileName}" does not exist. Please run "apollo config" to set this profile up or choose a different profile`,
+          )
+        }
         const currentValue: string = config.get(
           `${profileName}.${args.key}`,
         ) as string

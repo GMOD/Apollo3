@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import EventEmitter from 'node:events'
 import * as http from 'node:http'
-import path from 'node:path'
 import * as querystring from 'node:querystring'
 
 import { confirm } from '@inquirer/prompts'
@@ -15,7 +14,6 @@ import { type ApolloConf, KEYS } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
 import {
   type UserCredentials,
-  basicCheckConfig,
   createFetchErrorMessage,
   localhostToAddress,
   waitFor,
@@ -74,11 +72,7 @@ need to execute this command again unless the token has expired. To setup a new 
   public async run(): Promise<void> {
     const { flags } = await this.parse(Login)
 
-    const configFile =
-      flags['config-file'] ?? path.join(this.config.configDir, 'config.yml')
-
     const profileName = flags.profile ?? process.env.APOLLO_PROFILE ?? 'default'
-    basicCheckConfig(configFile, profileName)
     const config = this.getConfig()
     const accessType: string = config.get(`${profileName}.accessType`) as string
     const address: string =

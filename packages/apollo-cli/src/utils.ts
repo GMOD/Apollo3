@@ -5,8 +5,6 @@ import { stdin } from 'node:process'
 
 import type { Response } from 'undici'
 
-import { ApolloConf, ConfigError } from './ApolloConf.js'
-
 export const CLI_SERVER_ADDRESS = 'http://127.0.0.1:5657'
 export const CLI_SERVER_ADDRESS_CALLBACK = `${CLI_SERVER_ADDRESS}/auth/callback`
 
@@ -28,28 +26,6 @@ export async function createFetchErrorMessage(
     errorMessage ? ` (${errorMessage})` : ''
   }`
   return `${additionalText ? `${additionalText} — ` : ''}${responseMessage}`
-}
-
-export function checkConfigfileExists(configFile: string) {
-  if (!fs.existsSync(configFile)) {
-    throw new ConfigError(
-      `Configuration file "${configFile}" does not exist. Please run "apollo config" first`,
-    )
-  }
-}
-
-export function checkProfileExists(profileName: string, config: ApolloConf) {
-  if (!config.getProfileNames().includes(profileName)) {
-    throw new ConfigError(
-      `Profile "${profileName}" does not exist. Please run "apollo config" to set this profile up or choose a different profile`,
-    )
-  }
-}
-
-export function basicCheckConfig(configFile: string, profileName: string) {
-  checkConfigfileExists(configFile)
-  const config: ApolloConf = new ApolloConf(configFile)
-  checkProfileExists(profileName, config)
 }
 
 /**

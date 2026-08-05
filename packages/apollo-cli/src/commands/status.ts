@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import path from 'node:path'
-
 import { KEYS } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
-import { basicCheckConfig } from '../utils.js'
 
 export default class Status extends BaseCommand<typeof Status> {
   static summary = 'View authentication status'
@@ -16,10 +13,6 @@ Note that this command does not check the validity of the access token.'
     const { flags } = await this.parse(Status)
 
     const profileName = flags.profile ?? process.env.APOLLO_PROFILE ?? 'default'
-
-    const configFile =
-      flags['config-file'] ?? path.join(this.config.configDir, 'config.yml')
-    basicCheckConfig(configFile, profileName)
 
     const config = this.getConfig()
     const accessToken: string = config.get(

@@ -6,9 +6,8 @@ import { ObjectId } from 'bson'
 import ms, { type StringValue } from 'ms'
 import { Agent, fetch, type RequestInit, type BodyInit, Headers } from 'undici'
 
-import { ApolloConf } from './ApolloConf.js'
+import { ApolloConf, ConfigError } from './ApolloConf.js'
 import {
-  checkConfigfileExists,
   createFetchErrorMessage,
   filterJsonList,
   localhostToAddress,
@@ -52,6 +51,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
 
   protected flags!: Flags<T>
   protected args!: Args<T>
+  protected apolloConfig!: ApolloConf
 
   public async init(): Promise<void> {
     await super.init()
@@ -63,14 +63,24 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     })
     this.flags = flags as Flags<T>
     this.args = args as Args<T>
+    let { 'config-file': configFile } = this.flags
+    configFile ??= path.join(this.config.configDir, 'config.yml')
+    const apolloConfig = new ApolloConf(configFile)
+    const { profile } = this.flags
+    const profileName = process.env.APOLLO_PROFILE ?? profile ?? 'default'
+    if (
+      this.id !== 'config' &&
+      !apolloConfig.getProfileNames().includes(profileName)
+    ) {
+      throw new ConfigError(
+        `Profile "${profileName}" does not exist. Please run "apollo config" to set this profile up or choose a different profile`,
+      )
+    }
+    this.apolloConfig = apolloConfig
   }
 
   protected getConfig(): ApolloConf {
-    let { 'config-file': configFile } = this.flags
-    configFile ??= path.join(this.config.configDir, 'config.yml')
-    checkConfigfileExists(configFile)
-    const config: ApolloConf = new ApolloConf(configFile)
-    return config
+    return this.apolloConfig
   }
 
   public async getAccess(): Promise<{ address: string; accessToken: string }> {

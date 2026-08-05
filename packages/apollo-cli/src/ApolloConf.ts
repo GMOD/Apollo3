@@ -7,11 +7,7 @@ import Joi from 'joi'
 import { type RequestInit, fetch } from 'undici'
 import YAML from 'yaml'
 
-import {
-  checkProfileExists,
-  createFetchErrorMessage,
-  localhostToAddress,
-} from './utils.js'
+import { createFetchErrorMessage, localhostToAddress } from './utils.js'
 
 export class ConfigError extends Error {}
 
@@ -129,8 +125,6 @@ export class ApolloConf extends Conf {
   }
 
   public async getAccess(profileName: string) {
-    checkProfileExists(profileName, this)
-
     const address: string = this.get(`${profileName}.address`) as string
     if (address.trim() === '') {
       throw new ConfigError(

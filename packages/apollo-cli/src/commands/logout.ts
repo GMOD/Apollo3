@@ -1,8 +1,5 @@
-import path from 'node:path'
-
 import { KEYS } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
-import { basicCheckConfig } from '../utils.js'
 
 export default class Logout extends BaseCommand<typeof Logout> {
   static summary = 'Logout of Apollo'
@@ -25,9 +22,6 @@ export default class Logout extends BaseCommand<typeof Logout> {
 
     const profileName = flags.profile ?? process.env.APOLLO_PROFILE ?? 'default'
 
-    const configFile =
-      flags['config-file'] ?? path.join(this.config.configDir, 'config.yml')
-    basicCheckConfig(configFile, profileName)
     const config = this.getConfig()
     config.delete(`${profileName}.${KEYS.accessToken}`)
   }
