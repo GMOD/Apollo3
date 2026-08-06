@@ -477,7 +477,7 @@ void describe('Test CLI', () => {
     assert.ok(p.stdout.includes('vv1'))
 
     p = new Shell(`${apollo} assembly sequence ${P} -a vv1 -r ctgA -s 1 -e 10`)
-    const seq = p.stdout.trim().split('\n')
+    const seq = p.stdout.split(' ')
     assert.strictEqual(seq[1], 'cattgttgcg')
 
     p = new Shell(
@@ -1219,10 +1219,10 @@ EOF`,
 
     p = new Shell(`${apollo} assembly sequence ${P} -a v1 -s 0`, false)
     assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('must be greater than 0'))
+    assert.match(p.stderr, /must be greater than 0/)
 
     p = new Shell(`${apollo} assembly sequence ${P} -a v1`)
-    let seq = p.stdout.trim().split('\n')
+    let seq = p.stdout.split(' ')
     assert.strictEqual(seq.length, 25)
     assert.deepStrictEqual(seq.at(0), '>ctgA:1..420')
     assert.deepStrictEqual(
@@ -1234,12 +1234,12 @@ EOF`,
     assert.deepStrictEqual(seq.at(-1), 'ttggtcgctccgttgtaccc')
 
     p = new Shell(`${apollo} assembly sequence ${P} -a v1 -r ctgB -s 1 -e 1`)
-    seq = p.stdout.split('\n')
+    seq = p.stdout.split(' ')
     assert.deepStrictEqual(seq.at(0), '>ctgB:1..1')
     assert.deepStrictEqual(seq.at(1), 'A')
 
     p = new Shell(`${apollo} assembly sequence ${P} -a v1 -r ctgB -s 2 -e 4`)
-    seq = p.stdout.split('\n')
+    seq = p.stdout.split(' ')
     assert.deepStrictEqual(seq.at(0), '>ctgB:2..4')
     assert.deepStrictEqual(seq.at(1), 'CAT')
 
@@ -1731,16 +1731,16 @@ EOF`,
     new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
     let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
     let gff = p.stdout
-    assert.ok(gff.startsWith('##gff-version 3'))
-    assert.ok(gff.includes('multivalue=val1,val2,val3'))
-    assert.ok(gff.includes('##FASTA\n'))
-    assert.deepStrictEqual(gff.slice(-6), 'taccc\n')
+    assert.match(gff, /^##gff-version 3/)
+    assert.match(gff, /multivalue=val1,val2,val3/)
+    assert.match(gff, /##FASTA/)
+    assert.match(gff, /taccc$/)
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
     gff = p.stdout
-    assert.ok(gff.startsWith('##gff-version 3'))
-    assert.ok(gff.includes('multivalue=val1,val2,val3'))
-    assert.ok(!gff.includes('##FASTA\n'))
+    assert.match(gff, /^##gff-version 3/)
+    assert.match(gff, /multivalue=val1,val2,val3/)
+    assert.doesNotMatch(gff, /##FASTA/)
 
     // Invalid assembly
     p = new Shell(`${apollo} export gff3 ${P} foobar`, false)
@@ -1755,17 +1755,16 @@ EOF`,
     new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
     let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
     let gff = p.stdout
-    assert.ok(gff.startsWith('##gff-version 3'))
-    assert.ok(gff.includes('multivalue=val1,val2,val3'))
-    assert.ok(gff.includes('##FASTA\n'))
-    // We end with two newlines because the test data does have an extra newline at the end.
-    assert.deepStrictEqual(gff.slice(-7), 'taccc\n\n')
+    assert.match(gff, /^##gff-version 3/)
+    assert.match(gff, /multivalue=val1,val2,val3/)
+    assert.match(gff, /##FASTA/)
+    assert.match(gff, /taccc$/)
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
     gff = p.stdout
-    assert.ok(gff.startsWith('##gff-version 3'))
-    assert.ok(gff.includes('multivalue=val1,val2,val3'))
-    assert.ok(!gff.includes('##FASTA\n'))
+    assert.match(gff, /^##gff-version 3/)
+    assert.match(gff, /multivalue=val1,val2,val3/)
+    assert.doesNotMatch(gff, /##FASTA/)
   })
 
   void globalThis.itName('Export gff3 from external assembly', () => {
@@ -1775,17 +1774,16 @@ EOF`,
     new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
     let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
     let gff = p.stdout
-    assert.ok(gff.startsWith('##gff-version 3'))
-    assert.ok(gff.includes('multivalue=val1,val2,val3'))
-    assert.ok(gff.includes('##FASTA\n'))
-    // We end with two newlines because the test data does have an extra newline at the end.
-    assert.deepStrictEqual(gff.slice(-7), 'taccc\n\n')
+    assert.match(gff, /^##gff-version 3/)
+    assert.match(gff, /multivalue=val1,val2,val3/)
+    assert.match(gff, /##FASTA/)
+    assert.match(gff, /taccc$/)
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
     gff = p.stdout
-    assert.ok(gff.startsWith('##gff-version 3'))
-    assert.ok(gff.includes('multivalue=val1,val2,val3'))
-    assert.ok(!gff.includes('##FASTA\n'))
+    assert.match(gff, /^##gff-version 3/)
+    assert.match(gff, /multivalue=val1,val2,val3/)
+    assert.doesNotMatch(gff, /##FASTA/)
   })
 
   void globalThis.itName(
