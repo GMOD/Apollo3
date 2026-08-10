@@ -19,6 +19,8 @@ Examples of server-side plugin capabilities:
 
 - [Custom login](custom-login.md): Add other forms of login to the default
   Google and Microsoft logins.
+- [Restricting assembly access](assembly-access.md): Limit which users can
+  access which assemblies.
 
 ## Client-side plugins
 

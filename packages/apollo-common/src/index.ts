@@ -1,4 +1,5 @@
 export * from './ApolloPlugin.js'
+export * from './AssemblyAccess.js'
 export * from './AssemblySpecificChange.js'
 export * from './Change.js'
 export * from './ChangeTypeRegistry.js'

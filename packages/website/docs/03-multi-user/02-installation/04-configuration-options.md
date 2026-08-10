@@ -156,3 +156,11 @@ MICROSOFT_CLIENT_SECRET=client_secret_here
 # collection is first created.
 # EVENTS_COLLECTION_SIZE=67108864
 ```
+
+## Restricting assembly access
+
+By default every logged-in user can see and act on every assembly on the server,
+subject to their role. To restrict users to particular assemblies, add a
+server-side plugin that registers the `Apollo-AssemblyAccess` extension point —
+see [Restricting assembly access](../../04-developer-guide/assembly-access.md)
+in the developer guide.

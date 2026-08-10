@@ -153,9 +153,9 @@ export class JBrowseService {
     }
   }
 
-  async getAssemblies() {
+  async getAssemblies(allowedAssemblyIds?: string[]) {
     const url = this.configService.get('URL', { infer: true })
-    const assemblies = await this.assembliesService.findAll()
+    const assemblies = await this.assembliesService.findAll(allowedAssemblyIds)
     return assemblies.map((assembly) => {
       const assemblyId = assembly._id.toHexString()
       const trackId = `sequenceConfigId-${assembly.name}`
@@ -197,9 +197,9 @@ export class JBrowseService {
     })
   }
 
-  async getTracks() {
+  async getTracks(allowedAssemblyIds?: string[]) {
     const url = this.configService.get('URL', { infer: true })
-    const assemblies = await this.assembliesService.findAll()
+    const assemblies = await this.assembliesService.findAll(allowedAssemblyIds)
     return assemblies.map((assembly) => {
       const trackId = `apollo_track_${assembly.id}`
       return {
@@ -228,7 +228,12 @@ export class JBrowseService {
     return document?.toJSON()
   }
 
-  async getConfig(role?: Role) {
+  /**
+   * @param role - The user's role, or `undefined` for an anonymous request
+   * @param allowedAssemblyIds - The assemblies this user may see, or
+   * `undefined` if they are unrestricted
+   */
+  async getConfig(role?: Role, allowedAssemblyIds?: string[]) {
     if (!role || role === Role.None) {
       return {
         configuration: this.getConfiguration(role),
@@ -239,8 +244,8 @@ export class JBrowseService {
     const storedConfig = await this.getJBrowseConfig()
     const generatedConfig = {
       configuration: this.getConfiguration(role),
-      assemblies: await this.getAssemblies(),
-      tracks: await this.getTracks(),
+      assemblies: await this.getAssemblies(allowedAssemblyIds),
+      tracks: await this.getTracks(allowedAssemblyIds),
       plugins: this.getPlugins(),
       internetAccounts: this.getInternetAccounts(),
       defaultSession: this.getDefaultSession(),
