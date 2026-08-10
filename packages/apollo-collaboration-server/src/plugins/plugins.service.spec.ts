@@ -1,3 +1,4 @@
+import { getConnectionToken } from '@nestjs/mongoose'
 import { Test, type TestingModule } from '@nestjs/testing'
 
 import { APOLLO_PLUGINS } from './plugins.constants.js'
@@ -8,7 +9,11 @@ describe('PluginsService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [PluginsService, { provide: APOLLO_PLUGINS, useValue: [] }],
+      providers: [
+        PluginsService,
+        { provide: APOLLO_PLUGINS, useValue: [] },
+        { provide: getConnectionToken(), useValue: {} },
+      ],
     }).compile()
 
     service = module.get<PluginsService>(PluginsService)
