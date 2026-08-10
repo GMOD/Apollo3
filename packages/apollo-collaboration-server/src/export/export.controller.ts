@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common'
 import type { Response as ExpressResponse } from 'express'
 
+import { AssemblyAccess } from '../assemblyAccess/assemblyAccess.decorator.js'
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'
 
@@ -24,9 +25,15 @@ export class ExportController {
 
   /**
    * Get and ID to be used with exportGFF3. ID will be valid for 5 minutes.
+   *
+   * This is where assembly access is enforced for exports. The download below
+   * cannot check it: the client opens that URL in a new tab, so it carries no
+   * token and has no user to authorize. The export id is the capability, and it
+   * is only ever handed to a user allowed to see the assembly.
    * @param request -
    * @returns The ID of an export that will be valid for 5 minutes
    */
+  @AssemblyAccess({ kind: 'assembly', in: 'query', key: 'assembly' })
   @Validations(Role.ReadOnly)
   @Get('getID')
   async getExportID(@Query() request: { assembly: string }) {

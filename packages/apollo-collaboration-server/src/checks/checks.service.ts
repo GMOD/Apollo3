@@ -37,10 +37,20 @@ export class ChecksService {
 
   private readonly logger = new Logger(ChecksService.name)
 
-  async find({ assembly }: { assembly?: string }) {
+  /**
+   * @param allowedAssemblyIds - If given and no assembly is named, restrict the
+   * results to these assemblies. Pass `undefined` for an unrestricted query.
+   */
+  async find(
+    { assembly }: { assembly?: string },
+    allowedAssemblyIds?: string[],
+  ) {
     let query = {}
-    if (assembly) {
-      const refSeqs = await this.refSeqsService.findAll({ assembly })
+    if (assembly || allowedAssemblyIds) {
+      const refSeqs = await this.refSeqsService.findAll(
+        assembly ? { assembly } : undefined,
+        allowedAssemblyIds,
+      )
       const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
       query = { refSeq: { $in: refSeqIds } }
     }
