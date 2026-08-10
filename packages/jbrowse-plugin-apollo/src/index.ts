@@ -230,9 +230,9 @@ export default class ApolloPlugin extends Plugin {
       })
     })
 
-    // @ts-expect-error extension point name is missing from registry
     pluginManager.addToExtensionPoint(
       'Core-extendSession',
+      // @ts-expect-error Not sure why types don't match here
       extendSession.bind(this, pluginManager),
     )
 

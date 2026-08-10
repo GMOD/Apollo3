@@ -274,13 +274,6 @@ export const LinearApolloSixFrameDisplay = observer(
                 onClose={() => {
                   setContextMenuItems([])
                 }}
-                slotProps={{
-                  transition: {
-                    onExit: () => {
-                      setContextMenuItems([])
-                    },
-                  },
-                }}
                 anchorReference="anchorPosition"
                 anchorPosition={
                   contextCoord
