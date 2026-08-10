@@ -8,7 +8,7 @@ import {
   forwardRef,
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model } from 'mongoose'
+import { Model, type QueryFilter } from 'mongoose'
 
 import { ChecksService } from '../checks/checks.service.js'
 import { FeaturesService } from '../features/features.service.js'
@@ -72,8 +72,18 @@ export class AssembliesService {
     }
   }
 
-  findAll() {
-    return this.assemblyModel.find({ status: 0 }).exec()
+  /**
+   * @param allowedAssemblyIds - If given, restrict the results to these
+   * assemblies. Pass `undefined` for an unrestricted query.
+   */
+  findAll(allowedAssemblyIds?: string[]) {
+    const query: QueryFilter<AssemblyDocument> = { status: 0 }
+    if (allowedAssemblyIds) {
+      query._id = { $in: allowedAssemblyIds }
+    }
+    // unicorn thinks this is an Array.prototype.find, so we ignore it
+    // eslint-disable-next-line unicorn/no-array-callback-reference
+    return this.assemblyModel.find(query).exec()
   }
 
   async findOne(id: string) {

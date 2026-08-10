@@ -4,7 +4,10 @@ import type { DecodedJWT } from '@apollo-annotation/shared'
 import { Body, Controller, Get, Logger, Post, Query, Req } from '@nestjs/common'
 import type { Request } from 'express'
 
+import { AssemblyAccess } from '../assemblyAccess/assemblyAccess.decorator.js'
+import { AssemblyAccessService } from '../assemblyAccess/assemblyAccess.service.js'
 import { ParseChangePipe } from '../utils/parse-change.pipe.js'
+import type { RequestWithUser } from '../utils/requestWithUser.js'
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'
 
@@ -14,7 +17,10 @@ import { FindChangeDto } from './dto/find-change.dto.js'
 @Validations(Role.ReadOnly)
 @Controller('changes')
 export class ChangesController {
-  constructor(private readonly changesService: ChangesService) {}
+  constructor(
+    private readonly changesService: ChangesService,
+    private readonly assemblyAccessService: AssemblyAccessService,
+  ) {}
   private readonly logger = new Logger(ChangesController.name)
 
   /**
@@ -22,6 +28,7 @@ export class ChangesController {
    * @param serializedChange - Information containing ...
    * @returns Return 'HttpStatus.OK' if .... Otherwise throw exception.
    */
+  @AssemblyAccess({ kind: 'change' })
   @Post()
   @Validations(Role.User)
   async create(@Body(ParseChangePipe) change: Change, @Req() request: Request) {
@@ -37,9 +44,20 @@ export class ChangesController {
     return this.changesService.create(change, user)
   }
 
+  @AssemblyAccess({
+    kind: 'assembly',
+    in: 'query',
+    key: 'assembly',
+    optional: true,
+  })
   @Get()
-  async findAll(@Query() changeFilter: FindChangeDto) {
+  async findAll(
+    @Query() changeFilter: FindChangeDto,
+    @Req() request: RequestWithUser,
+  ) {
     this.logger.debug(`ChangeFilter: ${JSON.stringify(changeFilter)}`)
-    return this.changesService.findAll(changeFilter)
+    const allowedAssemblyIds =
+      await this.assemblyAccessService.getAllowedAssemblyIds(request.user)
+    return this.changesService.findAll(changeFilter, allowedAssemblyIds)
   }
 }
