@@ -11,6 +11,8 @@ import Joi from 'joi'
 import type { Connection } from 'mongoose'
 
 import { AssembliesModule } from './assemblies/assemblies.module.js'
+import { AssemblyAccessGuard } from './assemblyAccess/assemblyAccess.guard.js'
+import { AssemblyAccessModule } from './assemblyAccess/assemblyAccess.module.js'
 import { AuthenticationModule } from './authentication/authentication.module.js'
 import { ChangesModule } from './changes/changes.module.js'
 import { ChecksModule } from './checks/checks.module.js'
@@ -146,6 +148,7 @@ async function mongoDBURIFactory(
 @Module({
   imports: [
     AssembliesModule,
+    AssemblyAccessModule,
     AuthenticationModule,
     ChangesModule,
     ChecksModule,
@@ -175,6 +178,7 @@ async function mongoDBURIFactory(
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: ValidationGuard },
+    { provide: APP_GUARD, useClass: AssemblyAccessGuard },
   ],
 })
 export class AppModule {}

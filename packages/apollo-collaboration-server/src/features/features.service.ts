@@ -16,7 +16,7 @@ import {
   forwardRef,
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model } from 'mongoose'
+import { Model, type Types } from 'mongoose'
 import StreamConcat from 'stream-concat'
 
 import { ChecksService } from '../checks/checks.service.js'
@@ -42,16 +42,44 @@ export class FeaturesService {
 
   private readonly logger = new Logger(FeaturesService.name)
 
-  findAll() {
-    return this.featureModel.find().exec()
+  /**
+   * @param allowedAssemblyIds - If given, restrict the results to features in
+   * these assemblies. Pass `undefined` for an unrestricted query.
+   */
+  async findAll(allowedAssemblyIds?: string[]) {
+    if (!allowedAssemblyIds) {
+      return this.featureModel.find().exec()
+    }
+    const refSeqIds = await this.getRefSeqIds(allowedAssemblyIds)
+    return this.featureModel.find({ refSeq: { $in: refSeqIds } }).exec()
   }
 
-  async getFeatureCount(featureCountRequest: FeatureCountRequest) {
+  /** The ids of every refSeq belonging to the given assemblies */
+  private async getRefSeqIds(assemblyIds: string[]) {
+    const refSeqs = await this.refSeqModel
+      .find({ assembly: { $in: assemblyIds } }, { _id: 1 })
+      .exec()
+    return refSeqs.map((refSeq) => refSeq._id)
+  }
+
+  /**
+   * @param allowedAssemblyIds - If given and the request names neither an
+   * assembly nor a refSeq, restrict the count to these assemblies. Pass
+   * `undefined` for an unrestricted query.
+   */
+  async getFeatureCount(
+    featureCountRequest: FeatureCountRequest,
+    allowedAssemblyIds?: string[],
+  ) {
     let count = 0
     const { assemblyId, end, refSeqId, start } = featureCountRequest
     const filter: Record<
       string,
-      number | string | { $lte: number } | { $gte: number }
+      | number
+      | string
+      | { $lte: number }
+      | { $gte: number }
+      | { $in: Types.ObjectId[] }
     > = { status: 0 }
 
     if (end) {
@@ -73,6 +101,9 @@ export class FeaturesService {
         filter.refSeq = refSeq._id.toString()
         count += await this.featureModel.countDocuments(filter)
       }
+    } else if (allowedAssemblyIds) {
+      filter.refSeq = { $in: await this.getRefSeqIds(allowedAssemblyIds) }
+      count = await this.featureModel.countDocuments(filter)
     } else {
       // returns count of all documents or in the range (start, end)
       count = await this.featureModel.countDocuments(filter)
