@@ -17,6 +17,7 @@ import {
 } from '@nestjs/common'
 import sanitize from 'sanitize-filename'
 
+import { PluginRoutesController } from './pluginRoutes.controller.js'
 import { APOLLO_PLUGINS } from './plugins.constants.js'
 import { PluginsService } from './plugins.service.js'
 
@@ -48,6 +49,7 @@ export class PluginsModule {
     return {
       module: PluginsModule,
       global: true,
+      controllers: [PluginRoutesController],
       providers: [pluginsProvider, PluginsService],
       exports: [pluginsProvider, PluginsService],
     }

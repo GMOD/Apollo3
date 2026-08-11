@@ -44,7 +44,9 @@ access rules.
 The callback's second argument carries a `connection` prop, the Mongoose
 connection to the Apollo database, so your plugin can keep its grants in Mongo
 rather than hard-coding them. This is the same connection the `Apollo-MongoDB`
-extension point provides.
+extension point provides, and the same one passed to the
+[`Apollo-RegisterRoutes`](custom-routes.md) extension point if your plugin also
+exposes its own HTTP endpoints.
 
 ```ts
 import {
