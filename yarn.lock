@@ -377,8 +377,8 @@ __metadata:
     open: "npm:^11.0.0"
     prettier: "npm:^3.3.2"
     prop-types: "npm:^15.8.1"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
+    react: "npm:^19.1.0"
+    react-dom: "npm:^19.1.0"
     reflect-metadata: "npm:^0.1.13"
     rxjs: "npm:^7.4.0"
     serve: "npm:^14.0.1"
@@ -460,8 +460,8 @@ __metadata:
     passport-microsoft: "npm:^2.1.0"
     prop-types: "npm:^15.8.1"
     quick-lru: "npm:^7.3.0"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
+    react: "npm:^19.1.0"
+    react-dom: "npm:^19.1.0"
     reflect-metadata: "npm:^0.1.13"
     rimraf: "npm:^3.0.2"
     rxjs: "npm:^7.4.0"
@@ -498,8 +498,8 @@ __metadata:
     bson-objectid: "npm:^2.0.4"
     generic-filehandle2: "npm:^2.2.1"
     mongoose: "npm:^9.9.3"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
+    react: "npm:^19.1.0"
+    react-dom: "npm:^19.1.0"
     reflect-metadata: "npm:^0.1.13"
     rxjs: "npm:^7.4.0"
     typescript: "npm:^6.0.3"
@@ -510,8 +510,8 @@ __metadata:
     mobx: ^7.0.0
     mobx-react: ^10.0.0
     prop-types: ^15.8.1
-    react: ^18.2.0
-    react-dom: ^18.2.0
+    react: ^19.1.0
+    react-dom: ^19.1.0
     reflect-metadata: ^0.1.13
     rxjs: ^7.4.0
     tss-react: ^4.9.21
@@ -571,8 +571,8 @@ __metadata:
     npm-run-all: "npm:^4.1.5"
     nyc: "npm:^15.1.0"
     prop-types: "npm:^15.8.1"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
+    react: "npm:^19.1.0"
+    react-dom: "npm:^19.1.0"
     reflect-metadata: "npm:^0.1.13"
     rimraf: "npm:^3.0.2"
     rolldown: "npm:^1.2.0"
@@ -593,8 +593,8 @@ __metadata:
     mobx: ^7.0.0
     mobx-react: ^9.0.0
     prop-types: ^15.8.1
-    react: ^18.2.0
-    react-dom: ^18.2.0
+    react: ^19.1.0
+    react-dom: ^19.1.0
     rxjs: ^7.4.0
     tss-react: ^4.9.21
   languageName: unknown
@@ -610,8 +610,8 @@ __metadata:
     "@jbrowse/mobx-state-tree": "npm:^6.1.0"
     "@types/react": "npm:^18.3.4"
     mobx: "npm:^7.0.0"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
+    react: "npm:^19.1.0"
+    react-dom: "npm:^19.1.0"
     rxjs: "npm:^7.4.0"
     typescript: "npm:^6.0.3"
   languageName: unknown
@@ -663,8 +663,8 @@ __metadata:
     mobx-react: "npm:^10.0.0"
     mongoose: "npm:^9.9.3"
     prop-types: "npm:^15.8.1"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
+    react: "npm:^19.1.0"
+    react-dom: "npm:^19.1.0"
     reflect-metadata: "npm:^0.1.13"
     rimraf: "npm:^3.0.2"
     rxjs: "npm:^7.4.0"
@@ -678,8 +678,8 @@ __metadata:
     mobx: ^7.0.0
     mobx-react: ^10.0.0
     prop-types: ^15.8.1
-    react: ^18.2.0
-    react-dom: ^18.2.0
+    react: ^19.1.0
+    react-dom: ^19.1.0
     reflect-metadata: ^0.1.13
     rxjs: ^7.4.0
   languageName: unknown
@@ -701,8 +701,8 @@ __metadata:
     "@types/react": "npm:^18.3.4"
     clsx: "npm:^1.1.1"
     prism-react-renderer: "npm:^2.3.0"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
+    react: "npm:^19.1.0"
+    react-dom: "npm:^19.1.0"
     typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
@@ -11836,7 +11836,7 @@ __metadata:
     npm-run-all: "npm:^4.1.5"
     prettier: "npm:^3.3.2"
     prettier-plugin-packagejson: "npm:^3.0.2"
-    react: "npm:^18.2.0"
+    react: "npm:^19.1.0"
     semver: "npm:^7.6.3"
     tslib: "npm:^2.3.1"
     tsx: "npm:^4.6.2"
@@ -21702,7 +21702,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"loose-envify@npm:^1.0.0, loose-envify@npm:^1.1.0, loose-envify@npm:^1.2.0, loose-envify@npm:^1.3.1, loose-envify@npm:^1.4.0":
+"loose-envify@npm:^1.0.0, loose-envify@npm:^1.2.0, loose-envify@npm:^1.3.1, loose-envify@npm:^1.4.0":
   version: 1.4.0
   resolution: "loose-envify@npm:1.4.0"
   dependencies:
@@ -26133,15 +26133,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^18.2.0":
-  version: 18.2.0
-  resolution: "react-dom@npm:18.2.0"
+"react-dom@npm:^19.1.0":
+  version: 19.3.0
+  resolution: "react-dom@npm:19.3.0"
   dependencies:
-    loose-envify: "npm:^1.1.0"
-    scheduler: "npm:^0.23.0"
+    scheduler: "npm:^0.28.0"
   peerDependencies:
-    react: ^18.2.0
-  checksum: 10c0/66dfc5f93e13d0674e78ef41f92ed21dfb80f9c4ac4ac25a4b51046d41d4d2186abc915b897f69d3d0ebbffe6184e7c5876f2af26bfa956f179225d921be713a
+    react: ^19.3.0
+  checksum: 10c0/c513044b724dd6bfe9500a9682d60973e7f8a48cffba00b6b16d3e910e27dcc459bf71bf0a5c33d7d62a3843ca30de1bd1e2098058aa4ed71f618a24b6061da5
   languageName: node
   linkType: hard
 
@@ -26291,12 +26290,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^18.2.0":
-  version: 18.2.0
-  resolution: "react@npm:18.2.0"
-  dependencies:
-    loose-envify: "npm:^1.1.0"
-  checksum: 10c0/b562d9b569b0cb315e44b48099f7712283d93df36b19a39a67c254c6686479d3980b7f013dc931f4a5a3ae7645eae6386b4aa5eea933baa54ecd0f9acb0902b8
+"react@npm:^19.1.0":
+  version: 19.3.0
+  resolution: "react@npm:19.3.0"
+  checksum: 10c0/dd3099c3c43a7122bc01223bb26b0f8d5ba13cca569af6fb94a005fb54fa73223c9cb203bb226d40cfd49a82cbeef2e36ce84062a3a6d5b9fe8f4437694c7b52
   languageName: node
   linkType: hard
 
@@ -27278,12 +27275,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"scheduler@npm:^0.23.0":
-  version: 0.23.0
-  resolution: "scheduler@npm:0.23.0"
-  dependencies:
-    loose-envify: "npm:^1.1.0"
-  checksum: 10c0/b777f7ca0115e6d93e126ac490dbd82642d14983b3079f58f35519d992fa46260be7d6e6cede433a92db70306310c6f5f06e144f0e40c484199e09c1f7be53dd
+"scheduler@npm:^0.28.0":
+  version: 0.28.0
+  resolution: "scheduler@npm:0.28.0"
+  checksum: 10c0/783c8e5ce89d41273a02ed6dc0e3d24bd60e05c9e8f7e3adfc6c82e7c69935500d90e343f1ee26d592fc7504e8a2532573c6368def3e93bfe812391fa53efaf4
   languageName: node
   linkType: hard
 
