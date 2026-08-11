@@ -21,12 +21,9 @@
     "@apollo-annotation/mst": "workspace:^",
     "@apollo-annotation/schemas": "workspace:^",
     "@gmod/gff": "^2.1.0",
-    "@gmod/indexedfasta": "^5.0.2",
     "@jbrowse/core": "^4.3.0",
     "bson-objectid": "^2.0.4",
-    "generic-filehandle2": "^2.2.1",
-    "jwt-decode": "^3.1.2",
-    "tslib": "^2.3.1"
+    "jwt-decode": "^3.1.2"
   },
   "devDependencies": {
     "@jbrowse/mobx-state-tree": "^6.1.0",
