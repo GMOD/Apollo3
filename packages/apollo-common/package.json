@@ -19,12 +19,19 @@
   },
   "devDependencies": {
     "@apollo-annotation/mst": "workspace:^",
+    "@emotion/react": "^11.10.6",
+    "@emotion/styled": "^11.10.6",
     "@gmod/gff": "^2.1.0",
     "@nestjs/common": "^10.1.0",
     "@nestjs/core": "^10.1.0",
     "@types/node": "^24.10.9",
+    "@types/react": "^18.3.4",
     "generic-filehandle2": "^2.2.1",
     "mongoose": "^6.12.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.4.0",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
@@ -38,7 +45,7 @@
     "react-dom": "^19.1.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.4.0",
-    "tss-react": "^4.6.1"
+    "tss-react": "^4.9.21"
   },
   "publishConfig": {
     "access": "public"
