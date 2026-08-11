@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { ApolloPlugin } from '@apollo-annotation/common'
+import { ApolloPlugin, type PluginRoute } from '@apollo-annotation/common'
 import { Inject, Injectable } from '@nestjs/common'
 import { InjectConnection } from '@nestjs/mongoose'
 import type { Connection } from 'mongoose'
@@ -10,6 +10,8 @@ import { APOLLO_PLUGINS } from './plugins.constants.js'
 export class PluginsService {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   extensionPoints = new Map<string, Function[]>()
+
+  pluginRoutes: PluginRoute[] = []
 
   constructor(
     @Inject(APOLLO_PLUGINS) private plugins: ApolloPlugin[],
@@ -23,6 +25,11 @@ export class PluginsService {
     this.evaluateExtensionPoint('Apollo-MongoDB', undefined, {
       connection: this.connection,
     })
+    this.pluginRoutes = this.evaluateExtensionPoint<PluginRoute[]>(
+      'Apollo-RegisterRoutes',
+      [],
+      { connection: this.connection },
+    )
   }
 
   addToExtensionPoint<T>(

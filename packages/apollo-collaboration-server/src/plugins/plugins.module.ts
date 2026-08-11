@@ -19,6 +19,7 @@ import sanitize from 'sanitize-filename'
 
 import { APOLLO_PLUGINS } from './plugins.constants.js'
 import { PluginsService } from './plugins.service.js'
+import { PluginRoutesController } from './pluginRoutes.controller.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -47,6 +48,7 @@ export class PluginsModule {
     return {
       module: PluginsModule,
       global: true,
+      controllers: [PluginRoutesController],
       providers: [pluginsProvider, PluginsService],
       exports: [pluginsProvider, PluginsService],
     }
