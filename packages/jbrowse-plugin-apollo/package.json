@@ -74,6 +74,7 @@
     "@jbrowse/mobx-state-tree": "^5.8.7",
     "@jest/globals": "^29.0.3",
     "@mui/material": "^7.3.11",
+    "@mui/system": "^7.3.11",
     "@mui/x-data-grid": "^8.0.0",
     "@rolldown/plugin-node-polyfills": "^1.0.3",
     "@types/autosuggest-highlight": "^3",
@@ -102,6 +103,7 @@
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rolldown": "^1.2.0",
     "rollup-plugin-external-globals": "^0.13.0",
@@ -109,9 +111,9 @@
     "serve": "^14.0.1",
     "shx": "^0.3.3",
     "start-server-and-test": "^1.11.7",
-    "ts-jest": "^29.4.6",
+    "ts-jest": "^29.4.12",
     "ts-node": "^10.3.0",
-    "tss-react": "^4.6.1",
+    "tss-react": "^4.9.21",
     "tsx": "^4.6.2",
     "typescript": "^6.0.3"
   },
@@ -125,7 +127,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "rxjs": "^7.4.0",
-    "tss-react": "^4.6.1"
+    "tss-react": "^4.9.21"
   },
   "publishConfig": {
     "access": "public"
