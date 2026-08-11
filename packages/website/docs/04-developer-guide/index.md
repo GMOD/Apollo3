@@ -21,6 +21,8 @@ Examples of server-side plugin capabilities:
   Google and Microsoft logins.
 - [Restricting assembly access](assembly-access.md): Limit which users can
   access which assemblies.
+- [Custom server routes](custom-routes.md): Expose your own HTTP endpoints,
+  backed by your own MongoDB collections, for a client-side plugin to call.
 
 ## Client-side plugins
 
