@@ -28,8 +28,8 @@
     "@types/react": "^18.3.4",
     "generic-filehandle2": "^2.2.1",
     "mongoose": "^9.9.3",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.4.0",
     "typescript": "^6.0.3"
@@ -41,8 +41,8 @@
     "mobx": "^7.0.0",
     "mobx-react": "^10.0.0",
     "prop-types": "^15.8.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.4.0",
     "tss-react": "^4.9.21"
