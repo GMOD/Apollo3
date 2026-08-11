@@ -8783,13 +8783,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gmod/bgzf-filehandle@npm:^6.3.2":
-  version: 6.3.3
-  resolution: "@gmod/bgzf-filehandle@npm:6.3.3"
+"@gmod/bgzf-filehandle@npm:^6.4.0":
+  version: 6.4.0
+  resolution: "@gmod/bgzf-filehandle@npm:6.4.0"
   dependencies:
     generic-filehandle2: "npm:^2.2.1"
     pako-esm2: "npm:^2.0.2"
-  checksum: 10c0/ccd9eb3f902b9d990a0826803c15760f04ce8d1facebfa89a94c6a726e72ebfe024710189cf5819968f6e3b76b78a1243a7a2c39629d93bb012041602404d8af
+  checksum: 10c0/b83a79250d51ac2cffce4c836e112d7f5cbd3f04e0a6bc90af0c302e6cbb4f85e65795738d48a9b2d30782278bba37f3165b499a9b6bd774968d7476e9cf1e80
   languageName: node
   linkType: hard
 
@@ -8810,7 +8810,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gmod/shared-read-cache@npm:^1.5.0":
+"@gmod/shared-read-cache@npm:^1.5.1":
   version: 1.5.1
   resolution: "@gmod/shared-read-cache@npm:1.5.1"
   checksum: 10c0/d2508e4808135ab573479f9c91618123bedc74e0b5f3badfc51d0494d96e70c9d21b0d37debd2500e2ae3b95f7ef65527307249a8c1a1c53c80c919dd8fe29b2
@@ -9507,17 +9507,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/core@file:./jbrowse-core-c7e13c3a50.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/core@file:./jbrowse-core-399e2d72e1.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/core@file:./jbrowse-core-c7e13c3a50.tgz#./jbrowse-core-c7e13c3a50.tgz::hash=f05877&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/core@file:./jbrowse-core-399e2d72e1.tgz#./jbrowse-core-399e2d72e1.tgz::hash=f31d56&locator=apollo3%40workspace%3A."
   dependencies:
     "@emotion/cache": "npm:^11.14.0"
     "@emotion/react": "npm:^11.14.0"
     "@emotion/serialize": "npm:^1.3.3"
     "@emotion/utils": "npm:^1.4.2"
     "@floating-ui/react": "npm:^0.27.20"
-    "@gmod/bgzf-filehandle": "npm:^6.3.2"
-    "@gmod/shared-read-cache": "npm:^1.5.0"
+    "@gmod/bgzf-filehandle": "npm:^6.4.0"
+    "@gmod/shared-read-cache": "npm:^1.5.1"
     "@jbrowse/jexl": "npm:^3.0.2"
     "@jbrowse/mobx-state-tree": "npm:^6.1.0"
     "@jbrowse/quick-lru": "npm:^7.3.5"
@@ -9531,7 +9531,7 @@ __metadata:
     deepmerge: "npm:^4.3.1"
     dompurify: "npm:^3.4.13"
     fast-deep-equal: "npm:^3.1.3"
-    generic-filehandle2: "npm:^2.2.2"
+    generic-filehandle2: "npm:^2.3.1"
     idb: "npm:^8.0.3"
     mobx: "npm:^7.0.0"
     mobx-react: "npm:^10.0.0"
@@ -9541,7 +9541,7 @@ __metadata:
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/ce14c097d4a5d742a2fe543d2a6c19f1766fca80569de9d0399bd9efe3d9ef2dfa248c6a75806ad731b2876fc98d3429f918fc2911555c12d919eceac8135a64
+  checksum: 10c0/ac89051022ccb1d7dd5adea6f4abd224d65432bb1e9dbfd50b16bbfb8802078aa5282fff5941fde111412c17bf00459b14d828199212c2ef976536c3d8276398
   languageName: node
   linkType: hard
 
@@ -9595,25 +9595,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/plugin-authentication@file:./jbrowse-plugin-authentication-c7e13c3a50.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/plugin-authentication@file:./jbrowse-plugin-authentication-399e2d72e1.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/plugin-authentication@file:./jbrowse-plugin-authentication-c7e13c3a50.tgz#./jbrowse-plugin-authentication-c7e13c3a50.tgz::hash=3937dc&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/plugin-authentication@file:./jbrowse-plugin-authentication-399e2d72e1.tgz#./jbrowse-plugin-authentication-399e2d72e1.tgz::hash=255c53&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/core": "npm:^4.3.0"
     "@jbrowse/mobx-state-tree": "npm:^6.1.0"
     "@mui/material": "npm:^9.3.1"
-    generic-filehandle2: "npm:^2.2.2"
+    generic-filehandle2: "npm:^2.3.1"
     mobx: "npm:^7.0.0"
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/29276fce5242edc64d9c7dc2afd7ae6c9526edb995b7875f6fec36a89604227108d9efd88fc6358408cfec59b52a320708163871f4228569d1e1ff4f916e13f2
+  checksum: 10c0/802e3812e4738a078ff2471faafb111457deca3a196f5a340f32bdd79bcad56cdcaee270358dab636771ee21ba8e81680c7c758e6bcc9c8f9e0c4b9694d4b20e
   languageName: node
   linkType: hard
 
-"@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-c7e13c3a50.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-399e2d72e1.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-c7e13c3a50.tgz#./jbrowse-plugin-linear-genome-view-c7e13c3a50.tgz::hash=8d01e8&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-399e2d72e1.tgz#./jbrowse-plugin-linear-genome-view-399e2d72e1.tgz::hash=25812c&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/core": "npm:^4.3.0"
     "@jbrowse/mobx-state-tree": "npm:^6.1.0"
@@ -9625,7 +9625,7 @@ __metadata:
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/e15060ea584a795a4e84a33ea30782eadbd49aa5725aa200367529f32c78b3cfea0bed6cd9069349a2e4b7734c9a420995cbbc10b3e5fff2677cc892a76ade12
+  checksum: 10c0/47e4fc3d3b1cd9a9d37dd1bcab6dea4c8d41dd90cd57994e4fee24db5193563415fb8021ad73d6586c95395a2a4a2b137db07e36aebbbf8daeb5365732224f19
   languageName: node
   linkType: hard
 
@@ -9636,15 +9636,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/render-core@file:./jbrowse-render-core-c7e13c3a50.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/render-core@file:./jbrowse-render-core-399e2d72e1.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/render-core@file:./jbrowse-render-core-c7e13c3a50.tgz#./jbrowse-render-core-c7e13c3a50.tgz::hash=d13063&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/render-core@file:./jbrowse-render-core-399e2d72e1.tgz#./jbrowse-render-core-399e2d72e1.tgz::hash=e73289&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/mobx-state-tree": "npm:^6.1.0"
     mobx: "npm:^7.0.0"
   peerDependencies:
     react: ">=19.0.0"
-  checksum: 10c0/2b3ffbd1d3cfd1314fd2d5132c41fa12c14d77c1facaa653db88d2ddb2852d7b8493ebe5d35117b8f4a536512b1ba070ffbaaca13c5416af0a9f6232f3c29189
+  checksum: 10c0/858e5270c35e91215d727a6d682a0b23580f000c05b586dc94c3f70a0dc1023a6a4a3cea1129cc1dd6449c9412b9b6899cb5e432c6678d868fc3458a960e712b
   languageName: node
   linkType: hard
 
@@ -21374,10 +21374,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"generic-filehandle2@npm:^2.2.2":
-  version: 2.2.2
-  resolution: "generic-filehandle2@npm:2.2.2"
-  checksum: 10c0/7d9f852a28069359b297ddec32dcbb33091749d405e03601971104053f43a8f7bf8d35720b360fb27c20d13d591058b01f93a900e6a6df9ee7186138d225e15e
+"generic-filehandle2@npm:^2.3.1":
+  version: 2.3.1
+  resolution: "generic-filehandle2@npm:2.3.1"
+  checksum: 10c0/21c93d6d00aa6192fe95e94c38993100834ae3e5e0d7a58f6ea0c65a5a1078fba35710f4b0870b7919e3318760f0e708f5e27023a4e9f940a7a39f9b1f012928
   languageName: node
   linkType: hard
 

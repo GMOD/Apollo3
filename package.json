@@ -52,10 +52,10 @@
   },
   "packageManager": "yarn@4.18.0",
   "resolutions": {
-    "@jbrowse/core": "file:./jbrowse-core-c7e13c3a50.tgz",
-    "@jbrowse/plugin-authentication": "file:./jbrowse-plugin-authentication-c7e13c3a50.tgz",
-    "@jbrowse/plugin-linear-genome-view": "file:./jbrowse-plugin-linear-genome-view-c7e13c3a50.tgz",
-    "@jbrowse/product-core": "file:./jbrowse-product-core-c7e13c3a50.tgz",
-    "@jbrowse/render-core": "file:./jbrowse-render-core-c7e13c3a50.tgz"
+    "@jbrowse/core": "file:./jbrowse-core-399e2d72e1.tgz",
+    "@jbrowse/plugin-authentication": "file:./jbrowse-plugin-authentication-399e2d72e1.tgz",
+    "@jbrowse/plugin-linear-genome-view": "file:./jbrowse-plugin-linear-genome-view-399e2d72e1.tgz",
+    "@jbrowse/product-core": "file:./jbrowse-product-core-399e2d72e1.tgz",
+    "@jbrowse/render-core": "file:./jbrowse-render-core-399e2d72e1.tgz"
   }
 }
