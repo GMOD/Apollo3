@@ -374,10 +374,24 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
     }))
     .volatile((self) => {
       const { origin, pathname: path } = new URL('socket.io/', self.baseURL)
-      return { socket: io(origin, { path }) }
+      return { socket: io(origin, { path }), socketListenersAdded: false }
     })
     .actions((self) => ({
+      // Registers each handler as a fresh arrow function, so socket.io has no
+      // way to recognize a repeat and this does NOT no-op the way the
+      // addEventListener calls at the end of initialize() do. Its caller can
+      // run more than once (the autorun in afterAttach disposes only after the
+      // awaits either side of this one, and deliberately does not on failure),
+      // and a second registration means every COMMON message is submitted to
+      // the change manager twice, every connect_error raises two notifications,
+      // and every reconnect fetches the missing changes twice.
+      //
+      // The token check below throws before anything is registered, so a run
+      // that failed on it leaves nothing behind and the retry still works.
       addSocketListeners() {
+        if (self.socketListenersAdded) {
+          return
+        }
         const { session } = getRoot<ApolloRootModel>(self)
         const { notify } = session as unknown as AbstractSessionModel
         const token = self.retrieveToken()
@@ -436,6 +450,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             }
           },
         )
+        self.socketListenersAdded = true
       },
     }))
     .actions((self) => {
