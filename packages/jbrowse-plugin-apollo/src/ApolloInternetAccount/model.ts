@@ -390,6 +390,17 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         const { addCheckResult, changeManager, deleteCheckResult } =
           session.apolloDataStore
         socket.on('connect', () => {
+          // No baseline yet, so there is nothing to be missing: this is the
+          // first connect, and loadInitialState() is still fetching the
+          // sequence number getMissingChanges() needs. That call would throw
+          // without one, and as a `void` it would throw into nothing.
+          //
+          // These handlers used to be registered after that request rather
+          // than before it, which is why the case is new: the first connect
+          // arrived while nothing was listening for it.
+          if (!self.lastChangeSequenceNumber) {
+            return
+          }
           void self.getMissingChanges()
         })
         socket.on('connect_error', (error) => {
