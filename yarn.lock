@@ -8707,9 +8707,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/core@file:./jbrowse-core-399e2d72e1.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/core@file:./jbrowse-core-daf319ffb7.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/core@file:./jbrowse-core-399e2d72e1.tgz#./jbrowse-core-399e2d72e1.tgz::hash=f31d56&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/core@file:./jbrowse-core-daf319ffb7.tgz#./jbrowse-core-daf319ffb7.tgz::hash=34bbb6&locator=apollo3%40workspace%3A."
   dependencies:
     "@emotion/cache": "npm:^11.14.0"
     "@emotion/react": "npm:^11.14.0"
@@ -8741,7 +8741,7 @@ __metadata:
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/ac89051022ccb1d7dd5adea6f4abd224d65432bb1e9dbfd50b16bbfb8802078aa5282fff5941fde111412c17bf00459b14d828199212c2ef976536c3d8276398
+  checksum: 10c0/030751a837de900b429d679daec90866f6d5d0e0bccde8c4abb46ea46ecbaaf02caa4c1bf98c0727259a9e71d8b2d25e5b1ad8ec43069b6a46123c063a50325a
   languageName: node
   linkType: hard
 
@@ -8761,9 +8761,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-399e2d72e1.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-daf319ffb7.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-399e2d72e1.tgz#./jbrowse-plugin-linear-genome-view-399e2d72e1.tgz::hash=25812c&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-daf319ffb7.tgz#./jbrowse-plugin-linear-genome-view-daf319ffb7.tgz::hash=abe990&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/core": "npm:^4.3.0"
     "@jbrowse/mobx-state-tree": "npm:^6.1.0"
@@ -8775,7 +8775,7 @@ __metadata:
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/47e4fc3d3b1cd9a9d37dd1bcab6dea4c8d41dd90cd57994e4fee24db5193563415fb8021ad73d6586c95395a2a4a2b137db07e36aebbbf8daeb5365732224f19
+  checksum: 10c0/38c97dd006378dfe6a1e62d4fe87d7b64ab7f5899955a9dbc2e6c507a8f2c7f72bb65ae75744acdbdd14ce72cfb015ca3be77716276eb832561f9982a21bd084
   languageName: node
   linkType: hard
 
@@ -8786,9 +8786,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/render-core@file:./jbrowse-render-core-399e2d72e1.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/render-core@file:./jbrowse-render-core-daf319ffb7.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/render-core@file:./jbrowse-render-core-399e2d72e1.tgz#./jbrowse-render-core-399e2d72e1.tgz::hash=e73289&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/render-core@file:./jbrowse-render-core-daf319ffb7.tgz#./jbrowse-render-core-daf319ffb7.tgz::hash=e73289&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/mobx-state-tree": "npm:^6.1.0"
     mobx: "npm:^7.0.0"
