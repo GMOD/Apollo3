@@ -478,7 +478,10 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       }
       return { postUserLocation: debouncePostUserLocation(postUserLocation) }
     })
-    .volatile(() => ({ roleNotificationSent: false }))
+    .volatile(() => ({
+      roleNotificationSent: false,
+      adminMenusAdded: false,
+    }))
     .actions((self) => {
       function beforeUnloadListener() {
         self.postUserLocation([])
@@ -507,10 +510,19 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             }
             return
           }
-          if (role === 'admin') {
+          // Guarded like roleNotificationSent above, and for a stronger reason:
+          // a menu contribution is appended to a log the root model replays
+          // every time the menu opens, so adding one twice is not idempotent —
+          // it puts a second "Admin" submenu in the Apollo menu, a third on the
+          // next run, and so on. initialize() can run more than once (the
+          // autorun in afterAttach only disposes after the two awaits below,
+          // and deliberately does not on failure), so the menus need a guard of
+          // their own rather than relying on it running exactly once.
+          if (role === 'admin' && !self.adminMenusAdded) {
             const rootModel = getRoot(self)
             if (isAbstractMenuManager(rootModel)) {
               addTopLevelAdminMenus(rootModel)
+              self.adminMenusAdded = true
             }
           }
           // Get and set server last change sequence into session storage
