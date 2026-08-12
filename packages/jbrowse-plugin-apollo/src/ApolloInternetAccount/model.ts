@@ -478,7 +478,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       }
       return { postUserLocation: debouncePostUserLocation(postUserLocation) }
     })
-    .volatile(() => ({ roleNotificationSent: false }))
     .actions((self) => {
       function beforeUnloadListener() {
         self.postUserLocation([])
@@ -495,28 +494,52 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
       }
       return {
-        initialize: flow(function* initialize(role: Role) {
+        /**
+         * The half of startup that must happen exactly once. None of it is a
+         * request, so nothing here is worth retrying — and all of it registers
+         * something that has no idea it has been registered before. A menu
+         * contribution is appended to a log the root model replays on every
+         * open, and each socket handler is a fresh arrow function socket.io
+         * cannot recognize as a repeat, so a second run means a second "Admin"
+         * submenu and every COMMON message submitted to the change manager
+         * twice. (The two addEventListener calls are the exception, and only by
+         * luck: the handler references are stable, so the browser de-duplicates
+         * them for us.)
+         *
+         * `addSocketListeners()` goes first because it is the only step that
+         * can throw — 'No Token found', before it has registered anything — so
+         * a failed run leaves nothing installed and the caller can simply try
+         * again. That ordering is what lets `afterAttach` enforce "at most
+         * once" without a flag.
+         */
+        install(role: Role) {
           if (role === 'none') {
-            if (!self.roleNotificationSent) {
-              const { session } = getRoot<ApolloRootModel>(self)
-              ;(session as unknown as AbstractSessionModel).notify(
-                'You have registered as an Apollo user but have not been given access. Ask your administrator to enable access for your account.',
-                'warning',
-              )
-              self.roleNotificationSent = true
-            }
+            const { session } = getRoot<ApolloRootModel>(self)
+            ;(session as unknown as AbstractSessionModel).notify(
+              'You have registered as an Apollo user but have not been given access. Ask your administrator to enable access for your account.',
+              'warning',
+            )
             return
           }
-          if (role === 'admin') {
-            const rootModel = getRoot(self)
-            if (isAbstractMenuManager(rootModel)) {
-              addTopLevelAdminMenus(rootModel)
-            }
+          self.addSocketListeners()
+          const rootModel = getRoot(self)
+          if (role === 'admin' && isAbstractMenuManager(rootModel)) {
+            addTopLevelAdminMenus(rootModel)
           }
+          window.addEventListener('beforeunload', beforeUnloadListener)
+          document.addEventListener(
+            'visibilitychange',
+            visibilityChangeListener,
+          )
+        },
+        /**
+         * The other half: everything that talks to the server, and so is
+         * expected to fail and be retried. It leaves nothing behind, so running
+         * it again costs a request and nothing else.
+         */
+        loadInitialState: flow(function* loadInitialState() {
           // Get and set server last change sequence into session storage
           yield self.updateLastChangeSequenceNumber()
-          // Open socket listeners
-          self.addSocketListeners()
           // request user locations
           const { baseURL } = self
           const uri = new URL('users/locations', baseURL).href
@@ -528,11 +551,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             method: 'GET',
             signal: self.controller.signal,
           })
-          window.addEventListener('beforeunload', beforeUnloadListener)
-          document.addEventListener(
-            'visibilitychange',
-            visibilityChangeListener,
-          )
         }),
         removeBeforeUnloadListener() {
           window.removeEventListener('beforeunload', beforeUnloadListener)
@@ -548,8 +566,25 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
     .actions((self) => ({
       afterAttach() {
         self.setRole()
+
+        // Two reactions rather than one, because the two halves of startup want
+        // opposite things: install() must run at most once and loadInitialState()
+        // must be free to run again.
+        //
+        // They were one, and it could not give both. Its dispose() sat behind
+        // both awaits, so the reaction stayed armed across two round trips
+        // while everything install() does had already been done — and what it
+        // tracks is `self.role`, which those very requests write: a 403 from
+        // either sends getFetcher through removeToken()/setRole(), clearing the
+        // role and then setting it again once a new token arrives. So an
+        // expired token at startup, the ordinary case, installed everything a
+        // second time.
+        //
+        // This one is synchronous, and that is what makes "at most once"
+        // structural rather than a flag: dispose() runs in the same tick as
+        // install(), so there is no window for anything to invalidate it.
         autorun(
-          async (reaction) => {
+          (reaction) => {
             if (inWebWorker) {
               return
             }
@@ -557,16 +592,41 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             // This can be undefined if there is no session loaded, e.g. on
             // the start screen
             // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-            if (!session) {
+            if (!session || !self.role) {
               return
             }
-            if (self.role) {
-              try {
-                await self.initialize(self.role)
-                reaction.dispose()
-              } catch {
-                // if initialize fails, do nothing so the autorun runs again
-              }
+            try {
+              self.install(self.role)
+            } catch {
+              // addSocketListeners threw before registering anything, so stay
+              // armed and install nothing until there is a token
+              return
+            }
+            reaction.dispose()
+          },
+          { name: 'ApolloInternetAccountInstall' },
+        )
+
+        autorun(
+          async (reaction) => {
+            if (inWebWorker) {
+              return
+            }
+            const { session } = getRoot<ApolloRootModel>(self)
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            if (!session || !self.role) {
+              return
+            }
+            if (self.role === 'none') {
+              // nothing to load for a user with no access
+              reaction.dispose()
+              return
+            }
+            try {
+              await self.loadInitialState()
+              reaction.dispose()
+            } catch {
+              // if it fails, do nothing so the autorun runs again
             }
           },
           { name: 'ApolloInternetAccount' },
