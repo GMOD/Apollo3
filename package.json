@@ -18,11 +18,11 @@
     "test": "yarn workspaces foreach --all run test:ci"
   },
   "resolutions": {
-    "@jbrowse/core": "file:./jbrowse-core-daf319ffb7.tgz",
-    "@jbrowse/plugin-authentication": "file:./jbrowse-plugin-authentication-daf319ffb7.tgz",
-    "@jbrowse/plugin-linear-genome-view": "file:./jbrowse-plugin-linear-genome-view-daf319ffb7.tgz",
-    "@jbrowse/product-core": "file:./jbrowse-product-core-daf319ffb7.tgz",
-    "@jbrowse/render-core": "file:./jbrowse-render-core-daf319ffb7.tgz",
+    "@jbrowse/core": "file:./jbrowse-core-d20c1bb006.tgz",
+    "@jbrowse/plugin-authentication": "file:./jbrowse-plugin-authentication-d20c1bb006.tgz",
+    "@jbrowse/plugin-linear-genome-view": "file:./jbrowse-plugin-linear-genome-view-d20c1bb006.tgz",
+    "@jbrowse/product-core": "file:./jbrowse-product-core-d20c1bb006.tgz",
+    "@jbrowse/render-core": "file:./jbrowse-render-core-d20c1bb006.tgz",
     "eslint-plugin-tsdoc/@typescript-eslint/utils": "^8.61.0"
   },
   "devDependencies": {

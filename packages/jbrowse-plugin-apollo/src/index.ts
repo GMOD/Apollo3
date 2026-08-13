@@ -258,9 +258,9 @@ export default class ApolloPlugin extends Plugin {
       })
     })
 
+    // @ts-expect-error Extendee type doesn't match for some reason
     pluginManager.addToExtensionPoint(
       'Core-extendSession',
-      // @ts-expect-error Not sure why types don't match here
       extendSession.bind(this, pluginManager),
     )
 
@@ -323,6 +323,7 @@ export default class ApolloPlugin extends Plugin {
       annotationFromJBrowseFeature,
     )
 
+    // @ts-expect-error Extendee type doesn't match for some reason
     pluginManager.addToExtensionPoint(
       'Core-preProcessTrackConfig',
       (snap: JBrowseTrackConfig): JBrowseTrackConfig => {
