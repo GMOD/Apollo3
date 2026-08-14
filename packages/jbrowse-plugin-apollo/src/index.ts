@@ -14,6 +14,7 @@ import Plugin from '@jbrowse/core/Plugin'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import {
+  type BaseInternetAccountModel,
   DisplayType,
   InternetAccountType,
   type PluggableElementType,
@@ -74,6 +75,9 @@ import {
 import { addTopLevelMenus } from './menus'
 import { type ApolloSessionModel, extendSession } from './session'
 import type { ApolloSearchResult } from './ApolloTextSearchAdapter/ApolloTextSearchAdapter'
+import { autorun } from 'mobx'
+import { isApolloInternetAccount } from './types'
+import { addTopLevelAdminMenus } from './menus/topLevelMenuAdmin'
 
 interface RpcHandle {
   client: {
@@ -446,7 +450,8 @@ export default class ApolloPlugin extends Plugin {
   }
 
   configure(pluginManager: PluginManager) {
-    if (isAbstractMenuManager(pluginManager.rootModel)) {
+    const { rootModel } = pluginManager
+    if (isAbstractMenuManager(rootModel)) {
       pluginManager.jexl.addFunction(
         'geneBackgroundColor',
         (featureType: string) => {
@@ -459,7 +464,19 @@ export default class ApolloPlugin extends Plugin {
           return
         },
       )
-      addTopLevelMenus(pluginManager.rootModel)
+      addTopLevelMenus(rootModel)
+      autorun((reaction) => {
+        const { internetAccounts } = rootModel as unknown as {
+          internetAccounts: BaseInternetAccountModel[]
+        }
+        const hasAdminAccount = internetAccounts
+          .filter((ia) => isApolloInternetAccount(ia))
+          .some((internetAccount) => internetAccount.role === 'admin')
+        if (hasAdminAccount) {
+          reaction.dispose()
+          addTopLevelAdminMenus(rootModel)
+        }
+      })
     }
   }
 }
