@@ -6,11 +6,12 @@ the Apollo collaboration server. This is what a client-side plugin (a menu item
 that opens a dialog, say) would call to talk to the server-side half of the same
 plugin.
 
-## Extension point
+## Hook
 
-The name of the extension point to target for this is `Apollo-RegisterRoutes`.
-You will need to call `pluginManager.addToExtensionPoint` in the `apolloInstall`
-method of your plugin. Here is an example of using the extension point:
+The name of the hook to target for this is `Apollo-RegisterRoutes`. You will
+need to call `registrar.registerHook` in the `install` method of your server
+plugin (see the [developer guide overview](index.md#server-side-plugins) for the
+full plugin shape). Here is an example of using the hook:
 
 ```ts
 import {
@@ -18,7 +19,7 @@ import {
   type PluginRouteProps,
 } from '@apollo-annotation/common'
 
-pluginManager.addToExtensionPoint(
+registrar.registerHook(
   'Apollo-RegisterRoutes',
   (routes: PluginRoute[], { connection }: PluginRouteProps): PluginRoute[] => {
     routes.push({
@@ -37,11 +38,11 @@ pluginManager.addToExtensionPoint(
 )
 ```
 
-Unlike most extension points, this one is not handed an existing value to
-extend: it starts as an empty array, and whatever your callback returns becomes
-the full list of plugin routes served by the collaboration server. If more than
-one plugin registers this extension point, push onto the array you're given
-rather than returning a new one, so every plugin's routes survive.
+Unlike most hooks, this one is not handed an existing value to extend: it starts
+as an empty array, and whatever your callback returns becomes the full list of
+plugin routes served by the collaboration server. If more than one plugin
+registers this hook, push onto the array you're given rather than returning a
+new one, so every plugin's routes survive.
 
 - `method` is an HTTP method such as `'GET'` or `'POST'`.
 - `path` is matched against the request path with the `/plugin-routes` prefix
@@ -54,8 +55,8 @@ rather than returning a new one, so every plugin's routes survive.
   response with `res.json(...)`/`res.status(...)` as usual.
 
 The callback's second argument carries the same `connection` prop the
-`Apollo-MongoDB` extension point provides, so a plugin's routes can read and
-write their own collection directly.
+`Apollo-MongoDB` hook provides, so a plugin's routes can read and write their
+own collection directly.
 
 ## Behavior
 
@@ -68,4 +69,7 @@ write their own collection directly.
 - If your handler throws, Apollo logs the error and responds with a 500 (unless
   your handler already sent a response).
 - Routes are collected once, at server startup, from every loaded plugin — there
-  is no way to add or remove a route without restarting the server.
+  is no way to add or remove a route without restarting the server. If your
+  registration callback itself throws while routes are being collected, server
+  startup fails with your plugin named in the log, rather than silently
+  registering no routes.

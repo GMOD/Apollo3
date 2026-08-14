@@ -23,7 +23,7 @@ export interface AssemblyAccessProps {
  *
  * @example
  * ```ts
- * pluginManager.addToExtensionPoint(
+ * registrar.registerHook(
  *   'Apollo-AssemblyAccess',
  *   (_extendee, { connection }: AssemblyAccessProps) =>
  *     new Map([
