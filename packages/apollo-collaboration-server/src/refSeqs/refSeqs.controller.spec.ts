@@ -9,7 +9,7 @@ describe('RefSeqsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RefSeqsController],
-      providers: [RefSeqsService],
+      providers: [{ provide: RefSeqsService, useValue: {} }],
     }).compile()
 
     controller = module.get<RefSeqsController>(RefSeqsController)

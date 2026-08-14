@@ -8,7 +8,13 @@ import {
   RefSeq,
   type RefSeqDocument,
 } from '@apollo-annotation/schemas'
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import {
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import StreamConcat from 'stream-concat'
@@ -26,7 +32,8 @@ import { CheckFeatureStream, DocToJSONArrayStream } from './transforms.js'
 @Injectable()
 export class FeaturesService {
   constructor(
-    private readonly checksService: ChecksService,
+    @Inject(forwardRef(() => ChecksService))
+    private readonly checksService: Readonly<ChecksService>,
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
     @InjectModel(RefSeq.name)

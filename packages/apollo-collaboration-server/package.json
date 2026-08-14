@@ -14,29 +14,12 @@
     "start:nest": "NODE_ENV=development nest start",
     "start:no-watch": "yarn build:shared && yarn start:nest",
     "start:prod": "NODE_ENV=production node dist/main.js",
-    "test": "jest",
+    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest",
     "test:cli:start": "ALLOW_ROOT_USER=true ROOT_USER_PASSWORD=pass MONGODB_URI=\"mongodb://localhost:27017/apolloTestCliDb?directConnection=true\" LOG_LEVELS=error,warn yarn start",
-    "test:cov": "jest --coverage",
+    "test:ci": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "test:watch": "jest --watch"
-  },
-  "jest": {
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testEnvironment": "node",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    }
+    "test:watch": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --watch"
   },
   "dependencies": {
     "@apollo-annotation/common": "workspace:^",
@@ -94,6 +77,7 @@
   },
   "devDependencies": {
     "@apollo-annotation/mst": "workspace:^",
+    "@jest/globals": "^29.0.3",
     "@nestjs/cli": "^10.1.10",
     "@nestjs/schematics": "^10.0.1",
     "@nestjs/testing": "^10.1.0",
@@ -110,6 +94,7 @@
     "@types/stream-concat": "^2.0.0",
     "@types/supertest": "^2.0.11",
     "jest": "^29.6.2",
+    "jest-util": "^30.2.0",
     "mongodb": "^4.7.0",
     "rimraf": "^3.0.2",
     "serve": "^14.0.1",
