@@ -1,6 +1,7 @@
 import { Test, type TestingModule } from '@nestjs/testing'
 
 import { JBrowseController } from './jbrowse.controller.js'
+import { JBrowseService } from './jbrowse.service.js'
 
 describe('JBrowseController', () => {
   let controller: JBrowseController
@@ -8,6 +9,7 @@ describe('JBrowseController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [JBrowseController],
+      providers: [{ provide: JBrowseService, useValue: {} }],
     }).compile()
 
     controller = module.get<JBrowseController>(JBrowseController)
