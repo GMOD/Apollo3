@@ -19,7 +19,6 @@ import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
 import {
   type AbstractSessionModel,
   type UriLocation,
-  isAbstractMenuManager,
   isElectron,
 } from '@jbrowse/core/util'
 import {
@@ -32,7 +31,6 @@ import {
 import { autorun } from 'mobx'
 import { io } from 'socket.io-client'
 
-import { addTopLevelAdminMenus } from '../menus/topLevelMenuAdmin'
 import type { Collaborator } from '../session'
 import type { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
@@ -513,14 +511,12 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         /**
          * The half of startup that must happen exactly once. None of it is a
          * request, so nothing here is worth retrying — and all of it registers
-         * something that has no idea it has been registered before. A menu
-         * contribution is appended to a log the root model replays on every
-         * open, and each socket handler is a fresh arrow function socket.io
-         * cannot recognize as a repeat, so a second run means a second "Admin"
-         * submenu and every COMMON message submitted to the change manager
-         * twice. (The two addEventListener calls are the exception, and only by
-         * luck: the handler references are stable, so the browser de-duplicates
-         * them for us.)
+         * something that has no idea it has been registered before. Each socket
+         * handler is a fresh arrow function socket.io cannot recognize as a
+         * repeat, so a second run means every COMMON message submitted to the
+         * change manager twice. (The two addEventListener calls are the
+         * exception, and only by luck: the handler references are stable, so
+         * the browser de-duplicates them for us.)
          *
          * `addSocketListeners()` goes first because it is the only step that
          * can throw — 'No Token found', before it has registered anything — so
@@ -538,10 +534,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             return
           }
           self.addSocketListeners()
-          const rootModel = getRoot(self)
-          if (role === 'admin' && isAbstractMenuManager(rootModel)) {
-            addTopLevelAdminMenus(rootModel)
-          }
           window.addEventListener('beforeunload', beforeUnloadListener)
           document.addEventListener(
             'visibilitychange',
@@ -557,6 +549,9 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           // Get and set server last change sequence into session storage
           yield self.updateLastChangeSequenceNumber()
           // request user locations
+          if (!isAlive(self)) {
+            return
+          }
           const { baseURL } = self
           const uri = new URL('users/locations', baseURL).href
           const apolloFetch = self.getFetcher({
