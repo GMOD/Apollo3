@@ -105,11 +105,28 @@ MICROSOFT_CLIENT_SECRET=client_secret_here
 # Possible values are admin, readOnly and user; defaults to readonly
 # GUEST_USER_ROLE=readOnly
 
-# Comma-separated list of Apollo plugins to use
-# PLUGIN_URLS=https://example.com/apollo-plugin-example.umd.production.min.js
+# Comma-separated list of npm package specifiers to load as server plugins.
+# Recommended if you control your own server image/build.
+# PLUGIN_PACKAGES=my-apollo-server-plugin
+
+# Comma-separated list of URLs to fetch server plugin bundles from at startup,
+# with no rebuild required. Bundles must be a Node-targeted ESM/CJS build, not
+# a browser/UMD bundle (server-side Apollo plugins have their own, Node-only
+# plugin system - see the developer guide). Fetched bundles are cached by
+# content hash under PLUGIN_CACHE_DIR (an OS cache dir by default).
+# PLUGIN_URLS=https://example.com/my-apollo-server-plugin.mjs
 # Alternatively, can be a path to a file with a list of plugin URLs, one URL per
 # line
 # PLUGIN_URLS_FILE=/data/plugin-urls
+
+# Optional comma-separated list of url=sha256hash pairs, checked against the
+# corresponding PLUGIN_URLS entry before it is loaded. If cached, a URL with a
+# configured hash skips the network fetch entirely on restart.
+# PLUGIN_INTEGRITY=https://example.com/my-apollo-server-plugin.mjs=3f2504e...
+
+# Directory used to cache fetched PLUGIN_URLS bundles by content hash.
+# Defaults to an OS-appropriate temp/cache directory.
+# PLUGIN_CACHE_DIR=/data/plugin-cache
 
 # HTTP/HTTPS proxy for OAuth requests, if your server is behind a proxy
 # OAUTH_HTTP_PROXY=http://proxy.example.com:8080

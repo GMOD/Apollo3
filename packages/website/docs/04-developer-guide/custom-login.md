@@ -7,15 +7,15 @@ to log in as well.
 As an example, see this plugin that adds the ability to log in to Apollo with
 ORCID credentials: https://github.com/GMOD/jbrowse-plugin-apollo-orcid-login
 
-## Extension point
+## Hook
 
-The name of the extension point to target for this is
-`Apollo-RegisterCustomAuth`. You will need to call
-`pluginManager.addToExtensionPoint` in the `apolloInstall` method of your
-plugin. Here is an example of using the extension point:
+The name of the hook to target for this is `Apollo-RegisterCustomAuth`. You will
+need to call `registrar.registerHook` in the `install` method of your server
+plugin (see the [developer guide overview](index.md#server-side-plugins) for the
+full plugin shape). Here is an example of using the hook:
 
 ```ts
-pluginManager.addToExtensionPoint(
+registrar.registerHook(
   'Apollo-RegisterCustomAuth',
   (
     customAuths: Map<
