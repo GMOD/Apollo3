@@ -255,6 +255,25 @@ export class JBrowseService {
     if (!storedConfig) {
       return generatedConfig
     }
-    return merge(generatedConfig, storedConfig)
+    return merge(generatedConfig, storedConfig, {
+      arrayMerge: (target, source) => {
+        if (hasApolloPlugin(source)) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment
+          return [...source, ...target]
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment
+        return [...target, ...source]
+      },
+    })
   }
+}
+
+function hasApolloPlugin(arr: unknown[]) {
+  return arr.some(
+    (item) => isObject(item) && 'name' in item && item.name === 'Apollo',
+  )
+}
+
+function isObject(val: unknown): val is Record<string, unknown> {
+  return val != null && typeof val === 'object' && !Array.isArray(val)
 }
