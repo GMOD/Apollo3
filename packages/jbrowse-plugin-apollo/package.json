@@ -70,7 +70,7 @@
     "@babel/preset-env": "^7.28.6",
     "@jbrowse/cli": "^4.3.0",
     "@jbrowse/core": "^4.3.0",
-    "@jbrowse/mobx-state-tree": "^6.2.0",
+    "@jbrowse/mobx-state-tree": "^6.3.0",
     "@jest/globals": "^29.0.3",
     "@mui/material": "^9.3.1",
     "@mui/system": "^9.3.0",
@@ -131,7 +131,7 @@
   },
   "peerDependencies": {
     "@jbrowse/core": "^4.3.0",
-    "@jbrowse/mobx-state-tree": "^6.2.0",
+    "@jbrowse/mobx-state-tree": "^6.3.0",
     "@mui/material": "^9.3.1",
     "mobx": "^7.0.0",
     "mobx-react": "^9.0.0",
