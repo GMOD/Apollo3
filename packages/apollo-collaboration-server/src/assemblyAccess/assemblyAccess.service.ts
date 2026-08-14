@@ -93,15 +93,20 @@ export class AssemblyAccessService {
   private async getAccessMap(): Promise<
     Map<string, AssemblyGrant> | undefined
   > {
-    const evaluated = await this.pluginsService.evaluateExtensionPoint<
-      AssemblyAccess | Promise<AssemblyAccess> | undefined
-    >(ASSEMBLY_ACCESS_EXTENSION_POINT, undefined, {
-      connection: this.connection,
-    } satisfies AssemblyAccessProps)
+    let evaluated: AssemblyAccess | undefined
+    try {
+      evaluated = await this.pluginsService.evaluateSecurityHook<
+        AssemblyAccess | undefined
+      >(ASSEMBLY_ACCESS_EXTENSION_POINT, undefined, {
+        connection: this.connection,
+      } satisfies AssemblyAccessProps)
+    } catch {
+      // A thrown error must never be treated the same as "no plugin
+      // registered", which would grant everyone access to everything - deny
+      // all instead. PluginsService already logged which plugin threw.
+      return new Map()
+    }
     if (!evaluated) {
-      // evaluateExtensionPoint swallows callback errors and leaves the
-      // accumulator alone, so a plugin that throws looks exactly like no plugin
-      // at all. That would silently grant everyone everything, so say so.
       if (this.hasAccessPlugin()) {
         this.logger.warn(
           `A plugin registers "${ASSEMBLY_ACCESS_EXTENSION_POINT}" but it evaluated to undefined, so all users have access to all assemblies. If that is not intended, check the logs above for an error thrown by the plugin.`,
@@ -126,10 +131,7 @@ export class AssemblyAccessService {
   }
 
   private hasAccessPlugin() {
-    const callbacks = this.pluginsService.extensionPoints.get(
-      ASSEMBLY_ACCESS_EXTENSION_POINT,
-    )
-    return callbacks !== undefined && callbacks.length > 0
+    return this.pluginsService.hasHook(ASSEMBLY_ACCESS_EXTENSION_POINT)
   }
 
   /**

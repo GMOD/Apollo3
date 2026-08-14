@@ -114,6 +114,9 @@ const validationSchema = Joi.object({
     })
     .default(''),
   PLUGIN_URLS_FILE: Joi.string(),
+  // Comma-separated list of npm package specifiers to load as server plugins,
+  // in addition to (not instead of) PLUGIN_URLS/PLUGIN_URLS_FILE
+  PLUGIN_PACKAGES: Joi.string(),
   OAUTH_HTTP_PROXY: Joi.string(),
 })
   .xor('MONGODB_URI', 'MONGODB_URI_FILE')

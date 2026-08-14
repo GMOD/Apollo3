@@ -2,6 +2,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import fs from 'node:fs/promises'
 
+import type {
+  AuthHandlerRedirect,
+  AuthHandlerUser,
+} from '@apollo-annotation/common'
 import type { JWTPayload } from '@apollo-annotation/shared'
 import {
   BadRequestException,
@@ -41,24 +45,6 @@ interface ConfigValues {
 
 const ROOT_USER_NAME = 'root'
 
-export interface AuthHandlerRedirect {
-  url: string
-}
-
-export interface AuthHandlerUser {
-  name: string
-  email: string
-}
-
-export interface CustomAuthHandler {
-  message: string
-  needsPopup: boolean
-  handler: (
-    request: Request,
-    redirectUri?: string,
-  ) => Promise<AuthHandlerRedirect | AuthHandlerUser>
-}
-
 @Injectable()
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name)
@@ -90,11 +76,7 @@ export class AuthenticationService {
   }
 
   async getLoginTypes() {
-    const defaultAuthTypes = new Map<string, CustomAuthHandler>()
-    const customAuthTypes = this.pluginsService.evaluateExtensionPoint(
-      'Apollo-RegisterCustomAuth',
-      defaultAuthTypes,
-    )
+    const customAuthTypes = this.pluginsService.getCustomAuthHandlers()
     const loginTypes: { name: string; needsPopup: boolean; message: string }[] =
       []
     for (const [name, { needsPopup, message }] of customAuthTypes) {
@@ -196,11 +178,7 @@ export class AuthenticationService {
     redirectUri?: string,
     state?: string,
   ) {
-    const defaultAuthTypes = new Map<string, CustomAuthHandler>()
-    const customAuthTypes = this.pluginsService.evaluateExtensionPoint(
-      'Apollo-RegisterCustomAuth',
-      defaultAuthTypes,
-    )
+    const customAuthTypes = this.pluginsService.getCustomAuthHandlers()
     const customAuth = customAuthTypes.get(id)
     if (!customAuth) {
       throw new UnauthorizedException('Unknown authentication type')

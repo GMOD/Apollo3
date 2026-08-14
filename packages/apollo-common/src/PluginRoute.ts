@@ -19,7 +19,7 @@ export interface PluginRouteProps {
  *
  * @example
  * ```ts
- * pluginManager.addToExtensionPoint(
+ * registrar.registerHook(
  *   'Apollo-RegisterRoutes',
  *   (routes: PluginRoute[], { connection }: PluginRouteProps) => {
  *     routes.push({
