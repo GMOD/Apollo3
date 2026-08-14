@@ -1,9 +1,11 @@
 import { Assembly, type AssemblyDocument } from '@apollo-annotation/schemas'
 import {
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
   UnprocessableEntityException,
+  forwardRef,
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
@@ -20,8 +22,10 @@ export class AssembliesService {
   constructor(
     @InjectModel(Assembly.name)
     private readonly assemblyModel: Model<AssemblyDocument>,
-    private readonly checksService: ChecksService,
-    private readonly featuresService: FeaturesService,
+    @Inject(forwardRef(() => ChecksService))
+    private readonly checksService: Readonly<ChecksService>,
+    @Inject(forwardRef(() => FeaturesService))
+    private readonly featuresService: Readonly<FeaturesService>,
     private readonly refSeqsService: RefSeqsService,
   ) {}
 
