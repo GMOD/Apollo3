@@ -69,7 +69,6 @@
     "react-dom": "^19.1.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.4.0",
-    "sanitize-filename": "^1.6.3",
     "socket.io": "^4.5.3",
     "stream-concat": "^1.0.0",
     "tslib": "^2.3.1",
