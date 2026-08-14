@@ -5,20 +5,11 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import commonjs from '@rollup/plugin-commonjs'
-import json from '@rollup/plugin-json'
-import resolve, {
-  DEFAULTS as RESOLVE_DEFAULTS,
-} from '@rollup/plugin-node-resolve'
-import typescript from '@rollup/plugin-typescript'
+import nodePolyfills from '@rolldown/plugin-node-polyfills'
 import nodeBuiltins from 'builtin-modules'
-import { defineConfig } from 'rollup'
+import { defineConfig } from 'rolldown'
 import externalGlobals from 'rollup-plugin-external-globals'
-import nodePolyfills from 'rollup-plugin-polyfill-node'
-import terser from '@rollup/plugin-terser'
-import sourceMaps from 'rollup-plugin-sourcemaps2'
 
-import { babelPluginJBrowse } from './babelPluginJBrowse.mjs'
 import {
   external,
   omitUnresolved,
@@ -38,6 +29,10 @@ const srcPath = path.join(appPath, 'src')
 
 const nodeEnv = process.env.NODE_ENV ?? 'production'
 
+const resolve = {
+  mainFields: ['module', 'main', 'browser'],
+}
+
 function createGlobalMap(jbrowseGlobals, dotSyntax = false) {
   const globalMap = {}
   for (const global of jbrowseGlobals) {
@@ -48,58 +43,20 @@ function createGlobalMap(jbrowseGlobals, dotSyntax = false) {
   return globalMap
 }
 
-let tsDeclarationGenerated = false
-
 function getPlugins(mode, jbrowseGlobals) {
-  const plugins = [
-    resolve({
-      mainFields: ['module', 'main', 'browser'],
-      extensions: [...RESOLVE_DEFAULTS.extensions, '.jsx'],
-      preferBuiltins: false,
-    }),
-    // all bundled external modules need to be converted from CJS to ESM
-    commonjs(),
-    json(),
-    typescript({
-      exclude: [
-        // all TS test files, regardless whether co-located or in test/ etc
-        '**/*.{spec,test}.ts{x,}',
-      ],
-      // moduleResolution: 'node',
-      // tsconfig: './tsconfig.json',
-      outDir: distPath,
-      // target: 'esnext',
-      ...(tsDeclarationGenerated
-        ? { declarationDir: distPath }
-        : { declaration: false, declarationMap: false }),
-    }),
-    (mode === 'cjs' || mode === 'esmBundle') &&
+  return [
+    (mode === 'cjs' || mode === 'esmBundle' || mode === 'umd') &&
       externalGlobals(createGlobalMap(jbrowseGlobals)),
-    babelPluginJBrowse({
-      exclude: ['node_modules/**', '__virtual__/**'],
-      custom: {
-        extractErrors: false,
-        format: mode === 'esmBundle' || mode === 'npm' ? 'esm' : mode,
-      },
-      babelHelpers: 'bundled',
-    }),
-    mode === 'npm' && sourceMaps(),
-    mode === 'npm' && writeIndex(packageName, distPath),
     (mode === 'esmBundle' || mode === 'umd') &&
       // By default, nodePolyfills only polyfills code in node_modules/. We set
-      // to null here to include the plugin source code itself (and for Yarn 2/3
-      // compatibility, since it doesn't use node_modules/).
+      // include to null here to include the plugin source code itself (and for
+      // Yarn 2/3 compatibility, since it doesn't use node_modules/).
       nodePolyfills({ include: null }),
     (mode === 'cjs' || mode === 'esmBundle') && omitUnresolved(),
   ].filter(Boolean)
-
-  if (!tsDeclarationGenerated) {
-    tsDeclarationGenerated = true
-  }
-  return plugins
 }
 
-export function createRollupConfig(jbrowseGlobals, options) {
+export function createRolldownConfig(jbrowseGlobals, options) {
   const includeUMD =
     options?.includeUMD === true || options?.includeUMD === undefined
   const includeCJS = options?.includeCJS === true
@@ -111,40 +68,34 @@ export function createRollupConfig(jbrowseGlobals, options) {
     defineConfig({
       input: path.join(srcPath, 'index.ts'),
       external,
+      resolve,
       treeshake: { propertyReadSideEffects: false },
-      plugins: getPlugins('npm', jbrowseGlobals),
+      plugins: [writeIndex(packageName, distPath)],
       output: [
         {
           file: path.join(distPath, 'index.esm.js'),
           format: 'esm',
-          freeze: false,
           esModule: true,
           sourcemap: true,
           exports: 'named',
+          codeSplitting: false,
         },
         {
           file: path.join(distPath, `${packageName}.cjs.development.js`),
           format: 'cjs',
-          freeze: false,
           esModule: true,
           sourcemap: true,
           exports: 'named',
+          codeSplitting: false,
         },
         nodeEnv === 'production' && {
           file: path.join(distPath, `${packageName}.cjs.production.min.js`),
           format: 'cjs',
-          freeze: false,
           esModule: true,
           sourcemap: true,
           exports: 'named',
-          plugins: [
-            terser({
-              output: { comments: false },
-              compress: { keep_infinity: true, pure_getters: true, passes: 10 },
-              ecma: 5,
-              toplevel: true,
-            }),
-          ],
+          minify: true,
+          codeSplitting: false,
         },
       ].filter(Boolean),
     })
@@ -159,6 +110,7 @@ export function createRollupConfig(jbrowseGlobals, options) {
         }
         return isExternal
       },
+      resolve,
       treeshake: { propertyReadSideEffects: false },
       plugins: getPlugins('umd', jbrowseGlobals),
       output: [
@@ -166,31 +118,22 @@ export function createRollupConfig(jbrowseGlobals, options) {
           file: path.join(distPath, `${packageName}.umd.development.js`),
           format: 'umd',
           name: umdName,
-          freeze: false,
           esModule: true,
           sourcemap: true,
           exports: 'named',
-          inlineDynamicImports: true,
+          codeSplitting: false,
           globals: createGlobalMap(jbrowseGlobals, true),
         },
         nodeEnv === 'production' && {
           file: path.join(distPath, `${packageName}.umd.production.min.js`),
           format: 'umd',
           name: umdName,
-          freeze: false,
           esModule: true,
           sourcemap: true,
           exports: 'named',
-          inlineDynamicImports: true,
+          codeSplitting: false,
           globals: createGlobalMap(jbrowseGlobals, true),
-          plugins: [
-            terser({
-              output: { comments: false },
-              compress: { keep_infinity: true, pure_getters: true, passes: 10 },
-              ecma: 5,
-              toplevel: true,
-            }),
-          ],
+          minify: true,
         },
       ].filter(Boolean),
       watch: { clearScreen: false },
@@ -206,17 +149,17 @@ export function createRollupConfig(jbrowseGlobals, options) {
         }
         return isExternal
       },
+      resolve,
       treeshake: { propertyReadSideEffects: false, moduleSideEffects: false },
       plugins: getPlugins('esmBundle', jbrowseGlobals),
       output: [
         {
           file: path.join(distPath, `${packageName}.esm.js`),
           format: 'esm',
-          freeze: false,
           esModule: true,
           sourcemap: true,
           exports: 'named',
-          inlineDynamicImports: true,
+          codeSplitting: false,
         },
       ],
       watch: { clearScreen: false },
@@ -235,17 +178,17 @@ export function createRollupConfig(jbrowseGlobals, options) {
         }
         return isExternal
       },
+      resolve,
       treeshake: { propertyReadSideEffects: false, moduleSideEffects: false },
       plugins: getPlugins('cjs', jbrowseGlobals),
       output: [
         {
           file: path.join(distPath, `${packageName}.cjs.js`),
           format: 'cjs',
-          freeze: false,
           esModule: true,
           sourcemap: true,
           exports: 'named',
-          inlineDynamicImports: true,
+          codeSplitting: false,
         },
       ],
       watch: { clearScreen: false },
