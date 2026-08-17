@@ -20,6 +20,7 @@ export default [
       '**/build/',
       '**/coverage/',
       '**/dist/',
+      '**/__fixtures__/',
       'packages/website/.docusaurus/',
       'packages/jbrowse-plugin-apollo/.jbrowse/',
     ],

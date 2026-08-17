@@ -55,9 +55,9 @@ describe('AssemblyAccessService', () => {
   })
 
   it('warns when a plugin is registered but evaluates to undefined', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     const warn = jest
       .spyOn(Logger.prototype, 'warn')
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
       .mockImplementation(() => {})
     const service = await createService({
       hasHook: () => true,
