@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { changeRegistry, checkRegistry } from '@apollo-annotation/common'
 import {
   CDSCheck,
@@ -333,22 +332,17 @@ export default class ApolloPlugin extends Plugin {
       },
     )
 
-    pluginManager.addToExtensionPoint(
+    pluginManager.listenToExtensionPoint(
       'LinearGenomeView-searchResultSelected',
-      (_: any, props: Record<string, unknown>) => {
-        const { session, result } = props as {
-          session: ApolloSessionModel
-          result: ApolloSearchResult
-        }
+      ({ result, session }) => {
         const trackId = result.getTrackId()
-        const { matchedFeature } = result
+        const { matchedFeature } = result as ApolloSearchResult
 
         if (trackId?.startsWith('apollo_track_')) {
-          void session.apolloSetEventualSelectedFeature(matchedFeature._id)
+          void (
+            session as unknown as ApolloSessionModel
+          ).apolloSetEventualSelectedFeature(matchedFeature._id)
         }
-
-        /* eslint-disable-next-line @typescript-eslint/no-unsafe-return */
-        return _
       },
     )
 
