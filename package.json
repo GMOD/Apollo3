@@ -51,11 +51,11 @@
   },
   "packageManager": "yarn@4.18.0",
   "resolutions": {
-    "@jbrowse/core": "file:./jbrowse-core-514f47ce93.tgz",
-    "@jbrowse/display-ui": "file:./jbrowse-display-ui-514f47ce93.tgz",
-    "@jbrowse/plugin-authentication": "file:./jbrowse-plugin-authentication-514f47ce93.tgz",
-    "@jbrowse/plugin-linear-genome-view": "file:./jbrowse-plugin-linear-genome-view-514f47ce93.tgz",
-    "@jbrowse/product-core": "file:./jbrowse-product-core-514f47ce93.tgz",
-    "@jbrowse/render-core": "file:./jbrowse-render-core-514f47ce93.tgz"
+    "@jbrowse/core": "file:./jbrowse-core-194a39fc54.tgz",
+    "@jbrowse/display-ui": "file:./jbrowse-display-ui-194a39fc54.tgz",
+    "@jbrowse/plugin-authentication": "file:./jbrowse-plugin-authentication-194a39fc54.tgz",
+    "@jbrowse/plugin-linear-genome-view": "file:./jbrowse-plugin-linear-genome-view-194a39fc54.tgz",
+    "@jbrowse/product-core": "file:./jbrowse-product-core-194a39fc54.tgz",
+    "@jbrowse/render-core": "file:./jbrowse-render-core-194a39fc54.tgz"
   }
 }

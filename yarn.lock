@@ -8720,9 +8720,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/core@file:./jbrowse-core-514f47ce93.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/core@file:./jbrowse-core-194a39fc54.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/core@file:./jbrowse-core-514f47ce93.tgz#./jbrowse-core-514f47ce93.tgz::hash=24c510&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/core@file:./jbrowse-core-194a39fc54.tgz#./jbrowse-core-194a39fc54.tgz::hash=4fca15&locator=apollo3%40workspace%3A."
   dependencies:
     "@emotion/cache": "npm:^11.14.0"
     "@emotion/react": "npm:^11.14.0"
@@ -8755,13 +8755,13 @@ __metadata:
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/1815be033f3e50b4d364f7c34a5f3529dec4efa75fcb8825e2de335a91864263ee192fc6bca60f0e90c0d45d2869c18a0012b5c455cbfe0be1460125dcf59ac3
+  checksum: 10c0/660685890b120d7af95d84d369bac9c128012bbb05323ff11a9b38cbef03d966d5dd25db45cb63a9b8ccd851bc01370fa8911c901507caa922b256d0c0a20586
   languageName: node
   linkType: hard
 
-"@jbrowse/display-ui@file:./jbrowse-display-ui-514f47ce93.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/display-ui@file:./jbrowse-display-ui-194a39fc54.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/display-ui@file:./jbrowse-display-ui-514f47ce93.tgz#./jbrowse-display-ui-514f47ce93.tgz::hash=92b74e&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/display-ui@file:./jbrowse-display-ui-194a39fc54.tgz#./jbrowse-display-ui-194a39fc54.tgz::hash=3dc3f4&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/core": "npm:^4.3.0"
     "@jbrowse/mobx-state-tree": "npm:^6.3.0"
@@ -8769,7 +8769,7 @@ __metadata:
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/5af110554caf472c0618028b30ab893dae368396b9f1ee8469373eb0eb812645d7803c4f727efb18505374fff155dee395b356a23fa6d3343f546818bf0b36ce
+  checksum: 10c0/57d33332917627c0d37d87257b5e264098ba602b6f508c9875c031b76c16c88c525430a2f95aed4bade856dbf426f5e90ba4cb385779a2fb0270c7677fd0f3fb
   languageName: node
   linkType: hard
 
@@ -8789,9 +8789,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-514f47ce93.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-194a39fc54.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-514f47ce93.tgz#./jbrowse-plugin-linear-genome-view-514f47ce93.tgz::hash=169f9a&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-194a39fc54.tgz#./jbrowse-plugin-linear-genome-view-194a39fc54.tgz::hash=c1f3ae&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/core": "npm:^4.3.0"
     "@jbrowse/display-ui": "npm:^4.3.0"
@@ -8804,7 +8804,7 @@ __metadata:
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/8f91530b0052139a2cef5c6c6e2cbacea50a1fa85c5cc3840589f620957de674bf28bf78352d8d679cd9e97807fa9fecb9f5e9ffc7765ec9e5f4efc247b5590c
+  checksum: 10c0/ad573788363e965ebf0677ed0734ebbc05eb2645cda2b71a14a8f1f3f3696f098e97c7305816e3fcba390f7372d02cc51dc6ed4e3ddaac59bfc0f9b07cfdb670
   languageName: node
   linkType: hard
 
@@ -8815,15 +8815,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/render-core@file:./jbrowse-render-core-514f47ce93.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/render-core@file:./jbrowse-render-core-194a39fc54.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/render-core@file:./jbrowse-render-core-514f47ce93.tgz#./jbrowse-render-core-514f47ce93.tgz::hash=dfac2c&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/render-core@file:./jbrowse-render-core-194a39fc54.tgz#./jbrowse-render-core-194a39fc54.tgz::hash=b5cc40&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/mobx-state-tree": "npm:^6.3.0"
     mobx: "npm:^7.0.0"
   peerDependencies:
     react: ">=19.0.0"
-  checksum: 10c0/baaed9f311a4949ca6dd58485f0f1eb592ac3554b4478b119420d68a3062353a13d9cd9f734f27a8fb7e94a4d62d85890b34eba63c808aceee7d744e09df9fc8
+  checksum: 10c0/d70edb6351f95635ae3b7478a27ae8f09c77295168c86fb7bfdaff17e8907d76b83e92779e44220c639f8aab4e4eade4f7cd691aca24fc29ab293510746d08a2
   languageName: node
   linkType: hard
 
