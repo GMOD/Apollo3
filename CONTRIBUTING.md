@@ -20,13 +20,14 @@ http://localhost:3000/?config=http://localhost:3999/jbrowse/config.json
 If you use Visual Studio Code, you can leverage the _Dev Containers_ extension.
 You'll need `docker` to be installed.
 
-- Run `yarn` at the root of both repositories, this only needs to be ran once
-  after cloning (alternatively, run the `just setup` recipe, see below).
-- Run `yarn start` from `jbrowse-components/products/jbrowse-web`
-  (alternatively, run the `just run-jbrowse` recipe).
 - Open the Apollo3 project in Visual Studio Code.
 - Use the _Dev Containers: Reopen in Container_ command in VS Code
   (`Ctrl + Shift + P` to search for commands).
+- Build: Run `yarn` at the root of both repositories (`pnpm install` for
+  jbrowse-components), this only needs to be ran once after cloning
+  (alternatively, run the `just setup` recipe, see below).
+- Run FE: `pnpm start` from `jbrowse-components/products/jbrowse-web`
+  (alternatively, run the `just run-jbrowse` recipe).
 - Use the _Task: Run Task -> Start_ command in VS Code
 
 ## Directly on the development computer
