@@ -42,7 +42,7 @@
     "npm-run-all": "^4.1.5",
     "prettier": "^3.3.2",
     "prettier-plugin-packagejson": "^2.5.2",
-    "react": "^18.2.0",
+    "react": "^19.2.0",
     "semver": "^7.6.3",
     "tslib": "^2.3.1",
     "tsx": "^4.6.2",
@@ -52,10 +52,12 @@
   },
   "packageManager": "yarn@4.16.0",
   "resolutions": {
-    "@jbrowse/core": "file:./jbrowse-core-6c3280fc0b.tgz",
-    "@jbrowse/plugin-authentication": "file:./jbrowse-plugin-authentication-6c3280fc0b.tgz",
-    "@jbrowse/plugin-linear-genome-view": "file:./jbrowse-plugin-linear-genome-view-6c3280fc0b.tgz",
-    "@jbrowse/product-core": "file:./jbrowse-product-core-6c3280fc0b.tgz",
-    "@jbrowse/render-core": "file:./jbrowse-render-core-6c3280fc0b.tgz"
+    "@jbrowse/core": "file:./jbrowse-core-606e9762df.tgz",
+    "@jbrowse/plugin-authentication": "file:./jbrowse-plugin-authentication-606e9762df.tgz",
+    "@jbrowse/plugin-linear-genome-view": "file:./jbrowse-plugin-linear-genome-view-606e9762df.tgz",
+    "@jbrowse/product-core": "file:./jbrowse-product-core-606e9762df.tgz",
+    "@jbrowse/render-core": "file:./jbrowse-render-core-606e9762df.tgz",
+    "@jbrowse/display-ui": "file:./jbrowse-display-ui-606e9762df.tgz",
+    "@jbrowse/add-track-core": "file:./jbrowse-add-track-core-606e9762df.tgz"
   }
 }

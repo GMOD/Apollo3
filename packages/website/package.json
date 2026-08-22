@@ -19,8 +19,8 @@
     "@mdx-js/react": "^3.0.0",
     "clsx": "^1.1.1",
     "prism-react-renderer": "^2.3.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.10.1",
@@ -28,7 +28,7 @@
     "@docusaurus/tsconfig": "^3.10.1",
     "@docusaurus/types": "^3.10.1",
     "@types/node": "^24.10.9",
-    "@types/react": "^18.3.4",
+    "@types/react": "^19.2.0",
     "typescript": "^5.5.3"
   }
 }
