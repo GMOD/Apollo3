@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
-/* eslint-disable @typescript-eslint/no-misused-promises */
-
 import type { CheckResultI } from '@apollo-annotation/mst'
 import { Menu, type MenuItem } from '@jbrowse/core/ui'
 import {

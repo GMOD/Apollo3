@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
-/* eslint-disable @typescript-eslint/no-misused-promises */
 import { getContainingView } from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { Alert, Tooltip, useTheme } from '@mui/material'

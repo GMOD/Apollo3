@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
-/* eslint-disable @typescript-eslint/no-misused-promises */
-
 import { Menu, type MenuItem } from '@jbrowse/core/ui'
 import { getContainingView } from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
