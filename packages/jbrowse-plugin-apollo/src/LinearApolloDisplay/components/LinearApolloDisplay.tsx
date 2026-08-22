@@ -96,9 +96,10 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
         // https://github.com/mobxjs/mobx/issues/3728#issuecomment-1715400931
         <>
           <canvas
-            ref={async (node: HTMLCanvasElement) => {
-              await Promise.resolve()
-              setCollaboratorCanvas(node)
+            ref={(node) => {
+              void Promise.resolve().then(() => {
+                setCollaboratorCanvas(node)
+              })
             }}
             width={lgv.dynamicBlocks.totalWidthPx}
             height={featuresHeight}
@@ -106,9 +107,10 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             data-testid="collaboratorCanvas"
           />
           <canvas
-            ref={async (node: HTMLCanvasElement) => {
-              await Promise.resolve()
-              setCanvas(node)
+            ref={(node) => {
+              void Promise.resolve().then(() => {
+                setCanvas(node)
+              })
             }}
             width={lgv.dynamicBlocks.totalWidthPx}
             height={featuresHeight}
@@ -125,13 +127,6 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             }}
             onClose={() => {
               setContextMenuItems([])
-            }}
-            slotProps={{
-              transition: {
-                onExit: () => {
-                  setContextMenuItems([])
-                },
-              },
             }}
             anchorReference="anchorPosition"
             anchorPosition={

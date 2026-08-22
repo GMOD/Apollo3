@@ -34,11 +34,11 @@ interface LinearApolloSixFrameDisplayProps {
 export const LinearApolloSixFrameDisplay = observer(
   function LinearApolloSixFrameDisplay(
     props: LinearApolloSixFrameDisplayProps,
-    apolloDragging,
   ) {
     const theme = useTheme()
     const { model } = props
     const {
+      apolloDragging,
       apolloRowHeight,
       contextMenuItems: getContextMenuItems,
       cursor,
@@ -119,9 +119,10 @@ export const LinearApolloSixFrameDisplay = observer(
               />
               <TrackLines model={model} idx={2} />
               <canvas
-                ref={async (node: HTMLCanvasElement) => {
-                  await Promise.resolve()
-                  setCollaboratorCanvas(node)
+                ref={(node) => {
+                  void Promise.resolve().then(() => {
+                    setCollaboratorCanvas(node)
+                  })
                 }}
                 width={lgv.dynamicBlocks.totalWidthPx}
                 height={featuresHeight}
@@ -129,9 +130,10 @@ export const LinearApolloSixFrameDisplay = observer(
                 data-testid="collaboratorCanvas"
               />
               <canvas
-                ref={async (node: HTMLCanvasElement) => {
-                  await Promise.resolve()
-                  setCanvas(node)
+                ref={(node) => {
+                  void Promise.resolve().then(() => {
+                    setCanvas(node)
+                  })
                 }}
                 width={lgv.dynamicBlocks.totalWidthPx}
                 height={featuresHeight}
@@ -139,9 +141,10 @@ export const LinearApolloSixFrameDisplay = observer(
                 data-testid="canvas"
               />
               <canvas
-                ref={async (node: HTMLCanvasElement) => {
-                  await Promise.resolve()
-                  setOverlayCanvas(node)
+                ref={(node) => {
+                  void Promise.resolve().then(() => {
+                    setOverlayCanvas(node)
+                  })
                 }}
                 width={lgv.dynamicBlocks.totalWidthPx}
                 height={featuresHeight}
@@ -273,13 +276,6 @@ export const LinearApolloSixFrameDisplay = observer(
                 }}
                 onClose={() => {
                   setContextMenuItems([])
-                }}
-                slotProps={{
-                  transition: {
-                    onExit: () => {
-                      setContextMenuItems([])
-                    },
-                  },
                 }}
                 anchorReference="anchorPosition"
                 anchorPosition={

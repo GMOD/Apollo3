@@ -45,9 +45,10 @@ export const OverlayCanvas = observer(function OverlayCanvas(
   return (
     <>
       <canvas
-        ref={async (node: HTMLCanvasElement) => {
-          await Promise.resolve()
-          setOverlayCanvas(node)
+        ref={(node) => {
+          void Promise.resolve().then(() => {
+            setOverlayCanvas(node)
+          })
         }}
         width={lgv.dynamicBlocks.totalWidthPx}
         height={featuresHeight}

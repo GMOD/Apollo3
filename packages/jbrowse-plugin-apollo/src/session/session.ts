@@ -21,7 +21,6 @@ import type { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
 import {
   isElectron,
   type AbstractSessionModel,
-  type SessionWithAddTracks,
   type SessionWithDrawerWidgets,
 } from '@jbrowse/core/util'
 import {
@@ -48,6 +47,18 @@ import {
   clientDataStoreFactory,
 } from './ClientDataStore'
 import { handleApolloFeaturesUrlParam } from './handleApolloFeaturesUrlParam'
+
+// The root config model's own action, not the session's: Apollo publishes its
+// track to the config it round-trips to the collaboration server, where every
+// visitor of that assembly gets it. `AbstractRootModel.jbrowse` is untyped, so
+// this names the one member used off it.
+interface JBrowseConfigWithTracks {
+  addTrackConf(conf: {
+    trackId: string
+    type: string
+    [key: string]: unknown
+  }): unknown
+}
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreModel
@@ -127,9 +138,7 @@ export function extendSession(
         )
         if (!hasTrack) {
           ;(
-            getRoot<ApolloRootModel>(self).jbrowse as {
-              addTrackConf: SessionWithAddTracks['addTrackConf']
-            }
+            getRoot<ApolloRootModel>(self).jbrowse as JBrowseConfigWithTracks
           ).addTrackConf({
             type: 'ApolloTrack',
             trackId,

@@ -60,9 +60,10 @@ export const LinearApolloReferenceSequenceDisplay = observer(
             }}
           >
             <canvas
-              ref={async (node: HTMLCanvasElement) => {
-                await Promise.resolve()
-                setSeqTrackCanvas(node)
+              ref={(node) => {
+                void Promise.resolve().then(() => {
+                  setSeqTrackCanvas(node)
+                })
               }}
               width={lgv.dynamicBlocks.totalWidthPx}
               height={height}
@@ -70,9 +71,10 @@ export const LinearApolloReferenceSequenceDisplay = observer(
               data-testid="seqTrackCanvas"
             />
             <canvas
-              ref={async (node: HTMLCanvasElement) => {
-                await Promise.resolve()
-                setSeqTrackOverlayCanvas(node)
+              ref={(node) => {
+                void Promise.resolve().then(() => {
+                  setSeqTrackOverlayCanvas(node)
+                })
               }}
               width={lgv.dynamicBlocks.totalWidthPx}
               height={height}

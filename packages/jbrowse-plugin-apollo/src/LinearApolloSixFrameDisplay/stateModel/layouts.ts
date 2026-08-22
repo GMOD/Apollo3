@@ -54,17 +54,13 @@ export function layoutsModelFactory(
             ) {
               continue
             }
-            if (min === undefined) {
-              ;({ min } = feature)
+            const featureMin: number = feature.min
+            const featureMax: number = feature.max
+            if (min === undefined || feature.minWithChildren < min) {
+              min = featureMin
             }
-            if (max === undefined) {
-              ;({ max } = feature)
-            }
-            if (feature.minWithChildren < min) {
-              ;({ min } = feature)
-            }
-            if (feature.maxWithChildren > max) {
-              ;({ max } = feature)
+            if (max === undefined || feature.maxWithChildren > max) {
+              max = featureMax
             }
           }
           if (min !== undefined && max !== undefined) {

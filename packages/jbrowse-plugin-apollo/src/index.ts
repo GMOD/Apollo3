@@ -17,6 +17,7 @@ import {
   DisplayType,
   InternetAccountType,
   type PluggableElementType,
+  type TrackConfigSnapshot,
   TrackType,
   type ViewType,
   WidgetType,
@@ -89,12 +90,6 @@ interface ApolloMessageData {
   region: Region
   sequence: string
   assembly: string
-}
-
-interface JBrowseTrackConfig {
-  trackId: string
-  type: string
-  displays?: { type: string; displayId: string }[]
 }
 
 function isApolloMessageData(data?: unknown): data is ApolloMessageData {
@@ -297,9 +292,13 @@ export default class ApolloPlugin extends Plugin {
 
     pluginManager.addToExtensionPoint(
       'Core-preProcessTrackConfig',
-      (snap: JBrowseTrackConfig): JBrowseTrackConfig => {
+      (snap: TrackConfigSnapshot): TrackConfigSnapshot => {
         if (snap.type !== 'ReferenceSequenceTrack') {
           return snap
+        }
+        const apolloDisplay = {
+          type: 'LinearApolloReferenceSequenceDisplay',
+          displayId: `${String(snap.trackId)}-LinearApolloReferenceSequenceDisplay`,
         }
         const displays = snap.displays ?? []
         const apolloDisplayIdx = displays.findIndex(
@@ -311,20 +310,11 @@ export default class ApolloPlugin extends Plugin {
         if (apolloDisplayIdx === -1) {
           return {
             ...snap,
-            displays: [
-              {
-                type: 'LinearApolloReferenceSequenceDisplay',
-                displayId: `${snap.trackId}-LinearApolloReferenceSequenceDisplay`,
-              },
-              ...displays,
-            ],
+            displays: [apolloDisplay, ...displays],
           }
         }
         const reorderedDisplays = displays.toSpliced(apolloDisplayIdx, 1)
-        reorderedDisplays.unshift({
-          type: 'LinearApolloReferenceSequenceDisplay',
-          displayId: `${snap.trackId}-LinearApolloReferenceSequenceDisplay`,
-        })
+        reorderedDisplays.unshift(apolloDisplay)
         return {
           ...snap,
           displays: reorderedDisplays,
@@ -332,22 +322,18 @@ export default class ApolloPlugin extends Plugin {
       },
     )
 
-    pluginManager.addToExtensionPoint(
+    pluginManager.listenToExtensionPoint(
       'LinearGenomeView-searchResultSelected',
-      (_: any, props: Record<string, unknown>) => {
-        const { session, result } = props as {
-          session: ApolloSessionModel
-          result: ApolloSearchResult
-        }
-        const trackId = result.getTrackId()
-        const { matchedFeature } = result
+      ({ session, result }) => {
+        const apolloResult = result as ApolloSearchResult
+        const trackId = apolloResult.getTrackId()
+        const { matchedFeature } = apolloResult
 
         if (trackId?.startsWith('apollo_track_')) {
-          void session.apolloSetEventualSelectedFeature(matchedFeature._id)
+          void (
+            session as unknown as ApolloSessionModel
+          ).apolloSetEventualSelectedFeature(matchedFeature._id)
         }
-
-        /* eslint-disable-next-line @typescript-eslint/no-unsafe-return */
-        return _
       },
     )
 

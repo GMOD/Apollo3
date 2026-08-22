@@ -61,7 +61,7 @@ const useStyles = makeStyles()((theme) => ({
 
 function scrollSelectedFeatureIntoView(
   model: LinearApolloDisplayI | LinearApolloSixFrameDisplayI,
-  scrollContainerRef: React.RefObject<HTMLDivElement>,
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>,
 ) {
   const { apolloRowHeight, selectedFeature } = model
   if (scrollContainerRef.current && selectedFeature) {
