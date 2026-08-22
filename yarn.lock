@@ -9447,9 +9447,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/add-track-core@file:./jbrowse-add-track-core-606e9762df.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/add-track-core@file:./jbrowse-add-track-core-8e56c5c01a.tgz::locator=apollo3%40workspace%3A.":
   version: 4.1.14
-  resolution: "@jbrowse/add-track-core@file:./jbrowse-add-track-core-606e9762df.tgz#./jbrowse-add-track-core-606e9762df.tgz::hash=177541&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/add-track-core@file:./jbrowse-add-track-core-8e56c5c01a.tgz#./jbrowse-add-track-core-8e56c5c01a.tgz::hash=177541&locator=apollo3%40workspace%3A."
   checksum: 10c0/e4ba92adf22ce68e3f1ed67842662830acee749ff573e306c6edc5399595bc446a710a7eb9b86826f2683c910661647547063376cb9a2fb364425fa3be70ec6b
   languageName: node
   linkType: hard
@@ -9473,9 +9473,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/core@file:./jbrowse-core-606e9762df.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/core@file:./jbrowse-core-8e56c5c01a.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/core@file:./jbrowse-core-606e9762df.tgz#./jbrowse-core-606e9762df.tgz::hash=67ffc8&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/core@file:./jbrowse-core-8e56c5c01a.tgz#./jbrowse-core-8e56c5c01a.tgz::hash=a3892b&locator=apollo3%40workspace%3A."
   dependencies:
     "@emotion/cache": "npm:^11.14.0"
     "@emotion/react": "npm:^11.14.0"
@@ -9509,7 +9509,7 @@ __metadata:
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/38c8f6291e697af675511ffd96950d47fa32457b64c6ef3e5c044aee56c8bec0a7855a4366e2b2722c74dcb4a260b6a885a2fd0c87fb69aea31557a6d79bf548
+  checksum: 10c0/4fa5c896d602b50ce54534c8aab39b0c29b7208f46b9a53c151ce1ff9ccc866e7aca63bb47a535da53bac5401134bdfc52bedd61fca3ed9d921b568613bcd58d
   languageName: node
   linkType: hard
 
@@ -9547,9 +9547,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/display-ui@file:./jbrowse-display-ui-606e9762df.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/display-ui@file:./jbrowse-display-ui-8e56c5c01a.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/display-ui@file:./jbrowse-display-ui-606e9762df.tgz#./jbrowse-display-ui-606e9762df.tgz::hash=3b599b&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/display-ui@file:./jbrowse-display-ui-8e56c5c01a.tgz#./jbrowse-display-ui-8e56c5c01a.tgz::hash=3b599b&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/core": "npm:^4.3.0"
     "@jbrowse/mobx-state-tree": "npm:^6.3.0"
@@ -9577,9 +9577,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/plugin-authentication@file:./jbrowse-plugin-authentication-606e9762df.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/plugin-authentication@file:./jbrowse-plugin-authentication-8e56c5c01a.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/plugin-authentication@file:./jbrowse-plugin-authentication-606e9762df.tgz#./jbrowse-plugin-authentication-606e9762df.tgz::hash=41814c&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/plugin-authentication@file:./jbrowse-plugin-authentication-8e56c5c01a.tgz#./jbrowse-plugin-authentication-8e56c5c01a.tgz::hash=41814c&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/core": "npm:^4.3.0"
     "@jbrowse/mobx-state-tree": "npm:^6.3.0"
@@ -9593,9 +9593,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-606e9762df.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-8e56c5c01a.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-606e9762df.tgz#./jbrowse-plugin-linear-genome-view-606e9762df.tgz::hash=b2c631&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-8e56c5c01a.tgz#./jbrowse-plugin-linear-genome-view-8e56c5c01a.tgz::hash=b2c631&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/core": "npm:^4.3.0"
     "@jbrowse/display-ui": "npm:^4.3.0"
@@ -9619,9 +9619,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/render-core@file:./jbrowse-render-core-606e9762df.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/render-core@file:./jbrowse-render-core-8e56c5c01a.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/render-core@file:./jbrowse-render-core-606e9762df.tgz#./jbrowse-render-core-606e9762df.tgz::hash=d0a7f4&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/render-core@file:./jbrowse-render-core-8e56c5c01a.tgz#./jbrowse-render-core-8e56c5c01a.tgz::hash=d0a7f4&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/mobx-state-tree": "npm:^6.3.0"
     mobx: "npm:^7.0.3"

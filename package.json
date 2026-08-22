@@ -52,12 +52,12 @@
   },
   "packageManager": "yarn@4.16.0",
   "resolutions": {
-    "@jbrowse/core": "file:./jbrowse-core-606e9762df.tgz",
-    "@jbrowse/plugin-authentication": "file:./jbrowse-plugin-authentication-606e9762df.tgz",
-    "@jbrowse/plugin-linear-genome-view": "file:./jbrowse-plugin-linear-genome-view-606e9762df.tgz",
-    "@jbrowse/product-core": "file:./jbrowse-product-core-606e9762df.tgz",
-    "@jbrowse/render-core": "file:./jbrowse-render-core-606e9762df.tgz",
-    "@jbrowse/display-ui": "file:./jbrowse-display-ui-606e9762df.tgz",
-    "@jbrowse/add-track-core": "file:./jbrowse-add-track-core-606e9762df.tgz"
+    "@jbrowse/core": "file:./jbrowse-core-8e56c5c01a.tgz",
+    "@jbrowse/plugin-authentication": "file:./jbrowse-plugin-authentication-8e56c5c01a.tgz",
+    "@jbrowse/plugin-linear-genome-view": "file:./jbrowse-plugin-linear-genome-view-8e56c5c01a.tgz",
+    "@jbrowse/product-core": "file:./jbrowse-product-core-8e56c5c01a.tgz",
+    "@jbrowse/render-core": "file:./jbrowse-render-core-8e56c5c01a.tgz",
+    "@jbrowse/display-ui": "file:./jbrowse-display-ui-8e56c5c01a.tgz",
+    "@jbrowse/add-track-core": "file:./jbrowse-add-track-core-8e56c5c01a.tgz"
   }
 }

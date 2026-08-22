@@ -24,6 +24,7 @@ import {
   createBaseTrackConfig,
   createBaseTrackModel,
 } from '@jbrowse/core/pluggableElementTypes'
+import type { WorkerHandle } from '@jbrowse/core/rpc/WebWorkerRpcDriver'
 import {
   type AbstractSessionModel,
   type Region,
@@ -75,13 +76,6 @@ import {
 import { addTopLevelMenus } from './menus'
 import { type ApolloSessionModel, extendSession } from './session'
 import type { ApolloSearchResult } from './ApolloTextSearchAdapter/ApolloTextSearchAdapter'
-
-interface RpcHandle {
-  client: {
-    on?(event: string, listener: (event: MessageEvent) => void): void
-  }
-  worker: Worker
-}
 
 interface ApolloMessageData {
   apollo: true
@@ -340,11 +334,14 @@ export default class ApolloPlugin extends Plugin {
     if (!inWebWorker) {
       pluginManager.addToExtensionPoint(
         'Core-extendWorker',
-        (handle: RpcHandle) => {
-          if (!('on' in handle.client && handle.client.on)) {
+        (handle: WorkerHandle) => {
+          if (!handle.on || !handle.postMessage) {
             return handle
           }
-          handle.client.on('apollo', async (event: MessageEvent) => {
+          // bound once: `postMessage` is a method reading the handle's own
+          // worker, and it is called from inside the listener
+          const postMessage = handle.postMessage.bind(handle)
+          handle.on('apollo', async (event) => {
             if (!isApolloMessageData(event)) {
               return
             }
@@ -367,7 +364,7 @@ export default class ApolloPlugin extends Plugin {
                 }
                 const { seq: sequence } =
                   await backendDriver.getSequence(region)
-                handle.worker.postMessage({
+                postMessage({
                   apollo,
                   messageId,
                   sequence,
@@ -389,7 +386,7 @@ export default class ApolloPlugin extends Plugin {
                   break
                 }
                 const regions = await backendDriver.getRegions(assembly)
-                handle.worker.postMessage({
+                postMessage({
                   apollo,
                   messageId,
                   regions,
@@ -412,7 +409,7 @@ export default class ApolloPlugin extends Plugin {
                 }
                 const refNameAliases =
                   await backendDriver.getRefNameAliases(assembly)
-                handle.worker.postMessage({
+                postMessage({
                   apollo,
                   messageId,
                   refNameAliases,
