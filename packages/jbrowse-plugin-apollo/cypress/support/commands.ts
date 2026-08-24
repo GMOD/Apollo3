@@ -269,14 +269,14 @@ Cypress.Commands.add(
 
     cy.contains(`UploadAssemblyFile for ${assemblyName}`)
       .parent()
-      .should('contain', 'All operations successful')
+      .should('contain', 'Uploaded')
     cy.contains(
       loadFeatures
         ? 'AddAssemblyAndFeaturesFromFileChange'
         : 'AddAssemblyFromFileChange',
     )
       .parent()
-      .should('contain', 'All operations successful')
+      .should('contain', 'Finished')
     cy.get('button[aria-label="Close drawer"]', { timeout: 10_000 }).click()
     // Give JBrowse's session autosave (debounced 400ms) time to catch up so the
     // reload doesn't restore the session from before the change finished
@@ -404,10 +404,10 @@ Cypress.Commands.add(
     cy.contains('button', 'Submit').click()
     cy.contains('Importing features for')
       .parent()
-      .should('contain', 'All operations successful')
+      .should('contain', 'Imported features')
     cy.contains('AddFeaturesFromFileChange')
       .parent()
-      .should('contain', 'All operations successful')
+      .should('contain', 'Finished')
   },
 )
 

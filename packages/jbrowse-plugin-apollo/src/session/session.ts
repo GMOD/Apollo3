@@ -23,6 +23,7 @@ import {
   type SessionWithDrawerWidgets,
   isElectron,
 } from '@jbrowse/core/util'
+import type { JobsListModel } from '@jbrowse/plugin-jobs-management'
 import {
   type Instance,
   type SnapshotOut,
@@ -41,7 +42,6 @@ import {
   LoginFailedError,
 } from '../ApolloInternetAccount/loginErrors'
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { ApolloJobModel } from '../ApolloJobModel'
 import type ApolloPluginConfigurationSchema from '../config'
 import { type ApolloRootModel, isApolloInternetAccount } from '../types'
 import { createFetchErrorMessage } from '../util'
@@ -92,7 +92,6 @@ export function extendSession(
     .props({
       apolloDataStore: types.optional(ClientDataStore, { typeName: 'Client' }),
       apolloSelectedFeature: types.safeReference(AnnotationFeatureExtended),
-      jobsManager: types.optional(ApolloJobModel, {}),
       isLocked: types.optional(types.boolean, false),
       changeInProgress: types.optional(types.boolean, false),
     })
@@ -123,7 +122,22 @@ export function extendSession(
         },
       }
     })
+    .views((self) => ({
+      get jobStatusWidget() {
+        const { widgets } = self as unknown as SessionWithDrawerWidgets
+        const jobStatusWidget =
+          widgets.get('JobsList') ??
+          // @ts-expect-error: addWidget function not detected on the session
+          self.addWidget('JobsListWidget', 'JobsList')
+        return jobStatusWidget as unknown as JobsListModel
+      },
+    }))
     .actions((self) => ({
+      showJobStatusWidget() {
+        ;(self as unknown as SessionWithDrawerWidgets).showWidget(
+          self.jobStatusWidget,
+        )
+      },
       apolloSetSelectedFeature(feature?: AnnotationFeature | string) {
         // @ts-expect-error Not sure why TS thinks these MST types don't match
         self.apolloSelectedFeature = feature
