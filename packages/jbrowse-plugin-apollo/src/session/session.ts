@@ -20,7 +20,6 @@ import {
 import type { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
 import {
   type AbstractSessionModel,
-  type SessionWithAddTracks,
   type SessionWithDrawerWidgets,
   isElectron,
 } from '@jbrowse/core/util'
@@ -48,6 +47,14 @@ import {
   clientDataStoreFactory,
 } from './ClientDataStore'
 import { handleApolloFeaturesUrlParam } from './handleApolloFeaturesUrlParam'
+
+interface JBrowseConfigWithTracks {
+  addTrackConf(conf: {
+    trackId: string
+    type: string
+    [key: string]: unknown
+  }): unknown
+}
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreModel
@@ -127,9 +134,7 @@ export function extendSession(
         )
         if (!hasTrack) {
           ;(
-            getRoot<ApolloRootModel>(self).jbrowse as {
-              addTrackConf: SessionWithAddTracks['addTrackConf']
-            }
+            getRoot<ApolloRootModel>(self).jbrowse as JBrowseConfigWithTracks
           ).addTrackConf({
             type: 'ApolloTrack',
             trackId,
