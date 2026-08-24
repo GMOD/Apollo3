@@ -532,6 +532,7 @@ __metadata:
     "@jbrowse/cli": "npm:^4.3.0"
     "@jbrowse/core": "npm:^4.3.0"
     "@jbrowse/mobx-state-tree": "npm:^6.5.1"
+    "@jbrowse/plugin-jobs-management": "npm:^4.3.0"
     "@jbrowse/plugin-linear-genome-view": "npm:^4.3.0"
     "@jest/globals": "npm:^29.0.3"
     "@mui/icons-material": "npm:^9.3.1"
@@ -8763,6 +8764,22 @@ __metadata:
   peerDependencies:
     mobx: ^7.0.0
   checksum: 10c0/af30dcb4bdf5ea8bcaa5cec83aa67186f70bf25134cfc9a47fccc9f9e6bde2d5c7d13a475d0738f76f7def1608b3016d0a854d18a56110d4dd1d0db21cbcc21e
+  languageName: node
+  linkType: hard
+
+"@jbrowse/plugin-jobs-management@file:./jbrowse-plugin-jobs-management-000c9f7e2f.tgz::locator=apollo3%40workspace%3A.":
+  version: 4.3.0
+  resolution: "@jbrowse/plugin-jobs-management@file:./jbrowse-plugin-jobs-management-000c9f7e2f.tgz#./jbrowse-plugin-jobs-management-000c9f7e2f.tgz::hash=6272b3&locator=apollo3%40workspace%3A."
+  dependencies:
+    "@jbrowse/core": "npm:^4.3.0"
+    "@jbrowse/mobx-state-tree": "npm:^6.5.1"
+    "@mui/icons-material": "npm:^9.3.1"
+    "@mui/material": "npm:^9.3.1"
+    mobx: "npm:^7.0.3"
+    mobx-react: "npm:^10.0.2"
+  peerDependencies:
+    react: ">=19.0.0"
+  checksum: 10c0/f1b489ceddaa1a275baa3350959eb114a9e62010cf7ecbda418f1a6ea3a414d136e846f6720149384014e4f22591caf971ecbdc2a5486a37e17c4d3ea299ff35
   languageName: node
   linkType: hard
 

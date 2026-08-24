@@ -197,14 +197,14 @@ Cypress.Commands.add(
 
     cy.contains(`UploadAssemblyFile for ${assemblyName}`)
       .parent()
-      .should('contain', 'All operations successful')
+      .should('contain', 'Uploaded')
     cy.contains(
       loadFeatures
         ? 'AddAssemblyAndFeaturesFromFileChange'
         : 'AddAssemblyFromFileChange',
     )
       .parent()
-      .should('contain', 'All operations successful')
+      .should('contain', 'Finished')
     cy.get('button[aria-label="Close drawer"]', { timeout: 10_000 }).click()
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(1000)
@@ -330,10 +330,10 @@ Cypress.Commands.add(
     cy.contains('button', 'Submit').click()
     cy.contains('Importing features for')
       .parent()
-      .should('contain', 'All operations successful')
+      .should('contain', 'Imported features')
     cy.contains('AddFeaturesFromFileChange')
       .parent()
-      .should('contain', 'All operations successful')
+      .should('contain', 'Finished')
   },
 )
 

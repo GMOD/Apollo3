@@ -56,6 +56,7 @@
     "@jbrowse/display-kit": "file:./jbrowse-display-kit-000c9f7e2f.tgz",
     "@jbrowse/display-ui": "file:./jbrowse-display-ui-000c9f7e2f.tgz",
     "@jbrowse/plugin-authentication": "file:./jbrowse-plugin-authentication-000c9f7e2f.tgz",
+    "@jbrowse/plugin-jobs-management": "file:./jbrowse-plugin-jobs-management-000c9f7e2f.tgz",
     "@jbrowse/plugin-linear-genome-view": "file:./jbrowse-plugin-linear-genome-view-000c9f7e2f.tgz",
     "@jbrowse/product-core": "file:./jbrowse-product-core-000c9f7e2f.tgz",
     "@jbrowse/render-core": "file:./jbrowse-render-core-000c9f7e2f.tgz"

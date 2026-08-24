@@ -50,6 +50,7 @@ import type { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import { Dialog } from './Dialog'
+import type { JobInput } from '@jbrowse/plugin-jobs-management'
 
 interface AddAssemblyProps {
   session: ApolloSessionModel
@@ -169,7 +170,7 @@ export function AddAssembly({
   }
 
   async function uploadFile(file: File, fileType: FileType): Promise<string> {
-    const { jobsManager } = session
+    const { jobStatusWidget, showJobStatusWidget } = session
     const controller = new AbortController()
 
     const [{ baseURL, getFetcher }] = apolloInternetAccounts
@@ -196,10 +197,9 @@ export function AddAssembly({
       locationType: 'UriLocation',
       uri,
     })
-    const job = {
+    const job: JobInput = {
       name: `UploadAssemblyFile for ${assemblyName}`,
       statusMessage: 'Pre-validating',
-      progressPct: 0,
       cancelCallback: () => {
         controller.abort(
           new DOMException(
@@ -207,11 +207,16 @@ export function AddAssembly({
             'AbortError',
           ),
         )
-        jobsManager.abortJob(job.name)
+        jobStatusWidget.addJob({ name: job.name, state: 'aborted' })
       },
+      state: 'running',
     }
-    jobsManager.runJob(job)
-    jobsManager.update(job.name, `Uploading ${file.name}, this may take awhile`)
+    jobStatusWidget.addJob(job)
+    showJobStatusWidget()
+    jobStatusWidget.updateJobStatus(
+      job.name,
+      `Uploading ${file.name}, this may take awhile`,
+    )
     const { signal } = controller
 
     const response = await apolloFetchFile(uri, {
@@ -224,13 +229,21 @@ export function AddAssembly({
         response,
         'Error when inserting new assembly (while uploading file)',
       )
-      jobsManager.abortJob(job.name, newErrorMessage)
+      jobStatusWidget.addJob({
+        name: job.name,
+        statusMessage: newErrorMessage,
+        state: 'aborted',
+      })
       setErrorMessage(newErrorMessage)
       return ''
     }
     const result = await response.json()
     const fileId = result._id as string
-    jobsManager.done(job)
+    jobStatusWidget.addJob({
+      name: job.name,
+      statusMessage: `Uploaded ${file.name}`,
+      state: 'finished',
+    })
     return fileId
     throw new Error('Failed to fetch')
   }
@@ -318,7 +331,7 @@ export function AddAssembly({
     const [{ internetAccountId }] = apolloInternetAccounts
     await changeManager.submit(change, {
       internetAccountId,
-      updateJobsManager: true,
+      updateJobStatusWidget: true,
     })
     setSubmitted(false)
     setLoading(false)
