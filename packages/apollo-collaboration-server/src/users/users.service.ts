@@ -74,7 +74,7 @@ export class UsersService {
   }
 
   async getCount() {
-    return this.userModel.count().exec()
+    return this.userModel.countDocuments().exec()
   }
 
   async bootstrapDB() {

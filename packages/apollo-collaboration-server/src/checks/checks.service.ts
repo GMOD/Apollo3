@@ -85,9 +85,9 @@ export class ChecksService {
     doc: FeatureDocument,
     checkTimestamps = true,
   ): Promise<void> {
-    const flatDoc: AnnotationFeatureSnapshot = doc.toObject({
+    const flatDoc = doc.toObject({
       flattenMaps: true,
-    })
+    }) as unknown as AnnotationFeatureSnapshot
     const checks = await this.getChecksForAssembly(doc)
     for (const check of checks) {
       if (checkTimestamps && doc.updatedAt && check.updatedAt < doc.updatedAt) {

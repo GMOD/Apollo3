@@ -55,7 +55,7 @@
     "material-ui-popup-state": "^5.3.7",
     "mobx": "^7.0.3",
     "mobx-react": "^10.0.2",
-    "mongoose": "^7.8.12",
+    "mongoose": "^8.24.4",
     "mongoose-id-validator": "^0.6.0",
     "multer": "^2.0.2",
     "passport": "^0.7.0",
