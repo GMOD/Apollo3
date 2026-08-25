@@ -39,7 +39,9 @@ import { ChecksService } from './checks.service.js'
               channel: 'COMMON',
               userName: 'none',
               userSessionId: 'none',
-              checkResult: 'toJSON' in doc ? doc.toJSON() : doc,
+              checkResult: ('toJSON' in doc
+                ? doc.toJSON()
+                : doc) as unknown as CheckResultSnapshot,
             }
             await messagesGateway.create(message.channel, message)
           }
@@ -48,7 +50,7 @@ import { ChecksService } from './checks.service.js'
               channel: 'COMMON',
               userName: 'none',
               userSessionId: 'none',
-              checkResult: doc.toJSON(),
+              checkResult: doc.toJSON() as unknown as CheckResultSnapshot,
               deleted: true,
             }
             await messagesGateway.create(message.channel, message)
