@@ -31,7 +31,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { type FilterQuery, Model, Types } from 'mongoose'
+import { Model, type QueryFilter, Types } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service.js'
 import { MessagesGateway } from '../messages/messages.gateway.js'
@@ -282,7 +282,7 @@ export class ChangesService {
       endTime,
     } = changeFilter
 
-    const queryCond: FilterQuery<ChangeDocument> = {}
+    const queryCond: QueryFilter<ChangeDocument> = {}
     if (assembly) {
       queryCond.assembly = assembly
     }

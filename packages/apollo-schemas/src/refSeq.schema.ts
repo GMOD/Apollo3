@@ -1,7 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { type HydratedDocument, Schema as MongooseSchema } from 'mongoose'
-
-import { Assembly } from './assembly.schema.js'
+import {
+  type HydratedDocument,
+  Schema as MongooseSchema,
+  Types,
+} from 'mongoose'
 
 export type RefSeqDocument = HydratedDocument<RefSeq>
 
@@ -13,7 +15,7 @@ export class RefSeq {
     required: true,
     index: true,
   })
-  assembly: Assembly
+  assembly: Types.ObjectId
 
   @Prop({ required: true })
   name: string

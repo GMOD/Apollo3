@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import type { CheckResultSnapshot } from '@apollo-annotation/mst'
 import {
   Check,
@@ -66,14 +65,11 @@ import { ChecksService } from './checks.service.js'
               await broadcast(checkResult)
             }
           })
-          CheckResultSchema.pre(
-            'insertMany',
-            async function (_result, checkResults) {
-              for (const checkResult of checkResults) {
-                await broadcast(checkResult)
-              }
-            },
-          )
+          CheckResultSchema.pre('insertMany', async function (checkResults) {
+            for (const checkResult of checkResults as CheckResultDocument[]) {
+              await broadcast(checkResult)
+            }
+          })
           CheckResultSchema.pre('findOneAndDelete', async function () {
             const checkResults = await this.model.find<CheckResultDocument>(
               this.getQuery(),

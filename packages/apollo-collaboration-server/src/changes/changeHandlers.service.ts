@@ -145,7 +145,15 @@ export class ChangeHandlersService implements ChangeHandlers {
         const indexedIds = change.getIndexedIds(addedFeature, idsToIndex)
         // Add into Mongo
         const [newFeatureDoc] = await featureModel.create(
-          [{ ...addedFeature, allIds, indexedIds, status: -1, user }],
+          [
+            {
+              ...addedFeature,
+              allIds,
+              indexedIds,
+              status: -1,
+              user,
+            } as unknown as Partial<Feature>,
+          ],
           { session },
         )
         if (newFeatureDoc) {
@@ -188,7 +196,14 @@ export class ChangeHandlersService implements ChangeHandlers {
           const childIds = change.getChildFeatureIds(addedFeature)
           const allIdsV2 = [_id, ...childIds]
           const [newFeatureDoc] = await featureModel.create(
-            [{ allIds: allIdsV2, indexedIds, status: 0, ...addedFeature }],
+            [
+              {
+                allIds: allIdsV2,
+                indexedIds,
+                status: 0,
+                ...addedFeature,
+              } as unknown as Partial<Feature>,
+            ],
             { session },
           )
           if (newFeatureDoc) {
@@ -1127,7 +1142,13 @@ export class ChangeHandlersService implements ChangeHandlers {
     const allIds = this.getAllIds(newFeature)
     const indexedIds = this.getIndexedIds(newFeature, idsToIndex)
     await featureModel.create([
-      { allIds, indexedIds, ...newFeature, user, status: -1 },
+      {
+        allIds,
+        indexedIds,
+        ...newFeature,
+        user,
+        status: -1,
+      } as unknown as Partial<Feature>,
     ])
   }
 
@@ -1306,7 +1327,9 @@ export class ChangeHandlersService implements ChangeHandlers {
       return
     }
     const filteredConfig = filterJBrowseConfig(newJBrowseConfig)
-    await jbrowseConfigModel.create(filteredConfig)
+    await jbrowseConfigModel.create(
+      filteredConfig as unknown as Record<string, unknown>,
+    )
     this.logger.debug('Stored new JBrowse Config')
   }
 
@@ -1462,7 +1485,14 @@ export class ChangeHandlersService implements ChangeHandlers {
       const checkDocs = await checkModel.find({ isDefault: true }).exec()
       const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
       await assemblyModel.create([
-        { _id: assembly, name: assemblyName, user, status: -1, fileId, checks },
+        {
+          _id: assembly,
+          name: assemblyName,
+          user,
+          status: -1,
+          fileId,
+          checks,
+        } as unknown as Partial<Assembly>,
       ])
       this.logger.debug(
         `Added new assembly "${assemblyName}", docId "${assembly}"`,

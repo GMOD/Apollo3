@@ -1,7 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { type HydratedDocument, Schema as MongooseSchema } from 'mongoose'
-
-import { RefSeq } from './refSeq.schema.js'
+import {
+  type HydratedDocument,
+  Schema as MongooseSchema,
+  Types,
+} from 'mongoose'
 
 export type RefSeqChunkDocument = HydratedDocument<RefSeqChunk>
 
@@ -13,7 +15,7 @@ export class RefSeqChunk {
     required: true,
     index: true,
   })
-  refSeq: RefSeq
+  refSeq: Types.ObjectId
 
   @Prop({ required: true })
   n: number
