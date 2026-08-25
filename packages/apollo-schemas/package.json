@@ -16,7 +16,7 @@
     "@nestjs/common": "^11.2.1",
     "@nestjs/core": "^11.2.1",
     "@nestjs/mongoose": "^11.0.4",
-    "mongoose": "^6.12.0",
+    "mongoose": "^7.8.12",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.4.0"
   },

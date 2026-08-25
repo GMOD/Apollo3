@@ -55,7 +55,6 @@ import { ChecksService } from './checks.service.js'
           }
           CheckResultSchema.post('save', broadcast)
           CheckResultSchema.post('updateOne', broadcast)
-          CheckResultSchema.post('remove', broadcastDeletion)
           CheckResultSchema.post('deleteOne', broadcastDeletion)
           CheckResultSchema.pre('findOneAndUpdate', async function () {
             const checkResults = await this.model.find<CheckResultDocument>(
