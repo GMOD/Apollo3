@@ -16,8 +16,7 @@ import {
 } from '@apollo-annotation/schemas'
 import { Inject, Injectable, forwardRef } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import type { ObjectId } from 'mongodb'
-import { Model } from 'mongoose'
+import { Model, Types } from 'mongoose'
 
 import type { FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
 import { RefSeqsService } from '../refSeqs/refSeqs.service.js'
@@ -142,7 +141,7 @@ export class ChecksService {
       .exec()
   }
 
-  async deleteChecks(checkIds: ObjectId[]) {
+  async deleteChecks(checkIds: Types.ObjectId[]) {
     return this.checkResultModel.deleteMany({ _id: { $in: checkIds } }).exec()
   }
 

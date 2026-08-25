@@ -25,7 +25,7 @@
     "@nestjs/core": "^11.2.1",
     "@types/node": "^24.10.9",
     "generic-filehandle2": "^2.2.1",
-    "mongoose": "^6.12.0",
+    "mongoose": "^7.8.12",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
