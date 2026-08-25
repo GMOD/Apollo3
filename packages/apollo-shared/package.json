@@ -39,7 +39,7 @@
     "chai-exclude": "^3.0.0",
     "glob": "^11.0.0",
     "mobx": "^6.6.1",
-    "mongoose": "^8.24.4",
+    "mongoose": "^9.9.3",
     "react-dom": "^18.2.0",
     "rimraf": "^3.0.2",
     "rxjs": "^7.4.0",
