@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-base-to-string */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { checkRegistry } from '@apollo-annotation/common'
@@ -52,16 +51,16 @@ export class ChecksService {
   }
 
   async getChecksForAssembly(featureDoc: FeatureDocument) {
-    const refSeqModel = featureDoc.$model<Model<RefSeqDocument>>(RefSeq.name)
+    const refSeqModel = featureDoc.$model(RefSeq.name) as Model<RefSeqDocument>
     const refSeqId = featureDoc.refSeq.toString()
     const refSeqDoc = await refSeqModel.findById(refSeqId).exec()
     if (!refSeqDoc) {
       throw new Error(`Could not find refSeq ${refSeqId}`)
     }
     const { assembly } = refSeqDoc
-    const assemblyModel = featureDoc.$model<Model<AssemblyDocument>>(
+    const assemblyModel = featureDoc.$model(
       Assembly.name,
-    )
+    ) as Model<AssemblyDocument>
     const assemblyDoc = await assemblyModel
       .findById(assembly)
       .populate('checks')

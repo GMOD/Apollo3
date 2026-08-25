@@ -21,7 +21,6 @@ import StreamConcat from 'stream-concat'
 
 import { ChecksService } from '../checks/checks.service.js'
 import type { FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
-import { cursorToReadable } from '../utils/mongooseCursor.js'
 
 import type {
   FeatureCountRequest,
@@ -84,13 +83,13 @@ export class FeaturesService {
 
   async getByIndexedId(getByIndexedIdRequest: GetByIndexedIdRequest) {
     const { assemblies, id, topLevel } = getByIndexedIdRequest
-    const refSeqsQuery: { refSeq?: RefSeqDocument[] } = {}
+    const refSeqsQuery: { refSeq?: RefSeqDocument['_id'][] } = {}
     if (assemblies) {
       const assemblyIds = assemblies.split(',')
       const refSeqs = await this.refSeqModel
         .find({ assembly: assemblyIds })
         .exec()
-      refSeqsQuery.refSeq = refSeqs
+      refSeqsQuery.refSeq = refSeqs.map((refSeq) => refSeq._id)
     }
     const topLevelFeatures = await this.featureModel
       .find({ indexedIds: id, ...refSeqsQuery })
@@ -253,15 +252,13 @@ export class FeaturesService {
    */
   findByRangeStream(searchDto: FeatureRangeSearchDto): Readable {
     const featuresStream = Readable.toWeb(
-      cursorToReadable(
-        this.featureModel.find(this.byRangeQuery(searchDto)).cursor(),
-      ),
+      this.featureModel.find(this.byRangeQuery(searchDto)).cursor(),
     )
       .pipeThrough(new CheckFeatureStream(this.checksService))
       .pipeThrough(new DocToJSONArrayStream())
 
     const checkResultsStream = Readable.toWeb(
-      cursorToReadable(this.checksService.findByRangeCursor(searchDto)),
+      this.checksService.findByRangeCursor(searchDto),
     ).pipeThrough(new DocToJSONArrayStream())
 
     const openBracket = new ReadableStream<string>({
@@ -318,7 +315,10 @@ export class FeaturesService {
       .find({ assembly: assemblyIds })
       .exec()
     return this.featureModel
-      .find({ $text: { $search: `"${term}"` }, refSeq: refSeqs })
+      .find({
+        $text: { $search: `"${term}"` },
+        refSeq: refSeqs.map((refSeq) => refSeq._id),
+      })
       .exec()
   }
 }
