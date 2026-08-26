@@ -180,7 +180,6 @@ export class ChecksService {
       refSeq: searchDto.refSeq,
       start: { $lte: searchDto.end },
       end: { $gte: searchDto.start },
-      status: 0,
     }
   }
 
