@@ -62,7 +62,6 @@ describe('Simple tests for visuals', () => {
       force: true,
       timeout: 10_000,
     })
-    cy.contains('Navigation', { timeout: 10_000 }).click()
     cy.contains('Show all regions in assembly', { timeout: 10_000 }).click()
     cy.wait(2000) // Wait for render
     // This may fail locally due to differences in runtime such as installed
