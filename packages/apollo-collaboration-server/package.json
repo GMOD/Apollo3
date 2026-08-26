@@ -56,7 +56,7 @@
     "mobx": "^7.0.3",
     "mobx-react": "^10.0.2",
     "mongoose": "^9.9.3",
-    "mongoose-id-validator": "^0.6.0",
+    "mongoose-id-validator": "patch:mongoose-id-validator@npm%3A0.6.0#~/.yarn/patches/mongoose-id-validator-npm-0.6.0-041e6742e1.patch",
     "multer": "^2.0.2",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
