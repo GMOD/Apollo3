@@ -448,7 +448,7 @@ __metadata:
     mobx-react: "npm:^10.0.2"
     mongodb: "npm:^7.5.0"
     mongoose: "npm:^9.9.3"
-    mongoose-id-validator: "npm:^0.6.0"
+    mongoose-id-validator: "patch:mongoose-id-validator@npm%3A0.6.0#~/.yarn/patches/mongoose-id-validator-npm-0.6.0-041e6742e1.patch"
     multer: "npm:^2.0.2"
     passport: "npm:^0.7.0"
     passport-google-oauth20: "npm:^2.0.0"
@@ -24210,13 +24210,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mongoose-id-validator@npm:^0.6.0":
+"mongoose-id-validator@npm:0.6.0":
   version: 0.6.0
   resolution: "mongoose-id-validator@npm:0.6.0"
   dependencies:
     clone: "npm:^1.0.2"
     traverse: "npm:^0.6.6"
   checksum: 10c0/c025e67b987c51676ea4c89e224c2d380b8689c90cc2cbaa87593d34310212efdca68a49c80c86bc846f6848645d6f5398a841d70e9b567f8ca5d03665e13b3d
+  languageName: node
+  linkType: hard
+
+"mongoose-id-validator@patch:mongoose-id-validator@npm%3A0.6.0#~/.yarn/patches/mongoose-id-validator-npm-0.6.0-041e6742e1.patch":
+  version: 0.6.0
+  resolution: "mongoose-id-validator@patch:mongoose-id-validator@npm%3A0.6.0#~/.yarn/patches/mongoose-id-validator-npm-0.6.0-041e6742e1.patch::version=0.6.0&hash=319513"
+  dependencies:
+    clone: "npm:^1.0.2"
+    traverse: "npm:^0.6.6"
+  checksum: 10c0/7c8bc97083e5af8d2093a047fe2e38b469e40bfbb3af3b811e94f0742ea7192605c44f574d29d8f8fd2b09d360cb2bf46455a880d3c86a056aaf92b924fdaa1b
   languageName: node
   linkType: hard
 
