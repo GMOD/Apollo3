@@ -8653,9 +8653,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/add-track-core@file:./jbrowse-add-track-core-db6f7a785e.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/add-track-core@file:./jbrowse-add-track-core-58a6ed6733.tgz::locator=apollo3%40workspace%3A.":
   version: 4.1.14
-  resolution: "@jbrowse/add-track-core@file:./jbrowse-add-track-core-db6f7a785e.tgz#./jbrowse-add-track-core-db6f7a785e.tgz::hash=8d38b3&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/add-track-core@file:./jbrowse-add-track-core-58a6ed6733.tgz#./jbrowse-add-track-core-58a6ed6733.tgz::hash=8d38b3&locator=apollo3%40workspace%3A."
   checksum: 10c0/2c98439f115c5cf4439871093641a60bd732d2f520a9f38cd1cc5e2c4405bedcc6e2e125874f0e77c7785cb44a076038a508df981bc8aa9aa78d46df5ba148c8
   languageName: node
   linkType: hard
@@ -8679,9 +8679,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/core@file:./jbrowse-core-db6f7a785e.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/core@file:./jbrowse-core-58a6ed6733.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/core@file:./jbrowse-core-db6f7a785e.tgz#./jbrowse-core-db6f7a785e.tgz::hash=f9daa0&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/core@file:./jbrowse-core-58a6ed6733.tgz#./jbrowse-core-58a6ed6733.tgz::hash=fc9aa5&locator=apollo3%40workspace%3A."
   dependencies:
     "@emotion/cache": "npm:^11.14.0"
     "@emotion/react": "npm:^11.14.0"
@@ -8714,13 +8714,13 @@ __metadata:
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/e66c8d7e04c48c248083de09110e3d7a864d9182533bb6daf24b08fa16fca54dd02df30324779520c4f50f2bf2c64b2b3c7fd023ff5ce005e3613cd4135d5842
+  checksum: 10c0/d30a2210b2c58878ef1dfa223472792b021a31f3c99548bd51829988f55073d96cf8ea2bcb40d2094341ed42dff192509d15416273496f7899a9c7a4b85aa638
   languageName: node
   linkType: hard
 
-"@jbrowse/display-kit@file:./jbrowse-display-kit-db6f7a785e.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/display-kit@file:./jbrowse-display-kit-58a6ed6733.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/display-kit@file:./jbrowse-display-kit-db6f7a785e.tgz#./jbrowse-display-kit-db6f7a785e.tgz::hash=e7a8b3&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/display-kit@file:./jbrowse-display-kit-58a6ed6733.tgz#./jbrowse-display-kit-58a6ed6733.tgz::hash=36f969&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/core": "npm:^4.3.0"
     "@jbrowse/display-ui": "npm:^4.3.0"
@@ -8733,13 +8733,13 @@ __metadata:
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/5bf619c04dbca15732111d686cbc51681019943c506017705790ac4ec34ea4ec2bdd6002a08c8b7a82145dce0d1db5a50b59ddff5014664255ecaa25da85bcd7
+  checksum: 10c0/0c2d7846bf01e122a7613bbcde019eed5568c2e3855aedc515ce358d2ed22ab363e0047b8ea2741205979f571d92431be6643cb7ec3be5ad417ae8688e43b89d
   languageName: node
   linkType: hard
 
-"@jbrowse/display-ui@file:./jbrowse-display-ui-db6f7a785e.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/display-ui@file:./jbrowse-display-ui-58a6ed6733.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/display-ui@file:./jbrowse-display-ui-db6f7a785e.tgz#./jbrowse-display-ui-db6f7a785e.tgz::hash=62f5e8&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/display-ui@file:./jbrowse-display-ui-58a6ed6733.tgz#./jbrowse-display-ui-58a6ed6733.tgz::hash=9a8070&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/core": "npm:^4.3.0"
     "@jbrowse/mobx-state-tree": "npm:^6.5.1"
@@ -8747,7 +8747,7 @@ __metadata:
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/c96b718b78f300258b7f3c18cb2514a16b65132d3757b6a803818b7a3a7fb4efb467d4811ed7903fc0e3d7899362ecb4b65e4ee902e52c6276dcb5b85c63b233
+  checksum: 10c0/2e7015c83b414d54687fea24acc0e203fc5de9688d1d5f53452bc0757099d12d19cda65c9f8a443090fb7e548ce0f9647cac1e107310e0ed5ba4412119057eec
   languageName: node
   linkType: hard
 
@@ -8767,9 +8767,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/plugin-jobs-management@file:./jbrowse-plugin-jobs-management-db6f7a785e.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/plugin-jobs-management@file:./jbrowse-plugin-jobs-management-58a6ed6733.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/plugin-jobs-management@file:./jbrowse-plugin-jobs-management-db6f7a785e.tgz#./jbrowse-plugin-jobs-management-db6f7a785e.tgz::hash=6272b3&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/plugin-jobs-management@file:./jbrowse-plugin-jobs-management-58a6ed6733.tgz#./jbrowse-plugin-jobs-management-58a6ed6733.tgz::hash=6272b3&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/core": "npm:^4.3.0"
     "@jbrowse/mobx-state-tree": "npm:^6.5.1"
@@ -8783,9 +8783,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-db6f7a785e.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-58a6ed6733.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-db6f7a785e.tgz#./jbrowse-plugin-linear-genome-view-db6f7a785e.tgz::hash=922955&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/plugin-linear-genome-view@file:./jbrowse-plugin-linear-genome-view-58a6ed6733.tgz#./jbrowse-plugin-linear-genome-view-58a6ed6733.tgz::hash=adddbd&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/core": "npm:^4.3.0"
     "@jbrowse/display-kit": "npm:^4.3.0"
@@ -8799,7 +8799,7 @@ __metadata:
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/5e2bba9f973dc3b3a1b74e3d81389b1306ca056fe537f33c95aa293beb8b6db753349475c15629c8ac2a8949b49aca995e277823623d7e5d1c4056b206225991
+  checksum: 10c0/35bd869abe956b5fd278d83af832e387824bc47a9713d3b678caf6c2d7d900b978cf1e1a3fb1b8b559830ea99ac0bb29afdfff883c71a4a5372ebeb7dc169e2d
   languageName: node
   linkType: hard
 
@@ -8810,15 +8810,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/render-core@file:./jbrowse-render-core-db6f7a785e.tgz::locator=apollo3%40workspace%3A.":
+"@jbrowse/render-core@file:./jbrowse-render-core-58a6ed6733.tgz::locator=apollo3%40workspace%3A.":
   version: 4.3.0
-  resolution: "@jbrowse/render-core@file:./jbrowse-render-core-db6f7a785e.tgz#./jbrowse-render-core-db6f7a785e.tgz::hash=f7a9f1&locator=apollo3%40workspace%3A."
+  resolution: "@jbrowse/render-core@file:./jbrowse-render-core-58a6ed6733.tgz#./jbrowse-render-core-58a6ed6733.tgz::hash=4da721&locator=apollo3%40workspace%3A."
   dependencies:
     "@jbrowse/mobx-state-tree": "npm:^6.5.1"
     mobx: "npm:^7.0.3"
   peerDependencies:
     react: ">=19.0.0"
-  checksum: 10c0/b49247985a93a6c90a2b60a74379e826a130736b378b761e062d29b249104c284d045c524f4a71bc24fa171db1c2fd782191571d41535dbfbdbc9aa0e9ac4388
+  checksum: 10c0/b18abb488117619868f5f2ed7a992f7c0dfb71af7c3b5bcd372d64690f989ac8ee9b1dbdcb6379377dea783e7f2edc8cb69f38aa45691954e6d65c639fe0e053
   languageName: node
   linkType: hard
 
