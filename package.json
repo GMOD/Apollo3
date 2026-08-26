@@ -51,14 +51,14 @@
   },
   "packageManager": "yarn@4.18.0",
   "resolutions": {
-    "@jbrowse/add-track-core": "file:./jbrowse-add-track-core-58a6ed6733.tgz",
-    "@jbrowse/core": "file:./jbrowse-core-58a6ed6733.tgz",
-    "@jbrowse/display-kit": "file:./jbrowse-display-kit-58a6ed6733.tgz",
-    "@jbrowse/display-ui": "file:./jbrowse-display-ui-58a6ed6733.tgz",
-    "@jbrowse/plugin-authentication": "file:./jbrowse-plugin-authentication-58a6ed6733.tgz",
-    "@jbrowse/plugin-jobs-management": "file:./jbrowse-plugin-jobs-management-58a6ed6733.tgz",
-    "@jbrowse/plugin-linear-genome-view": "file:./jbrowse-plugin-linear-genome-view-58a6ed6733.tgz",
-    "@jbrowse/product-core": "file:./jbrowse-product-core-58a6ed6733.tgz",
-    "@jbrowse/render-core": "file:./jbrowse-render-core-58a6ed6733.tgz"
+    "@jbrowse/add-track-core": "file:./jbrowse-add-track-core-44a9804b90.tgz",
+    "@jbrowse/core": "file:./jbrowse-core-44a9804b90.tgz",
+    "@jbrowse/display-kit": "file:./jbrowse-display-kit-44a9804b90.tgz",
+    "@jbrowse/display-ui": "file:./jbrowse-display-ui-44a9804b90.tgz",
+    "@jbrowse/plugin-authentication": "file:./jbrowse-plugin-authentication-44a9804b90.tgz",
+    "@jbrowse/plugin-jobs-management": "file:./jbrowse-plugin-jobs-management-44a9804b90.tgz",
+    "@jbrowse/plugin-linear-genome-view": "file:./jbrowse-plugin-linear-genome-view-44a9804b90.tgz",
+    "@jbrowse/product-core": "file:./jbrowse-product-core-44a9804b90.tgz",
+    "@jbrowse/render-core": "file:./jbrowse-render-core-44a9804b90.tgz"
   }
 }
