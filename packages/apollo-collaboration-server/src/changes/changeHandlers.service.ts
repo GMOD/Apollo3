@@ -1234,7 +1234,7 @@ export class ChangeHandlersService implements ChangeHandlers {
     if (assemblyDoc) {
       throw new Error(`Assembly "${assemblyName}" already exists`)
     }
-    const checkDocs = await checkModel.find({ default: true }).exec()
+    const checkDocs = await checkModel.find({ isDefault: true }).exec()
     const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
     await assemblyModel.create([
       {
@@ -1400,7 +1400,7 @@ export class ChangeHandlersService implements ChangeHandlers {
       if (assemblyDoc) {
         throw new Error(`Assembly "${assemblyName}" already exists`)
       }
-      const checkDocs = await checkModel.find({ default: true }).exec()
+      const checkDocs = await checkModel.find({ isDefault: true }).exec()
       const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
       await assemblyModel.create([
         {
