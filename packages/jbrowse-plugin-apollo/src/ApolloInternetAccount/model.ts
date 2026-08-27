@@ -30,7 +30,6 @@ import {
   types,
 } from '@jbrowse/mobx-state-tree'
 import { autorun } from 'mobx'
-import { io } from 'socket.io-client'
 
 import { addTopLevelAdminMenus } from '../menus/topLevelMenuAdmin'
 import type { Collaborator } from '../session'
@@ -360,7 +359,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
         if (!response.ok) {
           console.error(
-            `Error when fetching the last updates to recover socket connection — ${response.status}`,
+            `Error when fetching the last updates to recover SSE connection — ${response.status}`,
           )
           return
         }
@@ -371,12 +370,11 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
       }),
     }))
-    .volatile((self) => {
-      const { origin, pathname: path } = new URL('socket.io/', self.baseURL)
-      return { socket: io(origin, { path }) }
-    })
+    .volatile(() => ({
+      eventSource: undefined as EventSource | undefined,
+    }))
     .actions((self) => ({
-      addSocketListeners() {
+      addEventSourceListeners() {
         const { session } = getRoot<ApolloRootModel>(self)
         const { notify } = session as unknown as AbstractSessionModel
         const token = self.retrieveToken()
@@ -385,17 +383,25 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
         const user = getDecodedToken(token)
         const localSessionId = makeUserSessionId(user)
-        const { socket } = self
         const { addCheckResult, changeManager, deleteCheckResult } =
           session.apolloDataStore
-        socket.on('connect', () => {
+
+        const url = new URL('messages/events', self.baseURL)
+        url.searchParams.set('token', token)
+        const eventSource = new EventSource(url)
+        self.eventSource = eventSource
+
+        eventSource.addEventListener('open', () => {
           void self.getMissingChanges()
         })
-        socket.on('connect_error', (error) => {
+        eventSource.addEventListener('error', (error) => {
           console.error(error)
           notify('Could not connect to the Apollo server.', 'error')
         })
-        socket.on('COMMON', (message: ChangeMessage | CheckResultUpdate) => {
+        eventSource.addEventListener('COMMON', (event) => {
+          const message = JSON.parse(event.data) as
+            | ChangeMessage
+            | CheckResultUpdate
           if ('checkResult' in message) {
             if (message.deleted) {
               deleteCheckResult(message.checkResult._id)
@@ -415,7 +421,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           const change = Change.fromJSON(message.changeInfo)
           void changeManager.submit(change, { submitToBackend: false })
         })
-        socket.on('USER_LOCATION', (message: UserLocationMessage) => {
+        eventSource.addEventListener('USER_LOCATION', (event) => {
+          const message = JSON.parse(event.data) as UserLocationMessage
           const { channel, locations, userName, userSessionId } = message
           if (channel === 'USER_LOCATION' && userSessionId !== localSessionId) {
             const collaborator: Collaborator = {
@@ -426,15 +433,15 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             session.addOrUpdateCollaborator(collaborator)
           }
         })
-        socket.on(
-          'REQUEST_INFORMATION',
-          (message: RequestUserInformationMessage) => {
-            const { channel, userSessionId } = message
-            if (channel === 'REQUEST_INFORMATION' && userSessionId !== token) {
-              session.broadcastLocations()
-            }
-          },
-        )
+        eventSource.addEventListener('REQUEST_INFORMATION', (event) => {
+          const message = JSON.parse(
+            event.data,
+          ) as RequestUserInformationMessage
+          const { channel, userSessionId } = message
+          if (channel === 'REQUEST_INFORMATION' && userSessionId !== token) {
+            session.broadcastLocations()
+          }
+        })
       },
     }))
     .actions((self) => {
@@ -514,8 +521,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           }
           // Get and set server last change sequence into session storage
           yield self.updateLastChangeSequenceNumber()
-          // Open socket listeners
-          self.addSocketListeners()
+          // Open event source listeners
+          self.addEventSourceListeners()
           // request user locations
           const { baseURL } = self
           const uri = new URL('users/locations', baseURL).href
@@ -577,7 +584,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         self.controller.abort(
           new DOMException('Cleaning up Apollo connection', 'AbortError'),
         )
-        self.socket.close()
+        self.eventSource?.close()
       },
     }))
 }
