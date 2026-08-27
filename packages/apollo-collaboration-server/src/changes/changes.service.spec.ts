@@ -9,7 +9,7 @@ import { getModelToken } from '@nestjs/mongoose'
 import { Test, type TestingModule } from '@nestjs/testing'
 
 import { CountersService } from '../counters/counters.service.js'
-import { MessagesGateway } from '../messages/messages.gateway.js'
+import { MessagesService } from '../messages/messages.service.js'
 
 import { ChangeHandlersService } from './changeHandlers.service.js'
 import { ChangesService } from './changes.service.js'
@@ -27,7 +27,7 @@ describe('ChangesService', () => {
         { provide: getModelToken(RefSeqChunk.name), useValue: {} },
         { provide: getModelToken(Change.name), useValue: {} },
         { provide: CountersService, useValue: {} },
-        { provide: MessagesGateway, useValue: {} },
+        { provide: MessagesService, useValue: {} },
         { provide: ChangeHandlersService, useValue: {} },
       ],
     }).compile()

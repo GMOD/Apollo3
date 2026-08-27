@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { getModelToken } from '@nestjs/mongoose'
 import { Test, type TestingModule } from '@nestjs/testing'
 
-import { MessagesGateway } from '../messages/messages.gateway.js'
+import { MessagesService } from '../messages/messages.service.js'
 
 import { UsersService } from './users.service.js'
 
@@ -16,7 +16,7 @@ describe('UsersService', () => {
       providers: [
         UsersService,
         { provide: getModelToken(User.name), useValue: {} },
-        { provide: MessagesGateway, useValue: {} },
+        { provide: MessagesService, useValue: {} },
         { provide: ConfigService, useValue: { get: jest.fn() } },
       ],
     }).compile()

@@ -56,7 +56,7 @@ export class UsersController {
   }
 
   /**
-   * Receives user location by broadcasting 'user location' -request using web sockets
+   * Receives user location by broadcasting 'user location' -request using SSEs
    * @param userLocation - user's location information
    * @returns
    */
@@ -68,7 +68,7 @@ export class UsersController {
       throw new Error('No user attached to request')
     }
     this.logger.debug('Requesting other users locations')
-    return this.usersService.requestUsersLocations(user)
+    this.usersService.requestUsersLocations(user)
   }
 
   @Validations(Role.Admin)
@@ -80,7 +80,7 @@ export class UsersController {
   // NOTE: It's important that all GET endpoints are before POST endpoint, otherwise GET endpoint that is after POST may not be called properly!!
 
   /**
-   * Receives user location and broadcast information using web sockets
+   * Receives user location and broadcast information using web SSEs
    * @param userLocDto - user's location information
    * @returns
    */
@@ -99,6 +99,6 @@ export class UsersController {
     if (!user) {
       throw new Error('No user attached to request')
     }
-    return this.usersService.broadcastLocation(userLocationArray, user)
+    this.usersService.broadcastLocation(userLocationArray, user)
   }
 }
