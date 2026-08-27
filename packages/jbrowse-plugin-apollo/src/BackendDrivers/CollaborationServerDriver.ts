@@ -23,7 +23,6 @@ import {
 import { getConf } from '@jbrowse/core/configuration'
 import type { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { type Region, getSession } from '@jbrowse/core/util'
-import type { Socket } from 'socket.io-client'
 
 import { ChangeManager, type SubmitOpts } from '../ChangeManager'
 import { createFetchErrorMessage } from '../util'
@@ -54,7 +53,7 @@ type RefSeqMap = Map<string, RefSeq>
 
 export interface ApolloInternetAccount extends BaseInternetAccountModel {
   baseURL: string
-  socket: Socket
+  eventSource?: EventSource
   setLastChangeSequenceNumber(sequenceNumber: number): void
   getMissingChanges(): void
 }
@@ -63,6 +62,8 @@ export class CollaborationServerDriver extends BackendDriver {
   private inFlight = new Map<string, Promise<string>>()
 
   private refSeqMaps = new Map<string, RefSeqMap>()
+
+  private registeredChannels = new WeakMap<EventSource, Set<string>>()
 
   private async fetch(
     internetAccount: ApolloInternetAccount,
@@ -137,28 +138,43 @@ export class CollaborationServerDriver extends BackendDriver {
       )
       throw new Error(errorMessage)
     }
-    this.checkSocket(assemblyName, refName, internetAccount)
+    this.checkEventSource(assemblyName, refName, internetAccount)
     return response.json() as Promise<
       [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
     >
   }
 
   /**
-   * Checks if there is assembly-refSeq specific socket. If not, it opens one
+   * Checks if there is an assembly-refSeq specific event listener. If not, it
+   * adds one
    * @param assembly - assemblyId
    * @param refSeq - refSeqName
    * @param internetAccount - internet account
    */
-  checkSocket(
+  checkEventSource(
     assembly: string,
     refSeq: string,
     internetAccount: ApolloInternetAccount,
   ) {
-    const { socket } = internetAccount
+    const { eventSource } = internetAccount
+    if (!eventSource) {
+      return
+    }
     const channel = `${assembly}-${refSeq}`
 
-    if (!socket.hasListeners(channel)) {
-      socket.on(channel, async (message: ChangeMessage) => {
+    let channels = this.registeredChannels.get(eventSource)
+    if (!channels) {
+      channels = new Set()
+      this.registeredChannels.set(eventSource, channels)
+    }
+    if (channels.has(channel)) {
+      return
+    }
+    channels.add(channel)
+
+    eventSource.addEventListener(channel, (event) => {
+      void (async () => {
+        const message = JSON.parse(event.data as string) as ChangeMessage
         const token = internetAccount.retrieveToken()
         if (!token) {
           return
@@ -174,8 +190,8 @@ export class CollaborationServerDriver extends BackendDriver {
         if (isFeatureChange(change) && this.haveDataForChange(change)) {
           await changeManager.submit(change, { submitToBackend: false })
         }
-      })
-    }
+      })()
+    })
   }
 
   private haveDataForChange(change: FeatureChange): boolean {
@@ -247,7 +263,7 @@ export class CollaborationServerDriver extends BackendDriver {
     )
     this.inFlight.set(inFlightKey, seqPromise)
     const seq = await seqPromise
-    this.checkSocket(assemblyName, refName, internetAccount)
+    this.checkEventSource(assemblyName, refName, internetAccount)
     this.inFlight.delete(inFlightKey)
     return { seq, refSeq }
   }

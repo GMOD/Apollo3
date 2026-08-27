@@ -44,9 +44,7 @@
     "@nestjs/mongoose": "^11.0.4",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.2.1",
-    "@nestjs/platform-socket.io": "^11.2.1",
     "@nestjs/terminus": "^11.1.1",
-    "@nestjs/websockets": "^11.2.1",
     "connect-mongodb-session": "^5.0.0",
     "deepmerge": "^4.3.1",
     "express": "^5.2.1",
@@ -72,7 +70,6 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.4.0",
     "sanitize-filename": "^1.6.3",
-    "socket.io": "^4.5.3",
     "stream-concat": "^1.0.0",
     "tslib": "^2.3.1",
     "tss-react": "^4.9.21"
