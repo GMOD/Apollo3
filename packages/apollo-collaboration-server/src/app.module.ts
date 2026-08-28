@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import path from 'node:path'
 
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
@@ -7,6 +8,10 @@ import {
   MongooseModule,
   type MongooseModuleFactoryOptions,
 } from '@nestjs/mongoose'
+import {
+  ServeStaticModule,
+  type ServeStaticModuleOptions,
+} from '@nestjs/serve-static'
 import Joi from 'joi'
 import type { Connection } from 'mongoose'
 
@@ -34,12 +39,17 @@ interface MongoDBURIConfig {
   MONGODB_URI_FILE?: string
 }
 
+interface JBrowseDirConfig {
+  JBROWSE_DIR: string
+}
+
 const nodeEnv = process.env.NODE_ENV ?? 'production'
 
 const validationSchema = Joi.object({
   // Required
   URL: Joi.string().uri().required(),
   NAME: Joi.string().required(),
+  JBROWSE_DIR: Joi.string().required(),
   MONGODB_URI: Joi.string(),
   MONGODB_URI_FILE: Joi.string(),
   FILE_UPLOAD_FOLDER: Joi.string().required(),
@@ -143,6 +153,20 @@ async function mongoDBURIFactory(
   }
 }
 
+function serveStaticFactory(
+  configService: ConfigService<JBrowseDirConfig, true>,
+): ServeStaticModuleOptions[] {
+  const jbrowseDir = configService.get('JBROWSE_DIR', { infer: true })
+  console.log(path.join(import.meta.dirname, '..', jbrowseDir))
+  return [
+    {
+      rootPath: path.join(import.meta.dirname, '..', jbrowseDir),
+      serveRoot: '/jbstatic',
+      serveStaticOptions: { fallthrough: false },
+    },
+  ]
+}
+
 @Module({
   imports: [
     AssembliesModule,
@@ -171,6 +195,11 @@ async function mongoDBURIFactory(
     SequenceModule,
     UsersModule,
     JBrowseModule,
+    ServeStaticModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: serveStaticFactory,
+    }),
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

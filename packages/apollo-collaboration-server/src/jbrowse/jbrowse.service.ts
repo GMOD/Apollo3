@@ -1,24 +1,61 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
+
 import {
+  Check,
+  type CheckDocument,
+  JBrowseAssembly,
+  type JBrowseAssemblyDocument,
+  JBrowseRefSeq,
+  type JBrowseRefSeqDocument,
   JBrowseConfig,
   type JBrowseConfigDocument,
 } from '@apollo-annotation/schemas'
-import { Injectable, Logger } from '@nestjs/common'
+import { BgzipIndexedFasta } from '@gmod/indexedfasta'
+import { Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
 import merge from 'deepmerge'
+import { RemoteFile } from 'generic-filehandle2'
 import { Model } from 'mongoose'
 
 import { AssembliesService } from '../assemblies/assemblies.service.js'
-import { RefSeqsService } from '../refSeqs/refSeqs.service.js'
 import { Role } from '../utils/role/role.enum.js'
 
+interface JBrowseUriLocation {
+  uri: string
+}
+
+interface JBrowseSequenceConfig {
+  adapter: {
+    type: string
+    fastaLocation: JBrowseUriLocation
+    faiLocation: JBrowseUriLocation
+    gziLocation: JBrowseUriLocation
+  }
+}
+
+interface JBrowseAssemblyConfig {
+  name: string
+  sequence: JBrowseSequenceConfig
+}
+
+interface JBrowseFileConfig {
+  assemblies?: JBrowseAssemblyConfig[]
+}
+
 @Injectable()
-export class JBrowseService {
+export class JBrowseService implements OnApplicationBootstrap {
   constructor(
     private readonly assembliesService: AssembliesService,
-    private readonly refSeqsService: RefSeqsService,
     @InjectModel(JBrowseConfig.name)
     private readonly jbrowseConfigModel: Model<JBrowseConfigDocument>,
+    @InjectModel(JBrowseAssembly.name)
+    private readonly jbrowseAssemblyModel: Model<JBrowseAssemblyDocument>,
+    @InjectModel(JBrowseRefSeq.name)
+    private readonly jbrowseRefSeqModel: Model<JBrowseRefSeqDocument>,
+    @InjectModel(Check.name)
+    private readonly checkModel: Model<CheckDocument>,
     private readonly configService: ConfigService<
       {
         URL: string
@@ -27,12 +64,93 @@ export class JBrowseService {
         PLUGIN_LOCATION?: string
         FEATURE_TYPE_ONTOLOGY_LOCATION?: string
         SKIPPED_ATTRIBUTES_ON_COPY?: string
+        JBROWSE_DIR: string
       },
       true
     >,
   ) {}
 
   private readonly logger = new Logger(JBrowseService.name)
+
+  async onApplicationBootstrap() {
+    const jbrowseDir = this.configService.get('JBROWSE_DIR', { infer: true })
+    const configPath = path.join(jbrowseDir, 'config.json')
+    const contents = await fs.readFile(configPath, 'utf8')
+    const config = JSON.parse(contents) as JBrowseFileConfig
+    const assemblies = config.assemblies ?? []
+
+    for (const assemblyConfig of assemblies) {
+      await this.addAssemblyFromConfig(assemblyConfig)
+    }
+
+    const configAssemblyNames = new Set(
+      assemblies.map((assemblyConfig) => assemblyConfig.name),
+    )
+    const storedAssemblies = await this.jbrowseAssemblyModel.find().exec()
+    for (const storedAssembly of storedAssemblies) {
+      if (!configAssemblyNames.has(storedAssembly.name)) {
+        this.logger.warn(
+          `Assembly "${storedAssembly.name}" was found in MongoDB but not in config.json - it may be orphaned`,
+        )
+      }
+    }
+  }
+
+  private async addAssemblyFromConfig(
+    assemblyConfig: JBrowseAssemblyConfig,
+  ): Promise<void> {
+    const { name: assemblyName, sequence } = assemblyConfig
+    const existingAssembly = await this.jbrowseAssemblyModel
+      .findOne({ name: assemblyName })
+      .exec()
+    if (existingAssembly) {
+      this.logger.debug(
+        `Assembly "${assemblyName}" already exists, so not adding`,
+      )
+      return
+    }
+    const { adapter } = sequence
+    if (adapter.type !== 'BgzipFastaAdapter') {
+      throw new Error(
+        `Unsupported sequence adapter type "${adapter.type}" for assembly "${assemblyName}" in config.json`,
+      )
+    }
+    const sequenceAdapter = new BgzipIndexedFasta({
+      fasta: new RemoteFile(adapter.fastaLocation.uri, { fetch }),
+      fai: new RemoteFile(adapter.faiLocation.uri, { fetch }),
+      gzi: new RemoteFile(adapter.gziLocation.uri, { fetch }),
+    })
+    const allSequenceSizes = await sequenceAdapter.getSequenceSizes()
+
+    const checkDocs = await this.checkModel.find({ isDefault: true }).exec()
+    const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
+
+    const [assemblyDoc] = await this.jbrowseAssemblyModel.create([
+      { name: assemblyName, checks },
+    ])
+    if (!assemblyDoc) {
+      throw new Error(`Failed to create JBrowse assembly "${assemblyName}"`)
+    }
+    this.logger.log(
+      `Added JBrowse assembly "${assemblyName}" from config.json, docId "${assemblyDoc._id.toHexString()}"`,
+    )
+
+    this.logger.log(
+      `Adding ${Object.keys(allSequenceSizes).length} refSeqs to assembly "${assemblyName}"`,
+    )
+    for (const sequenceName in allSequenceSizes) {
+      const [newRefSeqDoc] = await this.jbrowseRefSeqModel.create([
+        {
+          name: sequenceName,
+          assembly: assemblyDoc._id,
+          length: allSequenceSizes[sequenceName],
+        },
+      ])
+      this.logger.debug(
+        `Added new refSeq "${sequenceName}", docId "${newRefSeqDoc?.id}"`,
+      )
+    }
+  }
 
   get internetAccountId() {
     const name = this.configService.get('NAME', { infer: true })
