@@ -1,14 +1,9 @@
-import type {
-  AbstractMenuManager,
-  AbstractSessionModel,
-} from '@jbrowse/core/util'
+import type { AbstractMenuManager } from '@jbrowse/core/util'
 import LogoutIcon from '@mui/icons-material/Logout'
 import RedoIcon from '@mui/icons-material/Redo'
 import UndoIcon from '@mui/icons-material/Undo'
 
-import { LogOut } from '../components'
 import type { ApolloSessionModel } from '../session'
-import { type ApolloRootModel, isApolloInternetAccount } from '../types'
 
 export function addTopLevelMenus(rootModel: AbstractMenuManager) {
   rootModel.insertInMenu(
@@ -42,27 +37,16 @@ export function addTopLevelMenus(rootModel: AbstractMenuManager) {
       session.toggleLocked()
     },
   })
-  const { internetAccounts } = rootModel as unknown as ApolloRootModel
-  const hasApolloInternetAccount = internetAccounts.some((ia) =>
-    isApolloInternetAccount(ia),
-  )
-  if (hasApolloInternetAccount) {
-    rootModel.appendToMenu('Apollo', {
-      label: 'Log out',
-      icon: LogoutIcon,
-      onClick: (session: ApolloSessionModel) => {
-        ;(session as unknown as AbstractSessionModel).queueDialog(
-          (doneCallback) => [
-            LogOut,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-            },
-          ],
-        )
-      },
-    })
-  }
+  rootModel.appendToMenu('Apollo', {
+    label: 'Log out',
+    icon: LogoutIcon,
+    onClick: () => {
+      if (globalThis.confirm('Are you sure you want to log out?')) {
+        globalThis.location.href = new URL(
+          'logout',
+          globalThis.location.href,
+        ).toString()
+      }
+    },
+  })
 }

@@ -52,7 +52,7 @@ export abstract class BackendDriver {
 
   abstract getRegions(assemblyName: string): Promise<Region[]>
 
-  abstract getAssemblies(internetAccountConfigId?: string): Assembly[]
+  abstract getAssemblies(): Assembly[]
 
   abstract getRefNameAliases(assemblyName: string): Promise<RefNameAliases[]>
 

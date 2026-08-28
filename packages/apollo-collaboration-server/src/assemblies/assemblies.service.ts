@@ -14,9 +14,6 @@ import { ChecksService } from '../checks/checks.service.js'
 import { FeaturesService } from '../features/features.service.js'
 import { RefSeqsService } from '../refSeqs/refSeqs.service.js'
 
-import { CreateAssemblyDto } from './dto/create-assembly.dto.js'
-import { UpdateAssemblyDto } from './dto/update-assembly.dto.js'
-
 @Injectable()
 export class AssembliesService {
   constructor(
@@ -31,16 +28,17 @@ export class AssembliesService {
 
   private readonly logger = new Logger(AssembliesService.name)
 
-  async create(createAssemblyDto: CreateAssemblyDto) {
-    return this.assemblyModel.create(createAssemblyDto)
+  create(assembly: { name: string; configId: string; checks?: string[] }) {
+    return this.assemblyModel.create(assembly)
+  }
+
+  findByNameAndConfig(name: string, configId: string) {
+    return this.assemblyModel.findOne({ name, configId }).exec()
   }
 
   async updateChecks(_id: string, checks: string[]) {
     try {
-      await this.assemblyModel.updateOne(
-        { $and: [{ _id, status: 0 }] },
-        { $set: { checks } },
-      )
+      await this.assemblyModel.updateOne({ _id }, { $set: { checks } })
     } catch (error) {
       this.logger.error(
         `Could not update checks in assembly document "${_id}"`,
@@ -77,7 +75,7 @@ export class AssembliesService {
    * assemblies. Pass `undefined` for an unrestricted query.
    */
   findAll(allowedAssemblyIds?: string[]) {
-    const query: QueryFilter<AssemblyDocument> = { status: 0 }
+    const query: QueryFilter<AssemblyDocument> = {}
     if (allowedAssemblyIds) {
       query._id = { $in: allowedAssemblyIds }
     }
@@ -87,24 +85,10 @@ export class AssembliesService {
   }
 
   async findOne(id: string) {
-    const assembly = await this.assemblyModel
-      .findOne({ _id: id, status: 0 })
-      .exec()
+    const assembly = await this.assemblyModel.findOne({ _id: id }).exec()
     if (!assembly) {
       throw new NotFoundException(`Assembly with id "${id}" not found`)
     }
     return assembly
-  }
-
-  update(id: string, updateAssemblyDto: UpdateAssemblyDto) {
-    return this.assemblyModel
-      .findByIdAndUpdate({ id, status: 0 }, updateAssemblyDto, {
-        runValidators: true,
-      })
-      .exec()
-  }
-
-  remove(id: string) {
-    return this.assemblyModel.findByIdAndDelete(id).exec()
   }
 }

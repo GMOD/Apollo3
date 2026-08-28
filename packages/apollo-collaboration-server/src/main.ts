@@ -8,6 +8,7 @@ import { CDSCheck, TranscriptCheck } from '@apollo-annotation/shared'
 import type { LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import connectMongoDBSession from 'connect-mongodb-session'
+import cookieParser from 'cookie-parser'
 import { json, urlencoded } from 'express'
 import session from 'express-session'
 
@@ -116,6 +117,7 @@ async function bootstrap() {
 
   app.use(json({ limit: '50mb' }))
   app.use(urlencoded({ extended: true, limit: '50mb' }))
+  app.use(cookieParser())
 
   app.use(
     session({

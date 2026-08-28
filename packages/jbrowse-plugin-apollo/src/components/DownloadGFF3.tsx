@@ -19,10 +19,6 @@ import {
 import { saveAs } from 'file-saver'
 import React, { useState } from 'react'
 
-import type {
-  ApolloInternetAccount,
-  CollaborationServerDriver,
-} from '../BackendDrivers'
 import { openDb } from '../BackendDrivers/LocalDriver/db'
 import type { ApolloSessionModel } from '../session'
 import { createFetchErrorMessage } from '../util'
@@ -52,14 +48,6 @@ export function DownloadGFF3({
   const [includeFASTA, setIncludeFASTA] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
-  const { getInternetAccount } = session.apolloDataStore as {
-    collaborationServerDriver: CollaborationServerDriver
-    getInternetAccount(
-      assemblyName?: string,
-      internetAccountId?: string,
-    ): ApolloInternetAccount
-  }
-
   const { assemblyManager } = session as unknown as AbstractSessionModel
   const assembly = assemblyManager.get(assemblyName)
   if (!assembly) {
@@ -67,37 +55,26 @@ export function DownloadGFF3({
     return
   }
 
-  const { internetAccountConfigId } = getConf(assembly, [
-    'sequence',
-    'metadata',
-  ]) as { internetAccountConfigId?: string }
+  const { apollo } = getConf(assembly, ['sequence', 'metadata']) as {
+    apollo?: boolean
+  }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
 
-    await (internetAccountConfigId
-      ? exportFromCollaborationServer(internetAccountConfigId)
+    await (apollo
+      ? exportFromCollaborationServer()
       : downloadAssemblyGFF3(assemblyName))
     handleClose()
   }
 
-  async function exportFromCollaborationServer(
-    internetAccountConfigId: string,
-  ) {
-    const internetAccount = getInternetAccount(
-      assemblyName,
-      internetAccountConfigId,
-    )
-    const url = new URL('export/getID', internetAccount.baseURL)
+  async function exportFromCollaborationServer() {
+    const url = new URL('export/getID', globalThis.location.href)
     const searchParams = new URLSearchParams({ assembly: assemblyName })
     url.search = searchParams.toString()
     const uri = url.toString()
-    const apolloFetch = internetAccount.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
-    const response = await apolloFetch(uri, { method: 'GET' })
+    const response = await fetch(uri, { method: 'GET' })
     if (!response.ok) {
       const newErrorMessage = await createFetchErrorMessage(
         response,
@@ -108,7 +85,7 @@ export function DownloadGFF3({
     }
     const { exportID } = (await response.json()) as { exportID: string }
 
-    const exportURL = new URL('export', internetAccount.baseURL)
+    const exportURL = new URL('export', globalThis.location.href)
     const params: Record<string, string> = {
       exportID,
       includeFASTA: includeFASTA ? 'true' : 'false',
@@ -117,7 +94,7 @@ export function DownloadGFF3({
     exportURL.search = exportSearchParams.toString()
     const exportUri = exportURL.toString()
 
-    window.open(exportUri, '_blank')
+    globalThis.open(exportUri, '_blank')
   }
 
   return (
@@ -142,7 +119,7 @@ export function DownloadGFF3({
                   onChange={() => {
                     setIncludeFASTA(!includeFASTA)
                   }}
-                  disabled={!internetAccountConfigId}
+                  disabled={!apollo}
                 />
               }
               label="Include fasta sequence in GFF output"

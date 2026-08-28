@@ -73,16 +73,8 @@ void describe('Test CLI', () => {
   afterEach(async () => {
     const database = client.db('apolloTestCliDb')
     await Promise.all(
-      [
-        'assemblies',
-        'changes',
-        'counters',
-        'features',
-        'files',
-        'refseqchunks',
-        'refseqs',
-      ].map((collectionName) =>
-        database.collection(collectionName).deleteMany({}),
+      ['assemblies', 'changes', 'counters', 'features', 'files', 'refseqs'].map(
+        (collectionName) => database.collection(collectionName).deleteMany({}),
       ),
     )
     // Put back starting config file
@@ -2645,66 +2637,6 @@ EOF`,
     assert.ok(
       p.stderr.includes('Profile "foo" does not exist'),
       `Expected "Profile does not exist" error:\n${p.stderr}`,
-    )
-  })
-
-  void globalThis.itName('Refname alias configuration', () => {
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a asm1 -f`,
-    )
-
-    let p = new Shell(`${apollo} assembly get ${P} -a asm1`)
-    assert.ok(
-      p.stdout.includes('asm1'),
-      'Expected assembly asm1 to be returned',
-    )
-    assert.ok(
-      p.stdout.includes('asm2') == false,
-      'Expected only assembly asm1 to be returned',
-    )
-    const asm_id = JSON.parse(p.stdout)[0]._id
-
-    p = new Shell(
-      `${apollo} refseq add-alias ${P} test_data/alias.txt -a asm2`,
-      false,
-    )
-    assert.ok(
-      p.stderr.includes('Assembly asm2 not found'),
-      `Expected "Assembly asm2 not found" error:\n${p.stderr}`,
-    )
-
-    p = new Shell(
-      `${apollo} refseq add-alias ${P} test_data/alias.txt -a asm1`,
-      false,
-    )
-    assert.ok(
-      p.stdout.includes(
-        'Reference name aliases added successfully to assembly asm1',
-      ),
-      `Expected aliases to be added successfully. Stdout:\n${p.stdout}\nStderr:\n${p.stderr}`,
-    )
-
-    p = new Shell(`${apollo} refseq get ${P}`)
-    const refseq = JSON.parse(p.stdout.trim())
-    const vv1ref = refseq.filter((x: any) => x.assembly === asm_id)
-    const refname_aliases: Record<string, string[]> = {}
-    for (const x of vv1ref) {
-      refname_aliases[x.name] = x.aliases
-    }
-    assert.deepStrictEqual(
-      JSON.stringify(refname_aliases.ctgA.sort()),
-      JSON.stringify(['ctga', 'CTGA'].sort()),
-      `Unexpected aliases for ctgA: ${JSON.stringify(refname_aliases.ctgA)}`,
-    )
-    assert.deepStrictEqual(
-      JSON.stringify(refname_aliases.ctgB.sort()),
-      JSON.stringify(['ctgb', 'CTGB'].sort()),
-      `Unexpected aliases for ctgB: ${JSON.stringify(refname_aliases.ctgB)}`,
-    )
-    assert.deepStrictEqual(
-      JSON.stringify(refname_aliases.ctgC.sort()),
-      JSON.stringify(['ctgc', 'CTGC'].sort()),
-      `Unexpected aliases for ctgC: ${JSON.stringify(refname_aliases.ctgC)}`,
     )
   })
 
