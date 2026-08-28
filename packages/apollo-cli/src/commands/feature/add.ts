@@ -304,14 +304,12 @@ To add multiple features, features with more details, or features with children,
     _id: string
     name: string
     assembly: string
-    aliases?: string[]
   }> {
     if (ObjectId.isValid(refSeqNameOrId)) {
       return (await this.get(`refSeqs/${refSeqNameOrId}`)) as {
         _id: string
         name: string
         assembly: string
-        aliases?: string[]
       }
     }
     let endpoint = 'refSeqs'
@@ -323,13 +321,9 @@ To add multiple features, features with more details, or features with children,
       _id: string
       name: string
       assembly: string
-      aliases?: string[]
     }[]
     for (const refSeq of refSeqs) {
-      if (
-        refSeq.name === refSeqNameOrId ||
-        refSeq.aliases?.includes(refSeqNameOrId)
-      ) {
+      if (refSeq.name === refSeqNameOrId) {
         return refSeq
       }
     }

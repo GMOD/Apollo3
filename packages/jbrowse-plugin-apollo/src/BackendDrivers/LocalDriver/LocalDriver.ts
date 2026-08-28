@@ -149,7 +149,7 @@ export class LocalDriver extends BackendDriver {
     return regions
   }
 
-  getAssemblies(internetAccountConfigId?: string): Assembly[] {
+  getAssemblies(): Assembly[] {
     return []
   }
 

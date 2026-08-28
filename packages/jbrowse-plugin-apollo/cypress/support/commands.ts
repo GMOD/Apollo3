@@ -33,35 +33,22 @@ Cypress.on('window:load', (win) => {
 })
 
 Cypress.Commands.add('loginAsGuest', () => {
-  cy.visit('/?config=http://localhost:3999/jbrowse/config.json', {
+  // Visiting while unauthenticated redirects (server-side, before the
+  // JBrowse app loads) to the login page; only after logging in as guest
+  // does it redirect back and the app's own "external config" trust dialog
+  // appear.
+  cy.visit('/?config=http://localhost:3999/test_data/config.json', {
     // JBrowse remembers trusted plugins, so forget them to make sure the trust
     // dialog appears even if this has already been called in the same test
     onBeforeLoad(win) {
       win.localStorage.removeItem('jbrowse-trusted-plugins')
     },
   })
+  cy.contains('Continue as Guest', { timeout: 10_000 }).click()
   cy.contains('Yes, I trust it', { timeout: 10_000 }).click()
-  // The login dialog doesn't always appear (e.g. in CI), so poll for it for a
-  // few seconds and continue on if it never shows up
-  const deadline = Date.now() + 2000
-  function clickGuestLoginIfPresent() {
-    cy.get('body').then(($body) => {
-      const guestLogin = $body.find(':contains("Continue as Guest")').last()
-      if (guestLogin.length > 0) {
-        cy.wrap(guestLogin).click()
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
-        cy.wait(2000)
-        cy.reload()
-        return
-      }
-      if (Date.now() < deadline) {
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
-        cy.wait(250)
-        clickGuestLoginIfPresent()
-      }
-    })
-  }
-  clickGuestLoginIfPresent()
+  // eslint-disable-next-line cypress/no-unnecessary-waiting
+  cy.wait(2000)
+  cy.reload()
 })
 
 /**
@@ -173,26 +160,6 @@ Cypress.Commands.add('deleteIndexedDatabases', () => {
 })
 
 Cypress.Commands.add('addOntologies', () => {
-  cy.deleteMany({}, { collection: 'jbrowseconfigs' })
-  cy.insertOne(
-    {
-      configuration: {
-        ApolloPlugin: {
-          ontologies: [
-            {
-              name: 'Sequence Ontology',
-              version: 'unversioned',
-              source: {
-                uri: 'http://localhost:9000/test_data/so-2024-11-18.json',
-                locationType: 'UriLocation',
-              },
-            },
-          ],
-        },
-      },
-    },
-    { collection: 'jbrowseconfigs' },
-  )
   cy.preloadSequenceOntology()
 })
 

@@ -4,7 +4,6 @@ import { readConfObject } from '@jbrowse/core/configuration'
 /** The metadata Apollo stores in an assembly's sequence configuration */
 export interface ApolloAssemblyMetadata {
   apollo?: boolean
-  internetAccountConfigId?: string
   file?: string
 }
 

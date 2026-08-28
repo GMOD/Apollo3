@@ -22,13 +22,10 @@ import {
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 
-import type {
-  ApolloInternetAccount,
-  CollaborationServerDriver,
-} from '../BackendDrivers'
+import type { CollaborationServerDriver } from '../BackendDrivers'
 import type { ChangeManager, JobInput } from '../ChangeManager'
 import type { ApolloSessionModel } from '../session'
-import { createFetchErrorMessage, getAssemblyMetadata } from '../util'
+import { createFetchErrorMessage } from '../util'
 
 import { Dialog } from './Dialog'
 
@@ -55,12 +52,8 @@ export function ImportFeatures({
   const [strict, setStrict] = useState(true)
   const [loading, setLoading] = useState(false)
 
-  const { collaborationServerDriver, getInternetAccount } = apolloDataStore as {
+  const { collaborationServerDriver } = apolloDataStore as {
     collaborationServerDriver: CollaborationServerDriver
-    getInternetAccount(
-      assemblyName?: string,
-      internetAccountId?: string,
-    ): ApolloInternetAccount
   }
   const assemblies = collaborationServerDriver.getAssemblies()
 
@@ -84,26 +77,11 @@ export function ImportFeatures({
       return
     }
     const updateFeaturesCount = async () => {
-      // TODO: this code will not work for running on desktop
-      const { internetAccountConfigId } = getAssemblyMetadata(selectedAssembly)
-      const apolloInternetAccount = getInternetAccount(
-        selectedAssembly.name,
-        internetAccountConfigId,
-      )
-      if (!apolloInternetAccount) {
-        throw new Error('No Apollo internet account found')
-      }
-
-      const { baseURL } = apolloInternetAccount
-      const uri = new URL('features/count', baseURL)
+      const uri = new URL('features/count', globalThis.location.href)
       const searchParams = new URLSearchParams({
         assemblyId: selectedAssembly.name,
       })
       uri.search = searchParams.toString()
-      const fetch = apolloInternetAccount.getFetcher({
-        locationType: 'UriLocation',
-        uri: uri.toString(),
-      })
 
       setLoading(true)
       const response = await fetch(uri.toString(), { method: 'GET' })
@@ -122,7 +100,7 @@ export function ImportFeatures({
       console.error(error)
       setErrorMessage(error.message ?? error)
     })
-  }, [getInternetAccount, session, selectedAssembly])
+  }, [session, selectedAssembly])
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
     setSubmitted(false)
@@ -148,25 +126,14 @@ export function ImportFeatures({
       return
     }
 
-    const { internetAccountConfigId } = getAssemblyMetadata(selectedAssembly)
-    const apolloInternetAccount = getInternetAccount(
-      selectedAssembly.name,
-      internetAccountConfigId,
-    )
-    const { baseURL } = apolloInternetAccount
-
     // First upload file
-    const url = new URL('files', baseURL)
+    const url = new URL('files', globalThis.location.href)
     url.searchParams.set('type', 'text/x-gff3')
     const uri = url.href
     const formData = new FormData()
     formData.append('file', file)
     formData.append('fileName', file.name)
     formData.append('type', 'text/x-gff3')
-    const apolloFetchFile = apolloInternetAccount.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
 
     handleClose()
 
@@ -193,7 +160,7 @@ export function ImportFeatures({
     showJobStatusWidget()
 
     const { signal } = controller
-    const response = await apolloFetchFile(uri, {
+    const response = await fetch(uri, {
       method: 'POST',
       body: formData,
       signal,

@@ -3,6 +3,7 @@ import { BadRequestException, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import { Test, type TestingModule } from '@nestjs/testing'
+import type { Request, Response } from 'express'
 
 import { PluginsService } from '../plugins/plugins.service.js'
 import { UsersService } from '../users/users.service.js'
@@ -10,6 +11,13 @@ import { UsersService } from '../users/users.service.js'
 import { AuthenticationService } from './authentication.service.js'
 import type { OidcProviderConfig } from './oidc/oidc.config.js'
 import { OidcService } from './oidc/oidc.service.js'
+
+function mockResponse() {
+  const cookie = jest.fn()
+  const redirect = jest.fn()
+  const response = { cookie, redirect } as unknown as Response
+  return { response, cookie, redirect }
+}
 
 describe('AuthenticationService', () => {
   let service: AuthenticationService
@@ -23,9 +31,12 @@ describe('AuthenticationService', () => {
     { name: 'google', displayName: 'Google' },
     { name: 'keycloak', displayName: 'University SSO' },
   ]
+  const handler = jest.fn(() =>
+    Promise.resolve({ name: 'Some User', email: 'user@example.org' }),
+  )
   const customAuthTypes = new Map([
-    ['orcid', { message: 'Sign in with ORCID', needsPopup: true }],
-    ['keycloak', { message: 'Custom keycloak', needsPopup: true }],
+    ['orcid', { message: 'Sign in with ORCID', needsPopup: true, handler }],
+    ['keycloak', { message: 'Custom keycloak', needsPopup: true, handler }],
   ])
 
   beforeEach(async () => {
@@ -118,6 +129,80 @@ describe('AuthenticationService', () => {
     expect(() =>
       service.getTokenRedirectUrl('https://evil.example.com/', 'abc'),
     ).toThrow(BadRequestException)
+  })
+
+  it('allows same-origin path redirects, but not protocol-relative ones', () => {
+    expect(() => {
+      service.assertAllowedRedirectUri('/login?redirect_uri=%2F')
+    }).not.toThrow()
+    for (const uri of [
+      '//evil.example.com/',
+      String.raw`/\evil.example.com/`,
+    ]) {
+      expect(() => {
+        service.assertAllowedRedirectUri(uri)
+      }).toThrow(BadRequestException)
+    }
+  })
+
+  it('leaves the token out of same-origin path redirects', () => {
+    expect(service.getTokenRedirectUrl('/?config=a', 'abc')).toBe('/?config=a')
+    expect(
+      service.getLoginRedirectUrl('/login?redirect_uri=%2F', {
+        error: 'Not approved',
+      }),
+    ).toBe('/login?redirect_uri=%2F&error=Not+approved')
+  })
+
+  describe('fallbackLogin', () => {
+    beforeEach(() => {
+      jest.spyOn(service, 'logIn').mockResolvedValue({ token: 'login-token' })
+    })
+
+    it('sets an auth cookie and redirects to the plain redirect_uri when there is no popup state', async () => {
+      const { response, cookie, redirect } = mockResponse()
+      const result = await service.fallbackLogin(
+        'orcid',
+        {} as Request,
+        response,
+        '/?config=a',
+      )
+      expect(result).toEqual({ token: 'login-token' })
+      expect(cookie).toHaveBeenCalledWith(
+        'apollo_jwt',
+        'login-token',
+        expect.objectContaining({ httpOnly: true }),
+      )
+      expect(redirect).toHaveBeenCalledWith('/?config=a')
+    })
+
+    it('sets an auth cookie and redirects with an access_token for a popup login', async () => {
+      const { response, cookie, redirect } = mockResponse()
+      await service.fallbackLogin(
+        'orcid',
+        {} as Request,
+        response,
+        undefined,
+        JSON.stringify({ redirect_uri: 'http://localhost:3000/' }),
+      )
+      expect(cookie).toHaveBeenCalled()
+      expect(redirect).toHaveBeenCalledWith(
+        'http://localhost:3000/?access_token=login-token',
+      )
+    })
+
+    it('redirects to a same-origin path as-is for a popup login, relying on the cookie', async () => {
+      const { response, cookie, redirect } = mockResponse()
+      await service.fallbackLogin(
+        'orcid',
+        {} as Request,
+        response,
+        undefined,
+        JSON.stringify({ redirect_uri: '/login' }),
+      )
+      expect(cookie).toHaveBeenCalled()
+      expect(redirect).toHaveBeenCalledWith('/login')
+    })
   })
 
   describe('refreshToken', () => {

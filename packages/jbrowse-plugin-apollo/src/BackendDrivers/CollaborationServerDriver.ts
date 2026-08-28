@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-base-to-string */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -19,13 +18,12 @@ import {
   type ChangeMessage,
   type FeatureDensity,
   ValidationResultSet,
-  makeUserSessionId,
 } from '@apollo-annotation/shared'
-import type { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
+import { readConfObject } from '@jbrowse/core/configuration'
 import { type Region, getSession } from '@jbrowse/core/util'
 
-import type { ChannelSubscriptions } from '../ApolloInternetAccount/ChannelSubscriptions'
 import { ChangeManager, type SubmitOpts } from '../ChangeManager'
+import type { ApolloSessionModel } from '../session'
 import { createFetchErrorMessage, getAssemblyMetadata } from '../util'
 
 import {
@@ -39,7 +37,6 @@ export interface ApolloRefSeqResponse {
   _id: string
   name: string
   description?: string
-  aliases: string[]
   length: string
   assembly: string
 }
@@ -47,40 +44,17 @@ export interface ApolloRefSeqResponse {
 interface RefSeq {
   refName: string
   id: string
-  aliases: string[]
 }
 
 type RefSeqMap = Map<string, RefSeq>
-
-export interface ApolloInternetAccount extends BaseInternetAccountModel {
-  baseURL: string
-  channelSubscriptions: ChannelSubscriptions
-  setLastChangeSequenceNumber(sequenceNumber: number): void
-  getMissingChanges(): void
-}
 
 export class CollaborationServerDriver extends BackendDriver {
   private inFlight = new Map<string, Promise<string>>()
 
   private refSeqMaps = new Map<string, RefSeqMap>()
 
-  private async fetch(
-    internetAccount: ApolloInternetAccount,
-    info: RequestInfo,
-    init?: RequestInit,
-  ) {
-    const customFetch = internetAccount.getFetcher({
-      locationType: 'UriLocation',
-      uri: info.toString(),
-    })
-    return customFetch(info, init)
-  }
-
   async searchFeatures(term: string, assemblies: string[]) {
-    const internetAccount = this.clientStore.getInternetAccount(assemblies[0])
-    const { baseURL } = internetAccount
-
-    const url = new URL('features/searchFeatures', baseURL)
+    const url = new URL('features/searchFeatures', globalThis.location.href)
     const searchParams = new URLSearchParams({
       assemblies: assemblies.join(','),
       term,
@@ -88,7 +62,7 @@ export class CollaborationServerDriver extends BackendDriver {
     url.search = searchParams.toString()
     const uri = url.toString()
 
-    const response = await this.fetch(internetAccount, uri)
+    const response = await fetch(uri)
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(
         response,
@@ -117,10 +91,8 @@ export class CollaborationServerDriver extends BackendDriver {
       throw new Error(`Could not find refSeq "${refName}"`)
     }
     const refSeq = refSeqEntry.id
-    const internetAccount = this.clientStore.getInternetAccount(assemblyName)
-    const { baseURL } = internetAccount
 
-    const url = new URL('features/getFeatures', baseURL)
+    const url = new URL('features/getFeatures', globalThis.location.href)
     const searchParams = new URLSearchParams({
       refSeq,
       start: String(start),
@@ -129,7 +101,7 @@ export class CollaborationServerDriver extends BackendDriver {
     url.search = searchParams.toString()
     const uri = url.toString()
 
-    const response = await this.fetch(internetAccount, uri)
+    const response = await fetch(uri)
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(
         response,
@@ -137,7 +109,7 @@ export class CollaborationServerDriver extends BackendDriver {
       )
       throw new Error(errorMessage)
     }
-    this.checkEventSource(assemblyName, refName, internetAccount)
+    this.checkEventSource(assemblyName, refName)
     return response.json() as Promise<
       [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
     >
@@ -154,8 +126,10 @@ export class CollaborationServerDriver extends BackendDriver {
     if (!refSeqEntry) {
       throw new Error(`Could not find refSeq "${refName}"`)
     }
-    const internetAccount = this.clientStore.getInternetAccount(assemblyName)
-    const url = new URL('features/getFeatureDensity', internetAccount.baseURL)
+    const url = new URL(
+      'features/getFeatureDensity',
+      globalThis.location.href,
+    )
     const searchParams = new URLSearchParams({
       refSeq: refSeqEntry.id,
       start: String(start),
@@ -166,7 +140,7 @@ export class CollaborationServerDriver extends BackendDriver {
       searchParams.append('type', featureType)
     }
     url.search = searchParams.toString()
-    const response = await this.fetch(internetAccount, url.toString())
+    const response = await fetch(url.toString())
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(
         response,
@@ -183,25 +157,22 @@ export class CollaborationServerDriver extends BackendDriver {
    * the server's event stream.
    * @param assembly - assemblyId
    * @param refSeq - refSeqName
-   * @param internetAccount - internet account
    */
-  checkEventSource(
-    assembly: string,
-    refSeq: string,
-    internetAccount: ApolloInternetAccount,
-  ) {
+  checkEventSource(assembly: string, refSeq: string) {
+    const session = getSession(
+      this.clientStore,
+    ) as unknown as ApolloSessionModel
     const channel = `${assembly}-${refSeq}`
-    internetAccount.channelSubscriptions.subscribe(channel, (event) => {
+    session.channelSubscriptions.subscribe(channel, (event) => {
       void (async () => {
         const message = JSON.parse(event.data) as ChangeMessage
-        const token = internetAccount.retrieveToken()
-        if (!token) {
-          return
-        }
-        const localSessionId = makeUserSessionId(token)
+        const localSessionId = readConfObject(
+          session.getPluginConfiguration(),
+          'userSessionId',
+        )
         const changeManager = new ChangeManager(this.clientStore)
         // Save server last change sequence into session storage
-        internetAccount.setLastChangeSequenceNumber(message.changeSequence)
+        session.setLastChangeSequenceNumber(message.changeSequence)
         if (message.userSessionId === localSessionId) {
           return // we did this change, no need to apply it again
         }
@@ -261,10 +232,8 @@ export class CollaborationServerDriver extends BackendDriver {
     if (clientStoreSequence.length === end - start) {
       return { seq: clientStoreSequence, refSeq }
     }
-    const internetAccount = this.clientStore.getInternetAccount(assemblyName)
-    const { baseURL } = internetAccount
 
-    const url = new URL('sequence', baseURL)
+    const url = new URL('sequence', globalThis.location.href)
     const searchParams = new URLSearchParams({
       refSeq,
       start: String(start),
@@ -273,28 +242,21 @@ export class CollaborationServerDriver extends BackendDriver {
     url.search = searchParams.toString()
     const uri = url.toString()
 
-    const seqPromise = this.getSeqFromServer(
-      internetAccount,
-      uri,
-      apolloRefSeq,
-      start,
-      end,
-    )
+    const seqPromise = this.getSeqFromServer(uri, apolloRefSeq, start, end)
     this.inFlight.set(inFlightKey, seqPromise)
     const seq = await seqPromise
-    this.checkEventSource(assemblyName, refName, internetAccount)
+    this.checkEventSource(assemblyName, refName)
     this.inFlight.delete(inFlightKey)
     return { seq, refSeq }
   }
 
   private async getSeqFromServer(
-    internetAccount: ApolloInternetAccount,
     uri: string,
     apolloRefSeq: ApolloRefSeqI,
     start: number,
     stop: number,
   ) {
-    const response = await this.fetch(internetAccount, uri)
+    const response = await fetch(uri)
     if (!response.ok) {
       let errorMessage
       try {
@@ -323,14 +285,12 @@ export class CollaborationServerDriver extends BackendDriver {
     if (!assembly) {
       throw new Error(`Could not find assembly with name "${assemblyName}"`)
     }
-    const internetAccount = this.clientStore.getInternetAccount(assemblyName)
-    const { baseURL } = internetAccount
-    const url = new URL('refSeqs', baseURL)
+    const url = new URL('refSeqs', globalThis.location.href)
     const searchParams = new URLSearchParams({ assembly: assemblyName })
     url.search = searchParams.toString()
     const uri = url.toString()
 
-    const response = await this.fetch(internetAccount, uri)
+    const response = await fetch(uri)
     if (!response.ok) {
       let errorMessage
       try {
@@ -348,7 +308,7 @@ export class CollaborationServerDriver extends BackendDriver {
     const refSeqMap = new Map<string, RefSeq>(
       refSeqs.map((refSeq) => [
         refSeq.name,
-        { refName: refSeq.name, id: refSeq._id, aliases: refSeq.aliases },
+        { refName: refSeq.name, id: refSeq._id },
       ]),
     )
     this.refSeqMaps.set(assemblyName, refSeqMap)
@@ -359,7 +319,7 @@ export class CollaborationServerDriver extends BackendDriver {
     const refSeqMap = await this.getRefSeqMapping(assemblyName)
     return [...refSeqMap.values()].map((refSeq) => ({
       refName: refSeq.refName,
-      aliases: [...new Set([refSeq.id, ...refSeq.aliases])],
+      aliases: [refSeq.id],
       uniqueId: `alias-${refSeq.id}`,
     }))
   }
@@ -379,14 +339,12 @@ export class CollaborationServerDriver extends BackendDriver {
     if (!assembly) {
       throw new Error(`Could not find assembly with name "${assemblyName}"`)
     }
-    const internetAccount = this.clientStore.getInternetAccount(assemblyName)
-    const { baseURL } = internetAccount
-    const url = new URL('refSeqs', baseURL)
+    const url = new URL('refSeqs', globalThis.location.href)
     const searchParams = new URLSearchParams({ assembly: assemblyName })
     url.search = searchParams.toString()
     const uri = url.toString()
 
-    const response = await this.fetch(internetAccount, uri)
+    const response = await fetch(uri)
     if (!response.ok) {
       let errorMessage
       try {
@@ -408,17 +366,10 @@ export class CollaborationServerDriver extends BackendDriver {
     }))
   }
 
-  getAssemblies(internetAccountId?: string) {
+  getAssemblies() {
     const { assemblyManager } = getSession(this.clientStore)
     return assemblyManager.assemblies.filter((assembly) => {
-      const sequenceMetadata = getAssemblyMetadata(assembly)
-      if (sequenceMetadata.apollo && sequenceMetadata.internetAccountConfigId) {
-        if (internetAccountId) {
-          return sequenceMetadata.internetAccountConfigId === internetAccountId
-        }
-        return true
-      }
-      return false
+      return Boolean(getAssemblyMetadata(assembly).apollo)
     })
   }
 
@@ -426,9 +377,7 @@ export class CollaborationServerDriver extends BackendDriver {
     assemblyName: string,
     opts: GetChangesOpts = {},
   ): Promise<GetChangesResult> {
-    const internetAccount = this.clientStore.getInternetAccount(assemblyName)
-    const { baseURL } = internetAccount
-    const url = new URL('changes', baseURL)
+    const url = new URL('changes', globalThis.location.href)
     const params: Record<string, string> = { assembly: assemblyName }
     if (opts.page !== undefined) {
       params.page = String(opts.page)
@@ -455,7 +404,7 @@ export class CollaborationServerDriver extends BackendDriver {
       params.endTime = opts.filters.endTime
     }
     url.search = new URLSearchParams(params).toString()
-    const response = await this.fetch(internetAccount, url.toString())
+    const response = await fetch(url.toString())
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(
         response,
@@ -467,11 +416,9 @@ export class CollaborationServerDriver extends BackendDriver {
   }
 
   async getCheckResults(assemblyName: string): Promise<CheckResultSnapshot[]> {
-    const internetAccount = this.clientStore.getInternetAccount(assemblyName)
-    const { baseURL } = internetAccount
-    const url = new URL('checks', baseURL)
+    const url = new URL('checks', globalThis.location.href)
     url.search = new URLSearchParams({ assembly: assemblyName }).toString()
-    const response = await this.fetch(internetAccount, url.toString())
+    const response = await fetch(url.toString())
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(
         response,
@@ -484,16 +431,10 @@ export class CollaborationServerDriver extends BackendDriver {
 
   async submitChange(
     change: Change | AssemblySpecificChange,
-    opts: SubmitOpts = {},
+    _opts: SubmitOpts,
   ) {
-    const { internetAccountId } = opts
-    const internetAccount = this.clientStore.getInternetAccount(
-      'assembly' in change ? change.assembly : undefined,
-      internetAccountId,
-    )
-    const { baseURL } = internetAccount
-    const url = new URL('changes', baseURL).href
-    const response = await this.fetch(internetAccount, url, {
+    const url = new URL('changes', globalThis.location.href).href
+    const response = await fetch(url, {
       method: 'POST',
       body: JSON.stringify(change.toJSON()),
       headers: { 'Content-Type': 'application/json' },

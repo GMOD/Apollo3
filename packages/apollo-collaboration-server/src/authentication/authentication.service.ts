@@ -23,6 +23,7 @@ import {
   isPendingUser,
   normalizeEmail,
 } from '../users/users.service.js'
+import { setAuthCookie } from '../utils/auth-cookie.util.js'
 import {
   GUEST_USER_EMAIL,
   GUEST_USER_NAME,
@@ -53,6 +54,14 @@ interface ConfigValues {
 }
 
 const LOOPBACK_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]'])
+
+/**
+ * Whether a redirect URI is a path on this server (e.g. "/login") rather than
+ * an absolute URL. Excludes protocol-relative ("//host") URIs.
+ */
+function isSameOriginPath(redirectUri: string) {
+  return /^\/(?![/\\])/.test(redirectUri)
+}
 
 @Injectable()
 export class AuthenticationService {
@@ -88,6 +97,9 @@ export class AuthenticationService {
    * computer (e.g. JBrowse Desktop or a local development server)
    */
   assertAllowedRedirectUri(redirectUri: string) {
+    if (isSameOriginPath(redirectUri)) {
+      return
+    }
     let url: URL
     try {
       url = new URL(redirectUri)
@@ -133,6 +145,16 @@ export class AuthenticationService {
    */
   getLoginRedirectUrl(redirectUri: string, result: OAuthLoginResult) {
     this.assertAllowedRedirectUri(redirectUri)
+    // A same-origin path (the login page's convention) shares the auth cookie
+    // set on this response, so the token doesn't need to be in the URL
+    if (isSameOriginPath(redirectUri)) {
+      if ('token' in result) {
+        return redirectUri
+      }
+      const url = new URL(redirectUri, 'http://localhost')
+      url.searchParams.set('error', result.error)
+      return `${url.pathname}${url.search}${url.hash}`
+    }
     const url = new URL(redirectUri)
     const searchParams = new URLSearchParams(
       'token' in result
@@ -215,11 +237,20 @@ export class AuthenticationService {
     if ('name' in result && 'email' in result) {
       if (customAuth.needsPopup && state) {
         const logInResult = await this.oauthLogIn(result.name, result.email)
+        if ('token' in logInResult) {
+          setAuthCookie(response, logInResult.token)
+        }
         const { redirect_uri } = JSON.parse(state) as { redirect_uri: string }
         response.redirect(this.getLoginRedirectUrl(redirect_uri, logInResult))
         return logInResult
       }
-      return this.logIn(result.name, result.email)
+      const logInResult = await this.logIn(result.name, result.email)
+      setAuthCookie(response, logInResult.token)
+      if (redirectUri) {
+        this.assertAllowedRedirectUri(redirectUri)
+        response.redirect(redirectUri)
+      }
+      return logInResult
     }
     throw new UnauthorizedException('Malformed authentication handler response')
   }

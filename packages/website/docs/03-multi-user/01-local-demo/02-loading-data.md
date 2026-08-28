@@ -208,6 +208,12 @@ file in CRAM format for each of the assemblies, as well as a file that shows
 synteny relationships between the two assemblies. This particular file was
 generated with `tblastx`.
 
+:::caution The `apollo jbrowse get-config` command below has been removed, and
+`apollo jbrowse set-config` further down never existed as a CLI command. This
+workflow needs a maintainer rewrite to match how config.json is now served (each
+file in `JBROWSE_CONFIG_FILES` is served, augmented, at its own literal path).
+:::
+
 The first step is to get the JBrowse configuration stored in Apollo so we can
 update it. Run these commands:
 

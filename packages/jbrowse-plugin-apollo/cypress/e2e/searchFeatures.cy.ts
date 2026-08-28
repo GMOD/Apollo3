@@ -68,7 +68,7 @@ describe('Search features', () => {
     cy.selectAssemblyToView('volvox2.fasta.gff3', 'SpamGene')
     cy.currentLocationEquals('ctgA', 80, 220, 10)
 
-    cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
+    cy.visit('/?config=http://localhost:3999/test_data/config.json')
     cy.contains('Launch view', { timeout: 10_000 }).click()
     cy.selectAssemblyToView('volvox.fasta.gff3')
     cy.searchFeatures('SpamGene', 0)

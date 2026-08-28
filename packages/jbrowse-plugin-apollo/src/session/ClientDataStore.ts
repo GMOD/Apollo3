@@ -33,7 +33,6 @@ import {
 import { autorun } from 'mobx'
 
 import {
-  type ApolloInternetAccount,
   type BackendDriver,
   CollaborationServerDriver,
   LocalDriver,
@@ -58,10 +57,6 @@ export function clientDataStoreFactory() {
       ontologyManager: types.optional(OntologyManagerType, {}),
     })
     .views((self) => ({
-      get internetAccounts() {
-        return getRoot<ApolloRootModel>(self).internetAccounts
-      },
-
       get pluginConfiguration() {
         return getRoot<ApolloRootModel>(self).jbrowse.configuration
           .ApolloPlugin as ApolloPluginConfigModel
@@ -254,8 +249,7 @@ export function clientDataStoreFactory() {
         if (!assembly) {
           return
         }
-        const { internetAccountConfigId } = getAssemblyMetadata(assembly)
-        if (internetAccountConfigId) {
+        if (getAssemblyMetadata(assembly).apollo) {
           return self.collaborationServerDriver
         }
         return self.localDriver
@@ -271,33 +265,6 @@ export function clientDataStoreFactory() {
       ): Promise<FeatureDensity | undefined> {
         const backendDriver = this.getBackendDriver(region.assemblyName)
         return backendDriver?.getFeatureDensity(region, binSize, featureTypes)
-      },
-      getInternetAccount(assemblyName?: string, internetAccountId?: string) {
-        if (!(assemblyName ?? internetAccountId)) {
-          throw new Error(
-            'Must provide either assemblyName or internetAccountId',
-          )
-        }
-        let configId = internetAccountId
-        if (assemblyName && !configId) {
-          const { assemblyManager } = getSession(self)
-          const assembly = assemblyManager.get(assemblyName)
-          if (!assembly) {
-            throw new Error(`No assembly found with name ${assemblyName}`)
-          }
-          ;({ internetAccountConfigId: configId } =
-            getAssemblyMetadata(assembly))
-        }
-        const { internetAccounts } = self
-        const internetAccount = internetAccounts.find(
-          (ia) => ia.internetAccountId === configId,
-        ) as ApolloInternetAccount | undefined
-        if (!internetAccount) {
-          throw new Error(
-            `No InternetAccount found with config id ${internetAccountId}`,
-          )
-        }
-        return internetAccount
       },
     }))
     .actions((self) => ({
