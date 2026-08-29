@@ -20,10 +20,8 @@ import { GFFFormattingTransformer } from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
-import { type FilterQuery, Model } from 'mongoose'
+import { Model, type QueryFilter } from 'mongoose'
 import StreamConcat from 'stream-concat'
-
-import { cursorToReadable } from '../utils/mongooseCursor.js'
 
 import {
   FeatureDocToGFF3FeatureStream,
@@ -80,16 +78,14 @@ export class ExportService {
     const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
 
     const headerStream = Readable.toWeb(
-      cursorToReadable(this.refSeqModel.find({ assembly }).cursor()),
+      this.refSeqModel.find({ assembly }).cursor(),
     ).pipeThrough(new RefSeqDocToGFF3HeaderStream())
 
     const query = { refSeq: { $in: refSeqIds } }
     const featureStream = Readable.toWeb(
-      cursorToReadable(
-        // unicorn thinks this is an Array.prototype.find, so we ignore it
-        // eslint-disable-next-line unicorn/no-array-callback-reference
-        this.featureModel.find(query).cursor(),
-      ),
+      // unicorn thinks this is an Array.prototype.find, so we ignore it
+      // eslint-disable-next-line unicorn/no-array-callback-reference
+      this.featureModel.find(query).cursor(),
     )
       .pipeThrough(new FeatureDocToGFF3FeatureStream(refSeqs))
       .pipeThrough(
@@ -170,19 +166,17 @@ export class ExportService {
   }
 
   streamFromRefSeqCollection(
-    query: FilterQuery<RefSeqDocument>,
+    query: QueryFilter<RefSeqDocument>,
     fastaWidth?: number,
   ): ReadableStream<string>[] {
     const sequenceStream = Readable.toWeb(
-      cursorToReadable(
-        this.refSeqChunksModel
-          // unicorn thinks this is an Array.prototype.find, so we ignore it
-          // eslint-disable-next-line unicorn/no-array-callback-reference
-          .find(query)
-          .sort({ refSeq: 1, n: 1 })
-          .populate('refSeq')
-          .cursor(),
-      ),
+      this.refSeqChunksModel
+        // unicorn thinks this is an Array.prototype.find, so we ignore it
+        // eslint-disable-next-line unicorn/no-array-callback-reference
+        .find(query)
+        .sort({ refSeq: 1, n: 1 })
+        .populate('refSeq')
+        .cursor(),
     ).pipeThrough(new RefSeqChunkDocToFASTAStream({ fastaWidth }))
     return [sequenceStream]
   }

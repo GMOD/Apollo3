@@ -98,9 +98,7 @@ export class RefSeqChunkDocToFASTAStream extends TransformStream<
         controller.enqueue('##FASTA\n')
       },
       transform(chunk, controller) {
-        const refSeqDoc = chunk.refSeq
-        // @ts-expect-error not sure why _id isn't showing up
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        const refSeqDoc = chunk.refSeq as unknown as RefSeqDocument
         const refSeqDocId = refSeqDoc._id.toString()
         if (refSeqDocId !== currentRefSeq) {
           flushLineBuffer(controller)
