@@ -17,6 +17,7 @@
  */
 
 import assert from 'node:assert'
+import { spawn as spawnChildProcess } from 'node:child_process'
 import * as crypto from 'node:crypto'
 import fs from 'node:fs'
 import { after, afterEach, before, beforeEach, describe } from 'node:test'
@@ -84,8 +85,8 @@ void describe('Test CLI', () => {
   })
 
   void globalThis.itName('Print help', () => {
-    // const p = new Shell(`${apollo} --help`)
-    // assert.ok(p.stdout.includes('COMMANDS'))
+    const p = new Shell(`${apollo} --help`)
+    assert.ok(p.stdout.includes('COMMANDS'))
   })
 
   void globalThis.itName('Get config file', () => {
@@ -1989,5 +1990,67 @@ EOF`,
         x.cause === 'NonCanonicalSpliceSiteAtFivePrime' && x.start === 37,
     )
     assert.strictEqual(chk.length, 1)
+  })
+
+  void globalThis.itName('Timeout option', async () => {
+    // Every CLI request to the real server is preceded by two lightweight
+    // access-token checks (see BaseCommand.getURL/getHeaders), so only the
+    // 3rd request is the one actually governed by --timeout. Delay only
+    // that one so the two checks don't slow the test down.
+    const serverScript = 'test_data/tmp_timeout_server.mjs'
+    fs.writeFileSync(
+      serverScript,
+      `
+import http from 'node:http'
+let requestCount = 0
+const server = http.createServer((req, res) => {
+  requestCount++
+  const respond = () => {
+    res.writeHead(200, { 'Content-Type': 'application/json' })
+    res.end('[]')
+  }
+  if (requestCount % 3 === 0) {
+    setTimeout(respond, 3000)
+  } else {
+    respond()
+  }
+})
+server.listen(0, () => {
+  console.log(server.address().port)
+})
+`,
+    )
+    const server = spawnChildProcess('node', [serverScript])
+    const port: string = await new Promise((resolve) => {
+      server.stdout.once('data', (data: Buffer) => {
+        resolve(data.toString().trim())
+      })
+    })
+
+    new Shell(
+      `${apollo} config --profile fakeTimeout address http://localhost:${port}`,
+    )
+    new Shell(`${apollo} config --profile fakeTimeout accessToken dummytoken`)
+
+    try {
+      // Timeout shorter than the server's response delay: the request
+      // should fail with a headers timeout error.
+      let p = new Shell(
+        `${apollo} assembly get --profile fakeTimeout --timeout 1s`,
+        false,
+      )
+      assert.notStrictEqual(p.returncode, 0)
+      assert.ok(p.stderr.includes('UND_ERR_HEADERS_TIMEOUT'))
+
+      // Timeout longer than the server's response delay: the request
+      // should succeed.
+      p = new Shell(
+        `${apollo} assembly get --profile fakeTimeout --timeout 10s`,
+      )
+      assert.strictEqual(p.stdout.trim(), '[]')
+    } finally {
+      server.kill()
+      fs.unlinkSync(serverScript)
+    }
   })
 })
