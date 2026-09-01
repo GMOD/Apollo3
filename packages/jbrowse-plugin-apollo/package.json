@@ -61,8 +61,7 @@
     "file-saver": "^2.0.5",
     "idb": "^7.1.1",
     "jsonpath": "^1.1.1",
-    "nanoid": "^4.0.2",
-    "socket.io-client": "^4.5.4"
+    "nanoid": "^4.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.28.6",

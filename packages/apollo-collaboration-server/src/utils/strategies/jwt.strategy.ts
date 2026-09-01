@@ -23,7 +23,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtSecret = fs.readFileSync(uriFile, 'utf8').trim()
     }
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      // SSE connections use a native EventSource, which cannot set an
+      // Authorization header, so the token is also accepted as a query
+      // parameter for that endpoint.
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+        ExtractJwt.fromUrlQueryParameter('token'),
+      ]),
       ignoreExpiration: false,
       secretOrKey: jwtSecret,
     })

@@ -34,7 +34,7 @@ import { InjectModel } from '@nestjs/mongoose'
 import { type FilterQuery, Model, Types } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service.js'
-import { MessagesGateway } from '../messages/messages.gateway.js'
+import { MessagesService } from '../messages/messages.service.js'
 
 import { ChangeHandlersService } from './changeHandlers.service.js'
 import { FindChangeDto } from './dto/find-change.dto.js'
@@ -58,7 +58,7 @@ export class ChangesService {
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
     private readonly countersService: CountersService,
-    private readonly messagesGateway: MessagesGateway,
+    private readonly messagesService: MessagesService,
     private readonly changeHandlersService: ChangeHandlersService,
   ) {}
 
@@ -258,7 +258,7 @@ export class ChangesService {
           message.channel
         }', changeObject: "${JSON.stringify(message)}"`,
       )
-      await this.messagesGateway.create(message.channel, message)
+      this.messagesService.broadcast(message.channel, message)
     }
     this.logger.debug(`ChangeDocId: ${changeDoc?._id.toString()}`)
     return changeDoc
