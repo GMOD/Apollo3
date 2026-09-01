@@ -2,10 +2,9 @@ import { createWriteStream } from 'node:fs'
 import { Writable } from 'node:stream'
 
 import { Flags } from '@oclif/core'
-import type { Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { filterJsonList, idReader, queryApollo } from '../../utils.js'
+import { filterJsonList, idReader } from '../../utils.js'
 
 export default class Download extends BaseCommand<typeof Download> {
   static summary = 'Download a file from the Apollo server'
@@ -35,25 +34,12 @@ export default class Download extends BaseCommand<typeof Download> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Download)
 
-    const access = await this.getAccess()
-
     const ff = await idReader([flags['file-id']])
-    let res: Response = await queryApollo(
-      access.address,
-      access.accessToken,
-      'files',
-    )
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const json = JSON.parse(await res.text())
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const json = (await this.get('files')) as object[]
     const [fileRec] = filterJsonList(json, ff, '_id')
     const fileId = fileRec['_id' as keyof typeof fileRec] as string
 
-    res = await queryApollo(
-      access.address,
-      access.accessToken,
-      `files/${fileId}`,
-    )
+    const res = await this.fetch(`files/${fileId}`)
     const { output = fileRec['basename' as keyof typeof fileRec] } = flags
     const fileWriteStream = createWriteStream(output)
     await res.body?.pipeTo(

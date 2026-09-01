@@ -10,11 +10,12 @@ View authentication status
 
 ```
 USAGE
-  $ apollo status [--profile <value>] [--config-file <value>]
+  $ apollo status [--profile <value>] [--config-file <value>] [--timeout <value>]
 
 FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
   --profile=<value>      Use credentials from this profile
+  --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   View authentication status

@@ -1,8 +1,7 @@
 import { Flags } from '@oclif/core'
-import type { Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { convertAssemblyNameToId, idReader, queryApollo } from '../../utils.js'
+import { idReader } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Get reference sequences'
@@ -34,24 +33,13 @@ Use `assembly sequence` for that.'
   public async run(): Promise<void> {
     const { flags } = await this.parse(Get)
 
-    const access = await this.getAccess()
-
-    const refSeqs: Response = await queryApollo(
-      access.address,
-      access.accessToken,
-      'refSeqs',
-    )
-    const json = (await refSeqs.json()) as object[]
+    const json = (await this.get('refSeqs')) as object[]
 
     let keep = json
     if (flags.assembly !== undefined) {
       keep = []
       const assembly = await idReader(flags.assembly)
-      const assemblyIds = await convertAssemblyNameToId(
-        access.address,
-        access.accessToken,
-        assembly,
-      )
+      const assemblyIds = await this.convertAssemblyNameToId(assembly)
       for (const x of json) {
         if (assemblyIds.includes(x['assembly' as keyof typeof x])) {
           keep.push(x)

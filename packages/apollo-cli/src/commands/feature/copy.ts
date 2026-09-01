@@ -2,16 +2,8 @@ import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import type { SerializedAddFeatureChange } from '@apollo-annotation/shared'
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
-import { type Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  createFetchErrorMessage,
-  getAssemblyFromRefseq,
-  getFeatureById,
-  getRefseqId,
-  localhostToAddress,
-} from '../../utils.js'
 
 export default class Copy extends BaseCommand<typeof Copy> {
   static summary = 'Copy a feature to another location'
@@ -59,66 +51,26 @@ the database or by name and assembly or by identifier.'
       this.error('Start coordinate must be greater than 0')
     }
 
-    const access = await this.getAccess()
+    const feature = await this.getFeatureById(flags['feature-id'])
 
-    const res: Response = await getFeatureById(
-      access.address,
-      access.accessToken,
-      flags['feature-id'],
-    )
-    if (!res.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        res,
-        'getFeatureById failed',
-      )
-      throw new Error(errorMessage)
-    }
-    const feature: AnnotationFeatureSnapshot =
-      (await res.json()) as AnnotationFeatureSnapshot
-    const refseqIds = await getRefseqId(
-      access.address,
-      access.accessToken,
-      flags.refseq,
-      flags.assembly,
-    )
+    const refseqIds = await this.getRefseqId(flags.refseq, flags.assembly)
     if (refseqIds.length === 0) {
       this.error('No reference sequence found')
     }
     const [refseq] = refseqIds
-    const assembly = await getAssemblyFromRefseq(
-      access.address,
-      access.accessToken,
-      refseq,
-    )
+    const assembly = await this.getAssemblyFromRefseq(refseq)
 
     const newId = new ObjectId().toHexString()
-    const rescopy = await this.copyFeature(
-      access.address,
-      access.accessToken,
-      feature,
-      refseq,
-      flags.start,
-      assembly,
-      newId,
-    )
-    if (!rescopy.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        rescopy,
-        'Copy feature failed',
-      )
-      throw new Error(errorMessage)
-    }
+    await this.copyFeature(feature, refseq, flags.start, assembly, newId)
   }
 
   private async copyFeature(
-    address: string,
-    accessToken: string,
     feature: AnnotationFeatureSnapshot,
     refseq: string,
     min: number,
     assembly: string,
     newId: string,
-  ): Promise<Response> {
+  ): Promise<void> {
     const featureLen = feature.max - feature.min
 
     const change: SerializedAddFeatureChange = {
@@ -137,23 +89,6 @@ the database or by name and assembly or by identifier.'
       copyFeature: true,
       allIds: [newId],
     }
-    const url = new URL(localhostToAddress(`${address}/changes`))
-    const auth = {
-      method: 'POST',
-      body: JSON.stringify(change),
-      headers: {
-        authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    }
-    const res = await fetch(url, auth)
-    if (!res.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        res,
-        'copyFeature failed',
-      )
-      throw new Error(errorMessage)
-    }
-    return res
+    await this.post('changes', JSON.stringify(change))
   }
 }

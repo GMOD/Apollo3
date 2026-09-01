@@ -73,8 +73,8 @@ Add a new assembly from fasta input
 
 ```
 USAGE
-  $ apollo assembly add-from-fasta INPUT [--profile <value>] [--config-file <value>] [-a <value>] [-f] [-e] [--fai <value>]
-    [--gzi <value>] [-z | -d]
+  $ apollo assembly add-from-fasta INPUT [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>] [-f]
+    [-e] [--fai <value>] [--gzi <value>] [-z | -d]
 
 ARGUMENTS
   INPUT  Input fasta file, local or remote, or id of a previously uploaded file. For local or remote files, it is
@@ -93,6 +93,7 @@ FLAGS
       --fai=<value>          Fasta index of the (not-editable) fasta file
       --gzi=<value>          Gzi index of the (not-editable) fasta file
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Add a new assembly from fasta input
@@ -125,8 +126,8 @@ Add new assembly from gff or gft file
 
 ```
 USAGE
-  $ apollo assembly add-from-gff INPUT-FILE [--profile <value>] [--config-file <value>] [-a <value>] [-o] [-f]
-  [--no-strict]
+  $ apollo assembly add-from-gff INPUT-FILE [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>]
+    [-o] [-f] [--no-strict]
 
 ARGUMENTS
   INPUT-FILE  Input gff file
@@ -139,6 +140,7 @@ FLAGS
       --no-strict            If any feature lines in the GFF3 can't be processed, skip them instead of aborting the
                              import
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Add new assembly from gff or gft file
@@ -164,7 +166,8 @@ Add, view, or delete checks to assembly
 
 ```
 USAGE
-  $ apollo assembly check [--profile <value>] [--config-file <value>] [-a <value>] [-c <value>...] [-d]
+  $ apollo assembly check [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>] [-c
+    <value>...] [-d]
 
 FLAGS
   -a, --assembly=<value>     Manage checks in this assembly
@@ -172,6 +175,7 @@ FLAGS
   -d, --delete               Delete (instead of adding) checks
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Add, view, or delete checks to assembly
@@ -206,13 +210,14 @@ Delete assemblies
 
 ```
 USAGE
-  $ apollo assembly delete -a <value>... [--profile <value>] [--config-file <value>] [-v]
+  $ apollo assembly delete -a <value>... [--profile <value>] [--config-file <value>] [--timeout <value>] [-v]
 
 FLAGS
   -a, --assembly=<value>...  (required) Assembly names or IDs to delete
   -v, --verbose              Print to stdout the array of assemblies deleted
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Delete assemblies
@@ -234,12 +239,13 @@ Get available assemblies
 
 ```
 USAGE
-  $ apollo assembly get [--profile <value>] [--config-file <value>] [-a <value>...]
+  $ apollo assembly get [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>...]
 
 FLAGS
   -a, --assembly=<value>...  Get assemblies in this list of names or IDs
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get available assemblies
@@ -256,8 +262,8 @@ Get reference sequence in fasta format
 
 ```
 USAGE
-  $ apollo assembly sequence [--profile <value>] [--config-file <value>] [-a <value>] [-r <value>] [-s <value>] [-e
-    <value>]
+  $ apollo assembly sequence [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>] [-r <value>]
+    [-s <value>] [-e <value>]
 
 FLAGS
   -a, --assembly=<value>     Find input reference sequence in this assembly
@@ -266,6 +272,7 @@ FLAGS
   -s, --start=<value>        [default: 1] Start coordinate (1-based)
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get reference sequence in fasta format
@@ -291,12 +298,13 @@ Get list of changes
 
 ```
 USAGE
-  $ apollo change get [--profile <value>] [--config-file <value>] [-a <value>...]
+  $ apollo change get [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>...]
 
 FLAGS
   -a, --assembly=<value>...  Get changes only for these assembly names or IDs (but see description)
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get list of changes
@@ -315,7 +323,8 @@ Get or set apollo configuration options
 
 ```
 USAGE
-  $ apollo config [KEY] [VALUE] [--profile <value>] [--config-file <value>] [--get-config-file]
+  $ apollo config [KEY] [VALUE] [--profile <value>] [--config-file <value>] [--timeout <value>]
+    [--get-config-file]
 
 ARGUMENTS
   [KEY]    Name of configuration parameter
@@ -325,6 +334,7 @@ FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
   --get-config-file      Return the path to the config file and exit (this file may not exist yet)
   --profile=<value>      Profile to create or edit
+  --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get or set apollo configuration options
@@ -367,7 +377,7 @@ Export the annotations for an assembly to stdout as gff3
 
 ```
 USAGE
-  $ apollo export gff3 ASSEMBLY [--profile <value>] [--config-file <value>] [--include-fasta]
+  $ apollo export gff3 ASSEMBLY [--profile <value>] [--config-file <value>] [--timeout <value>] [--include-fasta]
 
 ARGUMENTS
   ASSEMBLY  Export annotations for this assembly name or id
@@ -376,6 +386,7 @@ FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
   --include-fasta        Include fasta sequence in output
   --profile=<value>      Use credentials from this profile
+  --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Export the annotations for an assembly to stdout as gff3
@@ -395,8 +406,8 @@ Add one or more features to Apollo
 
 ```
 USAGE
-  $ apollo feature add [FEATURE-JSON] [--profile <value>] [--config-file <value>] [-a <value>] [-r <value> -s
-    <value> -e <value> -t <value>] [-F <value>]
+  $ apollo feature add [FEATURE-JSON] [--profile <value>] [--config-file <value>] [--timeout <value>] [-a
+    <value>] [-r <value> -s <value> -e <value> -t <value>] [-F <value>]
 
 ARGUMENTS
   [FEATURE-JSON]  Inline JSON describing the feature(s) to add. Can also be provided via stdin.
@@ -410,6 +421,7 @@ FLAGS
   -t, --type=<value>               Type of child feature
       --config-file=<value>        Use this config file (mostly for testing)
       --profile=<value>            Use credentials from this profile
+      --timeout=<value>            [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Add one or more features to Apollo
@@ -451,7 +463,8 @@ Add a child feature (e.g. add an exon to an mRNA)
 
 ```
 USAGE
-  $ apollo feature add-child -s <value> -e <value> -t <value> [--profile <value>] [--config-file <value>] [-i <value>]
+  $ apollo feature add-child -s <value> -e <value> -t <value> [--profile <value>] [--config-file <value>] [--timeout
+    <value>] [-i <value>]
 
 FLAGS
   -e, --end=<value>          (required) End coordinate of the child feature (1-based)
@@ -460,6 +473,7 @@ FLAGS
   -t, --type=<value>         (required) Type of child feature
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Add a child feature (e.g. add an exon to an mRNA)
@@ -482,13 +496,15 @@ Get check results
 
 ```
 USAGE
-  $ apollo feature check [--profile <value>] [--config-file <value>] [-i <value>...] [-a <value>]
+  $ apollo feature check [--profile <value>] [--config-file <value>] [--timeout <value>] [-i <value>...] [-a
+    <value>]
 
 FLAGS
   -a, --assembly=<value>       Get checks for this assembly
   -i, --feature-id=<value>...  Get checks for these feature identifiers
       --config-file=<value>    Use this config file (mostly for testing)
       --profile=<value>        Use credentials from this profile
+      --timeout=<value>        [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get check results
@@ -515,7 +531,8 @@ Copy a feature to another location
 
 ```
 USAGE
-  $ apollo feature copy -r <value> -s <value> [--profile <value>] [--config-file <value>] [-i <value>] [-a <value>]
+  $ apollo feature copy -r <value> -s <value> [--profile <value>] [--config-file <value>] [--timeout <value>] [-i
+    <value>] [-a <value>]
 
 FLAGS
   -a, --assembly=<value>     Name or ID of target assembly. Not required if refseq is unique in the database
@@ -524,6 +541,7 @@ FLAGS
   -s, --start=<value>        (required) Start position in target reference sequence
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Copy a feature to another location
@@ -546,7 +564,7 @@ Delete one or more features by ID
 
 ```
 USAGE
-  $ apollo feature delete [--profile <value>] [--config-file <value>] [-i <value>...] [-f] [-n]
+  $ apollo feature delete [--profile <value>] [--config-file <value>] [--timeout <value>] [-i <value>...] [-f] [-n]
 
 FLAGS
   -f, --force                  Ignore non-existing features
@@ -554,6 +572,7 @@ FLAGS
   -n, --dry-run                Only show what would be delete
       --config-file=<value>    Use this config file (mostly for testing)
       --profile=<value>        Use credentials from this profile
+      --timeout=<value>        [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Delete one or more features by ID
@@ -570,12 +589,13 @@ Edit features using an appropiate json input
 
 ```
 USAGE
-  $ apollo feature edit [--profile <value>] [--config-file <value>] [-j <value>]
+  $ apollo feature edit [--profile <value>] [--config-file <value>] [--timeout <value>] [-j <value>]
 
 FLAGS
   -j, --json-input=<value>   [default: -] Json string or json file or "-" to read json from stdin
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Edit features using an appropiate json input
@@ -612,8 +632,8 @@ Add, edit, or view a feature attribute
 
 ```
 USAGE
-  $ apollo feature edit-attribute -a <value> [--profile <value>] [--config-file <value>] [-i <value>] [-v <value>...]
-  [-d]
+  $ apollo feature edit-attribute -a <value> [--profile <value>] [--config-file <value>] [--timeout <value>] [-i <value>]
+    [-v <value>...] [-d]
 
 FLAGS
   -a, --attribute=<value>    (required) Attribute key to add or edit
@@ -623,6 +643,7 @@ FLAGS
                              current value
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Add, edit, or view a feature attribute
@@ -653,7 +674,8 @@ Edit feature start and/or end coordinates
 
 ```
 USAGE
-  $ apollo feature edit-coords [--profile <value>] [--config-file <value>] [-i <value>] [-s <value>] [-e <value>]
+  $ apollo feature edit-coords [--profile <value>] [--config-file <value>] [--timeout <value>] [-i <value>] [-s <value>]
+    [-e <value>]
 
 FLAGS
   -e, --end=<value>          New end coordinate (1-based)
@@ -661,6 +683,7 @@ FLAGS
   -s, --start=<value>        New start coordinate (1-based)
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Edit feature start and/or end coordinates
@@ -687,13 +710,14 @@ Edit or view feature type
 
 ```
 USAGE
-  $ apollo feature edit-type [--profile <value>] [--config-file <value>] [-i <value>] [-t <value>]
+  $ apollo feature edit-type [--profile <value>] [--config-file <value>] [--timeout <value>] [-i <value>] [-t <value>]
 
 FLAGS
   -i, --feature-id=<value>   [default: -] Feature ID to edit or "-" to read it from stdin
   -t, --type=<value>         Assign feature to this type. If unset return the current type
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Edit or view feature type
@@ -711,8 +735,8 @@ Get features in assembly, reference sequence or genomic window
 
 ```
 USAGE
-  $ apollo feature get [--profile <value>] [--config-file <value>] [-a <value>] [-r <value>] [-s <value>] [-e
-    <value>]
+  $ apollo feature get [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>] [-r <value>]
+    [-s <value>] [-e <value>]
 
 FLAGS
   -a, --assembly=<value>     Find input reference sequence in this assembly
@@ -721,6 +745,7 @@ FLAGS
   -s, --start=<value>        [default: 1] Start coordinate (1-based)
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get features in assembly, reference sequence or genomic window
@@ -745,13 +770,14 @@ Get features given their identifiers
 
 ```
 USAGE
-  $ apollo feature get-id [--profile <value>] [--config-file <value>] [-i <value>...]
+  $ apollo feature get-id [--profile <value>] [--config-file <value>] [--timeout <value>] [-i <value>...]
 
 FLAGS
   -i, --feature-id=<value>...  [default: -] Retrieves feature with these IDs. Use "-" to read IDs from stdin (one per
                                line)
       --config-file=<value>    Use this config file (mostly for testing)
       --profile=<value>        Use credentials from this profile
+      --timeout=<value>        [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get features given their identifiers
@@ -773,7 +799,8 @@ Get features given an indexed identifier
 
 ```
 USAGE
-  $ apollo feature get-indexed-id ID [--profile <value>] [--config-file <value>] [-a <value>...] [--topLevel]
+  $ apollo feature get-indexed-id ID [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>...]
+    [--topLevel]
 
 ARGUMENTS
   ID  Indexed identifier to search for
@@ -783,6 +810,7 @@ FLAGS
                              assemblies
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
       --topLevel             Return the top-level parent of the feature instead of the feature itself
 
 DESCRIPTION
@@ -805,7 +833,8 @@ Import features from local gff file
 
 ```
 USAGE
-  $ apollo feature import INPUT-FILE -a <value> [--profile <value>] [--config-file <value>] [-d] [--no-strict]
+  $ apollo feature import INPUT-FILE -a <value> [--profile <value>] [--config-file <value>] [--timeout <value>] [-d]
+    [--no-strict]
 
 ARGUMENTS
   INPUT-FILE  Input gff file
@@ -816,6 +845,7 @@ FLAGS
       --config-file=<value>  Use this config file (mostly for testing)
       --no-strict            If any lines in the GFF3 can't be processed, skip them instead of aborting the import
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Import features from local gff file
@@ -837,7 +867,7 @@ Free text search for feature in one or more assemblies
 
 ```
 USAGE
-  $ apollo feature search -t <value> [--profile <value>] [--config-file <value>] [-a <value>...]
+  $ apollo feature search -t <value> [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>...]
 
 FLAGS
   -a, --assembly=<value>...  Assembly names or IDs to search; use "-" to read it from stdin. If omitted search all
@@ -845,6 +875,7 @@ FLAGS
   -t, --text=<value>         (required) Search for this text query
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Free text search for feature in one or more assemblies
@@ -888,12 +919,13 @@ Delete files from the Apollo server
 
 ```
 USAGE
-  $ apollo file delete [--profile <value>] [--config-file <value>] [-i <value>...]
+  $ apollo file delete [--profile <value>] [--config-file <value>] [--timeout <value>] [-i <value>...]
 
 FLAGS
   -i, --file-id=<value>...   [default: -] IDs of the files to delete
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Delete files from the Apollo server
@@ -915,13 +947,14 @@ Download a file from the Apollo server
 
 ```
 USAGE
-  $ apollo file download [--profile <value>] [--config-file <value>] [-i <value>] [-o <value>]
+  $ apollo file download [--profile <value>] [--config-file <value>] [--timeout <value>] [-i <value>] [-o <value>]
 
 FLAGS
   -i, --file-id=<value>      [default: -] ID of the file to download
   -o, --output=<value>       Write output to this file or "-" for stdout. Default to the name of the uploaded file.
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Download a file from the Apollo server
@@ -943,12 +976,13 @@ Get list of files uploaded to the Apollo server
 
 ```
 USAGE
-  $ apollo file get [--profile <value>] [--config-file <value>] [-i <value>...]
+  $ apollo file get [--profile <value>] [--config-file <value>] [--timeout <value>] [-i <value>...]
 
 FLAGS
   -i, --file-id=<value>...   Get files matching this IDs
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get list of files uploaded to the Apollo server
@@ -970,7 +1004,7 @@ Upload a local file to the Apollo server
 
 ```
 USAGE
-  $ apollo file upload INPUT-FILE [--profile <value>] [--config-file <value>] [-t
+  $ apollo file upload INPUT-FILE [--profile <value>] [--config-file <value>] [--timeout <value>] [-t
     text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi] [-z | -d]
 
 ARGUMENTS
@@ -984,6 +1018,7 @@ FLAGS
   -z, --gzip                 Override autodetection and instruct that input is gzip compressed
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Upload a local file to the Apollo server
@@ -1028,7 +1063,8 @@ Generate JBrowse file for use with desktop client
 
 ```
 USAGE
-  $ apollo jbrowse desktop JBROWSEFILE [--profile <value>] [--config-file <value>] [-o | -w <value>] [-f <value>]
+  $ apollo jbrowse desktop JBROWSEFILE [--profile <value>] [--config-file <value>] [--timeout <value>] [-o | -w
+    <value>] [-f <value>]
 
 ARGUMENTS
   JBROWSEFILE  Generated JBrowse file
@@ -1039,6 +1075,7 @@ FLAGS
   -w, --open-with=<value>    open generated file with specified application
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Generate JBrowse file for use with desktop client
@@ -1073,11 +1110,12 @@ Get JBrowse configuration from Apollo
 
 ```
 USAGE
-  $ apollo jbrowse get-config [--profile <value>] [--config-file <value>]
+  $ apollo jbrowse get-config [--profile <value>] [--config-file <value>] [--timeout <value>]
 
 FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
   --profile=<value>      Use credentials from this profile
+  --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get JBrowse configuration from Apollo
@@ -1099,7 +1137,7 @@ Set JBrowse configuration
 
 ```
 USAGE
-  $ apollo jbrowse set-config INPUTFILE [--profile <value>] [--config-file <value>]
+  $ apollo jbrowse set-config INPUTFILE [--profile <value>] [--config-file <value>] [--timeout <value>]
 
 ARGUMENTS
   INPUTFILE  JBrowse configuration file
@@ -1107,6 +1145,7 @@ ARGUMENTS
 FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
   --profile=<value>      Use credentials from this profile
+  --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Set JBrowse configuration
@@ -1128,8 +1167,8 @@ Login to Apollo
 
 ```
 USAGE
-  $ apollo login [--profile <value>] [--config-file <value>] [-a <value>] [-u <value>] [-p <value>] [-f]
-    [--port <value>]
+  $ apollo login [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>] [-u <value>]
+    [-p <value>] [-f] [--port <value>]
 
 FLAGS
   -a, --address=<value>      Address of Apollo server
@@ -1140,6 +1179,7 @@ FLAGS
       --port=<value>         [default: 3000] Get token by listening to this port number (usually this is >= 1024 and <
                              65536)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Login to Apollo
@@ -1167,11 +1207,12 @@ Logout of Apollo
 
 ```
 USAGE
-  $ apollo logout [--profile <value>] [--config-file <value>]
+  $ apollo logout [--profile <value>] [--config-file <value>] [--timeout <value>]
 
 FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
   --profile=<value>      Use credentials from this profile
+  --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Logout of Apollo
@@ -1197,7 +1238,7 @@ Add reference name aliases from a file
 
 ```
 USAGE
-  $ apollo refseq add-alias INPUT-FILE -a <value> [--profile <value>] [--config-file <value>]
+  $ apollo refseq add-alias INPUT-FILE -a <value> [--profile <value>] [--config-file <value>] [--timeout <value>]
 
 ARGUMENTS
   INPUT-FILE  Input refname alias file
@@ -1206,6 +1247,7 @@ FLAGS
   -a, --assembly=<value>     (required) Name for this assembly.
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Add reference name aliases from a file
@@ -1228,12 +1270,13 @@ Get reference sequences
 
 ```
 USAGE
-  $ apollo refseq get [--profile <value>] [--config-file <value>] [-a <value>...]
+  $ apollo refseq get [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>...]
 
 FLAGS
   -a, --assembly=<value>...  Get reference sequences for these assembly names or IDs; use - to read it from stdin
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get reference sequences
@@ -1260,11 +1303,12 @@ View authentication status
 
 ```
 USAGE
-  $ apollo status [--profile <value>] [--config-file <value>]
+  $ apollo status [--profile <value>] [--config-file <value>] [--timeout <value>]
 
 FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
   --profile=<value>      Use credentials from this profile
+  --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   View authentication status
@@ -1282,13 +1326,14 @@ Get list of users
 
 ```
 USAGE
-  $ apollo user get [--profile <value>] [--config-file <value>] [-u <value>] [-r <value>]
+  $ apollo user get [--profile <value>] [--config-file <value>] [--timeout <value>] [-u <value>] [-r <value>]
 
 FLAGS
   -r, --role=<value>         Get users with this role
   -u, --username=<value>     Find this username
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get list of users

@@ -1,8 +1,7 @@
 import { Flags } from '@oclif/core'
-import type { Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { convertAssemblyNameToId, idReader, queryApollo } from '../../utils.js'
+import { idReader } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Get available assemblies'
@@ -19,25 +18,14 @@ export default class Get extends BaseCommand<typeof Get> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Get)
 
-    const access = await this.getAccess()
-
-    const assemblies: Response = await queryApollo(
-      access.address,
-      access.accessToken,
-      'assemblies',
-    )
+    const json = (await this.get('assemblies')) as object[]
 
     let assemblyIds: string[] = []
     if (flags.assembly !== undefined) {
       const assembly = await idReader(flags.assembly)
-      assemblyIds = await convertAssemblyNameToId(
-        access.address,
-        access.accessToken,
-        assembly,
-      )
+      assemblyIds = await this.convertAssemblyNameToId(assembly)
     }
 
-    const json = (await assemblies.json()) as object[]
     const keep = []
     for (const x of json) {
       if (

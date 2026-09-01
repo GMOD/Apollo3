@@ -17,6 +17,7 @@
  */
 
 import assert from 'node:assert'
+import { spawn as spawnChildProcess } from 'node:child_process'
 import * as crypto from 'node:crypto'
 import fs from 'node:fs'
 import { after, afterEach, before, beforeEach, describe } from 'node:test'
@@ -30,7 +31,7 @@ import { MongoClient } from 'mongodb'
 
 import { Shell, deleteAllChecks } from './utils.js'
 
-const apollo = 'yarn dev'
+const apollo = process.env.APOLLO_BIN ?? 'yarn dev'
 const P = '--profile testAdmin'
 // let client = MongoClient
 let client: MongoClient
@@ -477,7 +478,7 @@ void describe('Test CLI', () => {
     assert.ok(p.stdout.includes('vv1'))
 
     p = new Shell(`${apollo} assembly sequence ${P} -a vv1 -r ctgA -s 1 -e 10`)
-    const seq = p.stdout.trim().split('\n')
+    const seq = p.stdout.split(' ')
     assert.strictEqual(seq[1], 'cattgttgcg')
 
     p = new Shell(
@@ -493,9 +494,7 @@ void describe('Test CLI', () => {
       false,
     )
     assert.ok(p.returncode != 0)
-    assert.ok(
-      p.stderr.includes('Index file') && p.stderr.includes('does not exist'),
-    )
+    assert.ok(p.stderr.includes('Index file does not exist'))
   })
 
   void globalThis.itName(
@@ -1221,10 +1220,10 @@ EOF`,
 
     p = new Shell(`${apollo} assembly sequence ${P} -a v1 -s 0`, false)
     assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('must be greater than 0'))
+    assert.match(p.stderr, /must be greater than 0/)
 
     p = new Shell(`${apollo} assembly sequence ${P} -a v1`)
-    let seq = p.stdout.trim().split('\n')
+    let seq = p.stdout.split(' ')
     assert.strictEqual(seq.length, 25)
     assert.deepStrictEqual(seq.at(0), '>ctgA:1..420')
     assert.deepStrictEqual(
@@ -1236,12 +1235,12 @@ EOF`,
     assert.deepStrictEqual(seq.at(-1), 'ttggtcgctccgttgtaccc')
 
     p = new Shell(`${apollo} assembly sequence ${P} -a v1 -r ctgB -s 1 -e 1`)
-    seq = p.stdout.split('\n')
+    seq = p.stdout.split(' ')
     assert.deepStrictEqual(seq.at(0), '>ctgB:1..1')
     assert.deepStrictEqual(seq.at(1), 'A')
 
     p = new Shell(`${apollo} assembly sequence ${P} -a v1 -r ctgB -s 2 -e 4`)
-    seq = p.stdout.split('\n')
+    seq = p.stdout.split(' ')
     assert.deepStrictEqual(seq.at(0), '>ctgB:2..4')
     assert.deepStrictEqual(seq.at(1), 'CAT')
 
@@ -1733,16 +1732,16 @@ EOF`,
     new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
     let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
     let gff = p.stdout
-    assert.ok(gff.startsWith('##gff-version 3'))
-    assert.ok(gff.includes('multivalue=val1,val2,val3'))
-    assert.ok(gff.includes('##FASTA\n'))
-    assert.deepStrictEqual(gff.slice(-6), 'taccc\n')
+    assert.match(gff, /^##gff-version 3/)
+    assert.match(gff, /multivalue=val1,val2,val3/)
+    assert.match(gff, /##FASTA/)
+    assert.match(gff, /taccc$/)
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
     gff = p.stdout
-    assert.ok(gff.startsWith('##gff-version 3'))
-    assert.ok(gff.includes('multivalue=val1,val2,val3'))
-    assert.ok(!gff.includes('##FASTA\n'))
+    assert.match(gff, /^##gff-version 3/)
+    assert.match(gff, /multivalue=val1,val2,val3/)
+    assert.doesNotMatch(gff, /##FASTA/)
 
     // Invalid assembly
     p = new Shell(`${apollo} export gff3 ${P} foobar`, false)
@@ -1757,17 +1756,16 @@ EOF`,
     new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
     let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
     let gff = p.stdout
-    assert.ok(gff.startsWith('##gff-version 3'))
-    assert.ok(gff.includes('multivalue=val1,val2,val3'))
-    assert.ok(gff.includes('##FASTA\n'))
-    // We end with two newlines because the test data does have an extra newline at the end.
-    assert.deepStrictEqual(gff.slice(-7), 'taccc\n\n')
+    assert.match(gff, /^##gff-version 3/)
+    assert.match(gff, /multivalue=val1,val2,val3/)
+    assert.match(gff, /##FASTA/)
+    assert.match(gff, /taccc$/)
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
     gff = p.stdout
-    assert.ok(gff.startsWith('##gff-version 3'))
-    assert.ok(gff.includes('multivalue=val1,val2,val3'))
-    assert.ok(!gff.includes('##FASTA\n'))
+    assert.match(gff, /^##gff-version 3/)
+    assert.match(gff, /multivalue=val1,val2,val3/)
+    assert.doesNotMatch(gff, /##FASTA/)
   })
 
   void globalThis.itName('Export gff3 from external assembly', () => {
@@ -1777,17 +1775,16 @@ EOF`,
     new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
     let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
     let gff = p.stdout
-    assert.ok(gff.startsWith('##gff-version 3'))
-    assert.ok(gff.includes('multivalue=val1,val2,val3'))
-    assert.ok(gff.includes('##FASTA\n'))
-    // We end with two newlines because the test data does have an extra newline at the end.
-    assert.deepStrictEqual(gff.slice(-7), 'taccc\n\n')
+    assert.match(gff, /^##gff-version 3/)
+    assert.match(gff, /multivalue=val1,val2,val3/)
+    assert.match(gff, /##FASTA/)
+    assert.match(gff, /taccc$/)
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
     gff = p.stdout
-    assert.ok(gff.startsWith('##gff-version 3'))
-    assert.ok(gff.includes('multivalue=val1,val2,val3'))
-    assert.ok(!gff.includes('##FASTA\n'))
+    assert.match(gff, /^##gff-version 3/)
+    assert.match(gff, /multivalue=val1,val2,val3/)
+    assert.doesNotMatch(gff, /##FASTA/)
   })
 
   void globalThis.itName(
@@ -1993,5 +1990,67 @@ EOF`,
         x.cause === 'NonCanonicalSpliceSiteAtFivePrime' && x.start === 37,
     )
     assert.strictEqual(chk.length, 1)
+  })
+
+  void globalThis.itName('Timeout option', async () => {
+    // Every CLI request to the real server is preceded by two lightweight
+    // access-token checks (see BaseCommand.getURL/getHeaders), so only the
+    // 3rd request is the one actually governed by --timeout. Delay only
+    // that one so the two checks don't slow the test down.
+    const serverScript = 'test_data/tmp_timeout_server.mjs'
+    fs.writeFileSync(
+      serverScript,
+      `
+import http from 'node:http'
+let requestCount = 0
+const server = http.createServer((req, res) => {
+  requestCount++
+  const respond = () => {
+    res.writeHead(200, { 'Content-Type': 'application/json' })
+    res.end('[]')
+  }
+  if (requestCount % 3 === 0) {
+    setTimeout(respond, 3000)
+  } else {
+    respond()
+  }
+})
+server.listen(0, () => {
+  console.log(server.address().port)
+})
+`,
+    )
+    const server = spawnChildProcess('node', [serverScript])
+    const port: string = await new Promise((resolve) => {
+      server.stdout.once('data', (data: Buffer) => {
+        resolve(data.toString().trim())
+      })
+    })
+
+    new Shell(
+      `${apollo} config --profile fakeTimeout address http://localhost:${port}`,
+    )
+    new Shell(`${apollo} config --profile fakeTimeout accessToken dummytoken`)
+
+    try {
+      // Timeout shorter than the server's response delay: the request
+      // should fail with a headers timeout error.
+      let p = new Shell(
+        `${apollo} assembly get --profile fakeTimeout --timeout 1s`,
+        false,
+      )
+      assert.notStrictEqual(p.returncode, 0)
+      assert.ok(p.stderr.includes('UND_ERR_HEADERS_TIMEOUT'))
+
+      // Timeout longer than the server's response delay: the request
+      // should succeed.
+      p = new Shell(
+        `${apollo} assembly get --profile fakeTimeout --timeout 10s`,
+      )
+      assert.strictEqual(p.stdout.trim(), '[]')
+    } finally {
+      server.kill()
+      fs.unlinkSync(serverScript)
+    }
   })
 })

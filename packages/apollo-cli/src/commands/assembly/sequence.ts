@@ -2,49 +2,9 @@
 
 import type { ApolloRefSeqSnapshot } from '@apollo-annotation/mst'
 import { Flags } from '@oclif/core'
-import { Agent, type RequestInit, type Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  createFetchErrorMessage,
-  getRefseqId,
-  idReader,
-  localhostToAddress,
-  queryApollo,
-} from '../../utils.js'
-
-async function getSequence(
-  address: string,
-  accessToken: string,
-  refSeq: string,
-  start: number,
-  end: number,
-): Promise<Response> {
-  const url = new URL(localhostToAddress(`${address}/sequence`))
-  const searchParams = new URLSearchParams({
-    refSeq,
-    start: start.toString(),
-    end: end.toString(),
-  })
-  url.search = searchParams.toString()
-  const uri = url.toString()
-
-  const auth: RequestInit = {
-    headers: {
-      authorization: `Bearer ${accessToken}`,
-    },
-    dispatcher: new Agent({ headersTimeout: 60 * 60 * 1000 }),
-  }
-  const response = await fetch(uri, auth)
-  if (!response.ok) {
-    const errorMessage = await createFetchErrorMessage(
-      response,
-      'getSequence failed',
-    )
-    throw new Error(errorMessage)
-  }
-  return response
-}
+import { idReader } from '../../utils.js'
 
 export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
   static summary = 'Get reference sequence in fasta format'
@@ -91,37 +51,24 @@ export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
       this.error('Start and end coordinates must be greater than 0.')
     }
 
-    const access = await this.getAccess()
-
     let assembly = undefined
     if (flags.assembly !== undefined) {
       ;[assembly] = await idReader([flags.assembly])
     }
 
-    const refseqIds = await getRefseqId(
-      access.address,
-      access.accessToken,
-      flags.refseq,
-      assembly,
-    )
+    const refseqIds = await this.getRefseqId(flags.refseq, assembly)
     if (refseqIds.length === 0) {
       this.error('No reference sequence found')
     }
 
-    const refs: Response = await queryApollo(
-      access.address,
-      access.accessToken,
-      'refSeqs',
-    )
-    const refSeqs = (await refs.json()) as ApolloRefSeqSnapshot[]
+    const refSeqs = (await this.get('refSeqs')) as ApolloRefSeqSnapshot[]
     for (const rid of refseqIds) {
-      const res = await getSequence(
-        access.address,
-        access.accessToken,
-        rid,
-        flags.start - 1,
-        endCoord,
-      )
+      const searchParams = new URLSearchParams({
+        refSeq: rid,
+        start: (flags.start - 1).toString(),
+        end: endCoord.toString(),
+      })
+      const res = await this.fetch(`sequence?${searchParams.toString()}`)
 
       const seqObj = await res.body?.getReader().read()
       const seq: string = new TextDecoder().decode(seqObj?.value)

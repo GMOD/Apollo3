@@ -1,19 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import type { SerializedAddFeatureChange } from '@apollo-annotation/shared'
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
-import { type Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  createFetchErrorMessage,
-  getFeatureById,
-  idReader,
-  localhostToAddress,
-  queryApollo,
-} from '../../utils.js'
+import { idReader } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Add a child feature (e.g. add an exon to an mRNA)'
@@ -70,46 +61,16 @@ to retrive the parent ID of interest and to populate the child feature with attr
     }
     const [featureId] = ff
 
-    const access = await this.getAccess()
-
-    const res: Response = await getFeatureById(
-      access.address,
-      access.accessToken,
-      featureId,
-    )
-    if (!res.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        res,
-        'getFeatureById failed',
-      )
-      throw new Error(errorMessage)
-    }
-    const feature = JSON.parse(await res.text())
-    const childRes = await this.addChild(
-      access.address,
-      access.accessToken,
-      feature,
-      flags.start - 1,
-      flags.end,
-      flags.type,
-    )
-    if (!childRes.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        childRes,
-        'Add child failed',
-      )
-      throw new Error(errorMessage)
-    }
+    const feature = await this.getFeatureById(featureId)
+    await this.addChild(feature, flags.start - 1, flags.end, flags.type)
   }
 
   private async addChild(
-    address: string,
-    accessToken: string,
     parentFeature: AnnotationFeatureSnapshot,
     min: number,
     max: number,
     type: string,
-  ): Promise<Response> {
+  ): Promise<void> {
     const pMin = parentFeature.min
     const pMax = parentFeature.max
     if (min < pMin || max > pMax) {
@@ -117,8 +78,7 @@ to retrive the parent ID of interest and to populate the child feature with attr
         `Error: Child feature coordinates (${min + 1}-${max}) cannot extend beyond parent coordinates (${pMin + 1}-${pMax})`,
       )
     }
-    const res = await queryApollo(address, accessToken, 'refSeqs')
-    const refSeqs = (await res.json()) as object[]
+    const refSeqs = (await this.get('refSeqs')) as object[]
     const { refSeq, _id } = parentFeature
     let assembly = ''
     for (const x of refSeqs) {
@@ -142,23 +102,6 @@ to retrive the parent ID of interest and to populate the child feature with attr
 
       parentFeatureId: _id,
     }
-    const url = new URL(localhostToAddress(`${address}/changes`))
-    const auth = {
-      method: 'POST',
-      body: JSON.stringify(change),
-      headers: {
-        authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    }
-    const response = await fetch(url, auth)
-    if (!response.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        response,
-        'getFeatureById failed',
-      )
-      throw new Error(errorMessage)
-    }
-    return response
+    await this.post('changes', JSON.stringify(change))
   }
 }

@@ -1,19 +1,11 @@
-import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import type {
   SerializedLocationEndChange,
   SerializedLocationStartChange,
 } from '@apollo-annotation/shared'
 import { Flags } from '@oclif/core'
-import { type Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  createFetchErrorMessage,
-  getAssemblyFromRefseq,
-  getFeatureById,
-  idReader,
-  localhostToAddress,
-} from '../../utils.js'
+import { idReader } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Edit feature start and/or end coordinates'
@@ -79,29 +71,9 @@ To get the identifier of the feature to edit consider using `apollo feature get`
     }
     const [featureId] = ff
 
-    const access = await this.getAccess()
+    const featureJson = await this.getFeatureById(featureId)
 
-    const res: Response = await getFeatureById(
-      access.address,
-      access.accessToken,
-      featureId,
-    )
-    if (!res.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        res,
-        'getFeatureById failed',
-      )
-      throw new Error(errorMessage)
-    }
-    const featureJson = JSON.parse(
-      await res.text(),
-    ) as AnnotationFeatureSnapshot
-
-    const assembly = await getAssemblyFromRefseq(
-      access.address,
-      access.accessToken,
-      featureJson.refSeq,
-    )
+    const assembly = await this.getAssemblyFromRefseq(featureJson.refSeq)
 
     const currentEnd = featureJson.max
     let edit = ['Start', 'End']
@@ -149,23 +121,7 @@ To get the identifier of the feature to edit consider using `apollo feature get`
         throw new Error(`Unexpected coordinate name: "${coord}"`)
       }
 
-      const url = new URL(localhostToAddress(`${access.address}/changes`))
-      const auth = {
-        method: 'POST',
-        body: JSON.stringify(body),
-        headers: {
-          authorization: `Bearer ${access.accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
-      const response = await fetch(url, auth)
-      if (!response.ok) {
-        const errorMessage = await createFetchErrorMessage(
-          response,
-          'edit-coords failed',
-        )
-        throw new Error(errorMessage)
-      }
+      await this.post('changes', JSON.stringify(body))
     }
   }
 }

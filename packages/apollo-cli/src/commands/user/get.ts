@@ -1,8 +1,6 @@
 import { Flags } from '@oclif/core'
-import type { Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { queryApollo } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Get list of users'
@@ -39,15 +37,7 @@ export default class Get extends BaseCommand<typeof Get> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Get)
 
-    const access = await this.getAccess()
-
-    const users: Response = await queryApollo(
-      access.address,
-      access.accessToken,
-      'users',
-    )
-
-    const json = (await users.json()) as object[]
+    const json = (await this.get('users')) as object[]
     const out: object[] = []
     for (const x of json) {
       if (

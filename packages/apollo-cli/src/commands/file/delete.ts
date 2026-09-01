@@ -1,13 +1,10 @@
 import { Flags } from '@oclif/core'
-import { type RequestInit, type Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
   createFetchErrorMessage,
   filterJsonList,
   idReader,
-  localhostToAddress,
-  queryApollo,
 } from '../../utils.js'
 
 export default class Delete extends BaseCommand<typeof Delete> {
@@ -34,19 +31,12 @@ export default class Delete extends BaseCommand<typeof Delete> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Delete)
 
-    const access = await this.getAccess()
-
-    const files: Response = await queryApollo(
-      access.address,
-      access.accessToken,
-      'files',
-    )
-    const json = (await files.json()) as object[]
+    const json = (await this.get('files')) as object[]
 
     const ff = await idReader(flags['file-id'])
     let deleted: object[] = []
     for (const id of ff) {
-      const res = await deleteFile(access.address, access.accessToken, id)
+      const res = await this.deleteFile(id)
       if (res.status === 404) {
         this.logToStderr(`File id "${id}" not found`)
       } else {
@@ -57,29 +47,18 @@ export default class Delete extends BaseCommand<typeof Delete> {
     this.log(JSON.stringify(deleted, null, 2))
     this.logToStderr(`${deleted.length.toString()} file(s) deleted.`)
   }
-}
 
-async function deleteFile(
-  address: string,
-  accessToken: string,
-  fileId: string,
-): Promise<Response> {
-  const auth: RequestInit = {
-    method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
+  async deleteFile(fileId: string) {
+    const response = await this.fetch(`files/${fileId}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok && response.status != 404) {
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'deleteFile failed',
+      )
+      throw new Error(errorMessage)
+    }
+    return response
   }
-
-  const url = new URL(localhostToAddress(`${address}/files/${fileId}`))
-  const response: Response = await fetch(url, auth)
-  if (!response.ok && response.status != 404) {
-    const errorMessage = await createFetchErrorMessage(
-      response,
-      'deleteFile failed',
-    )
-    throw new Error(errorMessage)
-  }
-  return response
 }

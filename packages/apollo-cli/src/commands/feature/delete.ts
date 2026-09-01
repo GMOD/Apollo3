@@ -1,53 +1,9 @@
 import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import type { SerializedDeleteFeatureChange } from '@apollo-annotation/shared'
 import { Flags } from '@oclif/core'
-import { type Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  createFetchErrorMessage,
-  getFeatureById,
-  idReader,
-  localhostToAddress,
-} from '../../utils.js'
-
-async function deleteFeature(
-  address: string,
-  accessToken: string,
-  feature: AnnotationFeatureSnapshot,
-): Promise<Response> {
-  const changeJson: SerializedDeleteFeatureChange = {
-    typeName: 'DeleteFeatureChange',
-    changedIds: [feature._id],
-    assembly: '111222333444555666777888', // Use a placeholder objectId (i.e. some 24 chars)
-    deletedFeature: {
-      _id: feature._id,
-      refSeq: feature.refSeq,
-      type: feature.type,
-      min: feature.min,
-      max: feature.max,
-      attributes: feature.attributes,
-    },
-  }
-  const url = new URL(localhostToAddress(`${address}/changes`))
-  const auth = {
-    method: 'POST',
-    body: JSON.stringify(changeJson),
-    headers: {
-      authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-  }
-  const response = await fetch(url, auth)
-  if (!response.ok) {
-    const errorMessage = await createFetchErrorMessage(
-      response,
-      'deleteFeature failed',
-    )
-    throw new Error(errorMessage)
-  }
-  return response
-}
+import { idReader } from '../../utils.js'
 
 export default class Delete extends BaseCommand<typeof Delete> {
   static summary = 'Delete one or more features by ID'
@@ -80,41 +36,39 @@ export default class Delete extends BaseCommand<typeof Delete> {
       featureIds.add(x)
     }
 
-    const access = await this.getAccess()
-
     for (const featureId of featureIds) {
-      const res: Response = await getFeatureById(
-        access.address,
-        access.accessToken,
-        featureId,
-      )
-      if (res.status === 404 && flags.force) {
-        continue
+      const response = await this.fetchWithoutCheck(`features/${featureId}`)
+      if (!response.ok) {
+        if (response.status === 404 && flags.force) {
+          continue
+        }
+        await this.check(response)
       }
-      if (!res.ok) {
-        const errorMessage = await createFetchErrorMessage(
-          res,
-          'getFeatureById failed',
-        )
-        throw new Error(errorMessage)
-      }
-      const feature = JSON.parse(await res.text()) as AnnotationFeatureSnapshot
+      const feature = (await response.json()) as AnnotationFeatureSnapshot
       if (flags['dry-run']) {
         this.log(JSON.stringify(feature, null, 2))
       } else {
-        const delFet: Response = await deleteFeature(
-          access.address,
-          access.accessToken,
-          feature,
-        )
-        if (!delFet.ok) {
-          const errorMessage = await createFetchErrorMessage(
-            delFet,
-            'Delete feature failed',
-          )
-          throw new Error(errorMessage)
-        }
+        await this.deleteFeature(feature)
       }
     }
+  }
+
+  private async deleteFeature(
+    feature: AnnotationFeatureSnapshot,
+  ): Promise<void> {
+    const changeJson: SerializedDeleteFeatureChange = {
+      typeName: 'DeleteFeatureChange',
+      changedIds: [feature._id],
+      assembly: '111222333444555666777888', // Use a placeholder objectId (i.e. some 24 chars)
+      deletedFeature: {
+        _id: feature._id,
+        refSeq: feature.refSeq,
+        type: feature.type,
+        min: feature.min,
+        max: feature.max,
+        attributes: feature.attributes,
+      },
+    }
+    await this.post('changes', JSON.stringify(changeJson))
   }
 }

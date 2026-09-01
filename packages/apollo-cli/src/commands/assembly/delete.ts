@@ -1,12 +1,7 @@
 import { Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  convertAssemblyNameToId,
-  deleteAssembly,
-  getAssembly,
-  idReader,
-} from '../../utils.js'
+import { idReader } from '../../utils.js'
 
 export default class Delete extends BaseCommand<typeof Delete> {
   static summary = 'Delete assemblies'
@@ -35,19 +30,13 @@ export default class Delete extends BaseCommand<typeof Delete> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Delete)
 
-    const access = await this.getAccess()
-
     const assembly: string[] = await idReader(flags.assembly)
-    const deleteIds = await convertAssemblyNameToId(
-      access.address,
-      access.accessToken,
-      assembly,
-    )
+    const deleteIds = await this.convertAssemblyNameToId(assembly)
     let i = 0
     const deleted: object[] = []
     for (const x of deleteIds) {
-      const asm = await getAssembly(access.address, access.accessToken, x)
-      await deleteAssembly(access.address, access.accessToken, x)
+      const asm = await this.getAssembly(x)
+      await this.deleteAssembly(x)
       deleted.push(asm)
       i += 1
     }

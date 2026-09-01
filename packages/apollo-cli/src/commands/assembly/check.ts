@@ -1,70 +1,7 @@
 import { Flags } from '@oclif/core'
-import { type Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  convertCheckNameToId,
-  createFetchErrorMessage,
-  getAssembly,
-  idReader,
-  localhostToAddress,
-} from '../../utils.js'
-
-async function setChecks(
-  address: string,
-  accessToken: string,
-  assembly: string,
-  checkId: string[],
-): Promise<Response> {
-  const check: { _id: string; checks: string[]; name: string } = {
-    _id: assembly,
-    checks: checkId,
-    name: '',
-  }
-
-  const auth = {
-    method: 'POST',
-    body: JSON.stringify(check),
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-  }
-  const url = new URL(localhostToAddress(`${address}/assemblies/checks`))
-  const response = await fetch(url, auth)
-  if (!response.ok) {
-    const errorMessage = await createFetchErrorMessage(
-      response,
-      'setChecks failed',
-    )
-    throw new Error(errorMessage)
-  }
-  return response
-}
-
-async function getCheckTypes(
-  address: string,
-  accessToken: string,
-): Promise<object[]> {
-  const auth = {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-  }
-  const url = new URL(localhostToAddress(`${address}/checks/types`))
-  const response = await fetch(url, auth)
-  if (!response.ok) {
-    const errorMessage = await createFetchErrorMessage(
-      response,
-      'getCheckTypes failed',
-    )
-    throw new Error(errorMessage)
-  }
-  const chk = (await response.json()) as object[]
-  return chk
-}
+import { idReader } from '../../utils.js'
 
 function getCheckTypesForAssembly(
   checkTypes: object[],
@@ -128,12 +65,8 @@ these checks use `apollo feature check`.'
   public async run(): Promise<void> {
     const { flags } = await this.parse(Check)
 
-    const access = await this.getAccess()
+    const checkTypes = (await this.get('checks/types')) as object[]
 
-    const checkTypes: object[] = await getCheckTypes(
-      access.address,
-      access.accessToken,
-    )
     if (flags.check === undefined && flags.assembly === undefined) {
       this.log(JSON.stringify(checkTypes, null, 2))
       return
@@ -144,11 +77,7 @@ these checks use `apollo feature check`.'
     }
 
     const asm: string[] = await idReader([flags.assembly])
-    const assembly = await getAssembly(
-      access.address,
-      access.accessToken,
-      asm[0],
-    )
+    const assembly = await this.getAssembly(asm[0])
 
     const currentChecks: object[] = getCheckTypesForAssembly(
       checkTypes,
@@ -159,11 +88,7 @@ these checks use `apollo feature check`.'
       return
     }
 
-    const inputCheckIds = await convertCheckNameToId(
-      access.address,
-      access.accessToken,
-      flags.check,
-    )
+    const inputCheckIds = await this.convertCheckNameToId(flags.check)
 
     const newChecks = new Set<string>()
     if (flags.delete) {
@@ -182,8 +107,15 @@ these checks use `apollo feature check`.'
       }
     }
 
-    await setChecks(access.address, access.accessToken, assembly._id, [
-      ...newChecks.values(),
-    ])
+    const check: { _id: string; checks: string[]; name: string } = {
+      _id: assembly._id,
+      checks: [...newChecks.values()],
+      name: '',
+    }
+    await this.fetch(
+      'assemblies/checks',
+      { method: 'POST', body: JSON.stringify(check) },
+      { json: true },
+    )
   }
 }

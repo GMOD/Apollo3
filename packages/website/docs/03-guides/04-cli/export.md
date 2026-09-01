@@ -10,7 +10,7 @@ Export the annotations for an assembly to stdout as gff3
 
 ```
 USAGE
-  $ apollo export gff3 ASSEMBLY [--profile <value>] [--config-file <value>] [--include-fasta]
+  $ apollo export gff3 ASSEMBLY [--profile <value>] [--config-file <value>] [--timeout <value>] [--include-fasta]
 
 ARGUMENTS
   ASSEMBLY  Export annotations for this assembly name or id
@@ -19,6 +19,7 @@ FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
   --include-fasta        Include fasta sequence in output
   --profile=<value>      Use credentials from this profile
+  --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Export the annotations for an assembly to stdout as gff3

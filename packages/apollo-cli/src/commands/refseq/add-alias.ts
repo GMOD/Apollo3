@@ -2,15 +2,8 @@ import * as fs from 'node:fs'
 
 import type { SerializedRefSeqAliasesChange } from '@apollo-annotation/shared'
 import { Args, Flags } from '@oclif/core'
-import { Agent, type RequestInit, type Response, fetch } from 'undici'
 
-import { ConfigError } from '../../ApolloConf.js'
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  createFetchErrorMessage,
-  localhostToAddress,
-  queryApollo,
-} from '../../utils.js'
 
 export default class AddRefNameAlias extends BaseCommand<
   typeof AddRefNameAlias
@@ -48,7 +41,6 @@ export default class AddRefNameAlias extends BaseCommand<
       this.error(`File ${args['input-file']} does not exist`)
     }
 
-    const access = await this.getAccess()
     const filehandle = await fs.promises.open(args['input-file'])
     const fileContent = await filehandle.readFile({ encoding: 'utf8' })
     await filehandle.close()
@@ -60,12 +52,7 @@ export default class AddRefNameAlias extends BaseCommand<
       refNameAliases.push({ refName, aliases })
     }
 
-    const assemblies: Response = await queryApollo(
-      access.address,
-      access.accessToken,
-      'assemblies',
-    )
-    const json = (await assemblies.json()) as object[]
+    const json = (await this.get('assemblies')) as object[]
     const assembly = json.find((x) => 'name' in x && x.name === flags.assembly)
     const assemblyId = assembly && '_id' in assembly ? assembly._id : undefined
 
@@ -79,24 +66,7 @@ export default class AddRefNameAlias extends BaseCommand<
       refSeqAliases: refNameAliases,
     }
 
-    const auth: RequestInit = {
-      method: 'POST',
-      body: JSON.stringify(change),
-      headers: {
-        Authorization: `Bearer ${access.accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      dispatcher: new Agent({ headersTimeout: 60 * 60 * 1000 }),
-    }
-    const url = new URL(localhostToAddress(`${access.address}/changes`))
-    const response = await fetch(url, auth)
-    if (!response.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        response,
-        'Failed to add reference name aliases',
-      )
-      throw new ConfigError(errorMessage)
-    }
+    await this.post('changes', JSON.stringify(change))
     this.log(
       `Reference name aliases added successfully to assembly ${flags.assembly}`,
     )

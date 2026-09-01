@@ -1,8 +1,7 @@
 import { Flags } from '@oclif/core'
-import type { Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { idReader, queryApollo } from '../../utils.js'
+import { idReader } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Get list of files uploaded to the Apollo server'
@@ -26,14 +25,7 @@ export default class Get extends BaseCommand<typeof Get> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Get)
 
-    const access = await this.getAccess()
-
-    const files: Response = await queryApollo(
-      access.address,
-      access.accessToken,
-      'files',
-    )
-    const json = (await files.json()) as object[]
+    const json = (await this.get('files')) as object[]
 
     let fileIds: string[] = []
     if (flags['file-id'] !== undefined) {

@@ -1,12 +1,6 @@
 import { Flags } from '@oclif/core'
-import { type Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  createFetchErrorMessage,
-  getRefseqId,
-  localhostToAddress,
-} from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description =
@@ -53,25 +47,14 @@ export default class Get extends BaseCommand<typeof Get> {
       this.error('Start and end coordinates must be greater than 0.')
     }
 
-    const access = await this.getAccess()
-
-    const refseqIds: string[] = await getRefseqId(
-      access.address,
-      access.accessToken,
+    const refseqIds: string[] = await this.getRefseqId(
       flags.refseq,
       flags.assembly,
     )
 
     const results: object[] = []
     for (const refseq of refseqIds) {
-      const features: Response = await this.getFeatures(
-        access.address,
-        access.accessToken,
-        refseq,
-        flags.start,
-        endCoord,
-      )
-      const json = (await features.json()) as object[]
+      const json = await this.getFeatures(refseq, flags.start, endCoord)
       for (const x of json[0] as object[]) {
         results.push(x)
       }
@@ -80,33 +63,17 @@ export default class Get extends BaseCommand<typeof Get> {
   }
 
   private async getFeatures(
-    address: string,
-    token: string,
     refSeq: string,
     start: number,
     end: number,
-  ): Promise<Response> {
-    const url = new URL(localhostToAddress(`${address}/features/getFeatures`))
+  ): Promise<object[]> {
     const searchParams = new URLSearchParams({
       refSeq,
       start: start.toString(),
       end: end.toString(),
     })
-    url.search = searchParams.toString()
-    const auth = {
-      headers: {
-        authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    }
-    const res = await fetch(url, auth)
-    if (!res.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        res,
-        'Failed to access Apollo with the current address and/or access token\nThe server returned:\n',
-      )
-      throw new Error(errorMessage)
-    }
-    return res
+    return (await this.get(
+      `features/getFeatures?${searchParams.toString()}`,
+    )) as object[]
   }
 }

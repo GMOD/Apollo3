@@ -12,7 +12,8 @@ Generate JBrowse file for use with desktop client
 
 ```
 USAGE
-  $ apollo jbrowse desktop JBROWSEFILE [--profile <value>] [--config-file <value>] [-o | -w <value>] [-f <value>]
+  $ apollo jbrowse desktop JBROWSEFILE [--profile <value>] [--config-file <value>] [--timeout <value>] [-o | -w
+    <value>] [-f <value>]
 
 ARGUMENTS
   JBROWSEFILE  Generated JBrowse file
@@ -23,6 +24,7 @@ FLAGS
   -w, --open-with=<value>    open generated file with specified application
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Generate JBrowse file for use with desktop client
@@ -57,11 +59,12 @@ Get JBrowse configuration from Apollo
 
 ```
 USAGE
-  $ apollo jbrowse get-config [--profile <value>] [--config-file <value>]
+  $ apollo jbrowse get-config [--profile <value>] [--config-file <value>] [--timeout <value>]
 
 FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
   --profile=<value>      Use credentials from this profile
+  --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get JBrowse configuration from Apollo
@@ -83,7 +86,7 @@ Set JBrowse configuration
 
 ```
 USAGE
-  $ apollo jbrowse set-config INPUTFILE [--profile <value>] [--config-file <value>]
+  $ apollo jbrowse set-config INPUTFILE [--profile <value>] [--config-file <value>] [--timeout <value>]
 
 ARGUMENTS
   INPUTFILE  JBrowse configuration file
@@ -91,6 +94,7 @@ ARGUMENTS
 FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
   --profile=<value>      Use credentials from this profile
+  --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Set JBrowse configuration

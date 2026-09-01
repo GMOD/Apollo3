@@ -1,5 +1,4 @@
 import { BaseCommand } from '../../baseCommand.js'
-import { queryApollo } from '../../utils.js'
 
 export default class GetConfig extends BaseCommand<typeof GetConfig> {
   static summary = 'Get JBrowse configuration from Apollo'
@@ -14,19 +13,7 @@ export default class GetConfig extends BaseCommand<typeof GetConfig> {
   ]
 
   public async run(): Promise<void> {
-    const access = await this.getAccess()
-
-    const response = await queryApollo(
-      access.address,
-      access.accessToken,
-      'jbrowse/config.json',
-    )
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch JBrowse configuration')
-    }
-
-    const json = (await response.json()) as object
+    const json = (await this.get('jbrowse/config.json')) as object
     this.log(JSON.stringify(json, null, 2))
   }
 }
