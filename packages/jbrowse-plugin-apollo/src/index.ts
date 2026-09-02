@@ -101,7 +101,7 @@ function isApolloMessageData(data?: unknown): data is ApolloMessageData {
 
 const inWebWorker = 'WorkerGlobalScope' in globalThis
 
-const supportedJBrowseMajorVersion = 4
+const supportedJBrowseMajorVersion = 5
 
 /**
  * Throws if this plugin is loaded in a JBrowse it wasn't built for. The JBrowse
@@ -261,28 +261,29 @@ export default class ApolloPlugin extends Plugin {
       'Core-extendPluggableElement',
       (pluggableElement: PluggableElementType) => {
         if (pluggableElement.name === 'LinearGenomeView') {
-          const { stateModel } = pluggableElement as ViewType
-          const lgv = stateModel as LinearGenomeViewStateModel
-          const newStateModel = lgv.views((self) => {
-            const superRubberBandMenuItems = self.rubberBandMenuItems
-            return {
-              rubberBandMenuItems() {
-                return [
-                  ...superRubberBandMenuItems(),
-                  {
-                    label: 'Add new feature',
-                    icon: AddIcon,
-                    onClick: () => {
-                      const session = getSession(
-                        self,
-                      ) as unknown as ApolloSessionModel
-                      const { leftOffset, rightOffset } = self
-                      const selectedRegions = self.getSelectedRegions(
-                        leftOffset,
-                        rightOffset,
-                      )
-                      ;(session as unknown as AbstractSessionModel).queueDialog(
-                        (doneCallback) => [
+          ;(pluggableElement as ViewType).extendStateModel((stateModel) => {
+            const lgv = stateModel as LinearGenomeViewStateModel
+            return lgv.views((self) => {
+              const superRubberBandMenuItems = self.rubberBandMenuItems
+              return {
+                rubberBandMenuItems() {
+                  return [
+                    ...superRubberBandMenuItems(),
+                    {
+                      label: 'Add new feature',
+                      icon: AddIcon,
+                      onClick: () => {
+                        const session = getSession(
+                          self,
+                        ) as unknown as ApolloSessionModel
+                        const { leftOffset, rightOffset } = self
+                        const selectedRegions = self.getSelectedRegions(
+                          leftOffset,
+                          rightOffset,
+                        )
+                        ;(
+                          session as unknown as AbstractSessionModel
+                        ).queueDialog((doneCallback) => [
                           AddFeature,
                           {
                             session,
@@ -293,15 +294,14 @@ export default class ApolloPlugin extends Plugin {
                             changeManager:
                               session.apolloDataStore.changeManager,
                           },
-                        ],
-                      )
+                        ])
+                      },
                     },
-                  },
-                ]
-              },
-            }
+                  ]
+                },
+              }
+            })
           })
-          ;(pluggableElement as ViewType).stateModel = newStateModel
         }
         return pluggableElement
       },

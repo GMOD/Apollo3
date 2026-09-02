@@ -21,7 +21,7 @@
     "@apollo-annotation/mst": "workspace:^",
     "@apollo-annotation/schemas": "workspace:^",
     "@gmod/gff": "^2.1.0",
-    "@jbrowse/core": "^4.3.0",
+    "@jbrowse/core": "^5.0.0-beta.2",
     "bson-objectid": "^2.0.4",
     "jwt-decode": "^3.1.2"
   },
