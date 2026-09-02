@@ -104,8 +104,16 @@ export function isMouseOnFeatureEdge(
   const { refName, regionNumber, x } = mousePosition
   const { lgv } = stateModel
   const { offsetPx } = lgv
-  const minPxInfo = lgv.bpToPx({ refName, coord: feature.min, regionNumber })
-  const maxPxInfo = lgv.bpToPx({ refName, coord: feature.max, regionNumber })
+  const minPxInfo = lgv.bpToPx({
+    refName,
+    coord: feature.min,
+    displayedRegionIndex: regionNumber,
+  })
+  const maxPxInfo = lgv.bpToPx({
+    refName,
+    coord: feature.max,
+    displayedRegionIndex: regionNumber,
+  })
   if (minPxInfo !== undefined && maxPxInfo !== undefined) {
     const minPx = minPxInfo.offsetPx - offsetPx
     const maxPx = maxPxInfo.offsetPx - offsetPx

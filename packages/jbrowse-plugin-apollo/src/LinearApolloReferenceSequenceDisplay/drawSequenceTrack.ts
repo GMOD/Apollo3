@@ -108,8 +108,7 @@ function drawCodon(
     const nextLeft = Math.round(leftPx + (index + 3) / bpPerPx)
     const width = nextLeft - left
     const codonCode = strand === 1 ? codon : revcom(codon)
-    const aminoAcidCode =
-      defaultCodonTable[codonCode as keyof typeof defaultCodonTable]
+    const aminoAcidCode = defaultCodonTable[codonCode]
     const fillColor = codonColorCode(aminoAcidCode, theme, highContrast)
     if (
       fillColor &&

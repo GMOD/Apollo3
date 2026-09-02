@@ -16,6 +16,7 @@ import { CollaborationServerDriver } from '../BackendDrivers'
 import { CreateApolloAnnotation } from '../components/CreateApolloAnnotation'
 import { Apollo as ApolloIcon } from '../menus/Icons'
 import type { ApolloSessionModel } from '../session'
+import { isAlive } from '@jbrowse/mobx-state-tree'
 
 function simpleFeatureToGFF3Feature(
   feature: Feature,
@@ -37,9 +38,9 @@ function simpleFeatureToGFF3Feature(
           : '-'
         : null,
       phase:
-        feature.get('phase') !== null || feature.get('phase') !== undefined
-          ? (feature.get('phase') as string)
-          : null,
+        feature.get('phase') === undefined
+          ? null
+          : String(feature.get('phase')),
       attributes: convertFeatureAttributes(feature),
       derived_features: [],
       child_features: children
@@ -108,101 +109,104 @@ function convertFeatureAttributes(feature: Feature): Record<string, string[]> {
   return attributes
 }
 
-function getTopLevelSimpleFeature(feature: Feature) {
-  let topLevel = feature
-  let parent = feature.get('parent')
-  while (parent) {
-    topLevel = parent
-    parent = parent.get('parent')
-  }
-  return topLevel
-}
-
 export function annotationFromJBrowseFeature(
   pluggableElement: PluggableElementType,
 ) {
   if (pluggableElement.name !== 'LinearBasicDisplay') {
     return pluggableElement
   }
-  const { stateModel } = pluggableElement as DisplayType
-
-  const newStateModel = stateModel
-    .views((self) => ({
-      getFirstRegion() {
-        const lgv = getContainingView(self) as unknown as LinearGenomeViewModel
-        return lgv.dynamicBlocks.contentBlocks[0]
-      },
-      getAssembly() {
-        const firstRegion = self.getFirstRegion()
-        const session = getSession(self)
-        const { assemblyManager } = session
-        const { assemblyName } = firstRegion
-        const assembly = assemblyManager.get(assemblyName)
-        if (!assembly) {
-          throw new Error(`Could not find assembly named ${assemblyName}`)
-        }
-        return assembly
-      },
-    }))
-    .views((self) => {
-      const superContextMenuItems = self.contextMenuItems
-
-      return {
-        contextMenuItems() {
-          const session = getSession(self)
-          const assembly = self.getAssembly()
-          const region = self.getFirstRegion()
-          const feature = self.contextMenuFeature
-          if (!feature) {
-            return superContextMenuItems()
-          }
-          const topLevelFeature = getTopLevelSimpleFeature(feature)
-          return [
-            ...superContextMenuItems(),
-            {
-              label: 'Create Apollo annotation',
-              icon: ApolloIcon,
-              onClick: async () => {
-                const backendDriver = (
-                  session as unknown as ApolloSessionModel
-                ).apolloDataStore.getBackendDriver(region.assemblyName)
-                let refSeqId = region.refName
-                if (backendDriver instanceof CollaborationServerDriver) {
-                  const backendRefSeqId = await backendDriver.getRefSeqId(
-                    region.assemblyName,
-                    region.refName,
-                  )
-                  if (!backendRefSeqId) {
-                    throw new Error(
-                      `Could not find refSeq for "${region.refName}"`,
-                    )
-                  }
-                  refSeqId = backendRefSeqId
-                }
-                const annotationFeature = jbrowseFeatureToAnnotationFeature(
-                  topLevelFeature,
-                  refSeqId,
-                )
-                session.queueDialog((doneCallback) => [
-                  CreateApolloAnnotation,
-                  {
-                    session,
-                    handleClose: () => {
-                      doneCallback()
-                    },
-                    annotationFeature,
-                    assembly,
-                    refSeqId,
-                    region,
-                  },
-                ])
-              },
-            },
-          ]
+  ;(pluggableElement as DisplayType).extendStateModel((stateModel) =>
+    stateModel
+      .views((self) => ({
+        getFirstRegion() {
+          const lgv = getContainingView(
+            self,
+          ) as unknown as LinearGenomeViewModel
+          return lgv.dynamicBlocks.contentBlocks[0]
         },
-      }
-    })
+        getAssembly() {
+          const firstRegion = self.getFirstRegion()
+          const session = getSession(self)
+          const { assemblyManager } = session
+          const { assemblyName } = firstRegion
+          const assembly = assemblyManager.get(assemblyName)
+          if (!assembly) {
+            throw new Error(`Could not find assembly named ${assemblyName}`)
+          }
+          return assembly
+        },
+      }))
+      .views((self) => {
+        const superContextMenuItems = self.contextMenuItems
 
-  ;(pluggableElement as DisplayType).stateModel = newStateModel
+        return {
+          contextMenuItems() {
+            const session = getSession(self)
+            const assembly = self.getAssembly()
+            const region = self.getFirstRegion()
+            const info = self.contextMenuInfo
+            if (!info) {
+              return superContextMenuItems()
+            }
+            const {
+              item: { featureId, kind },
+              displayedRegionIndex,
+            } = info
+            if (!(featureId && kind)) {
+              return superContextMenuItems()
+            }
+            return [
+              ...superContextMenuItems(),
+              {
+                label: 'Create Apollo annotation',
+                icon: ApolloIcon,
+                onClick: async () => {
+                  const feature = await self.fetchFullFeature(
+                    featureId,
+                    displayedRegionIndex,
+                  )
+                  if (!feature || !isAlive(self)) {
+                    return superContextMenuItems()
+                  }
+                  const backendDriver = (
+                    session as unknown as ApolloSessionModel
+                  ).apolloDataStore.getBackendDriver(region.assemblyName)
+                  let refSeqId = region.refName
+                  if (backendDriver instanceof CollaborationServerDriver) {
+                    const backendRefSeqId = await backendDriver.getRefSeqId(
+                      region.assemblyName,
+                      region.refName,
+                    )
+                    if (!backendRefSeqId) {
+                      throw new Error(
+                        `Could not find refSeq for "${region.refName}"`,
+                      )
+                    }
+                    refSeqId = backendRefSeqId
+                  }
+                  const annotationFeature = jbrowseFeatureToAnnotationFeature(
+                    feature,
+                    refSeqId,
+                  )
+                  session.queueDialog((doneCallback) => [
+                    CreateApolloAnnotation,
+                    {
+                      session,
+                      handleClose: () => {
+                        doneCallback()
+                      },
+                      annotationFeature,
+                      assembly,
+                      refSeqId,
+                      region,
+                    },
+                  ])
+                },
+              },
+            ]
+          },
+        }
+      }),
+  )
   return pluggableElement
 }

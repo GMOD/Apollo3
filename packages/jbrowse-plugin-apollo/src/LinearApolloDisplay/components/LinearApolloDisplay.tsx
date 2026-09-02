@@ -81,7 +81,6 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
         </div>
       ) : null}
       {/* This type is wrong in @jbrowse/core */}
-      {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
       {message ? (
         <Alert
           severity="warning"
@@ -120,19 +119,12 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
           <CheckResultWarnings display={model} />
           <Menu
             open={contextMenuItems.length > 0}
-            onMenuItemClick={(_, callback) => {
+            onMenuItemClick={(callback) => {
               callback()
               setContextMenuItems([])
             }}
             onClose={() => {
               setContextMenuItems([])
-            }}
-            slotProps={{
-              transition: {
-                onExit: () => {
-                  setContextMenuItems([])
-                },
-              },
             }}
             anchorReference="anchorPosition"
             anchorPosition={

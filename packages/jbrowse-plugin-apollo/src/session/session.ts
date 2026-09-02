@@ -21,9 +21,9 @@ import type { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
 import {
   isElectron,
   type AbstractSessionModel,
-  type SessionWithAddTracks,
   type SessionWithDrawerWidgets,
 } from '@jbrowse/core/util'
+import type { JobsListModel } from '@jbrowse/plugin-jobs-management'
 import {
   type Instance,
   type SnapshotOut,
@@ -38,7 +38,6 @@ import SaveIcon from '@mui/icons-material/Save'
 import { autorun, flow, observable, when } from 'mobx'
 
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { ApolloJobModel } from '../ApolloJobModel'
 import type ApolloPluginConfigurationSchema from '../config'
 import { type ApolloRootModel, isApolloInternetAccount } from '../types'
 import { createFetchErrorMessage } from '../util'
@@ -48,6 +47,14 @@ import {
   clientDataStoreFactory,
 } from './ClientDataStore'
 import { handleApolloFeaturesUrlParam } from './handleApolloFeaturesUrlParam'
+
+interface JBrowseConfigWithTracks {
+  addTrackConf(conf: {
+    trackId: string
+    type: string
+    [key: string]: unknown
+  }): unknown
+}
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreModel
@@ -81,7 +88,6 @@ export function extendSession(
     .props({
       apolloDataStore: types.optional(ClientDataStore, { typeName: 'Client' }),
       apolloSelectedFeature: types.safeReference(AnnotationFeatureExtended),
-      jobsManager: types.optional(ApolloJobModel, {}),
       isLocked: types.optional(types.boolean, false),
       changeInProgress: types.optional(types.boolean, false),
     })
@@ -112,7 +118,22 @@ export function extendSession(
         },
       }
     })
+    .views((self) => ({
+      get jobStatusWidget() {
+        const { widgets } = self as unknown as SessionWithDrawerWidgets
+        const jobStatusWidget =
+          widgets.get('JobsList') ??
+          // @ts-expect-error: addWidget function not detected on the session
+          self.addWidget('JobsListWidget', 'JobsList')
+        return jobStatusWidget as unknown as JobsListModel
+      },
+    }))
     .actions((self) => ({
+      showJobStatusWidget() {
+        ;(self as unknown as SessionWithDrawerWidgets).showWidget(
+          self.jobStatusWidget,
+        )
+      },
       apolloSetSelectedFeature(feature?: AnnotationFeature | string) {
         // @ts-expect-error Not sure why TS thinks these MST types don't match
         self.apolloSelectedFeature = feature
@@ -127,9 +148,7 @@ export function extendSession(
         )
         if (!hasTrack) {
           ;(
-            getRoot<ApolloRootModel>(self).jbrowse as {
-              addTrackConf: SessionWithAddTracks['addTrackConf']
-            }
+            getRoot<ApolloRootModel>(self).jbrowse as JBrowseConfigWithTracks
           ).addTrackConf({
             type: 'ApolloTrack',
             trackId,
@@ -344,7 +363,6 @@ export function extendSession(
                 for (const a of nonApolloAssemblies) {
                   self.addApolloLocalTrackConfig(a)
                 }
-                // @ts-expect-error not sure why snapshot type is wrong for snapshot
                 applySnapshot(self, self.previousSnapshot)
                 reaction.dispose()
                 return

@@ -7,6 +7,7 @@ import {
   validationRegistry,
 } from '@apollo-annotation/shared'
 import { getSession } from '@jbrowse/core/util'
+import type { JobInput } from '@jbrowse/plugin-jobs-management'
 
 import type { ApolloSessionModel } from './session'
 import type { ClientDataStoreModel } from './session/ClientDataStore'
@@ -20,7 +21,7 @@ export interface SubmitOpts {
   /** defaults to undefined */
   internetAccountId?: string
   /** defaults to false */
-  updateJobsManager?: boolean
+  updateJobStatusWidget?: boolean
 }
 
 export class ChangeManager {
@@ -33,15 +34,21 @@ export class ChangeManager {
     const {
       addToRecents = true,
       submitToBackend = true,
-      updateJobsManager = false,
+      updateJobStatusWidget = false,
     } = opts
     // pre-validate
     const session = getSession(this.dataStore)
     const controller = new AbortController()
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { jobsManager, isLocked, changeInProgress, setChangeInProgress } =
-      getSession(this.dataStore) as unknown as ApolloSessionModel
+    const {
+      jobStatusWidget,
+      isLocked,
+      changeInProgress,
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      setChangeInProgress,
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      showJobStatusWidget,
+    } = getSession(this.dataStore) as unknown as ApolloSessionModel
 
     if (isLocked) {
       session.notify('Cannot submit changes in locked mode')
@@ -58,7 +65,7 @@ export class ChangeManager {
 
     setChangeInProgress(true)
 
-    const job = {
+    const job: JobInput = {
       name: change.typeName,
       statusMessage: 'Pre-validating',
       progressPct: 0,
@@ -70,17 +77,23 @@ export class ChangeManager {
           ),
         )
       },
+      state: 'running',
     }
 
-    if (updateJobsManager) {
-      jobsManager.runJob(job)
+    if (updateJobStatusWidget) {
+      jobStatusWidget.addJob(job)
+      showJobStatusWidget()
     }
 
     const result = await validationRegistry.frontendPreValidate(change)
     if (!result.ok) {
       const msg = `Pre-validation failed: "${result.resultsMessages}"`
-      if (updateJobsManager) {
-        jobsManager.abortJob(job.name, msg)
+      if (updateJobStatusWidget) {
+        jobStatusWidget.addJob({
+          name: job.name,
+          statusMessage: msg,
+          state: 'aborted',
+        })
       }
       session.notify(msg, 'error')
       setChangeInProgress(false)
@@ -97,8 +110,12 @@ export class ChangeManager {
         // @ts-expect-error change not narrowing
         await handler(this.dataStore, change)
       } catch (error) {
-        if (updateJobsManager) {
-          jobsManager.abortJob(job.name, String(error))
+        if (updateJobStatusWidget) {
+          jobStatusWidget.addJob({
+            name: job.name,
+            statusMessage: String(error),
+            state: 'aborted',
+          })
         }
         console.error(error)
         session.notify(
@@ -118,8 +135,8 @@ export class ChangeManager {
     }
 
     if (submitToBackend) {
-      if (updateJobsManager) {
-        jobsManager.update(job.name, 'Submitting to driver')
+      if (updateJobStatusWidget) {
+        jobStatusWidget.updateJobStatus(job.name, 'Submitting to driver')
       }
       // submit to driver
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -133,8 +150,12 @@ export class ChangeManager {
       try {
         backendResult = await backendDriver.submitChange(change, opts)
       } catch (error) {
-        if (updateJobsManager) {
-          jobsManager.abortJob(job.name, String(error))
+        if (updateJobStatusWidget) {
+          jobStatusWidget.addJob({
+            name: job.name,
+            statusMessage: String(error),
+            state: 'aborted',
+          })
         }
         console.error(error)
         session.notify(String(error), 'error')
@@ -144,8 +165,12 @@ export class ChangeManager {
       }
       if (!backendResult.ok) {
         const msg = `Post-validation failed: "${result.resultsMessages}"`
-        if (updateJobsManager) {
-          jobsManager.abortJob(job.name, msg)
+        if (updateJobStatusWidget) {
+          jobStatusWidget.addJob({
+            name: job.name,
+            statusMessage: msg,
+            state: 'aborted',
+          })
         }
         session.notify(msg, 'error')
         setChangeInProgress(false)
@@ -161,8 +186,12 @@ export class ChangeManager {
       }
     }
 
-    if (updateJobsManager) {
-      jobsManager.done(job)
+    if (updateJobStatusWidget) {
+      jobStatusWidget.addJob({
+        name: job.name,
+        statusMessage: `Finished ${change.typeName}`,
+        state: 'finished',
+      })
     }
     setChangeInProgress(false)
   }

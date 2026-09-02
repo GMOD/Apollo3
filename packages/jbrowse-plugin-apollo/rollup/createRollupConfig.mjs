@@ -15,8 +15,8 @@ import nodeBuiltins from 'builtin-modules'
 import { defineConfig } from 'rollup'
 import externalGlobals from 'rollup-plugin-external-globals'
 import nodePolyfills from 'rollup-plugin-polyfill-node'
-import sourceMaps from 'rollup-plugin-sourcemaps'
-import { terser } from 'rollup-plugin-terser'
+import terser from '@rollup/plugin-terser'
+import sourceMaps from 'rollup-plugin-sourcemaps2'
 
 import { babelPluginJBrowse } from './babelPluginJBrowse.mjs'
 import {

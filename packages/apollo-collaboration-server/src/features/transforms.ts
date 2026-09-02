@@ -8,7 +8,7 @@ export class CheckFeatureStream extends TransformStream<
   FeatureDocument,
   FeatureDocument
 > {
-  constructor(checksService: ChecksService) {
+  constructor(checksService: Readonly<ChecksService>) {
     super({
       async transform(chunk, controller) {
         try {

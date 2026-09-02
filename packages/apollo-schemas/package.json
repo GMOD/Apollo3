@@ -18,13 +18,12 @@
     "@nestjs/mongoose": "^10.0.0",
     "mongoose": "^6.12.0",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.4.0",
-    "tslib": "^2.3.1"
+    "rxjs": "^7.4.0"
   },
   "devDependencies": {
     "@apollo-annotation/mst": "workspace:^",
     "@types/node": "^24.10.9",
-    "typescript": "^5.5.3"
+    "typescript": "^6.0.3"
   },
   "publishConfig": {
     "access": "public"

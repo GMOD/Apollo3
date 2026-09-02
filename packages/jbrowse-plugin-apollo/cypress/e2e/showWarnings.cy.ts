@@ -42,7 +42,6 @@ describe('Warning signs', () => {
       .within(() => {
         cy.get('input[value="24"]').type('{selectall}{backspace}27{enter}')
       })
-    cy.get('button[data-testid="zoom_out"]').click()
     cy.reload()
 
     cy.get('[data-testid^="ErrorIcon-"]', { timeout: 10_000 }).should(

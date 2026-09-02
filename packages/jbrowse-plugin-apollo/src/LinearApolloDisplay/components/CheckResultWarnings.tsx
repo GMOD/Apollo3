@@ -1,5 +1,4 @@
 import type { CheckResultI } from '@apollo-annotation/mst'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { type AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
 import ErrorIcon from '@mui/icons-material/Error'
 import { Avatar, Badge, Box, Tooltip } from '@mui/material'
@@ -24,9 +23,7 @@ export const CheckResultWarnings = observer(function CheckResultWarnings({
   }
   return lgv.dynamicBlocks.contentBlocks.map((block) => {
     const widthBp = lgv.bpPerPx * apolloRowHeight
-    const assembly = assemblyManager.get(block.assemblyName) as
-      | Assembly
-      | undefined
+    const assembly = assemblyManager.get(block.assemblyName)
     if (!assembly) {
       return null
     }

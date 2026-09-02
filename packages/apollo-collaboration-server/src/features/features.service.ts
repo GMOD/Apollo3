@@ -8,13 +8,20 @@ import {
   RefSeq,
   type RefSeqDocument,
 } from '@apollo-annotation/schemas'
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import {
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import StreamConcat from 'stream-concat'
 
 import { ChecksService } from '../checks/checks.service.js'
 import type { FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
+import { cursorToReadable } from '../utils/mongooseCursor.js'
 
 import type {
   FeatureCountRequest,
@@ -25,7 +32,8 @@ import { CheckFeatureStream, DocToJSONArrayStream } from './transforms.js'
 @Injectable()
 export class FeaturesService {
   constructor(
-    private readonly checksService: ChecksService,
+    @Inject(forwardRef(() => ChecksService))
+    private readonly checksService: Readonly<ChecksService>,
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
     @InjectModel(RefSeq.name)
@@ -245,13 +253,15 @@ export class FeaturesService {
    */
   findByRangeStream(searchDto: FeatureRangeSearchDto): Readable {
     const featuresStream = Readable.toWeb(
-      this.featureModel.find(this.byRangeQuery(searchDto)).cursor(),
+      cursorToReadable(
+        this.featureModel.find(this.byRangeQuery(searchDto)).cursor(),
+      ),
     )
       .pipeThrough(new CheckFeatureStream(this.checksService))
       .pipeThrough(new DocToJSONArrayStream())
 
     const checkResultsStream = Readable.toWeb(
-      this.checksService.findByRangeCursor(searchDto),
+      cursorToReadable(this.checksService.findByRangeCursor(searchDto)),
     ).pipeThrough(new DocToJSONArrayStream())
 
     const openBracket = new ReadableStream<string>({
