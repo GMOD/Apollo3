@@ -36,194 +36,196 @@ export function annotationFromAlignmentRead(
   if (pluggableElement.name !== 'LinearAlignmentsDisplay') {
     return pluggableElement
   }
-  const { stateModel } = pluggableElement as DisplayType
-  const newStateModel = stateModel
-    .views((self) => ({
-      getFirstRegion() {
-        const lgv = getContainingView(self) as unknown as LinearGenomeViewModel
-        return lgv.dynamicBlocks.contentBlocks[0]
-      },
-      getAssembly() {
-        const firstRegion = this.getFirstRegion()
-        const session = getSession(self)
-        const { assemblyManager } = session
-        const { assemblyName } = firstRegion
-        const assembly = assemblyManager.get(assemblyName)
-        if (!assembly) {
-          throw new Error(`Could not find assembly named ${assemblyName}`)
-        }
-        return assembly
-      },
-      getAnnotationFeature(jbrowseFeature: Feature, refSeqId: string) {
-        const start: number = jbrowseFeature.get('start')
-        const end: number = jbrowseFeature.get('end')
-        const name = jbrowseFeature.get('name')
-
-        let strand: 1 | -1 | undefined
-        const tags = jbrowseFeature.get('tags') as Record<
-          string,
-          string | number | undefined
-        >
-        const { ts, TS, XS } = tags
-        for (const tag of [ts, TS, XS]) {
-          if (!strand && tag) {
-            if ([1, '1', '+'].includes(tag)) {
-              strand = 1
-            } else if ([-1, '-1', '-'].includes(tag)) {
-              strand = -1
-            }
+  ;(pluggableElement as DisplayType).extendStateModel((stateModel) =>
+    stateModel
+      .views((self) => ({
+        getFirstRegion() {
+          const lgv = getContainingView(
+            self,
+          ) as unknown as LinearGenomeViewModel
+          return lgv.dynamicBlocks.contentBlocks[0]
+        },
+        getAssembly() {
+          const firstRegion = this.getFirstRegion()
+          const session = getSession(self)
+          const { assemblyManager } = session
+          const { assemblyName } = firstRegion
+          const assembly = assemblyManager.get(assemblyName)
+          if (!assembly) {
+            throw new Error(`Could not find assembly named ${assemblyName}`)
           }
-        }
-        strand ??= jbrowseFeature.get('strand') as 1 | -1 | undefined
+          return assembly
+        },
+        getAnnotationFeature(jbrowseFeature: Feature, refSeqId: string) {
+          const start: number = jbrowseFeature.get('start')
+          const end: number = jbrowseFeature.get('end')
+          const name = jbrowseFeature.get('name')
 
-        const cigarData = jbrowseFeature.get('CIGAR') as string
-        const ops = parseCigar(cigarData)
-        let position = start
-        let currentExonStart: number | undefined
-        const exons: {
-          start: number
-          end: number
-        }[] = []
-
-        // Example: [[96,S], [4,M], [4216,N], [357,M], [1,I], [628,M], [94,S]]
-        // Results in 2 exons
-        // M, = and X are matches -> exon
-        // N is a gap in the reference sequence -> intron
-        // I, S, H and P -> not counted in reference position
-        for (const [op, len] of ops) {
-          switch (op) {
-            case 'M':
-            case '=':
-            case 'X': {
-              currentExonStart ??= position
-              position += len
-              break
-            }
-
-            case 'N': {
-              if (currentExonStart !== undefined) {
-                exons.push({
-                  start: currentExonStart,
-                  end: position,
-                })
-                currentExonStart = undefined
+          let strand: 1 | -1 | undefined
+          const tags = jbrowseFeature.get('tags') as Record<
+            string,
+            string | number | undefined
+          >
+          const { ts, TS, XS } = tags
+          for (const tag of [ts, TS, XS]) {
+            if (!strand && tag) {
+              if ([1, '1', '+'].includes(tag)) {
+                strand = 1
+              } else if ([-1, '-1', '-'].includes(tag)) {
+                strand = -1
               }
-              position += len
-              break
-            }
-            case 'D': {
-              position += len
-              break
-            }
-            case 'I':
-            case 'S':
-            case 'H':
-            case 'P': {
-              // These operations do not affect the position in the reference sequence
-              break
-            }
-            default: {
-              throw new Error(`Unknown CIGAR operation: ${op}`)
             }
           }
-        }
+          strand ??= jbrowseFeature.get('strand') as 1 | -1 | undefined
 
-        // If still in exon at end
-        if (currentExonStart !== undefined) {
-          exons.push({
-            start: currentExonStart,
-            end: position,
-          })
-        }
+          const cigarData = jbrowseFeature.get('CIGAR') as string
+          const ops = parseCigar(cigarData)
+          let position = start
+          let currentExonStart: number | undefined
+          const exons: {
+            start: number
+            end: number
+          }[] = []
 
-        const newFeature: AnnotationFeatureSnapshot = {
-          _id: ObjectID().toHexString(),
-          refSeq: refSeqId,
-          min: start,
-          max: end,
-          type: 'mRNA',
-          strand,
-        }
-        if (name) {
-          newFeature.attributes = {}
-          newFeature.attributes.gff_name = [name]
-        }
-        if (exons.length === 0) {
-          return newFeature
-        }
+          // Example: [[96,S], [4,M], [4216,N], [357,M], [1,I], [628,M], [94,S]]
+          // Results in 2 exons
+          // M, = and X are matches -> exon
+          // N is a gap in the reference sequence -> intron
+          // I, S, H and P -> not counted in reference position
+          for (const [op, len] of ops) {
+            switch (op) {
+              case 'M':
+              case '=':
+              case 'X': {
+                currentExonStart ??= position
+                position += len
+                break
+              }
 
-        const children: Record<string, AnnotationFeatureSnapshot> = {}
-        newFeature.children = children
+              case 'N': {
+                if (currentExonStart !== undefined) {
+                  exons.push({
+                    start: currentExonStart,
+                    end: position,
+                  })
+                  currentExonStart = undefined
+                }
+                position += len
+                break
+              }
+              case 'D': {
+                position += len
+                break
+              }
+              case 'I':
+              case 'S':
+              case 'H':
+              case 'P': {
+                // These operations do not affect the position in the reference sequence
+                break
+              }
+              default: {
+                throw new Error(`Unknown CIGAR operation: ${op}`)
+              }
+            }
+          }
 
-        for (const exon of exons) {
-          const newExon: AnnotationFeatureSnapshot = {
+          // If still in exon at end
+          if (currentExonStart !== undefined) {
+            exons.push({
+              start: currentExonStart,
+              end: position,
+            })
+          }
+
+          const newFeature: AnnotationFeatureSnapshot = {
             _id: ObjectID().toHexString(),
             refSeq: refSeqId,
-            min: exon.start,
-            max: exon.end,
-            type: 'exon',
+            min: start,
+            max: end,
+            type: 'mRNA',
             strand,
           }
-          newFeature.children[newExon._id] = newExon
-        }
-        return newFeature
-      },
-    }))
-    .views((self) => {
-      const superContextMenuItems = self.contextMenuItems
-      return {
-        contextMenuItems() {
-          const session = getSession(self)
-          const assembly = self.getAssembly()
-          const region = self.getFirstRegion()
-          const jbrowseFeature = self.contextMenuFeature
-          if (!jbrowseFeature) {
-            return superContextMenuItems()
+          if (name) {
+            newFeature.attributes = {}
+            newFeature.attributes.gff_name = [name]
           }
-          return [
-            ...superContextMenuItems(),
-            {
-              label: 'Create Apollo annotation',
-              icon: ApolloIcon,
-              onClick: async () => {
-                const backendDriver = (
-                  session as unknown as ApolloSessionModel
-                ).apolloDataStore.getBackendDriver(region.assemblyName)
-                let refSeqId = region.refName
-                if (backendDriver instanceof CollaborationServerDriver) {
-                  const backendRefSeqId = await backendDriver.getRefSeqId(
-                    region.assemblyName,
-                    region.refName,
-                  )
-                  if (!backendRefSeqId) {
-                    throw new Error(
-                      `Could not find refSeq for "${region.refName}"`,
-                    )
-                  }
-                  refSeqId = backendRefSeqId
-                }
-                session.queueDialog((doneCallback) => [
-                  CreateApolloAnnotation,
-                  {
-                    session,
-                    handleClose: () => {
-                      doneCallback()
-                    },
-                    annotationFeature: self.getAnnotationFeature(
-                      jbrowseFeature,
-                      refSeqId,
-                    ),
-                    assembly,
-                    refSeqId,
-                    region,
-                  },
-                ])
-              },
-            },
-          ]
+          if (exons.length === 0) {
+            return newFeature
+          }
+
+          const children: Record<string, AnnotationFeatureSnapshot> = {}
+          newFeature.children = children
+
+          for (const exon of exons) {
+            const newExon: AnnotationFeatureSnapshot = {
+              _id: ObjectID().toHexString(),
+              refSeq: refSeqId,
+              min: exon.start,
+              max: exon.end,
+              type: 'exon',
+              strand,
+            }
+            newFeature.children[newExon._id] = newExon
+          }
+          return newFeature
         },
-      }
-    })
-  ;(pluggableElement as DisplayType).stateModel = newStateModel
+      }))
+      .views((self) => {
+        const superContextMenuItems = self.contextMenuItems
+        return {
+          contextMenuItems() {
+            const session = getSession(self)
+            const assembly = self.getAssembly()
+            const region = self.getFirstRegion()
+            const jbrowseFeature = self.contextMenuFeature
+            if (!jbrowseFeature) {
+              return superContextMenuItems()
+            }
+            return [
+              ...superContextMenuItems(),
+              {
+                label: 'Create Apollo annotation',
+                icon: ApolloIcon,
+                onClick: async () => {
+                  const backendDriver = (
+                    session as unknown as ApolloSessionModel
+                  ).apolloDataStore.getBackendDriver(region.assemblyName)
+                  let refSeqId = region.refName
+                  if (backendDriver instanceof CollaborationServerDriver) {
+                    const backendRefSeqId = await backendDriver.getRefSeqId(
+                      region.assemblyName,
+                      region.refName,
+                    )
+                    if (!backendRefSeqId) {
+                      throw new Error(
+                        `Could not find refSeq for "${region.refName}"`,
+                      )
+                    }
+                    refSeqId = backendRefSeqId
+                  }
+                  session.queueDialog((doneCallback) => [
+                    CreateApolloAnnotation,
+                    {
+                      session,
+                      handleClose: () => {
+                        doneCallback()
+                      },
+                      annotationFeature: self.getAnnotationFeature(
+                        jbrowseFeature,
+                        refSeqId,
+                      ),
+                      assembly,
+                      refSeqId,
+                      region,
+                    },
+                  ])
+                },
+              },
+            ]
+          },
+        }
+      }),
+  )
   return pluggableElement
 }
