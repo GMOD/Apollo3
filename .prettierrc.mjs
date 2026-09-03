@@ -9,6 +9,7 @@ const config = {
   overrides: [
     {
       files: ['.devcontainer/**/*.json', '.vscode/*.json', '**/tsconfig*.json'],
+      excludeFiles: ['.devcontainer/devcontainer-lock.json'],
       options: { parser: 'jsonc' },
     },
   ],
