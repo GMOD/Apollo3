@@ -1,0 +1,13 @@
+OVOC_OM2	WormBase	CDS	23840223	23840282	.	-	0	ID=CDS:OVOC7322;Parent=Transcript:OVOC7322.1;Name=OVOC7322;prediction_status=Predicted;wormpep=OVP06434
+OVOC_OM2	WormBase	exon	23840223	23840282	.	-	.	Parent=Transcript:OVOC7322.1
+OVOC_OM2	WormBase	gene	23840223	23842130	.	-	.	ID=Gene:WBGene00244131;Name=WBGene00244131;sequence_name=OVOC7322;biotype=protein_coding;so_term_name=protein_coding_gene;curie=WB:WBGene00244131;Alias=OVOC7322
+OVOC_OM2	WormBase	mRNA	23840223	23842130	.	-	.	ID=Transcript:OVOC7322.1;Parent=Gene:WBGene00244131;Name=OVOC7322.1;wormpep=OVP06434
+OVOC_OM2	WormBase	intron	23840283	23840606	.	-	.	Parent=Transcript:OVOC7322.1
+OVOC_OM2	WormBase	CDS	23840607	23840698	.	-	2	ID=CDS:OVOC7322;Parent=Transcript:OVOC7322.1;Name=OVOC7322;prediction_status=Predicted;wormpep=OVP06434
+OVOC_OM2	WormBase	exon	23840607	23840698	.	-	.	Parent=Transcript:OVOC7322.1
+OVOC_OM2	WormBase	intron	23840699	23840940	.	-	.	Parent=Transcript:OVOC7322.1
+OVOC_OM2	WormBase	CDS	23840941	23841057	.	-	2	ID=CDS:OVOC7322;Parent=Transcript:OVOC7322.1;Name=OVOC7322;prediction_status=Predicted;wormpep=OVP06434
+OVOC_OM2	WormBase	exon	23840941	23841057	.	-	.	Parent=Transcript:OVOC7322.1
+OVOC_OM2	WormBase	intron	23841058	23842123	.	-	.	Parent=Transcript:OVOC7322.1
+OVOC_OM2	WormBase	CDS	23842124	23842130	.	-	0	ID=CDS:OVOC7322;Parent=Transcript:OVOC7322.1;Name=OVOC7322;prediction_status=Predicted;wormpep=OVP06434
+OVOC_OM2	WormBase	exon	23842124	23842130	.	-	.	Parent=Transcript:OVOC7322.1

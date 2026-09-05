@@ -137,6 +137,12 @@ describe('gff3ToAnnotationFeature examples', () => {
     assert.equal(txt.match(/intron/g), null)
     assert.equal(txt.match(/_codon/g), null)
   })
+  it('Convert noncontiguous CDS lines', () => {
+    const [gffFeature] = readFeatureFile('test_data/mixed_order.gff3')
+    const actual = gff3ToAnnotationFeature(gffFeature)
+    const expected = readAnnotationFeatureSnapshot('test_data/mixed_order.json')
+    compareFeatures(actual, expected)
+  })
 })
 
 describe('CDS without exons', () => {
