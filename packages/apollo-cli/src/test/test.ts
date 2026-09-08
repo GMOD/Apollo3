@@ -113,6 +113,107 @@ void describe('Test CLI', () => {
     assert.strictEqual('', p.stdout.trim())
   })
 
+  void globalThis.itName(
+    'Interactive login type select shows names, not raw objects',
+    async () => {
+      // Regression test: /auth/types returns an array of
+      // {name, needsPopup, message} objects, but selectAccessType() in
+      // config.ts used to push those objects directly as a choice's `name`,
+      // so the interactive select rendered "[object Object]" instead of the
+      // login type name.
+      const serverScript = 'test_data/tmp_auth_types_server.mjs'
+      fs.writeFileSync(
+        serverScript,
+        `
+import http from 'node:http'
+const server = http.createServer((req, res) => {
+  if (req.url === '/auth/types') {
+    res.writeHead(200, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify([{ name: 'guest', needsPopup: false, message: 'Continue as Guest' }]))
+    return
+  }
+  res.writeHead(404)
+  res.end()
+})
+server.listen(0, () => {
+  console.log(server.address().port)
+})
+`,
+      )
+      const authServer = spawnChildProcess('node', [serverScript])
+      const authPort: string = await new Promise((resolve) => {
+        authServer.stdout.once('data', (data: Buffer) => {
+          resolve(data.toString().trim())
+        })
+      })
+
+      const child = spawnChildProcess(`${apollo} config ${P}`, {
+        shell: '/bin/bash',
+      })
+      let stdout = ''
+      let stderr = ''
+      child.stdout.on('data', (data: Buffer) => {
+        stdout += data.toString()
+      })
+      child.stderr.on('data', (data: Buffer) => {
+        stderr += data.toString()
+      })
+
+      const waitFor = (pattern: string, timeoutMs = 15_000) =>
+        new Promise<void>((resolve, reject) => {
+          const timer = setTimeout(() => {
+            clearInterval(interval)
+            reject(
+              new Error(
+                `Timed out waiting for "${pattern}". Stdout so far:\n${stdout}\nStderr so far:\n${stderr}`,
+              ),
+            )
+          }, timeoutMs)
+          const interval = setInterval(() => {
+            if (stdout.includes(pattern)) {
+              clearInterval(interval)
+              clearTimeout(timer)
+              resolve()
+            }
+          }, 50)
+        })
+
+      try {
+        await waitFor('Server address and port')
+        child.stdin.write(`http://localhost:${authPort}\r`)
+
+        await waitFor('Select login type')
+        // Move the selection down from the default "root" choice onto the
+        // mock server's "guest" login type, then confirm it.
+        child.stdin.write('\u001B[B')
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        child.stdin.write('\r')
+
+        const exitCode: number | null = await new Promise((resolve) => {
+          child.on('exit', resolve)
+        })
+
+        assert.strictEqual(
+          exitCode,
+          0,
+          `Expected "apollo config" to exit cleanly. Stdout:\n${stdout}\nStderr:\n${stderr}`,
+        )
+        assert.ok(
+          !stdout.includes('[object Object]'),
+          `Select choices rendered a raw object instead of its name:\n${stdout}`,
+        )
+        assert.ok(stdout.includes('guest'))
+      } finally {
+        child.kill()
+        authServer.kill()
+        fs.unlinkSync(serverScript)
+      }
+
+      const p = new Shell(`${apollo} config ${P} accessType`)
+      assert.strictEqual(p.stdout.trim(), 'guest')
+    },
+  )
+
   void globalThis.itName('Apollo status', () => {
     let p = new Shell(`${apollo} status ${P}`)
     assert.strictEqual(p.stdout.trim(), 'testAdmin: Logged in')
