@@ -171,7 +171,12 @@ function convertChildren(
   const cdsFeatures: GFF3Feature[] = []
   const exonFeatures: GFF3Feature[] = []
   const utrFeatures: GFF3Feature[] = []
+  const seenChildFeatures = new Set<GFF3Feature>()
   for (const childFeature of childFeatures) {
+    if (seenChildFeatures.has(childFeature)) {
+      continue
+    }
+    seenChildFeatures.add(childFeature)
     const [firstChildFeatureLocation] = childFeature
     if (firstChildFeatureLocation.type === 'exon') {
       exonFeatures.push(childFeature)

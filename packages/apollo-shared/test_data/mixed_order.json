@@ -1,0 +1,87 @@
+{
+  "_id": "6a9b52bb29ee0a50a460744a",
+  "refSeq": "OVOC_OM2",
+  "type": "gene",
+  "min": 23840222,
+  "max": 23842130,
+  "strand": -1,
+  "children": {
+    "6a9b52bb29ee0a50a4607449": {
+      "_id": "6a9b52bb29ee0a50a4607449",
+      "refSeq": "OVOC_OM2",
+      "type": "mRNA",
+      "min": 23840222,
+      "max": 23842130,
+      "strand": -1,
+      "children": {
+        "6a9b52bb29ee0a50a4607443": {
+          "_id": "6a9b52bb29ee0a50a4607443",
+          "refSeq": "OVOC_OM2",
+          "type": "exon",
+          "min": 23840222,
+          "max": 23840282,
+          "strand": -1,
+          "attributes": { "gff_source": ["WormBase"] }
+        },
+        "6a9b52bb29ee0a50a4607444": {
+          "_id": "6a9b52bb29ee0a50a4607444",
+          "refSeq": "OVOC_OM2",
+          "type": "exon",
+          "min": 23840606,
+          "max": 23840698,
+          "strand": -1,
+          "attributes": { "gff_source": ["WormBase"] }
+        },
+        "6a9b52bb29ee0a50a4607445": {
+          "_id": "6a9b52bb29ee0a50a4607445",
+          "refSeq": "OVOC_OM2",
+          "type": "exon",
+          "min": 23840940,
+          "max": 23841057,
+          "strand": -1,
+          "attributes": { "gff_source": ["WormBase"] }
+        },
+        "6a9b52bb29ee0a50a4607446": {
+          "_id": "6a9b52bb29ee0a50a4607446",
+          "refSeq": "OVOC_OM2",
+          "type": "exon",
+          "min": 23842123,
+          "max": 23842130,
+          "strand": -1,
+          "attributes": { "gff_source": ["WormBase"] }
+        },
+        "6a9b52bb29ee0a50a4607447": {
+          "_id": "6a9b52bb29ee0a50a4607447",
+          "refSeq": "OVOC_OM2",
+          "type": "CDS",
+          "min": 23840222,
+          "max": 23842130,
+          "strand": -1,
+          "attributes": {
+            "gff_source": ["WormBase"],
+            "gff_id": ["CDS:OVOC7322"],
+            "gff_name": ["OVOC7322"],
+            "prediction_status": ["Predicted"],
+            "wormpep": ["OVP06434"]
+          }
+        }
+      },
+      "attributes": {
+        "gff_source": ["WormBase"],
+        "gff_id": ["Transcript:OVOC7322.1"],
+        "gff_name": ["OVOC7322.1"],
+        "wormpep": ["OVP06434"]
+      }
+    }
+  },
+  "attributes": {
+    "gff_source": ["WormBase"],
+    "gff_id": ["Gene:WBGene00244131"],
+    "gff_name": ["WBGene00244131"],
+    "sequence_name": ["OVOC7322"],
+    "biotype": ["protein_coding"],
+    "so_term_name": ["protein_coding_gene"],
+    "curie": ["WB:WBGene00244131"],
+    "gff_alias": ["OVOC7322"]
+  }
+}
