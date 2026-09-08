@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@apollo-annotation/schemas": "workspace:^",
-    "@jbrowse/core": "^5.0.0-beta.2",
+    "@jbrowse/core": "^5.0.0-beta.3",
     "bson-objectid": "^2.0.4"
   },
   "devDependencies": {
@@ -37,7 +37,7 @@
   "peerDependencies": {
     "@jbrowse/mobx-state-tree": "^6.5.1",
     "@mui/material": "^9.4.0",
-    "@mui/x-data-grid": "^9.12.0",
+    "@mui/x-data-grid": "^9.13.0",
     "mobx": "^7.0.3",
     "mobx-react": "^10.0.2",
     "prop-types": "^15.8.1",
