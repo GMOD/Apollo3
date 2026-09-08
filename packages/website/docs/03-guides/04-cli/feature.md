@@ -72,7 +72,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/add.ts](https://github.com/GMOD/Apollo3/blob/v1.1.1/packages/apollo-cli/src/commands/feature/add.ts)_
+[src/commands/feature/add.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/feature/add.ts)_
 
 ## `apollo feature add-child`
 
@@ -105,7 +105,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/add-child.ts](https://github.com/GMOD/Apollo3/blob/v1.1.1/packages/apollo-cli/src/commands/feature/add-child.ts)_
+[src/commands/feature/add-child.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/feature/add-child.ts)_
 
 ## `apollo feature check`
 
@@ -140,7 +140,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/check.ts](https://github.com/GMOD/Apollo3/blob/v1.1.1/packages/apollo-cli/src/commands/feature/check.ts)_
+[src/commands/feature/check.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/feature/check.ts)_
 
 ## `apollo feature copy`
 
@@ -173,7 +173,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/copy.ts](https://github.com/GMOD/Apollo3/blob/v1.1.1/packages/apollo-cli/src/commands/feature/copy.ts)_
+[src/commands/feature/copy.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/feature/copy.ts)_
 
 ## `apollo feature delete`
 
@@ -198,7 +198,7 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/feature/delete.ts](https://github.com/GMOD/Apollo3/blob/v1.1.1/packages/apollo-cli/src/commands/feature/delete.ts)_
+[src/commands/feature/delete.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/feature/delete.ts)_
 
 ## `apollo feature edit`
 
@@ -241,7 +241,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/edit.ts](https://github.com/GMOD/Apollo3/blob/v1.1.1/packages/apollo-cli/src/commands/feature/edit.ts)_
+[src/commands/feature/edit.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/feature/edit.ts)_
 
 ## `apollo feature edit-attribute`
 
@@ -283,7 +283,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/edit-attribute.ts](https://github.com/GMOD/Apollo3/blob/v1.1.1/packages/apollo-cli/src/commands/feature/edit-attribute.ts)_
+[src/commands/feature/edit-attribute.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/feature/edit-attribute.ts)_
 
 ## `apollo feature edit-coords`
 
@@ -319,7 +319,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/edit-coords.ts](https://github.com/GMOD/Apollo3/blob/v1.1.1/packages/apollo-cli/src/commands/feature/edit-coords.ts)_
+[src/commands/feature/edit-coords.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/feature/edit-coords.ts)_
 
 ## `apollo feature edit-type`
 
@@ -344,7 +344,7 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/feature/edit-type.ts](https://github.com/GMOD/Apollo3/blob/v1.1.1/packages/apollo-cli/src/commands/feature/edit-type.ts)_
+[src/commands/feature/edit-type.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/feature/edit-type.ts)_
 
 ## `apollo feature get`
 
@@ -379,7 +379,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/get.ts](https://github.com/GMOD/Apollo3/blob/v1.1.1/packages/apollo-cli/src/commands/feature/get.ts)_
+[src/commands/feature/get.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/feature/get.ts)_
 
 ## `apollo feature get-id`
 
@@ -408,7 +408,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/get-id.ts](https://github.com/GMOD/Apollo3/blob/v1.1.1/packages/apollo-cli/src/commands/feature/get-id.ts)_
+[src/commands/feature/get-id.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/feature/get-id.ts)_
 
 ## `apollo feature get-indexed-id ID`
 
@@ -442,7 +442,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/get-indexed-id.ts](https://github.com/GMOD/Apollo3/blob/v1.1.1/packages/apollo-cli/src/commands/feature/get-indexed-id.ts)_
+[src/commands/feature/get-indexed-id.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/feature/get-indexed-id.ts)_
 
 ## `apollo feature import INPUT-FILE`
 
@@ -476,7 +476,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/import.ts](https://github.com/GMOD/Apollo3/blob/v1.1.1/packages/apollo-cli/src/commands/feature/import.ts)_
+[src/commands/feature/import.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/feature/import.ts)_
 
 ## `apollo feature search`
 
@@ -528,4 +528,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/search.ts](https://github.com/GMOD/Apollo3/blob/v1.1.1/packages/apollo-cli/src/commands/feature/search.ts)_
+[src/commands/feature/search.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/feature/search.ts)_

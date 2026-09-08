@@ -33,4 +33,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v1.1.1/packages/apollo-cli/src/commands/logout.ts)_
+[src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/logout.ts)_
