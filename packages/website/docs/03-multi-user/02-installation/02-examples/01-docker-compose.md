@@ -157,6 +157,10 @@ LogLevel debug
 LoadModule proxy_module modules/mod_proxy.so
 LoadModule proxy_http_module modules/mod_proxy_http.so
 LoadModule proxy_wstunnel_module modules/mod_proxy_wstunnel.so
+ProxyPassMatch "^/$" "http://apollo-collaboration-server:3999/"
+ProxyPassReverse "/" "http://apollo-collaboration-server:3999/"
+ProxyPassMatch "^/index\.html$" "http://apollo-collaboration-server:3999/index.html"
+ProxyPassReverse "/index.html" "http://apollo-collaboration-server:3999/index.html"
 ProxyPass "/config.json" "http://apollo-collaboration-server:3999/jbrowse/config.json"
 ProxyPassReverse "/config.json" "http://apollo-collaboration-server:3999/jbrowse/config.json"
 ProxyPassMatch "^/apollo/(.*)$" "http://apollo-collaboration-server:3999/\$1" upgrade=websocket connectiontimeout=3600 timeout=3600
@@ -263,6 +267,11 @@ JBrowse, and adds the JBrowse and Apollo configuration.
 The configuration added to the `httpd.conf` file in that Dockerfile makes it so
 that any request that starts with the path `/apollo/` gets sent to the
 collaboration server, while any other requests are handled normally by Apache.
+The root page (`/`) and `/index.html` are also sent to the collaboration server
+(using an exact-match regex, not a prefix, so it doesn't swallow the other
+static asset requests) — the server reads the real `index.html` off disk and
+returns it augmented with a small script that redirects to the login page on a
+401 from the Apollo API, then back again once login succeeds.
 
 The `depends_on` section makes sure the collaboration server has started before
 starting the client, and the `port` section makes the container's server

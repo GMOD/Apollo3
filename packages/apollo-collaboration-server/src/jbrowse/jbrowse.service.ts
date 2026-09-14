@@ -8,8 +8,6 @@ import {
   type JBrowseAssemblyDocument,
   JBrowseRefSeq,
   type JBrowseRefSeqDocument,
-  JBrowseConfig,
-  type JBrowseConfigDocument,
 } from '@apollo-annotation/schemas'
 import { BgzipIndexedFasta } from '@gmod/indexedfasta'
 import { Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common'
@@ -20,6 +18,7 @@ import { RemoteFile } from 'generic-filehandle2'
 import { Model } from 'mongoose'
 
 import { AssembliesService } from '../assemblies/assemblies.service.js'
+import { resolveJBrowseDir } from '../utils/jbrowse-dir.util.js'
 import { Role } from '../utils/role/role.enum.js'
 
 interface JBrowseUriLocation {
@@ -42,14 +41,15 @@ interface JBrowseAssemblyConfig {
 
 interface JBrowseFileConfig {
   assemblies?: JBrowseAssemblyConfig[]
+  tracks?: Record<string, unknown>[]
+  internetAccounts?: Record<string, unknown>[]
+  [key: string]: unknown
 }
 
 @Injectable()
 export class JBrowseService implements OnApplicationBootstrap {
   constructor(
     private readonly assembliesService: AssembliesService,
-    @InjectModel(JBrowseConfig.name)
-    private readonly jbrowseConfigModel: Model<JBrowseConfigDocument>,
     @InjectModel(JBrowseAssembly.name)
     private readonly jbrowseAssemblyModel: Model<JBrowseAssemblyDocument>,
     @InjectModel(JBrowseRefSeq.name)
@@ -59,12 +59,11 @@ export class JBrowseService implements OnApplicationBootstrap {
     private readonly configService: ConfigService<
       {
         URL: string
-        NAME: string
-        DESCRIPTION?: string
         PLUGIN_LOCATION?: string
         FEATURE_TYPE_ONTOLOGY_LOCATION?: string
         SKIPPED_ATTRIBUTES_ON_COPY?: string
-        JBROWSE_DIR: string
+        JBROWSE_DIR?: string
+        JBROWSE_DEV_SERVER_URL?: string
       },
       true
     >,
@@ -72,11 +71,37 @@ export class JBrowseService implements OnApplicationBootstrap {
 
   private readonly logger = new Logger(JBrowseService.name)
 
-  async onApplicationBootstrap() {
-    const jbrowseDir = this.configService.get('JBROWSE_DIR', { infer: true })
-    const configPath = path.join(jbrowseDir, 'config.json')
+  /**
+   * Reads the JBrowse config.json either off disk (JBROWSE_DIR, the
+   * default) or, in the dev-only mode where a JBrowse dev server is running
+   * instead of a built bundle on disk, by fetching it from that dev server
+   * (JBROWSE_DEV_SERVER_URL). These two are mutually exclusive, enforced by
+   * the Joi `.xor` in app.module.ts.
+   */
+  private async readJBrowseFileConfig(): Promise<JBrowseFileConfig> {
+    const devServerUrl = this.configService.get('JBROWSE_DEV_SERVER_URL', {
+      infer: true,
+    })
+    if (devServerUrl) {
+      const response = await fetch(new URL('config.json', devServerUrl))
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch config.json from JBrowse dev server at "${devServerUrl}": ${response.status} ${response.statusText}`,
+        )
+      }
+      return (await response.json()) as JBrowseFileConfig
+    }
+    // Guaranteed to be set when JBROWSE_DEV_SERVER_URL isn't (enforced by
+    // the Joi `.xor` in app.module.ts).
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const jbrowseDir = this.configService.get('JBROWSE_DIR', { infer: true })!
+    const configPath = path.join(resolveJBrowseDir(jbrowseDir), 'config.json')
     const contents = await fs.readFile(configPath, 'utf8')
-    const config = JSON.parse(contents) as JBrowseFileConfig
+    return JSON.parse(contents) as JBrowseFileConfig
+  }
+
+  async onApplicationBootstrap() {
+    const config = await this.readJBrowseFileConfig()
     const assemblies = config.assemblies ?? []
 
     for (const assemblyConfig of assemblies) {
@@ -150,11 +175,6 @@ export class JBrowseService implements OnApplicationBootstrap {
         `Added new refSeq "${sequenceName}", docId "${newRefSeqDoc?.id}"`,
       )
     }
-  }
-
-  get internetAccountId() {
-    const name = this.configService.get('NAME', { infer: true })
-    return `${name}-apolloInternetAccount`
   }
 
   getConfiguration(role?: Role) {
@@ -248,73 +268,11 @@ export class JBrowseService implements OnApplicationBootstrap {
     ]
   }
 
-  getInternetAccounts() {
-    const url = this.configService.get('URL', { infer: true })
-    const name = this.configService.get('NAME', { infer: true })
-    const description =
-      this.configService.get('DESCRIPTION', { infer: true }) ?? ''
-    const urlObj = new URL(url)
-    return [
-      {
-        type: 'ApolloInternetAccount',
-        internetAccountId: this.internetAccountId,
-        name,
-        description,
-        domains: [urlObj.host],
-        baseURL: url,
-      },
-    ]
-  }
-
   getDefaultSession() {
     return {
       name: 'Apollo',
       views: [{ type: 'LinearGenomeView' }],
     }
-  }
-
-  async getAssemblies() {
-    const url = this.configService.get('URL', { infer: true })
-    const assemblies = await this.assembliesService.findAll()
-    return assemblies.map((assembly) => {
-      const assemblyId = assembly._id.toHexString()
-      const trackId = `sequenceConfigId-${assembly.name}`
-      return {
-        name: assemblyId,
-        aliases:
-          assembly.aliases.length > 0 ? [...assembly.aliases] : [assembly.name],
-        displayName: assembly.displayName || assembly.name,
-        sequence: {
-          trackId,
-          type: 'ReferenceSequenceTrack',
-          adapter: {
-            type: 'ApolloSequenceAdapter',
-            assemblyId,
-            baseURL: {
-              uri: url,
-              locationType: 'UriLocation',
-            },
-          },
-          displays: [
-            {
-              type: 'LinearApolloReferenceSequenceDisplay',
-              displayId: `${trackId}-LinearApolloReferenceSequenceDisplay`,
-            },
-          ],
-          metadata: {
-            apollo: true,
-            internetAccountConfigId: this.internetAccountId,
-          },
-        },
-        refNameAliases: {
-          adapter: {
-            type: 'ApolloRefNameAliasAdapter',
-            assemblyId,
-            baseURL: { uri: url, locationType: 'UriLocation' },
-          },
-        },
-      }
-    })
   }
 
   async getTracks() {
@@ -343,31 +301,23 @@ export class JBrowseService implements OnApplicationBootstrap {
     })
   }
 
-  async getJBrowseConfig() {
-    const document = await this.jbrowseConfigModel.findOne().exec()
-    return document?.toJSON()
-  }
-
   async getConfig(role?: Role) {
+    const fileConfig = await this.readJBrowseFileConfig()
     if (!role || role === Role.None) {
-      return {
-        configuration: this.getConfiguration(role),
-        plugins: this.getPlugins(),
-        internetAccounts: this.getInternetAccounts(),
-      }
+      return merge(
+        {
+          configuration: this.getConfiguration(role),
+          plugins: this.getPlugins(),
+        },
+        { internetAccounts: fileConfig.internetAccounts ?? [] },
+      )
     }
-    const storedConfig = await this.getJBrowseConfig()
     const generatedConfig = {
       configuration: this.getConfiguration(role),
-      assemblies: await this.getAssemblies(),
       tracks: await this.getTracks(),
       plugins: this.getPlugins(),
-      internetAccounts: this.getInternetAccounts(),
       defaultSession: this.getDefaultSession(),
     }
-    if (!storedConfig) {
-      return generatedConfig
-    }
-    return merge(generatedConfig, storedConfig)
+    return merge(generatedConfig, fileConfig)
   }
 }

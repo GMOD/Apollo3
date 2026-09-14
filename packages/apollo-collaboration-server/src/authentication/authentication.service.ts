@@ -16,6 +16,7 @@ import type { Profile as GoogleProfile } from 'passport-google-oauth20'
 import { PluginsService } from '../plugins/plugins.service.js'
 import { CreateUserDto } from '../users/dto/create-user.dto.js'
 import { UsersService } from '../users/users.service.js'
+import { setAuthCookie } from '../utils/auth-cookie.util.js'
 import {
   GUEST_USER_EMAIL,
   GUEST_USER_NAME,
@@ -216,6 +217,7 @@ export class AuthenticationService {
     }
     if ('name' in result && 'email' in result) {
       const logInResult = await this.logIn(result.name, result.email)
+      setAuthCookie(response, logInResult.token)
       if (customAuth.needsPopup && state) {
         const { redirect_uri } = JSON.parse(state) as { redirect_uri: string }
         const url = new URL(redirect_uri)
@@ -224,6 +226,8 @@ export class AuthenticationService {
         })
         url.search = searchParams.toString()
         response.redirect(url.toString())
+      } else if (redirectUri) {
+        response.redirect(redirectUri)
       }
       return logInResult
     }

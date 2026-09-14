@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { JwtModule, type JwtModuleOptions } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 
+import { JBrowseModule } from '../jbrowse/jbrowse.module.js'
 import { PluginsService } from '../plugins/plugins.service.js'
 import { UsersModule } from '../users/users.module.js'
 import { GoogleStrategy } from '../utils/strategies/google.strategy.js'
@@ -13,6 +14,8 @@ import { MicrosoftStrategy } from '../utils/strategies/microsoft.strategy.js'
 
 import { AuthenticationController } from './authentication.controller.js'
 import { AuthenticationService } from './authentication.service.js'
+import { IndexHtmlController } from './index-html.controller.js'
+import { LoginPageController } from './login-page.controller.js'
 
 interface JWTSecretConfig {
   JWT_SECRET?: string
@@ -42,8 +45,13 @@ async function jwtConfigFactory(
       useFactory: jwtConfigFactory,
       inject: [ConfigService],
     }),
+    JBrowseModule,
   ],
-  controllers: [AuthenticationController],
+  controllers: [
+    AuthenticationController,
+    LoginPageController,
+    IndexHtmlController,
+  ],
   providers: [
     AuthenticationService,
     JwtStrategy,

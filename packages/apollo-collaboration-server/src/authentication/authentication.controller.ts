@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common'
 import type { Request, Response } from 'express'
 
+import { setAuthCookie } from '../utils/auth-cookie.util.js'
 import { GoogleAuthGuard } from '../utils/google.guard.js'
 import { MicrosoftAuthGuard } from '../utils/microsoft.guard.js'
 import { Role } from '../utils/role/role.enum.js'
@@ -51,20 +52,37 @@ export class AuthenticationController {
   @Get('google')
   @Redirect()
   @UseGuards(GoogleAuthGuard)
-  async handleRedirect(@Req() req: RequestWithUserToken) {
+  async handleRedirect(
+    @Req() req: RequestWithUserToken,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    setAuthCookie(res, req.user.token)
     return this.authService.handleRedirect(req)
   }
 
   @Get('microsoft')
   @Redirect()
   @UseGuards(MicrosoftAuthGuard)
-  async microsoftHandleRedirect(@Req() req: RequestWithUserToken) {
+  async microsoftHandleRedirect(
+    @Req() req: RequestWithUserToken,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    setAuthCookie(res, req.user.token)
     return this.authService.handleRedirect(req)
   }
 
   @Get('guest')
-  guestLogin() {
-    return this.authService.guestLogin()
+  async guestLogin(
+    @Res() res: Response,
+    @Query('redirect_uri') redirectUri?: string,
+  ) {
+    const { token } = await this.authService.guestLogin()
+    setAuthCookie(res, token)
+    if (redirectUri) {
+      res.redirect(redirectUri)
+      return
+    }
+    res.json({ token })
   }
 
   @Post('root')

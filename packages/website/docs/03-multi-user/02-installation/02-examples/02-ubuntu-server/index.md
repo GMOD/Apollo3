@@ -185,6 +185,15 @@ and if the path starts with `apollo/` or is for `config.json`, it forwards the
 request to the Apollo Collaboration Server, otherwise it handles the request as
 a static file server.
 
+The root page (`/`) and `/index.html` are also forwarded to the Apollo
+Collaboration Server rather than served as static files. The server reads the
+real `index.html` off disk and returns it augmented with a small script that
+watches for a 401 response from the Apollo API and, when it sees one, does a
+full-page redirect to the login page (carrying along the current URL so the user
+is sent back to it once they've logged in). Every other static asset (the
+JBrowse JS/CSS bundles, `apollo.js`, `sequence_ontology.json`, etc.) is still
+served directly by apache2.
+
 To set this up, we first need to enable some mods on our apache2 server.
 
 ```sh
@@ -203,11 +212,21 @@ sudo nano /etc/apache2/sites-available/000-default.conf
 Add these lines near the bottom of the file, above the `</VirtualHost>` line.
 
 ```txt
+	ProxyPassMatch "^/$" "http://localhost:3999/"
+	ProxyPassReverse "/" "http://localhost:3999/"
+	ProxyPassMatch "^/index\.html$" "http://localhost:3999/index.html"
+	ProxyPassReverse "/index.html" "http://localhost:3999/index.html"
 	ProxyPass "/config.json" "http://localhost:3999/jbrowse/config.json"
 	ProxyPassReverse "/config.json" "http://localhost:3999/jbrowse/config.json"
 	ProxyPassMatch "^/apollo/(.*)$" "http://localhost:3999/$1" upgrade=websocket connectiontimeout=3600 timeout=3600
 	ProxyPassReverse "/apollo/" "http://localhost:3999/"
 ```
+
+Note that `/` and `/index.html` use `ProxyPassMatch` with an exact-match regex
+(`^/$` and `^/index\.html$`), not a prefix match — this is what keeps every
+other static asset path (`/static/js/...`, `/apollo.js`, etc.) being served
+directly by apache2 instead of being forwarded to the collaboration server,
+which doesn't have those files.
 
 Now we need to restart the apache2 server.
 
