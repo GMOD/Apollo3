@@ -21,11 +21,13 @@ function wrapSequence(
     const segmentLineBreak =
       processedChars > 0 && lastLineLength === 0 ? '\n' : ''
     processedChars += segment.sequence.length
-    const firstLine =
-      segmentLineBreak +
-      segment.sequence.slice(0, sequenceWrapLength - lastLineLength)
+    const firstLineContent = segment.sequence.slice(
+      0,
+      sequenceWrapLength - lastLineLength,
+    )
+    const firstLine = segmentLineBreak + firstLineContent
     const remainingLines = splitStringIntoChunks(
-      segment.sequence.slice(firstLine.length),
+      segment.sequence.slice(firstLineContent.length),
       sequenceWrapLength,
     )
     const printLines = [firstLine, ...remainingLines]
