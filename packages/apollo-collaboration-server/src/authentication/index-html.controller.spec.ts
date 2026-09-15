@@ -52,6 +52,23 @@ function close(server: http.Server): Promise<void> {
   })
 }
 
+function makeResponse() {
+  return {
+    body: undefined as string | undefined,
+    redirectedTo: undefined as string | undefined,
+    type(_contentType: string) {
+      return this
+    },
+    send(body: string) {
+      this.body = body
+      return this
+    },
+    redirect(url: string) {
+      this.redirectedTo = url
+    },
+  }
+}
+
 async function createController(
   values: Record<string, string>,
   jbrowseService?: { getConfig: (...args: unknown[]) => unknown },
@@ -85,10 +102,15 @@ describe('IndexHtmlController', () => {
       JBROWSE_DIR: './assets',
       URL: 'http://localhost:3999',
     })
-    const html = await controller.getIndex()
-    expect(html).toContain('<script>')
-    expect(html).toContain(JSON.stringify('/'))
-    expect(html).toContain('__apolloAuthRedirectInstalled')
+    const request = { originalUrl: '/', user: { role: 'admin', id: 'user-1' } }
+    const response = makeResponse()
+    await controller.getIndex(
+      request as unknown as Parameters<typeof controller.getIndex>[0],
+      response as unknown as Parameters<typeof controller.getIndex>[1],
+    )
+    expect(response.body).toContain('<script>')
+    expect(response.body).toContain(JSON.stringify('/'))
+    expect(response.body).toContain('__apolloAuthRedirectInstalled')
   })
 
   it('derives the api prefix from a path-prefixed URL', async () => {
@@ -96,8 +118,28 @@ describe('IndexHtmlController', () => {
       JBROWSE_DIR: './assets',
       URL: 'https://example.com/apollo/',
     })
-    const html = await controller.getIndex()
-    expect(html).toContain(JSON.stringify('/apollo/'))
+    const request = { originalUrl: '/', user: { role: 'admin', id: 'user-1' } }
+    const response = makeResponse()
+    await controller.getIndex(
+      request as unknown as Parameters<typeof controller.getIndex>[0],
+      response as unknown as Parameters<typeof controller.getIndex>[1],
+    )
+    expect(response.body).toContain(JSON.stringify('/apollo/'))
+  })
+
+  it('redirects to the login page when there is no authenticated user', async () => {
+    const controller = await createController({
+      JBROWSE_DIR: './assets',
+      URL: 'http://localhost:3999',
+    })
+    const request = { originalUrl: '/', user: { role: 'none' } }
+    const response = makeResponse()
+    await controller.getIndex(
+      request as unknown as Parameters<typeof controller.getIndex>[0],
+      response as unknown as Parameters<typeof controller.getIndex>[1],
+    )
+    expect(response.redirectedTo).toBe('/login?redirect_uri=%2F')
+    expect(response.body).toBeUndefined()
   })
 
   it('throws NotFoundException when index.html does not exist', async () => {
@@ -105,9 +147,14 @@ describe('IndexHtmlController', () => {
       JBROWSE_DIR: './this-directory-does-not-exist',
       URL: 'http://localhost:3999',
     })
-    await expect(controller.getIndex()).rejects.toBeInstanceOf(
-      NotFoundException,
-    )
+    const request = { originalUrl: '/', user: { role: 'admin', id: 'user-1' } }
+    const response = makeResponse()
+    await expect(
+      controller.getIndex(
+        request as unknown as Parameters<typeof controller.getIndex>[0],
+        response as unknown as Parameters<typeof controller.getIndex>[1],
+      ),
+    ).rejects.toBeInstanceOf(NotFoundException)
   })
 
   it('config.json delegates to JBrowseService.getConfig with the request role', async () => {
@@ -169,9 +216,17 @@ describe('IndexHtmlController', () => {
           JBROWSE_DEV_SERVER_URL: devServerUrl,
           URL: 'http://localhost:3999',
         })
-        const html = await controller.getIndex()
-        expect(html).toContain('dev server')
-        expect(html).toContain('__apolloAuthRedirectInstalled')
+        const request = {
+          originalUrl: '/',
+          user: { role: 'admin', id: 'user-1' },
+        }
+        const response = makeResponse()
+        await controller.getIndex(
+          request as unknown as Parameters<typeof controller.getIndex>[0],
+          response as unknown as Parameters<typeof controller.getIndex>[1],
+        )
+        expect(response.body).toContain('dev server')
+        expect(response.body).toContain('__apolloAuthRedirectInstalled')
       } finally {
         await close(server)
       }
@@ -188,9 +243,17 @@ describe('IndexHtmlController', () => {
           JBROWSE_DEV_SERVER_URL: devServerUrl,
           URL: 'http://localhost:3999',
         })
-        await expect(controller.getIndex()).rejects.toBeInstanceOf(
-          NotFoundException,
-        )
+        const request = {
+          originalUrl: '/',
+          user: { role: 'admin', id: 'user-1' },
+        }
+        const response = makeResponse()
+        await expect(
+          controller.getIndex(
+            request as unknown as Parameters<typeof controller.getIndex>[0],
+            response as unknown as Parameters<typeof controller.getIndex>[1],
+          ),
+        ).rejects.toBeInstanceOf(NotFoundException)
       } finally {
         await close(server)
       }
@@ -205,9 +268,17 @@ describe('IndexHtmlController', () => {
         JBROWSE_DEV_SERVER_URL: devServerUrl,
         URL: 'http://localhost:3999',
       })
-      await expect(controller.getIndex()).rejects.toBeInstanceOf(
-        NotFoundException,
-      )
+      const request = {
+        originalUrl: '/',
+        user: { role: 'admin', id: 'user-1' },
+      }
+      const response = makeResponse()
+      await expect(
+        controller.getIndex(
+          request as unknown as Parameters<typeof controller.getIndex>[0],
+          response as unknown as Parameters<typeof controller.getIndex>[1],
+        ),
+      ).rejects.toBeInstanceOf(NotFoundException)
     })
   })
 })

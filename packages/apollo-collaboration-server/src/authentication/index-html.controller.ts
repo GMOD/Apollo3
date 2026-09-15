@@ -1,9 +1,9 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import { Controller, Get, Header, NotFoundException, Req } from '@nestjs/common'
+import { Controller, Get, NotFoundException, Req, Res } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import type { Request } from 'express'
+import type { Request, Response as ExpressResponse } from 'express'
 
 import { JBrowseService } from '../jbrowse/jbrowse.service.js'
 import { resolveJBrowseDir } from '../utils/jbrowse-dir.util.js'
@@ -34,13 +34,20 @@ export class IndexHtmlController {
   ) {}
 
   @Get(['/', '/index.html'])
-  @Header('Content-Type', 'text/html; charset=utf-8')
-  async getIndex(): Promise<string> {
-    const html = await this.readIndexHtml()
+  async getIndex(
+    @Req() request: RequestWithUser,
+    @Res() response: ExpressResponse,
+  ): Promise<void> {
     const apiPrefix = getApiPrefixFromUrl(
       this.configService.get('URL', { infer: true }),
     )
-    return injectAuthRedirectScript(html, { apiPrefix })
+    if (!request.user?.id) {
+      const redirectUri = encodeURIComponent(request.originalUrl)
+      response.redirect(`${apiPrefix}login?redirect_uri=${redirectUri}`)
+      return
+    }
+    const html = await this.readIndexHtml()
+    response.type('html').send(injectAuthRedirectScript(html, { apiPrefix }))
   }
 
   /**

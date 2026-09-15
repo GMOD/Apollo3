@@ -119,5 +119,59 @@ describe('AuthenticationService', () => {
         'https://example.com/cb?access_token=signed-jwt',
       )
     })
+
+    it('redirects to a relative redirect_uri as-is when the handler needs a popup', async () => {
+      const handler: CustomAuthHandler = {
+        message: 'Custom',
+        needsPopup: true,
+        handler: () =>
+          Promise.resolve({
+            name: 'Custom User',
+            email: 'custom@example.com',
+          }),
+      }
+      pluginsService.evaluateExtensionPoint.mockReturnValue(
+        new Map([['custom', handler]]),
+      )
+      const { response, cookie, redirect } = mockResponse()
+      const state = JSON.stringify({ redirect_uri: 'login' })
+
+      await service.fallbackLogin(
+        'custom',
+        {} as Request,
+        response,
+        undefined,
+        state,
+      )
+
+      expect(cookie).toHaveBeenCalled()
+      expect(redirect).toHaveBeenCalledWith('login')
+    })
+  })
+
+  describe('handleRedirect', () => {
+    beforeEach(() => {
+      jwtService.sign.mockReturnValue('signed-jwt')
+    })
+
+    it('embeds the access token in the query string for an absolute redirect_uri', () => {
+      const req = {
+        user: { token: 'signed-jwt' },
+        authInfo: { state: { redirect_uri: 'https://example.com/cb' } },
+      } as unknown as Parameters<typeof service.handleRedirect>[0]
+
+      expect(service.handleRedirect(req)).toEqual({
+        url: 'https://example.com/cb?access_token=signed-jwt',
+      })
+    })
+
+    it('redirects to a relative redirect_uri as-is, relying on the auth cookie already set', () => {
+      const req = {
+        user: { token: 'signed-jwt' },
+        authInfo: { state: { redirect_uri: 'login' } },
+      } as unknown as Parameters<typeof service.handleRedirect>[0]
+
+      expect(service.handleRedirect(req)).toEqual({ url: 'login' })
+    })
   })
 })

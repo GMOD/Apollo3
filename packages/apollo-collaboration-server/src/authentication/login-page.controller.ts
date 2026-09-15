@@ -21,7 +21,12 @@ export class LoginPageController {
     @Query('redirect_uri') redirectUri?: string,
   ): Promise<string> {
     const loginTypes = await this.authService.getLoginTypes()
-    const target = redirectUri ?? 'login'
+    // Must be an absolute path (not a bare relative segment): this value is
+    // threaded through OAuth as `redirect_uri` and echoed back from routes
+    // nested under `/auth/...`, where a relative "login" would resolve
+    // against the wrong directory (e.g. to `/auth/login` instead of
+    // `/login`).
+    const target = redirectUri ?? '/login'
     const { user } = request as unknown as { user?: Partial<DecodedJWT> }
     const loggedInUser =
       // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison

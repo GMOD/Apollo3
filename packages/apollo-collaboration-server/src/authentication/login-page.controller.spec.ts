@@ -31,4 +31,28 @@ describe('LoginPageController', () => {
     expect(html).toContain('<!doctype html>')
     expect(html).toContain('No login methods are configured')
   })
+
+  it('defaults the redirect_uri to the absolute /login path', async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [LoginPageController],
+      providers: [
+        {
+          provide: AuthenticationService,
+          useValue: {
+            getLoginTypes: () => [
+              { name: 'google', message: 'Sign in with Google' },
+            ],
+          },
+        },
+      ],
+    }).compile()
+    const controllerWithLoginType =
+      module.get<LoginPageController>(LoginPageController)
+
+    const html = await controllerWithLoginType.loginPage({
+      user: undefined,
+    } as unknown as Parameters<typeof controller.loginPage>[0])
+
+    expect(html).toContain('redirect_uri=%2Flogin')
+  })
 })

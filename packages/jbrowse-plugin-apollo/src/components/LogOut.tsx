@@ -28,11 +28,8 @@ export function LogOut({ handleClose, session }: DeleteAssemblyProps) {
   const apolloInternetAccounts = internetAccounts.filter(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel[]
-  if (apolloInternetAccounts.length === 0) {
-    throw new Error('No Apollo internet account found')
-  }
   const [selectedInternetAccount, setSelectedInternetAccount] = useState(
-    apolloInternetAccounts[0],
+    apolloInternetAccounts[0] as ApolloInternetAccountModel | undefined,
   )
 
   function handleChangeInternetAccount(e: SelectChangeEvent) {
@@ -50,8 +47,11 @@ export function LogOut({ handleClose, session }: DeleteAssemblyProps) {
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    selectedInternetAccount.removeToken()
-    globalThis.location.reload()
+    selectedInternetAccount?.removeToken()
+    globalThis.location.href = new URL(
+      'logout',
+      globalThis.location.href,
+    ).toString()
   }
 
   return (
@@ -68,7 +68,7 @@ export function LogOut({ handleClose, session }: DeleteAssemblyProps) {
             <>
               <DialogContentText>Select account</DialogContentText>
               <Select
-                value={selectedInternetAccount.internetAccountId}
+                value={selectedInternetAccount?.internetAccountId}
                 onChange={handleChangeInternetAccount}
               >
                 {internetAccounts.map((option) => (
@@ -85,11 +85,7 @@ export function LogOut({ handleClose, session }: DeleteAssemblyProps) {
         </DialogContent>
 
         <DialogActions>
-          <Button
-            disabled={!selectedInternetAccount}
-            variant="contained"
-            type="submit"
-          >
+          <Button variant="contained" type="submit">
             Log Out
           </Button>
           <Button variant="outlined" type="submit" onClick={handleClose}>

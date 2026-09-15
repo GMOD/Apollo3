@@ -83,6 +83,14 @@ export class AuthenticationService {
     const { redirect_uri } = (
       req.authInfo as { state: { redirect_uri: string } }
     ).state
+    // A relative redirect_uri (the top-level login page's convention) is
+    // same-origin, so the auth cookie already set on this response is
+    // enough; just redirect there directly instead of embedding the token.
+    // Only the absolute-URL popup-based flow needs the token in the query
+    // string, since the popup may not share the parent page's cookies.
+    if (!URL.canParse(redirect_uri)) {
+      return { url: redirect_uri }
+    }
     const url = new URL(redirect_uri)
     const searchParams = new URLSearchParams({ access_token: req.user.token })
     url.search = searchParams.toString()
@@ -220,12 +228,16 @@ export class AuthenticationService {
       setAuthCookie(response, logInResult.token)
       if (customAuth.needsPopup && state) {
         const { redirect_uri } = JSON.parse(state) as { redirect_uri: string }
-        const url = new URL(redirect_uri)
-        const searchParams = new URLSearchParams({
-          access_token: logInResult.token,
-        })
-        url.search = searchParams.toString()
-        response.redirect(url.toString())
+        if (!URL.canParse(redirect_uri)) {
+          response.redirect(redirect_uri)
+        } else {
+          const url = new URL(redirect_uri)
+          const searchParams = new URLSearchParams({
+            access_token: logInResult.token,
+          })
+          url.search = searchParams.toString()
+          response.redirect(url.toString())
+        }
       } else if (redirectUri) {
         response.redirect(redirectUri)
       }
