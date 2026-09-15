@@ -36,7 +36,6 @@ export interface ApolloRefSeqResponse {
   _id: string
   name: string
   description?: string
-  aliases: string[]
   length: string
   assembly: string
 }
@@ -44,7 +43,6 @@ export interface ApolloRefSeqResponse {
 interface RefSeq {
   refName: string
   id: string
-  aliases: string[]
 }
 
 type RefSeqMap = Map<string, RefSeq>
@@ -272,7 +270,7 @@ export class CollaborationServerDriver extends BackendDriver {
     const refSeqMap = new Map<string, RefSeq>(
       refSeqs.map((refSeq) => [
         refSeq.name,
-        { refName: refSeq.name, id: refSeq._id, aliases: refSeq.aliases },
+        { refName: refSeq.name, id: refSeq._id },
       ]),
     )
     this.refSeqMaps.set(assemblyName, refSeqMap)
@@ -283,7 +281,7 @@ export class CollaborationServerDriver extends BackendDriver {
     const refSeqMap = await this.getRefSeqMapping(assemblyName)
     return [...refSeqMap.values()].map((refSeq) => ({
       refName: refSeq.refName,
-      aliases: [...new Set([refSeq.id, ...refSeq.aliases])],
+      aliases: [refSeq.id],
       uniqueId: `alias-${refSeq.id}`,
     }))
   }

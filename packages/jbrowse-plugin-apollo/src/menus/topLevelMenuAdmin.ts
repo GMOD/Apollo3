@@ -7,12 +7,7 @@ import InputIcon from '@mui/icons-material/Input'
 import PersonIcon from '@mui/icons-material/Person'
 import RuleIcon from '@mui/icons-material/Rule'
 
-import {
-  AddRefSeqAliases,
-  ImportFeatures,
-  ManageChecks,
-  ManageUsers,
-} from '../components'
+import { ImportFeatures, ManageChecks, ManageUsers } from '../components'
 import type { ApolloSessionModel } from '../session'
 
 export function addTopLevelAdminMenus(rootModel: AbstractMenuManager) {
@@ -28,23 +23,6 @@ export function addTopLevelAdminMenus(rootModel: AbstractMenuManager) {
           ;(session as unknown as AbstractSessionModel).queueDialog(
             (doneCallback) => [
               ImportFeatures,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                },
-                changeManager: session.apolloDataStore.changeManager,
-              },
-            ],
-          )
-        },
-      },
-      {
-        label: 'Add reference sequence aliases',
-        onClick: (session: ApolloSessionModel) => {
-          ;(session as unknown as AbstractSessionModel).queueDialog(
-            (doneCallback) => [
-              AddRefSeqAliases,
               {
                 session,
                 handleClose: () => {

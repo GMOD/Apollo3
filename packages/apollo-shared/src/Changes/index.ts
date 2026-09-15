@@ -3,10 +3,8 @@ import {
   DeleteFeatureChange,
 } from './AddAndDeleteFeatureChanges.js'
 import { AddFeaturesFromFileChange } from './AddFeaturesFromFileChange.js'
-import { AddRefSeqAliasesChange } from './AddRefSeqAliasesChange.js'
 import { DeleteUserChange } from './DeleteUserChange.js'
 import { FeatureAttributeChange } from './FeatureAttributeChange.js'
-import { ImportJBrowseConfigChange } from './ImportJBrowseConfigChange.js'
 import { LocationEndChange } from './LocationEndChange.js'
 import { LocationStartChange } from './LocationStartChange.js'
 import {
@@ -45,16 +43,13 @@ export const changes = {
   ...localChanges,
   AddFeaturesFromFileChange,
   DeleteUserChange,
-  ImportJBrowseConfigChange,
   UserChange,
-  AddRefSeqAliasesChange,
 }
 
 export * from './AddAndDeleteFeatureChanges.js'
 export * from './AddFeaturesFromFileChange.js'
 export * from './DeleteUserChange.js'
 export * from './FeatureAttributeChange.js'
-export * from './ImportJBrowseConfigChange.js'
 export * from './LocationEndChange.js'
 export * from './LocationStartChange.js'
 export * from './MergeAndUndoMergeExonsChanges.js'
@@ -63,4 +58,3 @@ export * from './SplitAndUndoSplitExonChanges.js'
 export * from './StrandChange.js'
 export * from './TypeChange.js'
 export * from './UserChange.js'
-export * from './AddRefSeqAliasesChange.js'

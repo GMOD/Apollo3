@@ -20,9 +20,6 @@ export class RefSeq {
   @Prop({ required: true })
   name: string
 
-  @Prop()
-  aliases: string[]
-
   @Prop({ required: true })
   length: number
 }

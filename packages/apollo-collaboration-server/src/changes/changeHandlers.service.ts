@@ -9,8 +9,6 @@ import {
   type FeatureDocument,
   File,
   type FileDocument,
-  JBrowseConfig,
-  type JBrowseConfigDocument,
   RefSeq,
   type RefSeqDocument,
   User,
@@ -19,11 +17,9 @@ import {
 import {
   AddFeatureChange,
   AddFeaturesFromFileChange,
-  AddRefSeqAliasesChange,
   DeleteFeatureChange,
   DeleteUserChange,
   FeatureAttributeChange,
-  ImportJBrowseConfigChange,
   LocationEndChange,
   LocationStartChange,
   MergeExonsChange,
@@ -37,7 +33,6 @@ import {
   UserChange,
   attributesToRecords,
   changes,
-  filterJBrowseConfig,
   findAndDeleteChildFeature,
   gff3ToAnnotationFeature,
   stringifyAttributes,
@@ -71,8 +66,6 @@ export class ChangeHandlersService implements ChangeHandlers {
     private readonly fileModel: Model<FileDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
-    @InjectModel(JBrowseConfig.name)
-    private readonly jbrowseConfigModel: Model<JBrowseConfigDocument>,
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
     private readonly filesService: FilesService,
@@ -1039,41 +1032,6 @@ export class ChangeHandlersService implements ChangeHandlers {
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
-    }
-  }
-
-  async ImportJBrowseConfigChange(
-    change: ImportJBrowseConfigChange,
-    _context: { session: ClientSession; user: string },
-  ) {
-    const { jbrowseConfigModel } = this
-    const { newJBrowseConfig } = change
-    await jbrowseConfigModel.deleteMany()
-    if (!newJBrowseConfig) {
-      return
-    }
-    const filteredConfig = filterJBrowseConfig(newJBrowseConfig)
-    await jbrowseConfigModel.create(
-      filteredConfig as unknown as Record<string, unknown>,
-    )
-    this.logger.debug('Stored new JBrowse Config')
-  }
-
-  async AddRefSeqAliasesChange(
-    change: AddRefSeqAliasesChange,
-    context: { session: ClientSession; user: string },
-  ) {
-    const { refSeqModel } = this
-    const { assembly, refSeqAliases } = change
-    const { session } = context
-    for (const refSeqAlias of refSeqAliases) {
-      this.logger.debug(
-        `Updating Refname alias for assembly: ${assembly}, refSeqAlias: ${JSON.stringify(refSeqAlias)}`,
-      )
-      const { aliases, refName } = refSeqAlias
-      await refSeqModel
-        .updateOne({ assembly, name: refName }, { $set: { aliases } })
-        .session(session)
     }
   }
 

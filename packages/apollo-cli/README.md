@@ -54,12 +54,9 @@ USAGE
 - [`apollo file get`](#apollo-file-get)
 - [`apollo file upload INPUT-FILE`](#apollo-file-upload-input-file)
 - [`apollo help [COMMAND]`](#apollo-help-command)
-- [`apollo jbrowse desktop JBROWSEFILE`](#apollo-jbrowse-desktop-jbrowsefile)
 - [`apollo jbrowse get-config`](#apollo-jbrowse-get-config)
-- [`apollo jbrowse set-config INPUTFILE`](#apollo-jbrowse-set-config-inputfile)
 - [`apollo login`](#apollo-login)
 - [`apollo logout`](#apollo-logout)
-- [`apollo refseq add-alias INPUT-FILE`](#apollo-refseq-add-alias-input-file)
 - [`apollo refseq get`](#apollo-refseq-get)
 - [`apollo status`](#apollo-status)
 - [`apollo user get`](#apollo-user-get)
@@ -932,53 +929,6 @@ DESCRIPTION
 _See code:
 [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/6.2.53/src/commands/help.ts)_
 
-## `apollo jbrowse desktop JBROWSEFILE`
-
-Generate JBrowse file for use with desktop client
-
-```
-USAGE
-  $ apollo jbrowse desktop JBROWSEFILE [--profile <value>] [--config-file <value>] [--timeout <value>] [-o | -w
-    <value>] [-f <value>]
-
-ARGUMENTS
-  JBROWSEFILE  Generated JBrowse file
-
-FLAGS
-  -f, --gff3-file=<value>    generated session will open the specified file
-  -o, --open                 open generated file
-  -w, --open-with=<value>    open generated file with specified application
-      --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      Use credentials from this profile
-      --timeout=<value>      [default: 1h] Timeout for each request to the server
-
-DESCRIPTION
-  Generate JBrowse file for use with desktop client
-
-  Generates a file that can be opened with JBrowse Desktop. This file has Apollo already configured and, optionally, a
-  GFF3 for local editing configured as well.
-
-EXAMPLES
-  Generate JBrowse file:
-
-    $ apollo jbrowse desktop apollo.jbrowse
-
-  Generate JBrowse file and open with default handler:
-
-    $ apollo jbrowse desktop apollo.jbrowse --open
-
-  Generate JBrowse file and open with specified application:
-
-    $ apollo jbrowse desktop apollo.jbrowse --open-with=path/to/jbrowse.AppImage
-
-  Generate JBrowse file opening specified gff3 file:
-
-    $ apollo jbrowse desktop apollo.jbrowse --gff3-file=path/to/file.gff3
-```
-
-_See code:
-[src/commands/jbrowse/desktop.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/jbrowse/desktop.ts)_
-
 ## `apollo jbrowse get-config`
 
 Get JBrowse configuration from Apollo
@@ -1005,36 +955,6 @@ EXAMPLES
 
 _See code:
 [src/commands/jbrowse/get-config.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/jbrowse/get-config.ts)_
-
-## `apollo jbrowse set-config INPUTFILE`
-
-Set JBrowse configuration
-
-```
-USAGE
-  $ apollo jbrowse set-config INPUTFILE [--profile <value>] [--config-file <value>] [--timeout <value>]
-
-ARGUMENTS
-  INPUTFILE  JBrowse configuration file
-
-FLAGS
-  --config-file=<value>  Use this config file (mostly for testing)
-  --profile=<value>      Use credentials from this profile
-  --timeout=<value>      [default: 1h] Timeout for each request to the server
-
-DESCRIPTION
-  Set JBrowse configuration
-
-  Set JBrowse configuration in Apollo collaboration server
-
-EXAMPLES
-  Add JBrowse configuration:
-
-    $ apollo jbrowse set-config config.json
-```
-
-_See code:
-[src/commands/jbrowse/set-config.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/jbrowse/set-config.ts)_
 
 ## `apollo login`
 
@@ -1106,38 +1026,6 @@ EXAMPLES
 
 _See code:
 [src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/logout.ts)_
-
-## `apollo refseq add-alias INPUT-FILE`
-
-Add reference name aliases from a file
-
-```
-USAGE
-  $ apollo refseq add-alias INPUT-FILE -a <value> [--profile <value>] [--config-file <value>] [--timeout <value>]
-
-ARGUMENTS
-  INPUT-FILE  Input refname alias file
-
-FLAGS
-  -a, --assembly=<value>     (required) Name for this assembly.
-      --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      Use credentials from this profile
-      --timeout=<value>      [default: 1h] Timeout for each request to the server
-
-DESCRIPTION
-  Add reference name aliases from a file
-
-  Reference name aliasing is a process to make chromosomes that are named slightly differently but which refer to the
-  same thing render properly. This command reads a file with reference name aliases and adds them to the database.
-
-EXAMPLES
-  Add reference name aliases:
-
-    $ apollo refseq add-alias alias.txt -a myAssembly
-```
-
-_See code:
-[src/commands/refseq/add-alias.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/refseq/add-alias.ts)_
 
 ## `apollo refseq get`
 

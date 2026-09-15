@@ -80,9 +80,6 @@ MICROSOFT_CLIENT_SECRET=client_secret_here
 # Defaults to error,warn,log
 # LOG_LEVELS=error,warn,log
 
-# Reference sequence chunk size, defaults to 262144 (256 KiB)
-# CHUNK_SIZE=262144
-
 # Default new user role, possible values are admin, user, readOnly, and none
 # Defaults to none
 # DEFAULT_NEW_USER_ROLE=none

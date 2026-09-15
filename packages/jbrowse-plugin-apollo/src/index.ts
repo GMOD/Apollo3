@@ -21,10 +21,8 @@ import {
   createBaseTrackConfig,
   createBaseTrackModel,
 } from '@jbrowse/core/pluggableElementTypes'
-import type { WorkerHandle } from '@jbrowse/core/rpc/WebWorkerRpcDriver'
 import {
   type AbstractSessionModel,
-  type Region,
   getSession,
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
@@ -34,8 +32,6 @@ import { alpha } from '@mui/material'
 
 import { version } from '../package.json'
 
-import { installApolloRefNameAliasAdapter } from './ApolloRefNameAliasAdapter'
-import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
 import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
 import {
   ApolloFeatureDetailsWidget,
@@ -70,31 +66,11 @@ import { addTopLevelMenus } from './menus'
 import { type ApolloSessionModel, extendSession } from './session'
 import type { ApolloSearchResult } from './ApolloTextSearchAdapter/ApolloTextSearchAdapter'
 
-interface ApolloMessageData {
-  apollo: true
-  messageId: string
-  method: string
-  region: Region
-  sequence: string
-  assembly: string
-}
-
 interface JBrowseTrackConfig {
   trackId: string
   type: string
   displays?: { type: string; displayId: string }[]
 }
-
-function isApolloMessageData(data?: unknown): data is ApolloMessageData {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'apollo' in data &&
-    data.apollo === true
-  )
-}
-
-const inWebWorker = 'WorkerGlobalScope' in globalThis
 
 for (const [changeName, change] of Object.entries(changes)) {
   changeRegistry.registerChange(changeName, change)
@@ -115,8 +91,6 @@ export default class ApolloPlugin extends Plugin {
   configurationSchema = ApolloPluginConfigurationSchema
 
   install(pluginManager: PluginManager) {
-    installApolloSequenceAdapter(pluginManager)
-    installApolloRefNameAliasAdapter(pluginManager)
     installApolloTextSearchAdapter(pluginManager)
 
     pluginManager.addWidgetType(() => {
@@ -323,101 +297,6 @@ export default class ApolloPlugin extends Plugin {
         }
       },
     )
-
-    if (!inWebWorker) {
-      pluginManager.addToExtensionPoint(
-        'Core-extendWorker',
-        (handle: WorkerHandle) => {
-          if (!handle.on || !handle.postMessage) {
-            return handle
-          }
-          // bound once: `postMessage` is a method reading the handle's own
-          // worker, and it is called from inside the listener
-          const postMessage = handle.postMessage.bind(handle)
-          handle.on('apollo', async (event) => {
-            if (!isApolloMessageData(event)) {
-              return
-            }
-            const { apollo, messageId, method } = event
-            switch (method) {
-              case 'getSequence': {
-                const { region } = event
-                const { assemblyName } = region
-                const dataStore = (
-                  pluginManager.rootModel?.session as
-                    | ApolloSessionModel
-                    | undefined
-                )?.apolloDataStore
-                if (!dataStore) {
-                  break
-                }
-                const backendDriver = dataStore.getBackendDriver(assemblyName)
-                if (!backendDriver) {
-                  break
-                }
-                const { seq: sequence } =
-                  await backendDriver.getSequence(region)
-                postMessage({
-                  apollo,
-                  messageId,
-                  sequence,
-                })
-                break
-              }
-              case 'getRegions': {
-                const { assembly } = event
-                const dataStore = (
-                  pluginManager.rootModel?.session as
-                    | ApolloSessionModel
-                    | undefined
-                )?.apolloDataStore
-                if (!dataStore) {
-                  break
-                }
-                const backendDriver = dataStore.getBackendDriver(assembly)
-                if (!backendDriver) {
-                  break
-                }
-                const regions = await backendDriver.getRegions(assembly)
-                postMessage({
-                  apollo,
-                  messageId,
-                  regions,
-                })
-                break
-              }
-              case 'getRefNameAliases': {
-                const { assembly } = event
-                const dataStore = (
-                  pluginManager.rootModel?.session as
-                    | ApolloSessionModel
-                    | undefined
-                )?.apolloDataStore
-                if (!dataStore) {
-                  break
-                }
-                const backendDriver = dataStore.getBackendDriver(assembly)
-                if (!backendDriver) {
-                  break
-                }
-                const refNameAliases =
-                  await backendDriver.getRefNameAliases(assembly)
-                postMessage({
-                  apollo,
-                  messageId,
-                  refNameAliases,
-                })
-                break
-              }
-              default: {
-                break
-              }
-            }
-          })
-          return handle
-        },
-      )
-    }
   }
 
   configure(pluginManager: PluginManager) {

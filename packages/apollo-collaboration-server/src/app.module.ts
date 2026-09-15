@@ -27,7 +27,6 @@ import { DevServerProxyModule } from './jbrowse/dev-server-proxy.module.js'
 import { JBrowseModule } from './jbrowse/jbrowse.module.js'
 import { MessagesModule } from './messages/messages.module.js'
 import { PluginsModule } from './plugins/plugins.module.js'
-import { RefSeqChunksModule } from './refSeqChunks/refSeqChunks.module.js'
 import { RefSeqsModule } from './refSeqs/refSeqs.module.js'
 import { SequenceModule } from './sequence/sequence.module.js'
 import { UsersModule } from './users/users.module.js'
@@ -101,8 +100,6 @@ export const validationSchema = Joi.object({
       return value
     })
     .default('log,warn,error'),
-  // default for this is set in the refSeq mongoose schema
-  CHUNK_SIZE: Joi.number(),
   DEFAULT_NEW_USER_ROLE: Joi.string()
     .valid('admin', 'user', 'readOnly', 'none')
     .default('none'),
@@ -212,7 +209,6 @@ export function serveStaticFactory(
       inject: [ConfigService],
     }),
     PluginsModule.registerAsync(),
-    RefSeqChunksModule,
     RefSeqsModule,
     SequenceModule,
     UsersModule,

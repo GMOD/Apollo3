@@ -13,12 +13,9 @@ import {
 import {
   type ChangeMessage,
   type CheckResultUpdate,
-  ImportJBrowseConfigChange,
-  type JBrowseConfig,
   type RequestUserInformationMessage,
   type UserLocation,
   type UserLocationMessage,
-  filterJBrowseConfig,
 } from '@apollo-annotation/shared'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import type assemblyManager from '@jbrowse/core/assemblyManager'
@@ -27,7 +24,6 @@ import {
   getConf,
   readConfObject,
 } from '@jbrowse/core/configuration'
-import type { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
 import {
   isAbstractMenuManager,
   isElectron,
@@ -45,7 +41,6 @@ import {
   types,
 } from '@jbrowse/mobx-state-tree'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import SaveIcon from '@mui/icons-material/Save'
 import { autorun, flow, observable, when } from 'mobx'
 import { io } from 'socket.io-client'
 
@@ -652,100 +647,6 @@ export function extendSession(
       },
     }))
 
-    .views((self) => {
-      const superTrackActions = (self as unknown as AbstractSessionModel)
-        .getTrackActions
-      return {
-        getTrackActions(conf: BaseTrackConfig) {
-          if (
-            conf.type === 'ApolloTrack' ||
-            conf.type === 'ReferenceSequenceTrack'
-          ) {
-            return superTrackActions?.(conf)
-          }
-          const trackId = readConfObject(conf, 'trackId')
-          const sessionTrackIdentifier = '-sessionTrack'
-          const isSessionTrack = trackId.endsWith(sessionTrackIdentifier)
-          return isSessionTrack
-            ? [
-                ...(superTrackActions?.(conf) ?? []),
-                {
-                  label: 'Save track to Apollo',
-                  onClick: async () => {
-                    const { jbrowse } = getRoot<ApolloRootModel>(self)
-                    const currentConfig = getSnapshot<JBrowseConfig>(jbrowse)
-                    let filteredConfig: JBrowseConfig | undefined
-                    filteredConfig = filterJBrowseConfig(currentConfig)
-                    if (Object.keys(filteredConfig).length === 0) {
-                      filteredConfig = undefined
-                    }
-                    const trackConfigSnapshot = getSnapshot(conf)
-                    const newTrackId = trackId.slice(
-                      0,
-                      trackId.length - sessionTrackIdentifier.length,
-                    )
-                    const newTrackConfigSnapshot = {
-                      ...trackConfigSnapshot,
-                      trackId: newTrackId,
-                    }
-                    const change = new ImportJBrowseConfigChange({
-                      typeName: 'ImportJBrowseConfigChange',
-                      oldJBrowseConfig: filteredConfig,
-                      newJBrowseConfig: {
-                        ...filteredConfig,
-                        // @ts-expect-error The track types are in the snapshot
-                        tracks: filteredConfig?.tracks && [
-                          ...filteredConfig.tracks,
-                          newTrackConfigSnapshot,
-                        ],
-                      },
-                    })
-                    await self.apolloDataStore.changeManager.submit(change)
-                    const { notify } = self as unknown as AbstractSessionModel
-                    notify('Track added', 'success')
-                    // @ts-expect-error This method is missing in the JB types
-                    self.deleteTrackConf(conf)
-                    jbrowse.addTrackConf(newTrackConfigSnapshot)
-                  },
-                  icon: SaveIcon,
-                },
-              ]
-            : [
-                ...(superTrackActions?.(conf) ?? []),
-                {
-                  label: 'Remove track from Apollo',
-                  onClick: async () => {
-                    const { jbrowse } = getRoot<ApolloRootModel>(self)
-                    const currentConfig = getSnapshot<JBrowseConfig>(jbrowse)
-                    let filteredConfig: JBrowseConfig | undefined
-                    filteredConfig = filterJBrowseConfig(currentConfig)
-                    if (Object.keys(filteredConfig).length === 0) {
-                      filteredConfig = undefined
-                    }
-                    const filteredTracks = filteredConfig?.tracks?.filter(
-                      (t) => t.trackId !== trackId,
-                    )
-                    const change = new ImportJBrowseConfigChange({
-                      typeName: 'ImportJBrowseConfigChange',
-                      oldJBrowseConfig: filteredConfig,
-                      newJBrowseConfig: {
-                        ...filteredConfig,
-                        tracks: filteredTracks,
-                      },
-                    })
-                    await self.apolloDataStore.changeManager.submit(change)
-                    const { notify } = self as unknown as AbstractSessionModel
-                    notify('Track removed', 'success')
-                    // @ts-expect-error This method is missing in the JB types
-                    self.deleteTrackConf(conf)
-                    jbrowse.deleteTrackConf(conf)
-                  },
-                  icon: SaveIcon,
-                },
-              ]
-        },
-      }
-    })
   return types.snapshotProcessor(sm, {
     postProcessor(snap: SnapshotOut<typeof sm>, node) {
       snap.apolloSelectedFeature = undefined
