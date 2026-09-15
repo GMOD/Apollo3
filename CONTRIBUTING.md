@@ -23,7 +23,7 @@ You'll need `docker` to be installed.
 - Open the Apollo3 project in Visual Studio Code.
 - Use the _Dev Containers: Reopen in Container_ command in VS Code
   (`Ctrl + Shift + P` to search for commands).
-- Build: Run `yarn` at the root of both repositories (`pnpm install` for
+- Build: Run `yarn` at the root of this repositories (`pnpm install` for
   jbrowse-components), this only needs to be ran once after cloning
   (alternatively, run the `just setup` recipe, see below).
 - Run FE: `pnpm start` from `jbrowse-components/products/jbrowse-web`
