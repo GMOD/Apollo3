@@ -33,15 +33,13 @@ function wrapSequence(
     const printLines = [firstLine, ...remainingLines]
 
     const color = getSegmentColor(segment.type)
+    const style: React.CSSProperties = { whiteSpace: 'pre-line' }
+    if (color) {
+      style.background = color
+      style.color = getContrastText(color)
+    }
     const span = (
-      <span
-        key={`${segment.type}-${index}`}
-        style={{
-          background: color,
-          color: getContrastText(color),
-          whiteSpace: 'pre-line',
-        }}
-      >
+      <span key={`${segment.type}-${index}`} style={style}>
         {printLines.join('\n')}
       </span>
     )

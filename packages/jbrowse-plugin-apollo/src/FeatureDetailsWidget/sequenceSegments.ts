@@ -8,6 +8,7 @@ export type SegmentType =
   | 'intron'
   | 'protein'
   | 'exon'
+  | 'plain'
 export type SegmentListType = 'CDS' | 'cDNA' | 'genomic' | 'protein'
 
 export interface SequenceSegment {
@@ -113,7 +114,7 @@ export function getSequenceSegments(
   }
 }
 
-export function getSegmentColor(type: SegmentType) {
+export function getSegmentColor(type: SegmentType): string | undefined {
   switch (type) {
     case 'upOrDownstream': {
       return 'rgb(255,255,255)'
@@ -130,6 +131,9 @@ export function getSegmentColor(type: SegmentType) {
     }
     case 'protein': {
       return 'rgb(148,203,236)'
+    }
+    case 'plain': {
+      return undefined
     }
   }
 }
