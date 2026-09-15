@@ -1,59 +1,25 @@
-import fs from 'node:fs/promises'
-import path from 'node:path'
-
-import {
-  Check,
-  type CheckDocument,
-  JBrowseAssembly,
-  type JBrowseAssemblyDocument,
-  JBrowseRefSeq,
-  type JBrowseRefSeqDocument,
-} from '@apollo-annotation/schemas'
-import { BgzipIndexedFasta } from '@gmod/indexedfasta'
+import { Check, type CheckDocument } from '@apollo-annotation/schemas'
 import { Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
 import merge from 'deepmerge'
-import { RemoteFile } from 'generic-filehandle2'
 import { Model } from 'mongoose'
 
 import { AssembliesService } from '../assemblies/assemblies.service.js'
-import { resolveJBrowseDir } from '../utils/jbrowse-dir.util.js'
+import { RefSeqsService } from '../refSeqs/refSeqs.service.js'
 import { Role } from '../utils/role/role.enum.js'
 
-interface JBrowseUriLocation {
-  uri: string
-}
-
-interface JBrowseSequenceConfig {
-  adapter: {
-    type: string
-    fastaLocation: JBrowseUriLocation
-    faiLocation: JBrowseUriLocation
-    gziLocation: JBrowseUriLocation
-  }
-}
-
-interface JBrowseAssemblyConfig {
-  name: string
-  sequence: JBrowseSequenceConfig
-}
-
-interface JBrowseFileConfig {
-  assemblies?: JBrowseAssemblyConfig[]
-  tracks?: Record<string, unknown>[]
-  internetAccounts?: Record<string, unknown>[]
-  [key: string]: unknown
-}
+import {
+  type JBrowseAssemblyConfig,
+  JBrowseConfigService,
+} from './jbrowseConfig.service.js'
 
 @Injectable()
 export class JBrowseService implements OnApplicationBootstrap {
   constructor(
     private readonly assembliesService: AssembliesService,
-    @InjectModel(JBrowseAssembly.name)
-    private readonly jbrowseAssemblyModel: Model<JBrowseAssemblyDocument>,
-    @InjectModel(JBrowseRefSeq.name)
-    private readonly jbrowseRefSeqModel: Model<JBrowseRefSeqDocument>,
+    private readonly refSeqsService: RefSeqsService,
+    private readonly jbrowseConfigService: JBrowseConfigService,
     @InjectModel(Check.name)
     private readonly checkModel: Model<CheckDocument>,
     private readonly configService: ConfigService<
@@ -62,8 +28,6 @@ export class JBrowseService implements OnApplicationBootstrap {
         PLUGIN_LOCATION?: string
         FEATURE_TYPE_ONTOLOGY_LOCATION?: string
         SKIPPED_ATTRIBUTES_ON_COPY?: string
-        JBROWSE_DIR?: string
-        JBROWSE_DEV_SERVER_URL?: string
       },
       true
     >,
@@ -71,37 +35,8 @@ export class JBrowseService implements OnApplicationBootstrap {
 
   private readonly logger = new Logger(JBrowseService.name)
 
-  /**
-   * Reads the JBrowse config.json either off disk (JBROWSE_DIR, the
-   * default) or, in the dev-only mode where a JBrowse dev server is running
-   * instead of a built bundle on disk, by fetching it from that dev server
-   * (JBROWSE_DEV_SERVER_URL). These two are mutually exclusive, enforced by
-   * the Joi `.xor` in app.module.ts.
-   */
-  private async readJBrowseFileConfig(): Promise<JBrowseFileConfig> {
-    const devServerUrl = this.configService.get('JBROWSE_DEV_SERVER_URL', {
-      infer: true,
-    })
-    if (devServerUrl) {
-      const response = await fetch(new URL('config.json', devServerUrl))
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch config.json from JBrowse dev server at "${devServerUrl}": ${response.status} ${response.statusText}`,
-        )
-      }
-      return (await response.json()) as JBrowseFileConfig
-    }
-    // Guaranteed to be set when JBROWSE_DEV_SERVER_URL isn't (enforced by
-    // the Joi `.xor` in app.module.ts).
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const jbrowseDir = this.configService.get('JBROWSE_DIR', { infer: true })!
-    const configPath = path.join(resolveJBrowseDir(jbrowseDir), 'config.json')
-    const contents = await fs.readFile(configPath, 'utf8')
-    return JSON.parse(contents) as JBrowseFileConfig
-  }
-
   async onApplicationBootstrap() {
-    const config = await this.readJBrowseFileConfig()
+    const config = await this.jbrowseConfigService.readJBrowseFileConfig()
     const assemblies = config.assemblies ?? []
 
     for (const assemblyConfig of assemblies) {
@@ -111,7 +46,7 @@ export class JBrowseService implements OnApplicationBootstrap {
     const configAssemblyNames = new Set(
       assemblies.map((assemblyConfig) => assemblyConfig.name),
     )
-    const storedAssemblies = await this.jbrowseAssemblyModel.find().exec()
+    const storedAssemblies = await this.assembliesService.findAll()
     for (const storedAssembly of storedAssemblies) {
       if (!configAssemblyNames.has(storedAssembly.name)) {
         this.logger.warn(
@@ -125,37 +60,27 @@ export class JBrowseService implements OnApplicationBootstrap {
     assemblyConfig: JBrowseAssemblyConfig,
   ): Promise<void> {
     const { name: assemblyName, sequence } = assemblyConfig
-    const existingAssembly = await this.jbrowseAssemblyModel
-      .findOne({ name: assemblyName })
-      .exec()
+    const existingAssembly =
+      await this.assembliesService.findByName(assemblyName)
     if (existingAssembly) {
       this.logger.debug(
         `Assembly "${assemblyName}" already exists, so not adding`,
       )
       return
     }
-    const { adapter } = sequence
-    if (adapter.type !== 'BgzipFastaAdapter') {
-      throw new Error(
-        `Unsupported sequence adapter type "${adapter.type}" for assembly "${assemblyName}" in config.json`,
-      )
-    }
-    const sequenceAdapter = new BgzipIndexedFasta({
-      fasta: new RemoteFile(adapter.fastaLocation.uri, { fetch }),
-      fai: new RemoteFile(adapter.faiLocation.uri, { fetch }),
-      gzi: new RemoteFile(adapter.gziLocation.uri, { fetch }),
-    })
+    const sequenceAdapter = this.jbrowseConfigService.buildSequenceAdapter(
+      assemblyName,
+      sequence,
+    )
     const allSequenceSizes = await sequenceAdapter.getSequenceSizes()
 
     const checkDocs = await this.checkModel.find({ isDefault: true }).exec()
     const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
 
-    const [assemblyDoc] = await this.jbrowseAssemblyModel.create([
-      { name: assemblyName, checks },
-    ])
-    if (!assemblyDoc) {
-      throw new Error(`Failed to create JBrowse assembly "${assemblyName}"`)
-    }
+    const assemblyDoc = await this.assembliesService.create({
+      name: assemblyName,
+      checks,
+    })
     this.logger.log(
       `Added JBrowse assembly "${assemblyName}" from config.json, docId "${assemblyDoc._id.toHexString()}"`,
     )
@@ -164,15 +89,17 @@ export class JBrowseService implements OnApplicationBootstrap {
       `Adding ${Object.keys(allSequenceSizes).length} refSeqs to assembly "${assemblyName}"`,
     )
     for (const sequenceName in allSequenceSizes) {
-      const [newRefSeqDoc] = await this.jbrowseRefSeqModel.create([
-        {
-          name: sequenceName,
-          assembly: assemblyDoc._id,
-          length: allSequenceSizes[sequenceName],
-        },
-      ])
+      const length = allSequenceSizes[sequenceName]
+      if (length === undefined) {
+        throw new Error(`No sequence size found for "${sequenceName}"`)
+      }
+      const newRefSeqDoc = await this.refSeqsService.create({
+        name: sequenceName,
+        assembly: assemblyDoc._id.toString(),
+        length,
+      })
       this.logger.debug(
-        `Added new refSeq "${sequenceName}", docId "${newRefSeqDoc?.id}"`,
+        `Added new refSeq "${sequenceName}", docId "${newRefSeqDoc.id}"`,
       )
     }
   }
@@ -283,7 +210,7 @@ export class JBrowseService implements OnApplicationBootstrap {
       return {
         type: 'ApolloTrack',
         trackId,
-        name: `Annotations (${assembly.displayName || assembly.name})`,
+        name: `Annotations (${assembly.name})`,
         assemblyNames: [assembly.id],
         textSearching: {
           textSearchAdapter: {
@@ -302,7 +229,7 @@ export class JBrowseService implements OnApplicationBootstrap {
   }
 
   async getConfig(role?: Role) {
-    const fileConfig = await this.readJBrowseFileConfig()
+    const fileConfig = await this.jbrowseConfigService.readJBrowseFileConfig()
     if (!role || role === Role.None) {
       return merge(
         {

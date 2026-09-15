@@ -1,6 +1,7 @@
 import { Assembly, AssemblySchema } from '@apollo-annotation/schemas'
 import { Module } from '@nestjs/common'
-import { MongooseModule } from '@nestjs/mongoose'
+import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
+import idValidator from 'mongoose-id-validator'
 
 import { ChecksModule } from '../checks/checks.module.js'
 import { FeaturesModule } from '../features/features.module.js'
@@ -13,8 +14,15 @@ import { AssembliesService } from './assemblies.service.js'
   controllers: [AssembliesController],
   providers: [AssembliesService],
   imports: [
-    MongooseModule.forFeature([
-      { name: Assembly.name, schema: AssemblySchema },
+    MongooseModule.forFeatureAsync([
+      {
+        name: Assembly.name,
+        useFactory: (connection) => {
+          AssemblySchema.plugin(idValidator, { connection })
+          return AssemblySchema
+        },
+        inject: [getConnectionToken()],
+      },
     ]),
     ChecksModule,
     FeaturesModule,

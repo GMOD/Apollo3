@@ -1,10 +1,4 @@
-import {
-  Assembly,
-  Change,
-  Feature,
-  RefSeq,
-  RefSeqChunk,
-} from '@apollo-annotation/schemas'
+import { Change, Feature, RefSeq } from '@apollo-annotation/schemas'
 import { getModelToken } from '@nestjs/mongoose'
 import { Test, type TestingModule } from '@nestjs/testing'
 
@@ -22,9 +16,7 @@ describe('ChangesService', () => {
       providers: [
         ChangesService,
         { provide: getModelToken(Feature.name), useValue: {} },
-        { provide: getModelToken(Assembly.name), useValue: {} },
         { provide: getModelToken(RefSeq.name), useValue: {} },
-        { provide: getModelToken(RefSeqChunk.name), useValue: {} },
         { provide: getModelToken(Change.name), useValue: {} },
         { provide: CountersService, useValue: {} },
         { provide: MessagesGateway, useValue: {} },

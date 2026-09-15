@@ -5,15 +5,11 @@ import {
   isFeatureChange,
 } from '@apollo-annotation/common'
 import {
-  Assembly,
-  type AssemblyDocument,
   Change,
   type ChangeDocument,
   Feature,
   type FeatureDocument,
   RefSeq,
-  RefSeqChunk,
-  type RefSeqChunkDocument,
   type RefSeqDocument,
 } from '@apollo-annotation/schemas'
 import {
@@ -39,22 +35,13 @@ import { MessagesGateway } from '../messages/messages.gateway.js'
 import { ChangeHandlersService } from './changeHandlers.service.js'
 import { FindChangeDto } from './dto/find-change.dto.js'
 
-const STATUS_ZERO_CHANGE_TYPES = new Set([
-  'AddAssemblyAndFeaturesFromFileChange',
-  'AddAssemblyFromExternalChange',
-  'AddAssemblyFromFileChange',
-  'AddFeaturesFromFileChange',
-])
+const STATUS_ZERO_CHANGE_TYPES = new Set(['AddFeaturesFromFileChange'])
 export class ChangesService {
   constructor(
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
-    @InjectModel(Assembly.name)
-    private readonly assemblyModel: Model<AssemblyDocument>,
     @InjectModel(RefSeq.name)
     private readonly refSeqModel: Model<RefSeqDocument>,
-    @InjectModel(RefSeqChunk.name)
-    private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
     private readonly countersService: CountersService,
@@ -115,16 +102,7 @@ export class ChangesService {
         this.logger.debug(
           '*** INSERT DATA EXCEPTION - Start to clean up old temporary documents...',
         )
-        await this.assemblyModel
-          .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
-          .exec()
         await this.featureModel
-          .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
-          .exec()
-        await this.refSeqModel
-          .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
-          .exec()
-        await this.refSeqChunkModel
           .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
           .exec()
         throw new UnprocessableEntityException(String(error))
@@ -189,25 +167,13 @@ export class ChangesService {
       // Set "temporary document" -status --> "valid" -status i.e. (-1 --> 0)
       await this.featureModel.db.transaction(async () => {
         try {
-          await this.batchUpdateMany(this.assemblyModel, uniqUserId)
-          await this.batchUpdateMany(this.refSeqChunkModel, uniqUserId)
           await this.batchUpdateMany(this.featureModel, uniqUserId)
-          await this.batchUpdateMany(this.refSeqModel, uniqUserId)
         } catch (error) {
           // Clean up old "temporary document" -documents
           this.logger.debug(
             '*** UPDATE STATUS EXCEPTION - Start to clean up old temporary documents...',
           )
-          await this.assemblyModel
-            .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
-            .exec()
           await this.featureModel
-            .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
-            .exec()
-          await this.refSeqModel
-            .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
-            .exec()
-          await this.refSeqChunkModel
             .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
             .exec()
           if (error instanceof Error) {

@@ -1,8 +1,4 @@
-import {
-  Check,
-  JBrowseAssembly,
-  JBrowseRefSeq,
-} from '@apollo-annotation/schemas'
+import { Check } from '@apollo-annotation/schemas'
 import { ConfigService } from '@nestjs/config'
 import { getModelToken } from '@nestjs/mongoose'
 import { Test, type TestingModule } from '@nestjs/testing'
@@ -10,6 +6,7 @@ import { Test, type TestingModule } from '@nestjs/testing'
 import { AssembliesService } from '../assemblies/assemblies.service.js'
 import { RefSeqsService } from '../refSeqs/refSeqs.service.js'
 
+import { JBrowseConfigService } from './jbrowseConfig.service.js'
 import { JBrowseService } from './jbrowse.service.js'
 
 describe('JBrowseService', () => {
@@ -21,8 +18,7 @@ describe('JBrowseService', () => {
         JBrowseService,
         { provide: AssembliesService, useValue: {} },
         { provide: RefSeqsService, useValue: {} },
-        { provide: getModelToken(JBrowseAssembly.name), useValue: {} },
-        { provide: getModelToken(JBrowseRefSeq.name), useValue: {} },
+        { provide: JBrowseConfigService, useValue: {} },
         { provide: getModelToken(Check.name), useValue: {} },
         { provide: ConfigService, useValue: {} },
       ],

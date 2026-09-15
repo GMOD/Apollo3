@@ -1,5 +1,3 @@
-import { createReadStream } from 'node:fs'
-import path from 'node:path'
 import { Readable } from 'node:stream'
 import { ReadableStream, TransformStream } from 'node:stream/web'
 
@@ -10,22 +8,20 @@ import {
   type ExportDocument,
   Feature,
   type FeatureDocument,
-  File,
-  type FileDocument,
   RefSeq,
-  RefSeqChunk,
   type RefSeqDocument,
 } from '@apollo-annotation/schemas'
 import { GFFFormattingTransformer } from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model, type QueryFilter } from 'mongoose'
+import { Model } from 'mongoose'
 import StreamConcat from 'stream-concat'
+
+import { JBrowseConfigService } from '../jbrowse/jbrowseConfig.service.js'
 
 import {
   FeatureDocToGFF3FeatureStream,
-  RefSeqChunkDocToFASTAStream,
+  RefSeqDocToAdapterFASTAStream,
   RefSeqDocToGFF3HeaderStream,
 } from './transforms.js'
 
@@ -38,16 +34,9 @@ export class ExportService {
     private readonly exportModel: Model<ExportDocument>,
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
-    @InjectModel(File.name)
-    private readonly fileModel: Model<FileDocument>,
     @InjectModel(RefSeq.name)
     private readonly refSeqModel: Model<RefSeqDocument>,
-    @InjectModel(RefSeqChunk.name)
-    private readonly refSeqChunksModel: Model<RefSeqDocument>,
-    private readonly configService: ConfigService<
-      { FILE_UPLOAD_FOLDER: string },
-      true
-    >,
+    private readonly jbrowseConfigService: JBrowseConfigService,
   ) {}
 
   private readonly logger = new Logger(ExportService.name)
@@ -102,18 +91,11 @@ export class ExportService {
           `Error getting document for assembly ${assembly.toString()}`,
         )
       }
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      if (assemblyDoc?.fileIds?.fai) {
-        sequenceStreams = await this.streamFromLocalFasta(
-          assemblyDoc.fileIds.fa,
-        )
-      } else if (assemblyDoc.externalLocation) {
-        sequenceStreams = await this.streamFromRemoteFasta(
-          assemblyDoc.externalLocation.fa,
-        )
-      } else {
-        sequenceStreams = this.streamFromRefSeqCollection(query, fastaWidth)
-      }
+      sequenceStreams = await this.streamFromAdapter(
+        assemblyDoc.name,
+        refSeqs,
+        fastaWidth,
+      )
     }
     const streams = [headerStream, featureStream, ...sequenceStreams]
     const combinedStream: Readable = new StreamConcat(
@@ -122,62 +104,18 @@ export class ExportService {
     return [combinedStream, assembly.toString()]
   }
 
-  async streamFromLocalFasta(
-    fastaFileId: string,
-  ): Promise<ReadableStream<string>[]> {
-    const faDoc = await this.fileModel.findById(fastaFileId)
-    if (!faDoc) {
-      throw new Error('Undefined document')
-    }
-    const fastaLineStream = new ReadableStream({
-      start(controller) {
-        controller.enqueue('##FASTA\n')
-        controller.close()
-      },
-    })
-
-    const fileUploadFolder = this.configService.get('FILE_UPLOAD_FOLDER', {
-      infer: true,
-    })
-    const fileStream = Readable.toWeb(
-      createReadStream(path.join(fileUploadFolder, faDoc.checksum)),
-    )
-    const gunzip = new DecompressionStream('gzip')
-    return [fastaLineStream, fileStream.pipeThrough(gunzip)]
-  }
-
-  async streamFromRemoteFasta(
-    fastaUrl: string,
-  ): Promise<ReadableStream<string>[]> {
-    const fastaLineStream = new ReadableStream({
-      start(controller) {
-        controller.enqueue('##FASTA\n')
-        controller.close()
-      },
-    })
-
-    const response = await fetch(fastaUrl)
-    if (response.body === null) {
-      throw new Error(`No body in response from ${fastaUrl}`)
-    }
-
-    const gunzip = new DecompressionStream('gzip')
-    return [fastaLineStream, response.body.pipeThrough(gunzip)]
-  }
-
-  streamFromRefSeqCollection(
-    query: QueryFilter<RefSeqDocument>,
+  async streamFromAdapter(
+    assemblyName: string,
+    refSeqs: RefSeqDocument[],
     fastaWidth?: number,
-  ): ReadableStream<string>[] {
-    const sequenceStream = Readable.toWeb(
-      this.refSeqChunksModel
-        // unicorn thinks this is an Array.prototype.find, so we ignore it
-        // eslint-disable-next-line unicorn/no-array-callback-reference
-        .find(query)
-        .sort({ refSeq: 1, n: 1 })
-        .populate('refSeq')
-        .cursor(),
-    ).pipeThrough(new RefSeqChunkDocToFASTAStream({ fastaWidth }))
+  ): Promise<ReadableStream<string>[]> {
+    const sequenceAdapter =
+      await this.jbrowseConfigService.getSequenceAdapterForAssembly(
+        assemblyName,
+      )
+    const sequenceStream = Readable.toWeb(Readable.from(refSeqs)).pipeThrough(
+      new RefSeqDocToAdapterFASTAStream(sequenceAdapter, { fastaWidth }),
+    )
     return [sequenceStream]
   }
 }

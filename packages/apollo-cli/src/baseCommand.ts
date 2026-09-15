@@ -23,12 +23,6 @@ import type {
   AnnotationFeatureSnapshot,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
-import type {
-  SerializedAddAssemblyAndFeaturesFromFileChange,
-  SerializedAddAssemblyFromExternalChange,
-  SerializedAddAssemblyFromFileChange,
-  SerializedDeleteAssemblyChange,
-} from '@apollo-annotation/shared'
 
 interface AssemblyResponse {
   _id: string
@@ -289,56 +283,6 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
 
   async getFeatureById(id: string): Promise<AnnotationFeatureSnapshot> {
     return this.get(`features/${id}`) as Promise<AnnotationFeatureSnapshot>
-  }
-
-  async deleteAssembly(assemblyId: string): Promise<void> {
-    const body: SerializedDeleteAssemblyChange = {
-      typeName: 'DeleteAssemblyChange',
-      assembly: assemblyId,
-    }
-    await this.post('changes', JSON.stringify(body))
-  }
-
-  async submitAssembly(
-    body:
-      | SerializedAddAssemblyFromFileChange
-      | SerializedAddAssemblyFromExternalChange
-      | SerializedAddAssemblyAndFeaturesFromFileChange,
-    force: boolean,
-  ): Promise<object> {
-    let assemblies = (await this.get('assemblies')) as {
-      name: string
-      _id: string
-    }[]
-    for (const x of assemblies) {
-      const addedAssemblies = 'changes' in body ? body.changes : [body]
-      for (const addedAssembly of addedAssemblies) {
-        if (x.name === addedAssembly.assemblyName) {
-          if (force) {
-            await this.deleteAssembly(x._id)
-          } else {
-            throw new Error(
-              `Error: Assembly "${addedAssembly.assemblyName}" already exists`,
-            )
-          }
-        }
-      }
-    }
-
-    await this.post('changes', JSON.stringify(body))
-    assemblies = (await this.get('assemblies')) as {
-      name: string
-      _id: string
-    }[]
-    for (const x of assemblies) {
-      const addedAssemblies = 'changes' in body ? body.changes : [body]
-      for (const addedAssembly of addedAssemblies) {
-        if (x.name === addedAssembly.assemblyName) {
-          return x
-        }
-      }
-    }
-    throw new Error(`Failed to retrieve assembly from ${body.assembly}`)
   }
 
   async checkNameToIdDict(): Promise<Record<string, string | undefined>> {
