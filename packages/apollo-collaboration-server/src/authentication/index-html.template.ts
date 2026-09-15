@@ -1,9 +1,7 @@
 /**
  * Derive the Apollo API path prefix (e.g. "/apollo/" or "/") from the
- * server's configured public URL. This is the same base path convention the
- * frontend already uses for `ApolloInternetAccount.baseURL`, so it doubles
- * as both the "is this fetch talking to Apollo" check and the login page's
- * location.
+ * server's configured public URL. This doubles as both the "is this fetch
+ * talking to Apollo" check and the login page's location.
  */
 export function getApiPrefixFromUrl(url: string): string {
   const { pathname } = new URL(url)

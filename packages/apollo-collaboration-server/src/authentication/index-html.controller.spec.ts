@@ -163,11 +163,17 @@ describe('IndexHtmlController', () => {
       { JBROWSE_DIR: './assets', URL: 'http://localhost:3999' },
       { getConfig },
     )
-    const request = { user: { role: 'admin', id: 'user-1' } }
+    const request = {
+      user: { role: 'admin', id: 'user-1', iat: 1_700_000_000 },
+    }
     const result = await controller.getConfigJson(
       request as unknown as Parameters<typeof controller.getConfigJson>[0],
     )
-    expect(getConfig).toHaveBeenCalledWith('admin')
+    expect(getConfig).toHaveBeenCalledWith({
+      id: 'user-1',
+      iat: 1_700_000_000,
+      role: 'admin',
+    })
     expect(result).toEqual({ assemblies: [] })
   })
 

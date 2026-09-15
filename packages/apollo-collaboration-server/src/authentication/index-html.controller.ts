@@ -22,7 +22,7 @@ interface IndexHtmlConfig {
 }
 
 interface RequestWithUser extends Request {
-  user?: { role: Role; id?: string }
+  user?: { role: Role; id?: string; iat?: number }
 }
 
 @Validations(Role.None)
@@ -98,7 +98,9 @@ export class IndexHtmlController {
     if (!user) {
       throw new Error('No user for request')
     }
-    const { role, id } = user
-    return this.jbrowseService.getConfig(id ? role : undefined)
+    const { role, id, iat } = user
+    return this.jbrowseService.getConfig(
+      id ? { id, iat: iat ?? 0, role } : undefined,
+    )
   }
 }

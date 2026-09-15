@@ -850,18 +850,17 @@ function getContextMenuItems(
   mousePosition: MousePositionWithFeature,
 ): MenuItem[] {
   const {
-    apolloInternetAccount: internetAccount,
     hoveredFeature,
     changeManager,
     filteredTranscripts,
     regions,
+    role,
     selectedFeature,
     session,
   } = display
   const [region] = regions
   const currentAssemblyId = display.getAssemblyId(region.assemblyName)
   const menuItems: MenuItem[] = []
-  const role = internetAccount ? internetAccount.role : 'admin'
   const readOnly = !(role && ['admin', 'user'].includes(role))
   if (!hoveredFeature) {
     return menuItems

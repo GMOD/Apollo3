@@ -13,10 +13,6 @@ interface JBrowsePlugin {
   name: string
 }
 
-interface JBrowseInternetAccount {
-  type: string
-}
-
 export interface JBrowseConfig {
   assemblies?: JBrowseAssembly[]
   configuration?: {
@@ -24,7 +20,6 @@ export interface JBrowseConfig {
   }
   tracks?: JBrowseTrack[]
   plugins?: JBrowsePlugin[]
-  internetAccounts?: JBrowseInternetAccount[]
   [key: string]: unknown
 }
 
@@ -35,16 +30,8 @@ export interface SerializedImportJBrowseConfigChange {
 }
 
 export function filterJBrowseConfig(config: JBrowseConfig): JBrowseConfig {
-  const {
-    __v,
-    _id,
-    assemblies,
-    configuration,
-    internetAccounts,
-    plugins,
-    tracks,
-    ...rest
-  } = config
+  const { __v, _id, assemblies, configuration, plugins, tracks, ...rest } =
+    config
   // Need to make sure that configuration.ApolloPlugin.hasRole isn't set
   const filteredConfig = rest as JBrowseConfig
   if (assemblies) {
@@ -58,11 +45,6 @@ export function filterJBrowseConfig(config: JBrowseConfig): JBrowseConfig {
       ...configuration,
       ApolloPlugin: apolloPluginRest,
     }
-  }
-  if (internetAccounts) {
-    filteredConfig.internetAccounts = internetAccounts.filter(
-      (i) => i.type !== 'ApolloInternetAccount',
-    )
   }
   if (plugins) {
     filteredConfig.plugins = plugins.filter((p) => p.name !== 'Apollo')

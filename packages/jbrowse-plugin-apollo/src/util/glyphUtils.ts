@@ -303,15 +303,8 @@ export function getContextMenuItemsForFeature(
     | LinearApolloDisplayMouseEvents,
   sourceFeature: AnnotationFeature,
 ): MenuItem[] {
-  const {
-    apolloInternetAccount: internetAccount,
-    changeManager,
-    regions,
-    selectedFeature,
-    session,
-  } = display
+  const { changeManager, regions, role, selectedFeature, session } = display
   const menuItems: MenuItem[] = []
-  const role = internetAccount ? internetAccount.role : 'admin'
   const readOnly = !(role && ['admin', 'user'].includes(role))
   const [region] = regions
   const sourceAssemblyId = display.getAssemblyId(region.assemblyName)
@@ -336,7 +329,6 @@ export function getContextMenuItemsForFeature(
               changeManager,
               sourceFeature,
               sourceAssemblyId,
-              internetAccount,
             },
           ],
         )

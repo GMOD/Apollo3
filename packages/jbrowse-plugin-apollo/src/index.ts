@@ -14,7 +14,6 @@ import type PluginManager from '@jbrowse/core/PluginManager'
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import {
   DisplayType,
-  InternetAccountType,
   type PluggableElementType,
   TrackType,
   type ViewType,
@@ -35,10 +34,6 @@ import { alpha } from '@mui/material'
 
 import { version } from '../package.json'
 
-import {
-  configSchema as apolloInternetAccountConfigSchema,
-  modelFactory as apolloInternetAccountModelFactory,
-} from './ApolloInternetAccount'
 import { installApolloRefNameAliasAdapter } from './ApolloRefNameAliasAdapter'
 import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
 import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
@@ -162,16 +157,6 @@ export default class ApolloPlugin extends Plugin {
           pluginManager,
           'ApolloTrack',
           configSchema,
-        ),
-      })
-    })
-
-    pluginManager.addInternetAccountType(() => {
-      return new InternetAccountType({
-        name: 'ApolloInternetAccount',
-        configSchema: apolloInternetAccountConfigSchema,
-        stateModel: apolloInternetAccountModelFactory(
-          apolloInternetAccountConfigSchema,
         ),
       })
     })

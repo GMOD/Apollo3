@@ -20,6 +20,22 @@ const ApolloPluginConfigurationSchema = ConfigurationSchema(
       type: 'boolean',
       defaultValue: false,
     },
+    role: {
+      description: "The logged-in user's role",
+      type: 'string',
+      defaultValue: '',
+    },
+    userId: {
+      description: "The logged-in user's id",
+      type: 'string',
+      defaultValue: '',
+    },
+    userSessionId: {
+      description:
+        "A per-login-session id, used to tell this session's own changes apart from others' when they echo back over the socket",
+      type: 'string',
+      defaultValue: '',
+    },
     skippedAttributesOnCopy: {
       description: 'Feature attribute keys to skip when copying features',
       type: 'stringArray',

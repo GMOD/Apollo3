@@ -1,4 +1,5 @@
 import { Check, type CheckDocument } from '@apollo-annotation/schemas'
+import { makeUserSessionId } from '@apollo-annotation/shared'
 import { Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
@@ -13,6 +14,13 @@ import {
   type JBrowseAssemblyConfig,
   JBrowseConfigService,
 } from './jbrowseConfig.service.js'
+
+/** The subset of a decoded auth JWT needed to generate a user's config. */
+export interface JBrowseConfigUser {
+  id: string
+  iat: number
+  role?: Role
+}
 
 @Injectable()
 export class JBrowseService implements OnApplicationBootstrap {
@@ -104,7 +112,7 @@ export class JBrowseService implements OnApplicationBootstrap {
     }
   }
 
-  getConfiguration(role?: Role) {
+  getConfiguration(user?: JBrowseConfigUser) {
     const feature_type_ontology_location =
       this.configService.get('FEATURE_TYPE_ONTOLOGY_LOCATION', {
         infer: true,
@@ -141,15 +149,20 @@ export class JBrowseService implements OnApplicationBootstrap {
         skippedAttributesOnCopy,
       },
     }
-    if (!role) {
+    if (!user) {
       return configuration
     }
-    if (role === Role.None) {
+    const { id, role } = user
+    const userSessionId = makeUserSessionId(user)
+    if (!role || role === Role.None) {
       return {
         ...configuration,
         ApolloPlugin: {
           hasRole: true,
           skippedAttributesOnCopy,
+          role,
+          userId: id,
+          userSessionId,
         },
       }
     }
@@ -158,6 +171,9 @@ export class JBrowseService implements OnApplicationBootstrap {
       ApolloPlugin: {
         hasRole: true,
         skippedAttributesOnCopy,
+        role,
+        userId: id,
+        userSessionId,
         ontologies: [
           {
             name: 'Sequence Ontology',
@@ -228,19 +244,16 @@ export class JBrowseService implements OnApplicationBootstrap {
     })
   }
 
-  async getConfig(role?: Role) {
+  async getConfig(user?: JBrowseConfigUser) {
     const fileConfig = await this.jbrowseConfigService.readJBrowseFileConfig()
-    if (!role || role === Role.None) {
-      return merge(
-        {
-          configuration: this.getConfiguration(role),
-          plugins: this.getPlugins(),
-        },
-        { internetAccounts: fileConfig.internetAccounts ?? [] },
-      )
+    if (!user?.role || user.role === Role.None) {
+      return {
+        configuration: this.getConfiguration(user),
+        plugins: this.getPlugins(),
+      }
     }
     const generatedConfig = {
-      configuration: this.getConfiguration(role),
+      configuration: this.getConfiguration(user),
       tracks: await this.getTracks(),
       plugins: this.getPlugins(),
       defaultSession: this.getDefaultSession(),

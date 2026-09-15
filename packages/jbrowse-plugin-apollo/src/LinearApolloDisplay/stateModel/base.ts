@@ -9,6 +9,7 @@ import {
   type AnyConfigurationSchemaType,
   ConfigurationReference,
   getConf,
+  readConfObject,
 } from '@jbrowse/core/configuration'
 import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
 import {
@@ -18,20 +19,13 @@ import {
   getSession,
 } from '@jbrowse/core/util'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
-import {
-  addDisposer,
-  cast,
-  getRoot,
-  getSnapshot,
-  types,
-} from '@jbrowse/mobx-state-tree'
+import { addDisposer, cast, getSnapshot, types } from '@jbrowse/mobx-state-tree'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import FactCheckIcon from '@mui/icons-material/FactCheck'
 import InputIcon from '@mui/icons-material/Input'
 import TrackChangesIcon from '@mui/icons-material/TrackChanges'
 import { autorun } from 'mobx'
 
-import type { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import {
   DownloadGFF3,
   Export as ExportIcon,
@@ -41,7 +35,6 @@ import { ImportAnnotations } from '../../components/ImportAnnotations'
 import { ViewChangeLog } from '../../components/ViewChangeLog'
 import { ViewCheckResults } from '../../components/ViewCheckResults'
 import type { ApolloSessionModel, HoveredFeature } from '../../session'
-import type { ApolloRootModel } from '../../types'
 import { EditZoomThresholdDialog } from '../../util/displayUtils'
 import { LocalDriver } from '../../BackendDrivers'
 
@@ -121,9 +114,8 @@ export function baseModelFactory(
       },
     }))
     .views((self) => ({
-      get apolloInternetAccount() {
+      get role() {
         const [region] = self.regions
-        const { internetAccounts } = getRoot<ApolloRootModel>(self)
         const { assemblyName } = region
         const { assemblyManager } =
           self.session as unknown as AbstractSessionModel
@@ -131,13 +123,15 @@ export function baseModelFactory(
         if (!assembly) {
           throw new Error(`No assembly found with name ${assemblyName}`)
         }
-        const { internetAccountConfigId } = getConf(assembly, [
-          'sequence',
-          'metadata',
-        ]) as { internetAccountConfigId: string }
-        return internetAccounts.find(
-          (ia) => getConf(ia, 'internetAccountId') === internetAccountConfigId,
-        ) as ApolloInternetAccountModel | undefined
+        const { apollo } = getConf(assembly, ['sequence', 'metadata']) as {
+          apollo?: boolean
+        }
+        if (!apollo) {
+          return 'admin'
+        }
+        return readConfObject(self.session.getPluginConfiguration(), 'role') as
+          | string
+          | undefined
       },
       get changeManager() {
         return self.session.apolloDataStore.changeManager

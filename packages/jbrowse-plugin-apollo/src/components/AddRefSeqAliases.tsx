@@ -26,7 +26,6 @@ import { observer } from 'mobx-react'
 import React, { useEffect, useRef, useState } from 'react'
 
 import type {
-  ApolloInternetAccount,
   CollaborationServerDriver,
   RefNameAliases,
 } from '../BackendDrivers'
@@ -74,10 +73,6 @@ export const AddRefSeqAliases = observer(function AddRefSeqAliases({
   const { apolloDataStore } = session
   const { collaborationServerDriver } = apolloDataStore as {
     collaborationServerDriver: CollaborationServerDriver
-    getInternetAccount(
-      assemblyName?: string,
-      internetAccountId?: string,
-    ): ApolloInternetAccount
   }
   const assemblies = collaborationServerDriver.getAssemblies()
 

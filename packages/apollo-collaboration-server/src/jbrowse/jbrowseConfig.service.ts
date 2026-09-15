@@ -29,7 +29,6 @@ export interface JBrowseAssemblyConfig {
 export interface JBrowseFileConfig {
   assemblies?: JBrowseAssemblyConfig[]
   tracks?: Record<string, unknown>[]
-  internetAccounts?: Record<string, unknown>[]
   [key: string]: unknown
 }
 

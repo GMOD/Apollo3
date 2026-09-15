@@ -1,9 +1,13 @@
 import { type IDBPDatabase, openDB } from 'idb'
 
 Cypress.Commands.add('loginAsGuest', () => {
+  // Visiting while unauthenticated redirects (server-side, before the
+  // JBrowse app loads) to the login page; only after logging in as guest
+  // does it redirect back and the app's own "external config" trust dialog
+  // appear.
   cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
-  cy.contains('Yes, I trust it', { timeout: 10_000 }).click()
   cy.contains('Continue as Guest', { timeout: 10_000 }).click()
+  cy.contains('Yes, I trust it', { timeout: 10_000 }).click()
   // eslint-disable-next-line cypress/no-unnecessary-waiting
   cy.wait(2000)
   cy.reload()

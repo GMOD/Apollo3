@@ -97,16 +97,9 @@ function getContextMenuItems(
   display: LinearApolloDisplay,
   feature: AnnotationFeature,
 ): MenuItem[] {
-  const {
-    apolloInternetAccount: internetAccount,
-    changeManager,
-    regions,
-    selectedFeature,
-    session,
-  } = display
+  const { changeManager, regions, role, selectedFeature, session } = display
   const [region] = regions
   const currentAssemblyId = display.getAssemblyId(region.assemblyName)
-  const role = internetAccount ? internetAccount.role : 'admin'
   const admin = role === 'admin'
   const menuItems: MenuItem[] = []
   const adjacentExons = getAdjacentExons(feature, display)

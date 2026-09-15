@@ -1,12 +1,8 @@
-import type {
-  AbstractMenuManager,
-  AbstractSessionModel,
-} from '@jbrowse/core/util'
+import type { AbstractMenuManager } from '@jbrowse/core/util'
 import LogoutIcon from '@mui/icons-material/Logout'
 import RedoIcon from '@mui/icons-material/Redo'
 import UndoIcon from '@mui/icons-material/Undo'
 
-import { LogOut } from '../components'
 import type { ApolloSessionModel } from '../session'
 
 export function addTopLevelMenus(rootModel: AbstractMenuManager) {
@@ -44,18 +40,13 @@ export function addTopLevelMenus(rootModel: AbstractMenuManager) {
   rootModel.appendToMenu('Apollo', {
     label: 'Log out',
     icon: LogoutIcon,
-    onClick: (session: ApolloSessionModel) => {
-      ;(session as unknown as AbstractSessionModel).queueDialog(
-        (doneCallback) => [
-          LogOut,
-          {
-            session,
-            handleClose: () => {
-              doneCallback()
-            },
-          },
-        ],
-      )
+    onClick: () => {
+      if (globalThis.confirm('Are you sure you want to log out?')) {
+        globalThis.location.href = new URL(
+          'logout',
+          globalThis.location.href,
+        ).toString()
+      }
     },
   })
 }

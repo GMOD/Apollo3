@@ -1,13 +1,23 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-misused-promises */
+import { Change } from '@apollo-annotation/common'
 import {
   type AnnotationFeature,
   AnnotationFeatureModel,
 } from '@apollo-annotation/mst'
 import {
+  type ChangeMessage,
+  type CheckResultUpdate,
   ImportJBrowseConfigChange,
   type JBrowseConfig,
+  type RequestUserInformationMessage,
   type UserLocation,
+  type UserLocationMessage,
   filterJBrowseConfig,
 } from '@apollo-annotation/shared'
 import type PluginManager from '@jbrowse/core/PluginManager'
@@ -19,6 +29,7 @@ import {
 } from '@jbrowse/core/configuration'
 import type { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
 import {
+  isAbstractMenuManager,
   isElectron,
   type AbstractSessionModel,
   type SessionWithDrawerWidgets,
@@ -36,10 +47,11 @@ import {
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import SaveIcon from '@mui/icons-material/Save'
 import { autorun, flow, observable, when } from 'mobx'
+import { io } from 'socket.io-client'
 
-import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import type { ApolloPluginConfigModel } from '../config'
-import { type ApolloRootModel, isApolloInternetAccount } from '../types'
+import { addTopLevelAdminMenus } from '../menus/topLevelMenuAdmin'
+import type { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import {
@@ -94,7 +106,16 @@ export function extendSession(
     .volatile(() => ({
       apolloHoveredFeature: undefined as HoveredFeature | undefined,
       abortController: new AbortController(),
+      lastChangeSequenceNumber: undefined as number | undefined,
+      roleNotificationSent: false,
     }))
+    .volatile(() => {
+      const { origin, pathname } = new URL(
+        'socket.io/',
+        globalThis.location.href,
+      )
+      return { socket: io(origin, { path: pathname }) }
+    })
     .extend(() => {
       const collabs = observable.array<Collaborator>([])
 
@@ -171,8 +192,121 @@ export function extendSession(
           jbrowse.configuration.ApolloPlugin as ApolloPluginConfigModel
         return pluginConfiguration
       },
+    }))
+    .actions((self) => ({
+      setLastChangeSequenceNumber(sequenceNumber: number) {
+        self.lastChangeSequenceNumber = sequenceNumber
+      },
+    }))
+    .actions((self) => ({
+      updateLastChangeSequenceNumber: flow(
+        function* updateLastChangeSequenceNumber() {
+          const url = new URL('changes', globalThis.location.href)
+          url.search = new URLSearchParams({ limit: '1' }).toString()
+          const uri = url.toString()
+
+          let response: Response
+          try {
+            response = yield fetch(uri, {
+              method: 'GET',
+              signal: self.abortController.signal,
+            })
+          } catch (error) {
+            if (!self.abortController.signal.aborted) {
+              console.error(error)
+            }
+            return
+          }
+          if (!response.ok) {
+            const errorMessage = yield createFetchErrorMessage(
+              response,
+              'Error when fetching server LastChangeSequence',
+            )
+            throw new Error(errorMessage)
+          }
+          const { changes } = yield response.json()
+          const sequence = changes.length > 0 ? changes[0].sequence : 0
+          self.setLastChangeSequenceNumber(sequence)
+        },
+      ),
+      getMissingChanges: flow(function* getMissingChanges() {
+        const { changeManager } = self.apolloDataStore
+        if (!self.lastChangeSequenceNumber) {
+          throw new Error(
+            'No LastChangeSequence stored in session. Please, refresh you browser to get last updates from server',
+          )
+        }
+        const url = new URL('changes', globalThis.location.href)
+        url.search = new URLSearchParams({
+          since: String(self.lastChangeSequenceNumber),
+          sort: '1',
+        }).toString()
+        const uri = url.toString()
+
+        let response: Response
+        try {
+          response = yield fetch(uri, {
+            method: 'GET',
+            signal: self.abortController.signal,
+          })
+        } catch (error) {
+          if (!self.abortController.signal.aborted) {
+            console.error(error)
+          }
+          return
+        }
+        if (!response.ok) {
+          console.error(
+            `Error when fetching the last updates to recover socket connection — ${response.status}`,
+          )
+          return
+        }
+        const { changes: serializedChanges } = yield response.json()
+        for (const serializedChange of serializedChanges) {
+          const change = Change.fromJSON(serializedChange)
+          void changeManager.submit(change, { submitToBackend: false })
+        }
+      }),
+    }))
+    .actions((self) => {
+      async function postUserLocation(userLoc: UserLocation[]) {
+        const role = readConfObject(self.getPluginConfiguration(), 'role') as
+          | string
+          | undefined
+        if (role === 'none' || !role) {
+          return
+        }
+        const uri = new URL('users/userLocation', globalThis.location.href).href
+        const userLocation = new URLSearchParams(JSON.stringify(userLoc))
+        try {
+          const response = await fetch(uri, {
+            method: 'POST',
+            body: userLocation,
+            signal: self.abortController.signal,
+          })
+          if (!response.ok) {
+            throw new Error('ignore') // ignore message, will get caught by "catch"
+          }
+        } catch {
+          console.error('Broadcasting user location failed')
+        }
+      }
+      const debounceTimeout = 300
+      const debouncePostUserLocation = (
+        fn: (userLocation: UserLocation[]) => void,
+      ) => {
+        let timeoutId: ReturnType<typeof setTimeout>
+        return (userLocation: UserLocation[]) => {
+          clearTimeout(timeoutId)
+          timeoutId = setTimeout(() => {
+            fn(userLocation)
+          }, debounceTimeout)
+        }
+      }
+      return { postUserLocation: debouncePostUserLocation(postUserLocation) }
+    })
+    .actions((self) => ({
       broadcastLocations() {
-        const { internetAccounts } = getRoot<ApolloRootModel>(self)
         const locations: {
           assemblyName: string
           refName: string
@@ -196,31 +330,149 @@ export function extendSession(
           }
         }
         if (locations.length === 0) {
-          for (const internetAccount of internetAccounts) {
-            if (isApolloInternetAccount(internetAccount)) {
-              internetAccount.postUserLocation([])
-            }
-          }
+          self.postUserLocation([])
           return
         }
 
-        const allLocations: UserLocation[] = []
-        for (const internetAccount of internetAccounts) {
-          if (isApolloInternetAccount(internetAccount)) {
-            for (const location of locations) {
-              const tmpLoc: UserLocation = {
-                assemblyId: location.assemblyName,
-                refSeq: location.refName,
-                start: location.start,
-                end: location.end,
-              }
-              allLocations.push(tmpLoc)
-            }
-            internetAccount.postUserLocation(allLocations)
-          }
-        }
+        const allLocations: UserLocation[] = locations.map((location) => ({
+          assemblyId: location.assemblyName,
+          refSeq: location.refName,
+          start: location.start,
+          end: location.end,
+        }))
+        self.postUserLocation(allLocations)
       },
     }))
+    .actions((self) => ({
+      addSocketListeners() {
+        const { notify } = self as unknown as AbstractSessionModel
+        const localSessionId = readConfObject(
+          self.getPluginConfiguration(),
+          'userSessionId',
+        ) as string
+        const { socket } = self
+        const { addCheckResult, changeManager, deleteCheckResult } =
+          self.apolloDataStore
+        socket.on('connect', () => {
+          void self.getMissingChanges()
+        })
+        socket.on('connect_error', (error) => {
+          console.error(error)
+          notify('Could not connect to the Apollo server.', 'error')
+        })
+        socket.on('COMMON', (message: ChangeMessage | CheckResultUpdate) => {
+          if ('checkResult' in message) {
+            if (message.deleted) {
+              deleteCheckResult(message.checkResult._id)
+            } else {
+              addCheckResult(message.checkResult)
+            }
+            return
+          }
+          // Save server last change sequence into session storage
+          sessionStorage.setItem(
+            'LastChangeSequence',
+            String(message.changeSequence),
+          )
+          if (message.userSessionId === localSessionId) {
+            return // we did this change, no need to apply it again
+          }
+          const change = Change.fromJSON(message.changeInfo)
+          void changeManager.submit(change, { submitToBackend: false })
+        })
+        socket.on('USER_LOCATION', (message: UserLocationMessage) => {
+          const { channel, locations, userName, userSessionId } = message
+          if (channel === 'USER_LOCATION' && userSessionId !== localSessionId) {
+            const collaborator: Collaborator = {
+              name: userName,
+              id: userSessionId,
+              locations,
+            }
+            self.addOrUpdateCollaborator(collaborator)
+          }
+        })
+        socket.on(
+          'REQUEST_INFORMATION',
+          (message: RequestUserInformationMessage) => {
+            const { channel, userSessionId } = message
+            if (
+              channel === 'REQUEST_INFORMATION' &&
+              userSessionId !== localSessionId
+            ) {
+              self.broadcastLocations()
+            }
+          },
+        )
+      },
+    }))
+    .actions((self) => {
+      function beforeUnloadListener() {
+        self.postUserLocation([])
+      }
+      function visibilityChangeListener() {
+        // fires when user switches tabs, apps, goes to homescreen, etc.
+        if (document.visibilityState === 'hidden') {
+          self.postUserLocation([])
+        }
+        // fires when app transitions from prerender, user returns to the app / tab.
+        if (document.visibilityState === 'visible') {
+          self.broadcastLocations()
+        }
+      }
+      return {
+        initializeCollaboration: flow(function* initializeCollaboration() {
+          const role = readConfObject(self.getPluginConfiguration(), 'role') as
+            | string
+            | undefined
+          if (!role || role === 'none') {
+            if (!self.roleNotificationSent) {
+              ;(self as unknown as AbstractSessionModel).notify(
+                'You have registered as an Apollo user but have not been given access. Ask your administrator to enable access for your account.',
+                'warning',
+              )
+              self.roleNotificationSent = true
+            }
+            return
+          }
+          if (role === 'admin') {
+            const rootModel = getRoot(self)
+            if (isAbstractMenuManager(rootModel)) {
+              addTopLevelAdminMenus(rootModel)
+            }
+          }
+          // Get and set server last change sequence into session storage
+          yield self.updateLastChangeSequenceNumber()
+          // Open socket listeners
+          self.addSocketListeners()
+          // request user locations
+          const uri = new URL('users/locations', globalThis.location.href).href
+          try {
+            yield fetch(uri, {
+              method: 'GET',
+              signal: self.abortController.signal,
+            })
+          } catch (error) {
+            if (!self.abortController.signal.aborted) {
+              console.error(error)
+            }
+          }
+          globalThis.addEventListener('beforeunload', beforeUnloadListener)
+          document.addEventListener(
+            'visibilitychange',
+            visibilityChangeListener,
+          )
+        }),
+        removeBeforeUnloadListener() {
+          globalThis.removeEventListener('beforeunload', beforeUnloadListener)
+        },
+        removeVisibilityChangeListener() {
+          document.removeEventListener(
+            'visibilitychange',
+            visibilityChangeListener,
+          )
+        },
+      }
+    })
     .actions((self) => ({
       apolloSetEventualSelectedFeature: flow(
         function* apolloSetEventualSelectedFeature(featureId: string) {
@@ -235,9 +487,7 @@ export function extendSession(
     .actions((self) => ({
       afterCreate() {
         applySnapshot(self, { name: self.name, id: self.id })
-        // @ts-expect-error type is missing on ApolloRootModel
-        const { internetAccounts, jbrowse, reloadPluginManagerCallback } =
-          getRoot<ApolloRootModel>(self)
+        void self.initializeCollaboration()
         addDisposer(
           self,
           autorun(
@@ -271,29 +521,19 @@ export function extendSession(
                 }
               }
               if (locations.length === 0) {
-                for (const internetAccount of internetAccounts) {
-                  if (isApolloInternetAccount(internetAccount)) {
-                    internetAccount.postUserLocation([])
-                  }
-                }
+                self.postUserLocation([])
                 return
               }
 
-              const allLocations: UserLocation[] = []
-              for (const internetAccount of internetAccounts) {
-                if (isApolloInternetAccount(internetAccount)) {
-                  for (const location of locations) {
-                    const tmpLoc: UserLocation = {
-                      assemblyId: location.assemblyName,
-                      refSeq: location.refName,
-                      start: location.start,
-                      end: location.end,
-                    }
-                    allLocations.push(tmpLoc)
-                  }
-                  internetAccount.postUserLocation(allLocations)
-                }
-              }
+              const allLocations: UserLocation[] = locations.map(
+                (location) => ({
+                  assemblyId: location.assemblyName,
+                  refSeq: location.refName,
+                  start: location.start,
+                  end: location.end,
+                }),
+              )
+              self.postUserLocation(allLocations)
             },
             { name: 'ApolloSessionBroadcastLocations' },
           ),
@@ -301,23 +541,21 @@ export function extendSession(
         addDisposer(
           self,
           autorun(
-            async (reaction) => {
+            (reaction) => {
               // When the initial config.json loads, it doesn't include the Apollo
               // tracks, which would result in a potentially invalid session snapshot
               // if any tracks are open. Here we copy the session snapshot, apply an
               // empty session snapshot, and then restore the original session
               // snapshot after the updated config.json loads.
-              const pluginConfiguration =
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                jbrowse.configuration.ApolloPlugin as ApolloPluginConfigModel
-              const hasRole = readConfObject(pluginConfiguration, 'hasRole')
+              const pluginConfiguration = self.getPluginConfiguration()
+              const hasRole = readConfObject(
+                pluginConfiguration,
+                'hasRole',
+              ) as boolean
               const featureTypeOntologyName = readConfObject(
                 pluginConfiguration,
                 'featureTypeOntologyName',
-              )
-              const hasApolloInternetAccount = internetAccounts.some((ia) =>
-                isApolloInternetAccount(ia),
-              )
+              ) as string
               const nonApolloAssemblies = (
                 self as unknown as AbstractSessionModel
               ).assemblyManager.assemblies.filter(
@@ -328,95 +566,50 @@ export function extendSession(
                     }
                   ).apollo,
               )
-              if (!hasApolloInternetAccount || hasRole) {
-                // Wait for assemblyManager to load before we do this part
-                const { assemblies } = (self as unknown as AbstractSessionModel)
-                  .assemblyManager
-                if (assemblies.length === 0) {
-                  return
-                }
-                const { pluginConfiguration } = self.apolloDataStore
-                const configuredOntologies =
-                  pluginConfiguration.ontologies as AnyConfigurationModel[]
-                const featureTypeOntology = configuredOntologies.find(
-                  (ont) =>
-                    readConfObject(ont, 'name') === featureTypeOntologyName,
-                )
-                if (!featureTypeOntology) {
-                  pluginConfiguration.addOntology({
-                    name: 'Sequence Ontology',
-                    version: '01c33c6d9b6c8dca12e7d3e37b49ee113093c2fa',
-                    source: {
-                      uri: 'https://raw.githubusercontent.com/The-Sequence-Ontology/SO-Ontologies/01c33c6d9b6c8dca12e7d3e37b49ee113093c2fa/Ontology_Files/so.json',
-                      locationType: 'UriLocation',
-                    },
-                  })
-                }
-                for (const a of nonApolloAssemblies) {
-                  self.addApolloLocalTrackConfig(a)
-                }
-                applySnapshot(self, self.previousSnapshot)
-                reaction.dispose()
+              if (!hasRole) {
                 return
               }
-
-              const { signal } = self.abortController
-              // fetch and initialize assemblies for each of our Apollo internet accounts
-              for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
-                if (internetAccount.type !== 'ApolloInternetAccount') {
-                  continue
-                }
-
-                const { baseURL } = internetAccount
-                const uri = new URL('jbrowse/config.json', baseURL).href
-                const fetch = internetAccount.getFetcher({
-                  locationType: 'UriLocation',
-                  uri,
-                })
-                let response: Response
-                try {
-                  response = await fetch(uri, { signal })
-                } catch (error) {
-                  if (!self.abortController.signal.aborted) {
-                    console.error(error)
-                  }
-                  continue
-                }
-                if (!response.ok) {
-                  const errorMessage = await createFetchErrorMessage(
-                    response,
-                    'Failed to fetch assemblies',
-                  )
-                  console.error(errorMessage)
-                  continue
-                }
-                let jbrowseConfig
-                try {
-                  jbrowseConfig = await response.json()
-                } catch (error) {
-                  console.error(error)
-                  continue
-                }
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                if (!jbrowseConfig.configuration.ApolloPlugin.hasRole) {
-                  continue
-                }
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                reloadPluginManagerCallback(
-                  jbrowseConfig,
-                  self.previousSnapshot,
-                )
-                reaction.dispose()
+              // Wait for assemblyManager to load before we do this part
+              const { assemblies } = (self as unknown as AbstractSessionModel)
+                .assemblyManager
+              if (assemblies.length === 0) {
+                return
               }
+              const { pluginConfiguration: dataStorePluginConfiguration } =
+                self.apolloDataStore
+              const configuredOntologies =
+                dataStorePluginConfiguration.ontologies as AnyConfigurationModel[]
+              const featureTypeOntology = configuredOntologies.find(
+                (ont) =>
+                  readConfObject(ont, 'name') === featureTypeOntologyName,
+              )
+              if (!featureTypeOntology) {
+                dataStorePluginConfiguration.addOntology({
+                  name: 'Sequence Ontology',
+                  version: '01c33c6d9b6c8dca12e7d3e37b49ee113093c2fa',
+                  source: {
+                    uri: 'https://raw.githubusercontent.com/The-Sequence-Ontology/SO-Ontologies/01c33c6d9b6c8dca12e7d3e37b49ee113093c2fa/Ontology_Files/so.json',
+                    locationType: 'UriLocation',
+                  },
+                })
+              }
+              for (const a of nonApolloAssemblies) {
+                self.addApolloLocalTrackConfig(a)
+              }
+              applySnapshot(self, self.previousSnapshot)
+              reaction.dispose()
             },
             { name: 'ApolloSessionLoadConfig' },
           ),
         )
       },
       beforeDestroy() {
+        self.removeBeforeUnloadListener()
+        self.removeVisibilityChangeListener()
         self.abortController.abort(
           new DOMException('Clean up Apollo session', 'AbortError'),
         )
+        self.socket.close()
       },
     }))
     .actions((self) => ({
@@ -452,7 +645,6 @@ export function extendSession(
             }
             const trackSelector = activeWidgets.get('hierarchicalTrackSelector')
             // @ts-expect-error Don't have type for track selector
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             trackSelector?.setView(focusedViewId)
             reaction.dispose()
           }),
@@ -480,8 +672,7 @@ export function extendSession(
                 {
                   label: 'Save track to Apollo',
                   onClick: async () => {
-                    const { internetAccounts, jbrowse } =
-                      getRoot<ApolloRootModel>(self)
+                    const { jbrowse } = getRoot<ApolloRootModel>(self)
                     const currentConfig = getSnapshot<JBrowseConfig>(jbrowse)
                     let filteredConfig: JBrowseConfig | undefined
                     filteredConfig = filterJBrowseConfig(currentConfig)
@@ -497,32 +688,23 @@ export function extendSession(
                       ...trackConfigSnapshot,
                       trackId: newTrackId,
                     }
-                    for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
-                      if (internetAccount.type !== 'ApolloInternetAccount') {
-                        continue
-                      }
-                      const change = new ImportJBrowseConfigChange({
-                        typeName: 'ImportJBrowseConfigChange',
-                        oldJBrowseConfig: filteredConfig,
-                        newJBrowseConfig: {
-                          ...filteredConfig,
-                          // @ts-expect-error The track types are in the snapshot
-                          tracks: filteredConfig?.tracks && [
-                            ...filteredConfig.tracks,
-                            newTrackConfigSnapshot,
-                          ],
-                        },
-                      })
-                      const { internetAccountId } = internetAccount
-                      await self.apolloDataStore.changeManager.submit(change, {
-                        internetAccountId,
-                      })
-                      const { notify } = self as unknown as AbstractSessionModel
-                      notify('Track added', 'success')
-                    }
+                    const change = new ImportJBrowseConfigChange({
+                      typeName: 'ImportJBrowseConfigChange',
+                      oldJBrowseConfig: filteredConfig,
+                      newJBrowseConfig: {
+                        ...filteredConfig,
+                        // @ts-expect-error The track types are in the snapshot
+                        tracks: filteredConfig?.tracks && [
+                          ...filteredConfig.tracks,
+                          newTrackConfigSnapshot,
+                        ],
+                      },
+                    })
+                    await self.apolloDataStore.changeManager.submit(change)
+                    const { notify } = self as unknown as AbstractSessionModel
+                    notify('Track added', 'success')
                     // @ts-expect-error This method is missing in the JB types
                     self.deleteTrackConf(conf)
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                     jbrowse.addTrackConf(newTrackConfigSnapshot)
                   },
                   icon: SaveIcon,
@@ -533,8 +715,7 @@ export function extendSession(
                 {
                   label: 'Remove track from Apollo',
                   onClick: async () => {
-                    const { internetAccounts, jbrowse } =
-                      getRoot<ApolloRootModel>(self)
+                    const { jbrowse } = getRoot<ApolloRootModel>(self)
                     const currentConfig = getSnapshot<JBrowseConfig>(jbrowse)
                     let filteredConfig: JBrowseConfig | undefined
                     filteredConfig = filterJBrowseConfig(currentConfig)
@@ -544,28 +725,19 @@ export function extendSession(
                     const filteredTracks = filteredConfig?.tracks?.filter(
                       (t) => t.trackId !== trackId,
                     )
-                    for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
-                      if (internetAccount.type !== 'ApolloInternetAccount') {
-                        continue
-                      }
-                      const change = new ImportJBrowseConfigChange({
-                        typeName: 'ImportJBrowseConfigChange',
-                        oldJBrowseConfig: filteredConfig,
-                        newJBrowseConfig: {
-                          ...filteredConfig,
-                          tracks: filteredTracks,
-                        },
-                      })
-                      const { internetAccountId } = internetAccount
-                      await self.apolloDataStore.changeManager.submit(change, {
-                        internetAccountId,
-                      })
-                      const { notify } = self as unknown as AbstractSessionModel
-                      notify('Track removed', 'success')
-                    }
+                    const change = new ImportJBrowseConfigChange({
+                      typeName: 'ImportJBrowseConfigChange',
+                      oldJBrowseConfig: filteredConfig,
+                      newJBrowseConfig: {
+                        ...filteredConfig,
+                        tracks: filteredTracks,
+                      },
+                    })
+                    await self.apolloDataStore.changeManager.submit(change)
+                    const { notify } = self as unknown as AbstractSessionModel
+                    notify('Track removed', 'success')
                     // @ts-expect-error This method is missing in the JB types
                     self.deleteTrackConf(conf)
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                     jbrowse.deleteTrackConf(conf)
                   },
                   icon: SaveIcon,
