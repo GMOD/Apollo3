@@ -46,7 +46,7 @@ files into `apollo.env`, `compose.yml`, and `Dockerfile`.
 ```sh title="apollo.env"
 URL=http://example.com/apollo/
 NAME=My Apollo Instance
-MONGODB_URI=mongodb://mongo-node-1:27017,mongo-node-2:27018/apolloDb?replicaSet=rs0
+MONGODB_URI=mongodb://mongo:27017/apolloDb
 FILE_UPLOAD_FOLDER=/data/uploads
 JWT_SECRET=some-secret-value
 SESSION_SECRET=some-other-secret-value
@@ -64,7 +64,7 @@ services:
       ghcr.io/gmod/apollo-collaboration-server:${APOLLO_VERSION:?Please specify
       APOLLO_VERSION}
     depends_on:
-      mongo-node-1:
+      mongo:
         condition: service_healthy
     env_file: apollo.env
     ports:
@@ -88,63 +88,26 @@ services:
       - /home/ec2-user/deployment/demoData/:/usr/local/apache2/htdocs/demoData/
     restart: unless-stopped
 
-  mongo-node-1:
+  mongo:
     image: mongo:7
-    command:
-      - '--replSet'
-      - rs0
-      - '--bind_ip_all'
-      - '--port'
-      - '27017'
     healthcheck:
       interval: 30s
       retries: 3
       start_interval: 5s
       start_period: 2m
       test: |
-        mongosh --port 27017 --quiet --eval "
-        try {
-          rs.status()
-          console.log('replica set ok')
-        } catch {
-          rs.initiate({
-            _id: 'rs0',
-            members: [
-              { _id: 0, host: 'mongo-node-1:27017', priority: 1 },
-              { _id: 1, host: 'mongo-node-2:27018', priority: 0.5 },
-            ],
-          })
-          console.log('replica set initiated')
-        }
-        "
+        mongosh --quiet --eval "db.runCommand('ping')"
       timeout: 10s
     ports:
       - '27017:27017'
     volumes:
-      - mongo-node-1_data:/data/db
-      - mongo-node-1_config:/data/configdb
-    restart: unless-stopped
-
-  mongo-node-2:
-    image: mongo:7
-    command:
-      - '--replSet'
-      - rs0
-      - '--bind_ip_all'
-      - '--port'
-      - '27018'
-    ports:
-      - '27018:27018'
-    volumes:
-      - mongo-node-2_data:/data/db
-      - mongo-node-2_config:/data/configdb
+      - mongo_data:/data/db
+      - mongo_config:/data/configdb
     restart: unless-stopped
 
 volumes:
-  mongo-node-1_config: null
-  mongo-node-1_data: null
-  mongo-node-2_config: null
-  mongo-node-2_data: null
+  mongo_config: null
+  mongo_data: null
   uploaded-files-volume: null
 ```
 
@@ -215,9 +178,9 @@ want. Volumes give Docker a place to store files outside the container, so a new
 container can connect to the old volume and then all your data is still in your
 database with your upgraded container.
 
-In the example `compose.yml`, we use simple entries like
-`mongo-node-1_config: null` means that we are defining a volume with the name
-"mongo-node-1_config" that we can refer to elsewhere in the compose file.
+In the example `compose.yml`, we use simple entries like `mongo_config: null`
+means that we are defining a volume with the name "mongo_config" that we can
+refer to elsewhere in the compose file.
 
 ### Services
 
@@ -288,7 +251,7 @@ apollo-collaboration-server:
     ghcr.io/gmod/apollo-collaboration-server:${APOLLO_VERSION:?Please specify
     APOLLO_VERSION}
   depends_on:
-    mongo-node-1:
+    mongo:
       condition: service_healthy
   env_file: apollo.env
   ports:
@@ -317,10 +280,8 @@ A name for your Apollo instance. It is shown in the UI during the login process.
 
 ##### `MONGODB_URI`
 
-In this example, it is
-`mongodb://mongo-node-1:27017,mongo-node-2:27018/apolloDb?replicaSet=rs0`. If
-you change the names of either of the MongoDB services, their ports, or add or
-remove a MongoDB service, be sure to update this value.
+In this example, it is `mongodb://mongo:27017/apolloDb`. If you change the name
+of the MongoDB service or its port, be sure to update this value.
 
 ##### `FILE_UPLOAD_FOLDER`
 
@@ -340,66 +301,37 @@ sessions). You can use a password generator to create them.
 
 #### MongoDB
 
-MongoDB needs to be in a replica set configuration for the Apollo Collaboration
-Server to work properly. MongoDB replica sets are intended to ensure
-uninterrupted connection to the database even if one database node goes down. In
-our case we're running all our nodes on the same server, so some of that
-protection is lost, but we still run two different node containers so if one
-container goes down, the database can still be accessed. We're using two nodes,
-although you can use only a single node if you like. If you need high
-availability in a production environment, you might need more nodes hosted on
-different servers. In that case you could delete the MongoDB sections from the
-compose file and update the `MONGODB_URI` variable in the collaboration server
-appropriately.
+Apollo just needs a plain MongoDB instance; no special configuration like a
+replica set is required. If you need high availability in a production
+environment, you can still deploy MongoDB across multiple nodes, but that's not
+necessary to get Apollo running.
 
-Here is one of the MongoDB service entries:
+Here is the MongoDB service entry:
 
 ```yml
-mongo-node-1:
+mongo:
   image: mongo:7
-  command:
-    - '--replSet'
-    - rs0
-    - '--bind_ip_all'
-    - '--port'
-    - '27017'
   healthcheck:
     interval: 30s
     retries: 3
     start_interval: 5s
     start_period: 2m
     test: |
-      mongosh --port 27017 --quiet --eval "
-      try {
-        rs.status()
-        console.log('replica set ok')
-      } catch {
-        rs.initiate({
-          _id: 'rs0',
-          members: [
-            { _id: 0, host: 'mongo-node-1:27017', priority: 1 },
-            { _id: 1, host: 'mongo-node-2:27018', priority: 0.5 },
-          ],
-        })
-        console.log('replica set initiated')
-      }
-      "
+      mongosh --quiet --eval "db.runCommand('ping')"
     timeout: 10s
   ports:
     - '27017:27017'
   volumes:
-    - mongo-node-1_data:/data/db
-    - mongo-node-1_config:/data/configdb
+    - mongo_data:/data/db
+    - mongo_config:/data/configdb
   restart: unless-stopped
 ```
 
 This uses the official MongoDB image, runs on port 27017, and uses two volumes
-to store data and configuration in. The second node is almost identical, with a
-different port and without the `healthcheck` section.
+to store data and configuration in.
 
-The `healthcheck` section is there to initialize the replica set the first time
-the container runs, and then to provide a way for the collaboration server to
-know the database is healthy and ready for requests from the app.
+The `healthcheck` section provides a way for the collaboration server to know
+the database is healthy and ready for requests from the app before it starts.
 
 ## Starting Apollo
 

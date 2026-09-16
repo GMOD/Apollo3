@@ -30,7 +30,7 @@
   "forwardPorts": [3999, 27017],
 
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "yarn install --immutable && mongosh --eval 'try {rs.initiate({_id: \"rs0\", members: [{_id: 0, host: \"localhost:27017\"}]});} catch {}'",
+  "postCreateCommand": "yarn install --immutable",
 
   // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
   // "remoteUser": "root"

@@ -142,36 +142,12 @@ And now install MongoDB
 sudo apt install -y mongodb-org
 ```
 
-Apollo requires MongoDB to be configured in a replica set configuration. You can
-have multiple replicas of your database, but in this example we'll use a single
-one. To configure this, we'll edit the file `/etc/mongod.conf`.
-
-```sh
-sudo nano /etc/mongod.conf
-```
-
-In the file where it says `# replication`, change it to
-
-```conf
-replication:
-  replSetName: rs0
-```
-
-Now we can start MongoDB by running
+A plain, default MongoDB configuration works for Apollo; no special setup (such
+as a replica set) is required. Start MongoDB by running
 
 ```sh
 sudo systemctl start mongod
 ```
-
-The last step is to initialize the replica set. To do this, run the command
-`mongosh` and in the shell that appears, run the command
-
-```js
-rs.initiate()
-```
-
-Then press <kbd>Ctrl</kbd> + <kbd>D</kbd> or run the `exit` command to exit the
-mongosh shell.
 
 ## Set up Apollo Collaboration Server
 
@@ -288,7 +264,7 @@ for your server, followed by `/apollo/`.
 ```env
 URL=<forwarded address>/apollo/
 NAME=My Apollo Instance
-MONGODB_URI=mongodb://localhost:27017/apolloDb?directConnection=true&replicaSet=rs0
+MONGODB_URI=mongodb://localhost:27017/apolloDb
 FILE_UPLOAD_FOLDER=/home/ubuntu/data/uploads
 JWT_SECRET=some-secret-value
 SESSION_SECRET=some-other-secret-value

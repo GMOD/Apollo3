@@ -48,7 +48,6 @@ jobs:
         uses: supercharge/mongodb-github-action@1.12.1
         with:
           mongodb-version: 8
-          mongodb-replica-set: test-rs
       - name: Start local file server
         run:
           yarn --cwd packages/apollo-collaboration-server/test/data/ serve
