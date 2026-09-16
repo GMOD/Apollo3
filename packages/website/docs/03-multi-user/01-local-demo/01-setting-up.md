@@ -65,8 +65,8 @@ services:
         LoadModule proxy_module modules/mod_proxy.so
         LoadModule proxy_http_module modules/mod_proxy_http.so
         LoadModule proxy_wstunnel_module modules/mod_proxy_wstunnel.so
-        ProxyPass "/config.json" "http://apollo-collaboration-server:3999/jbrowse/config.json"
-        ProxyPassReverse "/config.json" "http://apollo-collaboration-server:3999/jbrowse/config.json"
+        ProxyPass "/config.json" "http://apollo-collaboration-server:3999/config.json"
+        ProxyPassReverse "/config.json" "http://apollo-collaboration-server:3999/config.json"
         ProxyPassMatch "^/apollo/(.*)$" "http://apollo-collaboration-server:3999/\$1" upgrade=websocket connectiontimeout=3600 timeout=3600
         ProxyPassReverse "/apollo/" "http://apollo-collaboration-server:3999/"
         EOF

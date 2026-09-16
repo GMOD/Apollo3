@@ -192,11 +192,17 @@ Add these lines near the bottom of the file, above the `</VirtualHost>` line.
 	ProxyPassReverse "/" "http://localhost:3999/"
 	ProxyPassMatch "^/index\.html$" "http://localhost:3999/index.html"
 	ProxyPassReverse "/index.html" "http://localhost:3999/index.html"
-	ProxyPass "/config.json" "http://localhost:3999/jbrowse/config.json"
-	ProxyPassReverse "/config.json" "http://localhost:3999/jbrowse/config.json"
+	ProxyPass "/config.json" "http://localhost:3999/config.json"
+	ProxyPassReverse "/config.json" "http://localhost:3999/config.json"
 	ProxyPassMatch "^/apollo/(.*)$" "http://localhost:3999/$1" upgrade=websocket connectiontimeout=3600 timeout=3600
 	ProxyPassReverse "/apollo/" "http://localhost:3999/"
 ```
+
+If you configure `JBROWSE_CONFIG_FILES` with more than one file (see "Serving
+multiple JBrowse configurations" in the [background docs](../../background)),
+add one more `ProxyPass`/ `ProxyPassReverse` pair per additional filename, each
+mapping that path to itself the same way, e.g.
+`ProxyPass "/config_mouse.json" "http://localhost:3999/config_mouse.json"`.
 
 Note that `/` and `/index.html` use `ProxyPassMatch` with an exact-match regex
 (`^/$` and `^/index\.html$`), not a prefix match — this is what keeps every

@@ -23,6 +23,7 @@ import { ExportModule } from './export/export.module.js'
 import { FeaturesModule } from './features/features.module.js'
 import { FilesModule } from './files/files.module.js'
 import { HealthModule } from './health/health.module.js'
+import { ConfigFileModule } from './jbrowse/config-file.module.js'
 import { DevServerProxyModule } from './jbrowse/dev-server-proxy.module.js'
 import { JBrowseModule } from './jbrowse/jbrowse.module.js'
 import { MessagesModule } from './messages/messages.module.js'
@@ -76,12 +77,15 @@ export const validationSchema = Joi.object({
   DESCRIPTION: Joi.string(),
   FEATURE_TYPE_ONTOLOGY_LOCATION: Joi.string(),
   PLUGIN_LOCATION: Joi.string(),
-  // Comma-separated list of config.json filenames this server can serve
+  // Comma-separated list of config.json filenames this server serves
   // (resolved the same way as config.json: off JBROWSE_DIR on disk, or
-  // fetched from JBROWSE_DEV_SERVER_URL). Independent of the
-  // JBROWSE_DIR/JBROWSE_DEV_SERVER_URL `.xor` above - no xor needed here.
-  // Defaults to a single "config.json" when unset (see
-  // JBrowseConfigService.getConfigFileNames).
+  // fetched from JBROWSE_DEV_SERVER_URL). Each listed file is served, at its
+  // own literal path, as the Apollo-augmented config (see
+  // ConfigFileController) - e.g. "config.json,config_mouse.json" makes both
+  // "/config.json" and "/config_mouse.json" augmented, with no extra query
+  // param needed. Independent of the JBROWSE_DIR/JBROWSE_DEV_SERVER_URL
+  // `.xor` above - no xor needed here. Defaults to a single "config.json"
+  // when unset (see JBrowseConfigService.getConfigFileNames).
   JBROWSE_CONFIG_FILES: Joi.string(),
   SKIPPED_ATTRIBUTES_ON_COPY: Joi.string().default(''),
   INDEXED_IDS: Joi.string().default('gff_id'),
@@ -174,20 +178,23 @@ export function serveStaticFactory(
     // JBROWSE_DEV_SERVER_URL is configured instead (mutually exclusive with
     // JBROWSE_DIR, enforced by the Joi schema's `.xor`): there is nothing on
     // disk to serve. Everything other than Apollo's own routes is handled
-    // by the fallback proxy middleware registered in main.ts.
+    // by DevServerProxyController instead.
     return []
   }
   return [
     {
       rootPath: resolveJBrowseDir(jbrowseDir),
       serveRoot: '/',
-      // "/", "/index.html" and "/config.json" are served by
-      // IndexHtmlController instead: the first two read index.html from
-      // this same directory and augment it with the 401 -> /login redirect
-      // script, and "/config.json" is an alias for the dynamic, role-aware
-      // "jbrowse/config.json" endpoint (mirroring what a reverse proxy in
-      // front of this server would otherwise do for all three).
-      exclude: ['/', '/index.html', '/config.json'],
+      // "/" and "/index.html" are served by IndexHtmlController instead,
+      // which reads index.html from this same directory and augments it
+      // with the 401 -> /login redirect script. Every configured
+      // config.json (ConfigFileController) is served dynamically too, but
+      // that's not what makes this exclude list matter: Nest registers
+      // every controller route on the Express app during bootstrap, before
+      // @nestjs/serve-static registers this static-file middleware (in its
+      // own onModuleInit), so a controller route always wins regardless of
+      // this list - it's here for documentation/defense in depth only.
+      exclude: ['/', '/index.html'],
       serveStaticOptions: { fallthrough: false },
     },
   ]
@@ -220,6 +227,12 @@ export function serveStaticFactory(
     SequenceModule,
     UsersModule,
     JBrowseModule,
+    // Must come after every module that owns an Apollo API route and before
+    // ServeStaticModule/DevServerProxyModule: its catch-all GET claims the
+    // configured config.json paths and hands everything else back to
+    // Express with next(). See ConfigFileController for why it has to be a
+    // wildcard route rather than one route per configured file.
+    ConfigFileModule,
     ServeStaticModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

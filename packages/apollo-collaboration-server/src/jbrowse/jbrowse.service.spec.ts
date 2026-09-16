@@ -305,9 +305,7 @@ describe('JBrowseService.onApplicationBootstrap', () => {
 })
 
 describe('JBrowseService.getConfig / getTracks scoping', () => {
-  it('scopes tracks to the selected config file and resolves configId through JBrowseConfigService', async () => {
-    const resolveConfigFileName = jest.fn<(requested?: string) => string>()
-    resolveConfigFileName.mockReturnValue('config_mouse.json')
+  it('scopes tracks to the given config file name', async () => {
     const readJBrowseFileConfig =
       jest.fn<(fileName?: string) => Promise<JBrowseFileConfig>>()
     readJBrowseFileConfig.mockResolvedValue({
@@ -320,7 +318,7 @@ describe('JBrowseService.getConfig / getTracks scoping', () => {
     ])
 
     const service = await createService({
-      jbrowseConfigService: { resolveConfigFileName, readJBrowseFileConfig },
+      jbrowseConfigService: { readJBrowseFileConfig },
       assembliesService: { findAll },
       configService: {
         get: (key: string) =>
@@ -333,7 +331,6 @@ describe('JBrowseService.getConfig / getTracks scoping', () => {
       'config_mouse.json',
     )
 
-    expect(resolveConfigFileName).toHaveBeenCalledWith('config_mouse.json')
     expect(readJBrowseFileConfig).toHaveBeenCalledWith('config_mouse.json')
     const { tracks } = result as { tracks: { trackId: string }[] }
     expect(tracks).toHaveLength(1)
@@ -341,8 +338,6 @@ describe('JBrowseService.getConfig / getTracks scoping', () => {
   })
 
   it('excludes an assembly from another config file even when its name matches', async () => {
-    const resolveConfigFileName = jest.fn<(requested?: string) => string>()
-    resolveConfigFileName.mockReturnValue('config.json')
     const readJBrowseFileConfig =
       jest.fn<(fileName?: string) => Promise<JBrowseFileConfig>>()
     readJBrowseFileConfig.mockResolvedValue({
@@ -357,7 +352,7 @@ describe('JBrowseService.getConfig / getTracks scoping', () => {
     ])
 
     const service = await createService({
-      jbrowseConfigService: { resolveConfigFileName, readJBrowseFileConfig },
+      jbrowseConfigService: { readJBrowseFileConfig },
       assembliesService: { findAll },
       configService: {
         get: (key: string) =>
@@ -365,20 +360,17 @@ describe('JBrowseService.getConfig / getTracks scoping', () => {
       },
     })
 
-    const result = await service.getConfig({
-      id: 'user-1',
-      iat: 0,
-      role: Role.Admin,
-    })
+    const result = await service.getConfig(
+      { id: 'user-1', iat: 0, role: Role.Admin },
+      'config.json',
+    )
 
     const { tracks } = result as { tracks: { trackId: string }[] }
     expect(tracks).toHaveLength(1)
     expect(tracks[0]?.trackId).toBe('apollo_track_this-id')
   })
 
-  it('produces the same output as before when no configId is given (single default file)', async () => {
-    const resolveConfigFileName = jest.fn<(requested?: string) => string>()
-    resolveConfigFileName.mockReturnValue('config.json')
+  it('produces the same output as before for the single default file', async () => {
     const readJBrowseFileConfig =
       jest.fn<(fileName?: string) => Promise<JBrowseFileConfig>>()
     readJBrowseFileConfig.mockResolvedValue({
@@ -388,7 +380,7 @@ describe('JBrowseService.getConfig / getTracks scoping', () => {
     findAll.mockResolvedValue([makeAssembly('default-assembly')])
 
     const service = await createService({
-      jbrowseConfigService: { resolveConfigFileName, readJBrowseFileConfig },
+      jbrowseConfigService: { readJBrowseFileConfig },
       assembliesService: { findAll },
       configService: {
         get: (key: string) =>
@@ -396,11 +388,10 @@ describe('JBrowseService.getConfig / getTracks scoping', () => {
       },
     })
 
-    const result = await service.getConfig({
-      id: 'user-1',
-      iat: 0,
-      role: Role.Admin,
-    })
+    const result = await service.getConfig(
+      { id: 'user-1', iat: 0, role: Role.Admin },
+      'config.json',
+    )
 
     const { tracks } = result as { tracks: { trackId: string }[] }
     expect(tracks).toHaveLength(1)

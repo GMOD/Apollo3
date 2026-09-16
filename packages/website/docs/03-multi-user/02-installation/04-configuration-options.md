@@ -68,10 +68,9 @@ MICROSOFT_CLIENT_SECRET=client_secret_here
 # serve (resolved from JBROWSE_DIR, or JBROWSE_DEV_SERVER_URL, the same
 # way the default config.json is), for hosting multiple JBrowse
 # configurations - e.g. one per organism - from a single collaboration
-# server. Clients select one with the `configId` query param on the
-# config.json endpoint, e.g. /jbrowse/config.json?configId=config_mouse.json.
-# An unset or unrecognized configId falls back to the first filename in
-# this list.
+# server. Each listed file is served, augmented, at its own literal path -
+# e.g. with the example below, both /config.json and /config_mouse.json
+# are augmented, with no extra query param needed to select one.
 # Defaults to config.json
 # JBROWSE_CONFIG_FILES=config.json,config_mouse.json,config_human.json
 

@@ -58,9 +58,6 @@
       "file": {
         "description": "Commands to manage files"
       },
-      "jbrowse": {
-        "description": "Commands to manage the JBrowse configuration"
-      },
       "refseq": {
         "description": "Commands to manage reference sequences"
       },

@@ -13,7 +13,7 @@ You'll need `yarn` to be installed.
 You then have two options to start Apollo3 for development purposes. In both
 cases, the instance is then accessible via
 
-http://localhost:3000/?config=http://localhost:3999/jbrowse/config.json
+http://localhost:3000/?config=http://localhost:3999/test_data/config.json
 
 ## In a container via Visual Studio Code
 
@@ -51,5 +51,5 @@ start-mongodb:
 
 # open in browser
 open:
-    xdg-open http://localhost:3000/?config=http://localhost:3999/jbrowse/config.json
+    xdg-open http://localhost:3000/?config=http://localhost:3999/test_data/config.json
 ```

@@ -111,7 +111,7 @@ describe('Warning signs', () => {
       // eslint-disable-next-line unicorn/no-useless-undefined
       undefined,
     )
-    cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
+    cy.visit('/?config=http://localhost:3999/test_data/config.json')
     cy.contains('button', 'Launch view', { timeout: 10_000 }).click()
     cy.selectAssemblyToView('stopcodon.gff3', 'gene02')
     cy.get('[data-testid^="ErrorIcon-"]', { timeout: 5000 })

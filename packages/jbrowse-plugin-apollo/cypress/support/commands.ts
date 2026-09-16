@@ -5,7 +5,7 @@ Cypress.Commands.add('loginAsGuest', () => {
   // JBrowse app loads) to the login page; only after logging in as guest
   // does it redirect back and the app's own "external config" trust dialog
   // appear.
-  cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
+  cy.visit('/?config=http://localhost:3999/test_data/config.json')
   cy.contains('Continue as Guest', { timeout: 10_000 }).click()
   cy.contains('Yes, I trust it', { timeout: 10_000 }).click()
   // eslint-disable-next-line cypress/no-unnecessary-waiting

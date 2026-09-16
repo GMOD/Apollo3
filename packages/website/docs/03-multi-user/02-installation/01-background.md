@@ -74,11 +74,11 @@ served as plain files, while the root page and `index.html` are served
 dynamically, reading the real file off disk and augmenting it with a small
 script that redirects to the login page on a 401 from the Apollo API (and back
 again once login succeeds) — the same behavior the reverse-proxy deployment
-examples set up via their `ProxyPassMatch` rules for `/` and `/index.html`.
-`/config.json` is handled the same way, as an alias for the dynamic, role-aware
-`jbrowse/config.json` endpoint (including its `configId` query param, see
-"Serving multiple JBrowse configurations" below), matching the
-`ProxyPass "/config.json"` rule in those same examples.
+examples set up via their `ProxyPassMatch` rules for `/` and `/index.html`. Each
+configured JBrowse config.json (see "Serving multiple JBrowse configurations"
+below) is handled the same way too, served dynamically at its own literal path —
+`/config.json` by default — matching the `ProxyPass "/config.json"` rule in
+those same examples.
 
 This mode is intended for local development and testing only. For a real
 deployment, prefer a dedicated static file server or CDN in front of the
@@ -95,9 +95,9 @@ in-memory dev server rather than files on disk, so there's nothing for
 For this case, set `JBROWSE_DEV_SERVER_URL` instead of `JBROWSE_DIR` (the two
 are mutually exclusive) to the address of that running dev server, e.g.
 `http://localhost:3000`. The collaboration server will fetch `index.html` from
-the dev server and augment it the same way as the on-disk mode, still serve
-`/config.json` dynamically as usual, and forward every other request (JS/CSS
-bundles, source maps, etc.) straight through to the dev server.
+the dev server and augment it the same way as the on-disk mode, still serve each
+configured config.json dynamically as usual, and forward every other request
+(JS/CSS bundles, source maps, etc.) straight through to the dev server.
 
 This is HTTP-only: the dev server's own live-reload/HMR WebSocket isn't
 forwarded, so refresh the browser manually after a rebuild.
@@ -112,16 +112,15 @@ one per organism — from the same server and MongoDB database. Every assembly
 across every listed file is seeded into MongoDB at startup, so any of them can
 be requested regardless of which file a given session has selected.
 
-Clients select a non-default file with the `configId` query param on the
-config.json endpoint, e.g. `/jbrowse/config.json?configId=config_mouse.json`.
-This is separate from JBrowse Web's own `config` query param on its top-level
-app URL (which points JBrowse Web at a config.json URL to load, wherever it
-lives) — to navigate a user to a specific Apollo configuration you combine both,
-e.g.
-`https://host/?config=%2Fjbrowse%2Fconfig.json%3FconfigId%3Dconfig_mouse.json`.
-An unrecognized or omitted `configId` falls back to the first filename in
-`JBROWSE_CONFIG_FILES` (or plain `config.json` if that variable is unset), so
-this feature is entirely opt-in and doesn't change default behavior.
+Each listed filename is served, at its own literal path, as the Apollo-augmented
+config — e.g. `JBROWSE_CONFIG_FILES=config.json,config_mouse.json` makes both
+`/config.json` and `/config_mouse.json` augmented, with no extra query param
+needed. To navigate a user to a specific configuration, point JBrowse Web's own
+`config` query param on its top-level app URL (which points JBrowse Web at a
+config.json URL to load, wherever it lives) straight at that file's path, e.g.
+`https://host/?config=/config_mouse.json`. A path that isn't one of the
+configured filenames is served as an ordinary static file (or 404s), so this
+feature is entirely opt-in and doesn't change default behavior.
 
 ## Customizing your deployment
 

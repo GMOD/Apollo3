@@ -16,7 +16,7 @@ interface DevServerProxyConfig {
 /**
  * Catches every request that none of Apollo's own controllers claimed (the
  * JS/CSS bundles, source maps, etc. that IndexHtmlController and
- * JBrowseService don't otherwise serve) and forwards it to a running
+ * ConfigFileController don't otherwise serve) and forwards it to a running
  * JBrowse dev server. Only registered when JBROWSE_DEV_SERVER_URL is set -
  * see app.module.ts's `ConditionalModule.registerWhen` - since it's
  * dev-only and mutually exclusive with JBROWSE_DIR/ServeStaticModule.

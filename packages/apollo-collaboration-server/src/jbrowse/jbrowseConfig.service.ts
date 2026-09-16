@@ -139,24 +139,39 @@ export class JBrowseConfigService {
   }
 
   /**
-   * Validates a client-requested config filename (the `configId` query
-   * param) against the operator-declared allowlist from
-   * `getConfigFileNames()`, falling back to the default (first entry) when
-   * `requested` is undefined or not in the list.
+   * The config file served when none is specified: the first
+   * JBROWSE_CONFIG_FILES entry, or "config.json" when that's unset.
+   */
+  getDefaultConfigFileName(): string {
+    // getConfigFileNames() always returns a non-empty array.
+    return this.getConfigFileNames()[0] ?? 'config.json'
+  }
+
+  /**
+   * Security boundary for a client-driven request: maps a raw request path
+   * (e.g. Express's `request.path`) onto one of the operator-declared config
+   * filenames from `getConfigFileNames()` by exact match, after normalizing
+   * percent-encoding and a leading slash. Returns undefined - never a
+   * fallback - for anything not on the allowlist, so callers can tell "this
+   * is one of our config files" apart from "this is something else" and
+   * fall through (e.g. to static file serving) accordingly.
    *
-   * This is a security boundary: `requested` is untrusted client input, so
-   * only the return value of this method may be passed on to
+   * Only this method's return value may be passed on to
    * `readJBrowseFileConfig` for a client-driven request - never pass a raw
    * client-supplied string there, since it gets joined into a filesystem
    * path or a dev-server fetch URL.
    */
-  resolveConfigFileName(requested?: string): string {
-    const fileNames = this.getConfigFileNames()
-    if (requested && fileNames.includes(requested)) {
-      return requested
+  matchConfigFileName(requestPath: string): string | undefined {
+    let decoded: string
+    try {
+      decoded = decodeURIComponent(requestPath)
+    } catch {
+      return undefined
     }
-    // getConfigFileNames() always returns a non-empty array.
-    return fileNames[0] ?? 'config.json'
+    const normalized = decoded.replace(/^\/+/, '')
+    return this.getConfigFileNames().includes(normalized)
+      ? normalized
+      : undefined
   }
 
   /**
@@ -167,7 +182,7 @@ export class JBrowseConfigService {
    * the Joi `.xor` in app.module.ts.
    */
   async readJBrowseFileConfig(
-    fileName: string = this.resolveConfigFileName(),
+    fileName: string = this.getDefaultConfigFileName(),
   ): Promise<JBrowseFileConfig> {
     const devServerUrl = this.configService.get('JBROWSE_DEV_SERVER_URL', {
       infer: true,
@@ -258,7 +273,7 @@ export class JBrowseConfigService {
   buildSequenceAdapter(
     assemblyName: string,
     sequence: JBrowseSequenceConfig,
-    configFileName: string = this.resolveConfigFileName(),
+    configFileName: string = this.getDefaultConfigFileName(),
   ): SequenceAdapter {
     const { adapter } = sequence
     switch (adapter.type) {
@@ -359,10 +374,13 @@ export class JBrowseConfigService {
   /**
    * Builds the sequence adapter for an assembly by looking its
    * `sequence.adapter` config up by name within the one config.json it was
-   * loaded from (`configId`, the Assembly document's own `configId` field).
-   * JBrowse only guarantees `name` is unique within a single config file, so
-   * this must never search across files - two different files can define
-   * same-named assemblies with different sequence data.
+   * loaded from (`configId`, the Assembly document's own `configId` field -
+   * a trusted, DB-stored value, not client input, so it's fine to pass
+   * straight to `readJBrowseFileConfig` without going through
+   * `matchConfigFileName`). JBrowse only guarantees `name` is unique within
+   * a single config file, so this must never search across files - two
+   * different files can define same-named assemblies with different
+   * sequence data.
    */
   async getSequenceAdapterForAssembly(
     assemblyName: string,

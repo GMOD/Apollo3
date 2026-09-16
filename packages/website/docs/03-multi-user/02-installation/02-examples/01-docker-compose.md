@@ -124,8 +124,8 @@ ProxyPassMatch "^/$" "http://apollo-collaboration-server:3999/"
 ProxyPassReverse "/" "http://apollo-collaboration-server:3999/"
 ProxyPassMatch "^/index\.html$" "http://apollo-collaboration-server:3999/index.html"
 ProxyPassReverse "/index.html" "http://apollo-collaboration-server:3999/index.html"
-ProxyPass "/config.json" "http://apollo-collaboration-server:3999/jbrowse/config.json"
-ProxyPassReverse "/config.json" "http://apollo-collaboration-server:3999/jbrowse/config.json"
+ProxyPass "/config.json" "http://apollo-collaboration-server:3999/config.json"
+ProxyPassReverse "/config.json" "http://apollo-collaboration-server:3999/config.json"
 ProxyPassMatch "^/apollo/(.*)$" "http://apollo-collaboration-server:3999/\$1" upgrade=websocket connectiontimeout=3600 timeout=3600
 ProxyPassReverse "/apollo/" "http://apollo-collaboration-server:3999/"
 EOF

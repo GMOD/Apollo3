@@ -273,10 +273,14 @@ export class JBrowseService implements OnApplicationBootstrap {
     })
   }
 
-  async getConfig(user?: JBrowseConfigUser, configId?: string) {
-    const fileName = this.jbrowseConfigService.resolveConfigFileName(configId)
+  /**
+   * `configFileName` must already have been validated against the allowlist
+   * by `JBrowseConfigService.matchConfigFileName` - this method trusts it
+   * completely and never resolves or falls back on its own.
+   */
+  async getConfig(user: JBrowseConfigUser | undefined, configFileName: string) {
     const fileConfig =
-      await this.jbrowseConfigService.readJBrowseFileConfig(fileName)
+      await this.jbrowseConfigService.readJBrowseFileConfig(configFileName)
     if (!user?.role || user.role === Role.None) {
       return {
         configuration: this.getConfiguration(user),
@@ -285,7 +289,7 @@ export class JBrowseService implements OnApplicationBootstrap {
     }
     const generatedConfig = {
       configuration: this.getConfiguration(user),
-      tracks: await this.getTracks(fileConfig, fileName),
+      tracks: await this.getTracks(fileConfig, configFileName),
       plugins: this.getPlugins(),
       defaultSession: this.getDefaultSession(),
     }

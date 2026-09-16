@@ -1,18 +1,10 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import {
-  Controller,
-  Get,
-  NotFoundException,
-  Query,
-  Req,
-  Res,
-} from '@nestjs/common'
+import { Controller, Get, NotFoundException, Req, Res } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import type { Request, Response as ExpressResponse } from 'express'
 
-import { JBrowseService } from '../jbrowse/jbrowse.service.js'
 import { resolveJBrowseDir } from '../utils/jbrowse-dir.util.js'
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'
@@ -37,7 +29,6 @@ interface RequestWithUser extends Request {
 export class IndexHtmlController {
   constructor(
     private readonly configService: ConfigService<IndexHtmlConfig, true>,
-    private readonly jbrowseService: JBrowseService,
   ) {}
 
   @Get(['/', '/index.html'])
@@ -90,28 +81,5 @@ export class IndexHtmlController {
     } catch {
       throw new NotFoundException()
     }
-  }
-
-  /**
-   * Alias for `jbrowse/config.json` at the site root. This is what a
-   * reverse proxy in front of the collaboration server (e.g. the
-   * `ProxyPass "/config.json" ".../jbrowse/config.json"` rule in the
-   * deployment docs) forwards to; serving it here too lets the
-   * collaboration server stand in for that proxy on its own.
-   */
-  @Get('/config.json')
-  getConfigJson(
-    @Req() request: RequestWithUser,
-    @Query('configId') configId?: string,
-  ) {
-    const { user } = request
-    if (!user) {
-      throw new Error('No user for request')
-    }
-    const { role, id, iat } = user
-    return this.jbrowseService.getConfig(
-      id ? { id, iat: iat ?? 0, role } : undefined,
-      configId,
-    )
   }
 }

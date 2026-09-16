@@ -17,7 +17,6 @@ jest.unstable_mockModule('../utils/jbrowse-dir.util.js', () => ({
 }))
 
 const { IndexHtmlController } = await import('./index-html.controller.js')
-const { JBrowseService } = await import('../jbrowse/jbrowse.service.js')
 
 function makeConfigService(values: Record<string, string>) {
   return {
@@ -69,18 +68,11 @@ function makeResponse() {
   }
 }
 
-async function createController(
-  values: Record<string, string>,
-  jbrowseService?: { getConfig: (...args: unknown[]) => unknown },
-) {
+async function createController(values: Record<string, string>) {
   const module: TestingModule = await Test.createTestingModule({
     controllers: [IndexHtmlController],
     providers: [
       { provide: ConfigService, useValue: makeConfigService(values) },
-      {
-        provide: JBrowseService,
-        useValue: jbrowseService ?? { getConfig: () => ({}) },
-      },
     ],
   }).compile()
   return module.get<InstanceType<typeof IndexHtmlController>>(
@@ -155,74 +147,6 @@ describe('IndexHtmlController', () => {
         response as unknown as Parameters<typeof controller.getIndex>[1],
       ),
     ).rejects.toBeInstanceOf(NotFoundException)
-  })
-
-  it('config.json delegates to JBrowseService.getConfig with the request role', async () => {
-    const getConfig = jest.fn().mockReturnValue({ assemblies: [] })
-    const controller = await createController(
-      { JBROWSE_DIR: './assets', URL: 'http://localhost:3999' },
-      { getConfig },
-    )
-    const request = {
-      user: { role: 'admin', id: 'user-1', iat: 1_700_000_000 },
-    }
-    const result = await controller.getConfigJson(
-      request as unknown as Parameters<typeof controller.getConfigJson>[0],
-    )
-    expect(getConfig).toHaveBeenCalledWith(
-      {
-        id: 'user-1',
-        iat: 1_700_000_000,
-        role: 'admin',
-      },
-      undefined,
-    )
-    expect(result).toEqual({ assemblies: [] })
-  })
-
-  it('config.json passes undefined role for a user with no id', async () => {
-    const getConfig = jest.fn().mockReturnValue({ assemblies: [] })
-    const controller = await createController(
-      { JBROWSE_DIR: './assets', URL: 'http://localhost:3999' },
-      { getConfig },
-    )
-    const request = { user: { role: 'none' } }
-    await controller.getConfigJson(
-      request as unknown as Parameters<typeof controller.getConfigJson>[0],
-    )
-    expect(getConfig).toHaveBeenCalledWith(undefined, undefined)
-  })
-
-  it('config.json forwards the configId query param to JBrowseService.getConfig', async () => {
-    const getConfig = jest.fn().mockReturnValue({ assemblies: [] })
-    const controller = await createController(
-      { JBROWSE_DIR: './assets', URL: 'http://localhost:3999' },
-      { getConfig },
-    )
-    const request = {
-      user: { role: 'admin', id: 'user-1', iat: 1_700_000_000 },
-    }
-    await controller.getConfigJson(
-      request as unknown as Parameters<typeof controller.getConfigJson>[0],
-      'config_mouse.json',
-    )
-    expect(getConfig).toHaveBeenCalledWith(
-      { id: 'user-1', iat: 1_700_000_000, role: 'admin' },
-      'config_mouse.json',
-    )
-  })
-
-  it('config.json throws when there is no user on the request', async () => {
-    const controller = await createController({
-      JBROWSE_DIR: './assets',
-      URL: 'http://localhost:3999',
-    })
-    const request = { user: undefined }
-    expect(() =>
-      controller.getConfigJson(
-        request as unknown as Parameters<typeof controller.getConfigJson>[0],
-      ),
-    ).toThrow('No user for request')
   })
 
   describe('dev-server mode (JBROWSE_DEV_SERVER_URL)', () => {

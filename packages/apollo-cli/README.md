@@ -54,7 +54,6 @@ USAGE
 - [`apollo file get`](#apollo-file-get)
 - [`apollo file upload INPUT-FILE`](#apollo-file-upload-input-file)
 - [`apollo help [COMMAND]`](#apollo-help-command)
-- [`apollo jbrowse get-config`](#apollo-jbrowse-get-config)
 - [`apollo login`](#apollo-login)
 - [`apollo logout`](#apollo-logout)
 - [`apollo refseq get`](#apollo-refseq-get)
@@ -928,33 +927,6 @@ DESCRIPTION
 
 _See code:
 [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/6.2.53/src/commands/help.ts)_
-
-## `apollo jbrowse get-config`
-
-Get JBrowse configuration from Apollo
-
-```
-USAGE
-  $ apollo jbrowse get-config [--profile <value>] [--config-file <value>] [--timeout <value>]
-
-FLAGS
-  --config-file=<value>  Use this config file (mostly for testing)
-  --profile=<value>      Use credentials from this profile
-  --timeout=<value>      [default: 1h] Timeout for each request to the server
-
-DESCRIPTION
-  Get JBrowse configuration from Apollo
-
-  Print to stdout the JBrowse configuration from Apollo in JSON format
-
-EXAMPLES
-  Get JBrowse configuration:
-
-    $ apollo jbrowse get-config > config.json
-```
-
-_See code:
-[src/commands/jbrowse/get-config.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/jbrowse/get-config.ts)_
 
 ## `apollo login`
 

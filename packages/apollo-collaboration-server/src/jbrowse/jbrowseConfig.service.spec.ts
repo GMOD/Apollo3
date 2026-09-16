@@ -83,30 +83,56 @@ describe('JBrowseConfigService.getConfigFileNames', () => {
   })
 })
 
-describe('JBrowseConfigService.resolveConfigFileName', () => {
+describe('JBrowseConfigService.getDefaultConfigFileName', () => {
+  it('returns the first configured entry', () => {
+    const service = new JBrowseConfigService(
+      makeConfigService({
+        JBROWSE_CONFIG_FILES: 'config.json,config_mouse.json',
+      }),
+    )
+    expect(service.getDefaultConfigFileName()).toBe('config.json')
+  })
+
+  it('returns "config.json" when JBROWSE_CONFIG_FILES is unset', () => {
+    const service = new JBrowseConfigService(makeConfigService({}))
+    expect(service.getDefaultConfigFileName()).toBe('config.json')
+  })
+})
+
+describe('JBrowseConfigService.matchConfigFileName', () => {
   const service = new JBrowseConfigService(
     makeConfigService({
-      JBROWSE_CONFIG_FILES: 'config.json,config_mouse.json',
+      JBROWSE_CONFIG_FILES: 'config.json,test_data/config_mouse.json',
     }),
   )
 
-  it('returns the requested filename when it is in the allowlist', () => {
-    expect(service.resolveConfigFileName('config_mouse.json')).toBe(
-      'config_mouse.json',
+  it('matches a top-level configured file, with or without a leading slash', () => {
+    expect(service.matchConfigFileName('config.json')).toBe('config.json')
+    expect(service.matchConfigFileName('/config.json')).toBe('config.json')
+  })
+
+  it('matches a nested configured file', () => {
+    expect(service.matchConfigFileName('/test_data/config_mouse.json')).toBe(
+      'test_data/config_mouse.json',
     )
   })
 
-  it('falls back to the default (first) file when requested is undefined', () => {
-    expect(service.resolveConfigFileName()).toBe('config.json')
+  it('decodes percent-encoding before matching', () => {
+    expect(service.matchConfigFileName('/test%5Fdata/config_mouse.json')).toBe(
+      'test_data/config_mouse.json',
+    )
   })
 
-  it('falls back to the default file for an unrecognized configId, never using it as a path', () => {
-    expect(service.resolveConfigFileName('../../etc/passwd')).toBe(
-      'config.json',
-    )
+  it('returns undefined for a path not on the allowlist, never falling back to the default', () => {
+    expect(service.matchConfigFileName('/config_other.json')).toBeUndefined()
+    expect(service.matchConfigFileName('/../../etc/passwd')).toBeUndefined()
     expect(
-      service.resolveConfigFileName('http://evil.example.com/config.json'),
-    ).toBe('config.json')
+      service.matchConfigFileName('/http://evil.example.com/config.json'),
+    ).toBeUndefined()
+  })
+
+  it('returns undefined for malformed percent-encoding rather than throwing', () => {
+    expect(service.matchConfigFileName('/%E0%A4%A')).toBeUndefined()
   })
 })
 
