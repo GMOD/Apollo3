@@ -253,12 +253,14 @@ describe('JBrowseConfigService.getSequenceAdapterForAssembly', () => {
         JBROWSE_CONFIG_FILES: 'config.json,config_mouse.json',
       }),
     )
-    const adapter =
-      await service.getSequenceAdapterForAssembly('mouse-assembly')
+    const adapter = await service.getSequenceAdapterForAssembly(
+      'mouse-assembly',
+      'config_mouse.json',
+    )
     expect(adapter).toBeInstanceOf(BgzipIndexedFasta)
   })
 
-  it('throws an error listing every configured filename when not found anywhere', async () => {
+  it('throws when the assembly is not found in the given config file, even if it exists in another one', async () => {
     const service = new JBrowseConfigService(
       makeConfigService({
         JBROWSE_DIR: tmpDir,
@@ -266,10 +268,77 @@ describe('JBrowseConfigService.getSequenceAdapterForAssembly', () => {
       }),
     )
     await expect(
-      service.getSequenceAdapterForAssembly('missing-assembly'),
+      service.getSequenceAdapterForAssembly('mouse-assembly', 'config.json'),
     ).rejects.toThrow(
-      'Assembly "missing-assembly" not found in any of the configured config.json files (config.json, config_mouse.json)',
+      'Assembly "mouse-assembly" not found in configured config.json file "config.json"',
     )
+  })
+
+  it('throws when not found in the given config file at all', async () => {
+    const service = new JBrowseConfigService(
+      makeConfigService({
+        JBROWSE_DIR: tmpDir,
+        JBROWSE_CONFIG_FILES: 'config.json,config_mouse.json',
+      }),
+    )
+    await expect(
+      service.getSequenceAdapterForAssembly('missing-assembly', 'config.json'),
+    ).rejects.toThrow(
+      'Assembly "missing-assembly" not found in configured config.json file "config.json"',
+    )
+  })
+
+  it('resolves the correct, distinct sequence data when two config files define an assembly with the same name', async () => {
+    await fs.writeFile(
+      path.join(tmpDir, 'config.json'),
+      JSON.stringify({
+        assemblies: [
+          {
+            name: 'shared-assembly',
+            sequence: {
+              adapter: {
+                type: 'FromConfigSequenceAdapter',
+                features: [{ refName: 'chr1', start: 0, end: 4, seq: 'AAAA' }],
+              },
+            },
+          },
+        ],
+      }),
+    )
+    await fs.writeFile(
+      path.join(tmpDir, 'config_other.json'),
+      JSON.stringify({
+        assemblies: [
+          {
+            name: 'shared-assembly',
+            sequence: {
+              adapter: {
+                type: 'FromConfigSequenceAdapter',
+                features: [{ refName: 'chr1', start: 0, end: 4, seq: 'CCCC' }],
+              },
+            },
+          },
+        ],
+      }),
+    )
+    const service = new JBrowseConfigService(
+      makeConfigService({
+        JBROWSE_DIR: tmpDir,
+        JBROWSE_CONFIG_FILES: 'config.json,config_other.json',
+      }),
+    )
+
+    const fromConfig = await service.getSequenceAdapterForAssembly(
+      'shared-assembly',
+      'config.json',
+    )
+    const fromOther = await service.getSequenceAdapterForAssembly(
+      'shared-assembly',
+      'config_other.json',
+    )
+
+    await expect(fromConfig.getSequence('chr1', 0, 4)).resolves.toBe('AAAA')
+    await expect(fromOther.getSequence('chr1', 0, 4)).resolves.toBe('CCCC')
   })
 })
 

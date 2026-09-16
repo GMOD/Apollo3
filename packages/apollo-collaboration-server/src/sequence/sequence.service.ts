@@ -61,14 +61,16 @@ export class SequenceService {
       assembly.toString(),
     )
 
-    const adapterCacheEntry = adapterLRU.get(assemblyDoc.name)
+    const adapterCacheKey = `${assemblyDoc.configId}:${assemblyDoc.name}`
+    const adapterCacheEntry = adapterLRU.get(adapterCacheKey)
     let sequenceAdapter = adapterCacheEntry?.adapter
     if (!sequenceAdapter) {
       sequenceAdapter =
         await this.jbrowseConfigService.getSequenceAdapterForAssembly(
           assemblyDoc.name,
+          assemblyDoc.configId,
         )
-      adapterLRU.set(assemblyDoc.name, {
+      adapterLRU.set(adapterCacheKey, {
         adapter: sequenceAdapter,
         fileHandles: [],
       })

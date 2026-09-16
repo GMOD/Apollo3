@@ -268,28 +268,26 @@ export class JBrowseConfigService {
 
   /**
    * Builds the sequence adapter for an assembly by looking its
-   * `sequence.adapter` config up by name across every configured
-   * config.json (JBROWSE_CONFIG_FILES), in declared order, first match
-   * wins. Callers here only have an assembly name, not a "which config
-   * file is this session using" context, so this can't be scoped the way
-   * JBrowseService.getTracks() is.
+   * `sequence.adapter` config up by name within the one config.json it was
+   * loaded from (`configId`, the Assembly document's own `configId` field).
+   * JBrowse only guarantees `name` is unique within a single config file, so
+   * this must never search across files - two different files can define
+   * same-named assemblies with different sequence data.
    */
   async getSequenceAdapterForAssembly(
     assemblyName: string,
+    configId: string,
   ): Promise<SequenceAdapter> {
-    const fileNames = this.getConfigFileNames()
-    for (const fileName of fileNames) {
-      const config = await this.readJBrowseFileConfig(fileName)
-      const assemblyConfig = (config.assemblies ?? []).find(
-        (candidate) => candidate.name === assemblyName,
-      )
-      if (assemblyConfig) {
-        return this.buildSequenceAdapter(assemblyName, assemblyConfig.sequence)
-      }
-    }
-    throw new Error(
-      `Assembly "${assemblyName}" not found in any of the configured config.json files (${fileNames.join(', ')})`,
+    const config = await this.readJBrowseFileConfig(configId)
+    const assemblyConfig = (config.assemblies ?? []).find(
+      (candidate) => candidate.name === assemblyName,
     )
+    if (!assemblyConfig) {
+      throw new Error(
+        `Assembly "${assemblyName}" not found in configured config.json file "${configId}"`,
+      )
+    }
+    return this.buildSequenceAdapter(assemblyName, assemblyConfig.sequence)
   }
 }
 

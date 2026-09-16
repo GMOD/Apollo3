@@ -28,12 +28,12 @@ export class AssembliesService {
 
   private readonly logger = new Logger(AssembliesService.name)
 
-  create(assembly: { name: string; checks?: string[] }) {
+  create(assembly: { name: string; configId: string; checks?: string[] }) {
     return this.assemblyModel.create(assembly)
   }
 
-  findByName(name: string) {
-    return this.assemblyModel.findOne({ name }).exec()
+  findByNameAndConfig(name: string, configId: string) {
+    return this.assemblyModel.findOne({ name, configId }).exec()
   }
 
   async updateChecks(_id: string, checks: string[]) {

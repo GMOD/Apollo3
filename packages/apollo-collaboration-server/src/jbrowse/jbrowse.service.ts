@@ -23,6 +23,15 @@ export interface JBrowseConfigUser {
   role?: Role
 }
 
+/**
+ * Assembly identity is scoped to (configId, name), since JBrowse only
+ * guarantees `name` is unique within a single config file - see the
+ * compound unique index on the Assembly schema.
+ */
+function assemblyKey(configId: string, name: string): string {
+  return `${configId}\0${name}`
+}
+
 @Injectable()
 export class JBrowseService implements OnApplicationBootstrap {
   constructor(
@@ -47,19 +56,23 @@ export class JBrowseService implements OnApplicationBootstrap {
   async onApplicationBootstrap() {
     const configs = await this.jbrowseConfigService.readAllJBrowseFileConfigs()
 
-    const configAssemblyNames = new Set<string>()
-    for (const config of configs.values()) {
+    const configAssemblyKeys = new Set<string>()
+    for (const [configId, config] of configs.entries()) {
       for (const assemblyConfig of config.assemblies ?? []) {
-        await this.addAssemblyFromConfig(assemblyConfig)
-        configAssemblyNames.add(assemblyConfig.name)
+        await this.addAssemblyFromConfig(assemblyConfig, configId)
+        configAssemblyKeys.add(assemblyKey(configId, assemblyConfig.name))
       }
     }
 
     const storedAssemblies = await this.assembliesService.findAll()
     for (const storedAssembly of storedAssemblies) {
-      if (!configAssemblyNames.has(storedAssembly.name)) {
+      if (
+        !configAssemblyKeys.has(
+          assemblyKey(storedAssembly.configId, storedAssembly.name),
+        )
+      ) {
         this.logger.warn(
-          `Assembly "${storedAssembly.name}" was found in MongoDB but not in any configured config.json - it may be orphaned`,
+          `Assembly "${storedAssembly.name}" (configId "${storedAssembly.configId}") was found in MongoDB but not in any configured config.json - it may be orphaned`,
         )
       }
     }
@@ -67,13 +80,16 @@ export class JBrowseService implements OnApplicationBootstrap {
 
   private async addAssemblyFromConfig(
     assemblyConfig: JBrowseAssemblyConfig,
+    configId: string,
   ): Promise<void> {
     const { name: assemblyName, sequence } = assemblyConfig
-    const existingAssembly =
-      await this.assembliesService.findByName(assemblyName)
+    const existingAssembly = await this.assembliesService.findByNameAndConfig(
+      assemblyName,
+      configId,
+    )
     if (existingAssembly) {
       this.logger.debug(
-        `Assembly "${assemblyName}" already exists, so not adding`,
+        `Assembly "${assemblyName}" already exists for configId "${configId}", so not adding`,
       )
       return
     }
@@ -88,6 +104,7 @@ export class JBrowseService implements OnApplicationBootstrap {
 
     const assemblyDoc = await this.assembliesService.create({
       name: assemblyName,
+      configId,
       checks,
     })
     this.logger.log(
@@ -219,7 +236,7 @@ export class JBrowseService implements OnApplicationBootstrap {
     }
   }
 
-  async getTracks(fileConfig: JBrowseFileConfig) {
+  async getTracks(fileConfig: JBrowseFileConfig, configId: string) {
     const url = this.configService.get('URL', { infer: true })
     const allowedAssemblyNames = new Set(
       (fileConfig.assemblies ?? []).map(
@@ -227,8 +244,10 @@ export class JBrowseService implements OnApplicationBootstrap {
       ),
     )
     const allAssemblies = await this.assembliesService.findAll()
-    const assemblies = allAssemblies.filter((assembly) =>
-      allowedAssemblyNames.has(assembly.name),
+    const assemblies = allAssemblies.filter(
+      (assembly) =>
+        assembly.configId === configId &&
+        allowedAssemblyNames.has(assembly.name),
     )
     return assemblies.map((assembly) => {
       const trackId = `apollo_track_${assembly.id}`
@@ -265,7 +284,7 @@ export class JBrowseService implements OnApplicationBootstrap {
     }
     const generatedConfig = {
       configuration: this.getConfiguration(user),
-      tracks: await this.getTracks(fileConfig),
+      tracks: await this.getTracks(fileConfig, fileName),
       plugins: this.getPlugins(),
       defaultSession: this.getDefaultSession(),
     }

@@ -30,6 +30,11 @@ interface AssemblyResponse {
   aliases?: string[]
 }
 
+interface AssemblyIdEntry {
+  id: string
+  configId: string
+}
+
 export class CheckError extends Error {}
 
 export type Flags<T extends typeof Command> = Interfaces.InferredFlags<
@@ -187,13 +192,28 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     return super.finally(_)
   }
 
-  async assemblyNameToIdDict(): Promise<Record<string, string | undefined>> {
-    const ja = (await this.get('assemblies')) as object[]
-    const nameToId: Record<string, string> = {}
+  /**
+   * Maps assembly name to every assembly with that name, since JBrowse only
+   * guarantees assembly names are unique within a single config file - two
+   * different config files (JBROWSE_CONFIG_FILES) can define same-named
+   * assemblies. `convertAssemblyNameToId` is responsible for refusing to
+   * resolve a name that maps to more than one entry.
+   */
+  async assemblyNameToIdDict(): Promise<
+    Record<string, AssemblyIdEntry[] | undefined>
+  > {
+    const ja = (await this.get('assemblies')) as {
+      name: string
+      _id: string
+      configId: string
+    }[]
+    const nameToEntries: Record<string, AssemblyIdEntry[] | undefined> = {}
     for (const x of ja) {
-      nameToId[x['name' as keyof typeof x]] = x['_id' as keyof typeof x]
+      const entries = nameToEntries[x.name] ?? []
+      entries.push({ id: x._id, configId: x.configId })
+      nameToEntries[x.name] = entries
     }
-    return nameToId
+    return nameToEntries
   }
 
   async convertAssemblyNameToId(
@@ -201,12 +221,25 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     verbose = true,
     removeDuplicates = true,
   ): Promise<string[]> {
-    const nameToId = await this.assemblyNameToIdDict()
+    const nameToEntries = await this.assemblyNameToIdDict()
+    const allIds = new Set(
+      Object.values(nameToEntries).flatMap(
+        (entries) => entries?.map((entry) => entry.id) ?? [],
+      ),
+    )
     let ids = []
     for (const x of namesOrIds) {
-      if (nameToId[x] !== undefined) {
-        ids.push(nameToId[x])
-      } else if (Object.values(nameToId).includes(x)) {
+      const entries = nameToEntries[x]
+      if (entries !== undefined) {
+        if (entries.length > 1) {
+          throw new CheckError(
+            `Assembly name "${x}" is ambiguous: it exists in multiple config files (${entries
+              .map((entry) => entry.configId)
+              .join(', ')}). Use the assembly id instead of the name.`,
+          )
+        }
+        ids.push(entries[0].id)
+      } else if (allIds.has(x)) {
         ids.push(x)
       } else if (verbose) {
         stderr.write(`Warning: Omitting unknown assembly: "${x}"\n`)

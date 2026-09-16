@@ -93,6 +93,7 @@ export class ExportService {
       }
       sequenceStreams = await this.streamFromAdapter(
         assemblyDoc.name,
+        assemblyDoc.configId,
         refSeqs,
         fastaWidth,
       )
@@ -106,12 +107,14 @@ export class ExportService {
 
   async streamFromAdapter(
     assemblyName: string,
+    configId: string,
     refSeqs: RefSeqDocument[],
     fastaWidth?: number,
   ): Promise<ReadableStream<string>[]> {
     const sequenceAdapter =
       await this.jbrowseConfigService.getSequenceAdapterForAssembly(
         assemblyName,
+        configId,
       )
     const sequenceStream = Readable.toWeb(Readable.from(refSeqs)).pipeThrough(
       new RefSeqDocToAdapterFASTAStream(sequenceAdapter, { fastaWidth }),
