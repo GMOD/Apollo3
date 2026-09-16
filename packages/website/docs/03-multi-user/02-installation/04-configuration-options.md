@@ -64,6 +64,17 @@ MICROSOFT_CLIENT_SECRET=client_secret_here
 # Defaults to relative URL 'sequence_ontology.json'
 # FEATURE_TYPE_ONTOLOGY_LOCATION=sequence_ontology.json
 
+# Comma-separated list of JBrowse config.json filenames this server can
+# serve (resolved from JBROWSE_DIR, or JBROWSE_DEV_SERVER_URL, the same
+# way the default config.json is), for hosting multiple JBrowse
+# configurations - e.g. one per organism - from a single collaboration
+# server. Clients select one with the `configId` query param on the
+# config.json endpoint, e.g. /jbrowse/config.json?configId=config_mouse.json.
+# An unset or unrecognized configId falls back to the first filename in
+# this list.
+# Defaults to config.json
+# JBROWSE_CONFIG_FILES=config.json,config_mouse.json,config_human.json
+
 # Comma-separated list of attributes in features to treat as ids
 # These will be added to feature documents' "indexedIds"
 # Defaults to gff_id

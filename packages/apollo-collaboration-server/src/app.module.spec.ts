@@ -43,6 +43,34 @@ describe('validationSchema JBROWSE_DIR / JBROWSE_DEV_SERVER_URL', () => {
   })
 })
 
+describe('validationSchema JBROWSE_CONFIG_FILES', () => {
+  it('accepts having JBROWSE_CONFIG_FILES unset', () => {
+    const { error } = validationSchema.validate({
+      ...baseEnv,
+      JBROWSE_DIR: './assets',
+    })
+    expect(error).toBeUndefined()
+  })
+
+  it('accepts a comma-separated list of filenames', () => {
+    const { error } = validationSchema.validate({
+      ...baseEnv,
+      JBROWSE_DIR: './assets',
+      JBROWSE_CONFIG_FILES: 'config.json,config_mouse.json',
+    })
+    expect(error).toBeUndefined()
+  })
+
+  it('does not interact with the JBROWSE_DIR/JBROWSE_DEV_SERVER_URL xor', () => {
+    const { error } = validationSchema.validate({
+      ...baseEnv,
+      JBROWSE_DEV_SERVER_URL: 'http://localhost:3000',
+      JBROWSE_CONFIG_FILES: 'config.json,config_mouse.json',
+    })
+    expect(error).toBeUndefined()
+  })
+})
+
 describe('serveStaticFactory', () => {
   it('serves nothing from disk when JBROWSE_DEV_SERVER_URL is set instead of JBROWSE_DIR', () => {
     const configService = {

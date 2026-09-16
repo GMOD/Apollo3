@@ -76,6 +76,13 @@ export const validationSchema = Joi.object({
   DESCRIPTION: Joi.string(),
   FEATURE_TYPE_ONTOLOGY_LOCATION: Joi.string(),
   PLUGIN_LOCATION: Joi.string(),
+  // Comma-separated list of config.json filenames this server can serve
+  // (resolved the same way as config.json: off JBROWSE_DIR on disk, or
+  // fetched from JBROWSE_DEV_SERVER_URL). Independent of the
+  // JBROWSE_DIR/JBROWSE_DEV_SERVER_URL `.xor` above - no xor needed here.
+  // Defaults to a single "config.json" when unset (see
+  // JBrowseConfigService.getConfigFileNames).
+  JBROWSE_CONFIG_FILES: Joi.string(),
   SKIPPED_ATTRIBUTES_ON_COPY: Joi.string().default(''),
   INDEXED_IDS: Joi.string().default('gff_id'),
   ALLOW_ROOT_USER: Joi.boolean().default(false),

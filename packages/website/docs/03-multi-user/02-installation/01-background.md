@@ -76,8 +76,9 @@ script that redirects to the login page on a 401 from the Apollo API (and back
 again once login succeeds) — the same behavior the reverse-proxy deployment
 examples set up via their `ProxyPassMatch` rules for `/` and `/index.html`.
 `/config.json` is handled the same way, as an alias for the dynamic, role-aware
-`jbrowse/config.json` endpoint, matching the `ProxyPass "/config.json"` rule in
-those same examples.
+`jbrowse/config.json` endpoint (including its `configId` query param, see
+"Serving multiple JBrowse configurations" below), matching the
+`ProxyPass "/config.json"` rule in those same examples.
 
 This mode is intended for local development and testing only. For a real
 deployment, prefer a dedicated static file server or CDN in front of the
@@ -100,6 +101,27 @@ bundles, source maps, etc.) straight through to the dev server.
 
 This is HTTP-only: the dev server's own live-reload/HMR WebSocket isn't
 forwarded, so refresh the browser manually after a rebuild.
+
+### Serving multiple JBrowse configurations
+
+By default the collaboration server serves a single `config.json`. Set
+`JBROWSE_CONFIG_FILES` to a comma-separated list of config.json filenames (all
+resolved the same way as the default `config.json`, whether via `JBROWSE_DIR` or
+`JBROWSE_DEV_SERVER_URL`) to host several JBrowse configurations — for example,
+one per organism — from the same server and MongoDB database. Every assembly
+across every listed file is seeded into MongoDB at startup, so any of them can
+be requested regardless of which file a given session has selected.
+
+Clients select a non-default file with the `configId` query param on the
+config.json endpoint, e.g. `/jbrowse/config.json?configId=config_mouse.json`.
+This is separate from JBrowse Web's own `config` query param on its top-level
+app URL (which points JBrowse Web at a config.json URL to load, wherever it
+lives) — to navigate a user to a specific Apollo configuration you combine both,
+e.g.
+`https://host/?config=%2Fjbrowse%2Fconfig.json%3FconfigId%3Dconfig_mouse.json`.
+An unrecognized or omitted `configId` falls back to the first filename in
+`JBROWSE_CONFIG_FILES` (or plain `config.json` if that variable is unset), so
+this feature is entirely opt-in and doesn't change default behavior.
 
 ## Customizing your deployment
 

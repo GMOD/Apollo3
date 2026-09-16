@@ -12,6 +12,7 @@ import { Role } from '../utils/role/role.enum.js'
 
 import {
   type JBrowseAssemblyConfig,
+  type JBrowseFileConfig,
   JBrowseConfigService,
 } from './jbrowseConfig.service.js'
 
@@ -44,21 +45,21 @@ export class JBrowseService implements OnApplicationBootstrap {
   private readonly logger = new Logger(JBrowseService.name)
 
   async onApplicationBootstrap() {
-    const config = await this.jbrowseConfigService.readJBrowseFileConfig()
-    const assemblies = config.assemblies ?? []
+    const configs = await this.jbrowseConfigService.readAllJBrowseFileConfigs()
 
-    for (const assemblyConfig of assemblies) {
-      await this.addAssemblyFromConfig(assemblyConfig)
+    const configAssemblyNames = new Set<string>()
+    for (const config of configs.values()) {
+      for (const assemblyConfig of config.assemblies ?? []) {
+        await this.addAssemblyFromConfig(assemblyConfig)
+        configAssemblyNames.add(assemblyConfig.name)
+      }
     }
 
-    const configAssemblyNames = new Set(
-      assemblies.map((assemblyConfig) => assemblyConfig.name),
-    )
     const storedAssemblies = await this.assembliesService.findAll()
     for (const storedAssembly of storedAssemblies) {
       if (!configAssemblyNames.has(storedAssembly.name)) {
         this.logger.warn(
-          `Assembly "${storedAssembly.name}" was found in MongoDB but not in config.json - it may be orphaned`,
+          `Assembly "${storedAssembly.name}" was found in MongoDB but not in any configured config.json - it may be orphaned`,
         )
       }
     }
@@ -218,9 +219,17 @@ export class JBrowseService implements OnApplicationBootstrap {
     }
   }
 
-  async getTracks() {
+  async getTracks(fileConfig: JBrowseFileConfig) {
     const url = this.configService.get('URL', { infer: true })
-    const assemblies = await this.assembliesService.findAll()
+    const allowedAssemblyNames = new Set(
+      (fileConfig.assemblies ?? []).map(
+        (assemblyConfig) => assemblyConfig.name,
+      ),
+    )
+    const allAssemblies = await this.assembliesService.findAll()
+    const assemblies = allAssemblies.filter((assembly) =>
+      allowedAssemblyNames.has(assembly.name),
+    )
     return assemblies.map((assembly) => {
       const trackId = `apollo_track_${assembly.id}`
       return {
@@ -244,8 +253,10 @@ export class JBrowseService implements OnApplicationBootstrap {
     })
   }
 
-  async getConfig(user?: JBrowseConfigUser) {
-    const fileConfig = await this.jbrowseConfigService.readJBrowseFileConfig()
+  async getConfig(user?: JBrowseConfigUser, configId?: string) {
+    const fileName = this.jbrowseConfigService.resolveConfigFileName(configId)
+    const fileConfig =
+      await this.jbrowseConfigService.readJBrowseFileConfig(fileName)
     if (!user?.role || user.role === Role.None) {
       return {
         configuration: this.getConfiguration(user),
@@ -254,7 +265,7 @@ export class JBrowseService implements OnApplicationBootstrap {
     }
     const generatedConfig = {
       configuration: this.getConfiguration(user),
-      tracks: await this.getTracks(),
+      tracks: await this.getTracks(fileConfig),
       plugins: this.getPlugins(),
       defaultSession: this.getDefaultSession(),
     }

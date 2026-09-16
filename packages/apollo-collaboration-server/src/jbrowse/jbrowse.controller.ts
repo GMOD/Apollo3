@@ -1,4 +1,4 @@
-import { Controller, Get, Logger, Req } from '@nestjs/common'
+import { Controller, Get, Logger, Query, Req } from '@nestjs/common'
 import type { Request } from 'express'
 
 import { Role } from '../utils/role/role.enum.js'
@@ -17,7 +17,10 @@ export class JBrowseController {
 
   @Validations(Role.None)
   @Get('config.json')
-  config(@Req() request: RequestWithUser) {
+  config(
+    @Req() request: RequestWithUser,
+    @Query('configId') configId?: string,
+  ) {
     const { user } = request
     if (!user) {
       throw new Error('No user for request')
@@ -25,6 +28,7 @@ export class JBrowseController {
     const { id, iat, role } = user
     return this.jbrowseService.getConfig(
       id ? { id, iat: iat ?? 0, role } : undefined,
+      configId,
     )
   }
 }

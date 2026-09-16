@@ -169,11 +169,14 @@ describe('IndexHtmlController', () => {
     const result = await controller.getConfigJson(
       request as unknown as Parameters<typeof controller.getConfigJson>[0],
     )
-    expect(getConfig).toHaveBeenCalledWith({
-      id: 'user-1',
-      iat: 1_700_000_000,
-      role: 'admin',
-    })
+    expect(getConfig).toHaveBeenCalledWith(
+      {
+        id: 'user-1',
+        iat: 1_700_000_000,
+        role: 'admin',
+      },
+      undefined,
+    )
     expect(result).toEqual({ assemblies: [] })
   })
 
@@ -187,7 +190,26 @@ describe('IndexHtmlController', () => {
     await controller.getConfigJson(
       request as unknown as Parameters<typeof controller.getConfigJson>[0],
     )
-    expect(getConfig).toHaveBeenCalledWith(undefined)
+    expect(getConfig).toHaveBeenCalledWith(undefined, undefined)
+  })
+
+  it('config.json forwards the configId query param to JBrowseService.getConfig', async () => {
+    const getConfig = jest.fn().mockReturnValue({ assemblies: [] })
+    const controller = await createController(
+      { JBROWSE_DIR: './assets', URL: 'http://localhost:3999' },
+      { getConfig },
+    )
+    const request = {
+      user: { role: 'admin', id: 'user-1', iat: 1_700_000_000 },
+    }
+    await controller.getConfigJson(
+      request as unknown as Parameters<typeof controller.getConfigJson>[0],
+      'config_mouse.json',
+    )
+    expect(getConfig).toHaveBeenCalledWith(
+      { id: 'user-1', iat: 1_700_000_000, role: 'admin' },
+      'config_mouse.json',
+    )
   })
 
   it('config.json throws when there is no user on the request', async () => {

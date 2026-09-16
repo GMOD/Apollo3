@@ -1,7 +1,14 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import { Controller, Get, NotFoundException, Req, Res } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import type { Request, Response as ExpressResponse } from 'express'
 
@@ -93,7 +100,10 @@ export class IndexHtmlController {
    * collaboration server stand in for that proxy on its own.
    */
   @Get('/config.json')
-  getConfigJson(@Req() request: RequestWithUser) {
+  getConfigJson(
+    @Req() request: RequestWithUser,
+    @Query('configId') configId?: string,
+  ) {
     const { user } = request
     if (!user) {
       throw new Error('No user for request')
@@ -101,6 +111,7 @@ export class IndexHtmlController {
     const { role, id, iat } = user
     return this.jbrowseService.getConfig(
       id ? { id, iat: iat ?? 0, role } : undefined,
+      configId,
     )
   }
 }
