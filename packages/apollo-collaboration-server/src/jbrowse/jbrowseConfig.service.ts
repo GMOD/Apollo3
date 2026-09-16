@@ -1,10 +1,19 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import { BgzipIndexedFasta } from '@gmod/indexedfasta'
+import {
+  BgzipIndexedFasta,
+  FetchableSmallFasta,
+  IndexedFasta,
+} from '@gmod/indexedfasta'
+import { TwoBitFile } from '@gmod/twobit'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { RemoteFile } from 'generic-filehandle2'
+import {
+  type GenericFilehandle,
+  LocalFile,
+  RemoteFile,
+} from 'generic-filehandle2'
 
 import { resolveJBrowseDir } from '../utils/jbrowse-dir.util.js'
 
@@ -12,13 +21,60 @@ export interface JBrowseUriLocation {
   uri: string
 }
 
+/** The subset of a JBrowse sequence adapter's interface Apollo actually uses. */
+export interface SequenceAdapter {
+  getSequence(
+    name: string,
+    start: number,
+    end: number,
+  ): Promise<string | undefined>
+  getSequenceSizes(): Promise<Record<string, number>>
+}
+
+interface BgzipFastaAdapterConfig {
+  type: 'BgzipFastaAdapter'
+  fastaLocation: JBrowseUriLocation
+  faiLocation: JBrowseUriLocation
+  gziLocation: JBrowseUriLocation
+}
+
+interface IndexedFastaAdapterConfig {
+  type: 'IndexedFastaAdapter'
+  fastaLocation: JBrowseUriLocation
+  faiLocation: JBrowseUriLocation
+}
+
+interface TwoBitAdapterConfig {
+  type: 'TwoBitAdapter'
+  twoBitLocation: JBrowseUriLocation
+}
+
+interface UnindexedFastaAdapterConfig {
+  type: 'UnindexedFastaAdapter'
+  fastaLocation: JBrowseUriLocation
+}
+
+interface FromConfigSequenceAdapterFeature {
+  refName: string
+  start: number
+  end: number
+  seq: string
+}
+
+interface FromConfigSequenceAdapterConfig {
+  type: 'FromConfigSequenceAdapter'
+  features: FromConfigSequenceAdapterFeature[]
+}
+
+export type JBrowseSequenceAdapterConfig =
+  | BgzipFastaAdapterConfig
+  | IndexedFastaAdapterConfig
+  | TwoBitAdapterConfig
+  | UnindexedFastaAdapterConfig
+  | FromConfigSequenceAdapterConfig
+
 export interface JBrowseSequenceConfig {
-  adapter: {
-    type: string
-    fastaLocation: JBrowseUriLocation
-    faiLocation: JBrowseUriLocation
-    gziLocation: JBrowseUriLocation
-  }
+  adapter: JBrowseSequenceAdapterConfig
 }
 
 export interface JBrowseAssemblyConfig {
@@ -139,21 +195,75 @@ export class JBrowseConfigService {
     return configs
   }
 
+  /**
+   * Resolves a `sequence.adapter` location's `uri` to a filehandle. `uri` is
+   * not guaranteed to be an absolute http(s) URL - disk-mode configs
+   * (JBROWSE_DIR) commonly use paths relative to the JBrowse directory, and
+   * dev-server-mode configs (JBROWSE_DEV_SERVER_URL) use paths relative to
+   * the dev server, matching how `readJBrowseFileConfig` itself resolves the
+   * config.json filename in each mode.
+   */
+  private resolveFileLocation(uri: string): GenericFilehandle {
+    if (/^https?:\/\//.test(uri)) {
+      return new RemoteFile(uri, { fetch })
+    }
+    const devServerUrl = this.configService.get('JBROWSE_DEV_SERVER_URL', {
+      infer: true,
+    })
+    if (devServerUrl) {
+      return new RemoteFile(new URL(uri, devServerUrl).href, { fetch })
+    }
+    // Guaranteed to be set when JBROWSE_DEV_SERVER_URL isn't (enforced by
+    // the Joi `.xor` in app.module.ts).
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const jbrowseDir = this.configService.get('JBROWSE_DIR', { infer: true })!
+    return new LocalFile(path.join(resolveJBrowseDir(jbrowseDir), uri))
+  }
+
   buildSequenceAdapter(
     assemblyName: string,
     sequence: JBrowseSequenceConfig,
-  ): BgzipIndexedFasta {
+  ): SequenceAdapter {
     const { adapter } = sequence
-    if (adapter.type !== 'BgzipFastaAdapter') {
-      throw new Error(
-        `Unsupported sequence adapter type "${adapter.type}" for assembly "${assemblyName}" in config.json`,
-      )
+    switch (adapter.type) {
+      case 'BgzipFastaAdapter': {
+        return new BgzipIndexedFasta({
+          fasta: this.resolveFileLocation(adapter.fastaLocation.uri),
+          fai: this.resolveFileLocation(adapter.faiLocation.uri),
+          gzi: this.resolveFileLocation(adapter.gziLocation.uri),
+        })
+      }
+      case 'IndexedFastaAdapter': {
+        return new IndexedFasta({
+          fasta: this.resolveFileLocation(adapter.fastaLocation.uri),
+          fai: this.resolveFileLocation(adapter.faiLocation.uri),
+        })
+      }
+      case 'TwoBitAdapter': {
+        return new TwoBitFile({
+          filehandle: this.resolveFileLocation(adapter.twoBitLocation.uri),
+        })
+      }
+      case 'UnindexedFastaAdapter': {
+        return new UnindexedFastaSequenceAdapter(
+          new FetchableSmallFasta({
+            fasta: this.resolveFileLocation(adapter.fastaLocation.uri),
+          }),
+        )
+      }
+      case 'FromConfigSequenceAdapter': {
+        return new FromConfigSequenceAdapterImpl(adapter.features)
+      }
+      default: {
+        // `adapter` here is typed as `never` because the switch above is
+        // exhaustive over the *known* adapter types, but a config.json's
+        // `adapter.type` is untrusted input parsed from JSON - it can be any
+        // string at runtime, which is exactly the case this branch handles.
+        throw new Error(
+          `Unsupported sequence adapter type "${(adapter as { type: string }).type}" for assembly "${assemblyName}" in config.json`,
+        )
+      }
     }
-    return new BgzipIndexedFasta({
-      fasta: new RemoteFile(adapter.fastaLocation.uri, { fetch }),
-      fai: new RemoteFile(adapter.faiLocation.uri, { fetch }),
-      gzi: new RemoteFile(adapter.gziLocation.uri, { fetch }),
-    })
   }
 
   /**
@@ -166,7 +276,7 @@ export class JBrowseConfigService {
    */
   async getSequenceAdapterForAssembly(
     assemblyName: string,
-  ): Promise<BgzipIndexedFasta> {
+  ): Promise<SequenceAdapter> {
     const fileNames = this.getConfigFileNames()
     for (const fileName of fileNames) {
       const config = await this.readJBrowseFileConfig(fileName)
@@ -179,6 +289,94 @@ export class JBrowseConfigService {
     }
     throw new Error(
       `Assembly "${assemblyName}" not found in any of the configured config.json files (${fileNames.join(', ')})`,
+    )
+  }
+}
+
+/**
+ * Adapts `@gmod/indexedfasta`'s `FetchableSmallFasta` (an unindexed,
+ * whole-file-in-memory FASTA reader) to the `SequenceAdapter` interface.
+ * `FetchableSmallFasta.fetch` throws for an unknown id rather than returning
+ * `undefined`, so this checks `getSequenceNames()` first to match how every
+ * other `SequenceAdapter` reports a missing reference sequence.
+ */
+class UnindexedFastaSequenceAdapter implements SequenceAdapter {
+  constructor(private readonly fasta: FetchableSmallFasta) {}
+
+  async getSequence(
+    name: string,
+    start: number,
+    end: number,
+  ): Promise<string | undefined> {
+    const names = await this.fasta.getSequenceNames()
+    return names.includes(name) ? this.fasta.fetch(name, start, end) : undefined
+  }
+
+  async getSequenceSizes(): Promise<Record<string, number>> {
+    const entries = await this.fasta.data
+    return Object.fromEntries(
+      entries.map((entry) => [entry.id, entry.sequence.length]),
+    )
+  }
+}
+
+/**
+ * Reads a `FromConfigSequenceAdapter`'s bases directly out of `config.json`
+ * (no file I/O), grouping its inlined `features` by `refName`. Intended for
+ * Apollo's own small/demo/test assemblies, matching how JBrowse itself uses
+ * this adapter type.
+ */
+class FromConfigSequenceAdapterImpl implements SequenceAdapter {
+  private readonly featuresByRefName = new Map<
+    string,
+    FromConfigSequenceAdapterFeature[]
+  >()
+
+  constructor(features: FromConfigSequenceAdapterFeature[]) {
+    for (const feature of features) {
+      const existing = this.featuresByRefName.get(feature.refName)
+      if (existing) {
+        existing.push(feature)
+      } else {
+        this.featuresByRefName.set(feature.refName, [feature])
+      }
+    }
+    for (const features of this.featuresByRefName.values()) {
+      features.sort((a, b) => a.start - b.start)
+    }
+  }
+
+  getSequence(
+    name: string,
+    start: number,
+    end: number,
+  ): Promise<string | undefined> {
+    const features = this.featuresByRefName.get(name)
+    let sequence: string | undefined
+    if (features) {
+      sequence = ''
+      for (const feature of features) {
+        const overlapStart = Math.max(start, feature.start)
+        const overlapEnd = Math.min(end, feature.end)
+        if (overlapStart < overlapEnd) {
+          sequence += feature.seq.slice(
+            overlapStart - feature.start,
+            overlapEnd - feature.start,
+          )
+        }
+      }
+    }
+    return Promise.resolve(sequence)
+  }
+
+  getSequenceSizes(): Promise<Record<string, number>> {
+    return Promise.resolve(
+      Object.fromEntries(
+        [...this.featuresByRefName].map(([refName, features]) => [
+          refName,
+          Math.max(...features.map((feature) => feature.end)),
+        ]),
+      ),
     )
   }
 }

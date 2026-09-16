@@ -1,5 +1,4 @@
 import { RefSeq, type RefSeqDocument } from '@apollo-annotation/schemas'
-import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { type GenericFilehandle } from 'generic-filehandle2'
@@ -7,12 +6,15 @@ import { Model } from 'mongoose'
 import QuickLRU from 'quick-lru'
 
 import { AssembliesService } from '../assemblies/assemblies.service.js'
-import { JBrowseConfigService } from '../jbrowse/jbrowseConfig.service.js'
+import {
+  JBrowseConfigService,
+  type SequenceAdapter,
+} from '../jbrowse/jbrowseConfig.service.js'
 
 import { GetSequenceDto } from './dto/get-sequence.dto.js'
 
 interface AdapterCache {
-  adapter: IndexedFasta | BgzipIndexedFasta
+  adapter: SequenceAdapter
   fileHandles: GenericFilehandle[]
 }
 

@@ -7,6 +7,8 @@ import { BgzipIndexedFasta } from '@gmod/indexedfasta'
 import { jest } from '@jest/globals'
 import type { ConfigService } from '@nestjs/config'
 
+import type { JBrowseSequenceConfig } from './jbrowseConfig.service.js'
+
 // `resolveJBrowseDir` anchors itself off `import.meta.dirname`, which Jest's
 // experimental VM-modules ESM loader doesn't populate. Mock it here with an
 // identity function so tests can pass an already-absolute temp directory as
@@ -267,6 +269,124 @@ describe('JBrowseConfigService.getSequenceAdapterForAssembly', () => {
       service.getSequenceAdapterForAssembly('missing-assembly'),
     ).rejects.toThrow(
       'Assembly "missing-assembly" not found in any of the configured config.json files (config.json, config_mouse.json)',
+    )
+  })
+})
+
+describe('JBrowseConfigService.buildSequenceAdapter', () => {
+  const testDataDir = path.join(process.cwd(), 'test/data')
+  let tmpDir: string
+
+  beforeEach(async () => {
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'jbrowse-config-'))
+  })
+
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true, force: true })
+  })
+
+  async function copyFixture(name: string): Promise<void> {
+    await fs.copyFile(path.join(testDataDir, name), path.join(tmpDir, name))
+  }
+
+  it('reads a BgzipFastaAdapter via a local (non-http) uri, resolved against JBROWSE_DIR', async () => {
+    await Promise.all(
+      ['volvox.fa.gz', 'volvox.fa.gz.fai', 'volvox.fa.gz.gzi'].map((name) =>
+        copyFixture(name),
+      ),
+    )
+    const service = new JBrowseConfigService(
+      makeConfigService({ JBROWSE_DIR: tmpDir }),
+    )
+    const adapter = service.buildSequenceAdapter(
+      'test',
+      sequenceConfigFor('volvox'),
+    )
+    await expect(adapter.getSequence('ctgA', 0, 10)).resolves.toBe('cattgttgcg')
+  })
+
+  it('supports IndexedFastaAdapter', async () => {
+    await Promise.all(
+      ['volvox.fa', 'volvox.fa.fai'].map((name) => copyFixture(name)),
+    )
+    const service = new JBrowseConfigService(
+      makeConfigService({ JBROWSE_DIR: tmpDir }),
+    )
+    const adapter = service.buildSequenceAdapter('test', {
+      adapter: {
+        type: 'IndexedFastaAdapter',
+        fastaLocation: { uri: 'volvox.fa' },
+        faiLocation: { uri: 'volvox.fa.fai' },
+      },
+    })
+    await expect(adapter.getSequence('ctgA', 0, 10)).resolves.toBe('cattgttgcg')
+    await expect(adapter.getSequenceSizes()).resolves.toEqual({
+      ctgA: 50_001,
+      ctgB: 6079,
+    })
+  })
+
+  it('supports TwoBitAdapter', async () => {
+    await copyFixture('volvox.2bit')
+    const service = new JBrowseConfigService(
+      makeConfigService({ JBROWSE_DIR: tmpDir }),
+    )
+    const adapter = service.buildSequenceAdapter('test', {
+      adapter: {
+        type: 'TwoBitAdapter',
+        twoBitLocation: { uri: 'volvox.2bit' },
+      },
+    })
+    await expect(adapter.getSequence('ctgA', 0, 10)).resolves.toBe('cattgttgcg')
+    await expect(adapter.getSequenceSizes()).resolves.toEqual({
+      ctgA: 50_001,
+      ctgB: 6079,
+    })
+  })
+
+  it('supports UnindexedFastaAdapter, and returns undefined for a missing refName', async () => {
+    await copyFixture('tiny.fasta')
+    const service = new JBrowseConfigService(
+      makeConfigService({ JBROWSE_DIR: tmpDir }),
+    )
+    const adapter = service.buildSequenceAdapter('test', {
+      adapter: {
+        type: 'UnindexedFastaAdapter',
+        fastaLocation: { uri: 'tiny.fasta' },
+      },
+    })
+    await expect(adapter.getSequence('ctgA', 0, 10)).resolves.toBe('cattgttgcg')
+    await expect(
+      adapter.getSequence('missing-contig', 0, 10),
+    ).resolves.toBeUndefined()
+  })
+
+  it('supports FromConfigSequenceAdapter, slicing and sizing inlined features', async () => {
+    const service = new JBrowseConfigService(
+      makeConfigService({ JBROWSE_DIR: tmpDir }),
+    )
+    const adapter = service.buildSequenceAdapter('test', {
+      adapter: {
+        type: 'FromConfigSequenceAdapter',
+        features: [{ refName: 'ctgA', start: 0, end: 4, seq: 'ACGT' }],
+      },
+    })
+    await expect(adapter.getSequence('ctgA', 1, 3)).resolves.toBe('CG')
+    await expect(
+      adapter.getSequence('missing-contig', 0, 4),
+    ).resolves.toBeUndefined()
+    await expect(adapter.getSequenceSizes()).resolves.toEqual({ ctgA: 4 })
+  })
+
+  it('throws for an unsupported adapter type', () => {
+    const service = new JBrowseConfigService(
+      makeConfigService({ JBROWSE_DIR: tmpDir }),
+    )
+    const sequence = {
+      adapter: { type: 'ChromSizesAdapter' },
+    } as unknown as JBrowseSequenceConfig
+    expect(() => service.buildSequenceAdapter('test', sequence)).toThrow(
+      'Unsupported sequence adapter type "ChromSizesAdapter" for assembly "test" in config.json',
     )
   })
 })
