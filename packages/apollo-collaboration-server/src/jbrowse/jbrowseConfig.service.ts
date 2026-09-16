@@ -33,25 +33,33 @@ export interface SequenceAdapter {
 
 interface BgzipFastaAdapterConfig {
   type: 'BgzipFastaAdapter'
-  fastaLocation: JBrowseUriLocation
-  faiLocation: JBrowseUriLocation
-  gziLocation: JBrowseUriLocation
+  /** Shorthand: derives fastaLocation/faiLocation/gziLocation from this uri, JBrowse-config-schema style. */
+  uri?: string
+  fastaLocation?: JBrowseUriLocation
+  faiLocation?: JBrowseUriLocation
+  gziLocation?: JBrowseUriLocation
 }
 
 interface IndexedFastaAdapterConfig {
   type: 'IndexedFastaAdapter'
-  fastaLocation: JBrowseUriLocation
-  faiLocation: JBrowseUriLocation
+  /** Shorthand: derives fastaLocation/faiLocation from this uri, JBrowse-config-schema style. */
+  uri?: string
+  fastaLocation?: JBrowseUriLocation
+  faiLocation?: JBrowseUriLocation
 }
 
 interface TwoBitAdapterConfig {
   type: 'TwoBitAdapter'
-  twoBitLocation: JBrowseUriLocation
+  /** Shorthand: derives twoBitLocation from this uri, JBrowse-config-schema style. */
+  uri?: string
+  twoBitLocation?: JBrowseUriLocation
 }
 
 interface UnindexedFastaAdapterConfig {
   type: 'UnindexedFastaAdapter'
-  fastaLocation: JBrowseUriLocation
+  /** Shorthand: derives fastaLocation from this uri, JBrowse-config-schema style. */
+  uri?: string
+  fastaLocation?: JBrowseUriLocation
 }
 
 interface FromConfigSequenceAdapterFeature {
@@ -198,56 +206,138 @@ export class JBrowseConfigService {
   /**
    * Resolves a `sequence.adapter` location's `uri` to a filehandle. `uri` is
    * not guaranteed to be an absolute http(s) URL - disk-mode configs
-   * (JBROWSE_DIR) commonly use paths relative to the JBrowse directory, and
-   * dev-server-mode configs (JBROWSE_DEV_SERVER_URL) use paths relative to
-   * the dev server, matching how `readJBrowseFileConfig` itself resolves the
-   * config.json filename in each mode.
+   * (JBROWSE_DIR) commonly use paths relative to the *directory containing
+   * the config.json that declared them* (JBrowse config-schema convention),
+   * not to JBROWSE_DIR itself, and likewise dev-server-mode configs
+   * (JBROWSE_DEV_SERVER_URL) use paths relative to that same directory on
+   * the dev server. `configFileName` (e.g. "subdir/config.json") supplies
+   * that base directory.
    */
-  private resolveFileLocation(uri: string): GenericFilehandle {
+  private resolveFileLocation(
+    uri: string,
+    configFileName: string,
+  ): GenericFilehandle {
     if (/^https?:\/\//.test(uri)) {
       return new RemoteFile(uri, { fetch })
     }
+    const configDir = path.posix.dirname(configFileName)
+    const resolvedUri = configDir === '.' ? uri : `${configDir}/${uri}`
     const devServerUrl = this.configService.get('JBROWSE_DEV_SERVER_URL', {
       infer: true,
     })
     if (devServerUrl) {
-      return new RemoteFile(new URL(uri, devServerUrl).href, { fetch })
+      return new RemoteFile(new URL(resolvedUri, devServerUrl).href, {
+        fetch,
+      })
     }
     // Guaranteed to be set when JBROWSE_DEV_SERVER_URL isn't (enforced by
     // the Joi `.xor` in app.module.ts).
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const jbrowseDir = this.configService.get('JBROWSE_DIR', { infer: true })!
-    return new LocalFile(path.join(resolveJBrowseDir(jbrowseDir), uri))
+    return new LocalFile(path.join(resolveJBrowseDir(jbrowseDir), resolvedUri))
+  }
+
+  /**
+   * Resolves a location that may be given either as the explicit
+   * `{ <key>Location: { uri } }` form, or JBrowse's config-schema shorthand
+   * of a bare top-level `uri` on the adapter, from which sibling index
+   * files (e.g. `.fai`, `.gzi`) are conventionally derived by appending
+   * `suffix`. Explicit locations always take precedence over the shorthand.
+   */
+  private static resolveShorthandLocation(
+    explicit: JBrowseUriLocation | undefined,
+    shorthandUri: string | undefined,
+    suffix = '',
+  ): JBrowseUriLocation | undefined {
+    if (explicit) {
+      return explicit
+    }
+    return shorthandUri ? { uri: `${shorthandUri}${suffix}` } : undefined
   }
 
   buildSequenceAdapter(
     assemblyName: string,
     sequence: JBrowseSequenceConfig,
+    configFileName: string = this.resolveConfigFileName(),
   ): SequenceAdapter {
     const { adapter } = sequence
     switch (adapter.type) {
       case 'BgzipFastaAdapter': {
+        const fastaLocation = JBrowseConfigService.resolveShorthandLocation(
+          adapter.fastaLocation,
+          adapter.uri,
+        )
+        const faiLocation = JBrowseConfigService.resolveShorthandLocation(
+          adapter.faiLocation,
+          adapter.uri,
+          '.fai',
+        )
+        const gziLocation = JBrowseConfigService.resolveShorthandLocation(
+          adapter.gziLocation,
+          adapter.uri,
+          '.gzi',
+        )
+        if (!fastaLocation || !faiLocation || !gziLocation) {
+          throw new Error(
+            `BgzipFastaAdapter config for assembly "${assemblyName}" is missing "uri" or "fastaLocation"/"faiLocation"/"gziLocation"`,
+          )
+        }
         return new BgzipIndexedFasta({
-          fasta: this.resolveFileLocation(adapter.fastaLocation.uri),
-          fai: this.resolveFileLocation(adapter.faiLocation.uri),
-          gzi: this.resolveFileLocation(adapter.gziLocation.uri),
+          fasta: this.resolveFileLocation(fastaLocation.uri, configFileName),
+          fai: this.resolveFileLocation(faiLocation.uri, configFileName),
+          gzi: this.resolveFileLocation(gziLocation.uri, configFileName),
         })
       }
       case 'IndexedFastaAdapter': {
+        const fastaLocation = JBrowseConfigService.resolveShorthandLocation(
+          adapter.fastaLocation,
+          adapter.uri,
+        )
+        const faiLocation = JBrowseConfigService.resolveShorthandLocation(
+          adapter.faiLocation,
+          adapter.uri,
+          '.fai',
+        )
+        if (!fastaLocation || !faiLocation) {
+          throw new Error(
+            `IndexedFastaAdapter config for assembly "${assemblyName}" is missing "uri" or "fastaLocation"/"faiLocation"`,
+          )
+        }
         return new IndexedFasta({
-          fasta: this.resolveFileLocation(adapter.fastaLocation.uri),
-          fai: this.resolveFileLocation(adapter.faiLocation.uri),
+          fasta: this.resolveFileLocation(fastaLocation.uri, configFileName),
+          fai: this.resolveFileLocation(faiLocation.uri, configFileName),
         })
       }
       case 'TwoBitAdapter': {
+        const twoBitLocation = JBrowseConfigService.resolveShorthandLocation(
+          adapter.twoBitLocation,
+          adapter.uri,
+        )
+        if (!twoBitLocation) {
+          throw new Error(
+            `TwoBitAdapter config for assembly "${assemblyName}" is missing "uri" or "twoBitLocation"`,
+          )
+        }
         return new TwoBitFile({
-          filehandle: this.resolveFileLocation(adapter.twoBitLocation.uri),
+          filehandle: this.resolveFileLocation(
+            twoBitLocation.uri,
+            configFileName,
+          ),
         })
       }
       case 'UnindexedFastaAdapter': {
+        const fastaLocation = JBrowseConfigService.resolveShorthandLocation(
+          adapter.fastaLocation,
+          adapter.uri,
+        )
+        if (!fastaLocation) {
+          throw new Error(
+            `UnindexedFastaAdapter config for assembly "${assemblyName}" is missing "uri" or "fastaLocation"`,
+          )
+        }
         return new UnindexedFastaSequenceAdapter(
           new FetchableSmallFasta({
-            fasta: this.resolveFileLocation(adapter.fastaLocation.uri),
+            fasta: this.resolveFileLocation(fastaLocation.uri, configFileName),
           }),
         )
       }
@@ -287,7 +377,11 @@ export class JBrowseConfigService {
         `Assembly "${assemblyName}" not found in configured config.json file "${configId}"`,
       )
     }
-    return this.buildSequenceAdapter(assemblyName, assemblyConfig.sequence)
+    return this.buildSequenceAdapter(
+      assemblyName,
+      assemblyConfig.sequence,
+      configId,
+    )
   }
 }
 

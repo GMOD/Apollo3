@@ -96,6 +96,7 @@ export class JBrowseService implements OnApplicationBootstrap {
     const sequenceAdapter = this.jbrowseConfigService.buildSequenceAdapter(
       assemblyName,
       sequence,
+      configId,
     )
     const allSequenceSizes = await sequenceAdapter.getSequenceSizes()
 

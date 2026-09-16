@@ -458,4 +458,59 @@ describe('JBrowseConfigService.buildSequenceAdapter', () => {
       'Unsupported sequence adapter type "ChromSizesAdapter" for assembly "test" in config.json',
     )
   })
+
+  it('resolves a relative uri against the directory of the given config file, not JBROWSE_DIR itself', async () => {
+    await fs.mkdir(path.join(tmpDir, 'subdir'), { recursive: true })
+    await fs.copyFile(
+      path.join(testDataDir, 'tiny.fasta'),
+      path.join(tmpDir, 'subdir', 'tiny.fasta'),
+    )
+    const service = new JBrowseConfigService(
+      makeConfigService({ JBROWSE_DIR: tmpDir }),
+    )
+    const adapter = service.buildSequenceAdapter(
+      'test',
+      {
+        adapter: {
+          type: 'UnindexedFastaAdapter',
+          fastaLocation: { uri: 'tiny.fasta' },
+        },
+      },
+      'subdir/config.json',
+    )
+    await expect(adapter.getSequence('ctgA', 0, 10)).resolves.toBe('cattgttgcg')
+  })
+})
+
+describe('JBrowseConfigService.buildSequenceAdapter (dev-server mode)', () => {
+  it('resolves a relative uri against the directory of the given config file on the dev server', async () => {
+    const server = http.createServer((request, response) => {
+      if (request.url === '/subdir/tiny.fasta') {
+        response.writeHead(200, { 'Content-Type': 'text/plain' })
+        response.end('>ctgA\nACGT\n')
+        return
+      }
+      response.writeHead(404)
+      response.end()
+    })
+    const devServerUrl = await listen(server)
+    try {
+      const service = new JBrowseConfigService(
+        makeConfigService({ JBROWSE_DEV_SERVER_URL: devServerUrl }),
+      )
+      const adapter = service.buildSequenceAdapter(
+        'test',
+        {
+          adapter: {
+            type: 'UnindexedFastaAdapter',
+            fastaLocation: { uri: 'tiny.fasta' },
+          },
+        },
+        'subdir/config.json',
+      )
+      await expect(adapter.getSequence('ctgA', 0, 4)).resolves.toBe('ACGT')
+    } finally {
+      await close(server)
+    }
+  })
 })
