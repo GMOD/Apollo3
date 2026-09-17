@@ -208,7 +208,7 @@ export function serveStaticFactory(
     ChecksModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: nodeEnv === 'production' ? '.env' : '.development.env',
+      envFilePath: nodeEnv === 'development' ? '.development.env' : '.env',
       validationSchema,
     }),
     CountersModule,

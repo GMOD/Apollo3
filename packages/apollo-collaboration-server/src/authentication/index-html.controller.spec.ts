@@ -10,7 +10,9 @@ import { Test, type TestingModule } from '@nestjs/testing'
 // experimental VM-modules ESM loader doesn't populate. Mock it here with an
 // equivalent resolution based on `process.cwd()` (the package root when
 // running `yarn test`) so the rest of the controller can be exercised
-// end-to-end against the real `assets/index.html` fixture.
+// end-to-end against the `test/assets/index.html` fixture. (The real
+// `assets/` dir is gitignored and only populated by a JBrowse build, so
+// tests use a small checked-in fixture instead.)
 jest.unstable_mockModule('../utils/jbrowse-dir.util.js', () => ({
   resolveJBrowseDir: (jbrowseDir: string) =>
     path.resolve(process.cwd(), jbrowseDir),
@@ -83,7 +85,7 @@ async function createController(values: Record<string, string>) {
 describe('IndexHtmlController', () => {
   it('should be defined', async () => {
     const controller = await createController({
-      JBROWSE_DIR: './assets',
+      JBROWSE_DIR: './test/assets',
       URL: 'http://localhost:3999',
     })
     expect(controller).toBeDefined()
@@ -91,7 +93,7 @@ describe('IndexHtmlController', () => {
 
   it('reads the real index.html and injects the auth redirect script', async () => {
     const controller = await createController({
-      JBROWSE_DIR: './assets',
+      JBROWSE_DIR: './test/assets',
       URL: 'http://localhost:3999',
     })
     const request = { originalUrl: '/', user: { role: 'admin', id: 'user-1' } }
@@ -107,7 +109,7 @@ describe('IndexHtmlController', () => {
 
   it('derives the api prefix from a path-prefixed URL', async () => {
     const controller = await createController({
-      JBROWSE_DIR: './assets',
+      JBROWSE_DIR: './test/assets',
       URL: 'https://example.com/apollo/',
     })
     const request = { originalUrl: '/', user: { role: 'admin', id: 'user-1' } }
@@ -121,7 +123,7 @@ describe('IndexHtmlController', () => {
 
   it('redirects to the login page when there is no authenticated user', async () => {
     const controller = await createController({
-      JBROWSE_DIR: './assets',
+      JBROWSE_DIR: './test/assets',
       URL: 'http://localhost:3999',
     })
     const request = { originalUrl: '/', user: { role: 'none' } }
