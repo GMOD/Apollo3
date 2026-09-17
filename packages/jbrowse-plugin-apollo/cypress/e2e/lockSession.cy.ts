@@ -3,14 +3,17 @@ describe('Warning signs', () => {
     cy.loginAsGuest()
   })
   afterEach(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
   })
   it('Lock session prevents editing', () => {
-    cy.addAssemblyFromGff(
-      'SM_V10_3.fasta.gff3.gz',
+    cy.importFeatures(
       'test_data/SM_V10_3.fasta.gff3.gz',
+      'SM_V10_3.fasta.gff3.gz',
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
     )
     cy.selectAssemblyToView('SM_V10_3.fasta.gff3.gz', 'gene:Smp_313440')
+    cy.openAnnotationsTrack()
     cy.annotationTrackAppearance('Show both graphical and table display')
     cy.get('input[type="text"][value="192150"]')
       .first()

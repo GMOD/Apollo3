@@ -1,0 +1,38 @@
+{
+  "assemblies": [
+    {
+      "name": "example",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "exampleRefSeq",
+        "adapter": {
+          "type": "UnindexedFastaAdapter",
+          "fastaLocation": {
+            "uri": "./example.fa",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    }
+  ],
+  "configuration": {
+    "ApolloPlugin": {
+      "ontologies": [
+        {
+          "name": "Sequence Ontology",
+          "version": "unversioned",
+          "source": {
+            "uri": "http://localhost:9000/test_data/so-2024-11-18.json",
+            "locationType": "UriLocation"
+          }
+        }
+      ]
+    }
+  },
+  "plugins": [
+    {
+      "name": "ApolloExample",
+      "url": "http://localhost:3838/dist/plugin-example.umd.development.js"
+    }
+  ]
+}

@@ -17,12 +17,13 @@
     "build": "tsc --build && yarn build:client && yarn build:server",
     "build:client": "JB_NPM=false JB_UMD=true rolldown --config ../jbrowse-plugin-apollo/rolldown/rolldown.config.mjs",
     "build:server": "rolldown --config rolldown.server.config.mjs",
+    "copy-jbrowse-test-fixtures": "shx cp cypress/fixtures/jbrowse/* ../jbrowse-plugin-apollo/.jbrowse/",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run --browser chrome",
     "serve:dist": "serve --no-request-logging --cors --listen 3838 --no-port-switching .",
     "test": "glob -c \"tsx --test --test-reporter spec \" \"src/**/*.test.ts\"",
     "test:ci": "glob -c \"tsx --test --test-reporter spec \" \"src/**/*.test.ts\"",
-    "test:e2e": "yarn build && yarn cypress:run"
+    "test:e2e": "yarn build && yarn copy-jbrowse-test-fixtures && yarn cypress:run"
   },
   "config": {
     "jbrowse": {
@@ -58,6 +59,7 @@
     "rolldown": "^1.2.0",
     "rxjs": "^7.4.0",
     "serve": "^14.0.1",
+    "shx": "^0.3.3",
     "tss-react": "^4.9.21",
     "tsx": "^4.6.2",
     "typescript": "^6.0.3"

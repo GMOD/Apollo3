@@ -2,9 +2,9 @@
 // the plugin but isn't on by default
 describe('Example plugin check', () => {
   beforeEach(() => {
-    cy.setupJBrowseConfig()
+    cy.preloadOntology()
     cy.loginAsGuest()
-    cy.addAssemblyFromGff('example', 'cypress/fixtures/example.fasta.gff3')
+    cy.importFeatures('cypress/fixtures/example.fasta.gff3', 'example')
     cy.selectAssemblyToView('example', 'ctgA:1..700')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
@@ -12,7 +12,7 @@ describe('Example plugin check', () => {
   })
 
   afterEach(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
   })
 
   it('Flags short features once the check is turned on', () => {

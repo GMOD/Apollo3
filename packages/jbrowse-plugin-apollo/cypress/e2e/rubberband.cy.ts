@@ -24,7 +24,7 @@ function getFastaSequence(gff3: string, refName: string): string {
 
 describe('Rubberband selection', () => {
   before(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
     cy.deleteIndexedDatabases()
     cy.addOntologies()
   })
@@ -34,17 +34,12 @@ describe('Rubberband selection', () => {
   })
 
   afterEach(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
   })
 
   it('Can get sequence via rubberband selection', () => {
+    // space.gff3 is seeded from the JBrowse config with no features
     const assemblyName = 'space.gff3'
-    cy.addAssemblyFromGff(
-      assemblyName,
-      `test_data/${assemblyName}`,
-      true,
-      false,
-    )
     cy.selectAssemblyToView(assemblyName, 'ctgA:1..10000')
 
     cy.get('[data-testid="rubberband_controls"]').trigger('mouseover')
@@ -88,13 +83,8 @@ describe('Rubberband selection', () => {
   })
 
   it('Can add new feature via rubberband selection', () => {
+    // space.gff3 is seeded from the JBrowse config with no features
     const assemblyName = 'space.gff3'
-    cy.addAssemblyFromGff(
-      assemblyName,
-      `test_data/${assemblyName}`,
-      true,
-      false,
-    )
     cy.selectAssemblyToView(assemblyName, 'ctgA:1..10000')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()

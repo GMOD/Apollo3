@@ -6,13 +6,13 @@ function notesPath(featureId: string) {
 
 describe('Example plugin server half', () => {
   beforeEach(() => {
-    cy.setupJBrowseConfig()
+    cy.preloadOntology()
     cy.loginAsGuest()
-    cy.addAssemblyFromGff('example', 'cypress/fixtures/example.fasta.gff3')
+    cy.importFeatures('cypress/fixtures/example.fasta.gff3', 'example')
   })
 
   afterEach(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
   })
 
   it('Serves a feature’s notes from the custom route', () => {

@@ -3,9 +3,9 @@
 // getInverse() (undo).
 describe('Example plugin notes', () => {
   beforeEach(() => {
-    cy.setupJBrowseConfig()
+    cy.preloadOntology()
     cy.loginAsGuest()
-    cy.addAssemblyFromGff('example', 'cypress/fixtures/example.fasta.gff3')
+    cy.importFeatures('cypress/fixtures/example.fasta.gff3', 'example')
     cy.selectAssemblyToView('example', 'ctgA:1..700')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
@@ -14,7 +14,7 @@ describe('Example plugin notes', () => {
   })
 
   afterEach(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
   })
 
   it('Adds, clears, and undoes notes from the context menu', () => {

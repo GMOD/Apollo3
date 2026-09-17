@@ -17,12 +17,12 @@ function flatten(f: AnnotationFeature): AnnotationFeature[] {
 }
 
 describe('CDS boundary extension', () => {
-  afterEach(() => cy.deleteAssemblies())
+  afterEach(() => cy.clearFeatures())
 
   it('extends the enclosing exon through a graphical drag, persists, and undoes', () => {
     cy.loginAsGuest()
-    const assemblyName = 'cds-exon-extension'
-    cy.addAssemblyFromGff(assemblyName, 'test_data/mergeTranscripts.gff3')
+    const assemblyName = 'mergeTranscripts.gff3'
+    cy.importFeatures('test_data/mergeTranscripts.gff3', assemblyName)
     cy.selectAssemblyToView(assemblyName, 'chr2:1..60')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()

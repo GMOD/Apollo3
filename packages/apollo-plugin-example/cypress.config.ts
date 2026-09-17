@@ -4,7 +4,8 @@ import { configurePlugin } from 'cypress-mongodb'
 // Expects these to be running (see "End-to-end tests" in README.md):
 // - MongoDB (a replica set) on 27017
 // - the collaboration server on 3999, started with `cypress:start:example`
-// - the Apollo JBrowse plugin's `start:server` (9000) and `browse` (8999)
+// - the Apollo JBrowse plugin's `start:server` (9000), with this package's
+//   JBrowse fixtures copied into its .jbrowse (`copy-jbrowse-test-fixtures`)
 // - this package's `serve:dist` (3838)
 export default defineConfig({
   viewportHeight: 2000,
@@ -22,7 +23,7 @@ export default defineConfig({
   screenshotOnRunFailure: process.env.CI === 'true',
   video: false,
   e2e: {
-    baseUrl: 'http://localhost:8999',
+    baseUrl: 'http://localhost:3999',
     setupNodeEvents(on, config) {
       configurePlugin(on)
       return config

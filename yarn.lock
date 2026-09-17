@@ -651,6 +651,7 @@ __metadata:
     rolldown: "npm:^1.2.0"
     rxjs: "npm:^7.4.0"
     serve: "npm:^14.0.1"
+    shx: "npm:^0.3.3"
     tss-react: "npm:^4.9.21"
     tsx: "npm:^4.6.2"
     typescript: "npm:^6.0.3"

@@ -47,19 +47,24 @@ into the real plugin machinery (`examplePlugin.test.ts` and
 The Cypress tests in `cypress/` load both halves into a running collaboration
 server and JBrowse. They need, all on `localhost`:
 
-| Port  | What                                      | How to start it                                                   |
-| ----- | ----------------------------------------- | ----------------------------------------------------------------- |
-| 27017 | MongoDB, as a replica set                 |                                                                   |
-| 3838  | This package's built files                | `yarn build && yarn serve:dist` here                              |
-| 3999  | The collaboration server, with the plugin | `yarn cypress:start:example` in `apollo-collaboration-server`     |
-| 9000  | The Apollo JBrowse plugin's built files   | `yarn build && yarn start:server` in `jbrowse-plugin-apollo`      |
-| 8999  | JBrowse                                   | `yarn browse` in `jbrowse-plugin-apollo` (after `jbrowse create`) |
+| Port  | What                                      | How to start it                                               |
+| ----- | ----------------------------------------- | ------------------------------------------------------------- |
+| 27017 | MongoDB, as a replica set                 |                                                               |
+| 3838  | This package's built files                | `yarn build && yarn serve:dist` here                          |
+| 3999  | The collaboration server, with the plugin | `yarn cypress:start:example` in `apollo-collaboration-server` |
+| 9000  | The Apollo JBrowse plugin's built files   | `yarn build && yarn start:server` in `jbrowse-plugin-apollo`  |
+
+The collaboration server serves JBrowse itself, from `jbrowse-plugin-apollo`'s
+`.jbrowse` directory (after `jbrowse create .jbrowse` there). Copy this
+package's JBrowse configuration and sequence into it with
+`yarn copy-jbrowse-test-fixtures` before starting the server, which creates the
+`example` assembly from them when it starts.
 
 Start the file server on 3838 before the collaboration server, which fetches
 `dist/server.bundle.js` from it (`PLUGIN_URLS`) when it starts. The server uses
-its own database, `apolloExampleTestDb`. The tests add the client half by
-storing a `plugins` entry in the JBrowse configuration in MongoDB
-(`setupJBrowseConfig` in `cypress/support/commands.ts`).
+its own database, `apolloExampleTestDb`, and serves
+`cypress/fixtures/jbrowse/config_example.json` (`JBROWSE_CONFIG_FILES`), which
+adds the client half to JBrowse's `plugins`.
 
 Then run `yarn cypress:run` (or `yarn cypress:open`) here.
 

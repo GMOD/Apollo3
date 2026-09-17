@@ -11,7 +11,7 @@ interface GraphicalDisplay {
 
 describe('Different ways of editing features', () => {
   before(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
     cy.deleteIndexedDatabases()
     cy.addOntologies()
   })
@@ -21,12 +21,17 @@ describe('Different ways of editing features', () => {
   })
 
   afterEach(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
   })
 
   it('Edit feature via table editor', () => {
     const assemblyName = 'space.gff3'
-    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
+    cy.importFeatures(
+      `test_data/${assemblyName}`,
+      assemblyName,
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
     cy.selectAssemblyToView(assemblyName, 'ctgA:9400..9600')
 
     cy.contains('Open track selector').click()
@@ -62,8 +67,16 @@ describe('Different ways of editing features', () => {
   })
 
   it('FIXME: Can delete feature with checks', () => {
-    cy.addAssemblyFromGff('stopcodon', 'test_data/cdsChecks/stopcodon.gff3')
-    cy.selectAssemblyToView('stopcodon', 'gene02')
+    cy.importFeatures(
+      'test_data/cdsChecks/stopcodon.gff3',
+      'stopcodon',
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
+    cy.selectAssemblyToView('stopcodon', 'chr2:1..30')
+    cy.contains('Open track selector').click()
+    cy.contains('Annotations (').click()
+    cy.get('button[aria-label="Minimize drawer"]').click()
     cy.annotationTrackAppearance('Show both graphical and table display')
     cy.contains('td', '=cds02.1').rightclick()
     cy.contains('Delete feature').click()
@@ -80,8 +93,16 @@ describe('Different ways of editing features', () => {
   })
 
   it('FIXME: Can delete single CDS mRNA with checks', () => {
-    cy.addAssemblyFromGff('stopcodon', 'test_data/cdsChecks/stopcodon.gff3')
-    cy.selectAssemblyToView('stopcodon', 'gene04')
+    cy.importFeatures(
+      'test_data/cdsChecks/stopcodon.gff3',
+      'stopcodon',
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
+    cy.selectAssemblyToView('stopcodon', 'chr4:1..30')
+    cy.contains('Open track selector').click()
+    cy.contains('Annotations (').click()
+    cy.get('button[aria-label="Minimize drawer"]').click()
     cy.annotationTrackAppearance('Show both graphical and table display')
     cy.contains('td', '=cds04.1').rightclick()
     cy.contains('Delete feature').click()
@@ -99,8 +120,16 @@ describe('Different ways of editing features', () => {
   })
 
   it('Can delete feature', () => {
-    cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
-    cy.selectAssemblyToView('onegene.fasta.gff3', 'gx1')
+    cy.importFeatures(
+      'test_data/onegene.fasta.gff3',
+      'onegene.fasta.gff3',
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
+    cy.selectAssemblyToView('onegene.fasta.gff3', 'ctgA:1..100')
+    cy.contains('Open track selector').click()
+    cy.contains('Annotations (').click()
+    cy.get('button[aria-label="Minimize drawer"]').click()
     cy.annotationTrackAppearance('Show both graphical and table display')
     cy.contains('td', '=CDS1')
     cy.contains('td', '=tx1').rightclick()
@@ -117,8 +146,16 @@ describe('Different ways of editing features', () => {
   })
 
   it('Suggest only valid SO terms from dropdown', () => {
-    cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
-    cy.selectAssemblyToView('onegene.fasta.gff3', 'gx1')
+    cy.importFeatures(
+      'test_data/onegene.fasta.gff3',
+      'onegene.fasta.gff3',
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
+    cy.selectAssemblyToView('onegene.fasta.gff3', 'ctgA:1..100')
+    cy.contains('Open track selector').click()
+    cy.contains('Annotations (').click()
+    cy.get('button[aria-label="Minimize drawer"]').click()
     cy.annotationTrackAppearance('Show both graphical and table display')
     // In headless mode it seems to take a long time for menus to be populated
     cy.get('input[type="text"][value="CDS"]', { timeout: 60_000 }).click({
@@ -135,8 +172,16 @@ describe('Different ways of editing features', () => {
   })
 
   it('Can add child feature via table editor', () => {
-    cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
-    cy.selectAssemblyToView('onegene.fasta.gff3', 'gx1')
+    cy.importFeatures(
+      'test_data/onegene.fasta.gff3',
+      'onegene.fasta.gff3',
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
+    cy.selectAssemblyToView('onegene.fasta.gff3', 'ctgA:1..100')
+    cy.contains('Open track selector').click()
+    cy.contains('Annotations (').click()
+    cy.get('button[aria-label="Minimize drawer"]').click()
     cy.annotationTrackAppearance('Show both graphical and table display')
     // Right-click the ID cell rather than the type input. Right-clicking the
     // type input opens its autocomplete dropdown behind the dialog, and that
@@ -179,7 +224,12 @@ describe('Different ways of editing features', () => {
 
   it('Can drag and move position', () => {
     const assemblyName = 'space.gff3'
-    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
+    cy.importFeatures(
+      `test_data/${assemblyName}`,
+      assemblyName,
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
     cy.selectAssemblyToView(assemblyName, 'ctgA:9400..9600')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()

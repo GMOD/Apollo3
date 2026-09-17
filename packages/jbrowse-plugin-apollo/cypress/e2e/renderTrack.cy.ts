@@ -38,11 +38,11 @@ describe('Simple tests for visuals', () => {
 
   describe('Gene model', () => {
     afterEach(() => {
-      cy.deleteAssemblies()
+      cy.clearFeatures()
     })
 
     it('Shows correct gene model', () => {
-      cy.addAssemblyFromGff('so_types.gff3', 'test_data/so_types.gff3')
+      cy.importFeatures('test_data/so_types.gff3', 'so_types.gff3')
       cy.selectAssemblyToView('so_types.gff3')
       closeDrawerIfOpen()
 
@@ -60,17 +60,16 @@ describe('Simple tests for visuals', () => {
     // Add the assembly once and share it among the tests in this block, so
     // each snapshot is its own test and one failing doesn't skip the others
     before(() => {
-      cy.deleteAssemblies()
+      cy.clearFeatures()
       cy.loginAsGuest()
-      cy.addAssemblyFromGff('glyph_types.gff3', 'test_data/glyph_types.gff3')
+      cy.importFeatures('test_data/glyph_types.gff3', 'glyph_types.gff3')
     })
 
     after(() => {
-      cy.deleteAssemblies()
+      cy.clearFeatures()
     })
 
     beforeEach(() => {
-      cy.contains('button', 'Launch view', { timeout: 10_000 }).click()
       cy.selectAssemblyToView('glyph_types.gff3')
       cy.contains('Open track selector').click()
       cy.contains('Reference sequence (').click()
@@ -107,11 +106,11 @@ describe('Simple tests for visuals', () => {
 
   describe('Track resizing', () => {
     afterEach(() => {
-      cy.deleteAssemblies()
+      cy.clearFeatures()
     })
 
     it('Resizes a track by dragging its bottom resize handle', () => {
-      cy.addAssemblyFromGff('so_types.gff3', 'test_data/so_types.gff3')
+      cy.importFeatures('test_data/so_types.gff3', 'so_types.gff3')
       cy.selectAssemblyToView('so_types.gff3')
       cy.contains('Open track selector').click()
       cy.contains('Reference sequence (').click()
