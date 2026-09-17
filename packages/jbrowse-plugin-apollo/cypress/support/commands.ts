@@ -5,16 +5,18 @@ Cypress.Commands.add('loginAsGuest', () => {
   // JBrowse app loads) to the login page; only after logging in as guest
   // does it redirect back and the app's own "external config" trust dialog
   // appear.
-  cy.visit('/?config=http://localhost:3999/test_data/config.json')
+  cy.visit('/')
   cy.contains('Continue as Guest', { timeout: 10_000 }).click()
-  cy.contains('Yes, I trust it', { timeout: 10_000 }).click()
-  // eslint-disable-next-line cypress/no-unnecessary-waiting
-  cy.wait(2000)
-  cy.reload()
 })
 
-Cypress.Commands.add('deleteAssemblies', () => {
-  for (const x of ['assemblies', 'features']) {
+Cypress.Commands.add('clearFeatures', () => {
+  for (const x of [
+    'changes',
+    'checkresults',
+    'counters',
+    'features',
+    'files',
+  ]) {
     cy.log(x)
     cy.deleteMany({}, { collection: x }).then((results: undefined) => {
       cy.log(`Collection ${x}: ${results}`)

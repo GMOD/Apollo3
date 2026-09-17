@@ -23,7 +23,7 @@ export default defineConfig({
   screenshotOnRunFailure: false,
   video: false,
   e2e: {
-    baseUrl: 'http://localhost:8999',
+    baseUrl: 'http://localhost:3999',
     setupNodeEvents(on, config) {
       // @ts-expect-error types are wrong
       getCompareSnapshotsPlugin(on, config)

@@ -1,6 +1,6 @@
 describe('Different ways of editing features', () => {
   before(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
     cy.wrap(
       globalThis.indexedDB.databases().then((dbs) => {
         for (const db of dbs) {
@@ -18,12 +18,17 @@ describe('Different ways of editing features', () => {
   })
 
   afterEach(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
   })
 
   it('Edit feature via table editor', () => {
     const assemblyName = 'space.gff3'
-    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
+    cy.importFeatures(
+      `test_data/${assemblyName}`,
+      assemblyName,
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
     cy.selectAssemblyToView(assemblyName, 'ctgA:9400..9600')
 
     cy.contains('Open track selector').click()

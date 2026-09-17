@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "build": "yarn build:shared && rimraf dist && nest build",
-    "cypress:start": "GUEST_USER_ROLE=admin MONGODB_URI=\"mongodb://localhost:27017/apolloTestDb?directConnection=true\" LOG_LEVELS=error,warn yarn start",
+    "cypress:start": "JBROWSE_DIR=../jbrowse-plugin-apollo/.jbrowse/ GUEST_USER_ROLE=admin MONGODB_URI=\"mongodb://localhost:27017/apolloTestDb?directConnection=true\" LOG_LEVELS=error,warn yarn start",
     "deb": "ts-node-dev src/main.ts",
     "start": "yarn build:shared && yarn start:nest --watch",
     "start:debug": "yarn build:shared && yarn start:nest --debug --watch",
