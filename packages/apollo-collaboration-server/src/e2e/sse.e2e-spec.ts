@@ -13,7 +13,6 @@ import {
   type UserLocationMessage,
   makeUserSessionId,
 } from '@apollo-annotation/shared'
-import { Types } from 'mongoose'
 
 import { SSEClient } from '../test-utils/sseClient.js'
 
@@ -108,13 +107,13 @@ describe('Server-sent events (e2e)', () => {
     it('rejects a connection without a token', async () => {
       await expect(
         connectStatus(new SSEClient(url('messages/events'))),
-      ).resolves.toBe(403)
+      ).resolves.toBe(401)
     })
 
     it('rejects a connection with an invalid token', async () => {
       const eventsURL = url('messages/events')
       eventsURL.searchParams.set('token', 'not-a-valid-token')
-      await expect(connectStatus(new SSEClient(eventsURL))).resolves.toBe(403)
+      await expect(connectStatus(new SSEClient(eventsURL))).resolves.toBe(401)
     })
 
     it('accepts a token in the "token" query parameter', async () => {
@@ -187,16 +186,21 @@ describe('Server-sent events (e2e)', () => {
   })
 
   describe('changes', () => {
-    const assemblyId = new Types.ObjectId().toHexString()
-    let assemblyAdded = false
+    // Assemblies are seeded at startup from test/data/config.json, and vv3's
+    // sequence is tiny.fasta
+    let assemblyId = ''
+    let featuresAdded = false
 
-    afterAll(async () => {
-      if (assemblyAdded) {
-        await postJSON('changes', token, {
-          typeName: 'DeleteAssemblyChange',
-          assembly: assemblyId,
-        })
+    beforeAll(async () => {
+      const assemblies = (await apiFetch('assemblies', token)) as {
+        _id: string
+        name: string
+      }[]
+      const assembly = assemblies.find(({ name }) => name === 'vv3')
+      if (!assembly) {
+        throw new Error('Seeded assembly "vv3" not found')
       }
+      assemblyId = assembly._id
     })
 
     it('broadcasts assembly changes on COMMON to other sessions', async () => {
@@ -213,13 +217,13 @@ describe('Server-sent events (e2e)', () => {
         body: gff3,
       })) as { _id: string }
       await postJSON('changes', token, {
-        typeName: 'AddAssemblyAndFeaturesFromFileChange',
+        typeName: 'AddFeaturesFromFileChange',
         assembly: assemblyId,
-        assemblyName: `sse-e2e-${assemblyId}`,
-        fileIds: { fa: file._id },
+        fileId: file._id,
+        deleteExistingFeatures: true,
         parseOptions: { strict: true },
       })
-      assemblyAdded = true
+      featuresAdded = true
 
       // Check results are also broadcast on COMMON, so skip those
       const event = await listener.nextEventMatching(
@@ -231,13 +235,13 @@ describe('Server-sent events (e2e)', () => {
       expect(message.userSessionId).toBe(makeUserSessionId(token))
       expect(message.changeSequence).toEqual(expect.any(Number))
       expect(message.changeInfo).toMatchObject({
-        typeName: 'AddAssemblyAndFeaturesFromFileChange',
+        typeName: 'AddFeaturesFromFileChange',
         assembly: assemblyId,
       })
     })
 
     it('broadcasts feature changes on the "<assembly>-<refSeq>" channel', async () => {
-      expect(assemblyAdded).toBe(true)
+      expect(featuresAdded).toBe(true)
       const listener = await openStream(await login())
 
       const [gene] = (await apiFetch(

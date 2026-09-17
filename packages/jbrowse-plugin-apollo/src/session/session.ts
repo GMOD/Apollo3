@@ -176,9 +176,8 @@ export function extendSession(
       },
       getPluginConfiguration() {
         const { jbrowse } = getRoot<ApolloRootModel>(self)
-        const pluginConfiguration =
-           
-          jbrowse.configuration.ApolloPlugin as ApolloPluginConfigModel
+        const pluginConfiguration = jbrowse.configuration
+          .ApolloPlugin as ApolloPluginConfigModel
         return pluginConfiguration
       },
     }))
@@ -682,7 +681,7 @@ export function extendSession(
               const featureTypeOntologyName = readConfObject(
                 pluginConfiguration,
                 'featureTypeOntologyName',
-              ) as string
+              )
               const { pluginConfiguration: dataStorePluginConfiguration } =
                 self.apolloDataStore
               const configuredOntologies =

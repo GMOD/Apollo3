@@ -53,6 +53,11 @@ interface JBrowseDirConfig {
 }
 
 const nodeEnv = process.env.NODE_ENV ?? 'production'
+const envFilesByNodeEnv: Record<string, string | string[]> = {
+  development: ['.development.local.env', '.development.env'],
+  cypress: '.cypress.env',
+  test: '.test.env',
+}
 
 async function mongoDBURIFactory(
   configService: ConfigService<MongoDBURIConfig, true>,
@@ -113,10 +118,7 @@ export function serveStaticFactory(
     ChecksModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath:
-        nodeEnv === 'development'
-          ? ['.development.local.env', '.development.env']
-          : '.env',
+      envFilePath: envFilesByNodeEnv[nodeEnv] ?? '.env',
       validationSchema,
     }),
     CountersModule,

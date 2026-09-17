@@ -62,8 +62,7 @@ function makeClientStore(
       ]),
     }))
     .views(() => ({
-      getFeature: (id: string) =>
-        id === 'feature1' ? { _id: id } : undefined,
+      getFeature: (id: string) => (id === 'feature1' ? { _id: id } : undefined),
     }))
   const Session = types
     .model('Session', { clientStore: ClientStore })

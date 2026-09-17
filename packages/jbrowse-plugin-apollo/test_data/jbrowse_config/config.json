@@ -1,0 +1,158 @@
+{
+  "assemblies": [
+    {
+      "name": "space.gff3",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "Pd8Wh30ei9R",
+        "adapter": {
+          "type": "UnindexedFastaAdapter",
+          "fastaLocation": {
+            "uri": "./volvox.fa",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    },
+    {
+      "name": "stopcodon",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "stopcodonRefSeq",
+        "adapter": {
+          "type": "UnindexedFastaAdapter",
+          "fastaLocation": {
+            "uri": "./stopcodon.fa",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    },
+    {
+      "name": "onegene.fasta.gff3",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "onegeneRefSeq",
+        "adapter": {
+          "type": "UnindexedFastaAdapter",
+          "fastaLocation": {
+            "uri": "./onegene.fa",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    },
+    {
+      "name": "volvox.fasta.gff3",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "volvoxRefSeq",
+        "adapter": {
+          "type": "UnindexedFastaAdapter",
+          "fastaLocation": {
+            "uri": "./volvox.fa",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    },
+    {
+      "name": "volvox2.fasta.gff3",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "volvox2RefSeq",
+        "adapter": {
+          "type": "UnindexedFastaAdapter",
+          "fastaLocation": {
+            "uri": "./volvox.fa",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    },
+    {
+      "name": "deleteFeature.gff3",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "deleteFeatureRefSeq",
+        "adapter": {
+          "type": "UnindexedFastaAdapter",
+          "fastaLocation": {
+            "uri": "./deleteFeature.fa",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    },
+    {
+      "name": "mergeTranscripts.gff3",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "mergeTranscriptsRefSeq",
+        "adapter": {
+          "type": "UnindexedFastaAdapter",
+          "fastaLocation": {
+            "uri": "./mergeTranscripts.fa",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    },
+    {
+      "name": "stopcodon.gff3",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "stopcodonGff3RefSeq",
+        "adapter": {
+          "type": "UnindexedFastaAdapter",
+          "fastaLocation": {
+            "uri": "./stopcodon.fa",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    },
+    {
+      "name": "so_types.gff3",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "soTypesRefSeq",
+        "adapter": {
+          "type": "UnindexedFastaAdapter",
+          "fastaLocation": {
+            "uri": "./so_types.fa",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    },
+    {
+      "name": "glyph_types.gff3",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "glyphTypesRefSeq",
+        "adapter": {
+          "type": "UnindexedFastaAdapter",
+          "fastaLocation": {
+            "uri": "./glyph_types.fa",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    },
+    {
+      "name": "SM_V10_3.fasta.gff3.gz",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "smV103RefSeq",
+        "adapter": {
+          "type": "UnindexedFastaAdapter",
+          "fastaLocation": {
+            "uri": "./SM_V10_3.fa",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    }
+  ]
+}
