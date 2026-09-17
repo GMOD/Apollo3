@@ -86,7 +86,6 @@ export class ChangesService {
       }
     }
 
-    let changeDoc: ChangeDocument | undefined
     try {
       const handler =
         this.changeHandlersService[change.typeName as keyof typeof changes]
@@ -109,9 +108,9 @@ export class ChangesService {
     // have already committed (there is no surrounding transaction), so a
     // failure here leaves the feature data correct but the audit-log entry
     // missing; that gap is logged loudly rather than silently swallowed.
-    let savedChangedLogDoc: ChangeDocument | undefined
+    let changeDoc: ChangeDocument | undefined
     try {
-      ;[savedChangedLogDoc] = await this.changeModel.create([
+      ;[changeDoc] = await this.changeModel.create([
         // eslint-disable-next-line @typescript-eslint/no-misused-spread
         { ...change, user: user.email, sequence },
       ])
@@ -121,7 +120,6 @@ export class ChangesService {
       )
       throw error
     }
-    changeDoc = savedChangedLogDoc
     const validationResult2 = await validationRegistry.backendPostValidate(
       change,
       { featureModel: this.featureModel },

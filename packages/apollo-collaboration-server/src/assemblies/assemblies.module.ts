@@ -1,6 +1,7 @@
 import { Assembly, AssemblySchema } from '@apollo-annotation/schemas'
 import { Module } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
+import type { Connection } from 'mongoose'
 import idValidator from 'mongoose-id-validator'
 
 import { ChecksModule } from '../checks/checks.module.js'
@@ -17,7 +18,7 @@ import { AssembliesService } from './assemblies.service.js'
     MongooseModule.forFeatureAsync([
       {
         name: Assembly.name,
-        useFactory: (connection) => {
+        useFactory: (connection: Connection) => {
           AssemblySchema.plugin(idValidator, { connection })
           return AssemblySchema
         },

@@ -228,15 +228,15 @@ export class AuthenticationService {
       setAuthCookie(response, logInResult.token)
       if (customAuth.needsPopup && state) {
         const { redirect_uri } = JSON.parse(state) as { redirect_uri: string }
-        if (!URL.canParse(redirect_uri)) {
-          response.redirect(redirect_uri)
-        } else {
+        if (URL.canParse(redirect_uri)) {
           const url = new URL(redirect_uri)
           const searchParams = new URLSearchParams({
             access_token: logInResult.token,
           })
           url.search = searchParams.toString()
           response.redirect(url.toString())
+        } else {
+          response.redirect(redirect_uri)
         }
       } else if (redirectUri) {
         response.redirect(redirectUri)

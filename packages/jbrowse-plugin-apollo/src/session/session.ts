@@ -10,12 +10,12 @@ import {
   type AnnotationFeature,
   AnnotationFeatureModel,
 } from '@apollo-annotation/mst'
-import {
-  type ChangeMessage,
-  type CheckResultUpdate,
-  type RequestUserInformationMessage,
-  type UserLocation,
-  type UserLocationMessage,
+import type {
+  ChangeMessage,
+  CheckResultUpdate,
+  RequestUserInformationMessage,
+  UserLocation,
+  UserLocationMessage,
 } from '@apollo-annotation/shared'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import type assemblyManager from '@jbrowse/core/assemblyManager'

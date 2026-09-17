@@ -1,7 +1,7 @@
 import { RefSeq, type RefSeqDocument } from '@apollo-annotation/schemas'
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { type GenericFilehandle } from 'generic-filehandle2'
+import type { GenericFilehandle } from 'generic-filehandle2'
 import { Model } from 'mongoose'
 import QuickLRU from 'quick-lru'
 
