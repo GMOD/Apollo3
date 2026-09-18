@@ -36,6 +36,7 @@ import { ImportAnnotations } from '../../components/ImportAnnotations'
 import { ViewChangeLog } from '../../components/ViewChangeLog'
 import { ViewCheckResults } from '../../components/ViewCheckResults'
 import type { ApolloSessionModel, HoveredFeature } from '../../session'
+import { getApolloAssemblyId } from '../../util'
 import { EditZoomThresholdDialog } from '../../util/displayUtils'
 
 const minDisplayHeight = 20
@@ -143,7 +144,7 @@ export function baseModelFactory(
         if (!assembly) {
           throw new Error(`Could not find assembly named ${assemblyName}`)
         }
-        return assembly.name
+        return getApolloAssemblyId(assembly)
       },
       get selectedFeature(): AnnotationFeature | undefined {
         return self.session.apolloSelectedFeature

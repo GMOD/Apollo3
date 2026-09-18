@@ -182,6 +182,30 @@ export function extendSession(
         return pluginConfiguration
       },
     }))
+    .views((self) => ({
+      // `hasRole` is set by the collaboration server for every config it
+      // serves, whether or not the logged-in user was granted a role — it's
+      // false only when there is no collaboration server at all (e.g. a
+      // bare local config.json), which is how we tell a local-only session
+      // apart from one where the server denied access.
+      get hasCollaborationServer() {
+        return readConfObject(self.getPluginConfiguration(), 'hasRole') as
+          | boolean
+          | undefined
+      },
+      get apolloRole() {
+        return readConfObject(self.getPluginConfiguration(), 'role') as
+          | string
+          | undefined
+      },
+      get hasCollaborationAccess(): boolean {
+        return Boolean(
+          self.hasCollaborationServer &&
+            self.apolloRole &&
+            self.apolloRole !== 'none',
+        )
+      },
+    }))
     .actions((self) => ({
       setLastChangeSequenceNumber(sequenceNumber: number) {
         self.lastChangeSequenceNumber = sequenceNumber
@@ -260,10 +284,7 @@ export function extendSession(
     }))
     .actions((self) => {
       async function postUserLocation(userLoc: UserLocation[]) {
-        const role = readConfObject(self.getPluginConfiguration(), 'role') as
-          | string
-          | undefined
-        if (role === 'none' || !role) {
+        if (!self.hasCollaborationAccess) {
           return
         }
         const uri = new URL('users/userLocation', globalThis.location.href).href
@@ -297,6 +318,9 @@ export function extendSession(
     })
     .actions((self) => ({
       broadcastLocations() {
+        if (!self.hasCollaborationAccess) {
+          return
+        }
         const locations: {
           assemblyName: string
           refName: string
@@ -312,7 +336,8 @@ export function extendSession(
             const { dynamicBlocks } = lgv
             for (const block of dynamicBlocks.contentBlocks) {
               const { assemblyName, end, refName, start } = block
-              const assembly = self.apolloDataStore.assemblies.get(assemblyName)
+              const assembly =
+                self.apolloDataStore.getAssemblyByName(assemblyName)
               if (assembly?.backendDriverType === 'CollaborationServerDriver') {
                 locations.push({ assemblyName, refName, start, end })
               }
@@ -508,15 +533,14 @@ export function extendSession(
       }
       return {
         initializeCollaboration: flow(function* initializeCollaboration() {
-          const role = readConfObject(self.getPluginConfiguration(), 'role') as
-            | string
-            | undefined
-          // No role means the config didn't come from an Apollo server
-          if (!role) {
+          if (!self.hasCollaborationServer) {
+            // Local-only session (e.g. a bare config.json with no
+            // collaboration server behind it) — there is nothing to
+            // connect to or request access from.
             return
           }
           void self.checkServerVersion()
-          if (role === 'none') {
+          if (!self.hasCollaborationAccess) {
             void self.showNoAccess()
             const rootModel = getRoot(self)
             if (isAbstractMenuManager(rootModel)) {
@@ -530,7 +554,7 @@ export function extendSession(
             }
             return
           }
-          if (role === 'admin') {
+          if (self.apolloRole === 'admin') {
             const rootModel = getRoot(self)
             if (isAbstractMenuManager(rootModel)) {
               addTopLevelAdminMenus(rootModel)
@@ -583,13 +607,28 @@ export function extendSession(
     }))
     .actions((self) => ({
       afterCreate() {
-        applySnapshot(self, { name: self.name, id: self.id })
+        if (!self.hasCollaborationServer) {
+          // Local sessions add their Apollo track config dynamically once
+          // assemblies load (see the ApolloSessionLoadConfig reaction
+          // below), so a session snapshot restored from a shared/saved URL
+          // may reference that track before it exists, which JBrowse can't
+          // resolve. Clear down to an empty snapshot now and restore the
+          // real one once the track config exists. Collaboration-server
+          // sessions don't need this: their Apollo tracks are already part
+          // of the config the server serves.
+          applySnapshot(self, { name: self.name, id: self.id })
+        }
         void self.initializeCollaboration()
         addDisposer(
           self,
           autorun(
             () => {
               // broadcastLocations() // **** This is not working and therefore we need to duplicate broadcastLocations() -method code here because autorun() does not observe changes otherwise
+              if (!self.hasCollaborationAccess) {
+                // Local-only session, or one without a granted role — there
+                // is no collaboration server to broadcast locations to.
+                return
+              }
               const locations: {
                 assemblyName: string
                 refName: string
@@ -607,7 +646,7 @@ export function extendSession(
                   for (const block of dynamicBlocks.contentBlocks) {
                     const { assemblyName, end, refName, start } = block
                     const assembly =
-                      self.apolloDataStore.assemblies.get(assemblyName)
+                      self.apolloDataStore.getAssemblyByName(assemblyName)
                     if (
                       assembly?.backendDriverType ===
                       'CollaborationServerDriver'
@@ -639,39 +678,11 @@ export function extendSession(
           self,
           autorun(
             (reaction) => {
-              // When the initial config.json loads, it doesn't include the Apollo
-              // tracks, which would result in a potentially invalid session snapshot
-              // if any tracks are open. Here we copy the session snapshot, apply an
-              // empty session snapshot, and then restore the original session
-              // snapshot after the updated config.json loads.
               const pluginConfiguration = self.getPluginConfiguration()
-              const hasRole = readConfObject(
-                pluginConfiguration,
-                'hasRole',
-              )
               const featureTypeOntologyName = readConfObject(
                 pluginConfiguration,
                 'featureTypeOntologyName',
-              )
-              const nonApolloAssemblies = (
-                self as unknown as AbstractSessionModel
-              ).assemblyManager.assemblies.filter(
-                (a) =>
-                  !(
-                    getConf(a, ['sequence', 'metadata']) as {
-                      apollo?: boolean
-                    }
-                  ).apollo,
-              )
-              if (!hasRole) {
-                return
-              }
-              // Wait for assemblyManager to load before we do this part
-              const { assemblies } = (self as unknown as AbstractSessionModel)
-                .assemblyManager
-              if (assemblies.length === 0) {
-                return
-              }
+              ) as string
               const { pluginConfiguration: dataStorePluginConfiguration } =
                 self.apolloDataStore
               const configuredOntologies =
@@ -690,10 +701,31 @@ export function extendSession(
                   },
                 })
               }
-              for (const a of nonApolloAssemblies) {
-                self.addApolloLocalTrackConfig(a)
+              // Wait for assemblyManager to load before we do this part
+              const { assemblies } = (self as unknown as AbstractSessionModel)
+                .assemblyManager
+              if (assemblies.length === 0) {
+                return
               }
-              applySnapshot(self, self.previousSnapshot)
+              if (!self.hasCollaborationServer) {
+                const nonApolloAssemblies = (
+                  self as unknown as AbstractSessionModel
+                ).assemblyManager.assemblies.filter(
+                  (a) =>
+                    !(
+                      getConf(a, ['sequence', 'metadata']) as {
+                        apollo?: boolean
+                      }
+                    ).apollo,
+                )
+                for (const a of nonApolloAssemblies) {
+                  self.addApolloLocalTrackConfig(a)
+                }
+                // Now that the track config exists, restore the snapshot
+                // that was cleared in afterCreate so a previously open
+                // Apollo track/view resolves correctly.
+                applySnapshot(self, self.previousSnapshot)
+              }
               reaction.dispose()
             },
             { name: 'ApolloSessionLoadConfig' },

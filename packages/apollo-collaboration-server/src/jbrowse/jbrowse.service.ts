@@ -1,4 +1,8 @@
-import { Check, type CheckDocument } from '@apollo-annotation/schemas'
+import {
+  type AssemblyDocument,
+  Check,
+  type CheckDocument,
+} from '@apollo-annotation/schemas'
 import { makeUserSessionId } from '@apollo-annotation/shared'
 import { Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
@@ -251,40 +255,103 @@ export class JBrowseService implements OnApplicationBootstrap {
     }
   }
 
-  async getTracks(
+  /**
+   * The stored Assembly documents backing a config.json's `assemblies`
+   * entries, keyed by their JBrowse-visible `name` - i.e. only the
+   * assemblies both declared in `fileConfig` and scoped to `configId`.
+   */
+  private async getConfiguredAssemblies(
     fileConfig: JBrowseFileConfig,
     configId: string,
-    allowedAssemblyIds?: string[],
-  ) {
-    const url = this.configService.get('URL', { infer: true })
+  ): Promise<Map<string, AssemblyDocument>> {
     const allowedAssemblyNames = new Set(
       (fileConfig.assemblies ?? []).map(
         (assemblyConfig) => assemblyConfig.name,
       ),
     )
-    const allAssemblies = await this.assembliesService.findAll(allowedAssemblyIds)
-    const assemblies = allAssemblies.filter(
-      (assembly) =>
-        assembly.configId === configId &&
-        allowedAssemblyNames.has(assembly.name),
+    const allAssemblies = await this.assembliesService.findAll()
+    return new Map(
+      allAssemblies
+        .filter(
+          (assembly) =>
+            assembly.configId === configId &&
+            allowedAssemblyNames.has(assembly.name),
+        )
+        .map((assembly) => [assembly.name, assembly]),
     )
-    return assemblies.map((assembly) => {
+  }
+
+  getTracks(assembliesByName: Map<string, AssemblyDocument>) {
+    const url = this.configService.get('URL', { infer: true })
+    return [...assembliesByName.values()].map((assembly) => {
       const trackId = `apollo_track_${assembly.id}`
       return {
         type: 'ApolloTrack',
         trackId,
         name: `Annotations (${assembly.name})`,
-        assemblyNames: [assembly.id],
+        assemblyNames: [assembly.name],
         textSearching: {
           textSearchAdapter: {
             type: 'ApolloTextSearchAdapter',
             trackId,
-            assemblyNames: [assembly.id],
+            assemblyNames: [assembly.name],
             textSearchAdapterId: `apollo_search_${assembly.id}`,
             baseURL: {
               uri: url,
               locationType: 'UriLocation',
             },
+          },
+        },
+      }
+    })
+  }
+
+  /**
+   * Augments each configured assembly's `sequence.metadata` with the real
+   * Apollo backend id, without touching `name` - JBrowse assembly identity
+   * stays the human-readable config name throughout. Client code resolves
+   * the backend id via this metadata (see `getApolloAssemblyId` in
+   * jbrowse-plugin-apollo) rather than assuming `name` is the id.
+   */
+  /**
+   * The config file without the given assemblies, or the tracks on them
+   */
+  private withoutHiddenAssemblies(
+    fileConfig: JBrowseFileConfig,
+    hiddenAssemblyNames: Set<string>,
+  ): JBrowseFileConfig {
+    if (hiddenAssemblyNames.size === 0) {
+      return fileConfig
+    }
+    return {
+      ...fileConfig,
+      assemblies: fileConfig.assemblies?.filter(
+        (assemblyConfig) => !hiddenAssemblyNames.has(assemblyConfig.name),
+      ),
+      tracks: fileConfig.tracks?.filter((track) => {
+        const { assemblyNames } = track as { assemblyNames?: string[] }
+        return !assemblyNames?.some((name) => hiddenAssemblyNames.has(name))
+      }),
+    }
+  }
+
+  private getAssembliesWithMetadata(
+    fileConfig: JBrowseFileConfig,
+    assembliesByName: Map<string, AssemblyDocument>,
+  ): JBrowseAssemblyConfig[] {
+    return (fileConfig.assemblies ?? []).map((assemblyConfig) => {
+      const assemblyDoc = assembliesByName.get(assemblyConfig.name)
+      if (!assemblyDoc) {
+        return assemblyConfig
+      }
+      return {
+        ...assemblyConfig,
+        sequence: {
+          ...assemblyConfig.sequence,
+          metadata: {
+            ...assemblyConfig.sequence.metadata,
+            apollo: true,
+            apolloId: assemblyDoc.id,
           },
         },
       }
@@ -312,17 +379,39 @@ export class JBrowseService implements OnApplicationBootstrap {
         plugins: this.getPlugins(),
       }
     }
+    const configuredAssemblies = await this.getConfiguredAssemblies(
+      fileConfig,
+      configFileName,
+    )
+    // Leave out the assemblies (and their tracks) this user may not access
+    const assembliesByName = new Map(
+      [...configuredAssemblies].filter(
+        ([, assembly]) =>
+          !allowedAssemblyIds || allowedAssemblyIds.includes(assembly.id),
+      ),
+    )
+    const hiddenAssemblyNames = new Set(
+      [...configuredAssemblies.keys()].filter(
+        (name) => !assembliesByName.has(name),
+      ),
+    )
     const generatedConfig = {
       configuration: this.getConfiguration(user),
-      tracks: await this.getTracks(
-        fileConfig,
-        configFileName,
-        allowedAssemblyIds,
-      ),
+      tracks: this.getTracks(assembliesByName),
       plugins: this.getPlugins(),
       defaultSession: this.getDefaultSession(),
     }
-    return mergeJBrowseConfig(generatedConfig, fileConfig)
+    const visibleConfig = this.withoutHiddenAssemblies(
+      fileConfig,
+      hiddenAssemblyNames,
+    )
+    return {
+      ...mergeJBrowseConfig(generatedConfig, visibleConfig),
+      assemblies: this.getAssembliesWithMetadata(
+        visibleConfig,
+        assembliesByName,
+      ),
+    }
   }
 }
 

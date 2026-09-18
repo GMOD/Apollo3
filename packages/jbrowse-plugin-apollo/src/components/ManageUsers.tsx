@@ -118,6 +118,37 @@ interface ManageUsersProps {
   changeManager: ChangeManager
 }
 
+/** Get a user from the server, or undefined if the user doesn't exist */
+async function fetchUser(userId: string) {
+  const response = await apolloFetch(`users/${userId}`)
+  if (!response.ok) {
+    throw new Error(
+      await createFetchErrorMessage(response, 'Error when getting user'),
+    )
+  }
+  const text = await response.text()
+  return text ? toUserRow(JSON.parse(text) as UserResponse) : undefined
+}
+
+/** Get a user from the server by email, or undefined if not found */
+async function fetchUserByEmail(email: string) {
+  const params = new URLSearchParams({
+    page: '0',
+    pageSize: '10',
+    search: email,
+  })
+  const response = await apolloFetch(`users?${params.toString()}`)
+  if (!response.ok) {
+    throw new Error(
+      await createFetchErrorMessage(response, 'Error when getting user'),
+    )
+  }
+  const data = (await response.json()) as UsersPageResponse
+  return data.users.find(
+    (user) => user.email.toLowerCase() === email.toLowerCase(),
+  )
+}
+
 export function ManageUsers({
   changeManager,
   handleClose,
@@ -230,19 +261,6 @@ export function ManageUsers({
     }
   }, [paginationModel, sortModel, filterModel, refreshCount])
 
-
-  /** Get a user from the server, or undefined if the user doesn't exist */
-  async function fetchUser(userId: string) {
-    const response = await apolloFetch(`users/${userId}`)
-    if (!response.ok) {
-      throw new Error(
-        await createFetchErrorMessage(response, 'Error when getting user'),
-      )
-    }
-    const text = await response.text()
-    return text ? toUserRow(JSON.parse(text) as UserResponse) : undefined
-  }
-
   /**
    * Run a user change. `ChangeManager.submit` reports its own errors and
    * doesn't throw, so `checkSucceeded` asks the server whether it worked.
@@ -294,25 +312,6 @@ export function ManageUsers({
       change,
       (updatedUser) => !updatedUser,
       `Deleted user "${getDisplayName(user)}"`,
-    )
-  }
-
-  /** Get a user from the server by email, or undefined if not found */
-  async function fetchUserByEmail(email: string) {
-    const params = new URLSearchParams({
-      page: '0',
-      pageSize: '10',
-      search: email,
-    })
-    const response = await apolloFetch(`users?${params.toString()}`)
-    if (!response.ok) {
-      throw new Error(
-        await createFetchErrorMessage(response, 'Error when getting user'),
-      )
-    }
-    const data = (await response.json()) as UsersPageResponse
-    return data.users.find(
-      (user) => user.email.toLowerCase() === email.toLowerCase(),
     )
   }
 

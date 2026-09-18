@@ -158,7 +158,7 @@ export function drawSequenceTrack(
       sequenceRowHeight,
       block.reversed,
     )
-    const assembly = apolloDataStore.assemblies.get(block.assemblyName)
+    const assembly = apolloDataStore.getAssemblyByName(block.assemblyName)
     const ref = assembly?.getByRefName(block.refName)
     const roundedStart = Math.floor(block.start)
     const roundedEnd = Math.ceil(block.end)
