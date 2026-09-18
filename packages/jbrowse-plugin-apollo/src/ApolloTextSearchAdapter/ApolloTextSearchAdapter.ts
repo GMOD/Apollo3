@@ -68,10 +68,13 @@ export class ApolloTextSearchAdapter
     features: AnnotationFeatureSnapshot[],
     assembly: Assembly,
     query: string,
+    refSeqIdToName: Map<string, string>,
   ) {
     return features.map((feature) => {
       const matchedFeature = getMatchedFeature(query, feature) ?? feature
-      const refName = assembly.getCanonicalRefName(feature.refSeq)
+      const refName =
+        refSeqIdToName.get(feature.refSeq) ??
+        assembly.getCanonicalRefName(feature.refSeq)
       return new ApolloSearchResult({
         label: query,
         trackId: this.trackId,
@@ -98,10 +101,23 @@ export class ApolloTextSearchAdapter
       if (!(backendDriver && assembly)) {
         continue
       }
-      const features = await backendDriver.searchFeatures(args.queryString, [
-        getApolloAssemblyId(assembly),
+      const apolloAssemblyId = getApolloAssemblyId(assembly)
+      const [features, refNameAliases] = await Promise.all([
+        backendDriver.searchFeatures(args.queryString, [apolloAssemblyId]),
+        backendDriver.getRefNameAliases(assemblyName),
       ])
-      results.push(...this.mapBaseResult(features, assembly, query))
+      // Search results carry each feature's internal refSeq id (not its
+      // display refName), so resolve it via the same id -> refName mapping
+      // the backend driver already exposes for other lookups.
+      const refSeqIdToName = new Map<string, string>()
+      for (const { aliases, refName } of refNameAliases) {
+        for (const alias of aliases) {
+          refSeqIdToName.set(alias, refName)
+        }
+      }
+      results.push(
+        ...this.mapBaseResult(features, assembly, query, refSeqIdToName),
+      )
     }
 
     return results
