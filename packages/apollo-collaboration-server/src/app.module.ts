@@ -46,6 +46,10 @@ interface JBrowseDirConfig {
 }
 
 const nodeEnv = process.env.NODE_ENV ?? 'production'
+const envFilesByNodeEnv: Record<string, string> = {
+  development: '.development.env',
+  cypress: '.cypress.env',
+}
 
 export const validationSchema = Joi.object({
   // Required
@@ -208,7 +212,7 @@ export function serveStaticFactory(
     ChecksModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: nodeEnv === 'development' ? '.development.env' : '.env',
+      envFilePath: envFilesByNodeEnv[nodeEnv] ?? '.env',
       validationSchema,
     }),
     CountersModule,

@@ -7,11 +7,12 @@
   "type": "module",
   "scripts": {
     "build": "yarn build:shared && rimraf dist && nest build",
-    "cypress:start": "JBROWSE_DIR=../jbrowse-plugin-apollo/.jbrowse/ GUEST_USER_ROLE=admin MONGODB_URI=\"mongodb://localhost:27017/apolloTestDb?directConnection=true\" LOG_LEVELS=error,warn yarn start",
+    "cypress:start": "yarn build:shared && yarn start:nest:cypress",
     "deb": "ts-node-dev src/main.ts",
     "start": "yarn build:shared && yarn start:nest --watch",
     "start:debug": "yarn build:shared && yarn start:nest --debug --watch",
     "start:nest": "NODE_ENV=development nest start",
+    "start:nest:cypress": "NODE_ENV=cypress nest start --watch",
     "start:no-watch": "yarn build:shared && yarn start:nest",
     "start:prod": "NODE_ENV=production node dist/main.js",
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest",
