@@ -15,7 +15,7 @@ multi-user Apollo setup. This will allow you to get familiar with the various
 pieces of an Apollo installation and try things out like adding assemblies and
 bulk importing annotations.
 
-<a href="multi-user/local-demo/setting-up" className="button button--primary button--lg">Local
+<a href="./01-local-demo/01-setting-up.md" className="button button--primary button--lg">Local
 demo tutorial</a>
 
 ## Installation
