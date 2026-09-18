@@ -219,7 +219,7 @@ export function layoutsModelFactory(
                 return
               }
               for (const region of self.regions) {
-                const assembly = self.session.apolloDataStore.assemblies.get(
+                const assembly = self.session.apolloDataStore.getAssemblyByName(
                   region.assemblyName,
                 )
                 const ref = assembly?.getByRefName(region.refName)

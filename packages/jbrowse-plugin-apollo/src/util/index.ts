@@ -55,21 +55,32 @@ export function getAssemblyDisplayName(assembly: unknown): string {
 }
 
 /**
- * Finds a JBrowse assembly by either its JBrowse `name` or its resolved
- * Apollo backend id (see `getApolloAssemblyId`) - needed because
+ * Finds a JBrowse assembly *instance* (the live object with methods like
+ * `getCanonicalRefName`, as returned by `assemblyManager.get()` - not just
+ * its bare config) by either its JBrowse `name` or its resolved Apollo
+ * backend id (see `getApolloAssemblyId`). Needed because
  * `assemblyManager.get()` only indexes assemblies by `name`, while several
- * callers only have the already-resolved backend id on hand.
+ * callers only have the already-resolved backend id on hand: when `nameOrId`
+ * isn't a known name, this resolves it to a name via `assemblyList` first,
+ * then looks that up, so the result is always a full instance (or
+ * `undefined`), never a bare config model.
  */
 export function findAssemblyByNameOrId(
   assemblyManager: AbstractSessionModel['assemblyManager'],
   nameOrId: string,
 ) {
-  return (
-    assemblyManager.get(nameOrId) ??
-    assemblyManager.assemblyList.find(
-      (assembly) => getApolloAssemblyId(assembly) === nameOrId,
-    )
+  const direct = assemblyManager.get(nameOrId)
+  if (direct) {
+    return direct
+  }
+  const config = assemblyManager.assemblyList.find(
+    (assembly) => getApolloAssemblyId(assembly) === nameOrId,
   )
+  if (!config) {
+    return
+  }
+  const name = readConfObject(getAssemblyConfigModel(config), 'name') as string
+  return assemblyManager.get(name)
 }
 
 export async function createFetchErrorMessage(

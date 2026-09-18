@@ -262,6 +262,14 @@ export function clientDataStoreFactory(
           : assemblyName
       },
     }))
+    .views((self) => ({
+      /** Looks up an assembly by its JBrowse config name (translates to the Apollo backend id first). */
+      getAssemblyByName(assemblyName: string) {
+        return self.assemblies.get(
+          self.getApolloAssemblyIdForName(assemblyName),
+        )
+      },
+    }))
     .actions((self) => ({
       loadFeatures: flow(function* loadFeatures(regions: Region[]) {
         for (const region of regions) {

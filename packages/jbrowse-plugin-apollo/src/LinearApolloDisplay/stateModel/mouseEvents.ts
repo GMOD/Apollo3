@@ -79,7 +79,8 @@ export function mouseEventsModelIntermediateFactory(
       getFeaturesAtMousePosition(mousePosition: MousePosition) {
         const { bp, assemblyName, refName, y } = mousePosition
         const row = Math.floor(y / self.apolloRowHeight)
-        const featureLayout = self.layouts.get(assemblyName)?.get(refName)
+        const assemblyId = self.getAssemblyId(assemblyName)
+        const featureLayout = self.layouts.get(assemblyId)?.get(refName)
         if (!featureLayout) {
           return []
         }

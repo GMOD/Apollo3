@@ -317,7 +317,8 @@ export function extendSession(
             const { dynamicBlocks } = lgv
             for (const block of dynamicBlocks.contentBlocks) {
               const { assemblyName, end, refName, start } = block
-              const assembly = self.apolloDataStore.assemblies.get(assemblyName)
+              const assembly =
+                self.apolloDataStore.getAssemblyByName(assemblyName)
               if (assembly?.backendDriverType === 'CollaborationServerDriver') {
                 locations.push({ assemblyName, refName, start, end })
               }
@@ -505,7 +506,7 @@ export function extendSession(
                   for (const block of dynamicBlocks.contentBlocks) {
                     const { assemblyName, end, refName, start } = block
                     const assembly =
-                      self.apolloDataStore.assemblies.get(assemblyName)
+                      self.apolloDataStore.getAssemblyByName(assemblyName)
                     if (
                       assembly?.backendDriverType ===
                       'CollaborationServerDriver'
