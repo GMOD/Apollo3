@@ -1,6 +1,6 @@
 describe('Rubberband selection', () => {
   before(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
     cy.wrap(
       globalThis.indexedDB.databases().then((dbs) => {
         for (const db of dbs) {
@@ -18,12 +18,17 @@ describe('Rubberband selection', () => {
   })
 
   afterEach(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
   })
 
   it('Can get sequence via rubberband selection', () => {
     const assemblyName = 'space.gff3'
-    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
+    cy.importFeatures(
+      `test_data/${assemblyName}`,
+      assemblyName,
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
     cy.selectAssemblyToView(assemblyName, 'ctgA:1..10000')
 
     cy.get('[data-testid="rubberband_controls"]').trigger('mouseover')
@@ -36,9 +41,14 @@ describe('Rubberband selection', () => {
     cy.contains('tgtcacctcgggtactgcctctattacagaggtatcttaatggcgcatccag')
   })
 
-  it.only('Can get sequence via rubberband selection', () => {
+  it('Can add new feature via rubberband selection', () => {
     const assemblyName = 'space.gff3'
-    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
+    cy.importFeatures(
+      `test_data/${assemblyName}`,
+      assemblyName,
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
     cy.selectAssemblyToView(assemblyName, 'ctgA:1..10000')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()

@@ -3,14 +3,17 @@ describe('Warning signs', () => {
     cy.loginAsGuest()
   })
   afterEach(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
   })
   it('Navigate to feature from table editor', () => {
-    cy.addAssemblyFromGff(
-      'SM_V10_3.fasta.gff3.gz',
+    cy.importFeatures(
       'test_data/SM_V10_3.fasta.gff3.gz',
+      'SM_V10_3.fasta.gff3.gz',
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
     )
     cy.selectAssemblyToView('SM_V10_3.fasta.gff3.gz', 'gene:Smp_313440')
+    cy.openAnnotationsTrack()
     cy.annotationTrackAppearance('Show both graphical and table display')
     cy.contains('td', 'exon:Smp_313440.1.1').dblclick({ force: true })
     cy.currentLocationEquals('SM_V10_3', 192_138, 192_275, 50)

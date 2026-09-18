@@ -328,3 +328,21 @@ Cypress.Commands.add('refreshTableEditor', () => {
   cy.annotationTrackAppearance('Show graphical display')
   cy.annotationTrackAppearance('Show both graphical and table display')
 })
+
+Cypress.Commands.add('openAnnotationsTrack', () => {
+  // Depending on how the view was launched, the Annotations track can
+  // already be active (e.g. after a location search navigates straight
+  // into an existing session), in which case there's no track selector to
+  // open - only open it, and enable the track, when it isn't already on.
+  cy.get('body').then(($body) => {
+    if ($body.text().includes('Open track selector')) {
+      cy.contains('Open track selector').click()
+      cy.contains('Annotations (').click()
+    }
+  })
+  cy.get('body').then(($body) => {
+    if ($body.find('button[aria-label="Minimize drawer"]').length > 0) {
+      cy.get('button[aria-label="Minimize drawer"]').click()
+    }
+  })
+})

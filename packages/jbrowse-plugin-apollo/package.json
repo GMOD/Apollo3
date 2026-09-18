@@ -19,7 +19,8 @@
     "src"
   ],
   "scripts": {
-    "setup": "rimraf .jbrowse && jbrowse create .jbrowse",
+    "setup": "rimraf .jbrowse && jbrowse create .jbrowse && yarn copy-jbrowse-test-fixtures",
+    "copy-jbrowse-test-fixtures": "shx cp -R test_data/jbrowse_config/* .jbrowse/",
     "clean": "rimraf dist",
     "start": "yarn clean && npm-run-all --parallel start:watch start:server",
     "start:watch": "JB_NPM=false NODE_ENV=development rollup --config rollup/rollup.config.mjs --watch",
@@ -29,8 +30,8 @@
     "test": "yarn node --experimental-vm-modules $(yarn bin jest)",
     "test:ci": "yarn node --experimental-vm-modules $(yarn bin jest) --coverage",
     "start:collab-cypress": "yarn workspace @apollo-annotation/collaboration-server run cypress:start",
-    "test:e2e": "yarn build && start-test \"npm-run-all --parallel start:server browse start:collab-cypress\" \"9000|8999|http://localhost:3999/health\" \"npm-run-all cypress:run\"",
-    "test:e2e:debug": "yarn build && start-test \"npm-run-all --parallel start:server browse start:collab-cypress\" \"9000|8999|http://localhost:3999/health\" \"npm-run-all cypress:debug\"",
+    "test:e2e": "yarn build && yarn copy-jbrowse-test-fixtures && start-test \"npm-run-all --parallel start:server browse start:collab-cypress\" \"9000|8999|http://localhost:3999/health\" \"npm-run-all cypress:run\"",
+    "test:e2e:debug": "yarn build && yarn copy-jbrowse-test-fixtures && start-test \"npm-run-all --parallel start:server browse start:collab-cypress\" \"9000|8999|http://localhost:3999/health\" \"npm-run-all cypress:debug\"",
     "cypress:run": "cypress run --browser chrome",
     "cypress:debug": "cypress run --browser chrome --config screenshotOnRunFailure=true,video=true",
     "cypress:open": "cypress open --config baseUrl=http://localhost:3999",

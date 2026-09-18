@@ -37,5 +37,6 @@ declare namespace Cypress {
     ): Chainable<void>
     closeSearchBox(): Chainable<void>
     refreshTableEditor(): Chainable<void>
+    openAnnotationsTrack(): Chainable<void>
   }
 }
