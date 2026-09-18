@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -22,12 +21,13 @@ import {
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 
-import type { CollaborationServerDriver } from '../BackendDrivers'
 import type { ChangeManager, JobInput } from '../ChangeManager'
 import type { ApolloSessionModel } from '../session'
-import { createFetchErrorMessage } from '../util'
+import { createFetchErrorMessage, getApolloAssemblyId } from '../util'
 
 import { Dialog } from './Dialog'
+import type { AbstractSessionModel } from '@jbrowse/core/util'
+import { readConfObject } from '@jbrowse/core/configuration'
 
 interface ImportFeaturesProps {
   session: ApolloSessionModel
@@ -40,8 +40,6 @@ export function ImportFeatures({
   handleClose,
   session,
 }: ImportFeaturesProps) {
-  const { apolloDataStore } = session
-
   const [file, setFile] = useState<File>()
   const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
   const [errorMessage, setErrorMessage] = useState('')
@@ -52,10 +50,8 @@ export function ImportFeatures({
   const [strict, setStrict] = useState(true)
   const [loading, setLoading] = useState(false)
 
-  const { collaborationServerDriver } = apolloDataStore as {
-    collaborationServerDriver: CollaborationServerDriver
-  }
-  const assemblies = collaborationServerDriver.getAssemblies()
+  const { assemblies } = (session as unknown as AbstractSessionModel)
+    .assemblyManager
 
   function handleChangeAssembly(e: SelectChangeEvent) {
     const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
@@ -79,7 +75,7 @@ export function ImportFeatures({
     const updateFeaturesCount = async () => {
       const uri = new URL('features/count', globalThis.location.href)
       const searchParams = new URLSearchParams({
-        assemblyId: selectedAssembly.name,
+        assemblyId: getApolloAssemblyId(selectedAssembly),
       })
       uri.search = searchParams.toString()
 
@@ -185,7 +181,7 @@ export function ImportFeatures({
     // Add features
     const change = new AddFeaturesFromFileChange({
       typeName: 'AddFeaturesFromFileChange',
-      assembly: selectedAssembly.name,
+      assembly: getApolloAssemblyId(selectedAssembly),
       fileId,
       parseOptions: { strict },
       deleteExistingFeatures: deleteFeatures,
@@ -219,9 +215,10 @@ export function ImportFeatures({
             onChange={handleChangeAssembly}
             disabled={submitted && !errorMessage}
           >
-            {assemblies.map((option) => (
-              <MenuItem key={option.name} value={option.name}>
-                {option.displayName ?? option.name}
+            {assemblies.map((assembly) => (
+              <MenuItem key={assembly.name} value={assembly.name}>
+                {/* @ts-expect-error not right here */}
+                {readConfObject(assembly, 'displayName') ?? assembly.name}
               </MenuItem>
             ))}
           </Select>

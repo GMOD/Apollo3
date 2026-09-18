@@ -83,6 +83,7 @@ export type JBrowseSequenceAdapterConfig =
 
 export interface JBrowseSequenceConfig {
   adapter: JBrowseSequenceAdapterConfig
+  metadata?: Record<string, unknown>
 }
 
 export interface JBrowseAssemblyConfig {

@@ -12,6 +12,7 @@ import {
 import type { AbstractSessionModel, UriLocation } from '@jbrowse/core/util'
 
 import type { ApolloSessionModel } from '../session'
+import { getApolloAssemblyId } from '../util'
 
 interface ApolloResultArgs extends BaseResultArgs {
   matchedFeature: AnnotationFeatureSnapshot
@@ -98,7 +99,7 @@ export class ApolloTextSearchAdapter
         continue
       }
       const features = await backendDriver.searchFeatures(args.queryString, [
-        assemblyName,
+        getApolloAssemblyId(assembly),
       ])
       results.push(...this.mapBaseResult(features, assembly, query))
     }

@@ -24,6 +24,7 @@ import React, { useEffect, useState } from 'react'
 
 import type { GetChangesOpts } from '../BackendDrivers/BackendDriver'
 import type { ApolloSessionModel } from '../session'
+import { findAssemblyByNameOrId, getAssemblyDisplayName } from '../util'
 
 import { Dialog } from './Dialog'
 
@@ -102,8 +103,8 @@ export function ViewChangeLog({
 
   const { apolloDataStore } = session
   const { assemblyManager } = session as unknown as AbstractSessionModel
-  const assembly = assemblyManager.get(assemblyId)
-  const assemblyName = assembly?.displayName ?? assemblyId
+  const assembly = findAssemblyByNameOrId(assemblyManager, assemblyId)
+  const assemblyName = assembly ? getAssemblyDisplayName(assembly) : assemblyId
 
   const gridColumns: GridColDef[] = [
     { field: 'sequence' },

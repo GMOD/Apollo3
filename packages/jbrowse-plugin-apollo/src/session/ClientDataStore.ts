@@ -14,7 +14,6 @@ import {
 } from '@apollo-annotation/mst'
 import {
   type AnyConfigurationModel,
-  getConf,
   readConfObject,
 } from '@jbrowse/core/configuration'
 import { type Region, getSession } from '@jbrowse/core/util'
@@ -45,6 +44,11 @@ import {
 } from '../OntologyManager'
 import type { ApolloPluginConfigModel } from '../config'
 import type { ApolloRootModel } from '../types'
+import {
+  findAssemblyByNameOrId,
+  getApolloAssemblyId,
+  getAssemblySequenceMetadata,
+} from '../util'
 
 import type { ApolloSessionModel } from './session'
 
@@ -239,18 +243,23 @@ export function clientDataStoreFactory(
       getBackendDriver(assemblyId: string): BackendDriver | undefined {
         const session = getSession(self)
         const { assemblyManager } = session
-        const assembly = assemblyManager.get(assemblyId)
+        const assembly = findAssemblyByNameOrId(assemblyManager, assemblyId)
         if (!assembly) {
           return
         }
-        const { apollo } = getConf(assembly, ['sequence', 'metadata']) as {
-          apollo?: boolean
-          file: string
-        }
+        const { apollo } = getAssemblySequenceMetadata(assembly)
         if (apollo) {
           return self.collaborationServerDriver
         }
         return self.localDriver
+      },
+      /** Resolves a JBrowse assembly name to its Apollo backend id. */
+      getApolloAssemblyIdForName(assemblyName: string): string {
+        const { assemblyManager } = getSession(self)
+        const assemblyConfig = assemblyManager.get(assemblyName)
+        return assemblyConfig
+          ? getApolloAssemblyId(assemblyConfig)
+          : assemblyName
       },
     }))
     .actions((self) => ({
@@ -267,9 +276,10 @@ export function clientDataStoreFactory(
             continue
           }
           const { assemblyName, refName } = region
+          const assemblyId = self.getApolloAssemblyIdForName(assemblyName)
           const assembly =
-            self.assemblies.get(assemblyName) ??
-            self.assemblies.put({ _id: assemblyName, refSeqs: {} })
+            self.assemblies.get(assemblyId) ??
+            self.assemblies.put({ _id: assemblyId, refSeqs: {} })
           const [firstFeature] = features
           const ref =
             assembly.refSeqs.get(firstFeature.refSeq) ??
@@ -294,9 +304,10 @@ export function clientDataStoreFactory(
           }
           const { refSeq, seq } = yield backendDriver.getSequence(region)
           const { assemblyName, end, refName, start } = region
+          const assemblyId = self.getApolloAssemblyIdForName(assemblyName)
           const assembly =
-            self.assemblies.get(assemblyName) ??
-            self.assemblies.put({ _id: assemblyName, refSeqs: {} })
+            self.assemblies.get(assemblyId) ??
+            self.assemblies.put({ _id: assemblyId, refSeqs: {} })
           const ref =
             assembly.refSeqs.get(refSeq) ??
             assembly.refSeqs.put({ _id: refSeq, name: refName, sequence: [] })
