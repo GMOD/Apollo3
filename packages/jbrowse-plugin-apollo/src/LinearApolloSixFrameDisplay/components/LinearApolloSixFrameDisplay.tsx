@@ -4,11 +4,7 @@
 
 import type { CheckResultI } from '@apollo-annotation/mst'
 import { Menu, type MenuItem } from '@jbrowse/core/ui'
-import {
-  type AbstractSessionModel,
-  doesIntersect2,
-  getContainingView,
-} from '@jbrowse/core/util'
+import { doesIntersect2, getContainingView } from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import LockIcon from '@mui/icons-material/Lock'
 import { Alert, Tooltip, useTheme } from '@mui/material'
@@ -100,7 +96,6 @@ export const LinearApolloSixFrameDisplay = observer(
     if (!isShown) {
       return null
     }
-    const { assemblyManager } = session as unknown as AbstractSessionModel
     return (
       <>
         <div
@@ -181,22 +176,35 @@ export const LinearApolloSixFrameDisplay = observer(
               />
               {lgv.dynamicBlocks.contentBlocks.flatMap((block) => {
                 const widthBp = lgv.bpPerPx * apolloRowHeight
-                const assembly = assemblyManager.get(block.assemblyName)
+                const assemblyId = model.getAssemblyId(block.assemblyName)
                 if (showCheckResults) {
                   const filteredCheckResults = [
                     ...session.apolloDataStore.checkResults.values(),
-                  ].filter(
-                    (checkResult) =>
-                      assembly?.isValidRefName(checkResult.refSeq) &&
-                      assembly.getCanonicalRefName(checkResult.refSeq) ===
-                        block.refName &&
+                  ].filter((checkResult) => {
+                    // A checkResult's refSeq is the backend's internal
+                    // refSeq id, not a display refName, so it has to be
+                    // resolved via the display's own assembly/refSeq lookup
+                    // rather than through the JBrowse assembly, which only
+                    // knows about names.
+                    let canonicalRefName: string
+                    try {
+                      canonicalRefName = model.getCanonicalRefName(
+                        assemblyId,
+                        checkResult.refSeq,
+                      )
+                    } catch {
+                      return false
+                    }
+                    return (
+                      canonicalRefName === block.refName &&
                       doesIntersect2(
                         block.start,
                         block.end,
                         checkResult.start,
                         checkResult.end,
-                      ),
-                  )
+                      )
+                    )
+                  })
                   const checkResults = clusterResultByMessage<CheckResultI>(
                     filteredCheckResults,
                     widthBp,

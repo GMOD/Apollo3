@@ -31,7 +31,7 @@ import ObjectID from 'bson-objectid'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import type { ApolloSessionModel } from '../session'
-import { removeSkippedAttributes } from '../util'
+import { getApolloAssemblyId, removeSkippedAttributes } from '../util'
 
 import { Dialog } from './Dialog'
 
@@ -188,7 +188,7 @@ export function CreateApolloAnnotation({
     useState<AnnotationFeatureSnapshot>()
 
   const apolloAssembly = apolloSessionModel.apolloDataStore.assemblies.get(
-    assembly.name,
+    getApolloAssemblyId(assembly),
   )
   const refSeq = apolloAssembly?.refSeqs.get(refSeqId)
   const features = useMemo(
@@ -375,7 +375,7 @@ export function CreateApolloAnnotation({
       change = new AddFeatureChange({
         changedIds: [annotationFeature._id],
         typeName: 'AddFeatureChange',
-        assembly: assembly.name,
+        assembly: getApolloAssemblyId(assembly),
         addedFeature: {
           ...copiedAnnotationFeature,
           children: childrens,
@@ -386,7 +386,7 @@ export function CreateApolloAnnotation({
       change = new AddFeatureChange({
         changedIds: [annotationFeature._id],
         typeName: 'AddFeatureChange',
-        assembly: assembly.name,
+        assembly: getApolloAssemblyId(assembly),
         addedFeature: copiedAnnotationFeature,
       })
     }
@@ -418,7 +418,7 @@ export function CreateApolloAnnotation({
         parentFeatureId: selectedDestinationFeature._id,
         changedIds: [selectedDestinationFeature._id],
         typeName: 'AddFeatureChange',
-        assembly: assembly.name,
+        assembly: getApolloAssemblyId(assembly),
         addedFeature: transcript,
       })
       // selects the last added transcript
@@ -446,7 +446,7 @@ export function CreateApolloAnnotation({
     const change = new AddFeatureChange({
       changedIds: [newGeneId],
       typeName: 'AddFeatureChange',
-      assembly: assembly.name,
+      assembly: getApolloAssemblyId(assembly),
       addedFeature: {
         _id: newGeneId,
         refSeq: refSeqId,
@@ -478,7 +478,7 @@ export function CreateApolloAnnotation({
           typeName: 'LocationStartChange',
           changedIds: [selectedDestinationFeature._id],
           featureId: selectedDestinationFeature._id,
-          assembly: assembly.name,
+          assembly: getApolloAssemblyId(assembly),
           oldStart: selectedDestinationFeature.min,
           newStart: newMin,
         }),
@@ -490,7 +490,7 @@ export function CreateApolloAnnotation({
           typeName: 'LocationEndChange',
           changedIds: [selectedDestinationFeature._id],
           featureId: selectedDestinationFeature._id,
-          assembly: assembly.name,
+          assembly: getApolloAssemblyId(assembly),
           oldEnd: selectedDestinationFeature.max,
           newEnd: newMax,
         }),

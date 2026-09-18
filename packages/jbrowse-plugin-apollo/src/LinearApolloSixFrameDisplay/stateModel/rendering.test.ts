@@ -50,17 +50,15 @@ jest.unstable_mockModule('./base', () => ({
         session: {
           collaborators: [],
           apolloDataStore: {
-            assemblies: new Map([
-              [
-                'assembly',
-                {
-                  getByRefName: (refName: string) =>
-                    refName === 'annotated'
-                      ? { getSequence, features: new Map([['gene', gene]]) }
-                      : undefined,
-                },
-              ],
-            ]),
+            getAssemblyByName: (assemblyName: string) =>
+              assemblyName === 'assembly'
+                ? {
+                    getByRefName: (refName: string) =>
+                      refName === 'annotated'
+                        ? { getSequence, features: new Map([['gene', gene]]) }
+                        : undefined,
+                  }
+                : undefined,
           },
         },
       }))

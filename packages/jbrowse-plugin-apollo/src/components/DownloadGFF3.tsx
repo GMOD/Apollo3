@@ -20,7 +20,11 @@ import React, { useState } from 'react'
 
 import { openDb } from '../BackendDrivers/LocalDriver/db'
 import type { ApolloSessionModel } from '../session'
-import { createFetchErrorMessage, getAssemblyMetadata } from '../util'
+import {
+  createFetchErrorMessage,
+  findAssemblyByNameOrId,
+  getAssemblySequenceMetadata,
+} from '../util'
 
 import { Dialog } from './Dialog'
 
@@ -48,13 +52,13 @@ export function DownloadGFF3({
   const [errorMessage, setErrorMessage] = useState('')
 
   const { assemblyManager } = session as unknown as AbstractSessionModel
-  const assembly = assemblyManager.get(assemblyName)
+  const assembly = findAssemblyByNameOrId(assemblyManager, assemblyName)
   if (!assembly) {
     setErrorMessage(`Assembly "${assemblyName}" not found`)
     return
   }
 
-  const { apollo } = getAssemblyMetadata(assembly)
+  const { apollo } = getAssemblySequenceMetadata(assembly)
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()

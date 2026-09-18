@@ -22,6 +22,7 @@ import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { autorun } from 'mobx'
 
 import type { ApolloSessionModel, HoveredFeature } from '../../session'
+import { getApolloAssemblyId } from '../../util'
 import { getAssemblyMetadata } from '../../util/assemblyUtils'
 
 const minDisplayHeight = 20
@@ -123,7 +124,7 @@ export function baseModelFactory(
         if (!assembly) {
           throw new Error(`Could not find assembly named ${assemblyName}`)
         }
-        return assembly.name
+        return getApolloAssemblyId(assembly)
       },
       get selectedFeature(): AnnotationFeature | undefined {
         return self.session.apolloSelectedFeature

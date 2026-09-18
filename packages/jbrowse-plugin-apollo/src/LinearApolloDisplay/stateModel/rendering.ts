@@ -200,7 +200,9 @@ export function renderingModelFactory(
                 dynamicBlocks.totalWidthPx,
                 self.featuresHeight(lgv.assemblyNames[0]),
               )
-              const featureLayouts = layouts.get(lgv.assemblyNames[0])
+              const featureLayouts = layouts.get(
+                self.getAssemblyId(lgv.assemblyNames[0]),
+              )
               if (!featureLayouts) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height)
                 return

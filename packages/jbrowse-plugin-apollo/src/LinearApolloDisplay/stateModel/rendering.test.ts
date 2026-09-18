@@ -44,6 +44,7 @@ jest.unstable_mockModule('./layouts', () => ({
           return 'features' as const
         },
         highestRow: () => 0,
+        getAssemblyId: (assemblyName: string) => assemblyName,
         get featureGlyphs() {
           return new Map()
         },

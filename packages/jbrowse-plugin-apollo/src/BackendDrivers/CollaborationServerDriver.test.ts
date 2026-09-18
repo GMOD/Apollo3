@@ -52,13 +52,15 @@ function makeChangeMessage(
  */
 function makeClientStore(
   channelSubscriptions: ChannelSubscriptions,
-  setLastChangeSequenceNumber: (sequenceNumber: number) => void = () => {
-    // no-op by default
-  },
+  setLastChangeSequenceNumber: (sequenceNumber: number) => void = jest.fn(),
 ) {
   const ClientStore = types
     .model('ClientStore', {})
-    .volatile(() => ({ assemblies: new Map([['asm1', {}]]) }))
+    .volatile(() => ({
+      assemblies: new Map([
+        ['asm1', { refSeqs: new Map(), addRefSeq: jest.fn() }],
+      ]),
+    }))
     .views(() => ({
       getFeature: (id: string) => (id === 'feature1' ? { _id: id } : undefined),
     }))
@@ -68,7 +70,10 @@ function makeClientStore(
       rpcManager: {},
       configuration: {},
       assemblyManager: {
-        get: (name: string) => (name === 'asm1' ? {} : undefined),
+        get: (name: string) =>
+          name === 'asm1'
+            ? { name, sequence: { metadata: { apollo: true, apolloId: name } } }
+            : undefined,
       },
       channelSubscriptions,
     }))

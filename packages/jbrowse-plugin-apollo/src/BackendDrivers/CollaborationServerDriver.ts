@@ -24,7 +24,11 @@ import { type Region, getSession } from '@jbrowse/core/util'
 
 import { ChangeManager, type SubmitOpts } from '../ChangeManager'
 import type { ApolloSessionModel } from '../session'
-import { createFetchErrorMessage, getAssemblyMetadata } from '../util'
+import {
+  createFetchErrorMessage,
+  findAssemblyByNameOrId,
+  getApolloAssemblyId,
+} from '../util'
 
 import {
   BackendDriver,
@@ -81,7 +85,7 @@ export class CollaborationServerDriver extends BackendDriver {
   async getFeatures(region: Region) {
     const { assemblyName, end, refName, start } = region
     const { assemblyManager } = getSession(this.clientStore)
-    const assembly = assemblyManager.get(assemblyName)
+    const assembly = findAssemblyByNameOrId(assemblyManager, assemblyName)
     if (!assembly) {
       throw new Error(`Could not find assembly with name "${assemblyName}"`)
     }
@@ -109,7 +113,7 @@ export class CollaborationServerDriver extends BackendDriver {
       )
       throw new Error(errorMessage)
     }
-    this.checkEventSource(assemblyName, refName)
+    this.checkEventSource(getApolloAssemblyId(assembly), refName)
     return response.json() as Promise<
       [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
     >
@@ -208,7 +212,7 @@ export class CollaborationServerDriver extends BackendDriver {
     const inFlightPromise = this.inFlight.get(inFlightKey)
     const { assemblyName, end, refName, start } = region
     const { assemblyManager } = getSession(this.clientStore)
-    const assembly = assemblyManager.get(assemblyName)
+    const assembly = findAssemblyByNameOrId(assemblyManager, assemblyName)
     if (!assembly) {
       throw new Error(`Could not find assembly with name "${assemblyName}"`)
     }
@@ -222,9 +226,10 @@ export class CollaborationServerDriver extends BackendDriver {
       const seq = await inFlightPromise
       return { seq, refSeq }
     }
+    const apolloAssemblyId = getApolloAssemblyId(assembly)
     const apolloAssembly =
-      this.clientStore.assemblies.get(assemblyName) ??
-      this.clientStore.addAssembly(assemblyName)
+      this.clientStore.assemblies.get(apolloAssemblyId) ??
+      this.clientStore.addAssembly(apolloAssemblyId)
     const apolloRefSeq =
       apolloAssembly.refSeqs.get(refSeq) ??
       apolloAssembly.addRefSeq(refSeq, refName)
@@ -245,7 +250,7 @@ export class CollaborationServerDriver extends BackendDriver {
     const seqPromise = this.getSeqFromServer(uri, apolloRefSeq, start, end)
     this.inFlight.set(inFlightKey, seqPromise)
     const seq = await seqPromise
-    this.checkEventSource(assemblyName, refName)
+    this.checkEventSource(apolloAssemblyId, refName)
     this.inFlight.delete(inFlightKey)
     return { seq, refSeq }
   }
@@ -281,12 +286,14 @@ export class CollaborationServerDriver extends BackendDriver {
       return cachedRefSeqMap
     }
     const { assemblyManager } = getSession(this.clientStore)
-    const assembly = assemblyManager.get(assemblyName)
+    const assembly = findAssemblyByNameOrId(assemblyManager, assemblyName)
     if (!assembly) {
       throw new Error(`Could not find assembly with name "${assemblyName}"`)
     }
     const url = new URL('refSeqs', globalThis.location.href)
-    const searchParams = new URLSearchParams({ assembly: assemblyName })
+    const searchParams = new URLSearchParams({
+      assembly: getApolloAssemblyId(assembly),
+    })
     url.search = searchParams.toString()
     const uri = url.toString()
 
@@ -335,12 +342,14 @@ export class CollaborationServerDriver extends BackendDriver {
 
   async getRegions(assemblyName: string): Promise<Region[]> {
     const { assemblyManager } = getSession(this.clientStore)
-    const assembly = assemblyManager.get(assemblyName)
+    const assembly = findAssemblyByNameOrId(assemblyManager, assemblyName)
     if (!assembly) {
       throw new Error(`Could not find assembly with name "${assemblyName}"`)
     }
     const url = new URL('refSeqs', globalThis.location.href)
-    const searchParams = new URLSearchParams({ assembly: assemblyName })
+    const searchParams = new URLSearchParams({
+      assembly: getApolloAssemblyId(assembly),
+    })
     url.search = searchParams.toString()
     const uri = url.toString()
 
@@ -364,13 +373,6 @@ export class CollaborationServerDriver extends BackendDriver {
       start: 0,
       end: refSeq.length,
     }))
-  }
-
-  getAssemblies() {
-    const { assemblyManager } = getSession(this.clientStore)
-    return assemblyManager.assemblies.filter((assembly) => {
-      return Boolean(getAssemblyMetadata(assembly).apollo)
-    })
   }
 
   async getChanges(
@@ -416,8 +418,15 @@ export class CollaborationServerDriver extends BackendDriver {
   }
 
   async getCheckResults(assemblyName: string): Promise<CheckResultSnapshot[]> {
+    const { assemblyManager } = getSession(this.clientStore)
+    const assembly = findAssemblyByNameOrId(assemblyManager, assemblyName)
+    if (!assembly) {
+      throw new Error(`Could not find assembly with name "${assemblyName}"`)
+    }
     const url = new URL('checks', globalThis.location.href)
-    url.search = new URLSearchParams({ assembly: assemblyName }).toString()
+    url.search = new URLSearchParams({
+      assembly: getApolloAssemblyId(assembly),
+    }).toString()
     const response = await fetch(url.toString())
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(

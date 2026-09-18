@@ -7,7 +7,6 @@ import type {
   FeatureDensity,
   ValidationResultSet,
 } from '@apollo-annotation/shared'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import type { Region } from '@jbrowse/core/util'
 
 import type { SubmitOpts } from '../ChangeManager'
@@ -66,8 +65,6 @@ export abstract class BackendDriver {
   abstract getSequence(region: Region): Promise<{ seq: string; refSeq: string }>
 
   abstract getRegions(assemblyName: string): Promise<Region[]>
-
-  abstract getAssemblies(): Assembly[]
 
   abstract getRefNameAliases(assemblyName: string): Promise<RefNameAliases[]>
 
