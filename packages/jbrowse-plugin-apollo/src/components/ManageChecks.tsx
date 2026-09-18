@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
+import { readConfObject } from '@jbrowse/core/configuration'
 import type { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
@@ -21,9 +22,8 @@ import {
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 
-import type { CollaborationServerDriver } from '../BackendDrivers'
 import type { ApolloSessionModel } from '../session'
-import { createFetchErrorMessage } from '../util'
+import { createFetchErrorMessage, getApolloAssemblyId } from '../util'
 
 import { Dialog } from './Dialog'
 
@@ -46,11 +46,8 @@ interface CheckDocument {
 export function ManageChecks({ handleClose, session }: ManageChecksProps) {
   const [errorMessage, setErrorMessage] = useState('')
 
-  const { collaborationServerDriver } = session.apolloDataStore as {
-    collaborationServerDriver: CollaborationServerDriver
-  }
-
-  const assemblies = collaborationServerDriver.getAssemblies()
+  const { assemblies } = (session as unknown as AbstractSessionModel)
+    .assemblyManager
   const [selectedAssembly, setSelectedAssembly] = useState(assemblies.at(0))
   const [checks, setChecks] = useState<CheckDocument[]>([])
   const [selectedChecks, setSelectedChecks] = useState<string[]>([])
@@ -81,7 +78,7 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
         return
       }
       const uri = new URL(
-        `assemblies/${selectedAssembly.name}`,
+        `assemblies/${getApolloAssemblyId(selectedAssembly)}`,
         globalThis.location.href,
       ).href
       const response = await fetch(uri, { method: 'GET' })
@@ -117,7 +114,7 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
     const response = await fetch(uri, {
       method: 'POST',
       body: JSON.stringify({
-        _id: selectedAssembly.name,
+        _id: getApolloAssemblyId(selectedAssembly),
         checks: selectedChecks,
         name: '',
       }),
@@ -125,6 +122,40 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
     })
     if (response.ok) {
       notify('Assembly checks updated successfully', 'success')
+      // Registering/unregistering checks doesn't touch any feature document,
+      // so nothing pushes an update to already-loaded clients (no socket
+      // event is emitted for it). Refetch and reconcile this assembly's
+      // check results here so results for now-unregistered checks disappear
+      // immediately instead of only after the next full reload.
+      const { apolloDataStore } = session
+      const assemblyId = getApolloAssemblyId(selectedAssembly)
+      const backendDriver = apolloDataStore.getBackendDriver(assemblyId)
+      const assembly = apolloDataStore.getAssemblyByName(selectedAssembly.name)
+      if (backendDriver && assembly) {
+        const allFreshResults = await backendDriver.getCheckResults(
+          selectedAssembly.name,
+        )
+        // getCheckResults returns results for the whole assembly, but the
+        // client has only loaded features for whatever's currently visible.
+        // Adding a result whose feature isn't loaded leaves its `ids`
+        // safeReference permanently unresolved, which throws (rather than
+        // just being empty) the next time the session's snapshot is taken -
+        // e.g. by the periodic location-heartbeat POST. Only reconcile
+        // results for features that are actually in the tree already.
+        const freshResults = allFreshResults.filter((r) => {
+          const refSeq = assembly.refSeqs.get(r.refSeq)
+          return r.ids.some((id) => refSeq?.features.has(id))
+        })
+        const freshIds = new Set(freshResults.map((r) => r._id))
+        const refSeqIds = new Set(assembly.refSeqs.keys())
+        const staleIds = [...apolloDataStore.checkResults.values()]
+          .filter((cr) => refSeqIds.has(cr.refSeq) && !freshIds.has(cr._id))
+          .map((cr) => cr._id)
+        for (const staleId of staleIds) {
+          apolloDataStore.deleteCheckResult(staleId)
+        }
+        apolloDataStore.addCheckResults(freshResults)
+      }
       handleClose()
     } else {
       const newErrorMessage = await createFetchErrorMessage(
@@ -175,7 +206,8 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
           >
             {assemblies.map((option) => (
               <MenuItem key={option.name} value={option.name}>
-                {option.displayName}
+                {/* @ts-expect-error not right here */}
+                {readConfObject(option, 'displayName') ?? option.name}
               </MenuItem>
             ))}
           </Select>

@@ -407,9 +407,14 @@ export class JBrowseConfigService {
 /**
  * Adapts `@gmod/indexedfasta`'s `FetchableSmallFasta` (an unindexed,
  * whole-file-in-memory FASTA reader) to the `SequenceAdapter` interface.
- * `FetchableSmallFasta.fetch` throws for an unknown id rather than returning
- * `undefined`, so this checks `getSequenceNames()` first to match how every
- * other `SequenceAdapter` reports a missing reference sequence.
+ *
+ * This deliberately does not call `FetchableSmallFasta.fetch()`: as of
+ * @gmod/indexedfasta 5.0.2, it does `entry.sequence.slice(start, end - start)`
+ * instead of `slice(start, end)`, i.e. it treats its second argument as a
+ * length rather than an end offset. For any `start > 0` this silently
+ * returns a truncated (and wrongly-positioned) substring instead of
+ * throwing, which is worse than just being wrong - it looks like valid
+ * sequence data. Slicing `entry.sequence` directly here sidesteps the bug.
  */
 class UnindexedFastaSequenceAdapter implements SequenceAdapter {
   constructor(private readonly fasta: FetchableSmallFasta) {}
@@ -419,8 +424,9 @@ class UnindexedFastaSequenceAdapter implements SequenceAdapter {
     start: number,
     end: number,
   ): Promise<string | undefined> {
-    const names = await this.fasta.getSequenceNames()
-    return names.includes(name) ? this.fasta.fetch(name, start, end) : undefined
+    const data = await this.fasta.data
+    const entry = data.find((candidate) => candidate.id === name)
+    return entry?.sequence.slice(start, end)
   }
 
   async getSequenceSizes(): Promise<Record<string, number>> {

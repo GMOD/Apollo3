@@ -145,7 +145,14 @@ export function clientDataStoreFactory(
       },
       addCheckResults(checkResults: CheckResultSnapshot[]) {
         for (const checkResult of checkResults) {
-          if (!self.checkResults.has(checkResult._id)) {
+          const existing = self.checkResults.get(checkResult._id)
+          // `ids` is a safeReference array: if this checkResult was first
+          // loaded before its target feature existed in the tree (e.g. a
+          // narrower region loaded before the one containing the feature),
+          // the reference silently failed to resolve and is stuck empty.
+          // Re-putting it here re-resolves it now that the feature may have
+          // since been loaded, rather than leaving it broken forever.
+          if (!existing || existing.ids.length === 0) {
             self.checkResults.put(checkResult)
           }
         }

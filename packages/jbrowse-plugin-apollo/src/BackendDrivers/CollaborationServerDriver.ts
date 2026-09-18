@@ -376,8 +376,15 @@ export class CollaborationServerDriver extends BackendDriver {
   }
 
   async getCheckResults(assemblyName: string): Promise<CheckResultSnapshot[]> {
+    const { assemblyManager } = getSession(this.clientStore)
+    const assembly = assemblyManager.get(assemblyName)
+    if (!assembly) {
+      throw new Error(`Could not find assembly with name "${assemblyName}"`)
+    }
     const url = new URL('checks', globalThis.location.href)
-    url.search = new URLSearchParams({ assembly: assemblyName }).toString()
+    url.search = new URLSearchParams({
+      assembly: getApolloAssemblyId(assembly),
+    }).toString()
     const response = await fetch(url.toString())
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(

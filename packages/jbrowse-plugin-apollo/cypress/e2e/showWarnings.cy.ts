@@ -130,8 +130,16 @@ describe('Warning signs', () => {
       .its('length')
       .should('satisfy', (n) => n >= 3)
 
-    // Unregister all checks
+    // Unregister all checks. The fixture config.json declares many
+    // assemblies, so Manage Checks' assembly picker doesn't default to
+    // stopcodon.gff3 - it must be selected explicitly.
     cy.selectFromApolloMenu(['Admin', 'Manage Checks'])
+    cy.contains('Manage Checks')
+      .parent()
+      .within(() => {
+        cy.get('[role="combobox"]').click()
+      })
+    cy.contains('li', 'stopcodon.gff3').click()
     cy.contains('Manage Checks')
       .parent()
       .within(() => {
@@ -154,6 +162,12 @@ describe('Warning signs', () => {
     cy.contains('Manage Checks')
       .parent()
       .within(() => {
+        cy.get('[role="combobox"]').click()
+      })
+    cy.contains('li', 'stopcodon.gff3').click()
+    cy.contains('Manage Checks')
+      .parent()
+      .within(() => {
         cy.contains('td', 'CDSCheck')
           .parent()
           .within(() => {
@@ -165,6 +179,28 @@ describe('Warning signs', () => {
       'have.length',
       1,
     )
+
+    // Re-register TranscriptCheck too, so this test leaves the assembly's
+    // registered checks back at their default (both checks on) rather than
+    // leaving only CDSCheck registered for whatever runs against this same
+    // server next (a retry of this test, or another test/spec entirely).
+    cy.selectFromApolloMenu(['Admin', 'Manage Checks'])
+    cy.contains('Manage Checks')
+      .parent()
+      .within(() => {
+        cy.get('[role="combobox"]').click()
+      })
+    cy.contains('li', 'stopcodon.gff3').click()
+    cy.contains('Manage Checks')
+      .parent()
+      .within(() => {
+        cy.contains('td', 'TranscriptCheck')
+          .parent()
+          .within(() => {
+            cy.get('input[type="checkbox"]').click()
+          })
+        cy.get('button[type="submit"]').contains('Submit').click()
+      })
   })
 
   it('Warnings are properly stacked', () => {
