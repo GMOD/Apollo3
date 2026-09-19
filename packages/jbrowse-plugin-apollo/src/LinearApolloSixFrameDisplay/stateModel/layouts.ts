@@ -9,6 +9,7 @@ import {
 import { addDisposer, isAlive } from '@jbrowse/mobx-state-tree'
 import { autorun, observable } from 'mobx'
 
+import { findAssemblyByNameOrId } from '../../util'
 import { looksLikeGene } from '../../util/glyphUtils'
 import { geneGlyph } from '../glyphs/GeneGlyph'
 
@@ -38,17 +39,52 @@ export function layoutsModelFactory(
       seenFeatures: observable.map<string, AnnotationFeature>(),
     }))
     .views((self) => ({
-      get featuresMinMax() {
+      /**
+       * Looks up the canonical refName for a feature's refSeq. Callers pass
+       * `feature.assemblyId`/`feature.refSeq`, which are Apollo backend ids
+       * (see `ClientDataStore`), not JBrowse names - so this first resolves
+       * the refSeq id to its raw name via the Apollo data store, then asks
+       * the JBrowse assembly (found by name or id - `assemblyManager` only
+       * indexes by name) to canonicalize that name (resolving aliases).
+       */
+      getCanonicalRefName(assemblyId: string, refSeqId: string) {
+        const apolloAssembly =
+          self.session.apolloDataStore.assemblies.get(assemblyId)
+        const refSeqName = apolloAssembly?.refSeqs.get(refSeqId)?.name
+        if (!refSeqName) {
+          throw new Error('no assembly in layout')
+        }
         const { assemblyManager } =
           self.session as unknown as AbstractSessionModel
+        const assembly = findAssemblyByNameOrId(assemblyManager, assemblyId)
+        if (!assembly) {
+          throw new Error('no assembly in layout')
+        }
+        const canonicalRefName = assembly.getCanonicalRefName(refSeqName)
+        if (!canonicalRefName) {
+          throw new Error('no canonical refName in layout')
+        }
+        return canonicalRefName
+      },
+    }))
+    .views((self) => ({
+      get featuresMinMax() {
         return self.lgv.displayedRegions.map((region) => {
-          const assembly = assemblyManager.get(region.assemblyName)
           let min: number | undefined
           let max: number | undefined
           const { end, refName, start } = region
           for (const [, feature] of self.seenFeatures) {
+            let canonicalRefName: string
+            try {
+              canonicalRefName = self.getCanonicalRefName(
+                feature.assemblyId,
+                feature.refSeq,
+              )
+            } catch {
+              continue
+            }
             if (
-              refName !== assembly?.getCanonicalRefName(feature.refSeq) ||
+              refName !== canonicalRefName ||
               !doesIntersect2(start, end, feature.min, feature.max) ||
               feature.length > self.featuresMinMaxLimit
             ) {
@@ -95,10 +131,7 @@ export function layoutsModelFactory(
     }))
     .views((self) => ({
       get featureLayouts() {
-        const { assemblyManager } =
-          self.session as unknown as AbstractSessionModel
         return self.lgv.displayedRegions.map((region, idx) => {
-          const assembly = assemblyManager.get(region.assemblyName)
           const featureLayout = new Map<number, LayoutRow[]>()
           const minMax = self.featuresMinMax[idx]
           if (!minMax) {
@@ -110,8 +143,17 @@ export function layoutsModelFactory(
               self.deleteSeenFeature(id)
               continue
             }
+            let canonicalRefName: string
+            try {
+              canonicalRefName = self.getCanonicalRefName(
+                feature.assemblyId,
+                feature.refSeq,
+              )
+            } catch {
+              continue
+            }
             if (
-              refName !== assembly?.getCanonicalRefName(feature.refSeq) ||
+              refName !== canonicalRefName ||
               !doesIntersect2(start, end, feature.min, feature.max)
             ) {
               continue

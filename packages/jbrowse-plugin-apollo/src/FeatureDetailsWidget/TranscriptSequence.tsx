@@ -42,6 +42,15 @@ export const TranscriptSequence = observer(function TranscriptSequence({
     ? selectedOption
     : defaultSelectedOption
 
+  // The reference sequence for this feature's range may not be loaded yet
+  // when this component first mounts (it's fetched by the parent widget,
+  // asynchronously). `refData.getSequence()` is a reactive read - tracked
+  // by this `observer` component - so including the loaded length in the
+  // memo dependencies picks up the sequence once it actually arrives instead
+  // of staying stuck showing an empty sequence.
+  const loadedSequenceLength = refData
+    ? refData.getSequence(feature.min, feature.max).length
+    : 0
   const sequenceSegments = useMemo(
     () =>
       refData
@@ -49,7 +58,8 @@ export const TranscriptSequence = observer(function TranscriptSequence({
             refData.getSequence(min, max),
           )
         : [],
-    [refData, feature, effectiveSelectedOption],
+    // eslint-disable-next-line @eslint-react/exhaustive-deps
+    [refData, feature, effectiveSelectedOption, loadedSequenceLength],
   )
   const locationIntervals = useMemo(
     () => getLocationIntervals(sequenceSegments),

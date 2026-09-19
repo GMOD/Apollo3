@@ -23,7 +23,11 @@ import { type Region, getSession } from '@jbrowse/core/util'
 
 import { ChangeManager, type SubmitOpts } from '../ChangeManager'
 import type { ApolloSessionModel } from '../session'
-import { createFetchErrorMessage, getApolloAssemblyId } from '../util'
+import {
+  createFetchErrorMessage,
+  findAssemblyByNameOrId,
+  getApolloAssemblyId,
+} from '../util'
 
 import {
   BackendDriver,
@@ -80,7 +84,7 @@ export class CollaborationServerDriver extends BackendDriver {
   async getFeatures(region: Region) {
     const { assemblyName, end, refName, start } = region
     const { assemblyManager } = getSession(this.clientStore)
-    const assembly = assemblyManager.get(assemblyName)
+    const assembly = findAssemblyByNameOrId(assemblyManager, assemblyName)
     if (!assembly) {
       throw new Error(`Could not find assembly with name "${assemblyName}"`)
     }
@@ -170,7 +174,7 @@ export class CollaborationServerDriver extends BackendDriver {
     const inFlightPromise = this.inFlight.get(inFlightKey)
     const { assemblyName, end, refName, start } = region
     const { assemblyManager } = getSession(this.clientStore)
-    const assembly = assemblyManager.get(assemblyName)
+    const assembly = findAssemblyByNameOrId(assemblyManager, assemblyName)
     if (!assembly) {
       throw new Error(`Could not find assembly with name "${assemblyName}"`)
     }
@@ -244,7 +248,7 @@ export class CollaborationServerDriver extends BackendDriver {
       return cachedRefSeqMap
     }
     const { assemblyManager } = getSession(this.clientStore)
-    const assembly = assemblyManager.get(assemblyName)
+    const assembly = findAssemblyByNameOrId(assemblyManager, assemblyName)
     if (!assembly) {
       throw new Error(`Could not find assembly with name "${assemblyName}"`)
     }
@@ -300,7 +304,7 @@ export class CollaborationServerDriver extends BackendDriver {
 
   async getRegions(assemblyName: string): Promise<Region[]> {
     const { assemblyManager } = getSession(this.clientStore)
-    const assembly = assemblyManager.get(assemblyName)
+    const assembly = findAssemblyByNameOrId(assemblyManager, assemblyName)
     if (!assembly) {
       throw new Error(`Could not find assembly with name "${assemblyName}"`)
     }
@@ -377,7 +381,7 @@ export class CollaborationServerDriver extends BackendDriver {
 
   async getCheckResults(assemblyName: string): Promise<CheckResultSnapshot[]> {
     const { assemblyManager } = getSession(this.clientStore)
-    const assembly = assemblyManager.get(assemblyName)
+    const assembly = findAssemblyByNameOrId(assemblyManager, assemblyName)
     if (!assembly) {
       throw new Error(`Could not find assembly with name "${assemblyName}"`)
     }

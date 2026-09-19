@@ -423,9 +423,10 @@ export function navToFeatureCenter(
   feature: AnnotationFeature,
   paddingPct: number,
   refSeqLength: number,
+  refName: string,
 ): NavLocation {
   const paddingBp = (feature.max - feature.min) * paddingPct
   const start = Math.max(feature.min - paddingBp, 1)
   const end = Math.min(feature.max + paddingBp, refSeqLength)
-  return { refName: feature.refSeq, start, end }
+  return { refName, start, end }
 }

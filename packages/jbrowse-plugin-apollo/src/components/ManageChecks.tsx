@@ -144,7 +144,7 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
         // results for features that are actually in the tree already.
         const freshResults = allFreshResults.filter((r) => {
           const refSeq = assembly.refSeqs.get(r.refSeq)
-          return r.ids.some((id) => refSeq?.features.has(id))
+          return (r.ids ?? []).some((id) => refSeq?.features.has(String(id)))
         })
         const freshIds = new Set(freshResults.map((r) => r._id))
         const refSeqIds = new Set(assembly.refSeqs.keys())
