@@ -409,7 +409,7 @@ export class JBrowseConfigService {
  * whole-file-in-memory FASTA reader) to the `SequenceAdapter` interface.
  *
  * This deliberately does not call `FetchableSmallFasta.fetch()`: as of
- * @gmod/indexedfasta 5.0.2, it does `entry.sequence.slice(start, end - start)`
+ * \@gmod/indexedfasta 5.0.2, it does `entry.sequence.slice(start, end - start)`
  * instead of `slice(start, end)`, i.e. it treats its second argument as a
  * length rather than an end offset. For any `start > 0` this silently
  * returns a truncated (and wrongly-positioned) substring instead of

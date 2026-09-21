@@ -4,7 +4,6 @@ import type {
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 import type { ValidationResultSet } from '@apollo-annotation/shared'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import type { Region } from '@jbrowse/core/util'
 
 import type { SubmitOpts } from '../ChangeManager'
