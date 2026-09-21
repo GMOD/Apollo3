@@ -109,7 +109,11 @@ export function extendSession(
         'socket.io/',
         globalThis.location.href,
       )
-      return { socket: io(origin, { path: pathname }) }
+      // autoConnect is disabled because a local-only session (no
+      // collaboration server) has nothing to connect to; the socket is
+      // connected explicitly in initializeCollaboration once we know a
+      // server granted this session access.
+      return { socket: io(origin, { path: pathname, autoConnect: false }) }
     })
     .extend(() => {
       const collabs = observable.array<Collaborator>([])
@@ -186,6 +190,30 @@ export function extendSession(
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           jbrowse.configuration.ApolloPlugin as ApolloPluginConfigModel
         return pluginConfiguration
+      },
+    }))
+    .views((self) => ({
+      // `hasRole` is set by the collaboration server for every config it
+      // serves, whether or not the logged-in user was granted a role — it's
+      // false only when there is no collaboration server at all (e.g. a
+      // bare local config.json), which is how we tell a local-only session
+      // apart from one where the server denied access.
+      get hasCollaborationServer() {
+        return readConfObject(self.getPluginConfiguration(), 'hasRole') as
+          | boolean
+          | undefined
+      },
+      get apolloRole() {
+        return readConfObject(self.getPluginConfiguration(), 'role') as
+          | string
+          | undefined
+      },
+      get hasCollaborationAccess(): boolean {
+        return Boolean(
+          self.hasCollaborationServer &&
+            self.apolloRole &&
+            self.apolloRole !== 'none',
+        )
       },
     }))
     .actions((self) => ({
@@ -265,10 +293,7 @@ export function extendSession(
     }))
     .actions((self) => {
       async function postUserLocation(userLoc: UserLocation[]) {
-        const role = readConfObject(self.getPluginConfiguration(), 'role') as
-          | string
-          | undefined
-        if (role === 'none' || !role) {
+        if (!self.hasCollaborationAccess) {
           return
         }
         const uri = new URL('users/userLocation', globalThis.location.href).href
@@ -302,6 +327,9 @@ export function extendSession(
     })
     .actions((self) => ({
       broadcastLocations() {
+        if (!self.hasCollaborationAccess) {
+          return
+        }
         const locations: {
           assemblyName: string
           refName: string
@@ -417,10 +445,13 @@ export function extendSession(
       }
       return {
         initializeCollaboration: flow(function* initializeCollaboration() {
-          const role = readConfObject(self.getPluginConfiguration(), 'role') as
-            | string
-            | undefined
-          if (!role || role === 'none') {
+          if (!self.hasCollaborationServer) {
+            // Local-only session (e.g. a bare config.json with no
+            // collaboration server behind it) — there is nothing to
+            // connect to or request access from.
+            return
+          }
+          if (!self.hasCollaborationAccess) {
             if (!self.roleNotificationSent) {
               ;(self as unknown as AbstractSessionModel).notify(
                 'You have registered as an Apollo user but have not been given access. Ask your administrator to enable access for your account.',
@@ -430,7 +461,7 @@ export function extendSession(
             }
             return
           }
-          if (role === 'admin') {
+          if (self.apolloRole === 'admin') {
             const rootModel = getRoot(self)
             if (isAbstractMenuManager(rootModel)) {
               addTopLevelAdminMenus(rootModel)
@@ -438,7 +469,8 @@ export function extendSession(
           }
           // Get and set server last change sequence into session storage
           yield self.updateLastChangeSequenceNumber()
-          // Open socket listeners
+          // Connect to the collaboration server and open socket listeners
+          self.socket.connect()
           self.addSocketListeners()
           // request user locations
           const uri = new URL('users/locations', globalThis.location.href).href
@@ -489,6 +521,11 @@ export function extendSession(
           autorun(
             () => {
               // broadcastLocations() // **** This is not working and therefore we need to duplicate broadcastLocations() -method code here because autorun() does not observe changes otherwise
+              if (!self.hasCollaborationAccess) {
+                // Local-only session, or one without a granted role — there
+                // is no collaboration server to broadcast locations to.
+                return
+              }
               const locations: {
                 assemblyName: string
                 refName: string
@@ -543,11 +580,13 @@ export function extendSession(
               // if any tracks are open. Here we copy the session snapshot, apply an
               // empty session snapshot, and then restore the original session
               // snapshot after the updated config.json loads.
+              if (!self.hasCollaborationServer) {
+                // Local-only session — there is no server-driven config
+                // update to wait for, so skip this reaction entirely
+                // (and avoid subscribing to assembly changes for nothing).
+                return
+              }
               const pluginConfiguration = self.getPluginConfiguration()
-              const hasRole = readConfObject(
-                pluginConfiguration,
-                'hasRole',
-              ) as boolean
               const featureTypeOntologyName = readConfObject(
                 pluginConfiguration,
                 'featureTypeOntologyName',
@@ -562,9 +601,6 @@ export function extendSession(
                     }
                   ).apollo,
               )
-              if (!hasRole) {
-                return
-              }
               // Wait for assemblyManager to load before we do this part
               const { assemblies } = (self as unknown as AbstractSessionModel)
                 .assemblyManager
