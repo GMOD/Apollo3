@@ -95,6 +95,14 @@ export class CollaborationServerDriver extends BackendDriver {
     }
     const refSeq = refSeqEntry.id
 
+    const apolloAssemblyId = getApolloAssemblyId(assembly)
+    const apolloAssembly =
+      this.clientStore.assemblies.get(apolloAssemblyId) ??
+      this.clientStore.addAssembly(apolloAssemblyId)
+    if (!apolloAssembly.refSeqs.get(refSeq)) {
+      apolloAssembly.addRefSeq(refSeq, refName)
+    }
+
     const url = new URL('features/getFeatures', globalThis.location.href)
     const searchParams = new URLSearchParams({
       refSeq,

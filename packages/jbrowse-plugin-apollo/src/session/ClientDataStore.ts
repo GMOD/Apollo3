@@ -94,7 +94,7 @@ export function clientDataStoreFactory(
         let apolloAssembly = self.assemblies.get(assemblyId)
         if (!apolloAssembly) {
           // maybe it's a valid assembly that we haven't loaded yet
-          const assembly = assemblyManager.get(assemblyId)
+          const assembly = findAssemblyByNameOrId(assemblyManager, assemblyId)
           if (!assembly) {
             throw new Error(
               `Could not find assembly "${assemblyId}" to add feature "${feature._id}"`,
@@ -105,7 +105,7 @@ export function clientDataStoreFactory(
         let ref = apolloAssembly.refSeqs.get(feature.refSeq)
         if (!ref) {
           // maybe it's a valid refName that we haven't loaded yet
-          const assembly = assemblyManager.get(assemblyId)
+          const assembly = findAssemblyByNameOrId(assemblyManager, assemblyId)
           if (!assembly) {
             throw new Error(
               `Could not find assembly "${assemblyId}" to add feature "${feature._id}"`,
