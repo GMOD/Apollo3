@@ -514,7 +514,17 @@ export function extendSession(
     }))
     .actions((self) => ({
       afterCreate() {
-        applySnapshot(self, { name: self.name, id: self.id })
+        if (!self.hasCollaborationServer) {
+          // Local sessions add their Apollo track config dynamically once
+          // assemblies load (see the ApolloSessionLoadConfig reaction
+          // below), so a session snapshot restored from a shared/saved URL
+          // may reference that track before it exists, which JBrowse can't
+          // resolve. Clear down to an empty snapshot now and restore the
+          // real one once the track config exists. Collaboration-server
+          // sessions don't need this: their Apollo tracks are already part
+          // of the config the server serves.
+          applySnapshot(self, { name: self.name, id: self.id })
+        }
         void self.initializeCollaboration()
         addDisposer(
           self,
@@ -575,38 +585,11 @@ export function extendSession(
           self,
           autorun(
             (reaction) => {
-              // When the initial config.json loads, it doesn't include the Apollo
-              // tracks, which would result in a potentially invalid session snapshot
-              // if any tracks are open. Here we copy the session snapshot, apply an
-              // empty session snapshot, and then restore the original session
-              // snapshot after the updated config.json loads.
-              if (!self.hasCollaborationServer) {
-                // Local-only session — there is no server-driven config
-                // update to wait for, so skip this reaction entirely
-                // (and avoid subscribing to assembly changes for nothing).
-                return
-              }
               const pluginConfiguration = self.getPluginConfiguration()
               const featureTypeOntologyName = readConfObject(
                 pluginConfiguration,
                 'featureTypeOntologyName',
               ) as string
-              const nonApolloAssemblies = (
-                self as unknown as AbstractSessionModel
-              ).assemblyManager.assemblies.filter(
-                (a) =>
-                  !(
-                    getConf(a, ['sequence', 'metadata']) as {
-                      apollo?: boolean
-                    }
-                  ).apollo,
-              )
-              // Wait for assemblyManager to load before we do this part
-              const { assemblies } = (self as unknown as AbstractSessionModel)
-                .assemblyManager
-              if (assemblies.length === 0) {
-                return
-              }
               const { pluginConfiguration: dataStorePluginConfiguration } =
                 self.apolloDataStore
               const configuredOntologies =
@@ -625,10 +608,31 @@ export function extendSession(
                   },
                 })
               }
-              for (const a of nonApolloAssemblies) {
-                self.addApolloLocalTrackConfig(a)
+              // Wait for assemblyManager to load before we do this part
+              const { assemblies } = (self as unknown as AbstractSessionModel)
+                .assemblyManager
+              if (assemblies.length === 0) {
+                return
               }
-              applySnapshot(self, self.previousSnapshot)
+              if (!self.hasCollaborationServer) {
+                const nonApolloAssemblies = (
+                  self as unknown as AbstractSessionModel
+                ).assemblyManager.assemblies.filter(
+                  (a) =>
+                    !(
+                      getConf(a, ['sequence', 'metadata']) as {
+                        apollo?: boolean
+                      }
+                    ).apollo,
+                )
+                for (const a of nonApolloAssemblies) {
+                  self.addApolloLocalTrackConfig(a)
+                }
+                // Now that the track config exists, restore the snapshot
+                // that was cleared in afterCreate so a previously open
+                // Apollo track/view resolves correctly.
+                applySnapshot(self, self.previousSnapshot)
+              }
               reaction.dispose()
             },
             { name: 'ApolloSessionLoadConfig' },
