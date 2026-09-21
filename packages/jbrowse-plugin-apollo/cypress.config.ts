@@ -20,6 +20,13 @@ export default defineConfig({
       database: 'apolloTestDb',
     },
   },
+  // A local-editing session (IndexedDB-backed, no collaboration server) is
+  // served plain, with no login gate, by the "browse" static server -
+  // unlike the collaboration-server-backed app at `baseUrl`, which always
+  // requires a login.
+  expose: {
+    localAppUrl: 'http://localhost:8999',
+  },
   screenshotOnRunFailure: false,
   video: false,
   e2e: {

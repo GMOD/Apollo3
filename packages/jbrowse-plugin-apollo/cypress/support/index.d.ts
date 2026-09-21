@@ -5,6 +5,8 @@ declare namespace Cypress {
     addOntologies(): Chainable<void>
     loginAsGuest(): Chainable<void>
     clearFeatures(): Chainable<void>
+    visitLocalSession(): Chainable<void>
+    clearLocalFeatures(): Chainable<void>
     selectFromTrackMenu(menuItemNameOrPath: string | string[]): Chainable<void>
     selectFromApolloMenu(menuItemNameOrPath: string | string[]): Chainable<void>
     annotationTrackAppearance(
