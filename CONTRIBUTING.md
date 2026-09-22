@@ -8,7 +8,14 @@ git clone https://github.com/GMOD/jbrowse-components
 git clone https://github.com/GMOD/Apollo3
 ```
 
-You'll need `yarn` to be installed.
+You'll need `yarn` and `pnpm` to be installed. Apollo3 uses `yarn` (Berry),
+while jbrowse-components uses `pnpm`. Both can be managed via `corepack`:
+
+```sh
+corepack enable
+corepack prepare yarn@4.16.0 --activate
+corepack prepare pnpm@11.11.0 --activate
+```
 
 You then have two options to start Apollo3 for development purposes. In both
 cases, the instance is then accessible via
@@ -53,3 +60,38 @@ start-mongodb:
 open:
     xdg-open http://localhost:3000/?config=http://localhost:3999/jbrowse/config.json
 ```
+
+## Running MongoDB with Docker
+
+If you don't have MongoDB installed locally, you can run it via Docker:
+
+```sh
+docker run -d --name apollo-mongo -p 27017:27017 mongo:8 \
+  --replSet rs0 --setParameter "transactionLifetimeLimitSeconds=300"
+```
+
+Then initialize the replica set:
+
+```sh
+docker exec apollo-mongo mongosh --eval \
+  'rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27017"}]})'
+```
+
+## Troubleshooting
+
+**Puppeteer/Chrome download fails in jbrowse-components:**
+
+```sh
+PUPPETEER_SKIP_DOWNLOAD=true pnpm install --no-optional --ignore-scripts
+```
+
+**Canvas native module build fails (missing system dependencies):**
+
+On Ubuntu/Debian:
+
+```sh
+sudo apt-get install pkg-config libcairo2-dev libpango1.0-dev \
+  libjpeg-dev libgif-dev librsvg2-dev
+```
+
+Then re-run `pnpm install`.

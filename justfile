@@ -11,7 +11,8 @@ setup: setup-jbrowse setup-apollo
 [working-directory: '../jbrowse-components']
 [private]
 setup-jbrowse:
-    yarn
+    corepack prepare pnpm@11.11.0 --activate
+    pnpm install --no-optional --ignore-scripts
 
 # initial setup for apollo
 [private]
@@ -25,7 +26,7 @@ run: run-jbrowse run-shared run-collab run-plugin
 # run jbrowse
 [working-directory: '../jbrowse-components/products/jbrowse-web']
 run-jbrowse:
-    yarn start
+    PUPPETEER_SKIP_DOWNLOAD=true pnpm start
 
 # run apollo shared
 run-shared:
