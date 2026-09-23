@@ -51,7 +51,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/jbrowse/desktop.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/jbrowse/desktop.ts)_
+[src/commands/jbrowse/desktop.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/jbrowse/desktop.ts)_
 
 ## `apollo jbrowse get-config`
 
@@ -78,7 +78,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/jbrowse/get-config.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/jbrowse/get-config.ts)_
+[src/commands/jbrowse/get-config.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/jbrowse/get-config.ts)_
 
 ## `apollo jbrowse set-config INPUTFILE`
 
@@ -108,4 +108,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/jbrowse/set-config.ts](https://github.com/GMOD/Apollo3/blob/v1.1.2/packages/apollo-cli/src/commands/jbrowse/set-config.ts)_
+[src/commands/jbrowse/set-config.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/jbrowse/set-config.ts)_
