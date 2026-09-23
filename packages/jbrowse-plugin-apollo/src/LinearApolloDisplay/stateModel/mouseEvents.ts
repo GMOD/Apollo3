@@ -4,7 +4,6 @@ import {
   LocationStartChange,
 } from '@apollo-annotation/shared'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import type { AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
 import type { MenuItem } from '@jbrowse/core/ui'
 import { doesIntersect2 } from '@jbrowse/core/util'
@@ -172,7 +171,7 @@ export function mouseEventsModelFactory(
             current: mousePosition,
             feature,
             edge,
-            shrinkParent,
+            shrinkParent: shrinkParent as boolean,
           }
         },
         endDrag() {
@@ -190,9 +189,7 @@ export function mouseEventsModelFactory(
           }
           const { displayedRegions } = self.lgv
           const region = displayedRegions[start.regionNumber]
-          const assembly = self.getAssemblyId(region.assemblyName) as
-            | Assembly
-            | undefined
+          const assembly = self.getAssemblyId(region.assemblyName)
           const changes = getPropagatedLocationChanges(
             feature,
             current.bp,
@@ -315,8 +312,6 @@ export function mouseEventsModelFactory(
               const { lgv, overlayCanvas } = self
               if (
                 !lgv.initialized ||
-                // This type is wrong in @jbrowse/core
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 self.regionCannotBeRendered() ||
                 !overlayCanvas
               ) {

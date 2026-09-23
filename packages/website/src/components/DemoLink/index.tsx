@@ -21,7 +21,7 @@ export default function HomepageFeatures(): React.JSX.Element {
             </div>
             <img
               className="item shadow--md margin-vert--md"
-              src={DocusaurusImageUrl as string}
+              src={DocusaurusImageUrl}
               alt="description here"
             />
           </div>

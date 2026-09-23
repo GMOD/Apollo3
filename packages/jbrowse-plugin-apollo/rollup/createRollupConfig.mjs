@@ -15,8 +15,8 @@ import nodeBuiltins from 'builtin-modules'
 import { defineConfig } from 'rollup'
 import externalGlobals from 'rollup-plugin-external-globals'
 import nodePolyfills from 'rollup-plugin-polyfill-node'
-import sourceMaps from 'rollup-plugin-sourcemaps'
-import { terser } from 'rollup-plugin-terser'
+import terser from '@rollup/plugin-terser'
+import sourceMaps from 'rollup-plugin-sourcemaps2'
 
 import { babelPluginJBrowse } from './babelPluginJBrowse.mjs'
 import {
@@ -126,6 +126,7 @@ export function createRollupConfig(jbrowseGlobals, options) {
           file: path.join(distPath, `${packageName}.cjs.development.js`),
           format: 'cjs',
           freeze: false,
+          interop: 'auto',
           esModule: true,
           sourcemap: true,
           exports: 'named',
@@ -134,6 +135,7 @@ export function createRollupConfig(jbrowseGlobals, options) {
           file: path.join(distPath, `${packageName}.cjs.production.min.js`),
           format: 'cjs',
           freeze: false,
+          interop: 'auto',
           esModule: true,
           sourcemap: true,
           exports: 'named',
@@ -167,6 +169,7 @@ export function createRollupConfig(jbrowseGlobals, options) {
           format: 'umd',
           name: umdName,
           freeze: false,
+          interop: 'auto',
           esModule: true,
           sourcemap: true,
           exports: 'named',
@@ -178,6 +181,7 @@ export function createRollupConfig(jbrowseGlobals, options) {
           format: 'umd',
           name: umdName,
           freeze: false,
+          interop: 'auto',
           esModule: true,
           sourcemap: true,
           exports: 'named',
@@ -242,6 +246,7 @@ export function createRollupConfig(jbrowseGlobals, options) {
           file: path.join(distPath, `${packageName}.cjs.js`),
           format: 'cjs',
           freeze: false,
+          interop: 'auto',
           esModule: true,
           sourcemap: true,
           exports: 'named',

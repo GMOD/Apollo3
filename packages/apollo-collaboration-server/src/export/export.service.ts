@@ -23,6 +23,8 @@ import { InjectModel } from '@nestjs/mongoose'
 import { type FilterQuery, Model } from 'mongoose'
 import StreamConcat from 'stream-concat'
 
+import { cursorToReadable } from '../utils/mongooseCursor.js'
+
 import {
   FeatureDocToGFF3FeatureStream,
   RefSeqChunkDocToFASTAStream,
@@ -78,14 +80,16 @@ export class ExportService {
     const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
 
     const headerStream = Readable.toWeb(
-      this.refSeqModel.find({ assembly }).cursor(),
+      cursorToReadable(this.refSeqModel.find({ assembly }).cursor()),
     ).pipeThrough(new RefSeqDocToGFF3HeaderStream())
 
     const query = { refSeq: { $in: refSeqIds } }
     const featureStream = Readable.toWeb(
-      // unicorn thinks this is an Array.prototype.find, so we ignore it
-      // eslint-disable-next-line unicorn/no-array-callback-reference
-      this.featureModel.find(query).cursor(),
+      cursorToReadable(
+        // unicorn thinks this is an Array.prototype.find, so we ignore it
+        // eslint-disable-next-line unicorn/no-array-callback-reference
+        this.featureModel.find(query).cursor(),
+      ),
     )
       .pipeThrough(new FeatureDocToGFF3FeatureStream(refSeqs))
       .pipeThrough(
@@ -170,13 +174,15 @@ export class ExportService {
     fastaWidth?: number,
   ): ReadableStream<string>[] {
     const sequenceStream = Readable.toWeb(
-      this.refSeqChunksModel
-        // unicorn thinks this is an Array.prototype.find, so we ignore it
-        // eslint-disable-next-line unicorn/no-array-callback-reference
-        .find(query)
-        .sort({ refSeq: 1, n: 1 })
-        .populate('refSeq')
-        .cursor(),
+      cursorToReadable(
+        this.refSeqChunksModel
+          // unicorn thinks this is an Array.prototype.find, so we ignore it
+          // eslint-disable-next-line unicorn/no-array-callback-reference
+          .find(query)
+          .sort({ refSeq: 1, n: 1 })
+          .populate('refSeq')
+          .cursor(),
+      ),
     ).pipeThrough(new RefSeqChunkDocToFASTAStream({ fastaWidth }))
     return [sequenceStream]
   }

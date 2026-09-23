@@ -4,7 +4,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { changeRegistry } from '@apollo-annotation/common'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import type { AbstractSessionModel } from '@jbrowse/core/util'
 import { makeStyles } from '@jbrowse/core/util/tss-react'
 import {
@@ -103,7 +102,7 @@ export function ViewChangeLog({
 
   const { apolloDataStore } = session
   const { assemblyManager } = session as unknown as AbstractSessionModel
-  const assembly = assemblyManager.get(assemblyId) as Assembly | undefined
+  const assembly = assemblyManager.get(assemblyId)
   const assemblyName = assembly?.displayName ?? assemblyId
 
   const gridColumns: GridColDef[] = [

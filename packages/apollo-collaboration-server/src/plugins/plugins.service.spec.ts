@@ -1,5 +1,6 @@
 import { Test, type TestingModule } from '@nestjs/testing'
 
+import { APOLLO_PLUGINS } from './plugins.constants.js'
 import { PluginsService } from './plugins.service.js'
 
 describe('PluginsService', () => {
@@ -7,7 +8,7 @@ describe('PluginsService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [PluginsService],
+      providers: [PluginsService, { provide: APOLLO_PLUGINS, useValue: [] }],
     }).compile()
 
     service = module.get<PluginsService>(PluginsService)

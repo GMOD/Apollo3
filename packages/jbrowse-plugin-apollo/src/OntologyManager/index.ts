@@ -19,7 +19,7 @@ import {
 } from '@jbrowse/mobx-state-tree'
 import { autorun } from 'mobx'
 
-import type ApolloPluginConfigurationSchema from '../config'
+import type { ApolloPluginConfigModel } from '../config'
 import type { ApolloRootModel } from '../types'
 
 import OntologyStore, { type OntologyStoreOptions } from './OntologyStore'
@@ -137,13 +137,12 @@ export const OntologyManagerType = types
     get featureTypeOntologyName(): string {
       const jbConfig = getRoot<ApolloRootModel>(self).jbrowse
         .configuration as AnyConfigurationModel
-      const pluginConfiguration = jbConfig.ApolloPlugin as Instance<
-        typeof ApolloPluginConfigurationSchema
-      >
+      const pluginConfiguration =
+        jbConfig.ApolloPlugin as ApolloPluginConfigModel
       const featureTypeOntologyName = readConfObject(
         pluginConfiguration,
         'featureTypeOntologyName',
-      ) as string
+      )
       return featureTypeOntologyName
     },
   }))
