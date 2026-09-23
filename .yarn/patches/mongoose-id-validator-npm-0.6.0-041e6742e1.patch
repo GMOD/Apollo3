@@ -1,0 +1,20 @@
+diff --git a/lib/id-validator.js b/lib/id-validator.js
+index a711a9f7726895cac790574baaa7eedfcab2f3b0..e1c19c4accd8302a72124861499c9a0d784841b1 100644
+--- a/lib/id-validator.js
++++ b/lib/id-validator.js
+@@ -112,12 +112,10 @@ function executeQuery (query, conditions, validateValue, resolve, reject) {
+     for (var fieldName in conditions) {
+         query.where(fieldName, conditions[fieldName])
+     }
+-    query.exec(function (err, count) {
+-        if (err) {
+-            reject(err)
+-            return
+-        }
++    query.exec().then(function (count) {
+         return count === validateValue ? resolve(true) : resolve(false)
++    }, function (err) {
++        reject(err)
+     })
+ }
+ 

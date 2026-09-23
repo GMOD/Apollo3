@@ -1,12 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { type HydratedDocument, Schema as MongooseSchema } from 'mongoose'
+import {
+  type HydratedDocument,
+  Schema as MongooseSchema,
+  Types,
+} from 'mongoose'
 
 export type ChangeDocument = HydratedDocument<Change>
 
 @Schema({ timestamps: true })
 export class Change {
   @Prop({ type: MongooseSchema.Types.ObjectId }) // We cannot use FK anymore because assembly is deleted outside of transaction concept
-  assembly: MongooseSchema.Types.ObjectId
+  assembly: Types.ObjectId
 
   @Prop({ required: true })
   typeName: string
@@ -18,7 +22,7 @@ export class Change {
   changes: unknown // serialized change
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Change' })
-  reverts: Change
+  reverts: Types.ObjectId
 
   @Prop({ required: true, index: true })
   user: string

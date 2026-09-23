@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-base-to-string */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { checkRegistry } from '@apollo-annotation/common'
@@ -16,8 +15,7 @@ import {
 } from '@apollo-annotation/schemas'
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import type { ObjectId } from 'mongodb'
-import { Model } from 'mongoose'
+import { Model, Types } from 'mongoose'
 
 import type { FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
 import { RefSeqsService } from '../refSeqs/refSeqs.service.js'
@@ -53,16 +51,16 @@ export class ChecksService {
   }
 
   async getChecksForAssembly(featureDoc: FeatureDocument) {
-    const refSeqModel = featureDoc.$model<Model<RefSeqDocument>>(RefSeq.name)
+    const refSeqModel = featureDoc.$model(RefSeq.name) as Model<RefSeqDocument>
     const refSeqId = featureDoc.refSeq.toString()
     const refSeqDoc = await refSeqModel.findById(refSeqId).exec()
     if (!refSeqDoc) {
       throw new Error(`Could not find refSeq ${refSeqId}`)
     }
     const { assembly } = refSeqDoc
-    const assemblyModel = featureDoc.$model<Model<AssemblyDocument>>(
+    const assemblyModel = featureDoc.$model(
       Assembly.name,
-    )
+    ) as Model<AssemblyDocument>
     const assemblyDoc = await assemblyModel
       .findById(assembly)
       .populate('checks')
@@ -86,9 +84,9 @@ export class ChecksService {
     doc: FeatureDocument,
     checkTimestamps = true,
   ): Promise<void> {
-    const flatDoc: AnnotationFeatureSnapshot = doc.toObject({
+    const flatDoc = doc.toObject({
       flattenMaps: true,
-    })
+    }) as unknown as AnnotationFeatureSnapshot
     const checks = await this.getChecksForAssembly(doc)
     for (const check of checks) {
       if (checkTimestamps && doc.updatedAt && check.updatedAt < doc.updatedAt) {
@@ -144,7 +142,7 @@ export class ChecksService {
       .exec()
   }
 
-  async deleteChecks(checkIds: ObjectId[]) {
+  async deleteChecks(checkIds: Types.ObjectId[]) {
     return this.checkResultModel.deleteMany({ _id: { $in: checkIds } }).exec()
   }
 
@@ -182,7 +180,6 @@ export class ChecksService {
       refSeq: searchDto.refSeq,
       start: { $lte: searchDto.end },
       end: { $gte: searchDto.start },
-      status: 0,
     }
   }
 

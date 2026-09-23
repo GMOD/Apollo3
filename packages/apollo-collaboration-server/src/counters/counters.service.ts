@@ -18,7 +18,7 @@ export class CountersService {
       .findOneAndUpdate(
         { id: sequenceName },
         { $inc: { sequenceValue: 1 } },
-        { new: true, upsert: true },
+        { returnDocument: 'after', upsert: true },
       )
       .exec()
     if (!sequenceDocument) {
