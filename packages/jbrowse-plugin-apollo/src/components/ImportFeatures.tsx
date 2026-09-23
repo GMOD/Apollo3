@@ -8,7 +8,6 @@
 import { AddFeaturesFromFileChange } from '@apollo-annotation/shared'
 import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
-import type { JobInput } from '@jbrowse/plugin-jobs-management'
 import {
   Button,
   Checkbox,
@@ -28,7 +27,7 @@ import type {
   ApolloInternetAccount,
   CollaborationServerDriver,
 } from '../BackendDrivers'
-import type { ChangeManager } from '../ChangeManager'
+import type { ChangeManager, JobInput } from '../ChangeManager'
 import type { ApolloSessionModel } from '../session'
 import { createFetchErrorMessage } from '../util'
 

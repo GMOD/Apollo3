@@ -42,7 +42,7 @@ import {
   LoginFailedError,
 } from '../ApolloInternetAccount/loginErrors'
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import type ApolloPluginConfigurationSchema from '../config'
+import type { ApolloPluginConfigModel } from '../config'
 import { type ApolloRootModel, isApolloInternetAccount } from '../types'
 import { createFetchErrorMessage } from '../util'
 
@@ -172,9 +172,7 @@ export function extendSession(
         const { jbrowse } = getRoot<ApolloRootModel>(self)
         const pluginConfiguration =
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          jbrowse.configuration.ApolloPlugin as Instance<
-            typeof ApolloPluginConfigurationSchema
-          >
+          jbrowse.configuration.ApolloPlugin as ApolloPluginConfigModel
         return pluginConfiguration
       },
       broadcastLocations() {
@@ -315,17 +313,12 @@ export function extendSession(
               // snapshot after the updated config.json loads.
               const pluginConfiguration =
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                jbrowse.configuration.ApolloPlugin as Instance<
-                  typeof ApolloPluginConfigurationSchema
-                >
-              const hasRole = readConfObject(
-                pluginConfiguration,
-                'hasRole',
-              ) as boolean
+                jbrowse.configuration.ApolloPlugin as ApolloPluginConfigModel
+              const hasRole = readConfObject(pluginConfiguration, 'hasRole')
               const featureTypeOntologyName = readConfObject(
                 pluginConfiguration,
                 'featureTypeOntologyName',
-              ) as string
+              )
               const hasApolloInternetAccount = internetAccounts.some((ia) =>
                 isApolloInternetAccount(ia),
               )
@@ -354,7 +347,6 @@ export function extendSession(
                     readConfObject(ont, 'name') === featureTypeOntologyName,
                 )
                 if (!featureTypeOntology) {
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                   pluginConfiguration.addOntology({
                     name: 'Sequence Ontology',
                     version: '01c33c6d9b6c8dca12e7d3e37b49ee113093c2fa',
@@ -487,7 +479,7 @@ export function extendSession(
           ) {
             return superTrackActions?.(conf)
           }
-          const trackId = readConfObject(conf, 'trackId') as string
+          const trackId = readConfObject(conf, 'trackId')
           const sessionTrackIdentifier = '-sessionTrack'
           const isSessionTrack = trackId.endsWith(sessionTrackIdentifier)
           return isSessionTrack

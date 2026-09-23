@@ -7,11 +7,13 @@ import {
   validationRegistry,
 } from '@apollo-annotation/shared'
 import { getSession } from '@jbrowse/core/util'
-import type { JobInput } from '@jbrowse/plugin-jobs-management'
+import type { JobsListModel } from '@jbrowse/plugin-jobs-management'
 
 import type { ApolloSessionModel } from './session'
 import type { ClientDataStoreModel } from './session/ClientDataStore'
 import { changeHandlers, isLocalChange } from './session/changeHandlers'
+
+export type JobInput = Parameters<JobsListModel['addJob']>[0]
 
 export interface SubmitOpts {
   /** defaults to true */

@@ -87,7 +87,6 @@ export class LocalDriver extends BackendDriver {
     const type = pluginManager.getAdapterType(adapterConf.type)
     const CLASS = await type.getAdapterClass()
     const adapter = new CLASS(
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       adapterConf,
       undefined,
       pluginManager,
@@ -139,7 +138,7 @@ export class LocalDriver extends BackendDriver {
     const type = pluginManager.getAdapterType(refNameAliases.adapter.type)
     const CLASS = await type.getAdapterClass()
     const adapter = new CLASS(
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       refNameAliases.adapter,
       undefined,
       pluginManager,

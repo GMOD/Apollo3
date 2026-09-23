@@ -164,11 +164,12 @@ export function CreateApolloAnnotation({
   region,
 }: CreateApolloAnnotationProps) {
   const apolloSessionModel = session as unknown as ApolloSessionModel
-  const configuredSkippedAttributes = readConfObject(
-    apolloSessionModel.getPluginConfiguration(),
-    'skippedAttributesOnCopy',
-  ) as string[] | undefined
-  const skippedAttributesOnCopy = new Set(configuredSkippedAttributes ?? [])
+  const skippedAttributesOnCopy = new Set(
+    readConfObject(
+      apolloSessionModel.getPluginConfiguration(),
+      'skippedAttributesOnCopy',
+    ),
+  )
   const { featureTypeOntology } =
     apolloSessionModel.apolloDataStore.ontologyManager
   const childIds = useMemo(
