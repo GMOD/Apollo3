@@ -13,6 +13,8 @@ import { MicrosoftStrategy } from '../utils/strategies/microsoft.strategy.js'
 
 import { AuthenticationController } from './authentication.controller.js'
 import { AuthenticationService } from './authentication.service.js'
+import { IndexHtmlController } from './index-html.controller.js'
+import { LoginPageController } from './login-page.controller.js'
 
 interface JWTSecretConfig {
   JWT_SECRET?: string
@@ -43,7 +45,11 @@ async function jwtConfigFactory(
       inject: [ConfigService],
     }),
   ],
-  controllers: [AuthenticationController],
+  controllers: [
+    AuthenticationController,
+    LoginPageController,
+    IndexHtmlController,
+  ],
   providers: [
     AuthenticationService,
     JwtStrategy,

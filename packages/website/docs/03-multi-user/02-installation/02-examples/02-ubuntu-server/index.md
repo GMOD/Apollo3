@@ -142,36 +142,12 @@ And now install MongoDB
 sudo apt install -y mongodb-org
 ```
 
-Apollo requires MongoDB to be configured in a replica set configuration. You can
-have multiple replicas of your database, but in this example we'll use a single
-one. To configure this, we'll edit the file `/etc/mongod.conf`.
-
-```sh
-sudo nano /etc/mongod.conf
-```
-
-In the file where it says `# replication`, change it to
-
-```conf
-replication:
-  replSetName: rs0
-```
-
-Now we can start MongoDB by running
+A plain, default MongoDB configuration works for Apollo; no special setup (such
+as a replica set) is required. Start MongoDB by running
 
 ```sh
 sudo systemctl start mongod
 ```
-
-The last step is to initialize the replica set. To do this, run the command
-`mongosh` and in the shell that appears, run the command
-
-```js
-rs.initiate()
-```
-
-Then press <kbd>Ctrl</kbd> + <kbd>D</kbd> or run the `exit` command to exit the
-mongosh shell.
 
 ## Set up Apollo Collaboration Server
 
@@ -184,6 +160,15 @@ process (which we will set up shortly). It does this by inspecting the request
 and if the path starts with `apollo/` or is for `config.json`, it forwards the
 request to the Apollo Collaboration Server, otherwise it handles the request as
 a static file server.
+
+The root page (`/`) and `/index.html` are also forwarded to the Apollo
+Collaboration Server rather than served as static files. The server reads the
+real `index.html` off disk and returns it augmented with a small script that
+watches for a 401 response from the Apollo API and, when it sees one, does a
+full-page redirect to the login page (carrying along the current URL so the user
+is sent back to it once they've logged in). Every other static asset (the
+JBrowse JS/CSS bundles, `apollo.js`, `sequence_ontology.json`, etc.) is still
+served directly by apache2.
 
 To set this up, we first need to enable some mods on our apache2 server.
 
@@ -203,11 +188,27 @@ sudo nano /etc/apache2/sites-available/000-default.conf
 Add these lines near the bottom of the file, above the `</VirtualHost>` line.
 
 ```txt
-	ProxyPass "/config.json" "http://localhost:3999/jbrowse/config.json"
-	ProxyPassReverse "/config.json" "http://localhost:3999/jbrowse/config.json"
+	ProxyPassMatch "^/$" "http://localhost:3999/"
+	ProxyPassReverse "/" "http://localhost:3999/"
+	ProxyPassMatch "^/index\.html$" "http://localhost:3999/index.html"
+	ProxyPassReverse "/index.html" "http://localhost:3999/index.html"
+	ProxyPass "/config.json" "http://localhost:3999/config.json"
+	ProxyPassReverse "/config.json" "http://localhost:3999/config.json"
 	ProxyPassMatch "^/apollo/(.*)$" "http://localhost:3999/$1" upgrade=websocket connectiontimeout=3600 timeout=3600
 	ProxyPassReverse "/apollo/" "http://localhost:3999/"
 ```
+
+If you configure `JBROWSE_CONFIG_FILES` with more than one file (see "Serving
+multiple JBrowse configurations" in the [background docs](../../background)),
+add one more `ProxyPass`/ `ProxyPassReverse` pair per additional filename, each
+mapping that path to itself the same way, e.g.
+`ProxyPass "/config_mouse.json" "http://localhost:3999/config_mouse.json"`.
+
+Note that `/` and `/index.html` use `ProxyPassMatch` with an exact-match regex
+(`^/$` and `^/index\.html$`), not a prefix match — this is what keeps every
+other static asset path (`/static/js/...`, `/apollo.js`, etc.) being served
+directly by apache2 instead of being forwarded to the collaboration server,
+which doesn't have those files.
 
 Now we need to restart the apache2 server.
 
@@ -269,7 +270,7 @@ for your server, followed by `/apollo/`.
 ```env
 URL=<forwarded address>/apollo/
 NAME=My Apollo Instance
-MONGODB_URI=mongodb://localhost:27017/apolloDb?directConnection=true&replicaSet=rs0
+MONGODB_URI=mongodb://localhost:27017/apolloDb
 FILE_UPLOAD_FOLDER=/home/ubuntu/data/uploads
 JWT_SECRET=some-secret-value
 SESSION_SECRET=some-other-secret-value

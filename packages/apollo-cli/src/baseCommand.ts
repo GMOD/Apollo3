@@ -23,17 +23,16 @@ import type {
   AnnotationFeatureSnapshot,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
-import type {
-  SerializedAddAssemblyAndFeaturesFromFileChange,
-  SerializedAddAssemblyFromExternalChange,
-  SerializedAddAssemblyFromFileChange,
-  SerializedDeleteAssemblyChange,
-} from '@apollo-annotation/shared'
 
 interface AssemblyResponse {
   _id: string
   name: string
   aliases?: string[]
+}
+
+interface AssemblyIdEntry {
+  id: string
+  configId: string
 }
 
 export class CheckError extends Error {}
@@ -193,13 +192,28 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     return super.finally(_)
   }
 
-  async assemblyNameToIdDict(): Promise<Record<string, string | undefined>> {
-    const ja = (await this.get('assemblies')) as object[]
-    const nameToId: Record<string, string> = {}
+  /**
+   * Maps assembly name to every assembly with that name, since JBrowse only
+   * guarantees assembly names are unique within a single config file - two
+   * different config files (JBROWSE_CONFIG_FILES) can define same-named
+   * assemblies. `convertAssemblyNameToId` is responsible for refusing to
+   * resolve a name that maps to more than one entry.
+   */
+  async assemblyNameToIdDict(): Promise<
+    Record<string, AssemblyIdEntry[] | undefined>
+  > {
+    const ja = (await this.get('assemblies')) as {
+      name: string
+      _id: string
+      configId: string
+    }[]
+    const nameToEntries: Record<string, AssemblyIdEntry[] | undefined> = {}
     for (const x of ja) {
-      nameToId[x['name' as keyof typeof x]] = x['_id' as keyof typeof x]
+      const entries = nameToEntries[x.name] ?? []
+      entries.push({ id: x._id, configId: x.configId })
+      nameToEntries[x.name] = entries
     }
-    return nameToId
+    return nameToEntries
   }
 
   async convertAssemblyNameToId(
@@ -207,12 +221,25 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     verbose = true,
     removeDuplicates = true,
   ): Promise<string[]> {
-    const nameToId = await this.assemblyNameToIdDict()
+    const nameToEntries = await this.assemblyNameToIdDict()
+    const allIds = new Set(
+      Object.values(nameToEntries).flatMap(
+        (entries) => entries?.map((entry) => entry.id) ?? [],
+      ),
+    )
     let ids = []
     for (const x of namesOrIds) {
-      if (nameToId[x] !== undefined) {
-        ids.push(nameToId[x])
-      } else if (Object.values(nameToId).includes(x)) {
+      const entries = nameToEntries[x]
+      if (entries !== undefined) {
+        if (entries.length > 1) {
+          throw new CheckError(
+            `Assembly name "${x}" is ambiguous: it exists in multiple config files (${entries
+              .map((entry) => entry.configId)
+              .join(', ')}). Use the assembly id instead of the name.`,
+          )
+        }
+        ids.push(entries[0].id)
+      } else if (allIds.has(x)) {
         ids.push(x)
       } else if (verbose) {
         stderr.write(`Warning: Omitting unknown assembly: "${x}"\n`)
@@ -289,56 +316,6 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
 
   async getFeatureById(id: string): Promise<AnnotationFeatureSnapshot> {
     return this.get(`features/${id}`) as Promise<AnnotationFeatureSnapshot>
-  }
-
-  async deleteAssembly(assemblyId: string): Promise<void> {
-    const body: SerializedDeleteAssemblyChange = {
-      typeName: 'DeleteAssemblyChange',
-      assembly: assemblyId,
-    }
-    await this.post('changes', JSON.stringify(body))
-  }
-
-  async submitAssembly(
-    body:
-      | SerializedAddAssemblyFromFileChange
-      | SerializedAddAssemblyFromExternalChange
-      | SerializedAddAssemblyAndFeaturesFromFileChange,
-    force: boolean,
-  ): Promise<object> {
-    let assemblies = (await this.get('assemblies')) as {
-      name: string
-      _id: string
-    }[]
-    for (const x of assemblies) {
-      const addedAssemblies = 'changes' in body ? body.changes : [body]
-      for (const addedAssembly of addedAssemblies) {
-        if (x.name === addedAssembly.assemblyName) {
-          if (force) {
-            await this.deleteAssembly(x._id)
-          } else {
-            throw new Error(
-              `Error: Assembly "${addedAssembly.assemblyName}" already exists`,
-            )
-          }
-        }
-      }
-    }
-
-    await this.post('changes', JSON.stringify(body))
-    assemblies = (await this.get('assemblies')) as {
-      name: string
-      _id: string
-    }[]
-    for (const x of assemblies) {
-      const addedAssemblies = 'changes' in body ? body.changes : [body]
-      for (const addedAssembly of addedAssemblies) {
-        if (x.name === addedAssembly.assemblyName) {
-          return x
-        }
-      }
-    }
-    throw new Error(`Failed to retrieve assembly from ${body.assembly}`)
   }
 
   async checkNameToIdDict(): Promise<Record<string, string | undefined>> {

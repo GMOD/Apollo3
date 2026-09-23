@@ -6,7 +6,6 @@ export function getRequiredRoleForChange(changeName: string) {
       'AddAssemblyFromFileChange',
       'AddAssemblyAndFeaturesFromFileChange',
       'AddFeaturesFromFileChange',
-      'AddRefSeqAliasesChange',
       'DeleteAssemblyChange',
       'UserChange',
       'DeleteUserChange',

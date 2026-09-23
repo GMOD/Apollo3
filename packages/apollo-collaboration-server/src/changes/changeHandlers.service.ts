@@ -5,34 +5,21 @@ import {
   type AssemblyDocument,
   Change,
   type ChangeDocument,
-  Check,
-  type CheckDocument,
   Feature,
   type FeatureDocument,
   File,
   type FileDocument,
-  JBrowseConfig,
-  type JBrowseConfigDocument,
   RefSeq,
-  RefSeqChunk,
-  type RefSeqChunkDocument,
   type RefSeqDocument,
   User,
   type UserDocument,
 } from '@apollo-annotation/schemas'
 import {
-  AddAssemblyAliasesChange,
-  AddAssemblyAndFeaturesFromFileChange,
-  AddAssemblyFromExternalChange,
-  AddAssemblyFromFileChange,
   AddFeatureChange,
   AddFeaturesFromFileChange,
-  AddRefSeqAliasesChange,
-  DeleteAssemblyChange,
   DeleteFeatureChange,
   DeleteUserChange,
   FeatureAttributeChange,
-  ImportJBrowseConfigChange,
   LocationEndChange,
   LocationStartChange,
   MergeExonsChange,
@@ -46,17 +33,15 @@ import {
   UserChange,
   attributesToRecords,
   changes,
-  filterJBrowseConfig,
+  checkChildFeatureBoundaries,
   findAndDeleteChildFeature,
   gff3ToAnnotationFeature,
   stringifyAttributes,
 } from '@apollo-annotation/shared'
 import type { GFF3Feature } from '@gmod/gff'
-import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
 import { Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { RemoteFile } from 'generic-filehandle2'
-import { type ClientSession, Model } from 'mongoose'
+import { Model } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service.js'
 import { FilesService } from '../files/files.service.js'
@@ -66,7 +51,7 @@ import { PluginsService } from '../plugins/plugins.service.js'
 type ChangeHandlers = {
   [K in keyof typeof changes]: (
     change: InstanceType<(typeof changes)[K]>,
-    context: { session: ClientSession; user: string },
+    context: { user: string },
   ) => Promise<void>
 }
 
@@ -78,18 +63,12 @@ export class ChangeHandlersService implements ChangeHandlers {
     private readonly assemblyModel: Model<AssemblyDocument>,
     @InjectModel(RefSeq.name)
     private readonly refSeqModel: Model<RefSeqDocument>,
-    @InjectModel(RefSeqChunk.name)
-    private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
     @InjectModel(File.name)
     private readonly fileModel: Model<FileDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
-    @InjectModel(JBrowseConfig.name)
-    private readonly jbrowseConfigModel: Model<JBrowseConfigDocument>,
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
-    @InjectModel(Check.name)
-    private readonly checkModel: Model<CheckDocument>,
     private readonly filesService: FilesService,
     private readonly countersService: CountersService,
     private readonly pluginsService: PluginsService,
@@ -98,18 +77,12 @@ export class ChangeHandlersService implements ChangeHandlers {
 
   private readonly logger = new Logger(ChangeHandlersService.name)
 
-  async AddFeatureChange(
-    change: AddFeatureChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async AddFeatureChange(change: AddFeatureChange, context: { user: string }) {
     const { assemblyModel, featureModel, refSeqModel } = this
     const { assembly, changes } = change
-    const { session, user } = context
+    const { user } = context
 
-    const assemblyDoc = await assemblyModel
-      .findById(assembly)
-      .session(session)
-      .exec()
+    const assemblyDoc = await assemblyModel.findById(assembly).exec()
     if (!assemblyDoc) {
       const errMsg = `*** ERROR: Assembly with id "${assembly}" not found`
       this.logger.error(errMsg)
@@ -130,10 +103,7 @@ export class ChangeHandlersService implements ChangeHandlers {
       this.logger.debug(`change: ${JSON.stringify(c)}`)
       const { addedFeature, allIds, copyFeature, parentFeatureId } = c
       const { _id, refSeq } = addedFeature
-      const refSeqDoc = await refSeqModel
-        .findById(refSeq)
-        .session(session)
-        .exec()
+      const refSeqDoc = await refSeqModel.findById(refSeq).exec()
       if (!refSeqDoc) {
         throw new Error(
           `RefSeq was not found by assembly "${assembly}" and seq_id "${refSeq}" not found`,
@@ -144,18 +114,15 @@ export class ChangeHandlersService implements ChangeHandlers {
       if (copyFeature) {
         const indexedIds = change.getIndexedIds(addedFeature, idsToIndex)
         // Add into Mongo
-        const [newFeatureDoc] = await featureModel.create(
-          [
-            {
-              ...addedFeature,
-              allIds,
-              indexedIds,
-              status: -1,
-              user,
-            } as unknown as Partial<Feature>,
-          ],
-          { session },
-        )
+        const [newFeatureDoc] = await featureModel.create([
+          {
+            ...addedFeature,
+            allIds,
+            indexedIds,
+            status: -1,
+            user,
+          } as unknown as Partial<Feature>,
+        ])
         if (newFeatureDoc) {
           this.logger.debug(
             `Copied feature, docId "${newFeatureDoc.id}" to assembly "${assembly}"`,
@@ -168,7 +135,6 @@ export class ChangeHandlersService implements ChangeHandlers {
         if (parentFeatureId) {
           const topLevelFeature = await featureModel
             .findOne({ allIds: parentFeatureId })
-            .session(session)
             .exec()
           if (!topLevelFeature) {
             throw new Error(
@@ -195,17 +161,14 @@ export class ChangeHandlersService implements ChangeHandlers {
         } else {
           const childIds = change.getChildFeatureIds(addedFeature)
           const allIdsV2 = [_id, ...childIds]
-          const [newFeatureDoc] = await featureModel.create(
-            [
-              {
-                allIds: allIdsV2,
-                indexedIds,
-                status: 0,
-                ...addedFeature,
-              } as unknown as Partial<Feature>,
-            ],
-            { session },
-          )
+          const [newFeatureDoc] = await featureModel.create([
+            {
+              allIds: allIdsV2,
+              indexedIds,
+              status: 0,
+              ...addedFeature,
+            } as unknown as Partial<Feature>,
+          ])
           if (newFeatureDoc) {
             this.logger.verbose(`Added docId "${newFeatureDoc.id}"`)
           }
@@ -216,13 +179,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     this.logger.debug(`Added ${featureCnt} new feature(s) into database.`)
   }
 
-  async DeleteFeatureChange(
-    change: DeleteFeatureChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async DeleteFeatureChange(change: DeleteFeatureChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
 
     const { INDEXED_IDS } = process.env
     let idsToIndex: string[] | undefined
@@ -235,7 +194,6 @@ export class ChangeHandlersService implements ChangeHandlers {
 
       const featureDoc = await featureModel
         .findOne({ allIds: deletedFeature._id })
-        .session(session)
         .exec()
       if (!featureDoc) {
         const errMsg = `*** ERROR: The following featureId was not found in database ='${deletedFeature._id}'`
@@ -290,13 +248,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async FeatureAttributeChange(
-    change: FeatureAttributeChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async FeatureAttributeChange(change: FeatureAttributeChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
 
     const featuresForChanges: {
       feature: Feature
@@ -307,7 +261,6 @@ export class ChangeHandlersService implements ChangeHandlers {
 
       const topLevelFeature = await featureModel
         .findOne({ allIds: featureId })
-        .session(session)
         .exec()
 
       if (!topLevelFeature) {
@@ -365,13 +318,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async LocationEndChange(
-    change: LocationEndChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async LocationEndChange(change: LocationEndChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     const topLevelFeatures: FeatureDocument[] = []
     for (const c of changes) {
       const { featureId, oldEnd, newEnd } = c
@@ -389,7 +338,6 @@ export class ChangeHandlersService implements ChangeHandlers {
       if (!topLevelFeature) {
         topLevelFeature = await featureModel
           .findOne({ allIds: featureId })
-          .session(session)
           .exec()
         if (topLevelFeature) {
           topLevelFeatures.push(topLevelFeature)
@@ -424,6 +372,12 @@ export class ChangeHandlersService implements ChangeHandlers {
         topLevelFeature.markModified('children')
       }
     }
+    // Validate every mutated top-level document in-memory before saving any
+    // of them: there is no transaction to roll back a save that would later
+    // turn out to violate parent/child bounds.
+    for (const tlv of topLevelFeatures) {
+      checkChildFeatureBoundaries(tlv)
+    }
     for (const tlv of topLevelFeatures) {
       try {
         await tlv.save()
@@ -434,13 +388,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async LocationStartChange(
-    change: LocationStartChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async LocationStartChange(change: LocationStartChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     const topLevelFeatures: FeatureDocument[] = []
     for (const c of changes) {
       const { featureId, oldStart, newStart } = c
@@ -458,7 +408,6 @@ export class ChangeHandlersService implements ChangeHandlers {
       if (!topLevelFeature) {
         topLevelFeature = await featureModel
           .findOne({ allIds: featureId })
-          .session(session)
           .exec()
         if (topLevelFeature) {
           topLevelFeatures.push(topLevelFeature)
@@ -493,6 +442,10 @@ export class ChangeHandlersService implements ChangeHandlers {
         topLevelFeature.markModified('children')
       }
     }
+    // See LocationEndChange: validate all mutated documents before saving any.
+    for (const tlv of topLevelFeatures) {
+      checkChildFeatureBoundaries(tlv)
+    }
     for (const tlv of topLevelFeatures) {
       try {
         await tlv.save()
@@ -503,18 +456,13 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async MergeExonsChange(
-    change: MergeExonsChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async MergeExonsChange(change: MergeExonsChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     for (const c of changes) {
       const { firstExon, secondExon } = c
       const topLevelFeature = await featureModel
         .findOne({ allIds: firstExon._id })
-        .session(session)
         .exec()
       if (!topLevelFeature) {
         const errMsg = `*** ERROR: The following featureId was not found in database ='${firstExon._id}'`
@@ -553,18 +501,13 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async MergeTranscriptsChange(
-    change: MergeTranscriptsChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async MergeTranscriptsChange(change: MergeTranscriptsChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     for (const c of changes) {
       const { firstTranscript, secondTranscript } = c
       const topLevelFeature = await featureModel
         .findOne({ allIds: firstTranscript._id })
-        .session(session)
         .exec()
       if (!topLevelFeature) {
         const errMsg = `*** ERROR: The following featureId was not found in database ='${firstTranscript._id}'`
@@ -594,13 +537,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async SplitExonChange(
-    change: SplitExonChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async SplitExonChange(change: SplitExonChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     for (const c of changes) {
       const {
         exonToBeSplit,
@@ -612,7 +551,6 @@ export class ChangeHandlersService implements ChangeHandlers {
       } = c
       const topLevelFeature = await featureModel
         .findOne({ allIds: exonToBeSplit._id })
-        .session(session)
         .exec()
       if (!topLevelFeature) {
         const errMsg = `*** ERROR: The following featureId was not found in database ='${exonToBeSplit._id}'`
@@ -666,13 +604,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async StrandChange(
-    change: StrandChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async StrandChange(change: StrandChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     const featuresForChanges: {
       feature: Feature
       topLevelFeature: FeatureDocument
@@ -682,7 +616,6 @@ export class ChangeHandlersService implements ChangeHandlers {
 
       const topLevelFeature = await featureModel
         .findOne({ allIds: featureId })
-        .session(session)
         .exec()
 
       if (!topLevelFeature) {
@@ -732,13 +665,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async TypeChange(
-    change: TypeChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async TypeChange(change: TypeChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     const featuresForChanges: {
       feature: Feature
       topLevelFeature: FeatureDocument
@@ -748,7 +677,6 @@ export class ChangeHandlersService implements ChangeHandlers {
 
       const topLevelFeature = await featureModel
         .findOne({ allIds: featureId })
-        .session(session)
         .exec()
 
       if (!topLevelFeature) {
@@ -798,13 +726,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async UndoMergeExonsChange(
-    change: UndoMergeExonsChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async UndoMergeExonsChange(change: UndoMergeExonsChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     for (const c of changes) {
       const { exonsToRestore, parentFeatureId } = c
       if (exonsToRestore.length !== 2) {
@@ -814,7 +738,6 @@ export class ChangeHandlersService implements ChangeHandlers {
       }
       const topLevelFeature = await featureModel
         .findOne({ allIds: parentFeatureId })
-        .session(session)
         .exec()
       if (!topLevelFeature) {
         throw new Error(`Could not find feature with ID "${parentFeatureId}"`)
@@ -838,13 +761,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async UndoMergeTranscriptsChange(
-    change: UndoMergeTranscriptsChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async UndoMergeTranscriptsChange(change: UndoMergeTranscriptsChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     for (const c of changes) {
       const { transcriptsToRestore, parentFeatureId } = c
       if (transcriptsToRestore.length !== 2) {
@@ -854,7 +773,6 @@ export class ChangeHandlersService implements ChangeHandlers {
       }
       const topLevelFeature = await featureModel
         .findOne({ allIds: parentFeatureId })
-        .session(session)
         .exec()
       if (!topLevelFeature) {
         throw new Error(`Could not find feature with ID "${parentFeatureId}"`)
@@ -878,18 +796,13 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async UndoSplitExonChange(
-    change: UndoSplitExonChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async UndoSplitExonChange(change: UndoSplitExonChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     for (const c of changes) {
       const { exonToRestore, parentFeatureId, idsToDelete } = c
       const topLevelFeature = await featureModel
         .findOne({ allIds: parentFeatureId })
-        .session(session)
         .exec()
       if (!topLevelFeature) {
         throw new Error(`Could not find feature with ID "${parentFeatureId}"`)
@@ -917,7 +830,7 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  // ── private helpers (moved from FromFileBaseChange / AddAssemblyFromFileChange) ──
+  // ── private helpers ──
 
   private getIndexedIds(
     feature: AnnotationFeatureSnapshot | Feature,
@@ -956,141 +869,6 @@ export class ChangeHandlersService implements ChangeHandlers {
       }
     }
     return allIds
-  }
-
-  private async addRefSeqIntoDb(
-    fileDoc: FileDocument,
-    assembly: string,
-    user: string,
-  ): Promise<void> {
-    const { filesService, refSeqChunkModel, refSeqModel } = this
-    const { CHUNK_SIZE } = process.env
-    const customChunkSize = CHUNK_SIZE && Number(CHUNK_SIZE)
-    let chunkIndex = 0
-    let refSeqLen = 0
-    let refSeqDoc: RefSeqDocument | undefined
-    let fastaInfoStarted = fileDoc.type !== 'text/x-gff3'
-
-    const sequenceStream = filesService.getFileStream(fileDoc)
-    let sequenceBuffer = ''
-    let incompleteLine = ''
-    let lastLineIsIncomplete = true
-    let parsingStarted = false
-    this.logger.debug('starting sequence stream')
-    let lineCount = 0
-    const decoder = new TextDecoder()
-    for await (const data of sequenceStream) {
-      const chunk = decoder.decode(data)
-      lastLineIsIncomplete = !chunk.endsWith('\n')
-      const lines = chunk.split(/\r?\n/)
-      if (incompleteLine) {
-        lines[0] = `${incompleteLine}${lines[0]}`
-        incompleteLine = ''
-      }
-      if (lastLineIsIncomplete) {
-        incompleteLine = lines.pop() ?? ''
-      }
-      for (const line of lines) {
-        lineCount++
-        if (lineCount % 1_000_000 === 0) {
-          this.logger.debug(`Processed ${lineCount} lines`)
-        }
-        if (!fastaInfoStarted) {
-          if (line.trim() === '##FASTA') {
-            fastaInfoStarted = true
-          }
-          continue
-        }
-        const refSeqInfoLine = /^>\s*(\S+)\s*(.*)/.exec(line)
-        if (refSeqInfoLine) {
-          parsingStarted = true
-          this.logger.debug(
-            `Reference sequence information line "${refSeqInfoLine[0]}"`,
-          )
-          if (sequenceBuffer !== '') {
-            if (!refSeqDoc) {
-              throw new Error('No refSeq document found')
-            }
-            refSeqLen += sequenceBuffer.length
-            await refSeqChunkModel.create([
-              {
-                refSeq: refSeqDoc._id,
-                n: chunkIndex,
-                sequence: sequenceBuffer,
-                user,
-                status: -1,
-              },
-            ])
-            sequenceBuffer = ''
-          }
-          await refSeqDoc?.updateOne({ length: refSeqLen })
-          refSeqLen = 0
-          chunkIndex = 0
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const name = refSeqInfoLine[1]!.trim()
-          const description = refSeqInfoLine[2] ? refSeqInfoLine[2].trim() : ''
-          const [newRefSeqDoc] = await refSeqModel.create([
-            {
-              name,
-              description,
-              assembly,
-              length: 0,
-              ...(customChunkSize ? { chunkSize: customChunkSize } : null),
-              user,
-              status: -1,
-            },
-          ])
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          refSeqDoc = newRefSeqDoc!
-          this.logger.debug(
-            `Added new refSeq "${name}", desc "${description}", docId "${refSeqDoc._id.toString()}"`,
-          )
-        } else if (/\S/.test(line)) {
-          if (!refSeqDoc) {
-            throw new Error('No refSeq document found')
-          }
-          const { _id, chunkSize } = refSeqDoc
-          sequenceBuffer += line.replaceAll(/\s/g, '')
-          while (sequenceBuffer.length >= chunkSize) {
-            const sequence = sequenceBuffer.slice(0, chunkSize)
-            refSeqLen += sequence.length
-            await refSeqChunkModel.create([
-              { refSeq: _id, n: chunkIndex, sequence, user, status: -1 },
-            ])
-            chunkIndex++
-            sequenceBuffer = sequenceBuffer.slice(chunkSize)
-          }
-        }
-      }
-    }
-    if (!parsingStarted) {
-      throw new Error('No reference sequences found in file')
-    }
-    if (sequenceBuffer || lastLineIsIncomplete) {
-      if (!refSeqDoc) {
-        throw new Error('No refSeq document found')
-      }
-      if (lastLineIsIncomplete) {
-        sequenceBuffer += incompleteLine
-      }
-      refSeqLen += sequenceBuffer.length
-      this.logger.verbose(
-        `*** Add the very last chunk to ref seq ("${refSeqDoc._id.toString()}", index ${chunkIndex} and total length for ref seq is ${refSeqLen}): "${sequenceBuffer}"`,
-      )
-      this.logger.debug(
-        `Creating refSeq chunk number ${chunkIndex} of "${refSeqDoc._id.toString()}"`,
-      )
-      await refSeqChunkModel.create([
-        {
-          refSeq: refSeqDoc._id,
-          n: chunkIndex,
-          sequence: sequenceBuffer,
-          user,
-          status: -1,
-        },
-      ])
-      await refSeqDoc.updateOne({ length: refSeqLen })
-    }
   }
 
   private async removeExistingFeatures(assembly: string): Promise<void> {
@@ -1152,141 +930,10 @@ export class ChangeHandlersService implements ChangeHandlers {
     ])
   }
 
-  private async addAssemblyFromFileIndexed(
-    assembly: string,
-    assemblyName: string,
-    fileIds: { fa: string; fai: string; gzi: string },
-    user: string,
-  ): Promise<void> {
-    const { CHUNK_SIZE } = process.env
-    const customChunkSize = CHUNK_SIZE && Number(CHUNK_SIZE)
-    const { FILE_UPLOAD_FOLDER } = process.env
-    if (!FILE_UPLOAD_FOLDER) {
-      throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
-    }
-    const { assemblyModel, checkModel, fileModel, filesService, refSeqModel } =
-      this
-    const { fa: faId, fai: faiId, gzi: gziId } = fileIds
-    const faDoc = await fileModel.findById(faId)
-    if (!faDoc?.checksum) {
-      throw new Error(`No checksum for file document ${faDoc?.id}`)
-    }
-    const faiDoc = await fileModel.findById(faiId)
-    if (!faiDoc?.checksum) {
-      throw new Error(`No checksum for file document ${faiDoc?.id}`)
-    }
-    const gziDoc = await fileModel.findById(gziId)
-    if (!gziDoc?.checksum) {
-      throw new Error(`No checksum for file document ${gziDoc?.id}`)
-    }
-    const fasta = filesService.getFileHandle(faDoc)
-    const fai = filesService.getFileHandle(faiDoc)
-    const gzi = filesService.getFileHandle(gziDoc)
-    const sequenceAdapter = new BgzipIndexedFasta({ fasta, fai, gzi })
-    const allSequenceSizes = await sequenceAdapter.getSequenceSizes()
-    await Promise.all([fasta.close(), fai.close(), gzi.close()])
-    const assemblyDoc = await assemblyModel
-      .findOne({ name: assemblyName })
-      .exec()
-    if (assemblyDoc) {
-      throw new Error(`Assembly "${assemblyName}" already exists`)
-    }
-    const checkDocs = await checkModel.find({ isDefault: true }).exec()
-    const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
-    await assemblyModel.create([
-      { _id: assembly, name: assemblyName, user, status: -1, fileIds, checks },
-    ])
-    this.logger.debug(
-      `Added new assembly "${assemblyName}", docId "${assembly}"`,
-    )
-    for (const sequenceName in allSequenceSizes) {
-      const [newRefSeqDoc] = await refSeqModel.create([
-        {
-          name: sequenceName,
-          assembly,
-          length: allSequenceSizes[sequenceName],
-          ...(customChunkSize ? { chunkSize: customChunkSize } : null),
-          user,
-          status: -1,
-        },
-      ])
-      this.logger.debug(
-        `Added new refSeq "${sequenceName}", docId "${newRefSeqDoc?.id}"`,
-      )
-    }
-  }
-
-  private async addAssemblyFromFileFasta(
-    assembly: string,
-    assemblyName: string,
-    fileId: string,
-    user: string,
-  ): Promise<void> {
-    const { assemblyModel, checkModel, fileModel } = this
-    const fileDoc = await fileModel.findById(fileId).exec()
-    if (!fileDoc) {
-      throw new Error(`File "${fileId}" not found in Mongo`)
-    }
-    this.logger.debug(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
-    const assemblyDoc = await assemblyModel
-      .findOne({ name: assemblyName })
-      .exec()
-    if (assemblyDoc) {
-      throw new Error(`Assembly "${assemblyName}" already exists`)
-    }
-    const checkDocs = await checkModel.find({ isDefault: true }).exec()
-    const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
-    await assemblyModel.create([
-      {
-        _id: assembly,
-        name: assemblyName,
-        user,
-        status: -1,
-        fileIds: { fa: fileId },
-        checks,
-      },
-    ])
-    this.logger.debug(
-      `Added new assembly "${assemblyName}", docId "${assembly}"`,
-    )
-    this.logger.debug(`File type: "${fileDoc.type}", assemblyId: "${assembly}"`)
-    await this.addRefSeqIntoDb(fileDoc, assembly, user)
-  }
-
-  // ── handlers for non-feature changes ──
-
-  async DeleteAssemblyChange(
-    change: DeleteAssemblyChange,
-    _context: { session: ClientSession; user: string },
-  ) {
-    const { assemblyModel, featureModel, refSeqChunkModel, refSeqModel } = this
-    const { assembly } = change
-    const assemblyDoc = await assemblyModel.findById(assembly).exec()
-    if (!assemblyDoc) {
-      const errMsg = `*** ERROR: Assembly with id "${assembly}" not found`
-      this.logger.error(errMsg)
-      throw new Error(errMsg)
-    }
-    const refSeqs = await refSeqModel.find({ assembly }).exec()
-    const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
-    await refSeqChunkModel.deleteMany({ refSeq: refSeqIds }).exec()
-    await featureModel.deleteMany({ refSeq: refSeqIds }).exec()
-    await refSeqModel.deleteMany({ assembly }).exec()
-    await assemblyModel.findByIdAndDelete(assembly).exec()
-    this.logger.debug(`Assembly "${assembly}" deleted from database.`)
-  }
-
-  async DeleteUserChange(
-    change: DeleteUserChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async DeleteUserChange(change: DeleteUserChange) {
     const { userModel } = this
     const { userId } = change
-    const { session } = context
-    const user = await userModel
-      .findOneAndDelete({ _id: userId })
-      .session(session)
-      .exec()
+    const user = await userModel.findOneAndDelete({ _id: userId }).exec()
     if (!user) {
       const errMsg = `*** ERROR: User with id "${userId}" not found`
       this.logger.error(errMsg)
@@ -1294,20 +941,13 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async UserChange(
-    change: UserChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async UserChange(change: UserChange) {
     const { userModel } = this
     const { changes, userId } = change
-    const { session } = context
     for (const c of changes) {
       this.logger.debug(`change: ${JSON.stringify(changes)}`)
       const { role } = c
-      const user = await userModel
-        .findByIdAndUpdate(userId, { role })
-        .session(session)
-        .exec()
+      const user = await userModel.findByIdAndUpdate(userId, { role }).exec()
       if (!user) {
         const errMsg = `*** ERROR: User with id "${userId}" not found`
         this.logger.error(errMsg)
@@ -1316,227 +956,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async ImportJBrowseConfigChange(
-    change: ImportJBrowseConfigChange,
-    _context: { session: ClientSession; user: string },
-  ) {
-    const { jbrowseConfigModel } = this
-    const { newJBrowseConfig } = change
-    await jbrowseConfigModel.deleteMany()
-    if (!newJBrowseConfig) {
-      return
-    }
-    const filteredConfig = filterJBrowseConfig(newJBrowseConfig)
-    await jbrowseConfigModel.create(
-      filteredConfig as unknown as Record<string, unknown>,
-    )
-    this.logger.debug('Stored new JBrowse Config')
-  }
-
-  async AddRefSeqAliasesChange(
-    change: AddRefSeqAliasesChange,
-    context: { session: ClientSession; user: string },
-  ) {
-    const { refSeqModel } = this
-    const { assembly, refSeqAliases } = change
-    const { session } = context
-    for (const refSeqAlias of refSeqAliases) {
-      this.logger.debug(
-        `Updating Refname alias for assembly: ${assembly}, refSeqAlias: ${JSON.stringify(refSeqAlias)}`,
-      )
-      const { aliases, refName } = refSeqAlias
-      await refSeqModel
-        .updateOne({ assembly, name: refName }, { $set: { aliases } })
-        .session(session)
-    }
-  }
-
-  async AddAssemblyAliasesChange(
-    change: AddAssemblyAliasesChange,
-    _context: { session: ClientSession; user: string },
-  ) {
-    const { assemblyModel } = this
-    const { aliases, assembly } = change
-    this.logger.debug(
-      `Updating assembly aliases for assembly: ${assembly}, aliases: ${JSON.stringify(aliases)}`,
-    )
-    const asm = await assemblyModel.findById(assembly)
-    if (!asm) {
-      throw new Error(`Assembly with ID ${assembly} not found`)
-    }
-    asm.aliases = aliases
-    await asm.save()
-  }
-
-  async AddAssemblyFromExternalChange(
-    change: AddAssemblyFromExternalChange,
-    context: { session: ClientSession; user: string },
-  ) {
-    const { assemblyModel, checkModel, refSeqModel } = this
-    const { assembly, changes } = change
-    const { user } = context
-    const { CHUNK_SIZE } = process.env
-    const customChunkSize = CHUNK_SIZE && Number(CHUNK_SIZE)
-    for (const c of changes) {
-      const { assemblyName, externalLocation } = c
-      const { fa, fai, gzi } = externalLocation
-      const sequenceAdapter = gzi
-        ? new BgzipIndexedFasta({
-            fasta: new RemoteFile(fa, { fetch }),
-            fai: new RemoteFile(fai, { fetch }),
-            gzi: new RemoteFile(gzi, { fetch }),
-          })
-        : new IndexedFasta({
-            fasta: new RemoteFile(fa, { fetch }),
-            fai: new RemoteFile(fai, { fetch }),
-          })
-      const allSequenceSizes = await sequenceAdapter.getSequenceSizes()
-      if (!allSequenceSizes) {
-        throw new Error('No data read from indexed fasta getSequenceSizes')
-      }
-      const assemblyDoc = await assemblyModel
-        .findOne({ name: assemblyName })
-        .exec()
-      if (assemblyDoc) {
-        throw new Error(`Assembly "${assemblyName}" already exists`)
-      }
-      const checkDocs = await checkModel.find({ isDefault: true }).exec()
-      const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
-      await assemblyModel.create([
-        {
-          _id: assembly,
-          name: assemblyName,
-          user,
-          status: -1,
-          externalLocation,
-          checks,
-        },
-      ])
-      this.logger.debug(
-        `Added new assembly "${assemblyName}", docId "${assembly}"`,
-      )
-      for (const sequenceName in allSequenceSizes) {
-        const [newRefSeqDoc] = await refSeqModel.create([
-          {
-            name: sequenceName,
-            assembly,
-            length: allSequenceSizes[sequenceName],
-            ...(customChunkSize ? { chunkSize: customChunkSize } : null),
-            user,
-            status: -1,
-          },
-        ])
-        this.logger.debug(
-          `Added new refSeq "${sequenceName}", docId "${newRefSeqDoc?.id}"`,
-        )
-      }
-    }
-  }
-
-  async AddAssemblyFromFileChange(
-    change: AddAssemblyFromFileChange,
-    context: { session: ClientSession; user: string },
-  ) {
-    const { changes } = change
-    const { user } = context
-    for (const c of changes) {
-      const { assemblyName, fileIds } = c
-      await ('gzi' in fileIds
-        ? this.addAssemblyFromFileIndexed(
-            change.assembly,
-            assemblyName,
-            fileIds,
-            user,
-          )
-        : this.addAssemblyFromFileFasta(
-            change.assembly,
-            assemblyName,
-            fileIds.fa,
-            user,
-          ))
-    }
-  }
-
-  async AddAssemblyAndFeaturesFromFileChange(
-    change: AddAssemblyAndFeaturesFromFileChange,
-    context: { session: ClientSession; user: string },
-  ) {
-    const { assemblyModel, checkModel, fileModel, filesService } = this
-    const { assembly, changes } = change
-    const { user } = context
-    for (const c of changes) {
-      const { assemblyName, fileIds, parseOptions } = c
-      const fileId = fileIds.fa
-      const { FILE_UPLOAD_FOLDER } = process.env
-      if (!FILE_UPLOAD_FOLDER) {
-        throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
-      }
-      const fileDoc = await fileModel.findById(fileId).exec()
-      if (!fileDoc) {
-        throw new Error(`File "${fileId}" not found in Mongo`)
-      }
-      this.logger.debug(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
-      const assemblyDoc = await assemblyModel
-        .findOne({ name: assemblyName })
-        .exec()
-      if (assemblyDoc) {
-        throw new Error(`Assembly "${assemblyName}" already exists`)
-      }
-      const checkDocs = await checkModel.find({ isDefault: true }).exec()
-      const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
-      await assemblyModel.create([
-        {
-          _id: assembly,
-          name: assemblyName,
-          user,
-          status: -1,
-          fileId,
-          checks,
-        } as unknown as Partial<Assembly>,
-      ])
-      this.logger.debug(
-        `Added new assembly "${assemblyName}", docId "${assembly}"`,
-      )
-      this.logger.debug(`File type: "${fileDoc.type}"`)
-      await this.addRefSeqIntoDb(fileDoc, assembly, user)
-      const refSeqCache = new Map<string, RefSeqDocument>()
-      const bufferSize = parseOptions?.bufferSize ?? 10_000
-      const strict: boolean = parseOptions?.strict ?? true
-      const featureStream = filesService.parseGFF3(
-        filesService.getFileStream(fileDoc),
-        { bufferSize },
-      )
-      let featureCount = 0
-      let errorCount = 0
-      for await (const gff3Feature of featureStream) {
-        try {
-          await this.addFeatureIntoDb(gff3Feature, assembly, refSeqCache, user)
-        } catch (error) {
-          if (strict || featureCount === 0) {
-            throw error
-          }
-          if (errorCount <= 99) {
-            this.logger.warn('Error parsing feature')
-            this.logger.warn(String(error))
-            if (errorCount === 99) {
-              this.logger.warn(
-                'Reached 100 parsing errors, omitting further warnings from log',
-              )
-            }
-          }
-          errorCount++
-        }
-        featureCount++
-        if (featureCount % 1000 === 0) {
-          this.logger.debug(`Processed ${featureCount} features`)
-        }
-      }
-    }
-  }
-
   async AddFeaturesFromFileChange(
     change: AddFeaturesFromFileChange,
-    context: { session: ClientSession; user: string },
+    context: { user: string },
   ) {
     const { fileModel, filesService } = this
     const { assembly, changes, deleteExistingFeatures } = change

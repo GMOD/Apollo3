@@ -1,11 +1,16 @@
-import { JBrowseConfig } from '@apollo-annotation/schemas'
+import { Check } from '@apollo-annotation/schemas'
+import { jest } from '@jest/globals'
+import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { getModelToken } from '@nestjs/mongoose'
 import { Test, type TestingModule } from '@nestjs/testing'
 
 import { AssembliesService } from '../assemblies/assemblies.service.js'
 import { RefSeqsService } from '../refSeqs/refSeqs.service.js'
+import { Role } from '../utils/role/role.enum.js'
 
+import type { JBrowseFileConfig } from './jbrowseConfig.service.js'
+import { JBrowseConfigService } from './jbrowseConfig.service.js'
 import { JBrowseService } from './jbrowse.service.js'
 
 describe('JBrowseService', () => {
@@ -17,7 +22,8 @@ describe('JBrowseService', () => {
         JBrowseService,
         { provide: AssembliesService, useValue: {} },
         { provide: RefSeqsService, useValue: {} },
-        { provide: getModelToken(JBrowseConfig.name), useValue: {} },
+        { provide: JBrowseConfigService, useValue: {} },
+        { provide: getModelToken(Check.name), useValue: {} },
         { provide: ConfigService, useValue: {} },
       ],
     }).compile()
@@ -27,5 +33,476 @@ describe('JBrowseService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined()
+  })
+})
+
+interface StoredAssembly {
+  id: string
+  name: string
+  configId: string
+  _id: { toHexString: () => string }
+}
+
+function makeAssembly(
+  name: string,
+  configId = 'config.json',
+  id = name,
+): StoredAssembly {
+  return { id, name, configId, _id: { toHexString: () => id } }
+}
+
+async function createService(overrides: {
+  jbrowseConfigService?: Record<string, unknown>
+  assembliesService?: Record<string, unknown>
+  refSeqsService?: Record<string, unknown>
+  checkModel?: Record<string, unknown>
+  configService?: Record<string, unknown>
+}) {
+  const module: TestingModule = await Test.createTestingModule({
+    providers: [
+      JBrowseService,
+      {
+        provide: AssembliesService,
+        useValue: overrides.assembliesService ?? {},
+      },
+      { provide: RefSeqsService, useValue: overrides.refSeqsService ?? {} },
+      {
+        provide: JBrowseConfigService,
+        useValue: overrides.jbrowseConfigService ?? {},
+      },
+      {
+        provide: getModelToken(Check.name),
+        useValue: overrides.checkModel ?? {},
+      },
+      { provide: ConfigService, useValue: overrides.configService ?? {} },
+    ],
+  }).compile()
+  return module.get<JBrowseService>(JBrowseService)
+}
+
+describe('JBrowseService.onApplicationBootstrap', () => {
+  it('seeds assemblies from every configured config.json file', async () => {
+    // A bare `jest.fn()` already resolves to `undefined` when awaited, so
+    // there's no assembly with this (name, configId) pair yet as far as
+    // Mongo is concerned.
+    const findByNameAndConfig = jest.fn<(name: string) => undefined>()
+    const create = jest
+      .fn<
+        (input: { name: string; configId: string }) => Promise<StoredAssembly>
+      >()
+      .mockImplementation(({ configId, name }) =>
+        Promise.resolve(makeAssembly(name, configId)),
+      )
+    const findAll = jest.fn<() => Promise<StoredAssembly[]>>()
+    findAll.mockResolvedValue([])
+    const checkModel = { find: () => ({ exec: () => Promise.resolve([]) }) }
+    const sequenceAdapter = {
+      getSequenceSizes: () => Promise.resolve({ chr1: 100 }),
+    }
+    const readAllJBrowseFileConfigs =
+      jest.fn<() => Promise<Map<string, JBrowseFileConfig>>>()
+    readAllJBrowseFileConfigs.mockResolvedValue(
+      new Map([
+        ['config.json', { assemblies: [{ name: 'default-assembly' }] }],
+        ['config_mouse.json', { assemblies: [{ name: 'mouse-assembly' }] }],
+      ]) as Map<string, JBrowseFileConfig>,
+    )
+    const buildSequenceAdapter = jest.fn<() => typeof sequenceAdapter>()
+    buildSequenceAdapter.mockReturnValue(sequenceAdapter)
+    const refSeqsCreate =
+      jest.fn<(input: { name: string }) => Promise<{ id: string }>>()
+    refSeqsCreate.mockResolvedValue({ id: 'refseq-1' })
+
+    const service = await createService({
+      jbrowseConfigService: { readAllJBrowseFileConfigs, buildSequenceAdapter },
+      assembliesService: { findByNameAndConfig, create, findAll },
+      refSeqsService: { create: refSeqsCreate },
+      checkModel,
+    })
+
+    await service.onApplicationBootstrap()
+
+    expect(create).toHaveBeenCalledTimes(2)
+    expect(
+      create.mock.calls.map((call) => [call[0].name, call[0].configId]),
+    ).toEqual([
+      ['default-assembly', 'config.json'],
+      ['mouse-assembly', 'config_mouse.json'],
+    ])
+  })
+
+  it('does not re-add an assembly for a config file it was already seeded from', async () => {
+    const findByNameAndConfig =
+      jest.fn<
+        (
+          name: string,
+          configId: string,
+        ) => Promise<{ name: string } | undefined>
+      >()
+    findByNameAndConfig.mockImplementation((name, configId) =>
+      Promise.resolve(
+        name === 'default-assembly' && configId === 'config.json'
+          ? { name }
+          : undefined,
+      ),
+    )
+    const create =
+      jest.fn<(input: { name: string }) => Promise<StoredAssembly>>()
+    const findAll = jest.fn<() => Promise<StoredAssembly[]>>()
+    findAll.mockResolvedValue([])
+    const readAllJBrowseFileConfigs =
+      jest.fn<() => Promise<Map<string, JBrowseFileConfig>>>()
+    readAllJBrowseFileConfigs.mockResolvedValue(
+      new Map([
+        ['config.json', { assemblies: [{ name: 'default-assembly' }] }],
+      ]) as Map<string, JBrowseFileConfig>,
+    )
+
+    const service = await createService({
+      jbrowseConfigService: { readAllJBrowseFileConfigs },
+      assembliesService: { findByNameAndConfig, create, findAll },
+    })
+
+    await service.onApplicationBootstrap()
+
+    expect(create).not.toHaveBeenCalled()
+  })
+
+  it('creates a separate assembly for each config file, even when the assembly names collide', async () => {
+    const findByNameAndConfig = jest.fn<(name: string) => undefined>()
+    const create = jest
+      .fn<
+        (input: { name: string; configId: string }) => Promise<StoredAssembly>
+      >()
+      .mockImplementation(({ configId, name }) =>
+        Promise.resolve(makeAssembly(name, configId)),
+      )
+    const findAll = jest.fn<() => Promise<StoredAssembly[]>>()
+    findAll.mockResolvedValue([])
+    const checkModel = { find: () => ({ exec: () => Promise.resolve([]) }) }
+    const sequenceAdapter = {
+      getSequenceSizes: () => Promise.resolve({ chr1: 100 }),
+    }
+    const readAllJBrowseFileConfigs =
+      jest.fn<() => Promise<Map<string, JBrowseFileConfig>>>()
+    readAllJBrowseFileConfigs.mockResolvedValue(
+      new Map([
+        ['config.json', { assemblies: [{ name: 'shared-assembly' }] }],
+        ['config_other.json', { assemblies: [{ name: 'shared-assembly' }] }],
+      ]) as Map<string, JBrowseFileConfig>,
+    )
+    const buildSequenceAdapter = jest.fn<() => typeof sequenceAdapter>()
+    buildSequenceAdapter.mockReturnValue(sequenceAdapter)
+    const refSeqsCreate =
+      jest.fn<(input: { name: string }) => Promise<{ id: string }>>()
+    refSeqsCreate.mockResolvedValue({ id: 'refseq-1' })
+
+    const service = await createService({
+      jbrowseConfigService: { readAllJBrowseFileConfigs, buildSequenceAdapter },
+      assembliesService: { findByNameAndConfig, create, findAll },
+      refSeqsService: { create: refSeqsCreate },
+      checkModel,
+    })
+
+    await service.onApplicationBootstrap()
+
+    expect(create).toHaveBeenCalledTimes(2)
+    expect(
+      create.mock.calls.map((call) => [call[0].name, call[0].configId]),
+    ).toEqual([
+      ['shared-assembly', 'config.json'],
+      ['shared-assembly', 'config_other.json'],
+    ])
+  })
+
+  it('warns about a stored assembly missing from every configured file, but not one present in a non-default file', async () => {
+    const warn = jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => {
+      /* suppress log output in the test run */
+    })
+    const findByNameAndConfig =
+      jest.fn<(name: string) => Promise<{ name: string }>>()
+    findByNameAndConfig.mockResolvedValue({ name: 'default-assembly' })
+    const findAll = jest.fn<() => Promise<StoredAssembly[]>>()
+    findAll.mockResolvedValue([
+      makeAssembly('default-assembly', 'config.json'),
+      makeAssembly('mouse-assembly', 'config_mouse.json'),
+      makeAssembly('orphaned-assembly', 'config.json'),
+    ])
+    const readAllJBrowseFileConfigs =
+      jest.fn<() => Promise<Map<string, JBrowseFileConfig>>>()
+    readAllJBrowseFileConfigs.mockResolvedValue(
+      new Map([
+        ['config.json', { assemblies: [{ name: 'default-assembly' }] }],
+        ['config_mouse.json', { assemblies: [{ name: 'mouse-assembly' }] }],
+      ]) as Map<string, JBrowseFileConfig>,
+    )
+
+    const service = await createService({
+      jbrowseConfigService: { readAllJBrowseFileConfigs },
+      assembliesService: { findByNameAndConfig, create: jest.fn(), findAll },
+    })
+
+    await service.onApplicationBootstrap()
+
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('orphaned-assembly'),
+    )
+    warn.mockRestore()
+  })
+
+  it('warns about an assembly stored under the wrong configId, even if the same name exists in the right file', async () => {
+    const warn = jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => {
+      /* suppress log output in the test run */
+    })
+    const findByNameAndConfig = jest.fn<(name: string) => undefined>()
+    const create = jest
+      .fn<
+        (input: { name: string; configId: string }) => Promise<StoredAssembly>
+      >()
+      .mockImplementation(({ configId, name }) =>
+        Promise.resolve(makeAssembly(name, configId)),
+      )
+    const findAll = jest.fn<() => Promise<StoredAssembly[]>>()
+    findAll.mockResolvedValue([
+      // Stored under "config_mouse.json" but the current configs only
+      // define "shared-assembly" under "config.json" - this must still be
+      // flagged as orphaned even though the bare name matches.
+      makeAssembly('shared-assembly', 'config_mouse.json'),
+    ])
+    const checkModel = { find: () => ({ exec: () => Promise.resolve([]) }) }
+    const sequenceAdapter = {
+      getSequenceSizes: () => Promise.resolve({ chr1: 100 }),
+    }
+    const buildSequenceAdapter = jest.fn<() => typeof sequenceAdapter>()
+    buildSequenceAdapter.mockReturnValue(sequenceAdapter)
+    const refSeqsCreate =
+      jest.fn<(input: { name: string }) => Promise<{ id: string }>>()
+    refSeqsCreate.mockResolvedValue({ id: 'refseq-1' })
+    const readAllJBrowseFileConfigs =
+      jest.fn<() => Promise<Map<string, JBrowseFileConfig>>>()
+    readAllJBrowseFileConfigs.mockResolvedValue(
+      new Map([
+        ['config.json', { assemblies: [{ name: 'shared-assembly' }] }],
+      ]) as Map<string, JBrowseFileConfig>,
+    )
+
+    const service = await createService({
+      jbrowseConfigService: { readAllJBrowseFileConfigs, buildSequenceAdapter },
+      assembliesService: { findByNameAndConfig, create, findAll },
+      refSeqsService: { create: refSeqsCreate },
+      checkModel,
+    })
+
+    await service.onApplicationBootstrap()
+
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('shared-assembly'),
+    )
+    warn.mockRestore()
+  })
+})
+
+describe('JBrowseService.getConfig / getTracks scoping', () => {
+  it('scopes tracks to the given config file name', async () => {
+    const readJBrowseFileConfig =
+      jest.fn<(fileName?: string) => Promise<JBrowseFileConfig>>()
+    readJBrowseFileConfig.mockResolvedValue({
+      assemblies: [
+        {
+          name: 'mouse-assembly',
+          sequence: { adapter: { type: 'FromConfigSequenceAdapter' } },
+        },
+      ],
+    } as JBrowseFileConfig)
+    const findAll = jest.fn<() => Promise<StoredAssembly[]>>()
+    findAll.mockResolvedValue([
+      makeAssembly('default-assembly', 'config.json'),
+      makeAssembly('mouse-assembly', 'config_mouse.json'),
+    ])
+
+    const service = await createService({
+      jbrowseConfigService: { readJBrowseFileConfig },
+      assembliesService: { findAll },
+      configService: {
+        get: (key: string) =>
+          key === 'URL' ? 'http://localhost:3999' : undefined,
+      },
+    })
+
+    const result = await service.getConfig(
+      { id: 'user-1', iat: 0, role: Role.Admin },
+      'config_mouse.json',
+    )
+
+    expect(readJBrowseFileConfig).toHaveBeenCalledWith('config_mouse.json')
+    const { tracks } = result as {
+      tracks: { trackId: string; assemblyNames: string[] }[]
+    }
+    expect(tracks).toHaveLength(1)
+    expect(tracks[0]?.trackId).toBe('apollo_track_mouse-assembly')
+    expect(tracks[0]?.assemblyNames).toEqual(['mouse-assembly'])
+  })
+
+  it('excludes an assembly from another config file even when its name matches', async () => {
+    const readJBrowseFileConfig =
+      jest.fn<(fileName?: string) => Promise<JBrowseFileConfig>>()
+    readJBrowseFileConfig.mockResolvedValue({
+      assemblies: [
+        {
+          name: 'shared-assembly',
+          sequence: { adapter: { type: 'FromConfigSequenceAdapter' } },
+        },
+      ],
+    } as JBrowseFileConfig)
+    const findAll = jest.fn<() => Promise<StoredAssembly[]>>()
+    findAll.mockResolvedValue([
+      // Same name, but seeded from a different config file - must not be
+      // pulled into config.json's session.
+      makeAssembly('shared-assembly', 'config_other.json', 'other-id'),
+      makeAssembly('shared-assembly', 'config.json', 'this-id'),
+    ])
+
+    const service = await createService({
+      jbrowseConfigService: { readJBrowseFileConfig },
+      assembliesService: { findAll },
+      configService: {
+        get: (key: string) =>
+          key === 'URL' ? 'http://localhost:3999' : undefined,
+      },
+    })
+
+    const result = await service.getConfig(
+      { id: 'user-1', iat: 0, role: Role.Admin },
+      'config.json',
+    )
+
+    const { tracks } = result as {
+      tracks: { trackId: string; assemblyNames: string[] }[]
+    }
+    expect(tracks).toHaveLength(1)
+    expect(tracks[0]?.trackId).toBe('apollo_track_this-id')
+    expect(tracks[0]?.assemblyNames).toEqual(['shared-assembly'])
+  })
+
+  it('produces the same output as before for the single default file', async () => {
+    const readJBrowseFileConfig =
+      jest.fn<(fileName?: string) => Promise<JBrowseFileConfig>>()
+    readJBrowseFileConfig.mockResolvedValue({
+      assemblies: [
+        {
+          name: 'default-assembly',
+          sequence: { adapter: { type: 'FromConfigSequenceAdapter' } },
+        },
+      ],
+    } as JBrowseFileConfig)
+    const findAll = jest.fn<() => Promise<StoredAssembly[]>>()
+    findAll.mockResolvedValue([makeAssembly('default-assembly')])
+
+    const service = await createService({
+      jbrowseConfigService: { readJBrowseFileConfig },
+      assembliesService: { findAll },
+      configService: {
+        get: (key: string) =>
+          key === 'URL' ? 'http://localhost:3999' : undefined,
+      },
+    })
+
+    const result = await service.getConfig(
+      { id: 'user-1', iat: 0, role: Role.Admin },
+      'config.json',
+    )
+
+    const { tracks } = result as {
+      tracks: { trackId: string; assemblyNames: string[] }[]
+    }
+    expect(tracks).toHaveLength(1)
+    expect(tracks[0]?.trackId).toBe('apollo_track_default-assembly')
+    expect(tracks[0]?.assemblyNames).toEqual(['default-assembly'])
+  })
+})
+
+describe('JBrowseService.getConfig assembly metadata', () => {
+  it("embeds the assembly's real backend id in sequence.metadata without changing name", async () => {
+    const readJBrowseFileConfig =
+      jest.fn<(fileName?: string) => Promise<JBrowseFileConfig>>()
+    readJBrowseFileConfig.mockResolvedValue({
+      assemblies: [
+        {
+          name: 'default-assembly',
+          sequence: { adapter: { type: 'FromConfigSequenceAdapter' } },
+        },
+      ],
+    } as JBrowseFileConfig)
+    const findAll = jest.fn<() => Promise<StoredAssembly[]>>()
+    findAll.mockResolvedValue([
+      makeAssembly('default-assembly', 'config.json', 'the-real-id'),
+    ])
+
+    const service = await createService({
+      jbrowseConfigService: { readJBrowseFileConfig },
+      assembliesService: { findAll },
+      configService: {
+        get: (key: string) =>
+          key === 'URL' ? 'http://localhost:3999' : undefined,
+      },
+    })
+
+    const result = await service.getConfig(
+      { id: 'user-1', iat: 0, role: Role.Admin },
+      'config.json',
+    )
+
+    const { assemblies } = result as {
+      assemblies: {
+        name: string
+        sequence: { metadata?: { apollo?: boolean; apolloId?: string } }
+      }[]
+    }
+    expect(assemblies).toHaveLength(1)
+    expect(assemblies[0]?.name).toBe('default-assembly')
+    expect(assemblies[0]?.sequence.metadata).toEqual({
+      apollo: true,
+      apolloId: 'the-real-id',
+    })
+  })
+
+  it('does not cross-contaminate metadata between config files with same-named assemblies', async () => {
+    const readJBrowseFileConfig =
+      jest.fn<(fileName?: string) => Promise<JBrowseFileConfig>>()
+    readJBrowseFileConfig.mockResolvedValue({
+      assemblies: [
+        {
+          name: 'shared-assembly',
+          sequence: { adapter: { type: 'FromConfigSequenceAdapter' } },
+        },
+      ],
+    } as JBrowseFileConfig)
+    const findAll = jest.fn<() => Promise<StoredAssembly[]>>()
+    findAll.mockResolvedValue([
+      makeAssembly('shared-assembly', 'config_other.json', 'other-id'),
+      makeAssembly('shared-assembly', 'config.json', 'this-id'),
+    ])
+
+    const service = await createService({
+      jbrowseConfigService: { readJBrowseFileConfig },
+      assembliesService: { findAll },
+      configService: {
+        get: (key: string) =>
+          key === 'URL' ? 'http://localhost:3999' : undefined,
+      },
+    })
+
+    const result = await service.getConfig(
+      { id: 'user-1', iat: 0, role: Role.Admin },
+      'config.json',
+    )
+
+    const { assemblies } = result as {
+      assemblies: { sequence: { metadata?: { apolloId?: string } } }[]
+    }
+    expect(assemblies).toHaveLength(1)
+    expect(assemblies[0]?.sequence.metadata?.apolloId).toBe('this-id')
   })
 })

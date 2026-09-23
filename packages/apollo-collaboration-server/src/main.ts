@@ -3,12 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import fs from 'node:fs'
 
-import {
-  type Check,
-  changeRegistry,
-  checkRegistry,
-} from '@apollo-annotation/common'
-import { CheckSchema } from '@apollo-annotation/schemas'
+import { changeRegistry, checkRegistry } from '@apollo-annotation/common'
 import {
   CDSCheck,
   CoreValidation,
@@ -20,9 +15,9 @@ import {
 import type { LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import connectMongoDBSession from 'connect-mongodb-session'
+import cookieParser from 'cookie-parser'
 import { json, urlencoded } from 'express'
 import session from 'express-session'
-import mongoose from 'mongoose'
 
 import { AppModule } from './app.module.js'
 import { GlobalExceptionsFilter } from './global-exceptions.filter.js'
@@ -94,6 +89,7 @@ async function bootstrap() {
 
   app.use(json({ limit: '50mb' }))
   app.use(urlencoded({ extended: true, limit: '50mb' }))
+  app.use(cookieParser())
 
   app.use(
     session({
@@ -111,26 +107,6 @@ async function bootstrap() {
   server.headersTimeout = 24 * 60 * 60 * 1000 // one day
   server.requestTimeout = 24 * 60 * 60 * 1000 // one day
 
-  // Add/update checks if needed
-  const checksMap: Map<string, Check> = checkRegistry.getChecks()
-  await mongoose.connect(mongodbURI, {})
-  const ChecksModel = mongoose.model('checks', CheckSchema)
-  for (const [key, check] of checksMap.entries()) {
-    const checkByName = await ChecksModel.find({ name: key }).exec()
-    const firstCheck = checkByName.at(0)
-    if (firstCheck) {
-      const checkByNameAndVersion = await ChecksModel.find({
-        name: key,
-        version: check.version,
-      }).exec()
-      if (checkByNameAndVersion.length === 0) {
-        firstCheck.version = check.version
-        await firstCheck.save()
-      }
-    } else {
-      await ChecksModel.create(check)
-    }
-  }
   // eslint-disable-next-line no-console
   console.log(
     `Application is running on: ${await app.getUrl()}, CORS = ${cors}`,

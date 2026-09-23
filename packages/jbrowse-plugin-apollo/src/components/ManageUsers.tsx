@@ -4,16 +4,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { DeleteUserChange, UserChange } from '@apollo-annotation/shared'
-import { getRoot } from '@jbrowse/mobx-state-tree'
+import { readConfObject } from '@jbrowse/core/configuration'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Button,
   DialogActions,
   DialogContent,
   DialogContentText,
-  MenuItem,
-  Select,
-  type SelectChangeEvent,
 } from '@mui/material'
 import {
   DataGrid,
@@ -26,10 +23,8 @@ import {
 } from '@mui/x-data-grid'
 import React, { useEffect, useState } from 'react'
 
-import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import type { ChangeManager } from '../ChangeManager'
 import type { ApolloSessionModel } from '../session'
-import { type ApolloRootModel, isApolloInternetAccount } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import { Dialog } from './Dialog'
@@ -52,28 +47,13 @@ export function ManageUsers({
   handleClose,
   session,
 }: ManageUsersProps) {
-  const { internetAccounts } = getRoot<ApolloRootModel>(session)
-  const apolloInternetAccounts: ApolloInternetAccountModel[] = internetAccounts
-    .filter((ia) => isApolloInternetAccount(ia))
-    .filter((ia) => ia.role?.includes('admin'))
-  if (apolloInternetAccounts.length === 0) {
-    throw new Error('No Apollo internet account found')
-  }
   const [errorMessage, setErrorMessage] = useState('')
-  const [selectedInternetAccount, setSelectedInternetAccount] = useState(
-    apolloInternetAccounts[0],
-  )
   const [users, setUsers] = useState<UserResponse[]>([])
 
   useEffect(() => {
     async function getUsers() {
-      const { baseURL } = selectedInternetAccount
-      const uri = new URL('users', baseURL).href
-      const apolloFetch = selectedInternetAccount.getFetcher({
-        locationType: 'UriLocation',
-        uri,
-      })
-      const response = await apolloFetch(uri, { method: 'GET' })
+      const uri = new URL('users', globalThis.location.href).href
+      const response = await fetch(uri, { method: 'GET' })
       if (!response.ok) {
         const newErrorMessage = await createFetchErrorMessage(
           response,
@@ -88,24 +68,20 @@ export function ManageUsers({
     getUsers().catch((error) => {
       setErrorMessage(String(error))
     })
-  }, [selectedInternetAccount])
+  }, [])
 
   async function deleteUser(id: GridRowId) {
     const change = new DeleteUserChange({
       typeName: 'DeleteUserChange',
       userId: id as string,
     })
-    await changeManager.submit(change, {
-      internetAccountId: selectedInternetAccount.internetAccountId,
-    })
+    await changeManager.submit(change)
     setUsers((prevUsers) => prevUsers.filter((row) => row._id !== id))
   }
 
   function isCurrentUser(id: GridRowId) {
-    if (id === selectedInternetAccount.getUserId()) {
-      return true
-    }
-    return false
+    const userId = readConfObject(session.getPluginConfiguration(), 'userId')
+    return id === userId
   }
 
   const gridColumns: GridColDef[] = [
@@ -157,27 +133,13 @@ export function ManageUsers({
     },
   ]
 
-  function handleChangeInternetAccount(e: SelectChangeEvent) {
-    const newlySelectedInternetAccount = apolloInternetAccounts.find(
-      (ia) => ia.internetAccountId === e.target.value,
-    )
-    if (!newlySelectedInternetAccount) {
-      throw new Error(
-        `Could not find internetAccount with ID "${e.target.value}"`,
-      )
-    }
-    setSelectedInternetAccount(newlySelectedInternetAccount)
-  }
-
   async function processRowUpdate(newRow: GridRowModel) {
     const change = new UserChange({
       typeName: 'UserChange',
       role: newRow.role,
       userId: newRow._id,
     })
-    await changeManager.submit(change, {
-      internetAccountId: selectedInternetAccount.internetAccountId,
-    })
+    await changeManager.submit(change)
     return newRow
   }
 
@@ -190,22 +152,6 @@ export function ManageUsers({
       data-testid="manage-users"
     >
       <DialogContent>
-        {apolloInternetAccounts.length > 1 ? (
-          <>
-            <DialogContentText>Select account</DialogContentText>
-            <Select
-              value={selectedInternetAccount.internetAccountId}
-              onChange={handleChangeInternetAccount}
-              disabled={!errorMessage}
-            >
-              {internetAccounts.map((option) => (
-                <MenuItem key={option.id} value={option.internetAccountId}>
-                  {option.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </>
-        ) : null}
         <div style={{ height: '100%', width: '100%' }}>
           <DataGrid
             pagination

@@ -4,10 +4,15 @@ describe('Simple tests for visuals', () => {
     cy.loginAsGuest()
   })
   afterEach(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
   })
   it('Shows correct gene model', () => {
-    cy.addAssemblyFromGff('so_types.gff3', 'test_data/so_types.gff3')
+    cy.importFeatures(
+      'test_data/so_types.gff3',
+      'so_types.gff3',
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
     cy.selectAssemblyToView('so_types.gff3')
     cy.get('body').then(($body) => {
       if ($body.find('button[aria-label="Close drawer"]').length > 0) {
@@ -25,7 +30,12 @@ describe('Simple tests for visuals', () => {
     })
   })
   it('Shows different glyph types', () => {
-    cy.addAssemblyFromGff('glyph_types.gff3', 'test_data/glyph_types.gff3')
+    cy.importFeatures(
+      'test_data/glyph_types.gff3',
+      'glyph_types.gff3',
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
     cy.selectAssemblyToView('glyph_types.gff3')
     cy.contains('Open track selector').click()
     cy.contains('Reference sequence (').click()
@@ -72,7 +82,12 @@ describe('Simple tests for visuals', () => {
     })
   })
   it('Resizes a track by dragging its bottom resize handle', () => {
-    cy.addAssemblyFromGff('so_types.gff3', 'test_data/so_types.gff3')
+    cy.importFeatures(
+      'test_data/so_types.gff3',
+      'so_types.gff3',
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
     cy.selectAssemblyToView('so_types.gff3')
     cy.contains('Open track selector').click()
     cy.contains('Reference sequence (').click()

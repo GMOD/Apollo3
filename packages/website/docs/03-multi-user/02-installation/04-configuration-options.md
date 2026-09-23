@@ -64,6 +64,16 @@ MICROSOFT_CLIENT_SECRET=client_secret_here
 # Defaults to relative URL 'sequence_ontology.json'
 # FEATURE_TYPE_ONTOLOGY_LOCATION=sequence_ontology.json
 
+# Comma-separated list of JBrowse config.json filenames this server can
+# serve (resolved from JBROWSE_DIR, or JBROWSE_DEV_SERVER_URL, the same
+# way the default config.json is), for hosting multiple JBrowse
+# configurations - e.g. one per organism - from a single collaboration
+# server. Each listed file is served, augmented, at its own literal path -
+# e.g. with the example below, both /config.json and /config_mouse.json
+# are augmented, with no extra query param needed to select one.
+# Defaults to config.json
+# JBROWSE_CONFIG_FILES=config.json,config_mouse.json,config_human.json
+
 # Comma-separated list of attributes in features to treat as ids
 # These will be added to feature documents' "indexedIds"
 # Defaults to gff_id
@@ -79,9 +89,6 @@ MICROSOFT_CLIENT_SECRET=client_secret_here
 # Possible values are: error, warn, log, debug, verbose.
 # Defaults to error,warn,log
 # LOG_LEVELS=error,warn,log
-
-# Reference sequence chunk size, defaults to 262144 (256 KiB)
-# CHUNK_SIZE=262144
 
 # Default new user role, possible values are admin, user, readOnly, and none
 # Defaults to none

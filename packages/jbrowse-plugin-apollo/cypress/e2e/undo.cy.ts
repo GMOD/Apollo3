@@ -4,12 +4,20 @@ describe('Undo edits', () => {
   })
 
   afterEach(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
   })
 
   it('Undo chain of edits', () => {
     const assemblyName = 'onegene.fasta.gff3'
-    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
+    cy.importFeatures(
+      `test_data/${assemblyName}`,
+      assemblyName,
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
+    // A fresh reload clears the in-memory undo stack, so the import itself
+    // isn't counted as an undoable change alongside the test's own edits.
+    cy.reload()
     cy.selectAssemblyToView(assemblyName, 'ctgA:1..200')
 
     cy.contains('Open track selector').click()
@@ -77,7 +85,15 @@ describe('Undo edits', () => {
 
   it('Undo attribute changes', () => {
     const assemblyName = 'onegene.fasta.gff3'
-    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
+    cy.importFeatures(
+      `test_data/${assemblyName}`,
+      assemblyName,
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
+    // A fresh reload clears the in-memory undo stack, so the import itself
+    // isn't counted as an undoable change alongside the test's own edits.
+    cy.reload()
     cy.selectAssemblyToView(assemblyName, 'ctgA:1..200')
 
     cy.contains('Open track selector').click()
@@ -152,7 +168,15 @@ describe('Undo edits', () => {
 
   it('Undo and redo', () => {
     const assemblyName = 'onegene.fasta.gff3'
-    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
+    cy.importFeatures(
+      `test_data/${assemblyName}`,
+      assemblyName,
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
+    // A fresh reload clears the in-memory undo stack, so the import itself
+    // isn't counted as an undoable change alongside the test's own edits.
+    cy.reload()
     cy.selectAssemblyToView(assemblyName, 'ctgA:1..200')
 
     cy.contains('Open track selector').click()

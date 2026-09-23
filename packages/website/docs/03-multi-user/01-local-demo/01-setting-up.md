@@ -42,7 +42,7 @@ services:
     environment:
       NAME: My Local Testing Server
       URL: 'http://localhost/apollo/'
-      MONGODB_URI: 'mongodb://db:27017/apolloDb?replicaSet=rs0'
+      MONGODB_URI: 'mongodb://db:27017/apolloDb'
       FILE_UPLOAD_FOLDER: /data/uploads
       ALLOW_GUEST_USER: true
       GUEST_USER_ROLE: admin
@@ -65,8 +65,8 @@ services:
         LoadModule proxy_module modules/mod_proxy.so
         LoadModule proxy_http_module modules/mod_proxy_http.so
         LoadModule proxy_wstunnel_module modules/mod_proxy_wstunnel.so
-        ProxyPass "/config.json" "http://apollo-collaboration-server:3999/jbrowse/config.json"
-        ProxyPassReverse "/config.json" "http://apollo-collaboration-server:3999/jbrowse/config.json"
+        ProxyPass "/config.json" "http://apollo-collaboration-server:3999/config.json"
+        ProxyPassReverse "/config.json" "http://apollo-collaboration-server:3999/config.json"
         ProxyPassMatch "^/apollo/(.*)$" "http://apollo-collaboration-server:3999/\$1" upgrade=websocket connectiontimeout=3600 timeout=3600
         ProxyPassReverse "/apollo/" "http://apollo-collaboration-server:3999/"
         EOF
@@ -100,26 +100,12 @@ services:
 
   db:
     image: 'mongo:7'
-    command:
-      - '--replSet'
-      - rs0
-      - '--bind_ip_all'
-      - '--port'
-      - '27017'
     healthcheck:
       interval: 30s
       retries: 3
       start_period: 2m
       test: |
-        mongosh --port 27017 --quiet --eval "
-        try {
-          rs.status()
-          console.log('replica set ok')
-        } catch {
-          rs.initiate()
-          console.log('replica set initiated')
-        }
-        "
+        mongosh --quiet --eval "db.runCommand('ping')"
       timeout: 10s
     ports:
       - '27017:27017'

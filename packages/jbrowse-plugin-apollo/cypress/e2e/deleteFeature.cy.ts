@@ -4,12 +4,20 @@ describe('Delete feature', () => {
   })
 
   afterEach(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
   })
 
   it('Delete and resize', () => {
     const assemblyName = 'deleteFeature.gff3'
-    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
+    cy.importFeatures(
+      `test_data/${assemblyName}`,
+      assemblyName,
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
+    // A fresh reload clears the in-memory undo stack, so the import itself
+    // isn't counted as an undoable change alongside the test's own edits.
+    cy.reload()
     cy.selectAssemblyToView(assemblyName, 'chr2:1..250')
 
     cy.contains('Open track selector').click()
@@ -154,7 +162,15 @@ describe('Delete feature', () => {
 
   it('Delete internal exon', () => {
     const assemblyName = 'deleteFeature.gff3'
-    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
+    cy.importFeatures(
+      `test_data/${assemblyName}`,
+      assemblyName,
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
+    // A fresh reload clears the in-memory undo stack, so the import itself
+    // isn't counted as an undoable change alongside the test's own edits.
+    cy.reload()
     cy.selectAssemblyToView(assemblyName, 'chr2:1..250')
 
     cy.contains('Open track selector').click()
@@ -176,7 +192,15 @@ describe('Delete feature', () => {
 
   it('Undo multiple ops', () => {
     const assemblyName = 'deleteFeature.gff3'
-    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
+    cy.importFeatures(
+      `test_data/${assemblyName}`,
+      assemblyName,
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
+    // A fresh reload clears the in-memory undo stack, so the import itself
+    // isn't counted as an undoable change alongside the test's own edits.
+    cy.reload()
     cy.selectAssemblyToView(assemblyName, 'chr2:1..250')
 
     cy.contains('Open track selector').click()

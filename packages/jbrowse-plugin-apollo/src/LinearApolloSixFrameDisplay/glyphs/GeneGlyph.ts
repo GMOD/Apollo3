@@ -850,18 +850,17 @@ function getContextMenuItems(
   mousePosition: MousePositionWithFeature,
 ): MenuItem[] {
   const {
-    apolloInternetAccount: internetAccount,
     hoveredFeature,
     changeManager,
     filteredTranscripts,
     regions,
+    role,
     selectedFeature,
     session,
   } = display
   const [region] = regions
   const currentAssemblyId = display.getAssemblyId(region.assemblyName)
   const menuItems: MenuItem[] = []
-  const role = internetAccount ? internetAccount.role : 'admin'
   const readOnly = !(role && ['admin', 'user'].includes(role))
   if (!hoveredFeature) {
     return menuItems
@@ -903,7 +902,11 @@ function getContextMenuItems(
               lgv.displayedRegions.at(0)?.reversed,
             ),
             onClick: () => {
-              lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
+              const refName = display.getCanonicalRefName(
+                exon.assemblyId,
+                exon.refSeq,
+              )
+              lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp, refName))
               selectFeatureAndOpenWidget(display, exon)
             },
           })
@@ -918,7 +921,11 @@ function getContextMenuItems(
               lgv.displayedRegions.at(0)?.reversed,
             ),
             onClick: () => {
-              lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
+              const refName = display.getCanonicalRefName(
+                exon.assemblyId,
+                exon.refSeq,
+              )
+              lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp, refName))
               selectFeatureAndOpenWidget(display, exon)
             },
           })

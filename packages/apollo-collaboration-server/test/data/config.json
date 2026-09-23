@@ -1,0 +1,126 @@
+{
+  "assemblies": [
+    {
+      "name": "vv1",
+      "sequence": {
+        "adapter": {
+          "type": "IndexedFastaAdapter",
+          "fastaLocation": { "uri": "tiny.fasta" },
+          "faiLocation": { "uri": "tiny.fasta.fai" }
+        }
+      }
+    },
+    {
+      "name": "vv2",
+      "sequence": {
+        "adapter": {
+          "type": "IndexedFastaAdapter",
+          "fastaLocation": { "uri": "tiny.fasta" },
+          "faiLocation": { "uri": "tiny.fasta.fai" }
+        }
+      }
+    },
+    {
+      "name": "vv3",
+      "sequence": {
+        "adapter": {
+          "type": "IndexedFastaAdapter",
+          "fastaLocation": { "uri": "tiny.fasta" },
+          "faiLocation": { "uri": "tiny.fasta.fai" }
+        }
+      }
+    },
+    {
+      "name": "tinyGz",
+      "sequence": {
+        "adapter": {
+          "type": "BgzipFastaAdapter",
+          "fastaLocation": { "uri": "tiny.fasta.gz" },
+          "faiLocation": { "uri": "tiny.fasta.gz.fai" },
+          "gziLocation": { "uri": "tiny.fasta.gz.gzi" }
+        }
+      }
+    },
+    {
+      "name": "external",
+      "sequence": {
+        "adapter": {
+          "type": "BgzipFastaAdapter",
+          "fastaLocation": { "uri": "http://localhost:3131/tiny.fasta.gz" },
+          "faiLocation": { "uri": "http://localhost:3131/tiny.fasta.gz.fai" },
+          "gziLocation": { "uri": "http://localhost:3131/tiny.fasta.gz.gzi" }
+        }
+      }
+    },
+    {
+      "name": "checks",
+      "sequence": {
+        "adapter": {
+          "type": "IndexedFastaAdapter",
+          "fastaLocation": { "uri": "checks.fasta" },
+          "faiLocation": { "uri": "checks.fasta.fai" }
+        }
+      }
+    },
+    {
+      "name": "checkSplice",
+      "sequence": {
+        "adapter": {
+          "type": "IndexedFastaAdapter",
+          "fastaLocation": { "uri": "checkSplice.fasta" },
+          "faiLocation": { "uri": "checkSplice.fasta.fai" }
+        }
+      }
+    },
+    {
+      "name": "cdsWithoutExon",
+      "sequence": {
+        "adapter": {
+          "type": "IndexedFastaAdapter",
+          "fastaLocation": { "uri": "cdsWithoutExon.fasta" },
+          "faiLocation": { "uri": "cdsWithoutExon.fasta.fai" }
+        }
+      }
+    },
+    {
+      "name": "missingStartCodonForward",
+      "sequence": {
+        "adapter": {
+          "type": "IndexedFastaAdapter",
+          "fastaLocation": { "uri": "missingStartCodonForward.fasta" },
+          "faiLocation": { "uri": "missingStartCodonForward.fasta.fai" }
+        }
+      }
+    },
+    {
+      "name": "missingStartCodonReverse",
+      "sequence": {
+        "adapter": {
+          "type": "IndexedFastaAdapter",
+          "fastaLocation": { "uri": "missingStartCodonReverse.fasta" },
+          "faiLocation": { "uri": "missingStartCodonReverse.fasta.fai" }
+        }
+      }
+    },
+    {
+      "name": "warningPositionForward",
+      "sequence": {
+        "adapter": {
+          "type": "IndexedFastaAdapter",
+          "fastaLocation": { "uri": "warningPositionForward.fasta" },
+          "faiLocation": { "uri": "warningPositionForward.fasta.fai" }
+        }
+      }
+    },
+    {
+      "name": "warningPositionReverse",
+      "sequence": {
+        "adapter": {
+          "type": "IndexedFastaAdapter",
+          "fastaLocation": { "uri": "warningPositionReverse.fasta" },
+          "faiLocation": { "uri": "warningPositionReverse.fasta.fai" }
+        }
+      }
+    }
+  ]
+}

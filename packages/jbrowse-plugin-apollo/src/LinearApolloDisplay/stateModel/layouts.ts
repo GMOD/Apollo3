@@ -7,6 +7,7 @@ import { type AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
 import { addDisposer, isAlive } from '@jbrowse/mobx-state-tree'
 import { autorun, observable } from 'mobx'
 
+import { findAssemblyByNameOrId } from '../../util'
 import {
   isCDSFeature,
   isExonFeature,
@@ -68,14 +69,28 @@ export function layoutsModelFactory(
       },
     }))
     .views((self) => ({
-      getCanonicalRefName(assemblyName: string, refSeq: string) {
+      /**
+       * Looks up the canonical refName for a feature's refSeq. Callers pass
+       * `feature.assemblyId`/`feature.refSeq`, which are Apollo backend ids
+       * (see `ClientDataStore`), not JBrowse names - so this first resolves
+       * the refSeq id to its raw name via the Apollo data store, then asks
+       * the JBrowse assembly (found by name or id - `assemblyManager` only
+       * indexes by name) to canonicalize that name (resolving aliases).
+       */
+      getCanonicalRefName(assemblyId: string, refSeqId: string) {
+        const apolloAssembly =
+          self.session.apolloDataStore.assemblies.get(assemblyId)
+        const refSeqName = apolloAssembly?.refSeqs.get(refSeqId)?.name
+        if (!refSeqName) {
+          throw new Error('no assembly in layout')
+        }
         const { assemblyManager } =
           self.session as unknown as AbstractSessionModel
-        const assembly = assemblyManager.get(assemblyName)
+        const assembly = findAssemblyByNameOrId(assemblyManager, assemblyId)
         if (!assembly) {
           throw new Error('no assembly in layout')
         }
-        const canonicalRefName = assembly.getCanonicalRefName(refSeq)
+        const canonicalRefName = assembly.getCanonicalRefName(refSeqName)
         if (!canonicalRefName) {
           throw new Error('no canonical refName in layout')
         }
@@ -232,7 +247,8 @@ export function layoutsModelFactory(
         row: number,
         bp: number,
       ): AnnotationFeature[] {
-        const assemblyLayouts = this.layouts.get(assemblyName)
+        const assemblyId = self.getAssemblyId(assemblyName)
+        const assemblyLayouts = this.layouts.get(assemblyId)
         if (!assemblyLayouts) {
           return []
         }
@@ -253,7 +269,8 @@ export function layoutsModelFactory(
     }))
     .views((self) => ({
       highestRow(assemblyName: string) {
-        const assemblyLayouts = self.layouts.get(assemblyName)
+        const assemblyId = self.getAssemblyId(assemblyName)
+        const assemblyLayouts = self.layouts.get(assemblyId)
         if (!assemblyLayouts) {
           return 0
         }
@@ -297,7 +314,7 @@ export function layoutsModelFactory(
               }
               // Add features that are in the current view
               for (const region of self.regions) {
-                const assembly = self.session.apolloDataStore.assemblies.get(
+                const assembly = self.session.apolloDataStore.getAssemblyByName(
                   region.assemblyName,
                 )
                 const ref = assembly?.getByRefName(region.refName)

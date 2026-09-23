@@ -231,7 +231,7 @@ export function renderingModelFactory(
               if (showStartCodons || showStopCodons) {
                 const { apolloDataStore } = session
                 for (const block of dynamicBlocks.contentBlocks) {
-                  const assembly = apolloDataStore.assemblies.get(
+                  const assembly = apolloDataStore.getAssemblyByName(
                     block.assemblyName,
                   )
                   const ref = assembly?.getByRefName(block.refName)

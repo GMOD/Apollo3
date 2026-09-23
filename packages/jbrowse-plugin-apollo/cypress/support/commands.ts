@@ -1,21 +1,57 @@
 import { type IDBPDatabase, openDB } from 'idb'
 
 Cypress.Commands.add('loginAsGuest', () => {
-  cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
-  cy.contains('Yes, I trust it', { timeout: 10_000 }).click()
+  Cypress.expose('isLocalSession', false)
+  // Visiting while unauthenticated redirects (server-side, before the
+  // JBrowse app loads) to the login page; only after logging in as guest
+  // does it redirect back and the app's own "external config" trust dialog
+  // appear.
+  cy.visit('/')
   cy.contains('Continue as Guest', { timeout: 10_000 }).click()
-  // eslint-disable-next-line cypress/no-unnecessary-waiting
-  cy.wait(2000)
-  cy.reload()
 })
 
-Cypress.Commands.add('deleteAssemblies', () => {
-  for (const x of ['assemblies', 'features']) {
+Cypress.Commands.add('clearFeatures', () => {
+  for (const x of [
+    'changes',
+    'checkresults',
+    'counters',
+    'features',
+    'files',
+  ]) {
     cy.log(x)
     cy.deleteMany({}, { collection: x }).then((results: undefined) => {
       cy.log(`Collection ${x}: ${results}`)
     })
   }
+})
+
+Cypress.Commands.add('visitLocalSession', () => {
+  // A local-editing session (config_local.json, no "apollo" sequence
+  // metadata) is never served through the collaboration server's config
+  // allowlist, so it has to be loaded from the plain static server that
+  // doesn't sit behind a login.
+  Cypress.expose('isLocalSession', true)
+  const localAppUrl = Cypress.expose('localAppUrl') as string
+  cy.visit(`${localAppUrl}/?config=config_local.json`)
+  // Unlike a collaboration-server session, a local one has no
+  // defaultSession with a view already open, so JBrowse Web's own "pick a
+  // view to launch" screen appears first.
+  cy.contains('Launch view', { timeout: 10_000 }).click()
+})
+
+Cypress.Commands.add('clearLocalFeatures', () => {
+  // Local-editing sessions store features in IndexedDB (one database per
+  // assembly, see BackendDrivers/LocalDriver/db.ts) instead of MongoDB, so
+  // there's nothing for clearFeatures/deleteMany to clean up here.
+  cy.wrap(
+    globalThis.indexedDB.databases().then((dbs) => {
+      for (const db of dbs) {
+        if (db.name) {
+          globalThis.indexedDB.deleteDatabase(db.name)
+        }
+      }
+    }),
+  )
 })
 
 type OntologyKey = 'nodes' | 'edges' | 'meta'
@@ -68,26 +104,6 @@ async function loadOntology(
 }
 
 Cypress.Commands.add('addOntologies', () => {
-  cy.deleteMany({}, { collection: 'jbrowseconfigs' })
-  cy.insertOne(
-    {
-      configuration: {
-        ApolloPlugin: {
-          ontologies: [
-            {
-              name: 'Sequence Ontology',
-              version: 'unversioned',
-              source: {
-                uri: 'http://localhost:9000/test_data/so-2024-11-18.json',
-                locationType: 'UriLocation',
-              },
-            },
-          ],
-        },
-      },
-    },
-    { collection: 'jbrowseconfigs' },
-  )
   // so.json.gz was generated from an IndexedDB dump using the script found at
   // https://gist.github.com/loilo/ed43739361ec718129a15ae5d531095b
   cy.readFile<ArrayBuffer>('cypress/data/so.json.gz', null).then((soGZip) => {
@@ -232,7 +248,13 @@ Cypress.Commands.add(
           cy.get('li').contains(assemblyName).click()
         }
       })
-    cy.intercept('POST', '/users/userLocation').as('selectAssemblyToViewDone')
+    // A local-editing session has no collaboration server to persist the
+    // user's location to, so there's no `/users/userLocation` request to
+    // wait for - only wait for it in a collaboration-server session.
+    const isLocalSession = Cypress.expose('isLocalSession') as boolean
+    if (!isLocalSession) {
+      cy.intercept('POST', '/users/userLocation').as('selectAssemblyToViewDone')
+    }
     if (locationOrSearch) {
       cy.get('input[placeholder="Search for location"]').type(
         `{selectall}{backspace}${locationOrSearch}{enter}`,
@@ -240,7 +262,11 @@ Cypress.Commands.add(
     } else {
       cy.contains('button', /^Open$/, { matchCase: false }).click()
     }
-    cy.wait('@selectAssemblyToViewDone')
+    if (isLocalSession) {
+      cy.contains('Select assembly to view').should('not.exist')
+    } else {
+      cy.wait('@selectAssemblyToViewDone')
+    }
   },
 )
 
@@ -341,4 +367,35 @@ Cypress.Commands.add('refreshTableEditor', () => {
   // Refresh table editor by close & re-open
   cy.annotationTrackAppearance('Show graphical display')
   cy.annotationTrackAppearance('Show both graphical and table display')
+})
+
+Cypress.Commands.add('openAnnotationsTrack', () => {
+  // Depending on how the view was launched, the Annotations track can
+  // already be active (e.g. after a location search navigates straight
+  // into an existing session), or the view can start out completely empty
+  // (a freshly launched local-editing session, which has no defaultSession
+  // to restore tracks from) and still be settling in - wait for the page
+  // to reach one of those two states before branching on it, rather than
+  // taking a one-off snapshot that can race the view's initial render.
+  // Note: don't fold a `button[aria-label="Minimize drawer"]` check into
+  // this wait - that generic aria-label is shared with unrelated drawers
+  // (e.g. the jobs-list widget that pops up while an ontology loads), so
+  // it can be present well before the track selector/track itself is.
+  cy.get('body', { timeout: 20_000 }).should(($body) => {
+    const text = $body.text()
+    expect(
+      text.includes('Open track selector') || text.includes('Annotations ('),
+    ).to.equal(true)
+  })
+  cy.get('body').then(($body) => {
+    if ($body.text().includes('Open track selector')) {
+      cy.contains('Open track selector').click()
+      cy.contains('Annotations (').click()
+    }
+  })
+  cy.get('body').then(($body) => {
+    if ($body.find('button[aria-label="Minimize drawer"]').length > 0) {
+      cy.get('button[aria-label="Minimize drawer"]').click()
+    }
+  })
 })

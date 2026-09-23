@@ -1,12 +1,16 @@
 import fs from 'node:fs/promises'
 
 import { Module } from '@nestjs/common'
-import { ConfigModule, ConfigService } from '@nestjs/config'
+import { ConditionalModule, ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
 import {
   MongooseModule,
   type MongooseModuleFactoryOptions,
 } from '@nestjs/mongoose'
+import {
+  ServeStaticModule,
+  type ServeStaticModuleOptions,
+} from '@nestjs/serve-static'
 import Joi from 'joi'
 import type { Connection } from 'mongoose'
 
@@ -19,13 +23,15 @@ import { ExportModule } from './export/export.module.js'
 import { FeaturesModule } from './features/features.module.js'
 import { FilesModule } from './files/files.module.js'
 import { HealthModule } from './health/health.module.js'
+import { ConfigFileModule } from './jbrowse/config-file.module.js'
+import { DevServerProxyModule } from './jbrowse/dev-server-proxy.module.js'
 import { JBrowseModule } from './jbrowse/jbrowse.module.js'
 import { MessagesModule } from './messages/messages.module.js'
 import { PluginsModule } from './plugins/plugins.module.js'
-import { RefSeqChunksModule } from './refSeqChunks/refSeqChunks.module.js'
 import { RefSeqsModule } from './refSeqs/refSeqs.module.js'
 import { SequenceModule } from './sequence/sequence.module.js'
 import { UsersModule } from './users/users.module.js'
+import { resolveJBrowseDir } from './utils/jbrowse-dir.util.js'
 import { JwtAuthGuard } from './utils/jwt-auth.guard.js'
 import { ValidationGuard } from './utils/validation/validation.guards.js'
 
@@ -34,12 +40,28 @@ interface MongoDBURIConfig {
   MONGODB_URI_FILE?: string
 }
 
-const nodeEnv = process.env.NODE_ENV ?? 'production'
+interface JBrowseDirConfig {
+  JBROWSE_DIR?: string
+  JBROWSE_DEV_SERVER_URL?: string
+}
 
-const validationSchema = Joi.object({
+const nodeEnv = process.env.NODE_ENV ?? 'production'
+const envFilesByNodeEnv: Record<string, string> = {
+  development: '.development.env',
+  cypress: '.cypress.env',
+}
+
+export const validationSchema = Joi.object({
   // Required
   URL: Joi.string().uri().required(),
   NAME: Joi.string().required(),
+  // Exactly one of these two is required (see the `.xor` below): JBROWSE_DIR
+  // for serving a built JBrowse Web + Apollo plugin bundle from disk,
+  // JBROWSE_DEV_SERVER_URL for proxying to a running JBrowse dev server
+  // instead (dev-only; see IndexHtmlController and the fallback proxy
+  // middleware in main.ts).
+  JBROWSE_DIR: Joi.string(),
+  JBROWSE_DEV_SERVER_URL: Joi.string().uri(),
   MONGODB_URI: Joi.string(),
   MONGODB_URI_FILE: Joi.string(),
   FILE_UPLOAD_FOLDER: Joi.string().required(),
@@ -59,6 +81,16 @@ const validationSchema = Joi.object({
   DESCRIPTION: Joi.string(),
   FEATURE_TYPE_ONTOLOGY_LOCATION: Joi.string(),
   PLUGIN_LOCATION: Joi.string(),
+  // Comma-separated list of config.json filenames this server serves
+  // (resolved the same way as config.json: off JBROWSE_DIR on disk, or
+  // fetched from JBROWSE_DEV_SERVER_URL). Each listed file is served, at its
+  // own literal path, as the Apollo-augmented config (see
+  // ConfigFileController) - e.g. "config.json,config_mouse.json" makes both
+  // "/config.json" and "/config_mouse.json" augmented, with no extra query
+  // param needed. Independent of the JBROWSE_DIR/JBROWSE_DEV_SERVER_URL
+  // `.xor` above - no xor needed here. Defaults to a single "config.json"
+  // when unset (see JBrowseConfigService.getConfigFileNames).
+  JBROWSE_CONFIG_FILES: Joi.string(),
   SKIPPED_ATTRIBUTES_ON_COPY: Joi.string().default(''),
   INDEXED_IDS: Joi.string().default('gff_id'),
   ALLOW_ROOT_USER: Joi.boolean().default(false),
@@ -83,8 +115,6 @@ const validationSchema = Joi.object({
       return value
     })
     .default('log,warn,error'),
-  // default for this is set in the refSeq mongoose schema
-  CHUNK_SIZE: Joi.number(),
   DEFAULT_NEW_USER_ROLE: Joi.string()
     .valid('admin', 'user', 'readOnly', 'none')
     .default('none'),
@@ -114,6 +144,7 @@ const validationSchema = Joi.object({
   PLUGIN_URLS_FILE: Joi.string(),
   OAUTH_HTTP_PROXY: Joi.string(),
 })
+  .xor('JBROWSE_DIR', 'JBROWSE_DEV_SERVER_URL')
   .xor('MONGODB_URI', 'MONGODB_URI_FILE')
   .oxor('GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_ID_FILE')
   .oxor('GOOGLE_CLIENT_SECRET', 'GOOGLE_CLIENT_SECRET_FILE')
@@ -143,6 +174,36 @@ async function mongoDBURIFactory(
   }
 }
 
+export function serveStaticFactory(
+  configService: ConfigService<JBrowseDirConfig, true>,
+): ServeStaticModuleOptions[] {
+  const jbrowseDir = configService.get('JBROWSE_DIR', { infer: true })
+  if (!jbrowseDir) {
+    // JBROWSE_DEV_SERVER_URL is configured instead (mutually exclusive with
+    // JBROWSE_DIR, enforced by the Joi schema's `.xor`): there is nothing on
+    // disk to serve. Everything other than Apollo's own routes is handled
+    // by DevServerProxyController instead.
+    return []
+  }
+  return [
+    {
+      rootPath: resolveJBrowseDir(jbrowseDir),
+      serveRoot: '/',
+      // "/" and "/index.html" are served by IndexHtmlController instead,
+      // which reads index.html from this same directory and augments it
+      // with the 401 -> /login redirect script. Every configured
+      // config.json (ConfigFileController) is served dynamically too, but
+      // that's not what makes this exclude list matter: Nest registers
+      // every controller route on the Express app during bootstrap, before
+      // @nestjs/serve-static registers this static-file middleware (in its
+      // own onModuleInit), so a controller route always wins regardless of
+      // this list - it's here for documentation/defense in depth only.
+      exclude: ['/', '/index.html'],
+      serveStaticOptions: { fallthrough: false },
+    },
+  ]
+}
+
 @Module({
   imports: [
     AssembliesModule,
@@ -151,7 +212,7 @@ async function mongoDBURIFactory(
     ChecksModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: nodeEnv === 'production' ? '.env' : '.development.env',
+      envFilePath: envFilesByNodeEnv[nodeEnv] ?? '.env',
       validationSchema,
     }),
     CountersModule,
@@ -166,11 +227,31 @@ async function mongoDBURIFactory(
       inject: [ConfigService],
     }),
     PluginsModule.registerAsync(),
-    RefSeqChunksModule,
     RefSeqsModule,
     SequenceModule,
     UsersModule,
     JBrowseModule,
+    // Must come after every module that owns an Apollo API route and before
+    // ServeStaticModule/DevServerProxyModule: its catch-all GET claims the
+    // configured config.json paths and hands everything else back to
+    // Express with next(). See ConfigFileController for why it has to be a
+    // wildcard route rather than one route per configured file.
+    ConfigFileModule,
+    ServeStaticModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: serveStaticFactory,
+    }),
+    // Registered last so its catch-all route only ever sees requests none
+    // of the modules above claimed. Only actually registers
+    // DevServerProxyModule's routes when JBROWSE_DEV_SERVER_URL is set;
+    // see DevServerProxyController for why this can't just check the
+    // config itself and no-op instead.
+    ConditionalModule.registerWhen(
+      DevServerProxyModule,
+      (env) => Boolean(env.JBROWSE_DEV_SERVER_URL),
+      { debug: false },
+    ),
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

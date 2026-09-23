@@ -9,9 +9,7 @@ import { ChecksModule } from '../checks/checks.module.js'
 import { CountersModule } from '../counters/counters.module.js'
 import { FeaturesModule } from '../features/features.module.js'
 import { FilesModule } from '../files/files.module.js'
-import { JBrowseModule } from '../jbrowse/jbrowse.module.js'
 import { MessagesModule } from '../messages/messages.module.js'
-import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module.js'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module.js'
 import { UsersModule } from '../users/users.module.js'
 
@@ -35,14 +33,12 @@ import { ChangesService } from './changes.service.js'
     ]),
     AssembliesModule,
     RefSeqsModule,
-    RefSeqChunksModule,
     FeaturesModule,
     FilesModule,
     UsersModule,
     CountersModule,
     ChecksModule,
     MessagesModule,
-    JBrowseModule,
   ],
 })
 export class ChangesModule {}

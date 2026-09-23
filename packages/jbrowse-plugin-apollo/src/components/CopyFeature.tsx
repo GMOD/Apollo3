@@ -27,6 +27,7 @@ import React, { useEffect, useState } from 'react'
 
 import type { ChangeManager } from '../ChangeManager'
 import type { ApolloSessionModel } from '../session'
+import { getApolloAssemblyId } from '../util'
 
 import { Dialog } from './Dialog'
 
@@ -88,7 +89,7 @@ export function CopyFeature({
 
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<
     string | undefined
-  >(assemblies.find((a) => a.name !== sourceAssemblyId)?.name)
+  >(assemblies.find((a) => getApolloAssemblyId(a) !== sourceAssemblyId)?.name)
   const [refNames, setRefNames] = useState<Collection[]>([])
   const [selectedRefSeqId, setSelectedRefSeqId] = useState('')
   const [start, setStart] = useState(sourceFeature.min)
@@ -186,7 +187,7 @@ export function CopyFeature({
     const change = new AddFeatureChange({
       changedIds: [newFeatureLine._id],
       typeName: 'AddFeatureChange',
-      assembly: selectedAssemblyId,
+      assembly: getApolloAssemblyId(assembly),
       addedFeature: {
         _id: newFeatureLine._id,
         refSeq: newFeatureLine.refSeq,
@@ -262,7 +263,9 @@ export function CopyFeature({
             onChange={handleChangeAssembly}
           >
             {assemblies
-              .filter((option) => option.name !== sourceAssemblyId)
+              .filter(
+                (option) => getApolloAssemblyId(option) !== sourceAssemblyId,
+              )
               .map((option) => (
                 <MenuItem key={option.name} value={option.name}>
                   {readConfObject(option, 'displayName')}

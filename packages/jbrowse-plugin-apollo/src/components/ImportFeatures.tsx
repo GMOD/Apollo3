@@ -1,13 +1,11 @@
 /* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { AddFeaturesFromFileChange } from '@apollo-annotation/shared'
 import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
-import { getConf } from '@jbrowse/core/configuration'
 import {
   Button,
   Checkbox,
@@ -23,15 +21,13 @@ import {
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 
-import type {
-  ApolloInternetAccount,
-  CollaborationServerDriver,
-} from '../BackendDrivers'
 import type { ChangeManager, JobInput } from '../ChangeManager'
 import type { ApolloSessionModel } from '../session'
-import { createFetchErrorMessage } from '../util'
+import { createFetchErrorMessage, getApolloAssemblyId } from '../util'
 
 import { Dialog } from './Dialog'
+import type { AbstractSessionModel } from '@jbrowse/core/util'
+import { readConfObject } from '@jbrowse/core/configuration'
 
 interface ImportFeaturesProps {
   session: ApolloSessionModel
@@ -44,8 +40,6 @@ export function ImportFeatures({
   handleClose,
   session,
 }: ImportFeaturesProps) {
-  const { apolloDataStore } = session
-
   const [file, setFile] = useState<File>()
   const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
   const [errorMessage, setErrorMessage] = useState('')
@@ -56,14 +50,8 @@ export function ImportFeatures({
   const [strict, setStrict] = useState(true)
   const [loading, setLoading] = useState(false)
 
-  const { collaborationServerDriver, getInternetAccount } = apolloDataStore as {
-    collaborationServerDriver: CollaborationServerDriver
-    getInternetAccount(
-      assemblyName?: string,
-      internetAccountId?: string,
-    ): ApolloInternetAccount
-  }
-  const assemblies = collaborationServerDriver.getAssemblies()
+  const { assemblies } = (session as unknown as AbstractSessionModel)
+    .assemblyManager
 
   function handleChangeAssembly(e: SelectChangeEvent) {
     const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
@@ -85,29 +73,11 @@ export function ImportFeatures({
       return
     }
     const updateFeaturesCount = async () => {
-      // TODO: this code will not work for running on desktop
-      const { internetAccountConfigId } = getConf(selectedAssembly, [
-        'sequence',
-        'metadata',
-      ]) as { internetAccountConfigId?: string }
-      const apolloInternetAccount = getInternetAccount(
-        selectedAssembly.name,
-        internetAccountConfigId,
-      )
-      if (!apolloInternetAccount) {
-        throw new Error('No Apollo internet account found')
-      }
-
-      const { baseURL } = apolloInternetAccount
-      const uri = new URL('features/count', baseURL)
+      const uri = new URL('features/count', globalThis.location.href)
       const searchParams = new URLSearchParams({
-        assemblyId: selectedAssembly.name,
+        assemblyId: getApolloAssemblyId(selectedAssembly),
       })
       uri.search = searchParams.toString()
-      const fetch = apolloInternetAccount.getFetcher({
-        locationType: 'UriLocation',
-        uri: uri.toString(),
-      })
 
       setLoading(true)
       const response = await fetch(uri.toString(), { method: 'GET' })
@@ -126,7 +96,7 @@ export function ImportFeatures({
       console.error(error)
       setErrorMessage(error.message ?? error)
     })
-  }, [getInternetAccount, session, selectedAssembly])
+  }, [session, selectedAssembly])
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
     setSubmitted(false)
@@ -152,28 +122,14 @@ export function ImportFeatures({
       return
     }
 
-    const { internetAccountConfigId } = getConf(selectedAssembly, [
-      'sequence',
-      'metadata',
-    ]) as { internetAccountConfigId?: string }
-    const apolloInternetAccount = getInternetAccount(
-      selectedAssembly.name,
-      internetAccountConfigId,
-    )
-    const { baseURL } = apolloInternetAccount
-
     // First upload file
-    const url = new URL('files', baseURL)
+    const url = new URL('files', globalThis.location.href)
     url.searchParams.set('type', 'text/x-gff3')
     const uri = url.href
     const formData = new FormData()
     formData.append('file', file)
     formData.append('fileName', file.name)
     formData.append('type', 'text/x-gff3')
-    const apolloFetchFile = apolloInternetAccount.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
 
     handleClose()
 
@@ -200,7 +156,7 @@ export function ImportFeatures({
     showJobStatusWidget()
 
     const { signal } = controller
-    const response = await apolloFetchFile(uri, {
+    const response = await fetch(uri, {
       method: 'POST',
       body: formData,
       signal,
@@ -225,7 +181,7 @@ export function ImportFeatures({
     // Add features
     const change = new AddFeaturesFromFileChange({
       typeName: 'AddFeaturesFromFileChange',
-      assembly: selectedAssembly.name,
+      assembly: getApolloAssemblyId(selectedAssembly),
       fileId,
       parseOptions: { strict },
       deleteExistingFeatures: deleteFeatures,
@@ -259,9 +215,10 @@ export function ImportFeatures({
             onChange={handleChangeAssembly}
             disabled={submitted && !errorMessage}
           >
-            {assemblies.map((option) => (
-              <MenuItem key={option.name} value={option.name}>
-                {option.displayName ?? option.name}
+            {assemblies.map((assembly) => (
+              <MenuItem key={assembly.name} value={assembly.name}>
+                {/* @ts-expect-error not right here */}
+                {readConfObject(assembly, 'displayName') ?? assembly.name}
               </MenuItem>
             ))}
           </Select>

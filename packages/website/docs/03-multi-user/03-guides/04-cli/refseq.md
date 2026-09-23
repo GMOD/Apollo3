@@ -2,39 +2,7 @@
 
 Commands to manage reference sequences
 
-- [`apollo refseq add-alias INPUT-FILE`](#apollo-refseq-add-alias-input-file)
 - [`apollo refseq get`](#apollo-refseq-get)
-
-## `apollo refseq add-alias INPUT-FILE`
-
-Add reference name aliases from a file
-
-```
-USAGE
-  $ apollo refseq add-alias INPUT-FILE -a <value> [--profile <value>] [--config-file <value>]
-
-ARGUMENTS
-  INPUT-FILE  Input refname alias file
-
-FLAGS
-  -a, --assembly=<value>     (required) Name for this assembly.
-      --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      Use credentials from this profile
-
-DESCRIPTION
-  Add reference name aliases from a file
-
-  Reference name aliasing is a process to make chromosomes that are named slightly differently but which refer to the
-  same thing render properly. This command reads a file with reference name aliases and adds them to the database.
-
-EXAMPLES
-  Add reference name aliases:
-
-    $ apollo refseq add-alias alias.txt -a myAssembly
-```
-
-_See code:
-[src/commands/refseq/add-alias.ts](https://github.com/GMOD/Apollo3/blob/v1.0.1/packages/apollo-cli/src/commands/refseq/add-alias.ts)_
 
 ## `apollo refseq get`
 

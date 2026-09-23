@@ -3,15 +3,18 @@ describe('Warning signs', () => {
     cy.loginAsGuest()
   })
   afterEach(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
   })
 
   it('Show warnings after editing and after fixing', () => {
-    cy.addAssemblyFromGff(
-      'stopcodon.gff3',
+    cy.importFeatures(
       'test_data/cdsChecks/stopcodon.gff3',
+      'stopcodon.gff3',
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
     )
     cy.selectAssemblyToView('stopcodon.gff3', 'gene07')
+    cy.openAnnotationsTrack()
 
     // Here it would be nice to check that there are no ErrorIcons yet.
     // For this we need to make sure that the gene model is actually on the canvas,
@@ -51,11 +54,14 @@ describe('Warning signs', () => {
   })
 
   it('Show warnings after adding feature', () => {
-    cy.addAssemblyFromGff(
-      'stopcodon.gff3',
+    cy.importFeatures(
       'test_data/cdsChecks/stopcodon.gff3',
+      'stopcodon.gff3',
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
     )
     cy.selectAssemblyToView('stopcodon.gff3', 'gene07')
+    cy.openAnnotationsTrack()
     cy.annotationTrackAppearance('Show both graphical and table display')
     cy.contains('cds07').rightclick()
     cy.contains('Delete feature').click()
@@ -91,15 +97,8 @@ describe('Warning signs', () => {
   })
 
   it('Show warnings after importing from gff3', () => {
-    cy.addAssemblyFromGff(
-      'stopcodon.gff3',
-      'test_data/cdsChecks/stopcodon.gff3',
-      true,
-      false,
-    )
     cy.selectAssemblyToView('stopcodon.gff3', 'chr2')
-    cy.contains('Open track selector').click()
-    cy.contains('Annotations (').click()
+    cy.openAnnotationsTrack()
     // No features and no errors yet
     cy.get('[data-testid^="ErrorIcon-"]', { timeout: 5000 }).should(
       'have.length',
@@ -111,27 +110,36 @@ describe('Warning signs', () => {
       // eslint-disable-next-line unicorn/no-useless-undefined
       undefined,
     )
-    cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
-    cy.contains('button', 'Launch view', { timeout: 10_000 }).click()
-    cy.selectAssemblyToView('stopcodon.gff3', 'gene02')
+    cy.reload()
     cy.get('[data-testid^="ErrorIcon-"]', { timeout: 5000 })
       .its('length')
       .should('satisfy', (n) => n >= 3)
   })
 
   it('Register and unregister checks', () => {
-    cy.addAssemblyFromGff(
-      'stopcodon.gff3',
+    cy.importFeatures(
       'test_data/cdsChecks/stopcodon.gff3',
+      'stopcodon.gff3',
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
     )
     cy.selectAssemblyToView('stopcodon.gff3', 'gene02')
+    cy.openAnnotationsTrack()
     cy.get('button[data-testid="zoom_out"]').click()
     cy.get('[data-testid^="ErrorIcon-"]', { timeout: 5000 })
       .its('length')
       .should('satisfy', (n) => n >= 3)
 
-    // Unregister all checks
+    // Unregister all checks. The fixture config.json declares many
+    // assemblies, so Manage Checks' assembly picker doesn't default to
+    // stopcodon.gff3 - it must be selected explicitly.
     cy.selectFromApolloMenu(['Admin', 'Manage Checks'])
+    cy.contains('Manage Checks')
+      .parent()
+      .within(() => {
+        cy.get('[role="combobox"]').click()
+      })
+    cy.contains('li', 'stopcodon.gff3').click()
     cy.contains('Manage Checks')
       .parent()
       .within(() => {
@@ -154,6 +162,12 @@ describe('Warning signs', () => {
     cy.contains('Manage Checks')
       .parent()
       .within(() => {
+        cy.get('[role="combobox"]').click()
+      })
+    cy.contains('li', 'stopcodon.gff3').click()
+    cy.contains('Manage Checks')
+      .parent()
+      .within(() => {
         cy.contains('td', 'CDSCheck')
           .parent()
           .within(() => {
@@ -165,14 +179,39 @@ describe('Warning signs', () => {
       'have.length',
       1,
     )
+
+    // Re-register TranscriptCheck too, so this test leaves the assembly's
+    // registered checks back at their default (both checks on) rather than
+    // leaving only CDSCheck registered for whatever runs against this same
+    // server next (a retry of this test, or another test/spec entirely).
+    cy.selectFromApolloMenu(['Admin', 'Manage Checks'])
+    cy.contains('Manage Checks')
+      .parent()
+      .within(() => {
+        cy.get('[role="combobox"]').click()
+      })
+    cy.contains('li', 'stopcodon.gff3').click()
+    cy.contains('Manage Checks')
+      .parent()
+      .within(() => {
+        cy.contains('td', 'TranscriptCheck')
+          .parent()
+          .within(() => {
+            cy.get('input[type="checkbox"]').click()
+          })
+        cy.get('button[type="submit"]').contains('Submit').click()
+      })
   })
 
   it('Warnings are properly stacked', () => {
-    cy.addAssemblyFromGff(
-      'stopcodon.gff3',
+    cy.importFeatures(
       'test_data/cdsChecks/stopcodon.gff3',
+      'stopcodon.gff3',
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
     )
     cy.selectAssemblyToView('stopcodon.gff3', 'gene09')
+    cy.openAnnotationsTrack()
 
     cy.get('button[data-testid="zoom_out"]').click()
     // eslint-disable-next-line cypress/no-unnecessary-waiting

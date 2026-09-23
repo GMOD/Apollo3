@@ -1,5 +1,12 @@
 # JBrowse
 
+:::caution The `apollo jbrowse get-config` command described below has been
+removed, and `apollo jbrowse set-config` referenced further down never existed
+as a CLI command. This page's workflow needs a maintainer rewrite to match how
+config.json is now served (each file in `JBROWSE_CONFIG_FILES` is served,
+augmented, at its own literal path - see the
+[multi-user installation docs](../installation/background)). :::
+
 Apollo is built on top of JBrowse, so users often need to configure the JBrowse
 instance in which Apollo is running. For information about JBrowse and its
 various configurations, see the [JBrowse docs](https://jbrowse.org/jb2/docs/).

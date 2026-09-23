@@ -16,6 +16,7 @@ import type { Profile as GoogleProfile } from 'passport-google-oauth20'
 import { PluginsService } from '../plugins/plugins.service.js'
 import { CreateUserDto } from '../users/dto/create-user.dto.js'
 import { UsersService } from '../users/users.service.js'
+import { setAuthCookie } from '../utils/auth-cookie.util.js'
 import {
   GUEST_USER_EMAIL,
   GUEST_USER_NAME,
@@ -82,6 +83,14 @@ export class AuthenticationService {
     const { redirect_uri } = (
       req.authInfo as { state: { redirect_uri: string } }
     ).state
+    // A relative redirect_uri (the top-level login page's convention) is
+    // same-origin, so the auth cookie already set on this response is
+    // enough; just redirect there directly instead of embedding the token.
+    // Only the absolute-URL popup-based flow needs the token in the query
+    // string, since the popup may not share the parent page's cookies.
+    if (!URL.canParse(redirect_uri)) {
+      return { url: redirect_uri }
+    }
     const url = new URL(redirect_uri)
     const searchParams = new URLSearchParams({ access_token: req.user.token })
     url.search = searchParams.toString()
@@ -216,14 +225,21 @@ export class AuthenticationService {
     }
     if ('name' in result && 'email' in result) {
       const logInResult = await this.logIn(result.name, result.email)
+      setAuthCookie(response, logInResult.token)
       if (customAuth.needsPopup && state) {
         const { redirect_uri } = JSON.parse(state) as { redirect_uri: string }
-        const url = new URL(redirect_uri)
-        const searchParams = new URLSearchParams({
-          access_token: logInResult.token,
-        })
-        url.search = searchParams.toString()
-        response.redirect(url.toString())
+        if (URL.canParse(redirect_uri)) {
+          const url = new URL(redirect_uri)
+          const searchParams = new URLSearchParams({
+            access_token: logInResult.token,
+          })
+          url.search = searchParams.toString()
+          response.redirect(url.toString())
+        } else {
+          response.redirect(redirect_uri)
+        }
+      } else if (redirectUri) {
+        response.redirect(redirectUri)
       }
       return logInResult
     }

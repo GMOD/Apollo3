@@ -13,7 +13,13 @@ import {
   RefSeq,
   type RefSeqDocument,
 } from '@apollo-annotation/schemas'
-import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common'
+import {
+  Inject,
+  Injectable,
+  Logger,
+  type OnApplicationBootstrap,
+  forwardRef,
+} from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
 
@@ -22,7 +28,7 @@ import { RefSeqsService } from '../refSeqs/refSeqs.service.js'
 import { SequenceService } from '../sequence/sequence.service.js'
 
 @Injectable()
-export class ChecksService {
+export class ChecksService implements OnApplicationBootstrap {
   constructor(
     @InjectModel(CheckResult.name)
     private readonly checkResultModel: Model<CheckResultDocument>,
@@ -34,6 +40,29 @@ export class ChecksService {
   ) {}
 
   private readonly logger = new Logger(ChecksService.name)
+
+  /**
+   * Runs once at startup, after the whole app (and this Mongo connection)
+   * is wired up, to add/update the checks registered in checkRegistry.
+   */
+  async onApplicationBootstrap() {
+    const checks = checkRegistry.getChecks()
+    for (const [name, check] of checks.entries()) {
+      const matches = await this.checkModel.find({ name }).exec()
+      const existing = matches.at(0)
+      if (!existing) {
+        await this.checkModel.create(check)
+        continue
+      }
+      const matchingVersion = await this.checkModel
+        .find({ name, version: check.version })
+        .exec()
+      if (matchingVersion.length === 0) {
+        existing.version = check.version
+        await existing.save()
+      }
+    }
+  }
 
   async find({ assembly }: { assembly?: string }) {
     let query = {}

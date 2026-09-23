@@ -4,7 +4,9 @@ declare namespace Cypress {
   interface Chainable {
     addOntologies(): Chainable<void>
     loginAsGuest(): Chainable<void>
-    deleteAssemblies(): Chainable<void>
+    clearFeatures(): Chainable<void>
+    visitLocalSession(): Chainable<void>
+    clearLocalFeatures(): Chainable<void>
     selectFromTrackMenu(menuItemNameOrPath: string | string[]): Chainable<void>
     selectFromApolloMenu(menuItemNameOrPath: string | string[]): Chainable<void>
     annotationTrackAppearance(
@@ -37,5 +39,6 @@ declare namespace Cypress {
     ): Chainable<void>
     closeSearchBox(): Chainable<void>
     refreshTableEditor(): Chainable<void>
+    openAnnotationsTrack(): Chainable<void>
   }
 }
