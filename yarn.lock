@@ -403,8 +403,8 @@ __metadata:
     "@emotion/styled": "npm:^11.14.0"
     "@gmod/gff": "npm:^2.1.0"
     "@gmod/indexedfasta": "npm:^5.0.2"
-    "@jbrowse/core": "npm:^5.0.0-beta.8"
-    "@jbrowse/mobx-state-tree": "npm:^6.5.1"
+    "@jbrowse/core": "npm:^5.0.0-beta.9"
+    "@jbrowse/mobx-state-tree": "npm:^6.5.2"
     "@jest/globals": "npm:^29.0.3"
     "@mui/material": "npm:^9.4.0"
     "@mui/system": "npm:^9.4.0"
@@ -488,7 +488,7 @@ __metadata:
     "@emotion/react": "npm:^11.14.0"
     "@emotion/styled": "npm:^11.14.0"
     "@gmod/gff": "npm:^2.1.0"
-    "@jbrowse/core": "npm:^5.0.0-beta.8"
+    "@jbrowse/core": "npm:^5.0.0-beta.9"
     "@nestjs/common": "npm:^10.1.0"
     "@nestjs/core": "npm:^10.1.0"
     "@types/node": "npm:^24.10.9"
@@ -502,7 +502,7 @@ __metadata:
     rxjs: "npm:^7.4.0"
     typescript: "npm:^6.0.3"
   peerDependencies:
-    "@jbrowse/mobx-state-tree": ^6.5.1
+    "@jbrowse/mobx-state-tree": ^6.5.2
     "@mui/material": ^9.4.0
     "@mui/x-data-grid": ^9.13.0
     mobx: ^7.0.3
@@ -529,11 +529,11 @@ __metadata:
     "@emotion/react": "npm:^11.14.0"
     "@emotion/styled": "npm:^11.14.0"
     "@gmod/gff": "npm:^2.1.0"
-    "@jbrowse/cli": "npm:^5.0.0-beta.8"
-    "@jbrowse/core": "npm:^5.0.0-beta.8"
-    "@jbrowse/mobx-state-tree": "npm:^6.5.1"
-    "@jbrowse/plugin-jobs-management": "npm:^5.0.0-beta.8"
-    "@jbrowse/plugin-linear-genome-view": "npm:^5.0.0-beta.8"
+    "@jbrowse/cli": "npm:^5.0.0-beta.9"
+    "@jbrowse/core": "npm:^5.0.0-beta.9"
+    "@jbrowse/mobx-state-tree": "npm:^6.5.2"
+    "@jbrowse/plugin-jobs-management": "npm:^5.0.0-beta.9"
+    "@jbrowse/plugin-linear-genome-view": "npm:^5.0.0-beta.9"
     "@jest/globals": "npm:^29.0.3"
     "@mui/icons-material": "npm:^9.4.0"
     "@mui/material": "npm:^9.4.0"
@@ -602,8 +602,8 @@ __metadata:
     tss-react: "npm:^4.9.21"
     typescript: "npm:^6.0.3"
   peerDependencies:
-    "@jbrowse/core": ^5.0.0-beta.8
-    "@jbrowse/mobx-state-tree": ^6.5.1
+    "@jbrowse/core": ^5.0.0-beta.9
+    "@jbrowse/mobx-state-tree": ^6.5.2
     "@mui/material": ^9.4.0
     mobx: ^7.0.3
     mobx-react: ^9.0.0
@@ -621,8 +621,8 @@ __metadata:
   dependencies:
     "@emotion/react": "npm:^11.14.0"
     "@emotion/styled": "npm:^11.14.0"
-    "@jbrowse/core": "npm:^5.0.0-beta.8"
-    "@jbrowse/mobx-state-tree": "npm:^6.5.1"
+    "@jbrowse/core": "npm:^5.0.0-beta.9"
+    "@jbrowse/mobx-state-tree": "npm:^6.5.2"
     "@types/react": "npm:^18.3.4"
     mobx: "npm:^7.0.3"
     react: "npm:^19.2.8"
@@ -658,8 +658,8 @@ __metadata:
     "@emotion/react": "npm:^11.14.0"
     "@emotion/styled": "npm:^11.14.0"
     "@gmod/gff": "npm:^2.1.0"
-    "@jbrowse/core": "npm:^5.0.0-beta.8"
-    "@jbrowse/mobx-state-tree": "npm:^6.5.1"
+    "@jbrowse/core": "npm:^5.0.0-beta.9"
+    "@jbrowse/mobx-state-tree": "npm:^6.5.2"
     "@mui/material": "npm:^9.4.0"
     "@mui/system": "npm:^9.4.0"
     "@mui/x-data-grid": "npm:^9.13.0"
@@ -686,7 +686,7 @@ __metadata:
     tsx: "npm:^4.6.2"
     typescript: "npm:^6.0.3"
   peerDependencies:
-    "@jbrowse/mobx-state-tree": ^6.5.1
+    "@jbrowse/mobx-state-tree": ^6.5.2
     "@mui/material": ^9.4.0
     "@mui/x-data-grid": ^9.13.0
     mobx: ^7.0.3
@@ -7932,13 +7932,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gmod/bgzf-filehandle@npm:^6.6.0":
-  version: 6.6.0
-  resolution: "@gmod/bgzf-filehandle@npm:6.6.0"
+"@gmod/bgzf-filehandle@npm:^6.7.0":
+  version: 6.7.0
+  resolution: "@gmod/bgzf-filehandle@npm:6.7.0"
   dependencies:
     generic-filehandle2: "npm:^2.2.1"
     pako-esm2: "npm:^2.0.2"
-  checksum: 10c0/e3b02728590d55a1b0398a36e17d2b0001cba5ad0b8623e93752aa7ef9c291777643681a67b8ae64eb1483c21dfd90343391d6be9fdf78e41370b980a29cb2c7
+  checksum: 10c0/063e207313b177339d048021ebefdea612e234315a2bd0b137a972b3511ab99e3ff586c0b750ba32dde6bbfc95772c56b4fd48d2bf9e21ce32adbe9698602a24
   languageName: node
   linkType: hard
 
@@ -8646,27 +8646,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/add-track-core@npm:^5.0.0-beta.8":
-  version: 5.0.0-beta.8
-  resolution: "@jbrowse/add-track-core@npm:5.0.0-beta.8"
-  checksum: 10c0/3da9979c4f3be616bdb977179c3e8b2972abd51d6dda46961425d7b59324217d9c2a97b098e7dc8dac7c464704506eef12a28fd2db929171d7ace1ea943d5dc7
+"@jbrowse/add-track-core@npm:^5.0.0-beta.9":
+  version: 5.0.0-beta.9
+  resolution: "@jbrowse/add-track-core@npm:5.0.0-beta.9"
+  checksum: 10c0/87116aea96a7c33343b964850c424e0f3530b13dc78678eca0abe6dd36f8d3f1f1f2a938de6aadfa20c97558c39d363b80e04fdede382a2ecd2bfa6dc20a39e3
   languageName: node
   linkType: hard
 
-"@jbrowse/cigar-utils@npm:^5.0.0-beta.8":
-  version: 5.0.0-beta.8
-  resolution: "@jbrowse/cigar-utils@npm:5.0.0-beta.8"
-  checksum: 10c0/dc80374d5746d0bcb6737e139d8a73f79bafb347495c246daedf415d4ce43957ebffb309ec375953eb2f9c727ad13f30758370d35929376b6d9c0b5ff14ff85d
+"@jbrowse/cigar-utils@npm:^5.0.0-beta.9":
+  version: 5.0.0-beta.9
+  resolution: "@jbrowse/cigar-utils@npm:5.0.0-beta.9"
+  checksum: 10c0/05c956407a10cf4943a4eb79291ee86725bf2207c26ac63d601a0a5e246ec4d7e9527b0c64e979083df730658282d14cf31a6e5d44dec15ccbc63c6cecea3a04
   languageName: node
   linkType: hard
 
-"@jbrowse/cli@npm:^5.0.0-beta.8":
-  version: 5.0.0-beta.8
-  resolution: "@jbrowse/cli@npm:5.0.0-beta.8"
+"@jbrowse/cli@npm:^5.0.0-beta.9":
+  version: 5.0.0-beta.9
+  resolution: "@jbrowse/cli@npm:5.0.0-beta.9"
   dependencies:
-    "@jbrowse/add-track-core": "npm:^5.0.0-beta.8"
-    "@jbrowse/cigar-utils": "npm:^5.0.0-beta.8"
-    "@jbrowse/text-indexing-core": "npm:^5.0.0-beta.8"
+    "@jbrowse/add-track-core": "npm:^5.0.0-beta.9"
+    "@jbrowse/cigar-utils": "npm:^5.0.0-beta.9"
+    "@jbrowse/text-indexing-core": "npm:^5.0.0-beta.9"
     ajv: "npm:^8.20.0"
     cli-progress: "npm:^3.12.0"
     ixixx: "npm:^3.0.13"
@@ -8674,32 +8674,32 @@ __metadata:
     tmp: "npm:^0.2.7"
   bin:
     jbrowse: ./dist/bin.js
-  checksum: 10c0/82872bdcc6fb2a5a69f1884635a75a4264d4d11b24d9d09c25c53e43650036f5f6764034e817b31571a65c319e40b98319c926d0bcc8ebe813589c99f592da76
+  checksum: 10c0/d8ec30181f164795dd7840196e4342679979addd17e64f119e37417c5b1f846d8f148fe7e53a3b6292afd2fa805e47840e8ec63ee543536235b808241d53dbc5
   languageName: node
   linkType: hard
 
-"@jbrowse/core@npm:^5.0.0-beta.8":
-  version: 5.0.0-beta.8
-  resolution: "@jbrowse/core@npm:5.0.0-beta.8"
+"@jbrowse/core@npm:^5.0.0-beta.9":
+  version: 5.0.0-beta.9
+  resolution: "@jbrowse/core@npm:5.0.0-beta.9"
   dependencies:
     "@emotion/cache": "npm:^11.14.0"
     "@emotion/react": "npm:^11.14.0"
     "@emotion/serialize": "npm:^1.3.3"
     "@emotion/utils": "npm:^1.4.2"
     "@floating-ui/react": "npm:^0.27.20"
-    "@gmod/bgzf-filehandle": "npm:^6.6.0"
+    "@gmod/bgzf-filehandle": "npm:^6.7.0"
     "@gmod/range-cache-filehandle": "npm:^1.4.0"
     "@gmod/shared-read-cache": "npm:^1.7.2"
-    "@jbrowse/add-track-core": "npm:^5.0.0-beta.8"
-    "@jbrowse/jexl": "npm:^4.0.1"
-    "@jbrowse/mobx-state-tree": "npm:^6.5.1"
+    "@jbrowse/add-track-core": "npm:^5.0.0-beta.9"
+    "@jbrowse/jexl": "npm:^5.0.2"
+    "@jbrowse/mobx-state-tree": "npm:^6.5.2"
     "@jbrowse/quick-lru": "npm:^7.3.5"
-    "@jbrowse/render-core": "npm:^5.0.0-beta.8"
+    "@jbrowse/render-core": "npm:^5.0.0-beta.9"
     "@leeoniya/ufuzzy": "npm:^1.0.19"
     "@mui/icons-material": "npm:^9.4.0"
     "@mui/material": "npm:^9.4.0"
     "@mui/system": "npm:^9.4.0"
-    "@mui/x-data-grid": "npm:^9.13.0"
+    "@mui/x-data-grid": "npm:^9.14.0"
     canvas-sequencer-ts: "npm:^3.1.3"
     compare-versions: "npm:^6.1.1"
     dompurify: "npm:^3.4.15"
@@ -8713,18 +8713,18 @@ __metadata:
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/3cf2f57277312b23ce6dcd68c9a31772adc55e3d2a99c9185eed47a4fee47ee42f7c0ddecc347e1d7f7aa9732a4f6723f458fd404ffddc70f3aa834d0b2d8bcf
+  checksum: 10c0/410541dbd7fc8f403b26f171b23b4bfc462f3ec76b21be2a7578c052940d45013f49f39bd5ecf3e6242fb9babd60073c822fa8eed141d198dbbd2badc4bfcf71
   languageName: node
   linkType: hard
 
-"@jbrowse/display-kit@npm:^5.0.0-beta.8":
-  version: 5.0.0-beta.8
-  resolution: "@jbrowse/display-kit@npm:5.0.0-beta.8"
+"@jbrowse/display-kit@npm:^5.0.0-beta.9":
+  version: 5.0.0-beta.9
+  resolution: "@jbrowse/display-kit@npm:5.0.0-beta.9"
   dependencies:
-    "@jbrowse/core": "npm:^5.0.0-beta.8"
-    "@jbrowse/display-ui": "npm:^5.0.0-beta.8"
-    "@jbrowse/mobx-state-tree": "npm:^6.5.1"
-    "@jbrowse/render-core": "npm:^5.0.0-beta.8"
+    "@jbrowse/core": "npm:^5.0.0-beta.9"
+    "@jbrowse/display-ui": "npm:^5.0.0-beta.9"
+    "@jbrowse/mobx-state-tree": "npm:^6.5.2"
+    "@jbrowse/render-core": "npm:^5.0.0-beta.9"
     "@mui/icons-material": "npm:^9.4.0"
     "@mui/material": "npm:^9.4.0"
     mobx: "npm:^7.0.3"
@@ -8732,65 +8732,65 @@ __metadata:
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/4749ce9e1b8930cc0f961ca0a70d381724e0fe58ce2a081d9cdb12d54ad440203b1e7fcd35dfa18d2ea67851aea67be177c7ff8d9b517efb5417aee48901fabe
+  checksum: 10c0/616512effad4fff295548055de19bd1121f6c04c4eb3f77f2c9b1554685a1b16401feebca815c31cc66bf46de58f037693d02b8b7676f67f4e328aa9b95ccfe5
   languageName: node
   linkType: hard
 
-"@jbrowse/display-ui@npm:^5.0.0-beta.8":
-  version: 5.0.0-beta.8
-  resolution: "@jbrowse/display-ui@npm:5.0.0-beta.8"
+"@jbrowse/display-ui@npm:^5.0.0-beta.9":
+  version: 5.0.0-beta.9
+  resolution: "@jbrowse/display-ui@npm:5.0.0-beta.9"
   dependencies:
-    "@jbrowse/core": "npm:^5.0.0-beta.8"
-    "@jbrowse/mobx-state-tree": "npm:^6.5.1"
+    "@jbrowse/core": "npm:^5.0.0-beta.9"
+    "@jbrowse/mobx-state-tree": "npm:^6.5.2"
     mobx-react: "npm:^10.0.2"
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/352e03ae5e51f3dc01f1a75a0635f3dea2bbac90602d1a7b198eb1cea4d9e313c9576db6f03a0c74cc5ce81e27dcd6393e92ea4cb4f44f31aec9278e9afb8da7
+  checksum: 10c0/2f905c719e6b0229e3f49c41b3c24439ae41c9acb5ae9817a4d77405518d201a57ed6b6010d800311c50d3cf0ec3280da58bed6c5ee00030306f792491c7292e
   languageName: node
   linkType: hard
 
-"@jbrowse/jexl@npm:^4.0.1":
-  version: 4.0.1
-  resolution: "@jbrowse/jexl@npm:4.0.1"
-  checksum: 10c0/02ce80e0a1fbea421335853614f7eb6233baaa9e9e599c17f022e7c7c1e9794ab38dda61da31deceb18183185eb75abf028d2e14b24df193bd1bc88c964a0bf0
+"@jbrowse/jexl@npm:^5.0.2":
+  version: 5.0.2
+  resolution: "@jbrowse/jexl@npm:5.0.2"
+  checksum: 10c0/795370afa484d59206a17986239967dbc33fd21316597bcd92913ba5e238209c6e6ea138b6f196824b3f823f5a9fe07d0397c1b4ea3c21735281c134c003b86f
   languageName: node
   linkType: hard
 
-"@jbrowse/mobx-state-tree@npm:^6.5.1":
-  version: 6.5.1
-  resolution: "@jbrowse/mobx-state-tree@npm:6.5.1"
+"@jbrowse/mobx-state-tree@npm:^6.5.2":
+  version: 6.5.2
+  resolution: "@jbrowse/mobx-state-tree@npm:6.5.2"
   peerDependencies:
     mobx: ^7.0.0
-  checksum: 10c0/af30dcb4bdf5ea8bcaa5cec83aa67186f70bf25134cfc9a47fccc9f9e6bde2d5c7d13a475d0738f76f7def1608b3016d0a854d18a56110d4dd1d0db21cbcc21e
+  checksum: 10c0/1a6f248f1fa164df577903222f93428569464ed54c9b9d3c99d8a2b4dc3947e37bf3c77d25aa1555a48b0240e964a3d8da3b9d323d98728a15df4125a1a15de7
   languageName: node
   linkType: hard
 
-"@jbrowse/plugin-jobs-management@npm:^5.0.0-beta.8":
-  version: 5.0.0-beta.8
-  resolution: "@jbrowse/plugin-jobs-management@npm:5.0.0-beta.8"
+"@jbrowse/plugin-jobs-management@npm:^5.0.0-beta.9":
+  version: 5.0.0-beta.9
+  resolution: "@jbrowse/plugin-jobs-management@npm:5.0.0-beta.9"
   dependencies:
-    "@jbrowse/core": "npm:^5.0.0-beta.8"
-    "@jbrowse/mobx-state-tree": "npm:^6.5.1"
+    "@jbrowse/core": "npm:^5.0.0-beta.9"
+    "@jbrowse/mobx-state-tree": "npm:^6.5.2"
     "@mui/icons-material": "npm:^9.4.0"
     "@mui/material": "npm:^9.4.0"
     mobx: "npm:^7.0.3"
     mobx-react: "npm:^10.0.2"
   peerDependencies:
     react: ">=19.0.0"
-  checksum: 10c0/197332746731eda754ad71ed23513db01acb476edb979219862456755d51578beb23d43808af75e7a87418a9a6f35d235c2e85420259ead6914b31e1bfee34eb
+  checksum: 10c0/143b56290bebf543303603c8eba354c600aab6d6ae96244f02b12447bd950965dad2312d5b79a87a9152904f4951087029833b7bb672d914d748498393b39ad7
   languageName: node
   linkType: hard
 
-"@jbrowse/plugin-linear-genome-view@npm:^5.0.0-beta.8":
-  version: 5.0.0-beta.8
-  resolution: "@jbrowse/plugin-linear-genome-view@npm:5.0.0-beta.8"
+"@jbrowse/plugin-linear-genome-view@npm:^5.0.0-beta.9":
+  version: 5.0.0-beta.9
+  resolution: "@jbrowse/plugin-linear-genome-view@npm:5.0.0-beta.9"
   dependencies:
-    "@jbrowse/core": "npm:^5.0.0-beta.8"
-    "@jbrowse/display-kit": "npm:^5.0.0-beta.8"
-    "@jbrowse/display-ui": "npm:^5.0.0-beta.8"
-    "@jbrowse/mobx-state-tree": "npm:^6.5.1"
-    "@jbrowse/render-core": "npm:^5.0.0-beta.8"
+    "@jbrowse/core": "npm:^5.0.0-beta.9"
+    "@jbrowse/display-kit": "npm:^5.0.0-beta.9"
+    "@jbrowse/display-ui": "npm:^5.0.0-beta.9"
+    "@jbrowse/mobx-state-tree": "npm:^6.5.2"
+    "@jbrowse/render-core": "npm:^5.0.0-beta.9"
     "@mui/icons-material": "npm:^9.4.0"
     "@mui/material": "npm:^9.4.0"
     mobx: "npm:^7.0.3"
@@ -8798,7 +8798,7 @@ __metadata:
   peerDependencies:
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
-  checksum: 10c0/e09838a9b5877dfd7846db8a3f09440ada7011316e5e8aec049bc6e9fda596fe6acf6b2ce38ba9967543cf72746d1ef04137d612df50996a2af914bf0c6c9b84
+  checksum: 10c0/6c3b1cc74ab682ec4bf599269f32acd4fe5fa3b53744255d9a2a2382f78f6dbe8f9cc76d2facb924c7bd114f5f9726f9d91796295d6c85d8776cae9aa6a93f2c
   languageName: node
   linkType: hard
 
@@ -8809,22 +8809,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/render-core@npm:^5.0.0-beta.8":
-  version: 5.0.0-beta.8
-  resolution: "@jbrowse/render-core@npm:5.0.0-beta.8"
+"@jbrowse/render-core@npm:^5.0.0-beta.9":
+  version: 5.0.0-beta.9
+  resolution: "@jbrowse/render-core@npm:5.0.0-beta.9"
   dependencies:
-    "@jbrowse/mobx-state-tree": "npm:^6.5.1"
+    "@jbrowse/mobx-state-tree": "npm:^6.5.2"
     mobx: "npm:^7.0.3"
   peerDependencies:
     react: ">=19.0.0"
-  checksum: 10c0/52e3cd9213aa79ce3ccac9a0db10611e94c58c74024ea4ae50ef5b58b58b530a4371e729c9884a8d12f7c7eaee1f5cb07b6b8adb9d1a44587fc755b8812ca6fd
+  checksum: 10c0/8934dccd2e06cda06d890be27ec3035302034e1fd50e3e1a0f3a44ab713c095f3e63ff8839f90405f9cfa4ff4da68f35cbd2b141b8f2affdd09186a7c788293b
   languageName: node
   linkType: hard
 
-"@jbrowse/text-indexing-core@npm:^5.0.0-beta.8":
-  version: 5.0.0-beta.8
-  resolution: "@jbrowse/text-indexing-core@npm:5.0.0-beta.8"
-  checksum: 10c0/b0a89b98fea42d53e567048b9972bb37dab6b9b022f2dd6c894c16a375ab44111622ef07c075419452acb856c77855d8541fa99c7162df8c67376bc778282ccf
+"@jbrowse/text-indexing-core@npm:^5.0.0-beta.9":
+  version: 5.0.0-beta.9
+  resolution: "@jbrowse/text-indexing-core@npm:5.0.0-beta.9"
+  checksum: 10c0/98582e13e4160e08fc77110ffb8637b3d198a0b22c49f7355a852949e3a8d72108d5be88002b12a419e6d306d34fbea9384d7840c5284467c6893f72d2e6c46d
   languageName: node
   linkType: hard
 
@@ -9770,6 +9770,34 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mui/x-data-grid@npm:^9.14.0":
+  version: 9.14.0
+  resolution: "@mui/x-data-grid@npm:9.14.0"
+  dependencies:
+    "@babel/runtime": "npm:^7.29.7"
+    "@base-ui/utils": "npm:^0.3.2"
+    "@mui/utils": "npm:^9.4.0"
+    "@mui/x-internals": "npm:^9.14.0"
+    "@mui/x-virtualizer": "npm:0.7.2"
+    clsx: "npm:^2.1.1"
+    prop-types: "npm:^15.8.1"
+    use-sync-external-store: "npm:^1.7.0"
+  peerDependencies:
+    "@emotion/react": ^11.9.0
+    "@emotion/styled": ^11.8.1
+    "@mui/material": ^7.3.0 || ^9.0.0
+    "@mui/system": ^7.3.0 || ^9.0.0
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@emotion/react":
+      optional: true
+    "@emotion/styled":
+      optional: true
+  checksum: 10c0/9c8d55aa97707bd458760e438769e4c4326918fb5429ebdc3024ef13aa2ac091fa931552fcebc2d35db159df6b525fee09351767b231503a5d7b41ee4622c4a9
+  languageName: node
+  linkType: hard
+
 "@mui/x-internals@npm:^9.13.0":
   version: 9.13.0
   resolution: "@mui/x-internals@npm:9.13.0"
@@ -9786,6 +9814,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mui/x-internals@npm:^9.14.0":
+  version: 9.14.0
+  resolution: "@mui/x-internals@npm:9.14.0"
+  dependencies:
+    "@babel/runtime": "npm:^7.29.7"
+    "@base-ui/utils": "npm:^0.3.2"
+    "@mui/utils": "npm:^9.4.0"
+    reselect: "npm:^5.2.0"
+    use-sync-external-store: "npm:^1.7.0"
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/33889ccb91c768a31cdbf07fba0233cbcdcd579c0655f298ec0a15f4288989545b493281a798bb54bc04cc8c754e6615b53d0c8be00b5f5f67af2294c16d159f
+  languageName: node
+  linkType: hard
+
 "@mui/x-virtualizer@npm:0.7.1":
   version: 0.7.1
   resolution: "@mui/x-virtualizer@npm:0.7.1"
@@ -9798,6 +9842,21 @@ __metadata:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
     react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
   checksum: 10c0/2e69a274109601ca5c0f30599ba00ac70d23f4cc205975ce85df60c72575b589daedfa8cdf4eb0990dcbfb3c2f36b900e129428e9aed7f897125327e0f73e3f5
+  languageName: node
+  linkType: hard
+
+"@mui/x-virtualizer@npm:0.7.2":
+  version: 0.7.2
+  resolution: "@mui/x-virtualizer@npm:0.7.2"
+  dependencies:
+    "@babel/runtime": "npm:^7.29.7"
+    "@base-ui/utils": "npm:^0.3.2"
+    "@mui/utils": "npm:^9.4.0"
+    "@mui/x-internals": "npm:^9.14.0"
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/3122b472369ae7418fd2a1f0dc4a429f1f1c58993b0f3cad7d70e7c35e30322e3a27eb652a4f78a76113d359b9fa60181126edc7a1ab765647fa5e40f9ac674c
   languageName: node
   linkType: hard
 
@@ -32009,6 +32068,15 @@ __metadata:
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
   checksum: 10c0/35e1179f872a53227bdf8a827f7911da4c37c0f4091c29b76b1e32473d1670ebe7bcd880b808b7549ba9a5605c233350f800ffab963ee4a4ee346ee983b6019b
+  languageName: node
+  linkType: hard
+
+"use-sync-external-store@npm:^1.7.0":
+  version: 1.7.0
+  resolution: "use-sync-external-store@npm:1.7.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/6bae7cb778ce611131ec830c4e469fbc2872acefc25d2e4cf1c28b8628690689770742a9f2f0642c95134f9c77041fee60f0352f81ca43f96643b0ed01774726
   languageName: node
   linkType: hard
 

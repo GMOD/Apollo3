@@ -44,13 +44,12 @@ import ObjectID from 'bson-objectid'
 import React, { useState } from 'react'
 
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import type { ChangeManager } from '../ChangeManager'
+import type { ChangeManager, JobInput } from '../ChangeManager'
 import type { ApolloSessionModel } from '../session'
 import type { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import { Dialog } from './Dialog'
-import type { JobInput } from '@jbrowse/plugin-jobs-management'
 
 interface AddAssemblyProps {
   session: ApolloSessionModel

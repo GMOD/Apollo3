@@ -48,4 +48,5 @@
     "./scripts/*.ts",
     "./.husky/*.cjs",
   ],
+  "exclude": ["./.pnp.cjs"],
 }

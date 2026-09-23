@@ -22,7 +22,6 @@ import type {
   LocalPathLocation,
   UriLocation,
 } from '@jbrowse/core/util/types/mst'
-import type { JobInput } from '@jbrowse/plugin-jobs-management'
 import {
   type Instance,
   addDisposer,
@@ -40,12 +39,12 @@ import {
   CollaborationServerDriver,
   LocalDriver,
 } from '../BackendDrivers'
-import { ChangeManager } from '../ChangeManager'
+import { ChangeManager, type JobInput } from '../ChangeManager'
 import {
   OntologyManagerType,
   type TextIndexFieldDefinition,
 } from '../OntologyManager'
-import type ApolloPluginConfigurationSchema from '../config'
+import type { ApolloPluginConfigModel } from '../config'
 import type { ApolloRootModel } from '../types'
 
 import type { ApolloSessionModel } from './session'
@@ -67,7 +66,7 @@ export function clientDataStoreFactory(
 
       get pluginConfiguration() {
         return getRoot<ApolloRootModel>(self).jbrowse.configuration
-          .ApolloPlugin as Instance<typeof ApolloPluginConfigurationSchema>
+          .ApolloPlugin as ApolloPluginConfigModel
       },
       getFeature(featureId: string) {
         return resolveIdentifier(

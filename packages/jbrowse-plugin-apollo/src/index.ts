@@ -117,8 +117,7 @@ validationRegistry.registerValidation(new ParentChildValidation())
 export default class ApolloPlugin extends Plugin {
   name = 'ApolloPlugin'
   version = version
-  configurationSchema: ReturnType<typeof ConfigurationSchema> =
-    ApolloPluginConfigurationSchema
+  configurationSchema = ApolloPluginConfigurationSchema
 
   install(pluginManager: PluginManager) {
     installApolloSequenceAdapter(pluginManager)
