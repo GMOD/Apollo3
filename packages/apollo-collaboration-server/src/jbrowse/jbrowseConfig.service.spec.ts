@@ -57,7 +57,7 @@ function close(server: http.Server): Promise<void> {
 
 const sequenceConfigFor = (assemblyName: string) => ({
   adapter: {
-    type: 'BgzipFastaAdapter',
+    type: 'BgzipFastaAdapter' as const,
     fastaLocation: { uri: `${assemblyName}.fa.gz` },
     faiLocation: { uri: `${assemblyName}.fa.gz.fai` },
     gziLocation: { uri: `${assemblyName}.fa.gz.gzi` },

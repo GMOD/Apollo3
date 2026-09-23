@@ -143,7 +143,7 @@ export class CollaborationServerDriver extends BackendDriver {
         const localSessionId = readConfObject(
           session.getPluginConfiguration(),
           'userSessionId',
-        ) as string
+        )
         const changeManager = new ChangeManager(this.clientStore)
         // Save server last change sequence into session storage
         session.setLastChangeSequenceNumber(message.changeSequence)

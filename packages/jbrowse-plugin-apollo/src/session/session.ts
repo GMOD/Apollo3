@@ -186,9 +186,8 @@ export function extendSession(
       },
       getPluginConfiguration() {
         const { jbrowse } = getRoot<ApolloRootModel>(self)
-        const pluginConfiguration =
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          jbrowse.configuration.ApolloPlugin as ApolloPluginConfigModel
+        const pluginConfiguration = jbrowse.configuration
+          .ApolloPlugin as ApolloPluginConfigModel
         return pluginConfiguration
       },
     }))
@@ -373,7 +372,7 @@ export function extendSession(
         const localSessionId = readConfObject(
           self.getPluginConfiguration(),
           'userSessionId',
-        ) as string
+        )
         const { socket } = self
         const { addCheckResult, changeManager, deleteCheckResult } =
           self.apolloDataStore
@@ -589,7 +588,7 @@ export function extendSession(
               const featureTypeOntologyName = readConfObject(
                 pluginConfiguration,
                 'featureTypeOntologyName',
-              ) as string
+              )
               const { pluginConfiguration: dataStorePluginConfiguration } =
                 self.apolloDataStore
               const configuredOntologies =
