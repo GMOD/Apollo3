@@ -38,8 +38,9 @@ export class AssembliesService {
         { $set: { checks } },
       )
     } catch (error) {
-      this.logger.debug(
-        '*** UPDATE STATUS EXCEPTION - Could not update checks in assembly document!',
+      this.logger.error(
+        `Could not update checks in assembly document "${_id}"`,
+        error instanceof Error ? error.stack : String(error),
       )
       throw new UnprocessableEntityException(String(error))
     }

@@ -3,7 +3,6 @@ import {
   Body,
   Controller,
   Get,
-  Logger,
   Param,
   Post,
   Query,
@@ -27,8 +26,6 @@ import {
 @Validations(Role.None)
 @Controller('auth')
 export class AuthenticationController {
-  private readonly logger = new Logger(AuthenticationController.name)
-
   constructor(private readonly authService: AuthenticationService) {}
 
   @Get('types')

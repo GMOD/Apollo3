@@ -19,6 +19,8 @@ import { ROLE_KEY } from './validatation.decorator.js'
 
 export class AuthorizationValidation extends Validation {
   name = 'Authorization' as const
+  private readonly logger = new Logger(AuthorizationValidation.name)
+
   async backendPreValidate(
     changeOrContext: Change | Context,
   ): Promise<ValidationResult> {
@@ -26,7 +28,6 @@ export class AuthorizationValidation extends Validation {
       return { validationName: this.name }
     }
     const context = changeOrContext
-    const logger = new Logger(AuthorizationValidation.name)
     let requiredRole = context.reflector.getAllAndOverride<Role>(ROLE_KEY, [
       context.context.getHandler(),
       context.context.getClass(),
@@ -36,15 +37,10 @@ export class AuthorizationValidation extends Validation {
     if (!requiredRole) {
       requiredRole = Role.Admin
     }
-    logger.debug(`Required role is '${requiredRole}'`)
 
     const req = context.context.switchToHttp().getRequest<Request>()
     const callingClass = context.context.getClass().name
     const callingEndpoint = context.context.getHandler().name
-
-    logger.debug(
-      `Calling class '${callingClass}' and endpoint '${callingEndpoint}'`,
-    )
 
     const request = context.context.switchToHttp().getRequest()
     const { user } = request as { user: JWTPayload }
@@ -61,7 +57,7 @@ export class AuthorizationValidation extends Validation {
     ) {
       const { typeName } = req.body as unknown as SerializedChange
       const requiredRoleForChange = getRequiredRoleForChange(typeName) // Read from validation.changeTypePermissions.ts
-      logger.debug(
+      this.logger.debug(
         `Change type is '${typeName}' and an additional required role is '${requiredRoleForChange}'`,
       )
       if (
@@ -69,7 +65,7 @@ export class AuthorizationValidation extends Validation {
         (role && !RoleInheritance[role].includes(requiredRoleForChange))
       ) {
         const errMsg = `User '${username}' doesn't have additional role '${requiredRoleForChange}'!`
-        logger.debug(errMsg)
+        this.logger.debug(errMsg)
         return { validationName: this.name, error: { message: errMsg } }
       }
     }
@@ -80,7 +76,7 @@ export class AuthorizationValidation extends Validation {
     }
 
     const errMsg = 'Not authorized!'
-    logger.debug(errMsg)
+    this.logger.debug(errMsg)
     return { validationName: this.name, error: { message: errMsg } }
   }
 }

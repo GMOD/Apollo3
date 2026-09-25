@@ -161,8 +161,8 @@ export class FeaturesService {
       .exec()
 
     if (!topLevelFeature) {
-      const errMsg = `ERROR: The following featureId was not found in database ='${featureId}'`
-      this.logger.error(errMsg)
+      const errMsg = `The following featureId was not found in database ='${featureId}'`
+      this.logger.warn(errMsg)
       throw new NotFoundException(errMsg)
     }
 
@@ -173,11 +173,13 @@ export class FeaturesService {
       topLevel,
     )
     if (!foundFeature) {
-      const errMsg = 'ERROR when searching feature by featureId'
-      this.logger.error(errMsg)
+      const errMsg = `Feature "${featureId}" not found in its top-level feature`
+      this.logger.warn(errMsg)
       throw new NotFoundException(errMsg)
     }
-    this.logger.debug(`Feature found: ${JSON.stringify(foundFeature)}`)
+    this.logger.debug(
+      `Feature found: "${foundFeature._id.toString()}" (${foundFeature.type})`,
+    )
     return foundFeature
   }
 
@@ -193,11 +195,11 @@ export class FeaturesService {
     topLevel?: boolean,
     parent?: Feature | null,
   ): Feature | null {
-    this.logger.verbose(`Entry=${JSON.stringify(feature)}`)
+    this.logger.debug(`Checking feature "${feature._id.toString()}"`)
 
     if (feature._id.equals(featureId)) {
       this.logger.debug(
-        `Top level featureId matches in object ${JSON.stringify(feature)}`,
+        `Top level featureId matches in feature "${feature._id.toString()}"`,
       )
       if (topLevel && parent) {
         return parent

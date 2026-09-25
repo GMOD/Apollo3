@@ -149,4 +149,9 @@ export default [
     files: ['packages/apollo-cli/src/**/*.ts'],
     rules: { '@typescript-eslint/no-deprecated': 'off' },
   },
+  // The collaboration server logs exclusively through Nest's Logger
+  {
+    files: ['packages/apollo-collaboration-server/src/**/*.ts'],
+    rules: { 'no-console': 'error' },
+  },
 ]

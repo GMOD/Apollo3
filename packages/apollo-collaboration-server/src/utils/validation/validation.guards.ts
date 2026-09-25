@@ -2,6 +2,7 @@ import { validationRegistry } from '@apollo-annotation/shared'
 import {
   type CanActivate,
   type ExecutionContext,
+  HttpException,
   Injectable,
   Logger,
   UnprocessableEntityException,
@@ -33,7 +34,15 @@ export class ValidationGuard implements CanActivate {
       }
       return true
     } catch (error) {
-      this.logger.error(error)
+      if (error instanceof HttpException) {
+        // Expected: the request failed pre-validation
+        this.logger.warn(error.message)
+      } else {
+        this.logger.error(
+          'Backend pre-validation failed',
+          error instanceof Error ? error.stack : String(error),
+        )
+      }
       return false
     }
   }
