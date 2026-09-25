@@ -8,13 +8,18 @@ import {
   type UserLocationMessage,
   makeUserSessionId,
 } from '@apollo-annotation/shared'
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 
 import { MessagesGateway } from '../messages/messages.gateway.js'
-import { GUEST_USER_EMAIL, GUEST_USER_NAME } from '../utils/constants.js'
+import {
+  GUEST_USER_EMAIL,
+  GUEST_USER_NAME,
+  ROOT_USER_EMAIL,
+  ROOT_USER_NAME,
+} from '../utils/constants.js'
 import { Role } from '../utils/role/role.enum.js'
 
 import { CreateUserDto, UserLocationDto } from './dto/create-user.dto.js'
@@ -26,7 +31,7 @@ export interface User {
 }
 
 @Injectable()
-export class UsersService {
+export class UsersService implements OnApplicationBootstrap {
   private readonly users: User[]
 
   constructor(
@@ -38,6 +43,7 @@ export class UsersService {
         BROADCAST_USER_LOCATION: boolean
         ALLOW_GUEST_USER: boolean
         GUEST_USER_ROLE: Role
+        ALLOW_ROOT_USER: boolean
       },
       true
     >,
@@ -77,28 +83,47 @@ export class UsersService {
     return this.userModel.count().exec()
   }
 
-  async bootstrapDB() {
+  async onApplicationBootstrap() {
     const allowGuestUser = this.configService.get('ALLOW_GUEST_USER', {
       infer: true,
     })
     const guestUserRole = this.configService.get('GUEST_USER_ROLE', {
       infer: true,
     })
-    const guestUser = await this.findByEmail(GUEST_USER_EMAIL)
-    if (allowGuestUser) {
-      if (guestUser) {
+    const allowRootUser = this.configService.get('ALLOW_ROOT_USER', {
+      infer: true,
+    })
+    await this.syncSpecialUser(allowGuestUser, {
+      email: GUEST_USER_EMAIL,
+      username: GUEST_USER_NAME,
+      role: guestUserRole,
+    })
+    await this.syncSpecialUser(allowRootUser, {
+      email: ROOT_USER_EMAIL,
+      username: ROOT_USER_NAME,
+      role: Role.Admin,
+    })
+  }
+
+  /**
+   * Ensure a special (guest or root) user exists in the database if it is
+   * allowed, or is removed from the database if it is not
+   */
+  private async syncSpecialUser(allowed: boolean, user: CreateUserDto) {
+    const existingUser = await this.findByEmail(user.email)
+    if (allowed) {
+      if (existingUser) {
         return
       }
-      return this.addNew({
-        email: GUEST_USER_EMAIL,
-        username: GUEST_USER_NAME,
-        role: guestUserRole,
-      })
-    }
-    if (!guestUser) {
+      this.logger.log(`Adding user "${user.username}" (${user.email})`)
+      await this.addNew(user)
       return
     }
-    return this.userModel.findOneAndDelete({ email: GUEST_USER_EMAIL }).exec()
+    if (!existingUser) {
+      return
+    }
+    this.logger.log(`Removing user "${user.username}" (${user.email})`)
+    await this.userModel.findOneAndDelete({ email: user.email }).exec()
   }
 
   /**

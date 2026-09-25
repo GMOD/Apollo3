@@ -122,6 +122,17 @@ const validationSchema = Joi.object({
   .xor('JWT_SECRET', 'JWT_SECRET_FILE')
   .xor('SESSION_SECRET', 'SESSION_SECRET_FILE')
   .xor('PLUGIN_URLS', 'PLUGIN_URLS_FILE')
+  .oxor('ROOT_USER_PASSWORD', 'ROOT_USER_PASSWORD_FILE')
+  // A root user password is required if ALLOW_ROOT_USER is true
+  .when(
+    Joi.object({ ALLOW_ROOT_USER: Joi.boolean().invalid(true) }).unknown(),
+    {
+      otherwise: Joi.object().or(
+        'ROOT_USER_PASSWORD',
+        'ROOT_USER_PASSWORD_FILE',
+      ),
+    },
+  )
 
 async function mongoDBURIFactory(
   configService: ConfigService<MongoDBURIConfig, true>,

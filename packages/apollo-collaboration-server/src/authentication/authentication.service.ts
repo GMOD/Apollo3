@@ -21,6 +21,7 @@ import {
   GUEST_USER_EMAIL,
   GUEST_USER_NAME,
   ROOT_USER_EMAIL,
+  ROOT_USER_NAME,
 } from '../utils/constants.js'
 import { Role } from '../utils/role/role.enum.js'
 import type { Profile as MicrosoftProfile } from '../utils/strategies/microsoft.strategy.js'
@@ -35,11 +36,11 @@ interface ConfigValues {
   GOOGLE_CLIENT_ID?: string
   GOOGLE_CLIENT_ID_FILE?: string
   ALLOW_GUEST_USER: boolean
+  ALLOW_ROOT_USER: boolean
   DEFAULT_NEW_USER_ROLE: Role
-  ROOT_USER_PASSWORD: string
+  ROOT_USER_PASSWORD?: string
+  ROOT_USER_PASSWORD_FILE?: string
 }
-
-const ROOT_USER_NAME = 'root'
 
 export interface AuthHandlerRedirect {
   url: string
@@ -232,7 +233,30 @@ export class AuthenticationService {
   }
 
   async rootLogin(password: string) {
-    if (password === this.configService.get('ROOT_USER_PASSWORD')) {
+    const allowRootUser = this.configService.get('ALLOW_ROOT_USER', {
+      infer: true,
+    })
+    if (!allowRootUser) {
+      throw new UnauthorizedException('Root user is not allowed')
+    }
+    let rootUserPassword = this.configService.get('ROOT_USER_PASSWORD', {
+      infer: true,
+    })
+    if (!rootUserPassword) {
+      const passwordFile = this.configService.get('ROOT_USER_PASSWORD_FILE', {
+        infer: true,
+      })
+      rootUserPassword =
+        passwordFile && (await fs.readFile(passwordFile, 'utf8'))
+      rootUserPassword = rootUserPassword?.trim()
+    }
+    if (!rootUserPassword) {
+      this.logger.error(
+        'ALLOW_ROOT_USER is true, but no ROOT_USER_PASSWORD or ROOT_USER_PASSWORD_FILE was provided',
+      )
+      throw new UnauthorizedException('Root user is not configured')
+    }
+    if (password === rootUserPassword) {
       return this.logIn(ROOT_USER_NAME, ROOT_USER_EMAIL)
     }
     throw new UnauthorizedException('Invalid password for ROOT user')
