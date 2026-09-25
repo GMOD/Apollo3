@@ -111,13 +111,15 @@ export class ChangeHandlersService implements ChangeHandlers {
       .session(session)
       .exec()
     if (!assemblyDoc) {
-      const errMsg = `*** ERROR: Assembly with id "${assembly}" not found`
+      const errMsg = `Assembly with id "${assembly}" not found`
       this.logger.error(errMsg)
       throw new Error(errMsg)
     }
 
     let featureCnt = 0
-    this.logger.debug(`changes: ${JSON.stringify(changes)}`)
+    this.logger.debug(
+      `Adding ${changes.length} feature(s) to assembly "${assembly}"`,
+    )
 
     const { INDEXED_IDS } = process.env
     let idsToIndex: string[] | undefined
@@ -127,9 +129,9 @@ export class ChangeHandlersService implements ChangeHandlers {
 
     // Loop the changes
     for (const c of changes) {
-      this.logger.debug(`change: ${JSON.stringify(c)}`)
       const { addedFeature, allIds, copyFeature, parentFeatureId } = c
       const { _id, refSeq } = addedFeature
+      this.logger.debug(`Adding feature "${_id}"`)
       const refSeqDoc = await refSeqModel
         .findById(refSeq)
         .session(session)
@@ -192,7 +194,7 @@ export class ChangeHandlersService implements ChangeHandlers {
             { session },
           )
           if (newFeatureDoc) {
-            this.logger.verbose(`Added docId "${newFeatureDoc.id}"`)
+            this.logger.debug(`Added docId "${newFeatureDoc.id}"`)
           }
         }
       }
@@ -223,7 +225,7 @@ export class ChangeHandlersService implements ChangeHandlers {
         .session(session)
         .exec()
       if (!featureDoc) {
-        const errMsg = `*** ERROR: The following featureId was not found in database ='${deletedFeature._id}'`
+        const errMsg = `The following featureId was not found in database ='${deletedFeature._id}'`
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
@@ -266,7 +268,10 @@ export class ChangeHandlersService implements ChangeHandlers {
       try {
         await featureDoc.save()
       } catch (error) {
-        this.logger.debug(`*** FAILED: ${String(error)}`)
+        this.logger.error(
+          `Failed to save feature document "${featureDoc._id.toString()}"`,
+          error instanceof Error ? error.stack : String(error),
+        )
         throw error
       }
       this.logger.debug(
@@ -296,19 +301,23 @@ export class ChangeHandlersService implements ChangeHandlers {
         .exec()
 
       if (!topLevelFeature) {
-        const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
+        const errMsg = `The following featureId was not found in database ='${featureId}'`
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
-      this.logger.debug(`*** Feature found: ${JSON.stringify(topLevelFeature)}`)
+      this.logger.debug(
+        `Found top-level feature "${topLevelFeature._id.toString()}"`,
+      )
 
       const foundFeature = change.getFeatureFromId(topLevelFeature, featureId)
       if (!foundFeature) {
-        const errMsg = 'ERROR when searching feature by featureId'
+        const errMsg = 'Failed to find feature by featureId'
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
-      this.logger.debug(`*** Found feature: ${JSON.stringify(foundFeature)}`)
+      this.logger.debug(
+        `Found feature "${foundFeature._id.toString()}" (${foundFeature.type})`,
+      )
       featuresForChanges.push({ feature: foundFeature, topLevelFeature })
     }
 
@@ -339,13 +348,14 @@ export class ChangeHandlersService implements ChangeHandlers {
       try {
         await topLevelFeature.save()
       } catch (error) {
-        this.logger.debug(`*** FAILED: ${String(error)}`)
+        this.logger.error(
+          `Failed to save feature document "${topLevelFeature._id.toString()}"`,
+          error instanceof Error ? error.stack : String(error),
+        )
         throw error
       }
       this.logger.debug(
-        `*** Feature attributes modified (added, edited or deleted), docId: ${JSON.stringify(
-          topLevelFeature,
-        )}`,
+        `Feature attributes modified (added, edited or deleted), docId: "${topLevelFeature._id.toString()}"`,
       )
     }
   }
@@ -382,21 +392,23 @@ export class ChangeHandlersService implements ChangeHandlers {
       }
 
       if (!topLevelFeature) {
-        const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
+        const errMsg = `The following featureId was not found in database ='${featureId}'`
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
       this.logger.debug(
-        `*** TOP level feature found: ${JSON.stringify(topLevelFeature)}`,
+        `Found top-level feature "${topLevelFeature._id.toString()}"`,
       )
 
       feature ??= change.getFeatureFromId(topLevelFeature, featureId)
       if (!feature) {
-        const errMsg = 'ERROR when searching feature by featureId'
+        const errMsg = 'Failed to find feature by featureId'
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
-      this.logger.debug(`*** Found feature: ${JSON.stringify(feature)}`)
+      this.logger.debug(
+        `Found feature "${feature._id.toString()}" (${feature.type})`,
+      )
       if (feature.max !== oldEnd) {
         const errMsg = 'Expected previous max does not match'
         this.logger.error(errMsg)
@@ -413,7 +425,10 @@ export class ChangeHandlersService implements ChangeHandlers {
       try {
         await tlv.save()
       } catch (error) {
-        this.logger.debug(`*** FAILED: ${String(error)}`)
+        this.logger.error(
+          `Failed to save feature document "${tlv._id.toString()}"`,
+          error instanceof Error ? error.stack : String(error),
+        )
         throw error
       }
     }
@@ -451,21 +466,23 @@ export class ChangeHandlersService implements ChangeHandlers {
       }
 
       if (!topLevelFeature) {
-        const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
+        const errMsg = `The following featureId was not found in database ='${featureId}'`
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
       this.logger.debug(
-        `*** TOP level feature found: ${JSON.stringify(topLevelFeature)}`,
+        `Found top-level feature "${topLevelFeature._id.toString()}"`,
       )
 
       feature ??= change.getFeatureFromId(topLevelFeature, featureId)
       if (!feature) {
-        const errMsg = 'ERROR when searching feature by featureId'
+        const errMsg = 'Failed to find feature by featureId'
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
-      this.logger.debug(`*** Found feature: ${JSON.stringify(feature)}`)
+      this.logger.debug(
+        `Found feature "${feature._id.toString()}" (${feature.type})`,
+      )
       if (feature.min !== oldStart) {
         const errMsg = 'Expected previous max does not match'
         this.logger.error(errMsg)
@@ -482,7 +499,10 @@ export class ChangeHandlersService implements ChangeHandlers {
       try {
         await tlv.save()
       } catch (error) {
-        this.logger.debug(`*** FAILED: ${String(error)}`)
+        this.logger.error(
+          `Failed to save feature document "${tlv._id.toString()}"`,
+          error instanceof Error ? error.stack : String(error),
+        )
         throw error
       }
     }
@@ -502,13 +522,13 @@ export class ChangeHandlersService implements ChangeHandlers {
         .session(session)
         .exec()
       if (!topLevelFeature) {
-        const errMsg = `*** ERROR: The following featureId was not found in database ='${firstExon._id}'`
+        const errMsg = `The following featureId was not found in database ='${firstExon._id}'`
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
       const mergedExon = change.getFeatureFromId(topLevelFeature, firstExon._id)
       if (!mergedExon) {
-        const errMsg = 'ERROR when searching feature by featureId'
+        const errMsg = 'Failed to find feature by featureId'
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
@@ -552,7 +572,7 @@ export class ChangeHandlersService implements ChangeHandlers {
         .session(session)
         .exec()
       if (!topLevelFeature) {
-        const errMsg = `*** ERROR: The following featureId was not found in database ='${firstTranscript._id}'`
+        const errMsg = `The following featureId was not found in database ='${firstTranscript._id}'`
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
@@ -561,7 +581,7 @@ export class ChangeHandlersService implements ChangeHandlers {
         firstTranscript._id,
       )
       if (!mergedTranscript) {
-        const errMsg = 'ERROR when searching feature by featureId'
+        const errMsg = 'Failed to find feature by featureId'
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
@@ -600,14 +620,14 @@ export class ChangeHandlersService implements ChangeHandlers {
         .session(session)
         .exec()
       if (!topLevelFeature) {
-        const errMsg = `*** ERROR: The following featureId was not found in database ='${exonToBeSplit._id}'`
+        const errMsg = `The following featureId was not found in database ='${exonToBeSplit._id}'`
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
       const tx = change.getFeatureFromId(topLevelFeature, parentFeatureId)
       if (!tx?.children) {
         throw new Error(
-          'ERROR: There should be at least one child (i.e. the exon to be split)',
+          'There should be at least one child (i.e. the exon to be split)',
         )
       }
 
@@ -671,21 +691,25 @@ export class ChangeHandlersService implements ChangeHandlers {
         .exec()
 
       if (!topLevelFeature) {
-        const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
+        const errMsg = `The following featureId was not found in database ='${featureId}'`
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
-      this.logger.debug(`*** Feature found: ${JSON.stringify(topLevelFeature)}`)
+      this.logger.debug(
+        `Found top-level feature "${topLevelFeature._id.toString()}"`,
+      )
 
       const foundFeature = change.getFeatureFromId(topLevelFeature, featureId)
       if (!foundFeature) {
-        const errMsg = 'ERROR when searching feature by featureId'
+        const errMsg = 'Failed to find feature by featureId'
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
-      this.logger.debug(`*** Found feature: ${JSON.stringify(foundFeature)}`)
+      this.logger.debug(
+        `Found feature "${foundFeature._id.toString()}" (${foundFeature.type})`,
+      )
       if (foundFeature.strand !== oldStrand) {
-        const errMsg = `*** ERROR: Feature's current strand "${topLevelFeature.strand}" doesn't match with expected value "${oldStrand}"`
+        const errMsg = `Feature's current strand "${topLevelFeature.strand}" doesn't match with expected value "${oldStrand}"`
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
@@ -706,13 +730,14 @@ export class ChangeHandlersService implements ChangeHandlers {
       try {
         await topLevelFeature.save()
       } catch (error) {
-        this.logger.debug(`*** FAILED: ${String(error)}`)
+        this.logger.error(
+          `Failed to save feature document "${topLevelFeature._id.toString()}"`,
+          error instanceof Error ? error.stack : String(error),
+        )
         throw error
       }
       this.logger.debug(
-        `*** Object updated in Mongo. New object: ${JSON.stringify(
-          topLevelFeature,
-        )}`,
+        `Updated feature document "${topLevelFeature._id.toString()}"`,
       )
     }
   }
@@ -737,21 +762,25 @@ export class ChangeHandlersService implements ChangeHandlers {
         .exec()
 
       if (!topLevelFeature) {
-        const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
+        const errMsg = `The following featureId was not found in database ='${featureId}'`
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
-      this.logger.debug(`*** Feature found: ${JSON.stringify(topLevelFeature)}`)
+      this.logger.debug(
+        `Found top-level feature "${topLevelFeature._id.toString()}"`,
+      )
 
       const foundFeature = change.getFeatureFromId(topLevelFeature, featureId)
       if (!foundFeature) {
-        const errMsg = 'ERROR when searching feature by featureId'
+        const errMsg = 'Failed to find feature by featureId'
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
-      this.logger.debug(`*** Found feature: ${JSON.stringify(foundFeature)}`)
+      this.logger.debug(
+        `Found feature "${foundFeature._id.toString()}" (${foundFeature.type})`,
+      )
       if (foundFeature.type !== oldType) {
-        const errMsg = `*** ERROR: Feature's current type "${topLevelFeature.type}" doesn't match with expected value "${oldType}"`
+        const errMsg = `Feature's current type "${topLevelFeature.type}" doesn't match with expected value "${oldType}"`
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
@@ -772,13 +801,14 @@ export class ChangeHandlersService implements ChangeHandlers {
       try {
         await topLevelFeature.save()
       } catch (error) {
-        this.logger.debug(`*** FAILED: ${String(error)}`)
+        this.logger.error(
+          `Failed to save feature document "${topLevelFeature._id.toString()}"`,
+          error instanceof Error ? error.stack : String(error),
+        )
         throw error
       }
       this.logger.debug(
-        `*** Object updated in Mongo. New object: ${JSON.stringify(
-          topLevelFeature,
-        )}`,
+        `Updated feature document "${topLevelFeature._id.toString()}"`,
       )
     }
   }
@@ -1059,8 +1089,8 @@ export class ChangeHandlersService implements ChangeHandlers {
         sequenceBuffer += incompleteLine
       }
       refSeqLen += sequenceBuffer.length
-      this.logger.verbose(
-        `*** Add the very last chunk to ref seq ("${refSeqDoc._id.toString()}", index ${chunkIndex} and total length for ref seq is ${refSeqLen}): "${sequenceBuffer}"`,
+      this.logger.debug(
+        `Adding last chunk to ref seq "${refSeqDoc._id.toString()}" (index ${chunkIndex}, ${sequenceBuffer.length} bases, total ref seq length ${refSeqLen})`,
       )
       this.logger.debug(
         `Creating refSeq chunk number ${chunkIndex} of "${refSeqDoc._id.toString()}"`,
@@ -1242,7 +1272,7 @@ export class ChangeHandlersService implements ChangeHandlers {
     const { assembly } = change
     const assemblyDoc = await assemblyModel.findById(assembly).exec()
     if (!assemblyDoc) {
-      const errMsg = `*** ERROR: Assembly with id "${assembly}" not found`
+      const errMsg = `Assembly with id "${assembly}" not found`
       this.logger.error(errMsg)
       throw new Error(errMsg)
     }
@@ -1267,7 +1297,7 @@ export class ChangeHandlersService implements ChangeHandlers {
       .session(session)
       .exec()
     if (!user) {
-      const errMsg = `*** ERROR: User with id "${userId}" not found`
+      const errMsg = `User with id "${userId}" not found`
       this.logger.error(errMsg)
       throw new Error(errMsg)
     }
@@ -1281,14 +1311,14 @@ export class ChangeHandlersService implements ChangeHandlers {
     const { changes, userId } = change
     const { session } = context
     for (const c of changes) {
-      this.logger.debug(`change: ${JSON.stringify(changes)}`)
       const { role } = c
+      this.logger.debug(`Setting role of user "${userId}" to "${role}"`)
       const user = await userModel
         .findByIdAndUpdate(userId, { role })
         .session(session)
         .exec()
       if (!user) {
-        const errMsg = `*** ERROR: User with id "${userId}" not found`
+        const errMsg = `User with id "${userId}" not found`
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
@@ -1486,8 +1516,7 @@ export class ChangeHandlersService implements ChangeHandlers {
             throw error
           }
           if (errorCount <= 99) {
-            this.logger.warn('Error parsing feature')
-            this.logger.warn(String(error))
+            this.logger.warn(`Error parsing feature: ${String(error)}`)
             if (errorCount === 99) {
               this.logger.warn(
                 'Reached 100 parsing errors, omitting further warnings from log',
@@ -1529,8 +1558,7 @@ export class ChangeHandlersService implements ChangeHandlers {
       // eslint-disable-next-line unicorn/consistent-function-scoping
       const errorLogger = (error: unknown) => {
         if (errorCount <= 99) {
-          this.logger.warn('Error parsing or adding feature')
-          this.logger.warn(String(error))
+          this.logger.warn(`Error parsing or adding feature: ${String(error)}`)
           if (errorCount === 99) {
             this.logger.warn(
               'Reached 100 feature errors, omitting further warnings from log',

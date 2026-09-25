@@ -1,6 +1,10 @@
 import fs from 'node:fs/promises'
 
-import { Module } from '@nestjs/common'
+import {
+  type MiddlewareConsumer,
+  Module,
+  type NestModule,
+} from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
 import {
@@ -26,6 +30,7 @@ import { RefSeqChunksModule } from './refSeqChunks/refSeqChunks.module.js'
 import { RefSeqsModule } from './refSeqs/refSeqs.module.js'
 import { SequenceModule } from './sequence/sequence.module.js'
 import { UsersModule } from './users/users.module.js'
+import { CorrelationIdMiddleware } from './utils/correlation-id.middleware.js'
 import { JwtAuthGuard } from './utils/jwt-auth.guard.js'
 import { ValidationGuard } from './utils/validation/validation.guards.js'
 
@@ -177,4 +182,10 @@ async function mongoDBURIFactory(
     { provide: APP_GUARD, useClass: ValidationGuard },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // Module middleware runs before guards, so JwtAuthGuard/ValidationGuard log
+    // lines also carry the correlation ID
+    consumer.apply(CorrelationIdMiddleware).forRoutes('*')
+  }
+}

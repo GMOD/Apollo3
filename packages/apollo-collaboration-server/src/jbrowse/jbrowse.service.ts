@@ -2,7 +2,7 @@ import {
   JBrowseConfig,
   type JBrowseConfigDocument,
 } from '@apollo-annotation/schemas'
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
 import merge from 'deepmerge'
@@ -31,8 +31,6 @@ export class JBrowseService {
       true
     >,
   ) {}
-
-  private readonly logger = new Logger(JBrowseService.name)
 
   get internetAccountId() {
     const name = this.configService.get('NAME', { infer: true })
