@@ -11,7 +11,7 @@ import {
 import { Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model } from 'mongoose'
+import { type FilterQuery, Model } from 'mongoose'
 
 import { MessagesGateway } from '../messages/messages.gateway.js'
 import {
@@ -23,11 +23,39 @@ import {
 import { Role } from '../utils/role/role.enum.js'
 
 import { CreateUserDto, UserLocationDto } from './dto/create-user.dto.js'
+import type { FindUsersDto } from './dto/find-users.dto.js'
 
 export interface User {
   email: string
   username: string
   password: string
+}
+
+export type SpecialUserType = 'guest' | 'root'
+
+const specialUserEmails = [GUEST_USER_EMAIL, ROOT_USER_EMAIL]
+
+const sortableFields = new Set(['username', 'email', 'role', 'createdAt'])
+
+function getSpecialUserType(email: string): SpecialUserType | undefined {
+  if (email === GUEST_USER_EMAIL) {
+    return 'guest'
+  }
+  if (email === ROOT_USER_EMAIL) {
+    return 'root'
+  }
+  return undefined
+}
+
+/** Serialize a user document, tagging it if it is a guest or root user */
+export function toUserResponse(user: UserDocument) {
+  const special = getSpecialUserType(user.email)
+  const json = user.toJSON()
+  return special ? { ...json, special } : json
+}
+
+function escapeRegExp(str: string) {
+  return str.replaceAll(/[$()*+.?[\\\]^{|}]/g, String.raw`\$&`)
 }
 
 @Injectable()
@@ -73,6 +101,59 @@ export class UsersService implements OnApplicationBootstrap {
 
   async findAll() {
     return this.userModel.find().exec()
+  }
+
+  /**
+   * Find a page of regular (non-guest, non-root) users matching the given
+   * search, sort, and filter options. Guest and root users are always
+   * returned separately in `specialUsers`.
+   */
+  async findPage(findUsersDto: FindUsersDto) {
+    const { page, pageSize, role, roleOperator, search, sortField, sortOrder } =
+      findUsersDto
+    const queryCond: FilterQuery<UserDocument> = {
+      email: { $nin: specialUserEmails },
+    }
+    if (search) {
+      const $regex = escapeRegExp(search)
+      queryCond.$or = [
+        { username: { $regex, $options: 'i' } },
+        { email: { $regex, $options: 'i' } },
+      ]
+    }
+    if (role) {
+      const validRoles = new Set<string>(Object.values(Role))
+      const roles: (string | null)[] = role
+        .split(',')
+        .filter((r) => validRoles.has(r))
+      // Users with no role set are treated the same as role "none"
+      if (roles.includes(Role.None)) {
+        roles.push(null)
+      }
+      queryCond.role =
+        roleOperator === 'notIn' ? { $nin: roles } : { $in: roles }
+    }
+    const resolvedSortField =
+      sortField && sortableFields.has(sortField) ? sortField : 'username'
+    const resolvedSortOrder = sortOrder === 'desc' ? -1 : 1
+    const pageNum = Math.max(Number(page) || 0, 0)
+    const size = Math.min(Math.max(Number(pageSize) || 25, 1), 1000)
+    const [users, totalCount, specialUsers] = await Promise.all([
+      this.userModel
+        // eslint-disable-next-line unicorn/no-array-callback-reference
+        .find(queryCond)
+        .sort({ [resolvedSortField]: resolvedSortOrder, _id: 1 })
+        .skip(pageNum * size)
+        .limit(size)
+        .exec(),
+      this.userModel.countDocuments(queryCond).exec(),
+      this.userModel.find({ email: { $in: specialUserEmails } }).exec(),
+    ])
+    return {
+      users: users.map((user) => toUserResponse(user)),
+      totalCount,
+      specialUsers: specialUsers.map((user) => toUserResponse(user)),
+    }
   }
 
   async addNew(user: CreateUserDto) {
