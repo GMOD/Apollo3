@@ -1,5 +1,5 @@
 import { User, UserSchema } from '@apollo-annotation/schemas'
-import { Module, type OnApplicationBootstrap } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 
 import { MessagesModule } from '../messages/messages.module.js'
@@ -16,9 +16,4 @@ import { UsersService } from './users.service.js'
   ],
   exports: [UsersService, MongooseModule],
 })
-export class UsersModule implements OnApplicationBootstrap {
-  constructor(private usersService: UsersService) {}
-  onApplicationBootstrap() {
-    return this.usersService.bootstrapDB()
-  }
-}
+export class UsersModule {}

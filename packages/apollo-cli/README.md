@@ -65,6 +65,7 @@ USAGE
 - [`apollo refseq add-alias INPUT-FILE`](#apollo-refseq-add-alias-input-file)
 - [`apollo refseq get`](#apollo-refseq-get)
 - [`apollo status`](#apollo-status)
+- [`apollo user add`](#apollo-user-add)
 - [`apollo user get`](#apollo-user-get)
 
 ## `apollo assembly add-from-fasta INPUT`
@@ -1319,6 +1320,42 @@ DESCRIPTION
 
 _See code:
 [src/commands/status.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/status.ts)_
+
+## `apollo user add`
+
+Add a user by email before they have logged in
+
+```
+USAGE
+  $ apollo user add -e <value> [--profile <value>] [--config-file <value>] [--timeout <value>] [-r
+    admin|user|readOnly|none]
+
+FLAGS
+  -e, --email=<value>        (required) Email of the user to add
+  -r, --role=<option>        [default: user] Role of the user to add
+                             <options: admin|user|readOnly|none>
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
+
+DESCRIPTION
+  Add a user by email before they have logged in
+
+  The user is created without a username, which is filled in when they log in for the first time. They will have the
+  given role when they log in.
+
+EXAMPLES
+  Add a user with the default "user" role:
+
+    $ apollo user add -e jane.doe@example.com
+
+  Add a user with the "readOnly" role:
+
+    $ apollo user add -e jane.doe@example.com -r readOnly
+```
+
+_See code:
+[src/commands/user/add.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/user/add.ts)_
 
 ## `apollo user get`
 

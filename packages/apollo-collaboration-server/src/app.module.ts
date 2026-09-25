@@ -93,6 +93,8 @@ const validationSchema = Joi.object({
   GUEST_USER_ROLE: Joi.string()
     .valid('admin', 'user', 'readOnly')
     .default('readOnly'),
+  INITIAL_ADMIN_EMAIL: Joi.string().email(),
+  ONLY_ALLOW_APPROVED_USERS: Joi.boolean().default(false),
   PLUGIN_URLS: Joi.string()
     .custom((value) => {
       const errorMessage =
@@ -122,6 +124,17 @@ const validationSchema = Joi.object({
   .xor('JWT_SECRET', 'JWT_SECRET_FILE')
   .xor('SESSION_SECRET', 'SESSION_SECRET_FILE')
   .xor('PLUGIN_URLS', 'PLUGIN_URLS_FILE')
+  .oxor('ROOT_USER_PASSWORD', 'ROOT_USER_PASSWORD_FILE')
+  // A root user password is required if ALLOW_ROOT_USER is true
+  .when(
+    Joi.object({ ALLOW_ROOT_USER: Joi.boolean().invalid(true) }).unknown(),
+    {
+      otherwise: Joi.object().or(
+        'ROOT_USER_PASSWORD',
+        'ROOT_USER_PASSWORD_FILE',
+      ),
+    },
+  )
 
 async function mongoDBURIFactory(
   configService: ConfigService<MongoDBURIConfig, true>,

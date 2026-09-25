@@ -8,16 +8,22 @@ import {
   type UserLocationMessage,
   makeUserSessionId,
 } from '@apollo-annotation/shared'
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model } from 'mongoose'
+import { type FilterQuery, Model } from 'mongoose'
 
 import { MessagesGateway } from '../messages/messages.gateway.js'
-import { GUEST_USER_EMAIL, GUEST_USER_NAME } from '../utils/constants.js'
+import {
+  GUEST_USER_EMAIL,
+  GUEST_USER_NAME,
+  ROOT_USER_EMAIL,
+  ROOT_USER_NAME,
+} from '../utils/constants.js'
 import { Role } from '../utils/role/role.enum.js'
 
 import { CreateUserDto, UserLocationDto } from './dto/create-user.dto.js'
+import type { FindUsersDto } from './dto/find-users.dto.js'
 
 export interface User {
   email: string
@@ -25,8 +31,44 @@ export interface User {
   password: string
 }
 
+export type SpecialUserType = 'guest' | 'root'
+
+const specialUserEmails = [GUEST_USER_EMAIL, ROOT_USER_EMAIL]
+
+const sortableFields = new Set(['username', 'email', 'role', 'createdAt'])
+
+function getSpecialUserType(email: string): SpecialUserType | undefined {
+  if (email === GUEST_USER_EMAIL) {
+    return 'guest'
+  }
+  if (email === ROOT_USER_EMAIL) {
+    return 'root'
+  }
+  return undefined
+}
+
+/** Serialize a user document, tagging it if it is a guest or root user */
+export function toUserResponse(user: UserDocument) {
+  const special = getSpecialUserType(user.email)
+  const json = user.toJSON()
+  return special ? { ...json, special } : json
+}
+
+/** Whether a user was pre-approved by an admin but has not logged in yet */
+export function isPendingUser(user: { username?: string }) {
+  return !user.username
+}
+
+export function normalizeEmail(email: string) {
+  return email.trim().toLowerCase()
+}
+
+function escapeRegExp(str: string) {
+  return str.replaceAll(/[$()*+.?[\\\]^{|}]/g, String.raw`\$&`)
+}
+
 @Injectable()
-export class UsersService {
+export class UsersService implements OnApplicationBootstrap {
   private readonly users: User[]
 
   constructor(
@@ -38,6 +80,8 @@ export class UsersService {
         BROADCAST_USER_LOCATION: boolean
         ALLOW_GUEST_USER: boolean
         GUEST_USER_ROLE: Role
+        ALLOW_ROOT_USER: boolean
+        INITIAL_ADMIN_EMAIL?: string
       },
       true
     >,
@@ -53,12 +97,50 @@ export class UsersService {
     return this.userModel.findOne({ username }).exec()
   }
 
+  /** Find a user by email, ignoring case */
   async findByEmail(email: string) {
-    return this.userModel.findOne({ email }).exec()
+    return this.userModel
+      .findOne({ email })
+      .collation({ locale: 'en', strength: 2 })
+      .exec()
   }
 
+  /** Find the oldest user with the given role who has logged in */
   async findByRole(role: Role) {
-    return this.userModel.findOne({ role }).sort('createdAt').exec()
+    return this.userModel
+      .findOne({ role, username: { $exists: true } })
+      .sort('createdAt')
+      .exec()
+  }
+
+  /**
+   * Whether there is an admin other than the guest and root users who has
+   * logged in
+   */
+  async hasActiveAdmin() {
+    const admin = await this.userModel
+      .exists({
+        role: Role.Admin,
+        username: { $exists: true },
+        email: { $nin: specialUserEmails },
+      })
+      .exec()
+    return Boolean(admin)
+  }
+
+  /**
+   * Add a user that has been approved but has not logged in yet, so they have
+   * no username
+   */
+  async addPending(email: string, role: Role) {
+    return this.userModel.create({ email: normalizeEmail(email), role })
+  }
+
+  /** Set the username of a pre-approved user on their first login */
+  async completePendingUser(id: string, username: string) {
+    return this.userModel
+      .findByIdAndUpdate(id, { username }, { new: true })
+      .exec()
   }
 
   async findGuest() {
@@ -69,6 +151,59 @@ export class UsersService {
     return this.userModel.find().exec()
   }
 
+  /**
+   * Find a page of regular (non-guest, non-root) users matching the given
+   * search, sort, and filter options. Guest and root users are always
+   * returned separately in `specialUsers`.
+   */
+  async findPage(findUsersDto: FindUsersDto) {
+    const { page, pageSize, role, roleOperator, search, sortField, sortOrder } =
+      findUsersDto
+    const queryCond: FilterQuery<UserDocument> = {
+      email: { $nin: specialUserEmails },
+    }
+    if (search) {
+      const $regex = escapeRegExp(search)
+      queryCond.$or = [
+        { username: { $regex, $options: 'i' } },
+        { email: { $regex, $options: 'i' } },
+      ]
+    }
+    if (role) {
+      const validRoles = new Set<string>(Object.values(Role))
+      const roles: (string | null)[] = role
+        .split(',')
+        .filter((r) => validRoles.has(r))
+      // Users with no role set are treated the same as role "none"
+      if (roles.includes(Role.None)) {
+        roles.push(null)
+      }
+      queryCond.role =
+        roleOperator === 'notIn' ? { $nin: roles } : { $in: roles }
+    }
+    const resolvedSortField =
+      sortField && sortableFields.has(sortField) ? sortField : 'username'
+    const resolvedSortOrder = sortOrder === 'desc' ? -1 : 1
+    const pageNum = Math.max(Number(page) || 0, 0)
+    const size = Math.min(Math.max(Number(pageSize) || 25, 1), 1000)
+    const [users, totalCount, specialUsers] = await Promise.all([
+      this.userModel
+        // eslint-disable-next-line unicorn/no-array-callback-reference
+        .find(queryCond)
+        .sort({ [resolvedSortField]: resolvedSortOrder, _id: 1 })
+        .skip(pageNum * size)
+        .limit(size)
+        .exec(),
+      this.userModel.countDocuments(queryCond).exec(),
+      this.userModel.find({ email: { $in: specialUserEmails } }).exec(),
+    ])
+    return {
+      users: users.map((user) => toUserResponse(user)),
+      totalCount,
+      specialUsers: specialUsers.map((user) => toUserResponse(user)),
+    }
+  }
+
   async addNew(user: CreateUserDto) {
     return this.userModel.create(user)
   }
@@ -77,28 +212,68 @@ export class UsersService {
     return this.userModel.count().exec()
   }
 
-  async bootstrapDB() {
+  async onApplicationBootstrap() {
     const allowGuestUser = this.configService.get('ALLOW_GUEST_USER', {
       infer: true,
     })
     const guestUserRole = this.configService.get('GUEST_USER_ROLE', {
       infer: true,
     })
-    const guestUser = await this.findByEmail(GUEST_USER_EMAIL)
-    if (allowGuestUser) {
-      if (guestUser) {
-        return
-      }
-      return this.addNew({
-        email: GUEST_USER_EMAIL,
-        username: GUEST_USER_NAME,
-        role: guestUserRole,
-      })
-    }
-    if (!guestUser) {
+    const allowRootUser = this.configService.get('ALLOW_ROOT_USER', {
+      infer: true,
+    })
+    await this.syncSpecialUser(allowGuestUser, {
+      email: GUEST_USER_EMAIL,
+      username: GUEST_USER_NAME,
+      role: guestUserRole,
+    })
+    await this.syncSpecialUser(allowRootUser, {
+      email: ROOT_USER_EMAIL,
+      username: ROOT_USER_NAME,
+      role: Role.Admin,
+    })
+    await this.syncInitialAdmin()
+  }
+
+  /**
+   * If INITIAL_ADMIN_EMAIL is set, ensure a user with that email exists. If it
+   * doesn't, add it as a pending admin. If it already exists, leave it alone,
+   * since an admin may have changed its role on purpose.
+   */
+  private async syncInitialAdmin() {
+    const initialAdminEmail = this.configService.get('INITIAL_ADMIN_EMAIL', {
+      infer: true,
+    })
+    if (!initialAdminEmail) {
       return
     }
-    return this.userModel.findOneAndDelete({ email: GUEST_USER_EMAIL }).exec()
+    const existingUser = await this.findByEmail(initialAdminEmail)
+    if (existingUser) {
+      return
+    }
+    this.logger.log(`Adding pending initial admin user (${initialAdminEmail})`)
+    await this.addPending(initialAdminEmail, Role.Admin)
+  }
+
+  /**
+   * Ensure a special (guest or root) user exists in the database if it is
+   * allowed, or is removed from the database if it is not
+   */
+  private async syncSpecialUser(allowed: boolean, user: CreateUserDto) {
+    const existingUser = await this.findByEmail(user.email)
+    if (allowed) {
+      if (existingUser) {
+        return
+      }
+      this.logger.log(`Adding user "${user.username}" (${user.email})`)
+      await this.addNew(user)
+      return
+    }
+    if (!existingUser) {
+      return
+    }
+    this.logger.log(`Removing user "${user.username}" (${user.email})`)
+    await this.userModel.findOneAndDelete({ email: user.email }).exec()
   }
 
   /**
