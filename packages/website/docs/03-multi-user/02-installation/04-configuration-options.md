@@ -87,6 +87,17 @@ MICROSOFT_CLIENT_SECRET=client_secret_here
 # Defaults to none
 # DEFAULT_NEW_USER_ROLE=none
 
+# Email of the user who will be the first administrator. If set, this user is
+# made an admin, and nobody else (except the root user) can log in until this
+# user has logged in for the first time. If not set, the first user to log in
+# is made an admin.
+# INITIAL_ADMIN_EMAIL=admin@example.com
+
+# Whether to only allow users an admin has added (or who have already logged in
+# before) to log in. If true, logins from anyone else are rejected and no user
+# is created for them. Defaults to false
+# ONLY_ALLOW_APPROVED_USERS=false
+
 # Whether to broadcast users locations, defaults to true
 # BROADCAST_USER_LOCATION=true
 

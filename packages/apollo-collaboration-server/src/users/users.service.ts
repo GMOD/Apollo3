@@ -54,6 +54,15 @@ export function toUserResponse(user: UserDocument) {
   return special ? { ...json, special } : json
 }
 
+/** Whether a user was pre-approved by an admin but has not logged in yet */
+export function isPendingUser(user: { username?: string }) {
+  return !user.username
+}
+
+export function normalizeEmail(email: string) {
+  return email.trim().toLowerCase()
+}
+
 function escapeRegExp(str: string) {
   return str.replaceAll(/[$()*+.?[\\\]^{|}]/g, String.raw`\$&`)
 }
@@ -72,6 +81,7 @@ export class UsersService implements OnApplicationBootstrap {
         ALLOW_GUEST_USER: boolean
         GUEST_USER_ROLE: Role
         ALLOW_ROOT_USER: boolean
+        INITIAL_ADMIN_EMAIL?: string
       },
       true
     >,
@@ -87,12 +97,50 @@ export class UsersService implements OnApplicationBootstrap {
     return this.userModel.findOne({ username }).exec()
   }
 
+  /** Find a user by email, ignoring case */
   async findByEmail(email: string) {
-    return this.userModel.findOne({ email }).exec()
+    return this.userModel
+      .findOne({ email })
+      .collation({ locale: 'en', strength: 2 })
+      .exec()
   }
 
+  /** Find the oldest user with the given role who has logged in */
   async findByRole(role: Role) {
-    return this.userModel.findOne({ role }).sort('createdAt').exec()
+    return this.userModel
+      .findOne({ role, username: { $exists: true } })
+      .sort('createdAt')
+      .exec()
+  }
+
+  /**
+   * Whether there is an admin other than the guest and root users who has
+   * logged in
+   */
+  async hasActiveAdmin() {
+    const admin = await this.userModel
+      .exists({
+        role: Role.Admin,
+        username: { $exists: true },
+        email: { $nin: specialUserEmails },
+      })
+      .exec()
+    return Boolean(admin)
+  }
+
+  /**
+   * Add a user that has been approved but has not logged in yet, so they have
+   * no username
+   */
+  async addPending(email: string, role: Role) {
+    return this.userModel.create({ email: normalizeEmail(email), role })
+  }
+
+  /** Set the username of a pre-approved user on their first login */
+  async completePendingUser(id: string, username: string) {
+    return this.userModel
+      .findByIdAndUpdate(id, { username }, { new: true })
+      .exec()
   }
 
   async findGuest() {
@@ -184,6 +232,27 @@ export class UsersService implements OnApplicationBootstrap {
       username: ROOT_USER_NAME,
       role: Role.Admin,
     })
+    await this.syncInitialAdmin()
+  }
+
+  /**
+   * If INITIAL_ADMIN_EMAIL is set, ensure a user with that email exists. If it
+   * doesn't, add it as a pending admin. If it already exists, leave it alone,
+   * since an admin may have changed its role on purpose.
+   */
+  private async syncInitialAdmin() {
+    const initialAdminEmail = this.configService.get('INITIAL_ADMIN_EMAIL', {
+      infer: true,
+    })
+    if (!initialAdminEmail) {
+      return
+    }
+    const existingUser = await this.findByEmail(initialAdminEmail)
+    if (existingUser) {
+      return
+    }
+    this.logger.log(`Adding pending initial admin user (${initialAdminEmail})`)
+    await this.addPending(initialAdminEmail, Role.Admin)
   }
 
   /**

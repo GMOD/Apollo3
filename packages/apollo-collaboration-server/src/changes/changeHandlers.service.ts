@@ -28,6 +28,7 @@ import {
   AddFeatureChange,
   AddFeaturesFromFileChange,
   AddRefSeqAliasesChange,
+  AddUserChange,
   DeleteAssemblyChange,
   DeleteFeatureChange,
   DeleteUserChange,
@@ -62,6 +63,8 @@ import { CountersService } from '../counters/counters.service.js'
 import { FilesService } from '../files/files.service.js'
 import { MessagesGateway } from '../messages/messages.gateway.js'
 import { PluginsService } from '../plugins/plugins.service.js'
+import { normalizeEmail } from '../users/users.service.js'
+import { Role } from '../utils/role/role.enum.js'
 
 type ChangeHandlers = {
   [K in keyof typeof changes]: (
@@ -1253,6 +1256,32 @@ export class ChangeHandlersService implements ChangeHandlers {
     await refSeqModel.deleteMany({ assembly }).exec()
     await assemblyModel.findByIdAndDelete(assembly).exec()
     this.logger.debug(`Assembly "${assembly}" deleted from database.`)
+  }
+
+  async AddUserChange(
+    change: AddUserChange,
+    context: { session: ClientSession; user: string },
+  ) {
+    const { userModel } = this
+    const { role } = change
+    const { session } = context
+    const email = normalizeEmail(change.email)
+    if (!/^[^\s@]+@[^\s@]+$/.test(email)) {
+      throw new Error(`"${change.email}" is not a valid email address`)
+    }
+    if (!Object.values(Role).includes(role as Role)) {
+      throw new Error(`"${role}" is not a valid role`)
+    }
+    const existingUser = await userModel
+      .findOne({ email })
+      .collation({ locale: 'en', strength: 2 })
+      .session(session)
+      .exec()
+    if (existingUser) {
+      throw new Error(`A user with email "${email}" already exists`)
+    }
+    await userModel.create([{ email, role }], { session })
+    this.logger.log(`Added pre-approved user (${email}) with role "${role}"`)
   }
 
   async DeleteUserChange(

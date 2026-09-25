@@ -1,8 +1,13 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { DeleteUserChange, UserChange } from '@apollo-annotation/shared'
+import {
+  AddUserChange,
+  DeleteUserChange,
+  UserChange,
+} from '@apollo-annotation/shared'
 import { getSession } from '@jbrowse/core/util'
 import { getRoot } from '@jbrowse/mobx-state-tree'
 import DeleteIcon from '@mui/icons-material/Delete'
+import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import {
   Alert,
   Box,
@@ -24,6 +29,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TextField,
   Typography,
 } from '@mui/material'
 import {
@@ -57,7 +63,8 @@ const roles = Object.keys(roleLabels) as UserRole[]
 
 interface UserResponse {
   _id: string
-  username: string
+  /** Not set for users who have been added but haven't logged in yet */
+  username?: string
   email: string
   role?: UserRole | ''
   createdAt?: string
@@ -95,6 +102,11 @@ function toUserRow(user: UserResponse): UserRow {
 
 function isRole(value: unknown): value is UserRole {
   return typeof value === 'string' && value in roleLabels
+}
+
+/** Name to show for a user, using the email if they haven't logged in yet */
+function getDisplayName(user: UserResponse) {
+  return user.username ?? user.email
 }
 
 async function apolloFetch(
@@ -146,6 +158,10 @@ export function ManageUsers({
   // Incrementing this triggers a re-fetch of the current page
   const [refreshCount, setRefreshCount] = useState(0)
   const [userToDelete, setUserToDelete] = useState<UserRow>()
+  const [addUserOpen, setAddUserOpen] = useState(false)
+  const [newUserEmail, setNewUserEmail] = useState('')
+  const [newUserRole, setNewUserRole] = useState<UserRole>('user')
+  const [addingUser, setAddingUser] = useState(false)
   // IDs of users with a change in progress
   const [pendingUserIds, setPendingUserIds] = useState<string[]>([])
 
@@ -316,7 +332,7 @@ export function ManageUsers({
       user,
       change,
       (updatedUser) => updatedUser?.role === role,
-      `Changed role of "${user.username}" to ${roleLabels[role]}`,
+      `Changed role of "${getDisplayName(user)}" to ${roleLabels[role]}`,
     )
   }
 
@@ -329,8 +345,55 @@ export function ManageUsers({
       user,
       change,
       (updatedUser) => !updatedUser,
-      `Deleted user "${user.username}"`,
+      `Deleted user "${getDisplayName(user)}"`,
     )
+  }
+
+  /** Get a user from the server by email, or undefined if not found */
+  async function fetchUserByEmail(email: string) {
+    const params = new URLSearchParams({
+      page: '0',
+      pageSize: '10',
+      search: email,
+    })
+    const response = await apolloFetch(
+      internetAccount,
+      `users?${params.toString()}`,
+    )
+    if (!response.ok) {
+      throw new Error(
+        await createFetchErrorMessage(response, 'Error when getting user'),
+      )
+    }
+    const data = (await response.json()) as UsersPageResponse
+    return data.users.find(
+      (user) => user.email.toLowerCase() === email.toLowerCase(),
+    )
+  }
+
+  async function addUser(email: string, role: UserRole) {
+    const change = new AddUserChange({ typeName: 'AddUserChange', email, role })
+    setAddingUser(true)
+    try {
+      await changeManager.submit(change, {
+        internetAccountId: internetAccount.internetAccountId,
+        addToRecents: false,
+      })
+      if (await fetchUserByEmail(email)) {
+        getSession(session).notify(
+          `Added "${email}" with role ${roleLabels[role]}`,
+          'success',
+        )
+        setAddUserOpen(false)
+        setNewUserEmail('')
+        setNewUserRole('user')
+      }
+    } catch (error) {
+      setErrorMessage(String(error))
+    } finally {
+      setAddingUser(false)
+      setRefreshCount((count) => count + 1)
+    }
   }
 
   function isCurrentUser(user: UserRow) {
@@ -371,7 +434,7 @@ export function ManageUsers({
         onKeyDown={(event) => {
           event.stopPropagation()
         }}
-        inputProps={{ 'aria-label': `Role for ${user.username}` }}
+        inputProps={{ 'aria-label': `Role for ${getDisplayName(user)}` }}
         sx={{ fontSize: 'inherit', width: '100%' }}
       >
         {roles.map((role) => (
@@ -386,7 +449,9 @@ export function ManageUsers({
   function renderUsername(user: UserRow) {
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        {user.username}
+        {user.username ?? (
+          <Chip label="Pending first login" size="small" variant="outlined" />
+        )}
         {isCurrentUser(user) ? (
           <Chip label="You" size="small" color="primary" variant="outlined" />
         ) : null}
@@ -476,26 +541,37 @@ export function ManageUsers({
             {errorMessage}
           </Alert>
         ) : null}
-        {apolloInternetAccounts.length > 1 ? (
-          <FormControl size="small" sx={{ minWidth: 240, alignSelf: 'start' }}>
-            <InputLabel id="manage-users-account-label">Account</InputLabel>
-            <Select
-              labelId="manage-users-account-label"
-              label="Account"
-              value={internetAccount.internetAccountId}
-              onChange={handleChangeInternetAccount}
-            >
-              {apolloInternetAccounts.map((ia) => (
-                <MenuItem
-                  key={ia.internetAccountId}
-                  value={ia.internetAccountId}
-                >
-                  {ia.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        ) : null}
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          {apolloInternetAccounts.length > 1 ? (
+            <FormControl size="small" sx={{ minWidth: 240 }}>
+              <InputLabel id="manage-users-account-label">Account</InputLabel>
+              <Select
+                labelId="manage-users-account-label"
+                label="Account"
+                value={internetAccount.internetAccountId}
+                onChange={handleChangeInternetAccount}
+              >
+                {apolloInternetAccounts.map((ia) => (
+                  <MenuItem
+                    key={ia.internetAccountId}
+                    value={ia.internetAccountId}
+                  >
+                    {ia.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          ) : null}
+          <Button
+            variant="contained"
+            startIcon={<PersonAddIcon />}
+            onClick={() => {
+              setAddUserOpen(true)
+            }}
+          >
+            Add user
+          </Button>
+        </Box>
         {specialUsers.length > 0 ? (
           <Box>
             <Typography variant="h6" gutterBottom>
@@ -579,9 +655,11 @@ export function ManageUsers({
         <DialogTitle>Delete user?</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Delete user <strong>{userToDelete?.username}</strong> (
-            {userToDelete?.email})? This cannot be undone. If they log in again,
-            they will be re-created with the default role.
+            Delete user{' '}
+            <strong>{userToDelete ? getDisplayName(userToDelete) : ''}</strong>{' '}
+            ({userToDelete?.email})? This cannot be undone. Depending on the
+            server&apos;s settings, they may be able to log in again and be
+            re-created with the default role.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -605,6 +683,74 @@ export function ManageUsers({
             Delete
           </Button>
         </DialogActions>
+      </MuiDialog>
+      <MuiDialog
+        open={addUserOpen}
+        onClose={() => {
+          setAddUserOpen(false)
+        }}
+      >
+        <form
+          onSubmit={(event) => {
+            event.preventDefault()
+            void addUser(newUserEmail.trim(), newUserRole)
+          }}
+        >
+          <DialogTitle>Add user</DialogTitle>
+          <DialogContent
+            sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+          >
+            <DialogContentText>
+              Add a user by email who has not yet logged in.
+            </DialogContentText>
+            <TextField
+              required
+              type="email"
+              label="Email"
+              value={newUserEmail}
+              onChange={(event) => {
+                setNewUserEmail(event.target.value)
+              }}
+              variant="outlined"
+            />
+            <FormControl>
+              <InputLabel id="add-user-role-label">Role</InputLabel>
+              <Select
+                labelId="add-user-role-label"
+                label="Role"
+                value={newUserRole}
+                onChange={(event: SelectChangeEvent) => {
+                  const { value } = event.target
+                  if (isRole(value)) {
+                    setNewUserRole(value)
+                  }
+                }}
+              >
+                {roles.map((role) => (
+                  <MenuItem key={role} value={role}>
+                    {roleLabels[role]}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                setAddUserOpen(false)
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={addingUser || !newUserEmail.trim()}
+            >
+              Add
+            </Button>
+          </DialogActions>
+        </form>
       </MuiDialog>
     </Dialog>
   )

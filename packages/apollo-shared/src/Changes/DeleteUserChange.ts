@@ -43,16 +43,8 @@ export class DeleteUserChange extends Change {
 
   getInverse() {
     const { logger, typeName, userId } = this
+    // The inverse would be an AddUserChange, but the deleted user's email
+    // and role aren't known here. User changes aren't added to the undo stack.
     return new DeleteUserChange({ typeName, userId }, { logger })
-    //   const inverseChangedIds = this.changedIds.slice().reverse()
-    //   const inverseChanges = this.changes
-    //     .slice()
-    //     .reverse()
-    //     .map((deleteUserChange) => ({
-    //       addedUser: deleteUserChange.userId,
-    //     }))
-    //   this.logger.debug?.(`INVERSE CHANGE '${JSON.stringify(inverseChanges)}'`)
-    //   // return new AddUserChange()
-    // }
   }
 }

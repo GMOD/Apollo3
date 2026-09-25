@@ -93,6 +93,8 @@ const validationSchema = Joi.object({
   GUEST_USER_ROLE: Joi.string()
     .valid('admin', 'user', 'readOnly')
     .default('readOnly'),
+  INITIAL_ADMIN_EMAIL: Joi.string().email(),
+  ONLY_ALLOW_APPROVED_USERS: Joi.boolean().default(false),
   PLUGIN_URLS: Joi.string()
     .custom((value) => {
       const errorMessage =
