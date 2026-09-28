@@ -1525,6 +1525,36 @@ EOF`,
     assert.strictEqual(out.length, 0)
   })
 
+  void globalThis.itName('Add user', async () => {
+    const email = `new.user.${Date.now()}@example.com`
+    try {
+      let p = new Shell(
+        `${apollo} user add ${P} -e ${email.toUpperCase()} -r readOnly`,
+      )
+      const added = JSON.parse(p.stdout)
+      assert.strictEqual(added.email, email)
+      assert.strictEqual(added.role, 'readOnly')
+      assert.strictEqual(added.username, undefined)
+
+      p = new Shell(`${apollo} user get ${P} -r readOnly`)
+      const out = JSON.parse(p.stdout) as { email: string }[]
+      assert.ok(out.some((user) => user.email === email))
+
+      p = new Shell(`${apollo} user add ${P} -e ${email}`, false)
+      assert.strictEqual(p.returncode, 1)
+      assert.ok(p.stderr.includes('already exists'))
+
+      p = new Shell(`${apollo} user add ${P} -e not-an-email`, false)
+      assert.strictEqual(p.returncode, 1)
+      assert.ok(p.stderr.includes('not a valid email address'))
+    } finally {
+      await client
+        .db('apolloTestCliDb')
+        .collection('users')
+        .deleteOne({ email })
+    }
+  })
+
   void globalThis.itName('Apollo profile env', () => {
     const p = new Shell(
       `export APOLLO_PROFILE=testAdmin2

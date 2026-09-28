@@ -3,12 +3,16 @@ import type { HydratedDocument } from 'mongoose'
 
 export type UserDocument = HydratedDocument<User>
 
-export type Role = 'readOnly' | 'admin' | 'user'
+export type Role = 'readOnly' | 'admin' | 'user' | 'none'
 
 @Schema({ timestamps: true })
 export class User {
-  @Prop({ required: true })
-  username: string
+  /**
+   * Not set for users who have been pre-approved by an admin but have not
+   * logged in yet
+   */
+  @Prop()
+  username?: string
 
   @Prop({ required: true, unique: true })
   email: string
