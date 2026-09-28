@@ -26,6 +26,8 @@ export default defineConfig({
       uri: 'mongodb://localhost:27017/?directConnection=true',
       database: 'apolloTestDb',
     },
+  },
+  expose: {
     // Coverage is collected when the plugin is built with COVERAGE=true
     coverage: process.env.COVERAGE === 'true',
   },

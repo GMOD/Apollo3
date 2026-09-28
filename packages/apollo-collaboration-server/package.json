@@ -8,7 +8,7 @@
   "scripts": {
     "build": "yarn build:shared && rimraf dist && nest build",
     "cypress:start": "GUEST_USER_ROLE=admin MONGODB_URI=\"mongodb://localhost:27017/apolloTestDb?directConnection=true\" LOG_LEVELS=error,warn yarn start",
-    "cypress:start:coverage": "yarn build && NODE_ENV=development NODE_V8_COVERAGE=$PWD/../../coverage/tmp/e2e GUEST_USER_ROLE=admin MONGODB_URI=\"mongodb://localhost:27017/apolloTestDb?directConnection=true\" LOG_LEVELS=error,warn node dist/main.js",
+    "cypress:start:coverage": "yarn build && NODE_ENV=development NODE_V8_COVERAGE=$PROJECT_CWD/coverage/tmp/e2e GUEST_USER_ROLE=admin MONGODB_URI=\"mongodb://localhost:27017/apolloTestDb?directConnection=true\" LOG_LEVELS=error,warn node dist/main.js",
     "deb": "ts-node-dev src/main.ts",
     "start": "yarn build:shared && yarn start:nest --watch",
     "start:debug": "yarn build:shared && yarn start:nest --debug --watch",
@@ -17,7 +17,7 @@
     "start:prod": "NODE_ENV=production node dist/main.js",
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest",
     "test:cli:start": "ALLOW_ROOT_USER=true ROOT_USER_PASSWORD=pass MONGODB_URI=\"mongodb://localhost:27017/apolloTestCliDb?directConnection=true\" LOG_LEVELS=error,warn yarn start",
-    "test:cli:start:coverage": "yarn build && NODE_ENV=development NODE_V8_COVERAGE=$PWD/../../coverage/tmp/cli ALLOW_ROOT_USER=true ROOT_USER_PASSWORD=pass MONGODB_URI=\"mongodb://localhost:27017/apolloTestCliDb?directConnection=true\" LOG_LEVELS=error,warn node dist/main.js",
+    "test:cli:start:coverage": "yarn build && NODE_ENV=development NODE_V8_COVERAGE=$PROJECT_CWD/coverage/tmp/cli ALLOW_ROOT_USER=true ROOT_USER_PASSWORD=pass MONGODB_URI=\"mongodb://localhost:27017/apolloTestCliDb?directConnection=true\" LOG_LEVELS=error,warn node dist/main.js",
     "test:ci": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",

@@ -27,7 +27,7 @@
     "prepare": "yarn build",
     "test": "yarn tsx src/test/test.ts",
     "test:ci": "yarn tsx src/test/test.ts",
-    "test:ci:coverage": "NODE_V8_COVERAGE=$PWD/../../coverage/tmp/cli APOLLO_BIN=\"node $PWD/bin/run.js\" tsx src/test/test.ts",
+    "test:ci:coverage": "NODE_V8_COVERAGE=$PROJECT_CWD/coverage/tmp/cli APOLLO_BIN=\"node $PROJECT_CWD/packages/apollo-cli/bin/run.js\" tsx src/test/test.ts",
     "coverage:report": "cd ../.. && tsx scripts/normalizeV8Coverage.ts coverage/tmp/cli && c8 report --config .c8rc.integration.json --temp-directory coverage/tmp/cli --report-dir coverage/cli",
     "version": "oclif readme --multi --dir ../website/docs/03-guides/04-cli/ && oclif readme && git add README.md"
   },
