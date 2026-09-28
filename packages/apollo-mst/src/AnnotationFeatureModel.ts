@@ -436,7 +436,7 @@ export interface ReadonlyFeatureMap<V> {
   keys(): IterableIterator<string>
   values(): IterableIterator<V>
   entries(): IterableIterator<[string, V]>
-  forEach(callback: (value: V, key: string, map: this) => void): void
+  forEach(callback: (value: V, key: string | number, map: this) => void): void
   [Symbol.iterator](): IterableIterator<[string, V]>
 }
 
