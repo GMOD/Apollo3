@@ -3,11 +3,22 @@ name: Pull Request
 on:
   pull_request:
     paths:
-      - '**.tsx?'
+      - '**'
+      - '!**.md'
+      - '!**.mdx'
+      - '!LICENSE'
+      - '!.devcontainer/**'
+      - '!.vscode/**'
+      - '!.github/**'
+      - '.github/workflows/pull_request.yml'
+
+# Each job uploads its coverage reports to Codecov, and also as an artifact for
+# running scripts/coverageMatrix.ts locally. Extract each artifact at the repo
+# root to put the reports where the script expects them.
 
 jobs:
-  build:
-    name: Strict lint and test
+  lint:
+    name: Strict lint
     runs-on: ubuntu-latest
     steps:
       - name: Check out
@@ -27,10 +38,24 @@ jobs:
       - name: Lint codebase
         run: yarn eslint --max-warnings 0
 
-      # apollo-shared tests
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.14
+          cache: yarn
+      - name: Install
+        run: yarn --immutable
       - name: Build shared
         run: yarn build
         working-directory: packages/apollo-shared
+
+      # apollo-shared tests
       - name: Run apollo-shared tests
         run: yarn run test:ci
         working-directory: packages/apollo-shared
@@ -66,7 +91,32 @@ jobs:
           flags: unit-server
           disable_search: true
 
-      # Cypress tests
+      - name: Collect coverage reports
+        if: ${{ !cancelled() }}
+        run: |
+          mkdir coverage-artifact
+          cp --parents packages/*/coverage/lcov.info coverage-artifact/
+      - name: Upload coverage reports artifact
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-unit
+          path: coverage-artifact/
+          if-no-files-found: warn
+
+  e2e:
+    name: Cypress tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.14
+          cache: yarn
+      - name: Install
+        run: yarn --immutable
       - name: Get latest JBrowse
         run: yarn run jbrowse create .jbrowse
         working-directory: packages/jbrowse-plugin-apollo
@@ -76,9 +126,13 @@ jobs:
           mongodb-version: 8
           mongodb-replica-set: test-rs
       - name: Start local file server
+        id: file-server
+        background: true
+        # Exits non-zero when it's stopped
+        continue-on-error: true
         run:
-          yarn --cwd packages/apollo-collaboration-server/test/data/ serve
-          --listen 3131 &
+          exec yarn --cwd packages/apollo-collaboration-server/test/data/ serve
+          --listen 3131
       - name: Run Cypress tests
         id: e2e-tests
         run: yarn run test:e2e:coverage
@@ -98,12 +152,63 @@ jobs:
           files: coverage/e2e-browser/lcov.info,coverage/e2e-server/lcov.info
           flags: e2e
           disable_search: true
-
-      # CLI tests
-      - name: Start apollo
+      - name: Stop local file server
+        cancel: file-server
+      - name: Collect coverage reports
+        if: ${{ !cancelled() && steps.e2e-coverage.outcome == 'success' }}
         run: |
-          yarn --cwd packages/apollo-collaboration-server test:cli:start:coverage &
-          timeout 300 bash -c 'until curl -sf http://localhost:3999/health; do sleep 2; done'
+          mkdir coverage-artifact
+          cp --parents coverage/e2e-*/lcov.info coverage-artifact/
+      - name: Upload coverage reports artifact
+        if: ${{ !cancelled() && steps.e2e-coverage.outcome == 'success' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-e2e
+          path: coverage-artifact/
+          if-no-files-found: warn
+
+  cli:
+    name: CLI tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.14
+          cache: yarn
+      - name: Install
+        run: yarn --immutable
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.12.1
+        with:
+          mongodb-version: 8
+          mongodb-replica-set: test-rs
+      - name: Start local file server
+        id: file-server
+        background: true
+        # Exits non-zero when it's stopped
+        continue-on-error: true
+        run:
+          exec yarn --cwd packages/apollo-collaboration-server/test/data/ serve
+          --listen 3131
+      # `exec` so the SIGTERM from `cancel` goes to yarn, which passes it on to
+      # the server so it can write its coverage before exiting
+      - name: Start apollo
+        id: apollo
+        background: true
+        # Exits non-zero when it's stopped
+        continue-on-error: true
+        run:
+          exec yarn --cwd packages/apollo-collaboration-server
+          test:cli:start:coverage
+      # Starting apollo builds shared and the server, so wait for it to finish
+      # before the CLI build
+      - name: Wait for apollo to start
+        run:
+          timeout 300 bash -c 'until curl -sf http://localhost:3999/health; do
+          sleep 2; done'
       # Checks that the packed CLI installs and runs. The full test suite runs
       # against the repo's build so its coverage maps back to the source.
       - name: Install CLI
@@ -116,14 +221,14 @@ jobs:
         id: cli-tests
         run: yarn run test:ci:coverage
         working-directory: packages/apollo-cli
-      - name: Stop apollo and write CLI coverage report
+      - name: Stop apollo
+        cancel: apollo
+      - name: Stop local file server
+        cancel: file-server
+      - name: Write CLI coverage report
         id: cli-coverage
         if: ${{ !cancelled() && steps.cli-tests.outcome != 'skipped' }}
-        run: |
-          # The server may already have exited
-          pkill -TERM -f 'node dist/[m]ain.js' || true
-          timeout 30 bash -c 'while pgrep -f "node dist/[m]ain.js"; do sleep 1; done'
-          yarn run coverage:report
+        run: yarn run coverage:report
         working-directory: packages/apollo-cli
       - name: Upload cli coverage to Codecov
         if: ${{ !cancelled() && steps.cli-coverage.outcome == 'success' }}
@@ -133,6 +238,18 @@ jobs:
           files: coverage/cli/lcov.info
           flags: cli
           disable_search: true
+      - name: Collect coverage reports
+        if: ${{ !cancelled() && steps.cli-coverage.outcome == 'success' }}
+        run: |
+          mkdir coverage-artifact
+          cp --parents coverage/cli/lcov.info coverage-artifact/
+      - name: Upload coverage reports artifact
+        if: ${{ !cancelled() && steps.cli-coverage.outcome == 'success' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-cli
+          path: coverage-artifact/
+          if-no-files-found: warn
 
       # - name: Run docker tests
       #   working-directory: packages/apollo-cli
