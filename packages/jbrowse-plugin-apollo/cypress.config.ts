@@ -2,11 +2,16 @@
 
 import fs from 'node:fs'
 
-// @ts-expect-error no types available
-import codeCoverageTask from '@cypress/code-coverage/task'
+import registerCodeCoverageTasks from '@cypress/code-coverage/task.js'
 import { defineConfig } from 'cypress'
 import getCompareSnapshotsPlugin from 'cypress-image-diff-js/plugin'
 import { configurePlugin } from 'cypress-mongodb'
+
+// The package has no types, and the ones TypeScript infers from its JS are wrong
+const codeCoverageTask = registerCodeCoverageTasks as unknown as (
+  on: Cypress.PluginEvents,
+  config: Cypress.PluginConfigOptions,
+) => void
 
 export default defineConfig({
   // Make viewport long and thin to avoid the scrollbar on the right interfere
@@ -32,7 +37,6 @@ export default defineConfig({
       // @ts-expect-error types are wrong
       getCompareSnapshotsPlugin(on, config)
       configurePlugin(on)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       codeCoverageTask(on, config)
       on('task', {
         readdirSync(path) {

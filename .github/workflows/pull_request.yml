@@ -80,14 +80,18 @@ jobs:
           yarn --cwd packages/apollo-collaboration-server/test/data/ serve
           --listen 3131 &
       - name: Run Cypress tests
+        id: e2e-tests
         run: yarn run test:e2e:coverage
         working-directory: packages/jbrowse-plugin-apollo
       - name: Write e2e coverage reports
-        if: ${{ !cancelled() }}
+        id: e2e-coverage
+        if:
+          ${{ !cancelled() && steps.e2e-tests.outcome != 'skipped' &&
+          hashFiles('packages/jbrowse-plugin-apollo/.nyc_output/**') != '' }}
         run: yarn run coverage:report:e2e
         working-directory: packages/jbrowse-plugin-apollo
       - name: Upload e2e coverage to Codecov
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.e2e-coverage.outcome == 'success' }}
         uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -109,17 +113,20 @@ jobs:
           apollo --help
         working-directory: packages/apollo-cli
       - name: Run CLI tests
+        id: cli-tests
         run: yarn run test:ci:coverage
         working-directory: packages/apollo-cli
       - name: Stop apollo and write CLI coverage report
-        if: ${{ !cancelled() }}
+        id: cli-coverage
+        if: ${{ !cancelled() && steps.cli-tests.outcome != 'skipped' }}
         run: |
-          pkill -TERM -f 'node dist/[m]ain.js'
+          # The server may already have exited
+          pkill -TERM -f 'node dist/[m]ain.js' || true
           timeout 30 bash -c 'while pgrep -f "node dist/[m]ain.js"; do sleep 1; done'
           yarn run coverage:report
         working-directory: packages/apollo-cli
       - name: Upload cli coverage to Codecov
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.cli-coverage.outcome == 'success' }}
         uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
