@@ -27,6 +27,8 @@
     "prepare": "yarn build",
     "test": "yarn tsx src/test/test.ts",
     "test:ci": "yarn tsx src/test/test.ts",
+    "test:ci:coverage": "NODE_V8_COVERAGE=$PWD/../../coverage/tmp/cli APOLLO_BIN=\"node $PWD/bin/run.js\" tsx src/test/test.ts",
+    "coverage:report": "cd ../.. && tsx scripts/normalizeV8Coverage.ts coverage/tmp/cli && c8 report --config .c8rc.integration.json --temp-directory coverage/tmp/cli --report-dir coverage/cli",
     "version": "oclif readme --multi --dir ../website/docs/03-guides/04-cli/ && oclif readme && git add README.md"
   },
   "oclif": {
@@ -96,6 +98,7 @@
     "@types/ms": "^2",
     "@types/node": "^24.10.9",
     "babel-plugin-istanbul": "^6.1.1",
+    "c8": "^12.0.0",
     "cross-spawn": "^7.0.3",
     "mongodb": "^4.7.0",
     "nyc": "^15.1.0",

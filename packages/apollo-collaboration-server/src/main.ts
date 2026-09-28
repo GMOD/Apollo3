@@ -92,6 +92,16 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule, { logger, cors })
 
+  // When collecting coverage, exit cleanly on signals so V8 writes the coverage
+  // data. The default signal handlers kill the process before it's written.
+  if (process.env.NODE_V8_COVERAGE) {
+    for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+      process.once(signal, () => {
+        process.exit(0)
+      })
+    }
+  }
+
   const { httpAdapter } = app.get(HttpAdapterHost)
   app.useGlobalFilters(new GlobalExceptionsFilter(httpAdapter))
   app.useGlobalInterceptors(new LoggingInterceptor())
