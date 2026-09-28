@@ -1,4 +1,4 @@
-import { Controller, Get, Logger, Req } from '@nestjs/common'
+import { Controller, Get, Req } from '@nestjs/common'
 import type { Request } from 'express'
 
 import { Role } from '../utils/role/role.enum.js'
@@ -13,8 +13,6 @@ export interface RequestWithUser extends Request {
 @Controller('jbrowse')
 export class JBrowseController {
   constructor(private readonly jbrowseService: JBrowseService) {}
-  private readonly logger = new Logger(JBrowseController.name)
-
   @Validations(Role.None)
   @Get('config.json')
   config(@Req() request: RequestWithUser) {

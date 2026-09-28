@@ -153,7 +153,7 @@ export class UsersService {
       reqType: 'CURRENT_LOCATION',
     }
     this.logger.debug(
-      `*** Broadcasting request to resend users's current locations. Channel "${channel}", the message is "${JSON.stringify(
+      `Broadcasting request to resend users's current locations. Channel "${channel}", the message is "${JSON.stringify(
         msg,
       )}"`,
     )

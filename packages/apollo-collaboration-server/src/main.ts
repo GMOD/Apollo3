@@ -26,6 +26,8 @@ import mongoose from 'mongoose'
 
 import { AppModule } from './app.module.js'
 import { GlobalExceptionsFilter } from './global-exceptions.filter.js'
+import { ApolloLogger } from './utils/apollo-logger.service.js'
+import { LoggingInterceptor } from './utils/logging.interceptor.js'
 import { AuthorizationValidation } from './utils/validation/AuthorizationValidation.js'
 
 const MongoDBStore = connectMongoDBSession(session)
@@ -86,11 +88,13 @@ async function bootstrap() {
   const cors = convertToBoolean(CORS)
 
   const logLevels = LOG_LEVELS.split(',') as LogLevel[]
+  const logger = new ApolloLogger('Apollo', { logLevels })
 
-  const app = await NestFactory.create(AppModule, { logger: logLevels, cors })
+  const app = await NestFactory.create(AppModule, { logger, cors })
 
   const { httpAdapter } = app.get(HttpAdapterHost)
   app.useGlobalFilters(new GlobalExceptionsFilter(httpAdapter))
+  app.useGlobalInterceptors(new LoggingInterceptor())
 
   app.use(json({ limit: '50mb' }))
   app.use(urlencoded({ extended: true, limit: '50mb' }))
@@ -131,10 +135,7 @@ async function bootstrap() {
       await ChecksModel.create(check)
     }
   }
-  // eslint-disable-next-line no-console
-  console.log(
-    `Application is running on: ${await app.getUrl()}, CORS = ${cors}`,
-  )
+  logger.log(`Application is running on: ${await app.getUrl()}, CORS = ${cors}`)
 }
 // eslint-disable-next-line unicorn/prefer-top-level-await
 void bootstrap()

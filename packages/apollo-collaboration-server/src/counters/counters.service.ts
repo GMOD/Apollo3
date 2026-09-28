@@ -22,7 +22,7 @@ export class CountersService {
       )
       .exec()
     if (!sequenceDocument) {
-      const errMsg = 'ERROR when getting next sequence value'
+      const errMsg = `Failed to get next sequence value for "${sequenceName}"`
       this.logger.error(errMsg)
       throw new NotFoundException(errMsg)
     }

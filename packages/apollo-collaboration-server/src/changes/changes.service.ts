@@ -65,7 +65,7 @@ export class ChangesService {
   private readonly logger = new Logger(ChangesService.name)
 
   async create(change: BaseChange, user: DecodedJWT) {
-    this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
+    this.logger.debug(`Requested change: ${change.typeName}`)
 
     const sequence =
       await this.countersService.getNextSequenceValue('changeCounter')
@@ -112,8 +112,9 @@ export class ChangesService {
       } catch (error) {
         // Clean up old "temporary document" -documents
         // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
-        this.logger.debug(
-          '*** INSERT DATA EXCEPTION - Start to clean up old temporary documents...',
+        this.logger.error(
+          `Failed to apply "${change.typeName}" change, cleaning up temporary documents`,
+          error instanceof Error ? error.stack : String(error),
         )
         await this.assemblyModel
           .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
@@ -169,9 +170,9 @@ export class ChangesService {
               )
               .exec()
           } catch (error) {
-            const err = error as Error
             this.logger.error(
-              `Error setting status of add feature change to 0: ${err.message}`,
+              'Failed to set status of add feature change to 0',
+              error instanceof Error ? error.stack : String(error),
             )
             await this.featureModel
               .deleteMany({
@@ -185,7 +186,7 @@ export class ChangesService {
 
     if (STATUS_ZERO_CHANGE_TYPES.has(change.typeName)) {
       // manual finalization of change since the data is too big for a transaction
-      this.logger.debug('*** TEMPORARY DATA INSERTED ***')
+      this.logger.debug('Temporary data inserted')
       // Set "temporary document" -status --> "valid" -status i.e. (-1 --> 0)
       await this.featureModel.db.transaction(async () => {
         try {
@@ -195,8 +196,9 @@ export class ChangesService {
           await this.batchUpdateMany(this.refSeqModel, uniqUserId)
         } catch (error) {
           // Clean up old "temporary document" -documents
-          this.logger.debug(
-            '*** UPDATE STATUS EXCEPTION - Start to clean up old temporary documents...',
+          this.logger.error(
+            'Failed to finalize temporary documents, cleaning them up',
+            error instanceof Error ? error.stack : String(error),
           )
           await this.assemblyModel
             .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
@@ -218,7 +220,7 @@ export class ChangesService {
       })
     }
 
-    this.logger.debug?.(`CHANGE DOC: ${JSON.stringify(changeDoc)}`)
+    this.logger.debug(`Change document: ${changeDoc?._id.toString()}`)
     if (!changeDoc) {
       throw new UnprocessableEntityException('could not create change')
     }
@@ -349,8 +351,8 @@ export class ChangesService {
     ])
 
     if (!changes) {
-      const errMsg = 'ERROR: The following change was not found in database....'
-      this.logger.error(errMsg)
+      const errMsg = 'The following change was not found in database'
+      this.logger.warn(errMsg)
       throw new NotFoundException(errMsg)
     }
 

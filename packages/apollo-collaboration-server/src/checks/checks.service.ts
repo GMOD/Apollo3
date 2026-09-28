@@ -14,7 +14,7 @@ import {
   RefSeq,
   type RefSeqDocument,
 } from '@apollo-annotation/schemas'
-import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common'
+import { Inject, Injectable, forwardRef } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import type { ObjectId } from 'mongodb'
 import { Model } from 'mongoose'
@@ -34,8 +34,6 @@ export class ChecksService {
     @InjectModel(Check.name)
     private readonly checkModel: Model<CheckDocument>,
   ) {}
-
-  private readonly logger = new Logger(ChecksService.name)
 
   async find({ assembly }: { assembly?: string }) {
     let query = {}

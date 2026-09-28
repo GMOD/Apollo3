@@ -9,7 +9,7 @@ import {
   type RefSeqDocument,
 } from '@apollo-annotation/schemas'
 import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { type GenericFilehandle, RemoteFile } from 'generic-filehandle2'
 import { Model } from 'mongoose'
@@ -53,8 +53,6 @@ export class SequenceService {
     private readonly refSeqModel: Model<RefSeqDocument>,
     private readonly assembliesService: AssembliesService,
   ) {}
-
-  private readonly logger = new Logger(SequenceService.name)
 
   async getSequence({ end, refSeq: refSeqId, start }: GetSequenceDto) {
     let refSeq: RefSeqDocument | null | undefined = refSeqDocLRU.get(refSeqId)

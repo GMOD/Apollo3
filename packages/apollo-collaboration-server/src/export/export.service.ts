@@ -17,7 +17,7 @@ import {
   type RefSeqDocument,
 } from '@apollo-annotation/schemas'
 import { GFFFormattingTransformer } from '@gmod/gff'
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
 import { type FilterQuery, Model } from 'mongoose'
@@ -49,8 +49,6 @@ export class ExportService {
       true
     >,
   ) {}
-
-  private readonly logger = new Logger(ExportService.name)
 
   async getAssemblyName(assemblyId: string) {
     const assemblyDoc = await this.assemblyModel.findById(assemblyId)
