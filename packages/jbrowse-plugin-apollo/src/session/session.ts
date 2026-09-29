@@ -23,7 +23,6 @@ import {
   type SessionWithDrawerWidgets,
   isElectron,
 } from '@jbrowse/core/util'
-import type { JobsListModel } from '@jbrowse/plugin-jobs-management'
 import {
   type Instance,
   type SnapshotOut,
@@ -33,6 +32,7 @@ import {
   getSnapshot,
   types,
 } from '@jbrowse/mobx-state-tree'
+import type { JobsListModel } from '@jbrowse/plugin-jobs-management'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import SaveIcon from '@mui/icons-material/Save'
 import { autorun, flow, observable, when } from 'mobx'
