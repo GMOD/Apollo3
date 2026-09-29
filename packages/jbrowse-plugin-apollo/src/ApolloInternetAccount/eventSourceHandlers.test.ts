@@ -51,7 +51,6 @@ const changeMessage: ChangeMessage = {
 function makeContext() {
   return {
     localSessionId,
-    token: 'my-token',
     addCheckResult: jest.fn(),
     deleteCheckResult: jest.fn(),
     applyRemoteChange: jest.fn(),
@@ -189,6 +188,19 @@ describe('server-sent event handlers', () => {
         context,
       )
       expect(context.broadcastLocations).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not answer its own request', () => {
+      handleRequestInformationMessage(
+        {
+          channel: 'REQUEST_INFORMATION',
+          userName: 'Me',
+          userSessionId: localSessionId,
+          reqType: 'CURRENT_LOCATION',
+        },
+        context,
+      )
+      expect(context.broadcastLocations).not.toHaveBeenCalled()
     })
   })
 })
