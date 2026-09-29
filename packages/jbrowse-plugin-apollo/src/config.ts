@@ -1,6 +1,5 @@
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
-import { types } from '@jbrowse/mobx-state-tree'
-import type { Instance, SnapshotIn } from '@jbrowse/mobx-state-tree'
+import { type Instance, type SnapshotIn, types } from '@jbrowse/mobx-state-tree'
 
 import { OntologyRecordConfiguration } from './OntologyManager'
 

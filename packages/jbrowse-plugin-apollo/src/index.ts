@@ -42,6 +42,7 @@ import {
 import { installApolloRefNameAliasAdapter } from './ApolloRefNameAliasAdapter'
 import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
 import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
+import type { ApolloSearchResult } from './ApolloTextSearchAdapter/ApolloTextSearchAdapter'
 import {
   ApolloFeatureDetailsWidget,
   ApolloFeatureDetailsWidgetModel,
@@ -64,8 +65,8 @@ import {
 import { AddFeature } from './components'
 import ApolloPluginConfigurationSchema from './config'
 import {
-  annotationFromJBrowseFeature,
   annotationFromAlignmentRead,
+  annotationFromJBrowseFeature,
 } from './extensions'
 import {
   LinearApolloDisplayComponent,
@@ -73,7 +74,6 @@ import {
 } from './makeDisplayComponent'
 import { addTopLevelMenus } from './menus'
 import { type ApolloSessionModel, extendSession } from './session'
-import type { ApolloSearchResult } from './ApolloTextSearchAdapter/ApolloTextSearchAdapter'
 
 interface ApolloMessageData {
   apollo: true
