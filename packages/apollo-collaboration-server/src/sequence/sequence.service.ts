@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-base-to-string */
-
 import {
   File,
   type FileDocument,
@@ -151,7 +149,7 @@ export class SequenceService {
     const seq: string[] = []
     for await (const refSeqChunk of this.refSeqChunkModel
       .find({
-        refSeq,
+        refSeq: refSeq._id,
         $and: [{ n: { $gte: startChunk } }, { n: { $lte: endChunk } }],
       })
       .sort({ n: 1 })) {

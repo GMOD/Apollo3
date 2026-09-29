@@ -35,20 +35,20 @@ export class MicrosoftStrategy extends PassportStrategy(Strategy) {
     private readonly authService: Readonly<AuthenticationService>,
     configService: ConfigService<ConfigValues, true>,
   ) {
-    let clientID = configService.get('MICROSOFT_CLIENT_ID', { infer: true })
+    let clientID = 'none'
+    clientID =
+      configService.get('MICROSOFT_CLIENT_ID', { infer: true }) || clientID
     if (!clientID) {
       const clientIDFile = configService.get('MICROSOFT_CLIENT_ID_FILE', {
         infer: true,
       })
-      clientID = clientIDFile && fs.readFileSync(clientIDFile, 'utf8').trim()
-    }
-    const configured = Boolean(clientID)
-    if (!configured) {
-      clientID = 'none'
+      clientID =
+        (clientIDFile && fs.readFileSync(clientIDFile, 'utf8').trim()) ??
+        clientID
     }
     let clientSecret = 'none'
     let callbackURL
-    if (configured) {
+    if (clientID !== 'none') {
       clientSecret = configService.get('MICROSOFT_CLIENT_SECRET', {
         infer: true,
       })
@@ -68,6 +68,7 @@ export class MicrosoftStrategy extends PassportStrategy(Strategy) {
       }auth/microsoft`
       callbackURL = callbackURI.href
     }
+    // @ts-expect-error published types are missing boolean for "store"
     super({
       clientID,
       clientSecret,

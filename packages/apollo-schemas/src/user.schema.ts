@@ -3,7 +3,7 @@ import type { HydratedDocument } from 'mongoose'
 
 export type UserDocument = HydratedDocument<User>
 
-export type Role = 'readOnly' | 'admin' | 'user'
+export type Role = 'readOnly' | 'admin' | 'user' | 'none'
 
 @Schema({ timestamps: true })
 export class User {
