@@ -13,8 +13,6 @@ import type { Collaborator } from '../session'
 export interface EventSourceHandlerContext {
   /** The session ID of this client, see `makeUserSessionId` */
   localSessionId: string
-  /** This client's JWT */
-  token: string
   addCheckResult(checkResult: CheckResultSnapshot): void
   deleteCheckResult(checkResultId: string): void
   /** Apply a change from another session without sending it to the server */
@@ -63,7 +61,10 @@ export function handleRequestInformationMessage(
   context: EventSourceHandlerContext,
 ) {
   const { channel, userSessionId } = message
-  if (channel === 'REQUEST_INFORMATION' && userSessionId !== context.token) {
+  if (
+    channel === 'REQUEST_INFORMATION' &&
+    userSessionId !== context.localSessionId
+  ) {
     context.broadcastLocations()
   }
 }
