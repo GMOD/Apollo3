@@ -98,7 +98,7 @@ const ResizeHandle = ({
 
   return (
     // TODO: a11y
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+    // eslint-disable-next-line jsx-a11y-x/click-events-have-key-events, jsx-a11y-x/no-static-element-interactions
     <div
       onMouseDown={(event: React.MouseEvent) => {
         event.stopPropagation()
@@ -138,7 +138,7 @@ const AccordionControl = observer(function AccordionControl({
     <div className={classes.accordionRoot}>
       {open && onResize ? <ResizeHandle onResize={onResize} /> : null}
       {/* TODO: a11y */}
-      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
+      {/* eslint-disable-next-line jsx-a11y-x/click-events-have-key-events, jsx-a11y-x/no-static-element-interactions */}
       <div className={classes.accordionControl} onClick={onClick}>
         {open ? (
           <ExpandLessIcon className={classes.expandIcon} />

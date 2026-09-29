@@ -3,7 +3,7 @@ import pluginReact from '@eslint-react/eslint-plugin'
 import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript'
 import pluginCypress from 'eslint-plugin-cypress/flat'
 import pluginImportX from 'eslint-plugin-import-x'
-import pluginJSXA11y from 'eslint-plugin-jsx-a11y'
+import pluginJSXA11y from 'eslint-plugin-jsx-a11y-x'
 import pluginReactHooks from 'eslint-plugin-react-hooks'
 import pluginTSDoc from 'eslint-plugin-tsdoc'
 import pluginUnicorn from 'eslint-plugin-unicorn'
@@ -107,7 +107,6 @@ export default [
     },
   },
   {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     ...pluginReactHooks.configs.flat.recommended,
     files: [
       'packages/jbrowse-plugin-apollo/src/**/*.{jsx,tsx}',
@@ -129,8 +128,7 @@ export default [
     ],
   },
   {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    ...pluginJSXA11y.flatConfigs.recommended,
+    ...pluginJSXA11y.configs.recommended,
     files: [
       'packages/jbrowse-plugin-apollo/src/**/*.{jsx,tsx}',
       'packages/website/src/**/*.{jsx,tsx}',
