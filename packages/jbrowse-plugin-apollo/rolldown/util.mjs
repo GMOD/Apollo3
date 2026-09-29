@@ -15,9 +15,6 @@ export function safePackageName(name) {
 }
 
 export function external(id) {
-  if (id.startsWith('regenerator-runtime')) {
-    return false
-  }
   return !id.startsWith('.') && !path.isAbsolute(id)
 }
 
