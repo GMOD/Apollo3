@@ -1,0 +1,22 @@
+{
+  "all": true,
+  "src": [
+    "packages/apollo-cli/src",
+    "packages/apollo-collaboration-server/src",
+    "packages/apollo-common/src",
+    "packages/apollo-mst/src",
+    "packages/apollo-schemas/src",
+    "packages/apollo-shared/src"
+  ],
+  "include": ["packages/*/src/**"],
+  "exclude": [
+    "**/*.d.ts",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/testUtil.ts",
+    "**/soSequenceTypes.ts",
+    "packages/apollo-cli/src/test/**"
+  ],
+  "excludeAfterRemap": true,
+  "reporter": ["lcov", "text-summary"]
+}

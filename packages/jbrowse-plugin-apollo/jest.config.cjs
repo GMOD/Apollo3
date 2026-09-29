@@ -16,5 +16,6 @@ module.exports = {
   automock: false,
   setupFiles: ['./jestSetup.js', 'fake-indexeddb/auto'],
   collectCoverageFrom: ['src/**/*.{js,jsx,ts,tsx}'],
+  coverageReporters: ['text-summary', ['lcov', { projectRoot: '../..' }]],
   ...defaultEsmPreset,
 }

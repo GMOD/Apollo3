@@ -19,6 +19,7 @@ import sourceMaps from 'rollup-plugin-sourcemaps'
 import { terser } from 'rollup-plugin-terser'
 
 import { babelPluginJBrowse } from './babelPluginJBrowse.mjs'
+import { istanbul } from './istanbulPlugin.mjs'
 import {
   external,
   omitUnresolved,
@@ -73,6 +74,8 @@ function getPlugins(mode, jbrowseGlobals) {
         ? { declarationDir: distPath }
         : { declaration: false, declarationMap: false }),
     }),
+    // Instrument the UMD bundle (the one Cypress loads) for coverage
+    mode === 'umd' && process.env.COVERAGE === 'true' && istanbul({ srcPath }),
     (mode === 'cjs' || mode === 'esmBundle') &&
       externalGlobals(createGlobalMap(jbrowseGlobals)),
     babelPluginJBrowse({
