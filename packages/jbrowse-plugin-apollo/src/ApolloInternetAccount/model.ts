@@ -394,7 +394,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           session.apolloDataStore
         const context: EventSourceHandlerContext = {
           localSessionId,
-          token,
           addCheckResult,
           deleteCheckResult,
           applyRemoteChange: (change) => {
