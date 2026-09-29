@@ -448,7 +448,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
         const { baseURL, controller } = self
         const url = new URL('users/userLocation', baseURL).href
-        const userLocation = new URLSearchParams(JSON.stringify(userLoc))
 
         const apolloFetch = self.getFetcher({
           locationType: 'UriLocation',
@@ -457,7 +456,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         try {
           const response = await apolloFetch(url, {
             method: 'POST',
-            body: userLocation,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userLoc),
             signal: controller.signal,
           })
           if (!response.ok) {

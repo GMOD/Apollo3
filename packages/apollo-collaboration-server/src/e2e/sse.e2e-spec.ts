@@ -150,11 +150,7 @@ describe('Server-sent events (e2e)', () => {
       const locations = [
         { assemblyId: 'asm1', refSeq: 'ctgA', start: 10, end: 20 },
       ]
-      // Sent the same way the JBrowse plugin sends it
-      await apiFetch('users/userLocation', token, {
-        method: 'POST',
-        body: new URLSearchParams(JSON.stringify(locations)),
-      })
+      await postJSON('users/userLocation', token, locations)
       const event = await client.nextEventOfType('USER_LOCATION')
       const message = JSON.parse(event.data) as UserLocationMessage
       expect(message).toMatchObject({
@@ -162,6 +158,20 @@ describe('Server-sent events (e2e)', () => {
         userSessionId: makeUserSessionId(token),
         locations,
       })
+    })
+
+    it('accepts locations in the legacy form-encoded format', async () => {
+      const client = await openStream()
+      const locations = [
+        { assemblyId: 'asm1', refSeq: 'ctgA', start: 30, end: 40 },
+      ]
+      await apiFetch('users/userLocation', token, {
+        method: 'POST',
+        body: new URLSearchParams(JSON.stringify(locations)),
+      })
+      const event = await client.nextEventOfType('USER_LOCATION')
+      const message = JSON.parse(event.data) as UserLocationMessage
+      expect(message.locations).toEqual(locations)
     })
 
     it('delivers each broadcast to every open stream', async () => {
