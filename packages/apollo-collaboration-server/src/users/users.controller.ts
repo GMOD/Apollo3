@@ -61,11 +61,15 @@ export class UsersController {
    */
   @Validations(Role.ReadOnly)
   @Post('userLocation')
-  userLoc(@Body() userLocDto: UserLocationDto[], @Req() req: Request) {
-    const keys = Object.keys(userLocDto)
-    const userLocationArray: UserLocationDto[] = JSON.parse(
-      `[${keys.toString()}]`,
-    )
+  userLoc(
+    @Body() userLocDto: UserLocationDto[] | Record<string, string>,
+    @Req() req: Request,
+  ) {
+    const userLocationArray: UserLocationDto[] = Array.isArray(userLocDto)
+      ? userLocDto
+      : // Older plugin versions send the JSON as the key of a form-encoded
+        // body. TODO: remove this once those versions are no longer in use.
+        JSON.parse(`[${Object.keys(userLocDto).toString()}]`)
     this.logger.debug(
       `One user's location info: ${JSON.stringify(userLocationArray)}`,
     )
