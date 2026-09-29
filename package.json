@@ -49,5 +49,8 @@
     "typescript-eslint": "^8.61.0",
     "yargs": "^17.7.2"
   },
-  "packageManager": "yarn@4.18.0"
+  "packageManager": "yarn@4.18.0",
+  "resolutions": {
+    "eslint-plugin-tsdoc/@typescript-eslint/utils": "^8.61.0"
+  }
 }
