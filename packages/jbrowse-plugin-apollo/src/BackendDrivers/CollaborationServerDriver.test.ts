@@ -13,6 +13,7 @@ import {
   jest,
 } from '@jest/globals'
 
+import { ChannelSubscriptions } from '../ApolloInternetAccount/ChannelSubscriptions'
 import { ChangeManager } from '../ChangeManager'
 import type { ClientDataStoreModel } from '../session/ClientDataStore'
 import { FakeEventSource, makeFakeToken } from '../test-utils/FakeEventSource'
@@ -54,6 +55,7 @@ function flushPromises() {
 
 describe('CollaborationServerDriver.checkEventSource', () => {
   let eventSource: FakeEventSource
+  let channelSubscriptions: ChannelSubscriptions
   let internetAccount: ApolloInternetAccount
   let setLastChangeSequenceNumber: jest.Mock
   let driver: CollaborationServerDriver
@@ -69,9 +71,11 @@ describe('CollaborationServerDriver.checkEventSource', () => {
 
   beforeEach(() => {
     eventSource = new FakeEventSource('http://localhost/messages/events')
+    channelSubscriptions = new ChannelSubscriptions()
+    channelSubscriptions.attach(eventSource as unknown as EventSource)
     setLastChangeSequenceNumber = jest.fn()
     internetAccount = {
-      eventSource: eventSource as unknown as EventSource,
+      channelSubscriptions,
       retrieveToken: () => localToken,
       setLastChangeSequenceNumber,
     } as unknown as ApolloInternetAccount
@@ -87,11 +91,19 @@ describe('CollaborationServerDriver.checkEventSource', () => {
     jest.restoreAllMocks()
   })
 
-  it('does nothing if the internet account has no event source', () => {
-    const account = { ...internetAccount, eventSource: undefined }
-    expect(() => {
-      driver.checkEventSource('asm1', 'ctgA', account)
-    }).not.toThrow()
+  it('receives changes on channels registered before the event stream opens', async () => {
+    const subscriptions = new ChannelSubscriptions()
+    const account = { ...internetAccount, channelSubscriptions: subscriptions }
+    driver.checkEventSource('asm1', 'ctgA', account)
+
+    const laterEventSource = new FakeEventSource(
+      'http://localhost/messages/events',
+    )
+    subscriptions.attach(laterEventSource as unknown as EventSource)
+    laterEventSource.emit('asm1-ctgA', makeChangeMessage())
+    await flushPromises()
+    expect(setLastChangeSequenceNumber).toHaveBeenCalledWith(7)
+    expect(submit).toHaveBeenCalledTimes(1)
   })
 
   it('listens on the "<assembly>-<refSeq>" channel', async () => {
