@@ -10,13 +10,13 @@ import type { PluggableElementType } from '@jbrowse/core/pluggableElementTypes'
 import type DisplayType from '@jbrowse/core/pluggableElementTypes/DisplayType'
 import { getContainingView, getSession } from '@jbrowse/core/util'
 import type { Feature } from '@jbrowse/core/util/simpleFeature'
+import { isAlive } from '@jbrowse/mobx-state-tree'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 
 import { CollaborationServerDriver } from '../BackendDrivers'
 import { CreateApolloAnnotation } from '../components/CreateApolloAnnotation'
 import { Apollo as ApolloIcon } from '../menus/Icons'
 import type { ApolloSessionModel } from '../session'
-import { isAlive } from '@jbrowse/mobx-state-tree'
 
 function simpleFeatureToGFF3Feature(
   feature: Feature,
