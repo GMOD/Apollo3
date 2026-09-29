@@ -7,15 +7,18 @@
     "packages/*"
   ],
   "scripts": {
-    "lint": "cross-env NODE_OPTIONS='--max-old-space-size=4096' yarn eslint --max-warnings 0",
     "build:shared": "yarn workspace @apollo-annotation/shared run build",
+    "postinstall": "husky",
+    "lint": "cross-env NODE_OPTIONS='--max-old-space-size=4096' yarn eslint --max-warnings 0",
     "release": "tsx scripts/makeGitTag.ts",
-    "start:shared": "yarn workspace @apollo-annotation/shared run start",
-    "start:server": "yarn workspace @apollo-annotation/collaboration-server run start",
-    "start:plugin": "yarn workspace @apollo-annotation/jbrowse-plugin-apollo run start",
     "start": "npm-run-all --print-label --parallel start:shared start:server start:plugin",
-    "test": "yarn workspaces foreach --all run test:ci",
-    "postinstall": "husky"
+    "start:plugin": "yarn workspace @apollo-annotation/jbrowse-plugin-apollo run start",
+    "start:server": "yarn workspace @apollo-annotation/collaboration-server run start",
+    "start:shared": "yarn workspace @apollo-annotation/shared run start",
+    "test": "yarn workspaces foreach --all run test:ci"
+  },
+  "resolutions": {
+    "eslint-plugin-tsdoc/@typescript-eslint/utils": "^8.61.0"
   },
   "devDependencies": {
     "@eslint-react/eslint-plugin": "^5.8.17",
@@ -40,7 +43,7 @@
     "lint-staged": "^15.2.2",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.3.2",
-    "prettier-plugin-packagejson": "^2.5.2",
+    "prettier-plugin-packagejson": "^3.0.2",
     "react": "^18.2.0",
     "semver": "^7.6.3",
     "tslib": "^2.3.1",
@@ -49,8 +52,5 @@
     "typescript-eslint": "^8.61.0",
     "yargs": "^17.7.2"
   },
-  "packageManager": "yarn@4.18.0",
-  "resolutions": {
-    "eslint-plugin-tsdoc/@typescript-eslint/utils": "^8.61.0"
-  }
+  "packageManager": "yarn@4.18.0"
 }

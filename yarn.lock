@@ -8994,13 +8994,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pkgr/core@npm:^0.1.0":
-  version: 0.1.1
-  resolution: "@pkgr/core@npm:0.1.1"
-  checksum: 10c0/3f7536bc7f57320ab2cf96f8973664bef624710c403357429fbf680a5c3b4843c1dbd389bb43daa6b1f6f1f007bb082f5abcb76bb2b5dc9f421647743b71d3d8
-  languageName: node
-  linkType: hard
-
 "@pnpm/config.env-replace@npm:^1.1.0":
   version: 1.1.0
   resolution: "@pnpm/config.env-replace@npm:1.1.0"
@@ -11711,7 +11704,7 @@ __metadata:
     lint-staged: "npm:^15.2.2"
     npm-run-all: "npm:^4.1.5"
     prettier: "npm:^3.3.2"
-    prettier-plugin-packagejson: "npm:^2.5.2"
+    prettier-plugin-packagejson: "npm:^3.0.2"
     react: "npm:^18.2.0"
     semver: "npm:^7.6.3"
     tslib: "npm:^2.3.1"
@@ -15224,10 +15217,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"detect-indent@npm:^7.0.1":
-  version: 7.0.1
-  resolution: "detect-indent@npm:7.0.1"
-  checksum: 10c0/47b6e3e3dda603c386e73b129f3e84844ae59bc2615f5072becf3cc02eab400bed5a4e6379c49d0b18cf630e80c2b07e87e0038b777addbc6ef793ad77dd05bc
+"detect-indent@npm:^7.0.2":
+  version: 7.0.2
+  resolution: "detect-indent@npm:7.0.2"
+  checksum: 10c0/adb1334ca3fe516dc6817aff0a777540b88643ab92fe13a72d0f5d12721ca796ffdd0e5fedb7b45e6e82657156c6ad44f5d5758157f0439532ae7d07b595146b
   languageName: node
   linkType: hard
 
@@ -15238,7 +15231,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"detect-newline@npm:^4.0.0":
+"detect-newline@npm:^4.0.1":
   version: 4.0.1
   resolution: "detect-newline@npm:4.0.1"
   checksum: 10c0/1cc1082e88ad477f30703ae9f23bd3e33816ea2db6a35333057e087d72d466f5a777809b71f560118ecff935d2c712f5b59e1008a8b56a900909d8fd4621c603
@@ -17985,13 +17978,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"get-stdin@npm:^9.0.0":
-  version: 9.0.0
-  resolution: "get-stdin@npm:9.0.0"
-  checksum: 10c0/7ef2edc0c81a0644ca9f051aad8a96ae9373d901485abafaabe59fd347a1c378689d8a3d8825fb3067415d1d09dfcaa43cb9b9516ecac6b74b3138b65a8ccc6b
-  languageName: node
-  linkType: hard
-
 "get-stream@npm:^2.2.0":
   version: 2.3.1
   resolution: "get-stream@npm:2.3.1"
@@ -18073,10 +18059,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"git-hooks-list@npm:^3.0.0":
-  version: 3.1.0
-  resolution: "git-hooks-list@npm:3.1.0"
-  checksum: 10c0/f1b93dd11b80b2a687b99a8bb553c0d07f344532d475b3ac2a5ff044d40fa71567ddcfa5cb39fae0b4e43a670a33f02f71ec3b24b7263233f3a3df89deddfb5a
+"git-hooks-list@npm:^4.1.1":
+  version: 4.2.1
+  resolution: "git-hooks-list@npm:4.2.1"
+  checksum: 10c0/c5cac4e0526dd186122739f87c9e687c62a5ae7daadc9852d1823435f18a21f43ee6938825b97ecbb53c8c45456d94cc081fd5a2cf7eb4ea7508e5d9fa5fb5f3
   languageName: node
   linkType: hard
 
@@ -18254,7 +18240,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globby@npm:^13.1.1, globby@npm:^13.1.2":
+"globby@npm:^13.1.1":
   version: 13.2.2
   resolution: "globby@npm:13.2.2"
   dependencies:
@@ -25516,18 +25502,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier-plugin-packagejson@npm:^2.5.2":
-  version: 2.5.2
-  resolution: "prettier-plugin-packagejson@npm:2.5.2"
+"prettier-plugin-packagejson@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "prettier-plugin-packagejson@npm:3.0.2"
   dependencies:
-    sort-package-json: "npm:2.10.1"
-    synckit: "npm:0.9.1"
+    sort-package-json: "npm:^3.6.0"
   peerDependencies:
-    prettier: ">= 1.16.0"
+    prettier: ^3
   peerDependenciesMeta:
     prettier:
       optional: true
-  checksum: 10c0/ddaf6a662f0156ad1a34d4e891b6ea05398de4fe56d6d14f4802f79b4824c71602e09661e665e0228232313a5cd27fe6d9d481080d6dd41620f9cf7fb285d240
+  checksum: 10c0/c277b3252ce299c11053ad1b01968b0895b3baf2483323fcedbdae66ce9999b76d4b9e70396c58c39c61429d4672ba3f63a5e6e9a3104ff3b0000ec5214a4963
   languageName: node
   linkType: hard
 
@@ -27168,15 +27153,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^7.6.0":
-  version: 7.6.2
-  resolution: "semver@npm:7.6.2"
-  bin:
-    semver: bin/semver.js
-  checksum: 10c0/97d3441e97ace8be4b1976433d1c32658f6afaff09f143e52c593bae7eef33de19e3e369c88bd985ce1042c6f441c80c6803078d1de2a9988080b66684cbb30c
-  languageName: node
-  linkType: hard
-
 "semver@npm:^7.6.3":
   version: 7.6.3
   resolution: "semver@npm:7.6.3"
@@ -27878,28 +27854,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sort-object-keys@npm:^1.1.3":
-  version: 1.1.3
-  resolution: "sort-object-keys@npm:1.1.3"
-  checksum: 10c0/3bf62398658d3ff4bbca0db4ed8f42f98abc41433859f63d02fb0ab953fbe5526be240ec7e5d85aa50fcab6c937f3fa7015abf1ecdeb3045a2281c53953886bf
+"sort-object-keys@npm:^2.0.1":
+  version: 2.1.0
+  resolution: "sort-object-keys@npm:2.1.0"
+  checksum: 10c0/3e10c4892c379800a920c83f943fd98b3d7cf3eb3db67b0470ead95f180c3fb95146e22ef176c4c71395537597deb8320a80ace8025c39eadc8da4b38ae26b5f
   languageName: node
   linkType: hard
 
-"sort-package-json@npm:2.10.1":
-  version: 2.10.1
-  resolution: "sort-package-json@npm:2.10.1"
+"sort-package-json@npm:^3.6.0":
+  version: 3.7.1
+  resolution: "sort-package-json@npm:3.7.1"
   dependencies:
-    detect-indent: "npm:^7.0.1"
-    detect-newline: "npm:^4.0.0"
-    get-stdin: "npm:^9.0.0"
-    git-hooks-list: "npm:^3.0.0"
-    globby: "npm:^13.1.2"
+    detect-indent: "npm:^7.0.2"
+    detect-newline: "npm:^4.0.1"
+    git-hooks-list: "npm:^4.1.1"
     is-plain-obj: "npm:^4.1.0"
-    semver: "npm:^7.6.0"
-    sort-object-keys: "npm:^1.1.3"
+    semver: "npm:^7.7.3"
+    sort-object-keys: "npm:^2.0.1"
+    tinyglobby: "npm:^0.2.15"
   bin:
     sort-package-json: cli.js
-  checksum: 10c0/7511c57e4661be222bce68522fb90f72e77a2a4694d05df0e55e70e72736944371a4be82a7cb1be4402455bbfd23857b0fabae3bbe9a1ae1351ff7caac64a468
+  checksum: 10c0/2403faf859439c10a0562b02c34ff28480171fa8f3991bac6fe8652c8996cfe04f97409e220185f64eefb4c05a5fd83ba43a92d1c8d52a4cdb635bc81113faba
   languageName: node
   linkType: hard
 
@@ -28657,16 +28632,6 @@ __metadata:
   version: 4.0.0
   resolution: "symbol-observable@npm:4.0.0"
   checksum: 10c0/5e9a3ab08263a6be8cbee76587ad5880dcc62a47002787ed5ebea56b1eb30dc87da6f0183d67e88286806799fbe21c69077fbd677be4be2188e92318d6c6f31d
-  languageName: node
-  linkType: hard
-
-"synckit@npm:0.9.1":
-  version: 0.9.1
-  resolution: "synckit@npm:0.9.1"
-  dependencies:
-    "@pkgr/core": "npm:^0.1.0"
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/d8b89e1bf30ba3ffb469d8418c836ad9c0c062bf47028406b4d06548bc66af97155ea2303b96c93bf5c7c0f0d66153a6fbd6924c76521b434e6a9898982abc2e
   languageName: node
   linkType: hard
 
