@@ -3,6 +3,7 @@ import {
   type ChangeMessage,
   LocationEndChange,
 } from '@apollo-annotation/shared'
+import { types } from '@jbrowse/mobx-state-tree'
 import {
   afterEach,
   beforeAll,
@@ -168,4 +169,111 @@ describe('CollaborationServerDriver.checkEventSource', () => {
     expect(setLastChangeSequenceNumber).not.toHaveBeenCalled()
     expect(submit).not.toHaveBeenCalled()
   })
+})
+
+const refSeqs = [
+  {
+    _id: 'refSeq1',
+    name: 'ctgA',
+    aliases: ['chrA', 'A'],
+    length: '1000',
+    assembly: 'asm1',
+  },
+]
+
+// jest-fetch-mock's Response polyfill has no static Response.json()
+function jsonResponse(body: unknown) {
+  return new Response(JSON.stringify(body), {
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
+
+/** A fake Apollo server with one assembly, "asm1", and one refSeq, "ctgA" */
+function fakeApolloFetch(input: RequestInfo | URL) {
+  const url =
+    typeof input === 'string'
+      ? input
+      : // eslint-disable-next-line unicorn/no-nested-ternary
+        input instanceof URL
+        ? input.href
+        : input.url
+  const { pathname } = new URL(url)
+  if (pathname === '/refSeqs') {
+    return Promise.resolve(jsonResponse(refSeqs))
+  }
+  if (pathname === '/features/getFeatures') {
+    return Promise.resolve(jsonResponse([[], []]))
+  }
+  return Promise.resolve(new Response('Not found', { status: 404 }))
+}
+
+/**
+ * The server broadcasts feature changes on `${assemblyId}-${refSeq.name}`,
+ * using the refSeq's canonical name. These check that the driver subscribes
+ * with the same name, and never with an alias.
+ */
+describe('CollaborationServerDriver channel names', () => {
+  let channelSubscriptions: ChannelSubscriptions
+  let subscribe: jest.SpiedFunction<ChannelSubscriptions['subscribe']>
+  let driver: CollaborationServerDriver
+
+  beforeEach(() => {
+    channelSubscriptions = new ChannelSubscriptions()
+    subscribe = jest.spyOn(channelSubscriptions, 'subscribe')
+    const internetAccount = {
+      baseURL: 'http://localhost/',
+      channelSubscriptions,
+      getFetcher() {
+        return fakeApolloFetch
+      },
+    }
+    // getSession() looks for an MST parent with these properties, so the
+    // client store needs to be a node in a (minimal) session tree
+    const ClientStore = types.model('ClientStore', {}).views(() => ({
+      getInternetAccount: () => internetAccount,
+    }))
+    const Session = types
+      .model('Session', { clientStore: ClientStore })
+      .volatile(() => ({
+        rpcManager: {},
+        configuration: {},
+        assemblyManager: {
+          get: (name: string) => (name === 'asm1' ? {} : undefined),
+        },
+      }))
+    const session = Session.create({ clientStore: {} })
+    driver = new CollaborationServerDriver(
+      session.clientStore as unknown as ClientDataStoreModel,
+    )
+  })
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
+  it('subscribes using the canonical refSeq name', async () => {
+    await driver.getFeatures({
+      assemblyName: 'asm1',
+      refName: 'ctgA',
+      start: 0,
+      end: 100,
+    })
+    expect(subscribe).toHaveBeenCalledTimes(1)
+    expect(subscribe).toHaveBeenCalledWith('asm1-ctgA', expect.any(Function))
+  })
+
+  it.each(['chrA', 'A', 'refSeq1'])(
+    'does not subscribe using the alias or ID "%s"',
+    async (refName) => {
+      await expect(
+        driver.getFeatures({
+          assemblyName: 'asm1',
+          refName,
+          start: 0,
+          end: 100,
+        }),
+      ).rejects.toThrow(`Could not find refSeq "${refName}"`)
+      expect(subscribe).not.toHaveBeenCalled()
+    },
+  )
 })
