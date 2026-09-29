@@ -2,8 +2,8 @@ import {
   type ArgumentsHost,
   Catch,
   HttpException,
-  HttpStatus,
   type HttpServer,
+  HttpStatus,
   Logger,
 } from '@nestjs/common'
 import { type AbstractHttpAdapter, BaseExceptionFilter } from '@nestjs/core'

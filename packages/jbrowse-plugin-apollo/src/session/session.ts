@@ -19,10 +19,10 @@ import {
 } from '@jbrowse/core/configuration'
 import type { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
 import {
-  isElectron,
   type AbstractSessionModel,
   type SessionWithAddTracks,
   type SessionWithDrawerWidgets,
+  isElectron,
 } from '@jbrowse/core/util'
 import {
   type Instance,
