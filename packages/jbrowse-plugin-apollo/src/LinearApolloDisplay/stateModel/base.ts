@@ -34,6 +34,7 @@ import TrackChangesIcon from '@mui/icons-material/TrackChanges'
 import { autorun } from 'mobx'
 
 import type { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
+import { LocalDriver } from '../../BackendDrivers'
 import {
   DownloadGFF3,
   Export as ExportIcon,
@@ -45,7 +46,6 @@ import { ViewCheckResults } from '../../components/ViewCheckResults'
 import type { ApolloSessionModel, HoveredFeature } from '../../session'
 import type { ApolloRootModel } from '../../types'
 import { EditZoomThresholdDialog } from '../../util/displayUtils'
-import { LocalDriver } from '../../BackendDrivers'
 
 const minDisplayHeight = 20
 

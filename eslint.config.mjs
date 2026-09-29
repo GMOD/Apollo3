@@ -1,14 +1,14 @@
-import pluginCypress from 'eslint-plugin-cypress/flat'
-import tseslint from 'typescript-eslint'
-
 import js from '@eslint/js'
 import pluginReact from '@eslint-react/eslint-plugin'
-// import pluginImport from 'eslint-plugin-import'
+import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript'
+import pluginCypress from 'eslint-plugin-cypress/flat'
+import pluginImportX from 'eslint-plugin-import-x'
 import pluginJSXA11y from 'eslint-plugin-jsx-a11y'
 import pluginReactHooks from 'eslint-plugin-react-hooks'
 import pluginTSDoc from 'eslint-plugin-tsdoc'
 import pluginUnicorn from 'eslint-plugin-unicorn'
 import globals from 'globals'
+import tseslint from 'typescript-eslint'
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -26,7 +26,7 @@ export default [
   },
   js.configs.recommended,
   pluginUnicorn.configs.recommended,
-  // pluginImport.flatConfigs.typescript,
+  pluginImportX.flatConfigs.typescript,
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
   {
@@ -36,7 +36,9 @@ export default [
     },
     plugins: {
       tsdoc: pluginTSDoc,
-      // import: pluginImport
+    },
+    settings: {
+      'import-x/resolver-next': [createTypeScriptImportResolver()],
     },
     rules: {
       // eslint built-in rules (override recommended)
@@ -80,20 +82,20 @@ export default [
         { allowNumber: true },
       ],
       '@typescript-eslint/return-await': 'error',
-      // eslint-plugin-import rules
-      // 'import/export': 'error',
-      // 'import/no-duplicates': ['warn', { 'prefer-inline': true }],
-      // 'import/no-extraneous-dependencies': 'error',
-      // 'import/no-named-as-default': 'warn',
-      // 'import/order': [
-      //   'warn',
-      //   {
-      //     named: true,
-      //     'newlines-between': 'always',
-      //     alphabetize: { order: 'asc' },
-      //     groups: ['builtin', 'external', 'parent', 'sibling'],
-      //   },
-      // ],
+      // eslint-plugin-import-x rules
+      'import-x/export': 'error',
+      'import-x/no-duplicates': ['warn', { 'prefer-inline': true }],
+      'import-x/no-extraneous-dependencies': 'error',
+      'import-x/no-named-as-default': 'warn',
+      'import-x/order': [
+        'warn',
+        {
+          named: true,
+          'newlines-between': 'always',
+          alphabetize: { order: 'asc' },
+          groups: ['builtin', 'external', 'parent', 'sibling'],
+        },
+      ],
       // eslint-plugin-tsdoc rules
       'tsdoc/syntax': 'warn',
       // eslint-plugin-unicorn rules (override recommended)

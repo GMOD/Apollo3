@@ -3,6 +3,7 @@ import { observer } from 'mobx-react'
 import { useMemo, useState } from 'react'
 
 import type { ApolloSessionModel } from '../session'
+
 import { SequenceOptionSelector } from './SequenceOptionSelector'
 import { SequenceViewer } from './SequenceViewer'
 import {

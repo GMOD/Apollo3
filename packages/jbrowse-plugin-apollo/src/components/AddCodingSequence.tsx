@@ -4,8 +4,7 @@ import type {
   AnnotationFeatureSnapshot,
 } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
-import type { AbstractSessionModel } from '@jbrowse/core/util'
-import { revcom } from '@jbrowse/core/util'
+import { type AbstractSessionModel, revcom } from '@jbrowse/core/util'
 import {
   Button,
   DialogActions,

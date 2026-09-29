@@ -8,7 +8,7 @@ import {
 } from 'node:stream'
 
 import { SingleBar } from 'cli-progress'
-import { type RequestInit, Headers } from 'undici'
+import { Headers, type RequestInit } from 'undici'
 
 import { BaseCommand } from './baseCommand.js'
 import { createFetchErrorMessage } from './utils.js'

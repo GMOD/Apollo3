@@ -2,10 +2,10 @@ import { File, RefSeq, RefSeqChunk } from '@apollo-annotation/schemas'
 import { getModelToken } from '@nestjs/mongoose'
 import { Test, type TestingModule } from '@nestjs/testing'
 
-import { SequenceService } from './sequence.service.js'
-
 import { AssembliesService } from '../assemblies/assemblies.service.js'
 import { FilesService } from '../files/files.service.js'
+
+import { SequenceService } from './sequence.service.js'
 
 describe('SequenceService', () => {
   let service: SequenceService
