@@ -6,11 +6,7 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { Change, type SerializedChange } from '@apollo-annotation/common'
 import {
-  type ChangeMessage,
-  type CheckResultUpdate,
-  type RequestUserInformationMessage,
   type UserLocation,
-  type UserLocationMessage,
   getDecodedToken,
   makeUserSessionId,
 } from '@apollo-annotation/shared'
@@ -35,7 +31,6 @@ import { autorun } from 'mobx'
 
 import { version as pluginVersion } from '../../package.json'
 import { addTopLevelAdminMenus } from '../menus/topLevelMenuAdmin'
-import type { Collaborator } from '../session'
 import type { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
@@ -43,6 +38,12 @@ import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { LoginInProgress } from './components/LoginInProgress'
 import { NoAccess } from './components/NoAccess'
 import type { ApolloInternetAccountConfigModel } from './configSchema'
+import {
+  type EventSourceHandlerContext,
+  handleCommonMessage,
+  handleRequestInformationMessage,
+  handleUserLocationMessage,
+} from './eventSourceHandlers'
 import { LoginCancelledError, LoginFailedError } from './loginErrors'
 
 interface AuthType {
@@ -634,6 +635,21 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         const localSessionId = makeUserSessionId(user)
         const { addCheckResult, changeManager, deleteCheckResult } =
           session.apolloDataStore
+        const context: EventSourceHandlerContext = {
+          localSessionId,
+          token,
+          addCheckResult,
+          deleteCheckResult,
+          applyRemoteChange: (change) => {
+            void changeManager.submit(change, { submitToBackend: false })
+          },
+          addOrUpdateCollaborator: (collaborator) => {
+            session.addOrUpdateCollaborator(collaborator)
+          },
+          broadcastLocations: () => {
+            session.broadcastLocations()
+          },
+        }
 
         const url = new URL('messages/events', self.baseURL)
         url.searchParams.set('token', token)
@@ -659,48 +675,13 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           notify('Could not connect to the Apollo server.', 'error')
         })
         eventSource.addEventListener('COMMON', (event) => {
-          const message = JSON.parse(event.data) as
-            | ChangeMessage
-            | CheckResultUpdate
-          if ('checkResult' in message) {
-            if (message.deleted) {
-              deleteCheckResult(message.checkResult._id)
-            } else {
-              addCheckResult(message.checkResult)
-            }
-            return
-          }
-          // Save server last change sequence into session storage
-          sessionStorage.setItem(
-            'LastChangeSequence',
-            String(message.changeSequence),
-          )
-          if (message.userSessionId === localSessionId) {
-            return // we did this change, no need to apply it again
-          }
-          const change = Change.fromJSON(message.changeInfo)
-          void changeManager.submit(change, { submitToBackend: false })
+          handleCommonMessage(JSON.parse(event.data), context)
         })
         eventSource.addEventListener('USER_LOCATION', (event) => {
-          const message = JSON.parse(event.data) as UserLocationMessage
-          const { channel, locations, userName, userSessionId } = message
-          if (channel === 'USER_LOCATION' && userSessionId !== localSessionId) {
-            const collaborator: Collaborator = {
-              name: userName,
-              id: userSessionId,
-              locations,
-            }
-            session.addOrUpdateCollaborator(collaborator)
-          }
+          handleUserLocationMessage(JSON.parse(event.data), context)
         })
         eventSource.addEventListener('REQUEST_INFORMATION', (event) => {
-          const message = JSON.parse(
-            event.data,
-          ) as RequestUserInformationMessage
-          const { channel, userSessionId } = message
-          if (channel === 'REQUEST_INFORMATION' && userSessionId !== token) {
-            session.broadcastLocations()
-          }
+          handleRequestInformationMessage(JSON.parse(event.data), context)
         })
       },
     }))
