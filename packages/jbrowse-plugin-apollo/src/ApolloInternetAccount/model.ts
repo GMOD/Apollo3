@@ -34,6 +34,7 @@ import { addTopLevelAdminMenus } from '../menus/topLevelMenuAdmin'
 import type { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
+import { ChannelSubscriptions } from './ChannelSubscriptions'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { LoginInProgress } from './components/LoginInProgress'
 import { NoAccess } from './components/NoAccess'
@@ -622,6 +623,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
     }))
     .volatile(() => ({
       eventSource: undefined as EventSource | undefined,
+      /** Per-refSeq change channels, see `CollaborationServerDriver` */
+      channelSubscriptions: new ChannelSubscriptions(),
     }))
     .actions((self) => ({
       addEventSourceListeners() {
@@ -654,6 +657,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         url.searchParams.set('token', token)
         const eventSource = new EventSource(url)
         self.eventSource = eventSource
+        self.channelSubscriptions.attach(eventSource)
 
         eventSource.addEventListener('open', () => {
           // No baseline yet, so there is nothing to be missing: this is the

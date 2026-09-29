@@ -24,6 +24,7 @@ import { getConf } from '@jbrowse/core/configuration'
 import type { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { type Region, getSession } from '@jbrowse/core/util'
 
+import type { ChannelSubscriptions } from '../ApolloInternetAccount/ChannelSubscriptions'
 import { ChangeManager, type SubmitOpts } from '../ChangeManager'
 import { createFetchErrorMessage } from '../util'
 
@@ -53,7 +54,7 @@ type RefSeqMap = Map<string, RefSeq>
 
 export interface ApolloInternetAccount extends BaseInternetAccountModel {
   baseURL: string
-  eventSource?: EventSource
+  channelSubscriptions: ChannelSubscriptions
   setLastChangeSequenceNumber(sequenceNumber: number): void
   getMissingChanges(): void
 }
@@ -62,8 +63,6 @@ export class CollaborationServerDriver extends BackendDriver {
   private inFlight = new Map<string, Promise<string>>()
 
   private refSeqMaps = new Map<string, RefSeqMap>()
-
-  private registeredChannels = new WeakMap<EventSource, Set<string>>()
 
   private async fetch(
     internetAccount: ApolloInternetAccount,
@@ -145,8 +144,9 @@ export class CollaborationServerDriver extends BackendDriver {
   }
 
   /**
-   * Checks if there is an assembly-refSeq specific event listener. If not, it
-   * adds one
+   * Listen for changes on the assembly-refSeq specific channel, if not already
+   * listening. This works even before the internet account has connected to
+   * the server's event stream.
    * @param assembly - assemblyId
    * @param refSeq - refSeqName
    * @param internetAccount - internet account
@@ -156,25 +156,10 @@ export class CollaborationServerDriver extends BackendDriver {
     refSeq: string,
     internetAccount: ApolloInternetAccount,
   ) {
-    const { eventSource } = internetAccount
-    if (!eventSource) {
-      return
-    }
     const channel = `${assembly}-${refSeq}`
-
-    let channels = this.registeredChannels.get(eventSource)
-    if (!channels) {
-      channels = new Set()
-      this.registeredChannels.set(eventSource, channels)
-    }
-    if (channels.has(channel)) {
-      return
-    }
-    channels.add(channel)
-
-    eventSource.addEventListener(channel, (event) => {
+    internetAccount.channelSubscriptions.subscribe(channel, (event) => {
       void (async () => {
-        const message = JSON.parse(event.data as string) as ChangeMessage
+        const message = JSON.parse(event.data) as ChangeMessage
         const token = internetAccount.retrieveToken()
         if (!token) {
           return
