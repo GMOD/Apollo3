@@ -342,3 +342,13 @@ Cypress.Commands.add('refreshTableEditor', () => {
   cy.annotationTrackAppearance('Show graphical display')
   cy.annotationTrackAppearance('Show both graphical and table display')
 })
+
+Cypress.Commands.add('loginAsOtherGuest', () => {
+  // Session IDs include the token's issued-at time in seconds, so wait to make
+  // sure this is a different session from the browser's
+  // eslint-disable-next-line cypress/no-unnecessary-waiting
+  cy.wait(1100)
+  return cy
+    .request<{ token: string }>('http://localhost:3999/auth/guest')
+    .then(({ body }) => body.token)
+})

@@ -258,6 +258,11 @@ jobs:
         id: cli-tests
         run: yarn run test:ci:coverage
         working-directory: packages/apollo-cli
+      # Uses the same running server, so run it even if the CLI tests failed
+      - name: Run server e2e tests
+        if: ${{ !cancelled() }}
+        run: yarn run test:e2e
+        working-directory: packages/apollo-collaboration-server
       - name: Stop apollo-collaboration-server
         cancel: apollo-collaboration-server
       - name: Stop local file server
