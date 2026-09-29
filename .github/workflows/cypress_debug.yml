@@ -29,15 +29,64 @@ jobs:
           mongodb-replica-set: test-rs
 
       - name: Start local file server
+        id: file-server
+        background: true
+        # Exits non-zero when it's stopped
+        continue-on-error: true
         run:
-          yarn --cwd packages/apollo-collaboration-server/test/data/ serve
-          --listen 3131 &
+          exec yarn --cwd packages/apollo-collaboration-server/test/data/ serve
+          --listen 3131
+
+      - name: Start plugin file server
+        id: plugin-server
+        background: true
+        # Exits non-zero when it's stopped
+        continue-on-error: true
+        run: exec yarn --cwd packages/jbrowse-plugin-apollo start:server
+
+      - name: Start JBrowse file server
+        id: jbrowse-server
+        background: true
+        # Exits non-zero when it's stopped
+        continue-on-error: true
+        run: exec yarn --cwd packages/jbrowse-plugin-apollo browse
+
+      - name: Start apollo-collaboration-server
+        id: apollo-collaboration-server
+        background: true
+        # Exits non-zero when it's stopped
+        continue-on-error: true
+        # Same as the `cypress:start` script, but without watch and with more
+        # log levels
+        run: exec yarn --cwd packages/apollo-collaboration-server start:no-watch
+        env:
+          GUEST_USER_ROLE: admin
+          MONGODB_URI: mongodb://localhost:27017/apolloTestDb?directConnection=true
+          LOG_LEVELS: error,warn,log,debug
+
+      # Starting apollo builds shared, so wait for it to finish before the
+      # plugin build (which also builds shared)
+      - name: Wait for servers to start
+        run:
+          timeout 300 bash -c 'until curl -sf http://localhost:3999/health &&
+          curl -sf -o /dev/null http://localhost:9000 && curl -sf -o /dev/null
+          http://localhost:8999; do sleep 2; done'
 
       - name: Run tests
         run: yarn run test:e2e:debug
         working-directory: packages/jbrowse-plugin-apollo
-        env:
-          LOG_LEVELS: error,warn,log,debug
+
+      - name: Stop apollo-collaboration-server
+        cancel: apollo-collaboration-server
+
+      - name: Stop JBrowse file server
+        cancel: jbrowse-server
+
+      - name: Stop plugin file server
+        cancel: plugin-server
+
+      - name: Stop local file server
+        cancel: file-server
 
       - name: Archive test results
         uses: actions/upload-artifact@v7
