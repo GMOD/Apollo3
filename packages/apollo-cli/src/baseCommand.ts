@@ -1,24 +1,6 @@
 import path from 'node:path'
 import { stderr } from 'node:process'
 
-import { Command, Flags, type Interfaces } from '@oclif/core'
-import { ObjectId } from 'bson'
-import ms, { type StringValue } from 'ms'
-import {
-  Agent,
-  fetch,
-  type RequestInit,
-  type Response,
-  type BodyInit,
-  Headers,
-} from 'undici'
-
-import { ApolloConf, ConfigError } from './ApolloConf.js'
-import {
-  createFetchErrorMessage,
-  filterJsonList,
-  localhostToAddress,
-} from './utils.js'
 import type {
   AnnotationFeatureSnapshot,
   CheckResultSnapshot,
@@ -29,6 +11,24 @@ import type {
   SerializedAddAssemblyFromFileChange,
   SerializedDeleteAssemblyChange,
 } from '@apollo-annotation/shared'
+import { Command, Flags, type Interfaces } from '@oclif/core'
+import { ObjectId } from 'bson'
+import ms, { type StringValue } from 'ms'
+import {
+  Agent,
+  type BodyInit,
+  Headers,
+  type RequestInit,
+  type Response,
+  fetch,
+} from 'undici'
+
+import { ApolloConf, ConfigError } from './ApolloConf.js'
+import {
+  createFetchErrorMessage,
+  filterJsonList,
+  localhostToAddress,
+} from './utils.js'
 
 interface AssemblyResponse {
   _id: string

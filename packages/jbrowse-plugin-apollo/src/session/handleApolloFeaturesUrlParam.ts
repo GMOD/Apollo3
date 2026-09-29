@@ -1,7 +1,7 @@
 import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
-import type { AbstractSessionModel } from '@jbrowse/core/util'
 import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import type { AbstractSessionModel } from '@jbrowse/core/util'
 import equal from 'fast-deep-equal/es6'
 
 import { LocalDriver } from '../BackendDrivers'

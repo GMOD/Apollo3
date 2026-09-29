@@ -7,11 +7,7 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { Change } from '@apollo-annotation/common'
 import {
-  type ChangeMessage,
-  type CheckResultUpdate,
-  type RequestUserInformationMessage,
   type UserLocation,
-  type UserLocationMessage,
   getDecodedToken,
   makeUserSessionId,
 } from '@apollo-annotation/shared'
@@ -31,15 +27,20 @@ import {
   types,
 } from '@jbrowse/mobx-state-tree'
 import { autorun } from 'mobx'
-import { io } from 'socket.io-client'
 
 import { addTopLevelAdminMenus } from '../menus/topLevelMenuAdmin'
-import type { Collaborator } from '../session'
 import type { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
+import { ChannelSubscriptions } from './ChannelSubscriptions'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import type { ApolloInternetAccountConfigModel } from './configSchema'
+import {
+  type EventSourceHandlerContext,
+  handleCommonMessage,
+  handleRequestInformationMessage,
+  handleUserLocationMessage,
+} from './eventSourceHandlers'
 
 interface AuthType {
   name: string
@@ -361,7 +362,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
         if (!response.ok) {
           console.error(
-            `Error when fetching the last updates to recover socket connection — ${response.status}`,
+            `Error when fetching the last updates to recover SSE connection — ${response.status}`,
           )
           return
         }
@@ -372,12 +373,13 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
       }),
     }))
-    .volatile((self) => {
-      const { origin, pathname: path } = new URL('socket.io/', self.baseURL)
-      return { socket: io(origin, { path }) }
-    })
+    .volatile(() => ({
+      eventSource: undefined as EventSource | undefined,
+      /** Per-refSeq change channels, see `CollaborationServerDriver` */
+      channelSubscriptions: new ChannelSubscriptions(),
+    }))
     .actions((self) => ({
-      addSocketListeners() {
+      addEventSourceListeners() {
         const { session } = getRoot<ApolloRootModel>(self)
         const { notify } = session as unknown as AbstractSessionModel
         const token = self.retrieveToken()
@@ -386,56 +388,45 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
         const user = getDecodedToken(token)
         const localSessionId = makeUserSessionId(user)
-        const { socket } = self
         const { addCheckResult, changeManager, deleteCheckResult } =
           session.apolloDataStore
-        socket.on('connect', () => {
+        const context: EventSourceHandlerContext = {
+          localSessionId,
+          addCheckResult,
+          deleteCheckResult,
+          applyRemoteChange: (change) => {
+            void changeManager.submit(change, { submitToBackend: false })
+          },
+          addOrUpdateCollaborator: (collaborator) => {
+            session.addOrUpdateCollaborator(collaborator)
+          },
+          broadcastLocations: () => {
+            session.broadcastLocations()
+          },
+        }
+
+        const url = new URL('messages/events', self.baseURL)
+        url.searchParams.set('token', token)
+        const eventSource = new EventSource(url)
+        self.eventSource = eventSource
+        self.channelSubscriptions.attach(eventSource)
+
+        eventSource.addEventListener('open', () => {
           void self.getMissingChanges()
         })
-        socket.on('connect_error', (error) => {
+        eventSource.addEventListener('error', (error) => {
           console.error(error)
           notify('Could not connect to the Apollo server.', 'error')
         })
-        socket.on('COMMON', (message: ChangeMessage | CheckResultUpdate) => {
-          if ('checkResult' in message) {
-            if (message.deleted) {
-              deleteCheckResult(message.checkResult._id)
-            } else {
-              addCheckResult(message.checkResult)
-            }
-            return
-          }
-          // Save server last change sequence into session storage
-          sessionStorage.setItem(
-            'LastChangeSequence',
-            String(message.changeSequence),
-          )
-          if (message.userSessionId === localSessionId) {
-            return // we did this change, no need to apply it again
-          }
-          const change = Change.fromJSON(message.changeInfo)
-          void changeManager.submit(change, { submitToBackend: false })
+        eventSource.addEventListener('COMMON', (event) => {
+          handleCommonMessage(JSON.parse(event.data), context)
         })
-        socket.on('USER_LOCATION', (message: UserLocationMessage) => {
-          const { channel, locations, userName, userSessionId } = message
-          if (channel === 'USER_LOCATION' && userSessionId !== localSessionId) {
-            const collaborator: Collaborator = {
-              name: userName,
-              id: userSessionId,
-              locations,
-            }
-            session.addOrUpdateCollaborator(collaborator)
-          }
+        eventSource.addEventListener('USER_LOCATION', (event) => {
+          handleUserLocationMessage(JSON.parse(event.data), context)
         })
-        socket.on(
-          'REQUEST_INFORMATION',
-          (message: RequestUserInformationMessage) => {
-            const { channel, userSessionId } = message
-            if (channel === 'REQUEST_INFORMATION' && userSessionId !== token) {
-              session.broadcastLocations()
-            }
-          },
-        )
+        eventSource.addEventListener('REQUEST_INFORMATION', (event) => {
+          handleRequestInformationMessage(JSON.parse(event.data), context)
+        })
       },
     }))
     .actions((self) => {
@@ -445,7 +436,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
         const { baseURL, controller } = self
         const url = new URL('users/userLocation', baseURL).href
-        const userLocation = new URLSearchParams(JSON.stringify(userLoc))
 
         const apolloFetch = self.getFetcher({
           locationType: 'UriLocation',
@@ -454,7 +444,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         try {
           const response = await apolloFetch(url, {
             method: 'POST',
-            body: userLocation,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userLoc),
             signal: controller.signal,
           })
           if (!response.ok) {
@@ -515,8 +506,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           }
           // Get and set server last change sequence into session storage
           yield self.updateLastChangeSequenceNumber()
-          // Open socket listeners
-          self.addSocketListeners()
+          // Open event source listeners
+          self.addEventSourceListeners()
           // request user locations
           const { baseURL } = self
           const uri = new URL('users/locations', baseURL).href
@@ -578,7 +569,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         self.controller.abort(
           new DOMException('Cleaning up Apollo connection', 'AbortError'),
         )
-        self.socket.close()
+        self.eventSource?.close()
       },
     }))
 }

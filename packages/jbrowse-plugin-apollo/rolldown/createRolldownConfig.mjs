@@ -8,7 +8,7 @@ import path from 'node:path'
 import nodePolyfills from '@rolldown/plugin-node-polyfills'
 import nodeBuiltins from 'builtin-modules'
 import { defineConfig } from 'rolldown'
-import externalGlobals from 'rollup-plugin-external-globals'
+import rollupExternalGlobals from 'rollup-plugin-external-globals'
 
 import { istanbul } from './istanbulPlugin.mjs'
 import {
@@ -49,7 +49,7 @@ function getPlugins(mode, jbrowseGlobals) {
     // Instrument the UMD bundle (the one Cypress loads) for coverage
     mode === 'umd' && process.env.COVERAGE === 'true' && istanbul({ srcPath }),
     (mode === 'cjs' || mode === 'esmBundle' || mode === 'umd') &&
-      externalGlobals(createGlobalMap(jbrowseGlobals)),
+      rollupExternalGlobals(createGlobalMap(jbrowseGlobals)),
     (mode === 'esmBundle' || mode === 'umd') &&
       // By default, nodePolyfills only polyfills code in node_modules/. We set
       // include to null here to include the plugin source code itself (and for
