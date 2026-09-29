@@ -24,7 +24,7 @@
     "@gmod/indexedfasta": "^5.0.2",
     "@jbrowse/core": "^4.3.0",
     "bson-objectid": "^2.0.4",
-    "generic-filehandle2": "^2.0.18",
+    "generic-filehandle2": "^2.2.1",
     "jwt-decode": "^3.1.2",
     "tslib": "^2.3.1"
   },
@@ -43,7 +43,7 @@
     "rimraf": "^3.0.2",
     "rxjs": "^7.4.0",
     "tsx": "^4.6.2",
-    "typescript": "^5.5.3"
+    "typescript": "^6.0.3"
   },
   "peerDependencies": {
     "@jbrowse/mobx-state-tree": "^5.8.7",

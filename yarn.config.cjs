@@ -30,6 +30,7 @@ function enforceConsistentDependenciesAcrossTheProject({ Yarn }) {
   }
 }
 
+/** @type {import('@yarnpkg/types').Yarn.Config} */
 module.exports = defineConfig({
   constraints: (ctx) => {
     enforceConsistentDependenciesAcrossTheProject(ctx)
