@@ -1,13 +1,11 @@
 /* eslint-disable @eslint-react/set-state-in-effect */
 /* eslint-disable @eslint-react/static-components */
 import type { AnnotationFeature } from '@apollo-annotation/mst'
-import styled from '@emotion/styled'
 import {
   type AbstractSessionModel,
   getEnv,
   getSession,
 } from '@jbrowse/core/util'
-import { makeStyles } from '@jbrowse/core/util/tss-react'
 import { getRoot } from '@jbrowse/mobx-state-tree'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import InfoIcon from '@mui/icons-material/Info'
@@ -17,9 +15,11 @@ import {
   AccordionSummary,
   Tooltip,
   Typography,
+  styled,
 } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
+import { makeStyles } from 'tss-react/mui'
 
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import type { ApolloSessionModel } from '../session'

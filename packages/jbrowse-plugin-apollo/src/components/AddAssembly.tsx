@@ -10,7 +10,6 @@ import {
 } from '@apollo-annotation/shared'
 import { readConfObject } from '@jbrowse/core/configuration'
 import type { AbstractSessionModel } from '@jbrowse/core/util'
-import { makeStyles } from '@jbrowse/core/util/tss-react'
 import { getRoot } from '@jbrowse/mobx-state-tree'
 import InfoIcon from '@mui/icons-material/Info'
 import LinkIcon from '@mui/icons-material/Link'
@@ -42,6 +41,7 @@ import {
 } from '@mui/material'
 import ObjectID from 'bson-objectid'
 import React, { useState } from 'react'
+import { makeStyles } from 'tss-react/mui'
 
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import type { ChangeManager } from '../ChangeManager'
