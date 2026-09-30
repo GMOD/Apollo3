@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { Change } from '@apollo-annotation/common'
+import { Change, type SerializedChange } from '@apollo-annotation/common'
 import {
   type ChangeMessage,
   type CheckResultUpdate,
@@ -232,52 +232,57 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         resolve: (token: string) => void,
         reject: (error: Error) => void,
       ): Promise<void> {
-        const { baseURL } = self
-        const authType = await new Promise(
-          (resolve: (authType: AuthType) => void, reject) => {
-            const { session } = getRoot<ApolloRootModel>(self)
-            const { baseURL, name } = self
-            ;(session as unknown as AbstractSessionModel).queueDialog(
-              (doneCallback: () => void) => [
-                AuthTypeSelector,
-                {
-                  name,
-                  handleClose: (newAuthType?: AuthType | Error) => {
-                    if (!newAuthType) {
-                      reject(new Error('user cancelled entry'))
-                    } else if (newAuthType instanceof Error) {
-                      reject(newAuthType)
-                    } else {
-                      resolve(newAuthType)
-                    }
-                    doneCallback()
+        // JBrowse doesn't handle the promise this function returns, so errors
+        // have to go to `reject` instead of being thrown
+        try {
+          const { baseURL } = self
+          const authType = await new Promise(
+            (resolve: (authType: AuthType) => void, reject) => {
+              const { session } = getRoot<ApolloRootModel>(self)
+              const { baseURL, name } = self
+              ;(session as unknown as AbstractSessionModel).queueDialog(
+                (doneCallback: () => void) => [
+                  AuthTypeSelector,
+                  {
+                    name,
+                    handleClose: (newAuthType?: AuthType | Error) => {
+                      if (!newAuthType) {
+                        reject(new Error('user cancelled entry'))
+                      } else if (newAuthType instanceof Error) {
+                        reject(newAuthType)
+                      } else {
+                        resolve(newAuthType)
+                      }
+                      doneCallback()
+                    },
+                    baseURL,
                   },
-                  baseURL,
-                },
-              ],
-            )
-          },
-        )
-        if (authType.needsPopup) {
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          self.openAuthWindow(authType.name, resolve, reject)
-          return
-        }
-        const url = new URL('auth/login', baseURL)
-        const searchParams = new URLSearchParams({ type: authType.name })
-        url.search = searchParams.toString()
-        const uri = url.toString()
-        const response = await fetch(uri, { signal: self.controller.signal })
-        if (!response.ok) {
-          const errorMessage = await createFetchErrorMessage(
-            response,
-            'Error when logging in',
+                ],
+              )
+            },
           )
-          reject(new Error(errorMessage))
-          return
+          if (authType.needsPopup) {
+            await self.openAuthWindow(authType.name, resolve, reject)
+            return
+          }
+          const url = new URL('auth/login', baseURL)
+          const searchParams = new URLSearchParams({ type: authType.name })
+          url.search = searchParams.toString()
+          const uri = url.toString()
+          const response = await fetch(uri, { signal: self.controller.signal })
+          if (!response.ok) {
+            const errorMessage = await createFetchErrorMessage(
+              response,
+              'Error when logging in',
+            )
+            reject(new Error(errorMessage))
+            return
+          }
+          const { token } = await response.json()
+          resolve(token)
+        } catch (error) {
+          reject(error instanceof Error ? error : new Error(String(error)))
         }
-        const { token } = await response.json()
-        resolve(token)
       },
     }))
     .volatile(() => ({
@@ -347,25 +352,26 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           uri,
         })
 
-        let response: Response
+        let serializedChanges: SerializedChange[]
         try {
-          response = yield apolloFetch(uri, {
+          const response: Response = yield apolloFetch(uri, {
             method: 'GET',
             signal: self.controller.signal,
           })
+          if (!response.ok) {
+            console.error(
+              `Error when fetching the last updates to recover socket connection — ${response.status}`,
+            )
+            return
+          }
+          ;({ changes: serializedChanges } = yield response.json())
         } catch (error) {
+          // Reading the body can also be aborted, so it's inside the try too
           if (!self.controller.signal.aborted) {
             console.error(error)
           }
           return
         }
-        if (!response.ok) {
-          console.error(
-            `Error when fetching the last updates to recover socket connection — ${response.status}`,
-          )
-          return
-        }
-        const { changes: serializedChanges } = yield response.json()
         for (const serializedChange of serializedChanges) {
           const change = Change.fromJSON(serializedChange)
           void changeManager.submit(change, { submitToBackend: false })
