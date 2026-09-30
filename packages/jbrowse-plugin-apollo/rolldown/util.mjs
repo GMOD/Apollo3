@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
@@ -7,6 +8,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import chalk from 'chalk'
+import { RolldownMagicString } from 'rolldown'
 
 export function safePackageName(name) {
   return name
@@ -35,6 +37,27 @@ ${baseLine}.cjs.development.js')
         fs.mkdirSync(distPath, { recursive: true })
       }
       fs.writeFileSync(path.join(distPath, 'index.js'), contents)
+    },
+  }
+}
+
+export function esModuleInterop() {
+  return {
+    name: 'es-module-interop',
+    renderChunk(code) {
+      const s = new RolldownMagicString(code)
+      for (const match of code.matchAll(/^\s*(\w+) = __toESM\(\1, 1\);$/gm)) {
+        // Remove the ", 1" (isNodeMode) argument
+        const end = match.index + match[0].length - ');'.length
+        s.remove(end - ', 1'.length, end)
+      }
+      if (!s.hasChanged()) {
+        return null
+      }
+      return {
+        code: s.toString(),
+        map: s.generateMap({ hires: true }).toString(),
+      }
     },
   }
 }

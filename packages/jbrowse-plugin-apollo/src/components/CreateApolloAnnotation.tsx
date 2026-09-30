@@ -164,11 +164,12 @@ export function CreateApolloAnnotation({
   region,
 }: CreateApolloAnnotationProps) {
   const apolloSessionModel = session as unknown as ApolloSessionModel
-  const configuredSkippedAttributes = readConfObject(
-    apolloSessionModel.getPluginConfiguration(),
-    'skippedAttributesOnCopy',
-  ) as string[] | undefined
-  const skippedAttributesOnCopy = new Set(configuredSkippedAttributes ?? [])
+  const skippedAttributesOnCopy = new Set(
+    readConfObject(
+      apolloSessionModel.getPluginConfiguration(),
+      'skippedAttributesOnCopy',
+    ),
+  )
   const { featureTypeOntology } =
     apolloSessionModel.apolloDataStore.ontologyManager
   const childIds = useMemo(
@@ -526,7 +527,7 @@ export function CreateApolloAnnotation({
       fullWidth={true}
       maxWidth="sm"
     >
-      <DialogTitle fontSize={15}>
+      <DialogTitle sx={{ fontSize: 15 }}>
         Select the feature to be copied to apollo track
       </DialogTitle>
       <DialogContent>
@@ -578,7 +579,7 @@ export function CreateApolloAnnotation({
               }}
             >
               <Box sx={{ ml: 3 }}>
-                <Typography variant="caption" fontSize={12}>
+                <Typography variant="caption" sx={{ fontSize: 12 }}>
                   Select the destination feature to copy the selected features
                 </Typography>
 

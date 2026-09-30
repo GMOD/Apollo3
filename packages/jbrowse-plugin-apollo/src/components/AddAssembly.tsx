@@ -44,7 +44,7 @@ import ObjectID from 'bson-objectid'
 import React, { useState } from 'react'
 
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import type { ChangeManager } from '../ChangeManager'
+import type { ChangeManager, JobInput } from '../ChangeManager'
 import type { ApolloSessionModel } from '../session'
 import type { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
@@ -169,7 +169,7 @@ export function AddAssembly({
   }
 
   async function uploadFile(file: File, fileType: FileType): Promise<string> {
-    const { jobsManager } = session
+    const { jobStatusWidget, showJobStatusWidget } = session
     const controller = new AbortController()
 
     const [{ baseURL, getFetcher }] = apolloInternetAccounts
@@ -196,10 +196,9 @@ export function AddAssembly({
       locationType: 'UriLocation',
       uri,
     })
-    const job = {
+    const job: JobInput = {
       name: `UploadAssemblyFile for ${assemblyName}`,
       statusMessage: 'Pre-validating',
-      progressPct: 0,
       cancelCallback: () => {
         controller.abort(
           new DOMException(
@@ -207,11 +206,16 @@ export function AddAssembly({
             'AbortError',
           ),
         )
-        jobsManager.abortJob(job.name)
+        jobStatusWidget.addJob({ name: job.name, state: 'aborted' })
       },
+      state: 'running',
     }
-    jobsManager.runJob(job)
-    jobsManager.update(job.name, `Uploading ${file.name}, this may take awhile`)
+    jobStatusWidget.addJob(job)
+    showJobStatusWidget()
+    jobStatusWidget.updateJobStatus(
+      job.name,
+      `Uploading ${file.name}, this may take awhile`,
+    )
     const { signal } = controller
 
     const response = await apolloFetchFile(uri, {
@@ -224,13 +228,21 @@ export function AddAssembly({
         response,
         'Error when inserting new assembly (while uploading file)',
       )
-      jobsManager.abortJob(job.name, newErrorMessage)
+      jobStatusWidget.addJob({
+        name: job.name,
+        statusMessage: newErrorMessage,
+        state: 'aborted',
+      })
       setErrorMessage(newErrorMessage)
       return ''
     }
     const result = await response.json()
     const fileId = result._id as string
-    jobsManager.done(job)
+    jobStatusWidget.addJob({
+      name: job.name,
+      statusMessage: `Uploaded ${file.name}`,
+      state: 'finished',
+    })
     return fileId
     throw new Error('Failed to fetch')
   }
@@ -318,7 +330,7 @@ export function AddAssembly({
     const [{ internetAccountId }] = apolloInternetAccounts
     await changeManager.submit(change, {
       internetAccountId,
-      updateJobsManager: true,
+      updateJobStatusWidget: true,
     })
     setSubmitted(false)
     setLoading(false)
@@ -438,7 +450,7 @@ export function AddAssembly({
                     />
                   }
                   label={
-                    <Box display="flex" alignItems="center">
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       Use external URLs
                       <Tooltip
                         title="Use external URLs to provide FASTA and index files. Does not copy the files to the Apollo collaboration server, so ensure the URLs are stable."
@@ -464,7 +476,7 @@ export function AddAssembly({
                   checked={sequenceIsEditable}
                   disabled={fileType === FileType.EXTERNAL}
                   label={
-                    <Box display="flex" alignItems="center">
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       Store sequence in database
                       <Tooltip
                         title="Enables users to edit the genomic sequence, but comes with performance impacts. Use with care."
@@ -501,7 +513,7 @@ export function AddAssembly({
                     <TableBody>
                       <TableRow>
                         <TableCell style={{ borderBottomWidth: 0 }}>
-                          <Box display="flex" alignItems="center">
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <span>FASTA</span>
                             <Tooltip title='Unless "Store sequence in database" enabled, FASTA input must be compressed with bgzip and indexed with samtools faidx (or equivalent). Compression is optional for sequences stored in the database.'>
                               <IconButton size="small">
@@ -578,7 +590,7 @@ export function AddAssembly({
                     <TableBody>
                       <TableRow>
                         <TableCell style={{ borderBottomWidth: 0 }}>
-                          <Box display="flex" alignItems="center">
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <span>FASTA</span>
                             <Tooltip title="Remote FASTA input must be compressed with bgzip and indexed with samtools faidx (or equivalent)">
                               <IconButton size="small">
