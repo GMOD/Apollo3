@@ -15,8 +15,8 @@ import {
   AccordionSummary,
   Tooltip,
   Typography,
-  styled,
 } from '@mui/material'
+import { styled } from '@mui/material/styles'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'

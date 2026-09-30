@@ -17,8 +17,8 @@ import {
   AccordionSummary,
   Tooltip,
   Typography,
-  styled,
 } from '@mui/material'
+import { styled } from '@mui/material/styles'
 import React, { useRef } from 'react'
 
 import type { ApolloSessionModel } from '../session'
