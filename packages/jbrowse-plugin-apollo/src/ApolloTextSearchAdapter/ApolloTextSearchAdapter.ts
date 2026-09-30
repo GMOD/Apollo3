@@ -47,6 +47,20 @@ function getMatchedFeature(
   }
 }
 
+// JBrowse merges hits with the same display string and overlapping locations
+// into one result, so each hit needs a name distinguishing its feature
+function getResultName(feature: AnnotationFeatureSnapshot): string {
+  const gff_id = feature.attributes?.gff_id?.join(', ')
+  if (gff_id) {
+    return gff_id
+  }
+  const gff_name = feature.attributes?.gff_name?.join(', ')
+  if (gff_name) {
+    return gff_name
+  }
+  return feature._id
+}
+
 export class ApolloTextSearchAdapter
   extends BaseAdapter
   implements BaseTextSearchAdapter
@@ -72,7 +86,7 @@ export class ApolloTextSearchAdapter
       const matchedFeature = getMatchedFeature(query, feature) ?? feature
       const refName = assembly.getCanonicalRefName(feature.refSeq)
       return new ApolloSearchResult({
-        label: query,
+        label: getResultName(matchedFeature),
         trackId: this.trackId,
         locString: `${refName}:${matchedFeature.min + 1}..${matchedFeature.max}`,
         matchedFeature,
