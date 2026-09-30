@@ -21,7 +21,8 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, type QueryFilter } from 'mongoose'
-import StreamConcat from 'stream-concat'
+
+import { concatStreams } from '../utils/concatStreams.js'
 
 import {
   FeatureDocToGFF3FeatureStream,
@@ -114,10 +115,7 @@ export class ExportService {
       }
     }
     const streams = [headerStream, featureStream, ...sequenceStreams]
-    const combinedStream: Readable = new StreamConcat(
-      streams.map((stream) => Readable.fromWeb(stream)),
-    )
-    return [combinedStream, assembly.toString()]
+    return [concatStreams(streams), assembly.toString()]
   }
 
   async streamFromLocalFasta(
