@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-// jsonpath triggers this rule for some reason. import { query } from 'jsonpath' does not work
-
 import { checkAbortSignal } from '@jbrowse/core/util/aborting'
-import jsonpath from 'jsonpath'
+import { JSONPath } from 'jsonpath-plus'
 
 import { stopwords } from './fulltext-stopwords'
 import type { OntologyDBNode } from './indexeddb-schema'
@@ -16,7 +13,12 @@ import type { Transaction } from '.'
 /** special value of jsonPath that gets the IRI (that is, ID) of the node with the configured prefixes applied */
 export const PREFIXED_ID_PATH = '$PREFIXED_ID'
 
-/** small wrapper for jsonpath.query that intercepts requests for the special prefixed ID path */
+/** @returns array of all values in `json` matched by the JSONPath `path` */
+function query(json: object, path: string): unknown[] {
+  return JSONPath({ path, json, wrap: true }) as unknown[]
+}
+
+/** small wrapper for query that intercepts requests for the special prefixed ID path */
 function jsonPathQuery(
   node: OntologyDBNode,
   path: string,
@@ -25,14 +27,7 @@ function jsonPathQuery(
   if (path === PREFIXED_ID_PATH) {
     return [applyPrefixes(node.id, prefixes)]
   }
-  let response
-  try {
-    response = jsonpath.query(node, path)
-  } catch {
-    // eslint-disable-next-line unicorn/prefer-structured-clone
-    response = jsonpath.query(JSON.parse(JSON.stringify(node)), path)
-  }
-  return response
+  return query(node, path)
 }
 
 function wordsInString(str: string) {
@@ -60,8 +55,8 @@ export function* extractStrings(
   for (const thing of things) {
     if (typeof thing === 'string') {
       yield thing
-    } else if (typeof thing === 'object') {
-      const members = jsonpath.query(thing, '$..*')
+    } else if (typeof thing === 'object' && thing !== null) {
+      const members = query(thing, '$..*')
       yield* extractStrings(members)
     }
   }
@@ -74,7 +69,7 @@ export function* getWords(
   prefixes: Map<string, string>,
 ): Generator<[string, string], void, undefined> {
   for (const path of jsonPaths) {
-    const queryResult = jsonPathQuery(node, path, prefixes) as unknown[]
+    const queryResult = jsonPathQuery(node, path, prefixes)
     if (queryResult.length > 0) {
       for (const word of extractWords(extractStrings(queryResult))) {
         yield [path, word]
