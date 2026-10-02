@@ -17,10 +17,10 @@ import {
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
-import StreamConcat from 'stream-concat'
 
 import { ChecksService } from '../checks/checks.service.js'
 import type { FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
+import { concatStreams } from '../utils/concatStreams.js'
 
 import type {
   FeatureCountRequest,
@@ -282,15 +282,13 @@ export class FeaturesService {
       },
     })
 
-    return new StreamConcat(
-      [
-        openBracket,
-        featuresStream,
-        comma,
-        checkResultsStream,
-        closeBracket,
-      ].map((stream) => Readable.fromWeb(stream)),
-    )
+    return concatStreams([
+      openBracket,
+      featuresStream,
+      comma,
+      checkResultsStream,
+      closeBracket,
+    ])
   }
 
   private byRangeQuery(searchDto: FeatureRangeSearchDto) {

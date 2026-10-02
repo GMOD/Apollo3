@@ -133,10 +133,47 @@ jobs:
         run:
           exec yarn --cwd packages/apollo-collaboration-server/test/data/ serve
           --listen 3131
+      - name: Start plugin file server
+        id: plugin-server
+        background: true
+        # Exits non-zero when it's stopped
+        continue-on-error: true
+        run: exec yarn --cwd packages/jbrowse-plugin-apollo start:server
+      - name: Start JBrowse file server
+        id: jbrowse-server
+        background: true
+        # Exits non-zero when it's stopped
+        continue-on-error: true
+        run: exec yarn --cwd packages/jbrowse-plugin-apollo browse
+      # `exec` so the SIGTERM from `cancel` goes to yarn, which passes it on to
+      # the server so it can write its coverage before exiting
+      - name: Start apollo-collaboration-server
+        id: apollo-collaboration-server
+        background: true
+        # Exits non-zero when it's stopped
+        continue-on-error: true
+        run:
+          exec yarn --cwd packages/apollo-collaboration-server
+          cypress:start:coverage
+      # Starting apollo builds shared and the server, so wait for it to finish
+      # before the plugin build (which also builds shared)
+      - name: Wait for servers to start
+        run:
+          timeout 300 bash -c 'until curl -sf http://localhost:3999/health &&
+          curl -sf -o /dev/null http://localhost:9000 && curl -sf -o /dev/null
+          http://localhost:8999; do sleep 2; done'
       - name: Run Cypress tests
         id: e2e-tests
         run: yarn run test:e2e:coverage
         working-directory: packages/jbrowse-plugin-apollo
+      # Stop apollo before writing the coverage reports so its coverage is
+      # written first
+      - name: Stop apollo
+        cancel: apollo-collaboration-server
+      - name: Stop JBrowse file server
+        cancel: jbrowse-server
+      - name: Stop plugin file server
+        cancel: plugin-server
       - name: Write e2e coverage reports
         id: e2e-coverage
         if:
@@ -195,8 +232,8 @@ jobs:
           --listen 3131
       # `exec` so the SIGTERM from `cancel` goes to yarn, which passes it on to
       # the server so it can write its coverage before exiting
-      - name: Start apollo
-        id: apollo
+      - name: Start apollo-collaboration-server
+        id: apollo-collaboration-server
         background: true
         # Exits non-zero when it's stopped
         continue-on-error: true
@@ -221,8 +258,8 @@ jobs:
         id: cli-tests
         run: yarn run test:ci:coverage
         working-directory: packages/apollo-cli
-      - name: Stop apollo
-        cancel: apollo
+      - name: Stop apollo-collaboration-server
+        cancel: apollo-collaboration-server
       - name: Stop local file server
         cancel: file-server
       - name: Write CLI coverage report
