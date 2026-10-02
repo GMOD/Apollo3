@@ -13,8 +13,8 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@jbrowse/core": "^5.0.0-beta.10",
-    "@jbrowse/mobx-state-tree": "^6.5.2",
+    "@jbrowse/core": "^5.0.0-beta.11",
+    "@jbrowse/mobx-state-tree": "^6.7.0",
     "mobx": "^7.0.3",
     "react-dom": "^19.2.8",
     "rxjs": "^7.4.0"
