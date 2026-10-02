@@ -266,7 +266,11 @@ export class ChangesService {
     return changeDoc
   }
 
-  async findAll(changeFilter: FindChangeDto) {
+  /**
+   * @param allowedAssemblyIds - If given, restrict the results to these
+   * assemblies. Pass `undefined` for an unrestricted query.
+   */
+  async findAll(changeFilter: FindChangeDto, allowedAssemblyIds?: string[]) {
     const {
       assembly,
       changedIds,
@@ -287,6 +291,10 @@ export class ChangesService {
     const queryCond: QueryFilter<ChangeDocument> = {}
     if (assembly) {
       queryCond.assembly = assembly
+    } else if (allowedAssemblyIds) {
+      // Without this, an unscoped query (as the client's reconnect gap recovery
+      // makes) would return changes from every assembly
+      queryCond.assembly = { $in: allowedAssemblyIds }
     }
     if (changedIds) {
       queryCond.changedIds = changedIds
