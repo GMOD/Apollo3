@@ -128,3 +128,7 @@ packages/apollo-collaboration-server/test/uploaded
 
 # Python
 __pycache__/
+
+# Server plugin bundles fetched from PLUGIN_URLS
+.plugin-cache
+.plugin-cache-test-*
