@@ -1,8 +1,9 @@
 import type { Connection } from 'mongoose'
 
+import type { ChangeConstructor } from '../ChangeTypeRegistry.js'
+import type { Check } from '../Check.js'
+
 import type { AssemblyAccess, AssemblyAccessProps } from './AssemblyAccess.js'
-import type { ChangeConstructor } from './ChangeTypeRegistry.js'
-import type { Check } from './Check.js'
 import type { CustomAuthHandler } from './CustomAuthHandler.js'
 import type { PluginRoute, PluginRouteProps } from './PluginRoute.js'
 import type { Validation } from './Validation.js'

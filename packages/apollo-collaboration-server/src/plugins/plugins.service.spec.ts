@@ -1,14 +1,16 @@
 import {
-  type ApolloServerHookRegistrar,
-  ApolloServerPlugin,
-  type AssemblyGrant,
   type ChangeConstructor,
   type Check,
-  type CustomAuthHandler,
-  type Validation,
   changeRegistry,
   checkRegistry,
 } from '@apollo-annotation/common'
+import {
+  type ApolloServerHookRegistrar,
+  ApolloServerPlugin,
+  type AssemblyGrant,
+  type CustomAuthHandler,
+  type Validation,
+} from '@apollo-annotation/common/server'
 import { validationRegistry } from '@apollo-annotation/shared'
 import { jest } from '@jest/globals'
 import { getConnectionToken } from '@nestjs/mongoose'

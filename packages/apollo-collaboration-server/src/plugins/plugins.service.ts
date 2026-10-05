@@ -1,16 +1,18 @@
 import {
+  type ChangeConstructor,
+  type Check,
+  changeRegistry,
+  checkRegistry,
+} from '@apollo-annotation/common'
+import {
   APOLLO_SERVER_HOOK_SEVERITY,
   type ApolloServerHookName,
   type ApolloServerHookRegistrar,
   type ApolloServerPlugin,
-  type ChangeConstructor,
-  type Check,
   type CustomAuthHandler,
   type PluginRoute,
   type Validation,
-  changeRegistry,
-  checkRegistry,
-} from '@apollo-annotation/common'
+} from '@apollo-annotation/common/server'
 import { validationRegistry } from '@apollo-annotation/shared'
 import { Inject, Injectable, Logger, type OnModuleInit } from '@nestjs/common'
 import { InjectConnection } from '@nestjs/mongoose'

@@ -24,11 +24,11 @@ below).
 ## Server-side plugins
 
 A server-side plugin is a class implementing `ApolloServerPlugin` from
-`@apollo-annotation/common`:
+`@apollo-annotation/common/server`:
 
 ```ts
-import type { ApolloServerHookRegistrar } from '@apollo-annotation/common'
-import { ApolloServerPlugin } from '@apollo-annotation/common'
+import type { ApolloServerHookRegistrar } from '@apollo-annotation/common/server'
+import { ApolloServerPlugin } from '@apollo-annotation/common/server'
 
 export default class MyPlugin extends ApolloServerPlugin {
   name = 'MyPlugin'

@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import type {
   ApolloServerPlugin,
   ApolloServerPluginConstructor,
-} from '@apollo-annotation/common'
+} from '@apollo-annotation/common/server'
 import {
   type DynamicModule,
   Logger,

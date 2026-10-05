@@ -17,7 +17,7 @@ plugin (see the [developer guide overview](index.md#server-side-plugins) for the
 full plugin shape). Here is an example of using the hook:
 
 ```ts
-import { type AssemblyAccess } from '@apollo-annotation/common'
+import { type AssemblyAccess } from '@apollo-annotation/common/server'
 
 registrar.registerHook(
   'Apollo-AssemblyAccess',
@@ -52,7 +52,7 @@ own HTTP endpoints.
 import {
   type AssemblyAccess,
   type AssemblyAccessProps,
-} from '@apollo-annotation/common'
+} from '@apollo-annotation/common/server'
 
 registrar.registerHook(
   'Apollo-AssemblyAccess',

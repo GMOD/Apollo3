@@ -17,7 +17,7 @@ full plugin shape). Here is an example of using the hook:
 import {
   type PluginRoute,
   type PluginRouteProps,
-} from '@apollo-annotation/common'
+} from '@apollo-annotation/common/server'
 
 registrar.registerHook(
   'Apollo-RegisterRoutes',
