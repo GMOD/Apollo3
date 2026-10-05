@@ -37,7 +37,7 @@ export interface FeatureContextMenuItemsProps {
    * Validate a change, apply it in the client and send it to the server, the
    * same way Apollo submits its own changes
    */
-  submitChange(change: Change): Promise<void>
+  submitChange: (change: Change) => Promise<void>
 }
 
 /**
@@ -52,7 +52,7 @@ export interface DetailsWidgetCustomComponentProps {
    * Validate a change, apply it in the client and send it to the server, the
    * same way Apollo submits its own changes
    */
-  submitChange(change: Change): Promise<void>
+  submitChange: (change: Change) => Promise<void>
 }
 
 /** Props for an `Apollo-AttributeEditorComponent` component */
