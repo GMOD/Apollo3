@@ -24,7 +24,7 @@ import { Attributes } from './Attributes'
 import { TranscriptSequence } from './TranscriptSequence'
 import { TranscriptWidgetEditLocation } from './TranscriptWidgetEditLocation'
 import { TranscriptWidgetSummary } from './TranscriptWidgetSummary'
-import { getCustomComponent } from './customComponents'
+import { getCustomComponent, getCustomComponentProps } from './customComponents'
 import type { ApolloTranscriptDetailsWidget as ApolloTranscriptDetailsWidgetState } from './model'
 
 const useStyles = makeStyles()((theme) => ({
@@ -95,10 +95,10 @@ export const ApolloTranscriptDetailsWidget = observer(
       }
     }
 
-    const customComponentProps = {
+    const customComponentProps = getCustomComponentProps({
       feature,
       session,
-    }
+    })
     const CustomComponentInsideSummary = getCustomComponent(
       pluginManager,
       'Apollo-TranscriptDetailsCustomComponent-InsideSummary',
@@ -166,10 +166,10 @@ export const ApolloTranscriptDetailsWidget = observer(
           </StyledAccordionSummary>
           <AccordionDetails>
             <TranscriptWidgetSummary feature={feature} refName={refName} />
-            <CustomComponentInsideSummary session={session} feature={feature} />
+            <CustomComponentInsideSummary {...customComponentProps} />
           </AccordionDetails>
         </Accordion>
-        <CustomComponentAfterSummary session={session} feature={feature} />
+        <CustomComponentAfterSummary {...customComponentProps} />
         <Accordion
           style={{ marginTop: 5 }}
           expanded={panelState.includes('location')}
@@ -193,13 +193,10 @@ export const ApolloTranscriptDetailsWidget = observer(
               session={apolloSession}
               assembly={currentAssembly._id || ''}
             />
-            <CustomComponentInsideLocation
-              session={session}
-              feature={feature}
-            />
+            <CustomComponentInsideLocation {...customComponentProps} />
           </AccordionDetails>
         </Accordion>
-        <CustomComponentAfterLocation session={session} feature={feature} />
+        <CustomComponentAfterLocation {...customComponentProps} />
         <Accordion
           style={{ marginTop: 5 }}
           expanded={panelState.includes('attrs')}
@@ -230,13 +227,10 @@ export const ApolloTranscriptDetailsWidget = observer(
               assembly={currentAssembly._id || ''}
               editable={editable}
             />
-            <CustomComponentInsideAttributes
-              session={session}
-              feature={feature}
-            />
+            <CustomComponentInsideAttributes {...customComponentProps} />
           </AccordionDetails>
         </Accordion>
-        <CustomComponentAfterAttributes session={session} feature={feature} />
+        <CustomComponentAfterAttributes {...customComponentProps} />
         <Accordion
           style={{ marginTop: 5 }}
           expanded={panelState.includes('sequence')}
@@ -262,13 +256,10 @@ export const ApolloTranscriptDetailsWidget = observer(
                 refName={refName}
               />
             )}
-            <CustomComponentInsideSequence
-              session={session}
-              feature={feature}
-            />
+            <CustomComponentInsideSequence {...customComponentProps} />
           </AccordionDetails>
         </Accordion>
-        <CustomComponentAfterSequence feature={feature} session={session} />
+        <CustomComponentAfterSequence {...customComponentProps} />
       </div>
     )
   },

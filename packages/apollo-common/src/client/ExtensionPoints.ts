@@ -3,6 +3,7 @@ import type { MenuItem } from '@jbrowse/core/ui'
 import type { AbstractSessionModel } from '@jbrowse/core/util'
 import type { ComponentType } from 'react'
 
+import type { Change } from '../Change.js'
 import type { ChangeRule } from '../ChangeRule.js'
 import type { Check } from '../Check.js'
 
@@ -32,6 +33,11 @@ export interface FeatureContextMenuItemsProps {
   feature: AnnotationFeature
   session: AbstractSessionModel
   location: FeatureContextMenuLocation
+  /**
+   * Validate a change, apply it in the client and send it to the server, the
+   * same way Apollo submits its own changes
+   */
+  submitChange(change: Change): Promise<void>
 }
 
 /**
@@ -42,6 +48,11 @@ export interface FeatureContextMenuItemsProps {
 export interface DetailsWidgetCustomComponentProps {
   session: AbstractSessionModel
   feature: AnnotationFeature
+  /**
+   * Validate a change, apply it in the client and send it to the server, the
+   * same way Apollo submits its own changes
+   */
+  submitChange(change: Change): Promise<void>
 }
 
 /** Props for an `Apollo-AttributeEditorComponent` component */

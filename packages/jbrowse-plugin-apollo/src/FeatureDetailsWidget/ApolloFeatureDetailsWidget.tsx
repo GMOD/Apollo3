@@ -23,7 +23,7 @@ import { Attributes } from './Attributes'
 import { BasicInformation } from './BasicInformation'
 import { FeatureDetailsNavigation } from './FeatureDetailsNavigation'
 import { SequenceViewer } from './SequenceViewer'
-import { getCustomComponent } from './customComponents'
+import { getCustomComponent, getCustomComponentProps } from './customComponents'
 import type { ApolloFeatureDetailsWidget as ApolloFeatureDetails } from './model'
 import { type SequenceSegment, getLocationIntervals } from './sequenceSegments'
 
@@ -68,10 +68,10 @@ export const ApolloFeatureDetailsWidget = observer(
     const locationIntervals = getLocationIntervals(sequenceSegments)
 
     const { pluginManager } = getEnv(session)
-    const customComponentProps = {
+    const customComponentProps = getCustomComponentProps({
       feature,
       session: session as unknown as AbstractSessionModel,
-    }
+    })
     const CustomComponentAfterBasicInformation = getCustomComponent(
       pluginManager,
       'Apollo-FeatureDetailsCustomComponent-AfterBasicInformation',
