@@ -5,7 +5,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { JwtModule, type JwtModuleOptions } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 
-import { PluginsService } from '../plugins/plugins.service.js'
 import { UsersModule } from '../users/users.module.js'
 import { GoogleStrategy } from '../utils/strategies/google.strategy.js'
 import { JwtStrategy } from '../utils/strategies/jwt.strategy.js'
@@ -49,7 +48,6 @@ async function jwtConfigFactory(
     JwtStrategy,
     GoogleStrategy,
     MicrosoftStrategy,
-    PluginsService,
   ],
   exports: [AuthenticationService],
 })
