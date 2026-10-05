@@ -15,6 +15,10 @@ import {
   type Provider,
 } from '@nestjs/common'
 
+import {
+  parseCommaSeparatedList,
+  parsePluginIntegrity,
+} from './pluginConfig.js'
 import { PluginRoutesController } from './pluginRoutes.controller.js'
 import { APOLLO_PLUGINS } from './plugins.constants.js'
 import { PluginsService } from './plugins.service.js'
@@ -32,10 +36,8 @@ const logger = new Logger('PluginsModule')
 export class PluginsModule {
   static async registerAsync(): Promise<DynamicModule> {
     const { PLUGIN_PACKAGES, PLUGIN_URLS, PLUGIN_URLS_FILE } = process.env
-    const pluginPackages = PLUGIN_PACKAGES
-      ? PLUGIN_PACKAGES.split(',').map((entry) => entry.trim())
-      : []
-    let pluginURLs = PLUGIN_URLS ? PLUGIN_URLS.split(',') : []
+    const pluginPackages = parseCommaSeparatedList(PLUGIN_PACKAGES)
+    let pluginURLs = parseCommaSeparatedList(PLUGIN_URLS)
     if (pluginURLs.length === 0 && PLUGIN_URLS_FILE) {
       const pluginURLsFileText = await fsPromises.readFile(
         PLUGIN_URLS_FILE,
@@ -182,17 +184,7 @@ export class PluginsModule {
   }
 
   private static getExpectedIntegrity(url: string): string | undefined {
-    const raw = process.env.PLUGIN_INTEGRITY
-    if (!raw) {
-      return undefined
-    }
-    for (const entry of raw.split(',')) {
-      const [entryUrl, hash] = entry.split('=')
-      if (entryUrl === url) {
-        return hash
-      }
-    }
-    return undefined
+    return parsePluginIntegrity(process.env.PLUGIN_INTEGRITY).get(url)
   }
 
   private static instantiate(
