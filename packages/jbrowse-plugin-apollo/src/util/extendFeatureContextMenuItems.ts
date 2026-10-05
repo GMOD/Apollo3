@@ -3,22 +3,28 @@ import type PluginManager from '@jbrowse/core/PluginManager'
 import type { MenuItem } from '@jbrowse/core/ui'
 import type { AbstractSessionModel } from '@jbrowse/core/util'
 
+import type { ApolloSessionModel } from '../session'
+
 /**
- * Let plugins change the context menu items for a feature, through the
+ * Let plugins add context menu items for a feature, through the
  * `Apollo-FeatureContextMenuItems` extension point
  */
 export function extendFeatureContextMenuItems(
   pluginManager: PluginManager,
   menuItems: MenuItem[],
-  props: Omit<FeatureContextMenuItemsProps, 'session'> & { session: object },
+  props: Omit<FeatureContextMenuItemsProps, 'session' | 'submitChange'> & {
+    session: object
+  },
 ): MenuItem[] {
-  const extensionPointProps: FeatureContextMenuItemsProps = {
-    ...props,
-    session: props.session as AbstractSessionModel,
-  }
+  const session = props.session as ApolloSessionModel
   return pluginManager.evaluateExtensionPoint(
     'Apollo-FeatureContextMenuItems',
     menuItems,
-    { ...extensionPointProps },
+    {
+      ...props,
+      session: props.session as AbstractSessionModel,
+      submitChange: (change) =>
+        session.apolloDataStore.changeManager.submit(change),
+    },
   )
 }
