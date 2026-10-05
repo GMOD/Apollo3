@@ -26,3 +26,13 @@ export interface FeatureContextMenuItemsProps {
   session: AbstractSessionModel
   location: FeatureContextMenuLocation
 }
+
+/**
+ * Props for custom components added to the feature and transcript details
+ * widgets with the `Apollo-FeatureDetailsCustomComponent-*` and
+ * `Apollo-TranscriptDetailsCustomComponent-*` extension points
+ */
+export interface DetailsWidgetCustomComponentProps {
+  session: AbstractSessionModel
+  feature: AnnotationFeature
+}
