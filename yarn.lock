@@ -484,6 +484,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@apollo-annotation/common@workspace:packages/apollo-common"
   dependencies:
+    "@apollo-annotation/mst": "workspace:^"
     "@apollo-annotation/schemas": "workspace:^"
     "@nestjs/common": "npm:^11.2.1"
     "@nestjs/core": "npm:^11.2.1"
@@ -495,12 +496,15 @@ __metadata:
     rxjs: "npm:^7.4.0"
     typescript: "npm:^6.0.3"
   peerDependencies:
+    "@apollo-annotation/mst": "workspace:^"
     "@apollo-annotation/schemas": "workspace:^"
     "@nestjs/common": ^11.2.1
     "@nestjs/core": ^11.2.1
     "@types/express": ^4.17.13
     mongoose: ^9.9.3
   peerDependenciesMeta:
+    "@apollo-annotation/mst":
+      optional: true
     "@apollo-annotation/schemas":
       optional: true
     "@nestjs/common":

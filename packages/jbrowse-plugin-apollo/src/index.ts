@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { changeRegistry, checkRegistry } from '@apollo-annotation/common'
+import { type Change, checkRegistry } from '@apollo-annotation/common'
 import { CDSCheck, TranscriptCheck, changes } from '@apollo-annotation/shared'
 import Plugin from '@jbrowse/core/Plugin'
 import type PluginManager from '@jbrowse/core/PluginManager'
@@ -70,6 +70,9 @@ import {
 import { addTopLevelMenus } from './menus'
 import { addTopLevelAdminMenus } from './menus/topLevelMenuAdmin'
 import { type ApolloSessionModel, extendSession } from './session'
+import type { ClientDataStoreModel } from './session/ClientDataStore'
+import { changeHandlers } from './session/changeHandlers'
+import { clientChangeTypes } from './session/clientChangeTypes'
 import { isApolloInternetAccount } from './types'
 import { clientValidations } from './validation/ClientValidationSet'
 import { CoreValidation } from './validation/CoreValidation'
@@ -100,8 +103,17 @@ function isApolloMessageData(data?: unknown): data is ApolloMessageData {
 
 const inWebWorker = 'WorkerGlobalScope' in globalThis
 
-for (const [changeName, change] of Object.entries(changes)) {
-  changeRegistry.registerChange(changeName, change)
+for (const [changeName, changeType] of Object.entries(changes)) {
+  const handler = changeHandlers[changeName as keyof typeof changeHandlers] as
+    | ((dataStore: ClientDataStoreModel, change: Change) => Promise<void>)
+    | undefined
+  clientChangeTypes.register(changeName, {
+    changeType,
+    handler: handler
+      ? (change, { dataStore }) =>
+          handler(dataStore as ClientDataStoreModel, change)
+      : undefined,
+  })
 }
 
 const cdsCheck = new CDSCheck()

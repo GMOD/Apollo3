@@ -17,6 +17,7 @@
     "build": "tsc --build"
   },
   "devDependencies": {
+    "@apollo-annotation/mst": "workspace:^",
     "@apollo-annotation/schemas": "workspace:^",
     "@nestjs/common": "^11.2.1",
     "@nestjs/core": "^11.2.1",
@@ -29,6 +30,7 @@
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
+    "@apollo-annotation/mst": "workspace:^",
     "@apollo-annotation/schemas": "workspace:^",
     "@nestjs/common": "^11.2.1",
     "@nestjs/core": "^11.2.1",
@@ -36,6 +38,9 @@
     "mongoose": "^9.9.3"
   },
   "peerDependenciesMeta": {
+    "@apollo-annotation/mst": {
+      "optional": true
+    },
     "@apollo-annotation/schemas": {
       "optional": true
     },
