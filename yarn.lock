@@ -491,6 +491,7 @@ __metadata:
     "@nestjs/core": "npm:^11.2.1"
     "@types/express": "npm:^4.17.13"
     "@types/node": "npm:^24.10.9"
+    "@types/react": "npm:^18.3.4"
     express: "npm:^5.2.1"
     mongoose: "npm:^9.9.3"
     reflect-metadata: "npm:^0.1.13"
@@ -503,6 +504,7 @@ __metadata:
     "@nestjs/common": ^11.2.1
     "@nestjs/core": ^11.2.1
     "@types/express": ^4.17.13
+    "@types/react": ^18.3.4
     mongoose: ^9.9.3
   peerDependenciesMeta:
     "@apollo-annotation/mst":
@@ -516,6 +518,8 @@ __metadata:
     "@nestjs/core":
       optional: true
     "@types/express":
+      optional: true
+    "@types/react":
       optional: true
     mongoose:
       optional: true

@@ -20,5 +20,5 @@ export function extendFeatureContextMenuItems(
     'Apollo-FeatureContextMenuItems',
     menuItems,
     { ...extensionPointProps },
-  ) as MenuItem[]
+  )
 }

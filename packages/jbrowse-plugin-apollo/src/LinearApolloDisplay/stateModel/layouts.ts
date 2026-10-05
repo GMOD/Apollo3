@@ -83,7 +83,7 @@ export function layoutsModelFactory(
           'Apollo-GetGlyph',
           getDefaultGlyph(feature, self.session),
           { feature, display: self, glyphs: builtInGlyphs },
-        ) as Glyph
+        )
       },
     }))
     .actions((self) => ({

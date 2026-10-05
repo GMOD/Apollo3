@@ -1,12 +1,4 @@
-import {
-  type ChangeRule,
-  type Check,
-  checkRegistry,
-} from '@apollo-annotation/common'
-import type {
-  ClientChangeType,
-  ClientValidation,
-} from '@apollo-annotation/common/client'
+import { checkRegistry } from '@apollo-annotation/common'
 import type PluginManager from '@jbrowse/core/PluginManager'
 
 import { clientChangeTypes } from './session/clientChangeTypes'
@@ -25,7 +17,7 @@ export function registerPluginContributions(pluginManager: PluginManager) {
   const changeTypes = pluginManager.evaluateExtensionPoint(
     'Apollo-RegisterChangeTypes',
     {},
-  ) as Record<string, ClientChangeType>
+  )
   for (const [name, changeType] of Object.entries(changeTypes)) {
     clientChangeTypes.register(name, changeType)
   }
@@ -33,7 +25,7 @@ export function registerPluginContributions(pluginManager: PluginManager) {
   const checks = pluginManager.evaluateExtensionPoint(
     'Apollo-RegisterChecks',
     [],
-  ) as Check[]
+  )
   for (const check of checks) {
     const existing = checkRegistry.checks.get(check.name)
     if (existing && existing.constructor !== check.constructor) {
@@ -45,7 +37,7 @@ export function registerPluginContributions(pluginManager: PluginManager) {
   const validations = pluginManager.evaluateExtensionPoint(
     'Apollo-RegisterValidations',
     [],
-  ) as (ChangeRule | ClientValidation)[]
+  )
   for (const validation of validations) {
     clientValidations.register(validation)
   }

@@ -1,9 +1,8 @@
+import type { AttributeViewerProps } from '@apollo-annotation/common/client'
 import { Typography } from '@mui/material'
 import React from 'react'
 
-export interface AttributeViewerProps {
-  values: string[] | undefined
-}
+export type { AttributeViewerProps } from '@apollo-annotation/common/client'
 
 export function DefaultAttributeViewer({ values }: AttributeViewerProps) {
   return (
