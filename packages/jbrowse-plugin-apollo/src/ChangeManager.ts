@@ -10,7 +10,7 @@ import type { JobsListModel } from '@jbrowse/plugin-jobs-management'
 
 import type { ApolloSessionModel } from './session'
 import type { ClientDataStoreModel } from './session/ClientDataStore'
-import { changeHandlers, isLocalChange } from './session/changeHandlers'
+import { clientChangeTypes } from './session/clientChangeTypes'
 import { clientValidations } from './validation/ClientValidationSet'
 
 export type JobInput = Parameters<JobsListModel['addJob']>[0]
@@ -226,14 +226,8 @@ export class ChangeManager {
 
   /** Apply a change to the client data store, if it has a client handler */
   private async applyToClientDataStore(change: Change) {
-    const changeName = change.typeName
-    const handler = isLocalChange(changeName)
-      ? changeHandlers[changeName]
-      : undefined
-    if (handler) {
-      // @ts-expect-error change not narrowing
-      await handler(this.dataStore, change)
-    }
+    const changeType = clientChangeTypes.get(change.typeName)
+    await changeType?.handler?.(change, { dataStore: this.dataStore })
   }
 
   async undo(change: Change, submitToBackend = true) {

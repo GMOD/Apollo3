@@ -21,6 +21,7 @@ jest.unstable_mockModule('@jbrowse/core/util', () => ({
 
 const { ChangeManager } = await import('./ChangeManager')
 const { clientValidations } = await import('./validation/ClientValidationSet')
+const { clientChangeTypes } = await import('./session/clientChangeTypes')
 
 /** A change with no client handler whose inverse is the same type */
 class TestChange extends Change {
@@ -97,5 +98,23 @@ describe('ChangeManager', () => {
       'error',
     )
     expect(session.changeInProgress).toBe(false)
+  })
+
+  it('applies a change with its registered client handler', async () => {
+    const handler = jest.fn<(change: Change, context: unknown) => void>()
+    clientChangeTypes.register('TestHandledChange', {
+      changeType: TestChange,
+      handler,
+    })
+    const { changeManager } = makeChangeManager()
+    const change = new TestChange({ typeName: 'TestHandledChange' })
+
+    await changeManager.submit(change, { submitToBackend: false })
+
+    expect(handler).toHaveBeenCalledTimes(1)
+    expect(handler).toHaveBeenCalledWith(
+      change,
+      expect.objectContaining({ dataStore: expect.anything() }),
+    )
   })
 })
