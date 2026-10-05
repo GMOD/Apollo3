@@ -79,15 +79,11 @@ export function extendSession(
   pluginManager: PluginManager,
   sessionModel: ReturnType<typeof types.model>,
 ) {
-  const AnnotationFeatureExtended = pluginManager.evaluateExtensionPoint(
-    'Apollo-extendAnnotationFeature',
-    AnnotationFeatureModel,
-  ) as typeof AnnotationFeatureModel
-  const ClientDataStore = clientDataStoreFactory(AnnotationFeatureExtended)
+  const ClientDataStore = clientDataStoreFactory()
   const sm = sessionModel
     .props({
       apolloDataStore: types.optional(ClientDataStore, { typeName: 'Client' }),
-      apolloSelectedFeature: types.safeReference(AnnotationFeatureExtended),
+      apolloSelectedFeature: types.safeReference(AnnotationFeatureModel),
       isLocked: types.optional(types.boolean, false),
       changeInProgress: types.optional(types.boolean, false),
     })
