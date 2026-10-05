@@ -10,6 +10,7 @@
   "type": "module",
   "exports": {
     ".": "./dist/index.js",
+    "./client": "./dist/client/index.js",
     "./server": "./dist/server/index.js"
   },
   "scripts": {
