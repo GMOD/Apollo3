@@ -67,6 +67,8 @@ import { PluginsService } from '../plugins/plugins.service.js'
 import { normalizeEmail } from '../users/users.service.js'
 import { Role } from '../utils/role/role.enum.js'
 
+import { addChild, getFeatureFromId, mergeTranscripts } from './featureTree.js'
+
 type ChangeHandlers = {
   [K in keyof typeof changes]: (
     change: InstanceType<(typeof changes)[K]>,
@@ -168,7 +170,7 @@ export class ChangeHandlersService implements ChangeHandlers {
               `Could not find feature with ID "${parentFeatureId}"`,
             )
           }
-          const parentFeature = change.getFeatureFromId(
+          const parentFeature = getFeatureFromId(
             topLevelFeature,
             parentFeatureId,
           )
@@ -177,7 +179,7 @@ export class ChangeHandlersService implements ChangeHandlers {
               `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature.id}"`,
             )
           }
-          change.addChild(parentFeature, addedFeature)
+          addChild(parentFeature, addedFeature)
           const childIds = change.getChildFeatureIds(addedFeature)
           topLevelFeature.allIds.push(_id, ...childIds)
           if (indexedIds.length > 0 && !topLevelFeature.indexedIds) {
@@ -302,7 +304,7 @@ export class ChangeHandlersService implements ChangeHandlers {
         `Found top-level feature "${topLevelFeature._id.toString()}"`,
       )
 
-      const foundFeature = change.getFeatureFromId(topLevelFeature, featureId)
+      const foundFeature = getFeatureFromId(topLevelFeature, featureId)
       if (!foundFeature) {
         const errMsg = 'Failed to find feature by featureId'
         this.logger.error(errMsg)
@@ -363,7 +365,7 @@ export class ChangeHandlersService implements ChangeHandlers {
       let topLevelFeature: FeatureDocument | undefined | null
       let feature: Feature | undefined | null
       for (const tlv of topLevelFeatures) {
-        const childFeature = change.getFeatureFromId(tlv, featureId)
+        const childFeature = getFeatureFromId(tlv, featureId)
         if (childFeature) {
           topLevelFeature = tlv
           feature = childFeature
@@ -388,7 +390,7 @@ export class ChangeHandlersService implements ChangeHandlers {
         `Found top-level feature "${topLevelFeature._id.toString()}"`,
       )
 
-      feature ??= change.getFeatureFromId(topLevelFeature, featureId)
+      feature ??= getFeatureFromId(topLevelFeature, featureId)
       if (!feature) {
         const errMsg = 'Failed to find feature by featureId'
         this.logger.error(errMsg)
@@ -438,7 +440,7 @@ export class ChangeHandlersService implements ChangeHandlers {
       let topLevelFeature: FeatureDocument | undefined | null
       let feature: Feature | undefined | null
       for (const tlv of topLevelFeatures) {
-        const childFeature = change.getFeatureFromId(tlv, featureId)
+        const childFeature = getFeatureFromId(tlv, featureId)
         if (childFeature) {
           topLevelFeature = tlv
           feature = childFeature
@@ -463,7 +465,7 @@ export class ChangeHandlersService implements ChangeHandlers {
         `Found top-level feature "${topLevelFeature._id.toString()}"`,
       )
 
-      feature ??= change.getFeatureFromId(topLevelFeature, featureId)
+      feature ??= getFeatureFromId(topLevelFeature, featureId)
       if (!feature) {
         const errMsg = 'Failed to find feature by featureId'
         this.logger.error(errMsg)
@@ -514,7 +516,7 @@ export class ChangeHandlersService implements ChangeHandlers {
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
-      const mergedExon = change.getFeatureFromId(topLevelFeature, firstExon._id)
+      const mergedExon = getFeatureFromId(topLevelFeature, firstExon._id)
       if (!mergedExon) {
         const errMsg = 'Failed to find feature by featureId'
         this.logger.error(errMsg)
@@ -559,7 +561,7 @@ export class ChangeHandlersService implements ChangeHandlers {
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
-      const mergedTranscript = change.getFeatureFromId(
+      const mergedTranscript = getFeatureFromId(
         topLevelFeature,
         firstTranscript._id,
       )
@@ -568,7 +570,7 @@ export class ChangeHandlersService implements ChangeHandlers {
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
-      change.mergeTranscriptsOnServer(mergedTranscript, secondTranscript)
+      mergeTranscripts(mergedTranscript, secondTranscript)
       const deletedIds = findAndDeleteChildFeature(
         topLevelFeature,
         secondTranscript._id,
@@ -602,7 +604,7 @@ export class ChangeHandlersService implements ChangeHandlers {
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
-      const tx = change.getFeatureFromId(topLevelFeature, parentFeatureId)
+      const tx = getFeatureFromId(topLevelFeature, parentFeatureId)
       if (!tx?.children) {
         throw new Error(
           'There should be at least one child (i.e. the exon to be split)',
@@ -672,7 +674,7 @@ export class ChangeHandlersService implements ChangeHandlers {
         `Found top-level feature "${topLevelFeature._id.toString()}"`,
       )
 
-      const foundFeature = change.getFeatureFromId(topLevelFeature, featureId)
+      const foundFeature = getFeatureFromId(topLevelFeature, featureId)
       if (!foundFeature) {
         const errMsg = 'Failed to find feature by featureId'
         this.logger.error(errMsg)
@@ -738,7 +740,7 @@ export class ChangeHandlersService implements ChangeHandlers {
         `Found top-level feature "${topLevelFeature._id.toString()}"`,
       )
 
-      const foundFeature = change.getFeatureFromId(topLevelFeature, featureId)
+      const foundFeature = getFeatureFromId(topLevelFeature, featureId)
       if (!foundFeature) {
         const errMsg = 'Failed to find feature by featureId'
         this.logger.error(errMsg)
@@ -797,10 +799,7 @@ export class ChangeHandlersService implements ChangeHandlers {
       if (!topLevelFeature) {
         throw new Error(`Could not find feature with ID "${parentFeatureId}"`)
       }
-      const parentFeature = change.getFeatureFromId(
-        topLevelFeature,
-        parentFeatureId,
-      )
+      const parentFeature = getFeatureFromId(topLevelFeature, parentFeatureId)
       if (!parentFeature) {
         throw new Error(
           `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature._id.toString()}"`,
@@ -808,7 +807,7 @@ export class ChangeHandlersService implements ChangeHandlers {
       }
       parentFeature.children ??= new Map()
       for (const exon of exonsToRestore) {
-        change.addChild(parentFeature, exon)
+        addChild(parentFeature, exon)
         const childIds = change.getChildFeatureIds(exon)
         topLevelFeature.allIds.push(exon._id, ...childIds)
       }
@@ -832,10 +831,7 @@ export class ChangeHandlersService implements ChangeHandlers {
       if (!topLevelFeature) {
         throw new Error(`Could not find feature with ID "${parentFeatureId}"`)
       }
-      const parentFeature = change.getFeatureFromId(
-        topLevelFeature,
-        parentFeatureId,
-      )
+      const parentFeature = getFeatureFromId(topLevelFeature, parentFeatureId)
       if (!parentFeature) {
         throw new Error(
           `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature._id.toString()}"`,
@@ -843,7 +839,7 @@ export class ChangeHandlersService implements ChangeHandlers {
       }
       parentFeature.children ??= new Map()
       for (const transcript of transcriptsToRestore) {
-        change.addChild(parentFeature, transcript)
+        addChild(parentFeature, transcript)
         const childIds = change.getChildFeatureIds(transcript)
         topLevelFeature.allIds.push(transcript._id, ...childIds)
       }
@@ -862,17 +858,14 @@ export class ChangeHandlersService implements ChangeHandlers {
       if (!topLevelFeature) {
         throw new Error(`Could not find feature with ID "${parentFeatureId}"`)
       }
-      const parentFeature = change.getFeatureFromId(
-        topLevelFeature,
-        parentFeatureId,
-      )
+      const parentFeature = getFeatureFromId(topLevelFeature, parentFeatureId)
       if (!parentFeature) {
         throw new Error(
           `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature._id.toString()}"`,
         )
       }
       parentFeature.children ??= new Map()
-      change.addChild(parentFeature, exonToRestore)
+      addChild(parentFeature, exonToRestore)
       const childIds = change.getChildFeatureIds(exonToRestore)
       topLevelFeature.allIds.push(exonToRestore._id, ...childIds)
       topLevelFeature.allIds = topLevelFeature.allIds.filter(
