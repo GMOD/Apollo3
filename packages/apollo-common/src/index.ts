@@ -1,6 +1,7 @@
 export * from './AnnotationFeatureData.js'
 export * from './AssemblySpecificChange.js'
 export * from './Change.js'
+export * from './ChangeRule.js'
 export * from './ChangeTypeRegistry.js'
 export * from './Check.js'
 export * from './CheckRegistry.js'
