@@ -8,12 +8,18 @@ export class ClientChangeTypeRegistry {
   /**
    * Register a change type and its client handler. Also registers the change
    * class so changes of this type from the server can be deserialized.
+   * Registering the same change class under the same name again replaces the
+   * handler; a different class under an existing name is an error.
    */
   register(name: string, changeType: ClientChangeType) {
-    if (this.changeTypes.has(name)) {
-      throw new Error(`change type "${name}" has already been registered`)
+    const existing = this.changeTypes.get(name)
+    if (existing) {
+      if (existing.changeType !== changeType.changeType) {
+        throw new Error(`change type "${name}" has already been registered`)
+      }
+    } else {
+      changeRegistry.registerChange(name, changeType.changeType)
     }
-    changeRegistry.registerChange(name, changeType.changeType)
     this.changeTypes.set(name, changeType)
   }
 

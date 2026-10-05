@@ -69,6 +69,7 @@ import {
 } from './makeDisplayComponent'
 import { addTopLevelMenus } from './menus'
 import { addTopLevelAdminMenus } from './menus/topLevelMenuAdmin'
+import { registerPluginContributions } from './pluginContributions'
 import { type ApolloSessionModel, extendSession } from './session'
 import type { ClientDataStoreModel } from './session/ClientDataStore'
 import { changeHandlers } from './session/changeHandlers'
@@ -475,6 +476,7 @@ export default class ApolloPlugin extends Plugin {
 
   configure(pluginManager: PluginManager) {
     checkJBrowseVersion(pluginManager)
+    registerPluginContributions(pluginManager)
     const { rootModel } = pluginManager
     if (isAbstractMenuManager(rootModel)) {
       pluginManager.jexl.addFunction(
