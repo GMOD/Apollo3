@@ -14,12 +14,24 @@ export class ClientValidationSet {
   readonly rules = new Set<ChangeRule>()
   readonly validations = new Set<ClientValidation>()
 
+  /**
+   * Add a change rule or client validation. One of the same class and name
+   * that was added before (e.g. when plugins are configured again) is
+   * replaced.
+   */
   register(validation: ChangeRule | ClientValidation) {
-    if (isChangeRule(validation)) {
-      this.rules.add(validation)
-    } else {
-      this.validations.add(validation)
+    const set: Set<ChangeRule | ClientValidation> = isChangeRule(validation)
+      ? this.rules
+      : this.validations
+    for (const existing of set) {
+      if (
+        existing.name === validation.name &&
+        existing.constructor === validation.constructor
+      ) {
+        set.delete(existing)
+      }
     }
+    set.add(validation)
   }
 
   /** Run change rules, then client validations, before a change is applied */
