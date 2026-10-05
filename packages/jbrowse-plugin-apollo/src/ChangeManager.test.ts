@@ -1,9 +1,6 @@
 import { Change, type SerializedChange } from '@apollo-annotation/common'
-import {
-  Validation,
-  ValidationResultSet,
-  validationRegistry,
-} from '@apollo-annotation/shared'
+import { ClientValidation } from '@apollo-annotation/common/client'
+import { ValidationResultSet } from '@apollo-annotation/shared'
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 
 const notify = jest.fn()
@@ -23,6 +20,7 @@ jest.unstable_mockModule('@jbrowse/core/util', () => ({
 }))
 
 const { ChangeManager } = await import('./ChangeManager')
+const { clientValidations } = await import('./validation/ClientValidationSet')
 
 /** A change with no client handler whose inverse is the same type */
 class TestChange extends Change {
@@ -39,19 +37,16 @@ class TestChange extends Change {
   }
 }
 
-class TestPostValidation extends Validation {
+class TestPostValidation extends ClientValidation {
   name = 'TestPostValidation'
-  frontendPostValidate(change: Change) {
-    return Promise.resolve({
-      validationName: this.name,
-      error:
-        change.typeName === 'TestRejectedChange'
-          ? { message: 'not allowed' }
-          : undefined,
-    })
+  postValidate(change: Change) {
+    if (change.typeName === 'TestRejectedChange') {
+      return 'not allowed'
+    }
+    return
   }
 }
-validationRegistry.registerValidation(new TestPostValidation())
+clientValidations.register(new TestPostValidation())
 
 function makeChangeManager() {
   const submitChange = jest.fn(() => {
@@ -64,6 +59,7 @@ function makeChangeManager() {
   })
   const dataStore = {
     collaborationServerDriver: { submitChange },
+    getFeature: jest.fn(),
     getBackendDriver: () => null,
   }
   // @ts-expect-error minimal data store for testing

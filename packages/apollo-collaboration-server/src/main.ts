@@ -9,14 +9,7 @@ import {
   checkRegistry,
 } from '@apollo-annotation/common'
 import { CheckSchema } from '@apollo-annotation/schemas'
-import {
-  CDSCheck,
-  CoreValidation,
-  ParentChildValidation,
-  TranscriptCheck,
-  changes,
-  validationRegistry,
-} from '@apollo-annotation/shared'
+import { CDSCheck, TranscriptCheck, changes } from '@apollo-annotation/shared'
 import type { LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import connectMongoDBSession from 'connect-mongodb-session'
@@ -28,7 +21,8 @@ import { AppModule } from './app.module.js'
 import { GlobalExceptionsFilter } from './global-exceptions.filter.js'
 import { ApolloLogger } from './utils/apollo-logger.service.js'
 import { LoggingInterceptor } from './utils/logging.interceptor.js'
-import { AuthorizationValidation } from './utils/validation/AuthorizationValidation.js'
+import { ParentChildValidation } from './utils/validation/ParentChildValidation.js'
+import { serverValidations } from './utils/validation/ServerValidationSet.js'
 
 const MongoDBStore = connectMongoDBSession(session)
 
@@ -81,9 +75,7 @@ async function bootstrap() {
   const transcriptCheck = new TranscriptCheck()
   checkRegistry.registerCheck(transcriptCheck.name, transcriptCheck)
 
-  validationRegistry.registerValidation(new CoreValidation())
-  validationRegistry.registerValidation(new AuthorizationValidation())
-  validationRegistry.registerValidation(new ParentChildValidation())
+  serverValidations.register(new ParentChildValidation())
 
   const cors = convertToBoolean(CORS)
 

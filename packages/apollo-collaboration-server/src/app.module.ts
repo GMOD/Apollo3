@@ -34,7 +34,7 @@ import { SequenceModule } from './sequence/sequence.module.js'
 import { UsersModule } from './users/users.module.js'
 import { CorrelationIdMiddleware } from './utils/correlation-id.middleware.js'
 import { JwtAuthGuard } from './utils/jwt-auth.guard.js'
-import { ValidationGuard } from './utils/validation/validation.guards.js'
+import { AuthorizationGuard } from './utils/validation/authorization.guard.js'
 
 interface MongoDBURIConfig {
   MONGODB_URI?: string
@@ -95,13 +95,13 @@ async function mongoDBURIFactory(
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
-    { provide: APP_GUARD, useClass: ValidationGuard },
+    { provide: APP_GUARD, useClass: AuthorizationGuard },
     { provide: APP_GUARD, useClass: AssemblyAccessGuard },
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    // Module middleware runs before guards, so JwtAuthGuard/ValidationGuard log
+    // Module middleware runs before guards, so JwtAuthGuard/AuthorizationGuard log
     // lines also carry the correlation ID
     consumer.apply(CorrelationIdMiddleware).forRoutes('*')
   }

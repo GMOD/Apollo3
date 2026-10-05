@@ -1,14 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { changeRegistry, checkRegistry } from '@apollo-annotation/common'
-import {
-  CDSCheck,
-  CoreValidation,
-  ParentChildValidation,
-  TranscriptCheck,
-  changes,
-  validationRegistry,
-} from '@apollo-annotation/shared'
+import { CDSCheck, TranscriptCheck, changes } from '@apollo-annotation/shared'
 import Plugin from '@jbrowse/core/Plugin'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
@@ -78,6 +71,8 @@ import { addTopLevelMenus } from './menus'
 import { addTopLevelAdminMenus } from './menus/topLevelMenuAdmin'
 import { type ApolloSessionModel, extendSession } from './session'
 import { isApolloInternetAccount } from './types'
+import { clientValidations } from './validation/ClientValidationSet'
+import { CoreValidation } from './validation/CoreValidation'
 
 interface ApolloMessageData {
   apollo: true
@@ -115,8 +110,7 @@ checkRegistry.registerCheck(cdsCheck.name, cdsCheck)
 const transcriptCheck = new TranscriptCheck()
 checkRegistry.registerCheck(transcriptCheck.name, transcriptCheck)
 
-validationRegistry.registerValidation(new CoreValidation())
-validationRegistry.registerValidation(new ParentChildValidation())
+clientValidations.register(new CoreValidation())
 
 export default class ApolloPlugin extends Plugin {
   name = 'ApolloPlugin'

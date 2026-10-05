@@ -2,16 +2,16 @@ import {
   type Change,
   isAssemblySpecificChange,
 } from '@apollo-annotation/common'
-import {
-  type ValidationResultSet,
-  validationRegistry,
-} from '@apollo-annotation/shared'
+import type { ClientValidationContext } from '@apollo-annotation/common/client'
+import type { ValidationResultSet } from '@apollo-annotation/shared'
 import { getSession } from '@jbrowse/core/util'
+import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import type { JobsListModel } from '@jbrowse/plugin-jobs-management'
 
 import type { ApolloSessionModel } from './session'
 import type { ClientDataStoreModel } from './session/ClientDataStore'
 import { changeHandlers, isLocalChange } from './session/changeHandlers'
+import { clientValidations } from './validation/ClientValidationSet'
 
 export type JobInput = Parameters<JobsListModel['addJob']>[0]
 
@@ -87,7 +87,16 @@ export class ChangeManager {
       showJobStatusWidget()
     }
 
-    const result = await validationRegistry.frontendPreValidate(change)
+    const validationContext: ClientValidationContext = {
+      getFeature: (featureId) => {
+        const feature = this.dataStore.getFeature(featureId)
+        return feature && getSnapshot(feature)
+      },
+    }
+    const result = await clientValidations.preValidate(
+      change,
+      validationContext,
+    )
     if (!result.ok) {
       const msg = `Pre-validation failed: "${result.resultsMessages}"`
       if (updateJobStatusWidget) {
@@ -122,7 +131,10 @@ export class ChangeManager {
     }
 
     // post-validate
-    const results2 = await validationRegistry.frontendPostValidate(change)
+    const results2 = await clientValidations.postValidate(
+      change,
+      validationContext,
+    )
     if (!results2.ok) {
       // notify of invalid change and revert it locally; it was never sent to
       // the backend

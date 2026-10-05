@@ -1,5 +1,6 @@
 import {
   type ChangeConstructor,
+  type ChangeRule,
   type Check,
   changeRegistry,
   checkRegistry,
@@ -9,12 +10,13 @@ import {
   ApolloServerPlugin,
   type AssemblyGrant,
   type CustomAuthHandler,
-  type Validation,
+  type ServerValidation,
 } from '@apollo-annotation/common/server'
-import { validationRegistry } from '@apollo-annotation/shared'
 import { jest } from '@jest/globals'
 import { getConnectionToken } from '@nestjs/mongoose'
 import { Test, type TestingModule } from '@nestjs/testing'
+
+import { serverValidations } from '../utils/validation/ServerValidationSet.js'
 
 import { APOLLO_PLUGINS } from './plugins.constants.js'
 import { PluginsService } from './plugins.service.js'
@@ -207,20 +209,25 @@ describe('PluginsService', () => {
       expect(checkRegistry.getCheck(name)).toBe(check)
     })
 
-    it('registers plugin-contributed Validations into the shared validationRegistry', async () => {
-      const validation = { name: unique('TestValidation') } as Validation
+    it('registers plugin-contributed change rules and server validations', async () => {
+      const rule = {
+        name: unique('TestRule'),
+        validate: jest.fn(),
+      } as ChangeRule
+      const validation = { name: unique('TestValidation') } as ServerValidation
       const service = await createService([
         new FakePlugin('validation-plugin', (registrar) => {
           registrar.registerHook(
             'Apollo-RegisterValidations',
-            (validations) => [...validations, validation],
+            (validations) => [...validations, rule, validation],
           )
         }),
       ])
 
       await service.onModuleInit()
 
-      expect(validationRegistry.validations.has(validation)).toBe(true)
+      expect(serverValidations.rules.has(rule)).toBe(true)
+      expect(serverValidations.validations.has(validation)).toBe(true)
     })
   })
 
