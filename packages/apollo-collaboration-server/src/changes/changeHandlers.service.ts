@@ -47,7 +47,6 @@ import {
   UserChange,
   attributesToRecords,
   changes,
-  checkChildFeatureBoundaries,
   filterJBrowseConfig,
   findAndDeleteChildFeature,
   gff3ToAnnotationFeature,
@@ -66,6 +65,7 @@ import { MessagesService } from '../messages/messages.service.js'
 import { PluginsService } from '../plugins/plugins.service.js'
 import { normalizeEmail } from '../users/users.service.js'
 import { Role } from '../utils/role/role.enum.js'
+import { checkChildFeatureBoundaries } from '../utils/validation/ParentChildValidation.js'
 
 import { addChild, getFeatureFromId, mergeTranscripts } from './featureTree.js'
 

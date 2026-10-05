@@ -4,6 +4,7 @@ import {
   isAssemblySpecificChange,
   isFeatureChange,
 } from '@apollo-annotation/common'
+import type { ServerValidationContext } from '@apollo-annotation/common/server'
 import {
   Assembly,
   type AssemblyDocument,
@@ -23,7 +24,6 @@ import {
   type DecodedJWT,
   changes,
   makeUserSessionId,
-  validationRegistry,
 } from '@apollo-annotation/shared'
 import {
   Logger,
@@ -35,6 +35,7 @@ import { Model, type QueryFilter, Types } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service.js'
 import { MessagesService } from '../messages/messages.service.js'
+import { serverValidations } from '../utils/validation/ServerValidationSet.js'
 
 import { ChangeHandlersService } from './changeHandlers.service.js'
 import { FindChangeDto } from './dto/find-change.dto.js'
@@ -71,7 +72,20 @@ export class ChangesService {
       await this.countersService.getNextSequenceValue('changeCounter')
     const uniqUserId = `${user.email}-${sequence}` // Same user can upload data from more than one client
 
-    const validationResult = await validationRegistry.backendPreValidate(change)
+    const validationContext: ServerValidationContext = {
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
+      connection: this.featureModel.db,
+      logger: this.logger,
+    }
+    const validationResult = await serverValidations.preValidate(
+      change,
+      validationContext,
+    )
     if (!validationResult.ok) {
       const errorMessage = validationResult.resultsMessages
       throw new UnprocessableEntityException(
@@ -144,9 +158,9 @@ export class ChangesService {
       throw error
     }
     const changeDoc = savedChangedLogDoc
-    const validationResult2 = await validationRegistry.backendPostValidate(
+    const validationResult2 = await serverValidations.postValidate(
       change,
-      { featureModel: this.featureModel },
+      validationContext,
     )
     if (!validationResult2.ok) {
       const errorMessage = validationResult2.resultsMessages

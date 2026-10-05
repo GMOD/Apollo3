@@ -1,12 +1,13 @@
 import type { Connection } from 'mongoose'
 
+import type { ChangeRule } from '../ChangeRule.js'
 import type { ChangeConstructor } from '../ChangeTypeRegistry.js'
 import type { Check } from '../Check.js'
 
 import type { AssemblyAccess, AssemblyAccessProps } from './AssemblyAccess.js'
 import type { CustomAuthHandler } from './CustomAuthHandler.js'
 import type { PluginRoute, PluginRouteProps } from './PluginRoute.js'
-import type { Validation } from './Validation.js'
+import type { ServerValidation } from './ServerValidation.js'
 
 /**
  * Every hook a server plugin may register with, and the exact signature its
@@ -48,11 +49,17 @@ export interface ApolloServerHookMap {
     extendee: Check[],
     props: Record<string, never>,
   ) => Check[] | Promise<Check[]>
-  /** Collects custom change Validations, registered into the shared `validationRegistry`. */
+  /**
+   * Collects change rules (run on both client and server) and server
+   * validations that every change is checked against. A plugin's client half
+   * registers the same `ChangeRule`s with the client.
+   */
   'Apollo-RegisterValidations': (
-    extendee: Validation[],
+    extendee: (ChangeRule | ServerValidation)[],
     props: Record<string, never>,
-  ) => Validation[] | Promise<Validation[]>
+  ) =>
+    | (ChangeRule | ServerValidation)[]
+    | Promise<(ChangeRule | ServerValidation)[]>
 }
 
 export type ApolloServerHookName = keyof ApolloServerHookMap

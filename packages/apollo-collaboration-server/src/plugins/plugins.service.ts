@@ -1,5 +1,6 @@
 import {
   type ChangeConstructor,
+  type ChangeRule,
   type Check,
   changeRegistry,
   checkRegistry,
@@ -11,12 +12,13 @@ import {
   type ApolloServerPlugin,
   type CustomAuthHandler,
   type PluginRoute,
-  type Validation,
+  type ServerValidation,
 } from '@apollo-annotation/common/server'
-import { validationRegistry } from '@apollo-annotation/shared'
 import { Inject, Injectable, Logger, type OnModuleInit } from '@nestjs/common'
 import { InjectConnection } from '@nestjs/mongoose'
 import type { Connection } from 'mongoose'
+
+import { serverValidations } from '../utils/validation/ServerValidationSet.js'
 
 import { APOLLO_PLUGINS } from './plugins.constants.js'
 
@@ -84,13 +86,11 @@ export class PluginsService implements OnModuleInit {
       checkRegistry.registerCheck(check.name, check)
     }
 
-    const validations = await this.evaluateStartupHook<Validation[]>(
-      'Apollo-RegisterValidations',
-      [],
-      {},
-    )
+    const validations = await this.evaluateStartupHook<
+      (ChangeRule | ServerValidation)[]
+    >('Apollo-RegisterValidations', [], {})
     for (const validation of validations) {
-      validationRegistry.registerValidation(validation)
+      serverValidations.register(validation)
     }
   }
 

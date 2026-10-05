@@ -1,6 +1,6 @@
 import type { ValidationOutcome } from '@apollo-annotation/common'
 
-import { ValidationResultSet } from './ValidationSet.js'
+import { ValidationResultSet } from './ValidationResultSet.js'
 
 /**
  * Run validations in order, stopping at the first one that rejects the
