@@ -10,12 +10,14 @@ import {
   ApolloServerPlugin,
   type AssemblyGrant,
   type CustomAuthHandler,
+  type ServerChangeType,
   type ServerValidation,
 } from '@apollo-annotation/common/server'
 import { jest } from '@jest/globals'
 import { getConnectionToken } from '@nestjs/mongoose'
 import { Test, type TestingModule } from '@nestjs/testing'
 
+import { serverChangeTypes } from '../changes/serverChangeTypes.js'
 import { serverValidations } from '../utils/validation/ServerValidationSet.js'
 
 import { APOLLO_PLUGINS } from './plugins.constants.js'
@@ -168,15 +170,20 @@ describe('PluginsService', () => {
       expect(registerCustomAuth).toHaveBeenCalledTimes(1)
     })
 
-    it('registers plugin-contributed Change types into the shared changeRegistry', async () => {
+    it('registers plugin-contributed change types with their handlers', async () => {
       const name = unique('TestChange')
       // eslint-disable-next-line @typescript-eslint/no-extraneous-class
       class FakeChange {}
+      const changeType: ServerChangeType = {
+        changeType: FakeChange as unknown as ChangeConstructor,
+        handler: jest.fn<ServerChangeType['handler']>(),
+        requiredRole: 'admin',
+      }
       const service = await createService([
         new FakePlugin('change-plugin', (registrar) => {
           registrar.registerHook('Apollo-RegisterChangeTypes', (types) => ({
             ...types,
-            [name]: FakeChange as unknown as ChangeConstructor,
+            [name]: changeType,
           }))
         }),
       ])
@@ -184,6 +191,8 @@ describe('PluginsService', () => {
       await service.onModuleInit()
 
       expect(changeRegistry.getChangeType(name)).toBe(FakeChange)
+      expect(serverChangeTypes.get(name)).toBe(changeType)
+      expect(serverChangeTypes.getRequiredRole(name)).toBe('admin')
     })
 
     it('registers plugin-contributed Checks into the shared checkRegistry', async () => {

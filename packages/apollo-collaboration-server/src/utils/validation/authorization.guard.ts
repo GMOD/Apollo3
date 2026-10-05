@@ -9,9 +9,9 @@ import {
 import { Reflector } from '@nestjs/core'
 import type { Request } from 'express'
 
+import { serverChangeTypes } from '../../changes/serverChangeTypes.js'
 import { Role, RoleInheritance } from '../role/role.enum.js'
 
-import { getRequiredRoleForChange } from './validatation.changeTypePermissions.js'
 import { ROLE_KEY } from './validatation.decorator.js'
 
 /**
@@ -59,14 +59,13 @@ export class AuthorizationGuard implements CanActivate {
     }
     const { role, username } = user
 
-    // Each change type has its own required role, as defined in
-    // validation.changeTypePermissions.ts
+    // Each change type has its own required role
     if (
       context.getClass().name === 'ChangesController' &&
       context.getHandler().name === 'create' // i.e. "submit change"
     ) {
       const { typeName } = request.body as SerializedChange
-      const requiredRoleForChange = getRequiredRoleForChange(typeName)
+      const requiredRoleForChange = serverChangeTypes.getRequiredRole(typeName)
       this.logger.debug(
         `Change type is '${typeName}' and an additional required role is '${requiredRoleForChange}'`,
       )

@@ -22,7 +22,6 @@ import {
   type AddFeatureChangeDetails,
   type ChangeMessage,
   type DecodedJWT,
-  changes,
   makeUserSessionId,
 } from '@apollo-annotation/shared'
 import {
@@ -37,8 +36,11 @@ import { CountersService } from '../counters/counters.service.js'
 import { MessagesService } from '../messages/messages.service.js'
 import { serverValidations } from '../utils/validation/ServerValidationSet.js'
 
-import { ChangeHandlersService } from './changeHandlers.service.js'
 import { FindChangeDto } from './dto/find-change.dto.js'
+import {
+  type InternalChangeContext,
+  serverChangeTypes,
+} from './serverChangeTypes.js'
 
 const STATUS_ZERO_CHANGE_TYPES = new Set([
   'AddAssemblyAndFeaturesFromFileChange',
@@ -60,7 +62,6 @@ export class ChangesService {
     private readonly changeModel: Model<ChangeDocument>,
     private readonly countersService: CountersService,
     private readonly messagesService: MessagesService,
-    private readonly changeHandlersService: ChangeHandlersService,
   ) {}
 
   private readonly logger = new Logger(ChangesService.name)
@@ -114,12 +115,13 @@ export class ChangesService {
     }
 
     try {
-      const handler =
-        this.changeHandlersService[change.typeName as keyof typeof changes]
-      // @ts-expect-error change not narrowed
-      await handler.bind(this.changeHandlersService)(change, {
-        user: uniqUserId,
-      })
+      const changeContext: InternalChangeContext = {
+        ...validationContext,
+        uniqueUserId: uniqUserId,
+      }
+      await serverChangeTypes
+        .get(change.typeName)
+        .handler(change, changeContext)
     } catch (error) {
       // Clean up old "temporary document" -documents
       this.logger.error(

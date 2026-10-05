@@ -3,9 +3,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import fs from 'node:fs'
 
-import { changeRegistry, checkRegistry } from '@apollo-annotation/common'
+import { checkRegistry } from '@apollo-annotation/common'
 import { Check, type CheckDocument } from '@apollo-annotation/schemas'
-import { CDSCheck, TranscriptCheck, changes } from '@apollo-annotation/shared'
+import { CDSCheck, TranscriptCheck } from '@apollo-annotation/shared'
 import type { LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import { getModelToken } from '@nestjs/mongoose'
@@ -58,10 +58,6 @@ async function bootstrap() {
       )
     }
     sessionSecret = fs.readFileSync(SESSION_SECRET_FILE, 'utf8').trim()
-  }
-
-  for (const [changeName, change] of Object.entries(changes)) {
-    changeRegistry.registerChange(changeName, change)
   }
 
   const cdsCheck = new CDSCheck()
