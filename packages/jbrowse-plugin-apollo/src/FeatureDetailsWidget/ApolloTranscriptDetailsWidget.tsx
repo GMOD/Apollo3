@@ -1,12 +1,7 @@
 /* eslint-disable @eslint-react/set-state-in-effect */
 /* eslint-disable @eslint-react/static-components */
-import type { AnnotationFeature } from '@apollo-annotation/mst'
 import styled from '@emotion/styled'
-import {
-  type AbstractSessionModel,
-  getEnv,
-  getSession,
-} from '@jbrowse/core/util'
+import { getEnv, getSession } from '@jbrowse/core/util'
 import { makeStyles } from '@jbrowse/core/util/tss-react'
 import { getRoot } from '@jbrowse/mobx-state-tree'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
@@ -29,12 +24,8 @@ import { Attributes } from './Attributes'
 import { TranscriptSequence } from './TranscriptSequence'
 import { TranscriptWidgetEditLocation } from './TranscriptWidgetEditLocation'
 import { TranscriptWidgetSummary } from './TranscriptWidgetSummary'
+import { getCustomComponent } from './customComponents'
 import type { ApolloTranscriptDetailsWidget as ApolloTranscriptDetailsWidgetState } from './model'
-
-interface CustomComponentProps {
-  session: AbstractSessionModel
-  feature: AnnotationFeature
-}
 
 const useStyles = makeStyles()((theme) => ({
   root: {
@@ -50,10 +41,6 @@ const StyledAccordionSummary = styled(AccordionSummary)(() => ({
     maxHeight: 30,
   },
 }))
-
-function NoOpCustomComponent(_props: CustomComponentProps) {
-  return null
-}
 
 export const ApolloTranscriptDetailsWidget = observer(
   function ApolloTranscriptDetails(props: {
@@ -108,54 +95,57 @@ export const ApolloTranscriptDetailsWidget = observer(
       }
     }
 
-    const CustomComponentInsideSummary = pluginManager.evaluateExtensionPoint(
+    const customComponentProps = {
+      feature,
+      session,
+    }
+    const CustomComponentInsideSummary = getCustomComponent(
+      pluginManager,
       'Apollo-TranscriptDetailsCustomComponent-InsideSummary',
-      NoOpCustomComponent,
-      { feature, session },
-    ) as React.ElementType<CustomComponentProps>
+      customComponentProps,
+    )
 
-    const CustomComponentAfterSummary = pluginManager.evaluateExtensionPoint(
+    const CustomComponentAfterSummary = getCustomComponent(
+      pluginManager,
       'Apollo-TranscriptDetailsCustomComponent-AfterSummary',
-      NoOpCustomComponent,
-      { feature, session },
-    ) as React.ElementType<CustomComponentProps>
+      customComponentProps,
+    )
 
-    const CustomComponentInsideLocation = pluginManager.evaluateExtensionPoint(
+    const CustomComponentInsideLocation = getCustomComponent(
+      pluginManager,
       'Apollo-TranscriptDetailsCustomComponent-InsideLocation',
-      NoOpCustomComponent,
-      { feature, session },
-    ) as React.ElementType<CustomComponentProps>
+      customComponentProps,
+    )
 
-    const CustomComponentAfterLocation = pluginManager.evaluateExtensionPoint(
+    const CustomComponentAfterLocation = getCustomComponent(
+      pluginManager,
       'Apollo-TranscriptDetailsCustomComponent-AfterLocation',
-      NoOpCustomComponent,
-      { feature, session },
-    ) as React.ElementType<CustomComponentProps>
+      customComponentProps,
+    )
 
-    const CustomComponentInsideAttributes =
-      pluginManager.evaluateExtensionPoint(
-        'Apollo-TranscriptDetailsCustomComponent-InsideAttributes',
-        NoOpCustomComponent,
-        { feature, session },
-      ) as React.ElementType<CustomComponentProps>
+    const CustomComponentInsideAttributes = getCustomComponent(
+      pluginManager,
+      'Apollo-TranscriptDetailsCustomComponent-InsideAttributes',
+      customComponentProps,
+    )
 
-    const CustomComponentAfterAttributes = pluginManager.evaluateExtensionPoint(
+    const CustomComponentAfterAttributes = getCustomComponent(
+      pluginManager,
       'Apollo-TranscriptDetailsCustomComponent-AfterAttributes',
-      NoOpCustomComponent,
-      { feature, session },
-    ) as React.ElementType<CustomComponentProps>
+      customComponentProps,
+    )
 
-    const CustomComponentInsideSequence = pluginManager.evaluateExtensionPoint(
+    const CustomComponentInsideSequence = getCustomComponent(
+      pluginManager,
       'Apollo-TranscriptDetailsCustomComponent-InsideSequence',
-      NoOpCustomComponent,
-      { feature, session },
-    ) as React.ElementType<CustomComponentProps>
+      customComponentProps,
+    )
 
-    const CustomComponentAfterSequence = pluginManager.evaluateExtensionPoint(
+    const CustomComponentAfterSequence = getCustomComponent(
+      pluginManager,
       'Apollo-TranscriptDetailsCustomComponent-AfterSequence',
-      NoOpCustomComponent,
-      { feature, session },
-    ) as React.ElementType<CustomComponentProps>
+      customComponentProps,
+    )
 
     return (
       <div className={classes.root}>
