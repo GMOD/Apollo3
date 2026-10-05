@@ -65,6 +65,7 @@
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "passport-microsoft": "^2.1.0",
+    "path-to-regexp": "^8.3.0",
     "prop-types": "^15.8.1",
     "quick-lru": "^7.3.0",
     "react": "^19.2.8",
