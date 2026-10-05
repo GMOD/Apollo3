@@ -150,4 +150,9 @@ MICROSOFT_CLIENT_SECRET=client_secret_here
 # this computer (localhost), so this is only needed if JBrowse is served from a
 # different origin than Apollo, e.g. a different domain or port.
 # ALLOWED_REDIRECT_ORIGINS=https://jbrowse.example.org
+
+# Size in bytes of the MongoDB capped collection used to send live updates
+# between server processes, defaults to 67108864 (64 MiB). Only used when the
+# collection is first created.
+# EVENTS_COLLECTION_SIZE=67108864
 ```

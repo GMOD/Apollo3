@@ -3,12 +3,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import fs from 'node:fs'
 
-import {
-  type Check,
-  changeRegistry,
-  checkRegistry,
-} from '@apollo-annotation/common'
-import { CheckSchema } from '@apollo-annotation/schemas'
+import { changeRegistry, checkRegistry } from '@apollo-annotation/common'
+import { Check, type CheckDocument } from '@apollo-annotation/schemas'
 import {
   CDSCheck,
   CoreValidation,
@@ -19,10 +15,11 @@ import {
 } from '@apollo-annotation/shared'
 import type { LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
+import { getModelToken } from '@nestjs/mongoose'
 import connectMongoDBSession from 'connect-mongodb-session'
 import { json, urlencoded } from 'express'
 import session from 'express-session'
-import mongoose from 'mongoose'
+import type { Model } from 'mongoose'
 
 import { AppModule } from './app.module.js'
 import { GlobalExceptionsFilter } from './global-exceptions.filter.js'
@@ -100,6 +97,9 @@ async function bootstrap() {
         process.exit(0)
       })
     }
+  } else {
+    // Lets process managers like PM2 stop or reload this process cleanly
+    app.enableShutdownHooks()
   }
 
   const { httpAdapter } = app.get(HttpAdapterHost)
@@ -125,24 +125,34 @@ async function bootstrap() {
   server.headersTimeout = 24 * 60 * 60 * 1000 // one day
   server.requestTimeout = 24 * 60 * 60 * 1000 // one day
 
-  // Add/update checks if needed
-  const checksMap: Map<string, Check> = checkRegistry.getChecks()
-  await mongoose.connect(mongodbURI, {})
-  const ChecksModel = mongoose.model('checks', CheckSchema)
-  for (const [key, check] of checksMap.entries()) {
-    const checkByName = await ChecksModel.find({ name: key }).exec()
-    const firstCheck = checkByName.at(0)
-    if (firstCheck) {
-      const checkByNameAndVersion = await ChecksModel.find({
-        name: key,
-        version: check.version,
-      }).exec()
-      if (checkByNameAndVersion.length === 0) {
-        firstCheck.version = check.version
-        await firstCheck.save()
-      }
-    } else {
-      await ChecksModel.create(check)
+  // Add/update checks if needed. These are upserts so that several server
+  // processes starting at the same time don't add duplicate checks.
+  const checkModel = app.get<Model<CheckDocument>>(getModelToken(Check.name))
+  for (const [name, check] of checkRegistry.getChecks()) {
+    const { causes, isDefault, version } = check
+    const now = new Date()
+    const { upsertedCount } = await checkModel
+      .updateOne(
+        { name },
+        {
+          $setOnInsert: {
+            name,
+            version,
+            causes,
+            isDefault,
+            createdAt: now,
+            updatedAt: now,
+          },
+        },
+        // Don't bump updatedAt for existing checks, it decides which
+        // features get re-checked
+        { upsert: true, timestamps: false },
+      )
+      .exec()
+    if (upsertedCount === 0) {
+      await checkModel
+        .updateOne({ name, version: { $ne: version } }, { $set: { version } })
+        .exec()
     }
   }
   logger.log(`Application is running on: ${await app.getUrl()}, CORS = ${cors}`)
