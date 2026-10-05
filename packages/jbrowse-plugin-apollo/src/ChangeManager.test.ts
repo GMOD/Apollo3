@@ -1,0 +1,105 @@
+import { Change, type SerializedChange } from '@apollo-annotation/common'
+import {
+  Validation,
+  ValidationResultSet,
+  validationRegistry,
+} from '@apollo-annotation/shared'
+import { beforeEach, describe, expect, it, jest } from '@jest/globals'
+
+const notify = jest.fn()
+const session = {
+  notify,
+  isLocked: false,
+  changeInProgress: false,
+  setChangeInProgress(inProgress: boolean) {
+    session.changeInProgress = inProgress
+  },
+  showJobStatusWidget: jest.fn(),
+  jobStatusWidget: { addJob: jest.fn(), updateJobStatus: jest.fn() },
+}
+
+jest.unstable_mockModule('@jbrowse/core/util', () => ({
+  getSession: () => session,
+}))
+
+const { ChangeManager } = await import('./ChangeManager')
+
+/** A change with no client handler whose inverse is the same type */
+class TestChange extends Change {
+  typeName: string
+  constructor(json: SerializedChange) {
+    super(json)
+    this.typeName = json.typeName
+  }
+  toJSON() {
+    return { typeName: this.typeName }
+  }
+  getInverse() {
+    return new TestChange({ typeName: this.typeName })
+  }
+}
+
+class TestPostValidation extends Validation {
+  name = 'TestPostValidation'
+  frontendPostValidate(change: Change) {
+    return Promise.resolve({
+      validationName: this.name,
+      error:
+        change.typeName === 'TestRejectedChange'
+          ? { message: 'not allowed' }
+          : undefined,
+    })
+  }
+}
+validationRegistry.registerValidation(new TestPostValidation())
+
+function makeChangeManager() {
+  const submitChange = jest.fn(() => {
+    const result = new ValidationResultSet()
+    result.add({
+      validationName: 'Backend',
+      error: { message: 'backend says no' },
+    })
+    return Promise.resolve(result)
+  })
+  const dataStore = {
+    collaborationServerDriver: { submitChange },
+    getBackendDriver: () => null,
+  }
+  // @ts-expect-error minimal data store for testing
+  return { changeManager: new ChangeManager(dataStore), submitChange }
+}
+
+describe('ChangeManager', () => {
+  beforeEach(() => {
+    notify.mockClear()
+    session.changeInProgress = false
+  })
+
+  it('does not submit a change that fails frontend post-validation', async () => {
+    const { changeManager, submitChange } = makeChangeManager()
+    await changeManager.submit(
+      new TestChange({ typeName: 'TestRejectedChange' }),
+    )
+    expect(submitChange).not.toHaveBeenCalled()
+    expect(notify).toHaveBeenCalledWith(
+      'Post-validation failed: "not allowed"',
+      'error',
+    )
+    expect(session.changeInProgress).toBe(false)
+    expect(changeManager.recentChanges).toHaveLength(0)
+  })
+
+  it('reports the backend validation message when the backend rejects', async () => {
+    const { changeManager, submitChange } = makeChangeManager()
+    await changeManager.submit(
+      new TestChange({ typeName: 'TestBackendRejectedChange' }),
+    )
+    expect(submitChange).toHaveBeenCalledTimes(1)
+    expect(notify).toHaveBeenCalledWith(
+      'Post-validation failed: "backend says no"',
+      'error',
+    )
+    expect(session.changeInProgress).toBe(false)
+  })
+})
