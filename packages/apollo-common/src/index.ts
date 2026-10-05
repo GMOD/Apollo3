@@ -1,3 +1,4 @@
+export * from './AnnotationFeatureData.js'
 export * from './ApolloServerHooks.js'
 export * from './ApolloServerPlugin.js'
 export * from './AssemblyAccess.js'
