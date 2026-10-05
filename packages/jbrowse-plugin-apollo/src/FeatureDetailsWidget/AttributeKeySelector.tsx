@@ -34,9 +34,11 @@ export const AttributeKeySelector = observer(function AttributeKeySelector({
   session: ApolloSessionModel
 }) {
   const { pluginManager } = getEnv(session)
+  // Pass a copy so a callback that mutates the extendee can't change the
+  // defaults for every later render
   const reservedKeys = pluginManager.evaluateExtensionPoint(
     'Apollo-ReservedAttributeKeys',
-    gffKeys,
+    { ...gffKeys },
   ) as Record<string, string | undefined>
   const firstKey = Object.keys(reservedKeys).at(0) ?? customKeyName
   const [selectedKey, setSelectedKey] = useState<string>(firstKey)
