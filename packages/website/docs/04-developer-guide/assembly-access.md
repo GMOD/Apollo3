@@ -1,3 +1,7 @@
+---
+sidebar_position: 7
+---
+
 # Restricting assembly access
 
 By default every logged-in user can see and act on every assembly on the server,
@@ -11,10 +15,8 @@ if it did not exist.
 
 ## Hook
 
-The name of the hook to target for this is `Apollo-AssemblyAccess`. You will
-need to call `registrar.registerHook` in the `install` method of your server
-plugin (see the [developer guide overview](index.md#server-side-plugins) for the
-full plugin shape). Here is an example of using the hook:
+Register the access rules with the `Apollo-AssemblyAccess` hook in your
+[server plugin's](server-plugins.md) `install` method:
 
 ```ts
 import { type AssemblyAccess } from '@apollo-annotation/common/server'
@@ -84,6 +86,9 @@ database like this should cache its result rather than querying each time.
   administering the server.
 - **A restricted user cannot create new assemblies**, since a brand new assembly
   cannot have been granted to them yet.
+- **Plugin routes must apply the restrictions themselves.** A
+  [custom route's](custom-routes.md) handler gets the IDs of the assemblies the
+  user may access as `allowedAssemblyIds`.
 
 The hook is evaluated on every request, so grants take effect without a restart,
 and assemblies created later are picked up automatically. A plugin that does

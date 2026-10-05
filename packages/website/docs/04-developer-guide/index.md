@@ -1,92 +1,57 @@
 # Developer guide
 
-Apollo provides for various forms of customization through the use of Apollo
-plugins. The Apollo collaboration server and the Apollo JBrowse plugin have
-**separate plugin systems**, each using the artifact format natural to its own
-runtime:
+Apollo can be customized with plugins. A plugin can have up to two halves, one
+for each place Apollo runs:
 
-- **Client-side plugins** are ordinary JBrowse plugins — a browser/UMD bundle,
-  loaded exactly the same way as any other JBrowse plugin. Nothing about these
-  is Apollo-specific.
-- **Server-side plugins** are plain Node code — either an npm package or a
-  Node-targeted (not browser/UMD) ESM/CJS bundle — with no dependency on
-  `@jbrowse/core` at all.
+- **A client half**, which is an ordinary
+  [JBrowse plugin](https://jbrowse.org/jb2/docs/developer_guides/creating_plugins/)
+  that uses Apollo's extension points. It's built as a browser (UMD) bundle and
+  added to JBrowse's `config.json` like any other JBrowse plugin.
+- **A server half**, which is an `ApolloServerPlugin` for the Apollo
+  collaboration server. It's plain Node code with no dependency on JBrowse,
+  published as an npm package or a Node-targeted bundle.
 
-These used to be the same physical bundle, sharing one build for both runtimes.
-That caused real problems: a UMD bundle built for the browser doesn't reliably
-load in Node, and Node-only code (native modules, `fs`, DB drivers) in a file
-that also has to run in a browser bundle is easy to get wrong in ways that
-silently break the client. Splitting the two removes both problems, at the cost
-of maintaining two build outputs for a plugin that needs both halves (see
-[Plugins needing both a client and server half](#plugins-needing-both-a-client-and-server-half)
-below).
+A plugin that only changes how Apollo looks or behaves in the browser needs only
+a client half. A plugin that only changes what the server does (custom login,
+assembly access, ...) needs only a server half. Many plugins need both: a custom
+change type, for example, has to be applied in the browser and on the server.
+Build both halves from one source package and keep shared code (change classes,
+checks, change rules) in a module both import.
 
-## Server-side plugins
+The
+[example plugin](https://github.com/GMOD/Apollo3/tree/main/packages/apollo-plugin-example)
+in the Apollo repository has both halves and uses most of the APIs described in
+this guide.
 
-A server-side plugin is a class implementing `ApolloServerPlugin` from
-`@apollo-annotation/common/server`:
+## The plugin API package
 
-```ts
-import type { ApolloServerHookRegistrar } from '@apollo-annotation/common/server'
-import { ApolloServerPlugin } from '@apollo-annotation/common/server'
+Everything a plugin needs from Apollo is in `@apollo-annotation/common`, which
+has three entry points:
 
-export default class MyPlugin extends ApolloServerPlugin {
-  name = 'MyPlugin'
+| Entry point                        | Contents                                                                                                                    | Used by         |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| `@apollo-annotation/common`        | Code that runs anywhere: the `Change`, `FeatureChange` and `Check` base classes, `ChangeRule`, and plain feature data types | Both halves     |
+| `@apollo-annotation/common/client` | Client plugin types: client change types and validations, glyphs, and the types of Apollo's JBrowse extension points        | The client half |
+| `@apollo-annotation/common/server` | Server plugin types: `ApolloServerPlugin`, its hooks, server change types and validations, routes, login and access types   | The server half |
 
-  install(registrar: ApolloServerHookRegistrar) {
-    registrar.registerHook(
-      'Apollo-RegisterRoutes',
-      (routes, { connection }) => {
-        // ...
-        return routes
-      },
-    )
-  }
-}
-```
+The root entry point has no runtime dependencies. The `/client` and `/server`
+entry points only need the packages the half they're for already has (for
+example `@jbrowse/core` for the client, `mongoose` for the server), which are
+optional peer dependencies.
 
-Build it as a Node-targeted bundle (e.g. with esbuild/tsup using
-`platform: 'node'`) or, more simply, just publish it as a regular npm package.
-Then load it one of two ways, configured in
-[your `.env` file](../03-multi-user/02-installation/04-configuration-options.md):
+## Topics
 
-- `PLUGIN_PACKAGES`: a comma-separated list of npm package specifiers, imported
-  from the server's own `node_modules`. This is the recommended path for
-  self-hosted operators who already control their own server image/build.
-- `PLUGIN_URLS`/`PLUGIN_URLS_FILE`: a comma-separated list of URLs (or a file
-  listing one URL per line) to fetch a plugin bundle from at startup, with no
-  rebuild required. Useful for hosted/managed deployments. Fetched bundles are
-  cached by content hash; if you also configure an integrity hash for the URL
-  (`PLUGIN_INTEGRITY`), a cache hit skips the network fetch entirely on restart.
-  Without a configured hash, the URL is always fetched, since the content isn't
-  known until after the fetch — but an unchanged file is not rewritten to disk.
-
-Both can be used together; every plugin found across both is loaded.
-
-Examples of server-side plugin capabilities:
-
-- [Custom login](custom-login.md): Add other forms of login to the default
-  Google and Microsoft logins.
-- [Restricting assembly access](assembly-access.md): Limit which users can
-  access which assemblies.
-- [Custom server routes](custom-routes.md): Expose your own HTTP endpoints,
-  backed by your own MongoDB collections, for a client-side plugin to call.
-
-## Client-side plugins
-
-Client-side plugins are used in exactly the same way as any other JBrowse
-plugin. You will add a URL of your plugin file to your `config.json`. For
-information on how to do so, see the
-[JBrowse docs](https://jbrowse.org/jb2/docs/config_guides/plugins/), and
-additionally the [JBrowse guide](../03-multi-user/03-guides/jbrowse.md) in these
-docs if you're working with a multi-user collaboration server.
-
-## Plugins needing both a client and server half
-
-Custom login is the clearest example: it needs a server-side token handler _and_
-a client-side login button/redirect. Rather than one bundle for both, build
-**two artifacts from one source package** — a client entry point built with your
-usual JBrowse/UMD config, and a server entry point built with a Node-targeted
-config — and publish/version them together. Operators configure each half
-separately (a `config.json` entry for the client bundle, a
-`PLUGIN_URLS`/`PLUGIN_PACKAGES` entry for the server bundle).
+- [Server plugins](server-plugins.md): writing and loading a server plugin, and
+  every server hook
+- [Client plugins](client-plugins.md): every Apollo extension point in the
+  JBrowse plugin
+- [Custom change types](changes.md): new kinds of edits, applied on both the
+  client and the server
+- [Validations](validations.md): rejecting changes, with change rules and client
+  and server validations
+- [Checks](checks.md): finding problems in annotations
+- [Custom login](custom-login.md): adding ways to log in
+- [Restricting assembly access](assembly-access.md): limiting which users can
+  access which assemblies
+- [Custom server routes](custom-routes.md): adding HTTP endpoints to the server
+- [Migrating plugins](migration.md): changes to the plugin API since Apollo 1.x
