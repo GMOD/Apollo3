@@ -53,7 +53,7 @@ import {
 } from '@apollo-annotation/shared'
 import type { GFF3Feature } from '@gmod/gff'
 import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
-import { Logger } from '@nestjs/common'
+import { Logger, type OnModuleInit } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { RemoteFile } from 'generic-filehandle2'
 import { type ClientSession, Model } from 'mongoose'
@@ -64,6 +64,10 @@ import { MessagesGateway } from '../messages/messages.gateway.js'
 import { PluginsService } from '../plugins/plugins.service.js'
 
 import { addChild, getFeatureFromId, mergeTranscripts } from './featureTree.js'
+import {
+  type InternalChangeContext,
+  serverChangeTypes,
+} from './serverChangeTypes.js'
 
 type ChangeHandlers = {
   [K in keyof typeof changes]: (
@@ -72,7 +76,18 @@ type ChangeHandlers = {
   ) => Promise<void>
 }
 
-export class ChangeHandlersService implements ChangeHandlers {
+/** Built-in change types that only admins may submit */
+const ADMIN_CHANGE_TYPES = new Set<string>([
+  'AddAssemblyFromFileChange',
+  'AddAssemblyAndFeaturesFromFileChange',
+  'AddFeaturesFromFileChange',
+  'AddRefSeqAliasesChange',
+  'DeleteAssemblyChange',
+  'UserChange',
+  'DeleteUserChange',
+])
+
+export class ChangeHandlersService implements ChangeHandlers, OnModuleInit {
   constructor(
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
@@ -99,6 +114,25 @@ export class ChangeHandlersService implements ChangeHandlers {
   ) {}
 
   private readonly logger = new Logger(ChangeHandlersService.name)
+
+  /** Register the built-in change types and their handlers */
+  onModuleInit() {
+    for (const [name, changeType] of Object.entries(changes)) {
+      const handler = this[name as keyof typeof changes] as (
+        change: unknown,
+        context: { session: ClientSession; user: string },
+      ) => Promise<void>
+      serverChangeTypes.register(name, {
+        changeType,
+        handler: (change, context) =>
+          handler.call(this, change, {
+            session: context.session,
+            user: (context as InternalChangeContext).uniqueUserId,
+          }),
+        requiredRole: ADMIN_CHANGE_TYPES.has(name) ? 'admin' : 'user',
+      })
+    }
+  }
 
   async AddFeatureChange(
     change: AddFeatureChange,

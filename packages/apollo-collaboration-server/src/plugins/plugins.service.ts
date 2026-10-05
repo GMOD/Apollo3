@@ -1,8 +1,6 @@
 import {
-  type ChangeConstructor,
   type ChangeRule,
   type Check,
-  changeRegistry,
   checkRegistry,
 } from '@apollo-annotation/common'
 import {
@@ -12,12 +10,14 @@ import {
   type ApolloServerPlugin,
   type CustomAuthHandler,
   type PluginRoute,
+  type ServerChangeType,
   type ServerValidation,
 } from '@apollo-annotation/common/server'
 import { Inject, Injectable, Logger, type OnModuleInit } from '@nestjs/common'
 import { InjectConnection } from '@nestjs/mongoose'
 import type { Connection } from 'mongoose'
 
+import { serverChangeTypes } from '../changes/serverChangeTypes.js'
 import { serverValidations } from '../utils/validation/ServerValidationSet.js'
 
 import { APOLLO_PLUGINS } from './plugins.constants.js'
@@ -71,10 +71,10 @@ export class PluginsService implements OnModuleInit {
     >('Apollo-RegisterCustomAuth', new Map(), {})
 
     const changeTypes = await this.evaluateStartupHook<
-      Record<string, ChangeConstructor>
+      Record<string, ServerChangeType>
     >('Apollo-RegisterChangeTypes', {}, {})
     for (const [name, changeType] of Object.entries(changeTypes)) {
-      changeRegistry.registerChange(name, changeType)
+      serverChangeTypes.register(name, changeType)
     }
 
     const checks = await this.evaluateStartupHook<Check[]>(

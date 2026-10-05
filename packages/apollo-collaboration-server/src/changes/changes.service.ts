@@ -22,7 +22,6 @@ import {
   type AddFeatureChangeDetails,
   type ChangeMessage,
   type DecodedJWT,
-  changes,
   makeUserSessionId,
 } from '@apollo-annotation/shared'
 import {
@@ -37,8 +36,11 @@ import { CountersService } from '../counters/counters.service.js'
 import { MessagesGateway } from '../messages/messages.gateway.js'
 import { serverValidations } from '../utils/validation/ServerValidationSet.js'
 
-import { ChangeHandlersService } from './changeHandlers.service.js'
 import { FindChangeDto } from './dto/find-change.dto.js'
+import {
+  type InternalChangeContext,
+  serverChangeTypes,
+} from './serverChangeTypes.js'
 
 const STATUS_ZERO_CHANGE_TYPES = new Set([
   'AddAssemblyAndFeaturesFromFileChange',
@@ -60,7 +62,6 @@ export class ChangesService {
     private readonly changeModel: Model<ChangeDocument>,
     private readonly countersService: CountersService,
     private readonly messagesGateway: MessagesGateway,
-    private readonly changeHandlersService: ChangeHandlersService,
   ) {}
 
   private readonly logger = new Logger(ChangesService.name)
@@ -116,13 +117,14 @@ export class ChangesService {
     let changeDoc: ChangeDocument | undefined
     await this.featureModel.db.transaction(async (session) => {
       try {
-        const handler =
-          this.changeHandlersService[change.typeName as keyof typeof changes]
-        // @ts-expect-error change not narrowed
-        await handler.bind(this.changeHandlersService)(change, {
+        const changeContext: InternalChangeContext = {
+          ...validationContext,
           session,
-          user: uniqUserId,
-        })
+          uniqueUserId: uniqUserId,
+        }
+        await serverChangeTypes
+          .get(change.typeName)
+          .handler(change, changeContext)
       } catch (error) {
         // Clean up old "temporary document" -documents
         // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction

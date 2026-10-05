@@ -1,12 +1,12 @@
 import type { Connection } from 'mongoose'
 
 import type { ChangeRule } from '../ChangeRule.js'
-import type { ChangeConstructor } from '../ChangeTypeRegistry.js'
 import type { Check } from '../Check.js'
 
 import type { AssemblyAccess, AssemblyAccessProps } from './AssemblyAccess.js'
 import type { CustomAuthHandler } from './CustomAuthHandler.js'
 import type { PluginRoute, PluginRouteProps } from './PluginRoute.js'
+import type { ServerChangeType } from './ServerChangeType.js'
 import type { ServerValidation } from './ServerValidation.js'
 
 /**
@@ -37,13 +37,16 @@ export interface ApolloServerHookMap {
     extendee: Map<string, CustomAuthHandler>,
     props: Record<string, never>,
   ) => Map<string, CustomAuthHandler> | Promise<Map<string, CustomAuthHandler>>
-  /** Collects custom CRDT Change types, registered into the shared `changeRegistry`. */
+  /**
+   * Collects custom change types, keyed by their `typeName`, with the handler
+   * that applies them on the server.
+   */
   'Apollo-RegisterChangeTypes': (
-    extendee: Record<string, ChangeConstructor>,
+    extendee: Record<string, ServerChangeType>,
     props: Record<string, never>,
   ) =>
-    | Record<string, ChangeConstructor>
-    | Promise<Record<string, ChangeConstructor>>
+    | Record<string, ServerChangeType>
+    | Promise<Record<string, ServerChangeType>>
   /** Collects custom feature Checks, registered into the shared `checkRegistry`. */
   'Apollo-RegisterChecks': (
     extendee: Check[],
