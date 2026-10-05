@@ -128,6 +128,57 @@ describe('PluginsService', () => {
       expect(service.pluginRoutes).toEqual([routeA, routeB])
     })
 
+    it('finds plugin routes by method and path, with path parameters', async () => {
+      const getRoute = {
+        method: 'GET',
+        path: '/my-plugin/widgets/:id',
+        handler: noopHandler,
+      }
+      const postRoute = {
+        method: 'post',
+        path: '/my-plugin/widgets',
+        handler: noopHandler,
+      }
+      const service = await createService([
+        new FakePlugin('routes-plugin', (registrar) => {
+          registrar.registerHook('Apollo-RegisterRoutes', (routes) => [
+            ...routes,
+            getRoute,
+            postRoute,
+          ])
+        }),
+      ])
+
+      await service.onModuleInit()
+
+      expect(service.findRoute('GET', '/my-plugin/widgets/a%20b')).toEqual({
+        route: getRoute,
+        params: { id: 'a b' },
+      })
+      expect(service.findRoute('POST', '/my-plugin/widgets')?.route).toBe(
+        postRoute,
+      )
+      expect(service.findRoute('GET', '/my-plugin/widgets')).toBeUndefined()
+      expect(
+        service.findRoute('DELETE', '/my-plugin/widgets/1'),
+      ).toBeUndefined()
+    })
+
+    it('aborts startup when a plugin route has an invalid path', async () => {
+      const service = await createService([
+        new FakePlugin('bad-route-plugin', (registrar) => {
+          registrar.registerHook('Apollo-RegisterRoutes', (routes) => [
+            ...routes,
+            { method: 'GET', path: '/bad/:', handler: noopHandler },
+          ])
+        }),
+      ])
+
+      await expect(service.onModuleInit()).rejects.toThrow(
+        /Invalid path "\/bad\/:"/,
+      )
+    })
+
     it('aborts startup when a startup-fatal hook throws', async () => {
       const service = await createService([
         new FakePlugin('broken-routes-plugin', (registrar) => {

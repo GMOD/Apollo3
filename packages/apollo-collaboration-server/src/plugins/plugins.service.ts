@@ -16,6 +16,7 @@ import {
 import { Inject, Injectable, Logger, type OnModuleInit } from '@nestjs/common'
 import { InjectConnection } from '@nestjs/mongoose'
 import type { Connection } from 'mongoose'
+import { type MatchFunction, type ParamData, match } from 'path-to-regexp'
 
 import { serverChangeTypes } from '../changes/serverChangeTypes.js'
 import { serverValidations } from '../utils/validation/ServerValidationSet.js'
@@ -34,6 +35,10 @@ export class PluginsService implements OnModuleInit {
   private readonly hooks = new Map<ApolloServerHookName, RegisteredHook[]>()
 
   pluginRoutes: PluginRoute[] = []
+  private readonly routeMatchers = new Map<
+    PluginRoute,
+    MatchFunction<ParamData>
+  >()
 
   private customAuthHandlers = new Map<string, CustomAuthHandler>()
 
@@ -65,6 +70,19 @@ export class PluginsService implements OnModuleInit {
       [],
       { connection: this.connection },
     )
+    for (const route of this.pluginRoutes) {
+      try {
+        this.routeMatchers.set(
+          route,
+          match(route.path, { decode: decodeURIComponent }),
+        )
+      } catch (error) {
+        throw new Error(
+          `Invalid path "${route.path}" in plugin route: ${String(error)}`,
+          { cause: error },
+        )
+      }
+    }
 
     this.customAuthHandlers = await this.evaluateStartupHook<
       Map<string, CustomAuthHandler>
@@ -92,6 +110,20 @@ export class PluginsService implements OnModuleInit {
     for (const validation of validations) {
       serverValidations.register(validation)
     }
+  }
+
+  /** Find the plugin route for a request, and the path's parameter values */
+  findRoute(method: string, path: string) {
+    for (const route of this.pluginRoutes) {
+      if (route.method.toUpperCase() !== method.toUpperCase()) {
+        continue
+      }
+      const result = this.routeMatchers.get(route)?.(path)
+      if (result) {
+        return { route, params: result.params }
+      }
+    }
+    return
   }
 
   /** Custom login methods plugins registered, collected once at startup. */
