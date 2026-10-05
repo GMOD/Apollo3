@@ -1,75 +1,70 @@
+---
+sidebar_position: 8
+---
+
 # Custom server routes
 
-A server-side plugin can manage its own data — for example, its own MongoDB
-collection — and expose it to the outside world by registering HTTP routes on
-the Apollo collaboration server. This is what a client-side plugin (a menu item
-that opens a dialog, say) would call to talk to the server-side half of the same
-plugin.
+A server plugin can add HTTP endpoints to the Apollo collaboration server, for
+example to serve data from its own MongoDB collection to the client half of the
+same plugin.
 
 ## Hook
 
-The name of the hook to target for this is `Apollo-RegisterRoutes`. You will
-need to call `registrar.registerHook` in the `install` method of your server
-plugin (see the [developer guide overview](index.md#server-side-plugins) for the
-full plugin shape). Here is an example of using the hook:
+Register routes with the `Apollo-RegisterRoutes` hook in your
+[server plugin's](server-plugins.md) `install` method:
 
 ```ts
-import {
-  type PluginRoute,
-  type PluginRouteProps,
-} from '@apollo-annotation/common/server'
-
-registrar.registerHook(
-  'Apollo-RegisterRoutes',
-  (routes: PluginRoute[], { connection }: PluginRouteProps): PluginRoute[] => {
-    routes.push({
-      method: 'GET',
-      path: '/my-plugin-name/widgets',
-      handler: async (_req, res) => {
-        const widgets = await connection
-          .collection('myPluginWidgets')
-          .find()
-          .toArray()
-        res.json(widgets)
-      },
-    })
-    return routes
+registrar.registerHook('Apollo-RegisterRoutes', (routes, { connection }) => [
+  ...routes,
+  {
+    method: 'GET',
+    path: '/my-plugin-name/widgets/:id',
+    handler: async (_req, res, { params }) => {
+      const widget = await connection
+        .collection('myPluginWidgets')
+        .findOne({ id: params.id })
+      if (!widget) {
+        res.status(404).end()
+        return
+      }
+      res.json(widget)
+    },
   },
-)
+])
 ```
 
-Unlike most hooks, this one is not handed an existing value to extend: it starts
-as an empty array, and whatever your callback returns becomes the full list of
-plugin routes served by the collaboration server. If more than one plugin
-registers this hook, push onto the array you're given rather than returning a
-new one, so every plugin's routes survive.
+A route has:
 
-- `method` is an HTTP method such as `'GET'` or `'POST'`.
-- `path` is matched against the request path with the `/plugin-routes` prefix
-  removed, so the route above answers requests to
-  `GET /plugin-routes/my-plugin-name/widgets`. Prefix your own routes with
-  something unique to your plugin — its `name` is a reasonable choice — so you
-  don't collide with routes another plugin registers.
-- `handler` receives the same Express `Request`/`Response` objects a built-in
-  controller would, so read `req.body`/`req.query`/`req.params` and write the
-  response with `res.json(...)`/`res.status(...)` as usual.
+- `method`: an HTTP method such as `'GET'` or `'POST'`.
+- `path`: matched against the request path after `/plugin-routes`, so the route
+  above answers `GET /plugin-routes/my-plugin-name/widgets/123`. Paths can have
+  parameters (`/:id`) and wildcards (`/*rest`), as in Express 5. Start your
+  paths with something unique to your plugin, such as its name, so they don't
+  clash with another plugin's routes.
+- `role` (optional): the minimum role a user needs to use the route: `'admin'`,
+  `'user'`, `'readOnly'` (the default) or `'none'`, which makes the route
+  available to anyone, including users who aren't logged in.
+- `handler`: called with the Express request and response and a context.
 
-The callback's second argument carries the same `connection` prop the
-`Apollo-MongoDB` hook provides, so a plugin's routes can read and write their
-own collection directly.
+## The handler context
+
+The handler's third argument has:
+
+- `params`: the values of the parameters in `path`
+- `user`: the user making the request (`id`, `username`, `email` and `role`), or
+  undefined if they aren't logged in
+- `allowedAssemblyIds`: the IDs of the assemblies the user may access, or
+  undefined if they may access all of them (see
+  [Restricting assembly access](assembly-access.md)). A route that returns data
+  belonging to assemblies should only return data from these.
+- `connection`: the Mongoose connection to the Apollo database
+- `logger`: a logger whose output goes to the server log
 
 ## Behavior
 
-- Requests to `/plugin-routes/*` pass through the same authentication and
-  authorization guards as every other endpoint on the server, so `req.user` is
-  populated for a logged-in request by the time your handler runs. Every plugin
-  route requires at least a logged-in, read-only user; if a particular route
-  needs a stricter role, check the user's role yourself inside the handler.
-- A request that doesn't match any registered `method`/`path` pair gets a 404.
+- A request that doesn't match any route gets a 404, and one from a user without
+  the route's role gets a 403.
 - If your handler throws, Apollo logs the error and responds with a 500 (unless
   your handler already sent a response).
-- Routes are collected once, at server startup, from every loaded plugin — there
-  is no way to add or remove a route without restarting the server. If your
-  registration callback itself throws while routes are being collected, server
-  startup fails with your plugin named in the log, rather than silently
-  registering no routes.
+- Routes are collected once, at startup. If your callback throws, or a route has
+  an invalid `path`, the server doesn't start, and the log names your plugin.
