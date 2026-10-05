@@ -94,6 +94,14 @@ New extension points: `Apollo-GetGlyph`, `Apollo-FeatureContextMenuItems` and
 - Paths can have parameters and wildcards, and an invalid path stops the server
   from starting.
 
+## Permissions
+
+`AddAssemblyFromExternalChange`, `AddAssemblyAliasesChange` and
+`ImportJBrowseConfigChange` now need the admin role, like Apollo's other changes
+that manage assemblies and the server's JBrowse configuration. The "Save track
+to Apollo" and "Remove track from Apollo" track menu items, which submit
+`ImportJBrowseConfigChange`s, are only shown to admins.
+
 ## Server configuration
 
 - `PLUGIN_URLS_FILE` can now be used on its own (it was rejected unless

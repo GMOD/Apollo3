@@ -79,10 +79,13 @@ type ChangeHandlers = {
 /** Built-in change types that only admins may submit */
 const ADMIN_CHANGE_TYPES = new Set<string>([
   'AddAssemblyFromFileChange',
+  'AddAssemblyFromExternalChange',
   'AddAssemblyAndFeaturesFromFileChange',
+  'AddAssemblyAliasesChange',
   'AddFeaturesFromFileChange',
   'AddRefSeqAliasesChange',
   'DeleteAssemblyChange',
+  'ImportJBrowseConfigChange',
   'UserChange',
   'DeleteUserChange',
 ])

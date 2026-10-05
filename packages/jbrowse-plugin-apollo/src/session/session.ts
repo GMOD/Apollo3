@@ -461,7 +461,18 @@ export function extendSession(
         .getTrackActions
       return {
         getTrackActions(conf: BaseTrackConfig) {
+          // Saving tracks to and removing them from Apollo changes the stored
+          // JBrowse config, which only admins can do
+          const { internetAccounts } = getRoot<ApolloRootModel>(self)
+          const isApolloAdmin = (
+            internetAccounts as ApolloInternetAccountModel[]
+          ).some(
+            (internetAccount) =>
+              internetAccount.type === 'ApolloInternetAccount' &&
+              internetAccount.role === 'admin',
+          )
           if (
+            !isApolloAdmin ||
             conf.type === 'ApolloTrack' ||
             conf.type === 'ReferenceSequenceTrack'
           ) {
