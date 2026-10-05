@@ -8,7 +8,7 @@ import {
   checkRegistry,
 } from '@apollo-annotation/common'
 import { ClientValidation } from '@apollo-annotation/common/client'
-import type PluginManager from '@jbrowse/core/PluginManager'
+import PluginManager from '@jbrowse/core/PluginManager'
 import { describe, expect, it, jest } from '@jest/globals'
 
 import { registerPluginContributions } from './pluginContributions'
@@ -46,33 +46,28 @@ class PluginValidation extends ClientValidation {
   name = 'TestContributedValidation'
 }
 
-/** Applies each registered callback in turn, like JBrowse does */
-function makePluginManager(
-  callbacks: Record<string, (extendee: unknown) => unknown>,
-) {
-  return {
-    evaluateExtensionPoint: (name: string, extendee: unknown) =>
-      name in callbacks ? callbacks[name](extendee) : extendee,
-  } as unknown as PluginManager
-}
-
+/** A plugin manager with contributions, as a plugin's install() would add */
 function makeContributingPluginManager() {
-  const handler = jest.fn()
-  return makePluginManager({
-    'Apollo-RegisterChangeTypes': (changeTypes) => ({
-      ...(changeTypes as object),
-      TestContributedChange: { changeType: PluginChange, handler },
+  const pluginManager = new PluginManager([])
+  pluginManager.addToExtensionPoint(
+    'Apollo-RegisterChangeTypes',
+    (changeTypes) => ({
+      ...changeTypes,
+      TestContributedChange: {
+        changeType: PluginChange,
+        handler: jest.fn<(change: Change) => void>(),
+      },
     }),
-    'Apollo-RegisterChecks': (checks) => [
-      ...(checks as Check[]),
-      new PluginCheck(),
-    ],
-    'Apollo-RegisterValidations': (validations) => [
-      ...(validations as unknown[]),
-      new PluginRule(),
-      new PluginValidation(),
-    ],
-  })
+  )
+  pluginManager.contributeToExtensionPoint(
+    'Apollo-RegisterChecks',
+    () => new PluginCheck(),
+  )
+  pluginManager.contributeToExtensionPoint('Apollo-RegisterValidations', () => [
+    new PluginRule(),
+    new PluginValidation(),
+  ])
+  return pluginManager
 }
 
 describe('registerPluginContributions', () => {
@@ -116,11 +111,10 @@ describe('registerPluginContributions', () => {
     class OtherChange extends PluginChange {
       typeName = 'OtherChange'
     }
-    const pluginManager = makePluginManager({
-      'Apollo-RegisterChangeTypes': () => ({
-        TestContributedChange: { changeType: OtherChange },
-      }),
-    })
+    const pluginManager = new PluginManager([])
+    pluginManager.addToExtensionPoint('Apollo-RegisterChangeTypes', () => ({
+      TestContributedChange: { changeType: OtherChange },
+    }))
 
     expect(() => {
       registerPluginContributions(pluginManager)
