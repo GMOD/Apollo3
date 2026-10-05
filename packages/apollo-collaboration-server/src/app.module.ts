@@ -118,6 +118,12 @@ const validationSchema = Joi.object({
     .default(''),
   PLUGIN_URLS_FILE: Joi.string(),
   OAUTH_HTTP_PROXY: Joi.string(),
+  // Size in bytes of the capped collection that carries server-sent events
+  // between server processes
+  EVENTS_COLLECTION_SIZE: Joi.number()
+    .integer()
+    .positive()
+    .default(64 * 1024 * 1024),
 })
   .xor('MONGODB_URI', 'MONGODB_URI_FILE')
   .oxor('GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_ID_FILE')

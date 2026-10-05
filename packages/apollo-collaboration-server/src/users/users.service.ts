@@ -89,11 +89,19 @@ export class UsersService {
       if (guestUser) {
         return
       }
-      return this.addNew({
-        email: GUEST_USER_EMAIL,
-        username: GUEST_USER_NAME,
-        role: guestUserRole,
-      })
+      try {
+        return await this.addNew({
+          email: GUEST_USER_EMAIL,
+          username: GUEST_USER_NAME,
+          role: guestUserRole,
+        })
+      } catch (error) {
+        // Another server process created it at the same time
+        if ((error as { code?: number }).code === 11_000) {
+          return
+        }
+        throw error
+      }
     }
     if (!guestUser) {
       return

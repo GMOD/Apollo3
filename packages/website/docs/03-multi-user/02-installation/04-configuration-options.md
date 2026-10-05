@@ -113,4 +113,9 @@ MICROSOFT_CLIENT_SECRET=client_secret_here
 
 # HTTP/HTTPS proxy for OAuth requests, if your server is behind a proxy
 # OAUTH_HTTP_PROXY=http://proxy.example.com:8080
+
+# Size in bytes of the MongoDB capped collection used to send live updates
+# between server processes, defaults to 67108864 (64 MiB). Only used when the
+# collection is first created.
+# EVENTS_COLLECTION_SIZE=67108864
 ```
