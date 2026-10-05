@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 
-import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import type { Feature } from '@apollo-annotation/schemas'
-
+import type { FeatureNode } from './AnnotationFeatureData.js'
 import {
   AssemblySpecificChange,
   type SerializedAssemblySpecificChange,
@@ -37,7 +35,7 @@ export abstract class FeatureChange extends AssemblySpecificChange {
    * @param feature - parent feature
    * @returns
    */
-  getChildFeatureIds(feature: Feature | AnnotationFeatureSnapshot): string[] {
+  getChildFeatureIds(feature: FeatureNode): string[] {
     if (!feature.children) {
       return []
     }

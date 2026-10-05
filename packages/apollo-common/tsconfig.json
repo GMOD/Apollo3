@@ -11,5 +11,5 @@
     "types": ["node"],
   },
   "include": ["./src"],
-  "references": [{ "path": "../apollo-schemas" }, { "path": "../apollo-mst" }],
+  "references": [{ "path": "../apollo-schemas" }],
 }
