@@ -4,3 +4,4 @@
 export * from './ClientValidation.js'
 export * from './ClientChangeType.js'
 export * from './Glyph.js'
+export * from './ExtensionPoints.js'
