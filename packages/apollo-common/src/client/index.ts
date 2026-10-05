@@ -3,3 +3,4 @@
  */
 export * from './ClientValidation.js'
 export * from './ClientChangeType.js'
+export * from './Glyph.js'

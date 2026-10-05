@@ -486,6 +486,7 @@ __metadata:
   dependencies:
     "@apollo-annotation/mst": "workspace:^"
     "@apollo-annotation/schemas": "workspace:^"
+    "@jbrowse/core": "npm:^5.0.0-beta.10"
     "@nestjs/common": "npm:^11.2.1"
     "@nestjs/core": "npm:^11.2.1"
     "@types/express": "npm:^4.17.13"
@@ -498,6 +499,7 @@ __metadata:
   peerDependencies:
     "@apollo-annotation/mst": "workspace:^"
     "@apollo-annotation/schemas": "workspace:^"
+    "@jbrowse/core": ^5.0.0-beta.10
     "@nestjs/common": ^11.2.1
     "@nestjs/core": ^11.2.1
     "@types/express": ^4.17.13
@@ -506,6 +508,8 @@ __metadata:
     "@apollo-annotation/mst":
       optional: true
     "@apollo-annotation/schemas":
+      optional: true
+    "@jbrowse/core":
       optional: true
     "@nestjs/common":
       optional: true
