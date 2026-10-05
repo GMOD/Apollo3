@@ -4,7 +4,7 @@ import fs from 'node:fs/promises'
 import type {
   AuthHandlerRedirect,
   AuthHandlerUser,
-} from '@apollo-annotation/common'
+} from '@apollo-annotation/common/server'
 import type { JWTPayload } from '@apollo-annotation/shared'
 import {
   BadRequestException,

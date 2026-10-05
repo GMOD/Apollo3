@@ -4,7 +4,7 @@ import type { ExecutionContext } from '@nestjs/common'
 import type { Reflector } from '@nestjs/core'
 import type { ClientSession, Model } from 'mongoose'
 
-import type { Change } from './Change.js'
+import type { Change } from '../Change.js'
 
 export interface Context {
   context: ExecutionContext

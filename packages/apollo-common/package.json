@@ -8,7 +8,10 @@
   },
   "sideEffects": false,
   "type": "module",
-  "exports": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./server": "./dist/server/index.js"
+  },
   "scripts": {
     "build": "tsc --build"
   },

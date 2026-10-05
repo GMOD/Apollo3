@@ -3,7 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-import type { ApolloServerPlugin } from '@apollo-annotation/common'
+import type { ApolloServerPlugin } from '@apollo-annotation/common/server'
 import { jest } from '@jest/globals'
 import type { FactoryProvider } from '@nestjs/common'
 
