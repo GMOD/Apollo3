@@ -2,6 +2,7 @@ import { type IDBPDatabase, openDB } from 'idb'
 
 Cypress.Commands.add('loginAsGuest', () => {
   cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
+  cy.contains('Yes, I trust it', { timeout: 10_000 }).click()
   cy.contains('Continue as Guest', { timeout: 10_000 }).click()
   // eslint-disable-next-line cypress/no-unnecessary-waiting
   cy.wait(2000)
@@ -115,6 +116,8 @@ Cypress.Commands.add(
       cy.get('[data-testid="track_menu_icon"]').click()
       cy.contains('Appearance').trigger('mouseover')
       cy.contains(appearance).click()
+      cy.press(Cypress.Keyboard.Keys.ESC)
+      cy.press(Cypress.Keyboard.Keys.ESC)
     })
   },
 )
@@ -192,16 +195,16 @@ Cypress.Commands.add(
       cy.wait('@changes').its('response.statusCode').should('match', /2../)
     })
 
-    cy.contains('UploadAssemblyFile')
+    cy.contains(`UploadAssemblyFile for ${assemblyName}`)
       .parent()
-      .should('contain', 'All operations successful')
+      .should('contain', 'Uploaded')
     cy.contains(
       loadFeatures
         ? 'AddAssemblyAndFeaturesFromFileChange'
         : 'AddAssemblyFromFileChange',
     )
       .parent()
-      .should('contain', 'All operations successful')
+      .should('contain', 'Finished')
     cy.get('button[aria-label="Close drawer"]', { timeout: 10_000 }).click()
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(1000)
@@ -218,11 +221,14 @@ Cypress.Commands.add(
   (assemblyName, locationOrSearch) => {
     cy.contains('Select assembly to view', { timeout: 10_000 })
 
-    cy.get('input[data-testid="assembly-selector"]')
+    cy.contains('Assembly')
+
+    cy.get('div')
+      .contains('Assembly')
       .parent()
       .then((el) => {
         if (!el.text().includes(assemblyName)) {
-          cy.get('input[data-testid="assembly-selector"]').parent().click()
+          cy.get('div').contains('Assembly').parent().click()
           cy.get('li').contains(assemblyName).click()
         }
       })
@@ -249,7 +255,7 @@ Cypress.Commands.add('searchFeatures', (query, expectedNumOfHits) => {
     `{selectall}{backspace}${query}{enter}`,
   )
   if (expectedNumOfHits === 0) {
-    cy.contains(`Error: Unknown feature or sequence "${query}"`)
+    cy.contains(`No results found for "${query}"`)
   } else if (expectedNumOfHits === 1) {
     cy.wait(`@search ${query}`)
   } else {
@@ -324,10 +330,10 @@ Cypress.Commands.add(
     cy.contains('button', 'Submit').click()
     cy.contains('Importing features for')
       .parent()
-      .should('contain', 'All operations successful')
+      .should('contain', 'Imported features')
     cy.contains('AddFeaturesFromFileChange')
       .parent()
-      .should('contain', 'All operations successful')
+      .should('contain', 'Finished')
   },
 )
 

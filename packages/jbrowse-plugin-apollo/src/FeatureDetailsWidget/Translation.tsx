@@ -95,8 +95,7 @@ export function Translation({
     const codonSeq = cdsSequence
       .slice(codonGenomicPos, codonGenomicPos + 3)
       .toUpperCase()
-    const protein =
-      defaultCodonTable[codonSeq as keyof typeof defaultCodonTable] || '&'
+    const protein = defaultCodonTable[codonSeq] || '&'
     proteinSequence.push(protein)
   }
 
@@ -247,7 +246,7 @@ export function Translation({
           aria-controls="panel1-content"
           id="panel1-header"
         >
-          <Typography component="span" fontWeight={'bold'}>
+          <Typography component="span" sx={{ fontWeight: 'bold' }}>
             Translation
           </Typography>
         </StyledAccordionSummary>

@@ -13,17 +13,17 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@jbrowse/core": "^4.3.0",
-    "@jbrowse/mobx-state-tree": "^5.8.7",
-    "mobx": "^6.6.1",
-    "react-dom": "^18.2.0",
+    "@jbrowse/core": "^5.0.0-beta.13",
+    "@jbrowse/mobx-state-tree": "^6.7.0",
+    "mobx": "^7.0.3",
+    "react-dom": "^19.2.8",
     "rxjs": "^7.4.0"
   },
   "devDependencies": {
-    "@emotion/react": "^11.10.6",
-    "@emotion/styled": "^11.10.6",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
     "@types/react": "^18.3.4",
-    "react": "^18.2.0",
+    "react": "^19.2.8",
     "typescript": "^6.0.3"
   },
   "publishConfig": {

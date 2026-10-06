@@ -1,8 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import type { AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
 import {
   type AbstractSessionModel,
@@ -45,9 +42,7 @@ export function layoutsModelFactory(
         const { assemblyManager } =
           self.session as unknown as AbstractSessionModel
         return self.lgv.displayedRegions.map((region) => {
-          const assembly = assemblyManager.get(region.assemblyName) as
-            | Assembly
-            | undefined
+          const assembly = assemblyManager.get(region.assemblyName)
           let min: number | undefined
           let max: number | undefined
           const { end, refName, start } = region
@@ -103,9 +98,7 @@ export function layoutsModelFactory(
         const { assemblyManager } =
           self.session as unknown as AbstractSessionModel
         return self.lgv.displayedRegions.map((region, idx) => {
-          const assembly = assemblyManager.get(region.assemblyName) as
-            | Assembly
-            | undefined
+          const assembly = assemblyManager.get(region.assemblyName)
           const featureLayout = new Map<number, LayoutRow[]>()
           const minMax = self.featuresMinMax[idx]
           if (!minMax) {
