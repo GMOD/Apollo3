@@ -14,8 +14,9 @@
     "./server": "./dist/server/index.js"
   },
   "scripts": {
-    "build": "tsc --build && yarn build:client",
+    "build": "tsc --build && yarn build:client && yarn build:server",
     "build:client": "JB_NPM=false JB_UMD=true rolldown --config ../jbrowse-plugin-apollo/rolldown/rolldown.config.mjs",
+    "build:server": "rolldown --config rolldown.server.config.mjs",
     "test": "glob -c \"tsx --test --test-reporter spec \" \"src/**/*.test.ts\"",
     "test:ci": "glob -c \"tsx --test --test-reporter spec \" \"src/**/*.test.ts\""
   },

@@ -7,8 +7,11 @@ package:
   (`dist/plugin-example.umd.production.min.js`) and added to JBrowse's
   `config.json` like any other JBrowse plugin.
 - **Server** (`src/server/index.ts`): an `ApolloServerPlugin` for the
-  collaboration server, loaded with
-  `PLUGIN_PACKAGES=@apollo-annotation/plugin-example/server`.
+  collaboration server, built as a single ES module (`dist/server.bundle.js`,
+  see `rolldown.server.config.mjs`) and loaded by serving it over HTTP and
+  setting `PLUGIN_URLS` to its URL. This is how plugins are added to the
+  published Docker image. `@apollo-annotation/common` is left out of the bundle,
+  since the server provides it.
 
 Code used by both halves is in `src/shared`.
 
@@ -29,7 +32,7 @@ details of each plugin API.
 ## Building and testing
 
 ```sh
-yarn build   # type-checks, builds the server half to dist/ and the client bundle
+yarn build   # type-checks, then builds the client and server bundles
 yarn test    # unit tests for both halves
 ```
 
