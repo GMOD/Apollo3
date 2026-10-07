@@ -36,6 +36,7 @@ USAGE
 - [`apollo assembly get`](#apollo-assembly-get)
 - [`apollo assembly sequence`](#apollo-assembly-sequence)
 - [`apollo change get`](#apollo-change-get)
+- [`apollo change submit [CHANGE-JSON]`](#apollo-change-submit-change-json)
 - [`apollo config [KEY] [VALUE]`](#apollo-config-key-value)
 - [`apollo export gff3 ASSEMBLY`](#apollo-export-gff3-assembly)
 - [`apollo feature add [FEATURE-JSON]`](#apollo-feature-add-feature-json)
@@ -43,7 +44,6 @@ USAGE
 - [`apollo feature check`](#apollo-feature-check)
 - [`apollo feature copy`](#apollo-feature-copy)
 - [`apollo feature delete`](#apollo-feature-delete)
-- [`apollo feature edit`](#apollo-feature-edit)
 - [`apollo feature edit-attribute`](#apollo-feature-edit-attribute)
 - [`apollo feature edit-coords`](#apollo-feature-edit-coords)
 - [`apollo feature edit-type`](#apollo-feature-edit-type)
@@ -317,6 +317,52 @@ DESCRIPTION
 _See code:
 [src/commands/change/get.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/change/get.ts)_
 
+## `apollo change submit [CHANGE-JSON]`
+
+Submit one or more changes to Apollo
+
+```
+USAGE
+  $ apollo change submit [CHANGE-JSON] [--profile <value>] [--config-file <value>] [--timeout <value>] [-F <value>]
+
+ARGUMENTS
+  [CHANGE-JSON]  Inline JSON describing the change(s) to submit. Can also be provided via stdin.
+
+FLAGS
+  -F, --change-json-file=<value>  File with JSON describing the change(s) to submit
+      --config-file=<value>       Use this config file (mostly for testing)
+      --profile=<value>           Use credentials from this profile
+      --timeout=<value>           [default: 1h] Timeout for each request to the server
+
+DESCRIPTION
+  Submit one or more changes to Apollo
+
+  Submit serialized change(s) directly to Apollo. Any change type known to the server can be submitted, including custom
+  change types added by plugins. This is a low-level command; the change JSON must contain everything the change type
+  requires (e.g. "typeName", "assembly", "changedIds").
+
+  The change JSON can be passed via argument or stdin or use the --change-json-file option. To submit multiple changes,
+  pass a JSON array; the changes are submitted one at a time in order.
+
+
+EXAMPLES
+  Submit a single change from inline JSON
+
+    $ apollo change submit '{"typeName":"TypeChange","changedIds":["<featureId>"],"assembly":"<assemblyId>","feature \
+      Id":"<featureId>","oldType":"BAC","newType":"G_quartet"}'
+
+  Submit a change from stdin JSON
+
+    echo '{"typeName":"MyPluginChange","assembly":"<assemblyId>", ...}' | apollo change submit
+
+  Submit changes from a file
+
+    $ apollo change submit --change-json-file changes.json
+```
+
+_See code:
+[src/commands/change/submit.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/change/submit.ts)_
+
 ## `apollo config [KEY] [VALUE]`
 
 Get or set apollo configuration options
@@ -582,49 +628,6 @@ DESCRIPTION
 
 _See code:
 [src/commands/feature/delete.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/feature/delete.ts)_
-
-## `apollo feature edit`
-
-Edit features using an appropiate json input
-
-```
-USAGE
-  $ apollo feature edit [--profile <value>] [--config-file <value>] [--timeout <value>] [-j <value>]
-
-FLAGS
-  -j, --json-input=<value>   [default: -] Json string or json file or "-" to read json from stdin
-      --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      Use credentials from this profile
-      --timeout=<value>      [default: 1h] Timeout for each request to the server
-
-DESCRIPTION
-  Edit features using an appropiate json input
-
-  Edit a feature by submitting a json input with all the required attributes for Apollo to process it. This is a very
-  low level command which most users probably do not need.
-
-  Input may be a json string or a json file and it may be an array of changes. This is an example input for editing
-  feature type:
-
-  {
-  "typeName": "TypeChange",
-  "changedIds": [
-  "6613f7d22c957525d631b1cc"
-  ],
-  "assembly": "6613f7d1360321540a11e5ed",
-  "featureId": "6613f7d22c957525d631b1cc",
-  "oldType": "BAC",
-  "newType": "G_quartet"
-  }
-
-EXAMPLES
-  Editing by passing a json to stdin:
-
-    echo '{"typeName": ... "newType": "G_quartet"}' | apollo feature edit -j -
-```
-
-_See code:
-[src/commands/feature/edit.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/feature/edit.ts)_
 
 ## `apollo feature edit-attribute`
 

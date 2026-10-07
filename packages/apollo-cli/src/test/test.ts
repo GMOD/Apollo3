@@ -610,7 +610,7 @@ server.listen(0, () => {
     },
   )
 
-  void globalThis.itName('Edit feature from json', () => {
+  void globalThis.itName('Submit change from json', () => {
     new Shell(
       `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
     )
@@ -632,7 +632,7 @@ server.listen(0, () => {
       },
     ]
     const j = JSON.stringify(req)
-    new Shell(`echo '${j}' | ${apollo} feature edit ${P} -j -`)
+    new Shell(`echo '${j}' | ${apollo} change submit ${P}`)
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t G_quartet`)
     out = JSON.parse(p.stdout).at(0)
     assert.strictEqual(out.type, 'G_quartet')
