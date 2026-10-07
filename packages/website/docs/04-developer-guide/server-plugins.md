@@ -37,31 +37,73 @@ callback against its hook.
 Plugins are configured in
 [the server's `.env` file](../03-multi-user/02-installation/04-configuration-options.md):
 
-- `PLUGIN_PACKAGES`: a comma-separated list of npm package specifiers, imported
-  from the server's own dependencies. This is the recommended way if you build
-  your own server image. A package can name a subpath, e.g.
-  `@my-org/my-apollo-plugin/server`.
 - `PLUGIN_URLS` or `PLUGIN_URLS_FILE`: URLs (or a file listing one URL per line)
-  to fetch plugin bundles from at startup, with no rebuild. Fetched bundles are
-  cached by content hash. If you also configure an integrity hash for a URL
-  (`PLUGIN_INTEGRITY`), a cached copy is used without fetching it again on
-  restart.
+  to fetch plugin bundles from at startup, with no rebuild. The URL must be
+  `http:` or `https:` (not `file:`). Fetched bundles are cached by content hash.
+  If you also configure an integrity hash for a URL (`PLUGIN_INTEGRITY`), a
+  cached copy is used without fetching it again on restart.
+- `PLUGIN_PACKAGES`: a comma-separated list of npm package specifiers, imported
+  from the server's own dependencies. A package can name a subpath, e.g.
+  `@my-org/my-apollo-plugin/server`.
 
 Both can be used together. A server plugin must be a Node ES module (or
 CommonJS), not a browser/UMD bundle.
 
+### Which one to use
+
+**If you run the published Docker image, use `PLUGIN_URLS`.** The server can
+only import packages listed in its own `package.json` when its dependencies were
+installed, so `PLUGIN_PACKAGES` can't load a package that isn't already part of
+the image. Using it means building your own image: adding your plugin to the
+collaboration server's dependencies and reinstalling them.
+
+So if you're writing a plugin for others to use, publish a server bundle (see
+below) that can be loaded with `PLUGIN_URLS`. You can also publish it as an npm
+package for anyone who builds their own server.
+
 ### Dependencies
 
-A plugin can import `@apollo-annotation/common` and other packages the server
-itself depends on (such as `mongoose`) without bundling them, and should, so it
-uses the server's own copies:
+A plugin can leave the packages the server itself depends on unbundled, and
+should, so it uses the server's own copies. List them as `peerDependencies` of
+your plugin, since the version is whatever the server has:
 
-- Plugins loaded with `PLUGIN_PACKAGES` resolve imports like any package
-  installed alongside the server.
-- Bundles loaded from `PLUGIN_URLS` are cached inside the server package (in
-  `.plugin-cache`) so that their imports resolve against the server's
-  dependencies. If you set `PLUGIN_CACHE_DIR` to a directory outside the server
-  package, bundles loaded from URLs must be fully self-contained.
+- Plugins loaded with `PLUGIN_PACKAGES` resolve imports like any other installed
+  package, so they can also use their own third-party dependencies.
+- Bundles loaded from `PLUGIN_URLS` are a single file, cached inside the server
+  package (in `.plugin-cache`), so their imports resolve as if the server itself
+  made them. A bundle can leave unbundled only packages in the collaboration
+  server's production `dependencies`, such as `@apollo-annotation/common` and
+  `mongoose`. Everything else must be bundled in, including:
+
+  - your plugin's own modules (no relative imports like `../shared/x.js`);
+  - other third-party packages;
+  - packages the server only has indirectly (e.g. `bson`, which comes with
+    `mongoose`), or as a `devDependency` (e.g. `mongodb`). These may import fine
+    in a development checkout but fail in the Docker image.
+
+  If you set `PLUGIN_CACHE_DIR` to a directory outside the server package,
+  nothing resolves against the server's dependencies, so the bundle must be
+  fully self-contained.
+
+To build a bundle, point a bundler such as rolldown, Rollup or esbuild at your
+server entry point, target Node, output an ES module, and mark only the
+server-provided packages as external. The
+[example plugin](https://github.com/GMOD/Apollo3/tree/main/packages/apollo-plugin-example)
+does this in `rolldown.server.config.mjs`:
+
+```js
+import { defineConfig } from 'rolldown'
+
+const serverProvided = ['@apollo-annotation/common', 'mongoose']
+
+export default defineConfig({
+  input: 'src/server/index.ts',
+  platform: 'node',
+  external: (id) =>
+    serverProvided.some((name) => id === name || id.startsWith(`${name}/`)),
+  output: { file: 'dist/server.bundle.js', format: 'esm', sourcemap: true },
+})
+```
 
 ## Hooks
 

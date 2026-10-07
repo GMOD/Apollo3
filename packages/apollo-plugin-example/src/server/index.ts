@@ -111,8 +111,8 @@ export const notesRoute: PluginRoute = {
 }
 
 /**
- * The server half of the example plugin. Load it with
- * `PLUGIN_PACKAGES=@apollo-annotation/plugin-example/server`.
+ * The server half of the example plugin. Build it with `yarn build:server` and
+ * load `dist/server.bundle.js` with `PLUGIN_URLS`.
  */
 export default class ApolloExampleServerPlugin extends ApolloServerPlugin {
   name = 'ApolloExamplePlugin'

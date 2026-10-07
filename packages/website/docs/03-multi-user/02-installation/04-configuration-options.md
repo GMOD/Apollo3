@@ -106,14 +106,17 @@ MICROSOFT_CLIENT_SECRET=client_secret_here
 # GUEST_USER_ROLE=readOnly
 
 # Comma-separated list of npm package specifiers to load as server plugins.
-# Recommended if you control your own server image/build.
+# Only works for packages in the collaboration server's own dependencies, so
+# not with the published Docker image unless you build your own image. Use
+# PLUGIN_URLS instead.
 # PLUGIN_PACKAGES=my-apollo-server-plugin
 
-# Comma-separated list of URLs to fetch server plugin bundles from at startup,
-# with no rebuild required. Bundles must be a Node-targeted ESM/CJS build, not
-# a browser/UMD bundle (server-side Apollo plugins have their own, Node-only
-# plugin system - see the developer guide). Fetched bundles are cached by
-# content hash under PLUGIN_CACHE_DIR.
+# Comma-separated list of http(s) URLs to fetch server plugin bundles from at
+# startup, with no rebuild required. This is how to add plugins to the
+# published Docker image. Bundles must be a single Node-targeted ESM/CJS file,
+# not a browser/UMD bundle (server-side Apollo plugins have their own,
+# Node-only plugin system - see the developer guide). Fetched bundles are
+# cached by content hash under PLUGIN_CACHE_DIR.
 # PLUGIN_URLS=https://example.com/my-apollo-server-plugin.mjs
 # Alternatively, can be a path to a file with a list of plugin URLs, one URL per
 # line
