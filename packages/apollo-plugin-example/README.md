@@ -17,14 +17,16 @@ Code used by both halves is in `src/shared`.
 
 ## What it shows
 
-| Feature                                                     | Where                                                         |
-| ----------------------------------------------------------- | ------------------------------------------------------------- |
-| A custom change type, with a client and a server handler    | `shared/ExampleNotesChange.ts`, `index.ts`, `server/index.ts` |
-| A change rule, run on both the client and the server        | `shared/ExampleNoteLengthRule.ts`                             |
-| A check, run on both the client and the server              | `shared/ExampleShortFeatureCheck.ts`                          |
-| Drawing a feature type with one of Apollo's built-in glyphs | `Apollo-GetGlyph` in `index.ts`                               |
-| A feature context menu item that submits a change           | `Apollo-FeatureContextMenuItems` in `index.ts`                |
-| A server route that respects assembly access restrictions   | `notesRoute` in `server/index.ts`                             |
+| Feature                                                            | Where                                                                                                |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| A custom change type, with a client and a server handler           | `shared/ExampleNotesChange.ts`, `index.ts`, `server/index.ts`                                        |
+| A change rule, run on both the client and the server               | `shared/ExampleNoteLengthRule.ts`                                                                    |
+| A check, run on both the client and the server                     | `shared/ExampleShortFeatureCheck.ts`                                                                 |
+| Drawing a feature type with one of Apollo's built-in glyphs        | `Apollo-GetGlyph` in `index.ts`                                                                      |
+| Feature context menu items that submit a change, one from a dialog | `Apollo-FeatureContextMenuItems` in `index.ts`, `components/AddNoteDialog.tsx`                       |
+| Offering an attribute key when adding an attribute                 | `Apollo-ReservedAttributeKeys` in `index.ts`                                                         |
+| A custom editor and viewer for one attribute                       | `Apollo-AttributeEditorComponent` and `Apollo-AttributeViewerComponent` in `index.ts`, `components/` |
+| A server route that respects assembly access restrictions          | `notesRoute` in `server/index.ts`                                                                    |
 
 See the [developer guide](../website/docs/04-developer-guide/index.md) for
 details of each plugin API.
