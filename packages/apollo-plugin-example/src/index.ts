@@ -2,6 +2,9 @@ import type {} from '@apollo-annotation/common/client'
 import Plugin from '@jbrowse/core/Plugin'
 import type PluginManager from '@jbrowse/core/PluginManager'
 
+import { AddNoteDialog } from './components/AddNoteDialog.js'
+import { NoteEditor } from './components/NoteEditor.js'
+import { NoteViewer } from './components/NoteViewer.js'
 import { ExampleNoteLengthRule } from './shared/ExampleNoteLengthRule.js'
 import { ExampleNotesChange } from './shared/ExampleNotesChange.js'
 import { ExampleShortFeatureCheck } from './shared/ExampleShortFeatureCheck.js'
@@ -66,29 +69,63 @@ export default class ApolloExamplePlugin extends Plugin {
           : glyph,
     )
 
-    // A context menu item that submits a change
+    // Offer "note" when adding an attribute, and edit and show it with our
+    // own components. Other attributes are passed through unchanged.
+    pluginManager.addToExtensionPoint(
+      'Apollo-ReservedAttributeKeys',
+      (reservedKeys) => ({ ...reservedKeys, Note: 'note' }),
+    )
+    pluginManager.addToExtensionPoint(
+      'Apollo-AttributeEditorComponent',
+      (Editor, { key }) => (key === 'note' ? NoteEditor : Editor),
+    )
+    pluginManager.addToExtensionPoint(
+      'Apollo-AttributeViewerComponent',
+      (Viewer, { key }) => (key === 'note' ? NoteViewer : Viewer),
+    )
+
+    // Context menu items that submit a change, one of them from a dialog
     pluginManager.contributeToExtensionPoint(
       'Apollo-FeatureContextMenuItems',
-      ({ feature, submitChange }) => {
-        const notes = feature.attributes.get('note')
-        if (!notes?.length) {
-          return
-        }
-        return {
-          label: 'Clear notes',
+      ({ feature, session, submitChange }) => {
+        const notes = [...(feature.attributes.get('note') ?? [])]
+        const setNotes = (newNotes: string[]) =>
+          submitChange(
+            new ExampleNotesChange({
+              typeName: 'ExampleNotesChange',
+              assembly: feature.assemblyId,
+              changedIds: [feature._id],
+              featureId: feature._id,
+              oldNotes: notes,
+              newNotes,
+            }),
+          )
+        const addNote = {
+          label: 'Add note',
           onClick: () => {
-            void submitChange(
-              new ExampleNotesChange({
-                typeName: 'ExampleNotesChange',
-                assembly: feature.assemblyId,
-                changedIds: [feature._id],
-                featureId: feature._id,
-                oldNotes: [...notes],
-                newNotes: [],
-              }),
-            )
+            session.queueDialog((doneCallback) => [
+              AddNoteDialog,
+              {
+                handleClose: doneCallback,
+                addNote: (note: string) => {
+                  void setNotes([...notes, note])
+                },
+              },
+            ])
           },
         }
+        if (notes.length === 0) {
+          return addNote
+        }
+        return [
+          addNote,
+          {
+            label: 'Clear notes',
+            onClick: () => {
+              void setNotes([])
+            },
+          },
+        ]
       },
     )
   }

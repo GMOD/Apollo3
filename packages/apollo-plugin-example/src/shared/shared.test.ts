@@ -20,6 +20,16 @@ function makeChange(newNotes: string[]) {
   })
 }
 
+function makeAttributeChange(
+  oldAttributes: Record<string, string[]>,
+  newAttributes: Record<string, string[]>,
+) {
+  return {
+    typeName: 'FeatureAttributeChange',
+    changes: [{ featureId: 'feature1', oldAttributes, newAttributes }],
+  } as never
+}
+
 describe('ExampleNotesChange', () => {
   it('round-trips through JSON and inverts', () => {
     const change = makeChange(['new'])
@@ -39,6 +49,32 @@ describe('ExampleNoteLengthRule', () => {
     assert.match(
       String(rule.validate(makeChange(['x'.repeat(MAX_NOTE_LENGTH + 1)]))),
       /at most/,
+    )
+  })
+  it('allows long notes the feature already had', () => {
+    const longNote = 'x'.repeat(MAX_NOTE_LENGTH + 1)
+    const change = makeChange([longNote, 'new'])
+    change.oldNotes = [longNote]
+    assert.equal(rule.validate(change), undefined)
+  })
+  it('checks notes set with a FeatureAttributeChange', () => {
+    const longNote = 'x'.repeat(MAX_NOTE_LENGTH + 1)
+    assert.equal(
+      rule.validate(makeAttributeChange({}, { note: ['fine'], gene: ['abc'] })),
+      undefined,
+    )
+    assert.match(
+      String(rule.validate(makeAttributeChange({}, { note: [longNote] }))),
+      /at most/,
+    )
+    assert.equal(
+      rule.validate(
+        makeAttributeChange(
+          { note: [longNote] },
+          { note: [longNote], gene: ['abc'] },
+        ),
+      ),
+      undefined,
     )
   })
 })
