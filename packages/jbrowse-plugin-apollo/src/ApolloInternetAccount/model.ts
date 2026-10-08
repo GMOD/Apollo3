@@ -182,7 +182,12 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           const queryStringSearch = redirectUrl.search
           const urlParams = new URLSearchParams(queryStringSearch)
           const token = urlParams.get('access_token')
+          const error = urlParams.get('error')
           this.deleteMessageChannel()
+          if (error) {
+            reject(new Error(error))
+            return
+          }
           if (!token) {
             reject(new Error('Error with token endpoint'))
             return

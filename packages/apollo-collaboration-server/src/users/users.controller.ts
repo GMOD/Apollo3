@@ -1,23 +1,47 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { DecodedJWT } from '@apollo-annotation/shared'
-import { Body, Controller, Get, Logger, Param, Post, Req } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  Logger,
+  Param,
+  Post,
+  Query,
+  Req,
+} from '@nestjs/common'
 import type { Request } from 'express'
 
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'
 
 import { UserLocationDto } from './dto/create-user.dto.js'
-import { UsersService } from './users.service.js'
+import { FindUsersDto } from './dto/find-users.dto.js'
+import { UsersService, toUserResponse } from './users.service.js'
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
   private readonly logger = new Logger(UsersController.name)
 
+  /**
+   * Get users. If `page` and `pageSize` are given, returns
+   * `{ users, totalCount, specialUsers }`, where `users` is one page of regular
+   * users and `specialUsers` is the guest and root users (if they exist).
+   * Otherwise returns an array of all users.
+   */
+  @Validations(Role.Admin)
   @Get()
-  findAll() {
-    return this.usersService.findAll()
+  async findAll(@Query() findUsersDto: FindUsersDto) {
+    if (
+      findUsersDto.page !== undefined &&
+      findUsersDto.pageSize !== undefined
+    ) {
+      return this.usersService.findPage(findUsersDto)
+    }
+    const users = await this.usersService.findAll()
+    return users.map((user) => toUserResponse(user))
   }
 
   /**
@@ -47,6 +71,7 @@ export class UsersController {
     return this.usersService.requestUsersLocations(user)
   }
 
+  @Validations(Role.Admin)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findById(id)

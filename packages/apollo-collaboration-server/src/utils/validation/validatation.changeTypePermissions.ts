@@ -8,6 +8,7 @@ export function getRequiredRoleForChange(changeName: string) {
       'AddFeaturesFromFileChange',
       'AddRefSeqAliasesChange',
       'DeleteAssemblyChange',
+      'AddUserChange',
       'UserChange',
       'DeleteUserChange',
     ].includes(changeName)

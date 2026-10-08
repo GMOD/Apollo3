@@ -8,6 +8,7 @@ import { AddAssemblyFromExternalChange } from './AddAssemblyFromExternalChange.j
 import { AddAssemblyFromFileChange } from './AddAssemblyFromFileChange.js'
 import { AddFeaturesFromFileChange } from './AddFeaturesFromFileChange.js'
 import { AddRefSeqAliasesChange } from './AddRefSeqAliasesChange.js'
+import { AddUserChange } from './AddUserChange.js'
 import { DeleteAssemblyChange } from './DeleteAssemblyChange.js'
 import { DeleteUserChange } from './DeleteUserChange.js'
 import { FeatureAttributeChange } from './FeatureAttributeChange.js'
@@ -52,6 +53,7 @@ export const changes = {
   AddAssemblyFromFileChange,
   AddAssemblyFromExternalChange,
   AddFeaturesFromFileChange,
+  AddUserChange,
   DeleteAssemblyChange,
   DeleteUserChange,
   ImportJBrowseConfigChange,
@@ -65,6 +67,7 @@ export * from './AddAssemblyFromFileChange.js'
 export * from './AddAssemblyFromExternalChange.js'
 export * from './AddAndDeleteFeatureChanges.js'
 export * from './AddFeaturesFromFileChange.js'
+export * from './AddUserChange.js'
 export * from './DeleteAssemblyChange.js'
 export * from './DeleteUserChange.js'
 export * from './FeatureAttributeChange.js'

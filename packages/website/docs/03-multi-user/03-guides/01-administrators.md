@@ -10,6 +10,32 @@ by `DEFAULT_NEW_USER_ROLE` in the
 [configuration options](../installation/configuration-options). An administrator
 can make another user into an administrator as well.
 
+If you want to choose who the first administrator is, set `INITIAL_ADMIN_EMAIL`
+to that person's email. They will be made an administrator, and nobody else
+(except the root user) will be able to log in until they have logged in for the
+first time.
+
+## Adding users before they log in
+
+An administrator can add a user by email before that person has logged in, and
+choose the role they will have. In the "Apollo" menu, go to "Admin" -> "Manage
+Users" and click "Add user", or use the CLI:
+
+```sh
+apollo user add --email jane.doe@example.com --role user
+```
+
+Until they log in, the user is shown as "Pending first login". When they log in
+for the first time, their name is filled in and they get the role that was
+chosen.
+
+By default, anyone who can sign in with one of the configured authentication
+providers (e.g. any Google account) can log in, and they get the
+`DEFAULT_NEW_USER_ROLE`. To only allow users an administrator has added, set
+`ONLY_ALLOW_APPROVED_USERS=true`. Logins from anyone else will be rejected, and
+no user will be created for them. Users who had already logged in before this
+was turned on can still log in.
+
 There is also the option to have a single user, referred to as the "root user",
 with an `Admin` role that is able to authenticate without logging in via OAuth.
 This is meant to be used to simplify running CLI commands as an administrator.

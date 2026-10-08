@@ -10,7 +10,7 @@ export interface SerializedUserChangeBase extends SerializedChange {
 }
 
 export interface UserChangeDetails {
-  role: 'admin' | 'user' | 'readOnly'
+  role: 'admin' | 'user' | 'readOnly' | 'none'
 }
 
 export interface SerializedUserChangeSingle
