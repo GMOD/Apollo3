@@ -1,20 +1,25 @@
 import {
+  type ChangeRule,
+  type Check,
+  checkRegistry,
+} from '@apollo-annotation/common'
+import {
   APOLLO_SERVER_HOOK_SEVERITY,
   type ApolloServerHookName,
   type ApolloServerHookRegistrar,
   type ApolloServerPlugin,
-  type ChangeConstructor,
-  type Check,
   type CustomAuthHandler,
   type PluginRoute,
-  type Validation,
-  changeRegistry,
-  checkRegistry,
-} from '@apollo-annotation/common'
-import { validationRegistry } from '@apollo-annotation/shared'
+  type ServerChangeType,
+  type ServerValidation,
+} from '@apollo-annotation/common/server'
 import { Inject, Injectable, Logger, type OnModuleInit } from '@nestjs/common'
 import { InjectConnection } from '@nestjs/mongoose'
 import type { Connection } from 'mongoose'
+import { type MatchFunction, type ParamData, match } from 'path-to-regexp'
+
+import { serverChangeTypes } from '../changes/serverChangeTypes.js'
+import { serverValidations } from '../utils/validation/ServerValidationSet.js'
 
 import { APOLLO_PLUGINS } from './plugins.constants.js'
 
@@ -30,6 +35,10 @@ export class PluginsService implements OnModuleInit {
   private readonly hooks = new Map<ApolloServerHookName, RegisteredHook[]>()
 
   pluginRoutes: PluginRoute[] = []
+  private readonly routeMatchers = new Map<
+    PluginRoute,
+    MatchFunction<ParamData>
+  >()
 
   private customAuthHandlers = new Map<string, CustomAuthHandler>()
 
@@ -61,16 +70,29 @@ export class PluginsService implements OnModuleInit {
       [],
       { connection: this.connection },
     )
+    for (const route of this.pluginRoutes) {
+      try {
+        this.routeMatchers.set(
+          route,
+          match(route.path, { decode: decodeURIComponent }),
+        )
+      } catch (error) {
+        throw new Error(
+          `Invalid path "${route.path}" in plugin route: ${String(error)}`,
+          { cause: error },
+        )
+      }
+    }
 
     this.customAuthHandlers = await this.evaluateStartupHook<
       Map<string, CustomAuthHandler>
     >('Apollo-RegisterCustomAuth', new Map(), {})
 
     const changeTypes = await this.evaluateStartupHook<
-      Record<string, ChangeConstructor>
+      Record<string, ServerChangeType>
     >('Apollo-RegisterChangeTypes', {}, {})
     for (const [name, changeType] of Object.entries(changeTypes)) {
-      changeRegistry.registerChange(name, changeType)
+      serverChangeTypes.register(name, changeType)
     }
 
     const checks = await this.evaluateStartupHook<Check[]>(
@@ -82,14 +104,26 @@ export class PluginsService implements OnModuleInit {
       checkRegistry.registerCheck(check.name, check)
     }
 
-    const validations = await this.evaluateStartupHook<Validation[]>(
-      'Apollo-RegisterValidations',
-      [],
-      {},
-    )
+    const validations = await this.evaluateStartupHook<
+      (ChangeRule | ServerValidation)[]
+    >('Apollo-RegisterValidations', [], {})
     for (const validation of validations) {
-      validationRegistry.registerValidation(validation)
+      serverValidations.register(validation)
     }
+  }
+
+  /** Find the plugin route for a request, and the path's parameter values */
+  findRoute(method: string, path: string) {
+    for (const route of this.pluginRoutes) {
+      if (route.method.toUpperCase() !== method.toUpperCase()) {
+        continue
+      }
+      const result = this.routeMatchers.get(route)?.(path)
+      if (result) {
+        return { route, params: result.params }
+      }
+    }
+    return
   }
 
   /** Custom login methods plugins registered, collected once at startup. */

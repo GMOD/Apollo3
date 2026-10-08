@@ -1,4 +1,11 @@
-import { getSession } from '@jbrowse/core/util'
+// Custom components come from plugins through extension points; they're
+// defined by the plugins, not created during render
+/* eslint-disable @eslint-react/static-components */
+import {
+  type AbstractSessionModel,
+  getEnv,
+  getSession,
+} from '@jbrowse/core/util'
 import { makeStyles } from '@jbrowse/core/util/tss-react'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {
@@ -16,6 +23,7 @@ import { Attributes } from './Attributes'
 import { BasicInformation } from './BasicInformation'
 import { FeatureDetailsNavigation } from './FeatureDetailsNavigation'
 import { SequenceViewer } from './SequenceViewer'
+import { getCustomComponent, getCustomComponentProps } from './customComponents'
 import type { ApolloFeatureDetailsWidget as ApolloFeatureDetails } from './model'
 import { type SequenceSegment, getLocationIntervals } from './sequenceSegments'
 
@@ -59,6 +67,47 @@ export const ApolloFeatureDetailsWidget = observer(
       : []
     const locationIntervals = getLocationIntervals(sequenceSegments)
 
+    const { pluginManager } = getEnv(session)
+    const customComponentProps = getCustomComponentProps({
+      feature,
+      session: session as unknown as AbstractSessionModel,
+    })
+    const CustomComponentAfterBasicInformation = getCustomComponent(
+      pluginManager,
+      'Apollo-FeatureDetailsCustomComponent-AfterBasicInformation',
+      customComponentProps,
+    )
+    const CustomComponentInsideAttributes = getCustomComponent(
+      pluginManager,
+      'Apollo-FeatureDetailsCustomComponent-InsideAttributes',
+      customComponentProps,
+    )
+    const CustomComponentAfterAttributes = getCustomComponent(
+      pluginManager,
+      'Apollo-FeatureDetailsCustomComponent-AfterAttributes',
+      customComponentProps,
+    )
+    const CustomComponentInsideSequence = getCustomComponent(
+      pluginManager,
+      'Apollo-FeatureDetailsCustomComponent-InsideSequence',
+      customComponentProps,
+    )
+    const CustomComponentAfterSequence = getCustomComponent(
+      pluginManager,
+      'Apollo-FeatureDetailsCustomComponent-AfterSequence',
+      customComponentProps,
+    )
+    const CustomComponentInsideRelatedFeatures = getCustomComponent(
+      pluginManager,
+      'Apollo-FeatureDetailsCustomComponent-InsideRelatedFeatures',
+      customComponentProps,
+    )
+    const CustomComponentAfterRelatedFeatures = getCustomComponent(
+      pluginManager,
+      'Apollo-FeatureDetailsCustomComponent-AfterRelatedFeatures',
+      customComponentProps,
+    )
+
     function handlePanelChange(expanded: boolean, panel: string) {
       if (expanded) {
         setPanelState([...panelState, panel])
@@ -74,6 +123,7 @@ export const ApolloFeatureDetailsWidget = observer(
           session={session}
           assembly={currentAssembly._id}
         />
+        <CustomComponentAfterBasicInformation {...customComponentProps} />
         <Accordion
           style={{ marginTop: 10 }}
           expanded={panelState.includes('attributes')}
@@ -95,8 +145,10 @@ export const ApolloFeatureDetailsWidget = observer(
               assembly={currentAssembly._id}
               editable={true}
             />
+            <CustomComponentInsideAttributes {...customComponentProps} />
           </AccordionDetails>
         </Accordion>
+        <CustomComponentAfterAttributes {...customComponentProps} />
         <Accordion
           style={{ marginTop: 10 }}
           expanded={panelState.includes('sequence')}
@@ -120,8 +172,10 @@ export const ApolloFeatureDetailsWidget = observer(
                 sequenceSegments={sequenceSegments}
               />
             )}
+            <CustomComponentInsideSequence {...customComponentProps} />
           </AccordionDetails>
         </Accordion>
+        <CustomComponentAfterSequence {...customComponentProps} />
         <Accordion
           style={{ marginTop: 10 }}
           expanded={panelState.includes('related_features')}
@@ -138,8 +192,10 @@ export const ApolloFeatureDetailsWidget = observer(
           </AccordionSummary>
           <AccordionDetails>
             <FeatureDetailsNavigation model={model} feature={feature} />
+            <CustomComponentInsideRelatedFeatures {...customComponentProps} />
           </AccordionDetails>
         </Accordion>
+        <CustomComponentAfterRelatedFeatures {...customComponentProps} />
       </div>
     )
   },

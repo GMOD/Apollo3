@@ -137,7 +137,10 @@ export default [
   },
   {
     ...pluginCypress.configs.recommended,
-    files: ['packages/jbrowse-plugin-apollo/cypress/**/*'],
+    files: [
+      'packages/jbrowse-plugin-apollo/cypress/**/*',
+      'packages/apollo-plugin-example/cypress/**/*',
+    ],
   },
   // Don't enforce tsdoc syntax in JS files
   {

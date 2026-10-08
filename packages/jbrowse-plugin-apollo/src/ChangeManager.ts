@@ -2,16 +2,16 @@ import {
   type Change,
   isAssemblySpecificChange,
 } from '@apollo-annotation/common'
-import {
-  type ValidationResultSet,
-  validationRegistry,
-} from '@apollo-annotation/shared'
+import type { ClientValidationContext } from '@apollo-annotation/common/client'
+import type { ValidationResultSet } from '@apollo-annotation/shared'
 import { getSession } from '@jbrowse/core/util'
+import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import type { JobsListModel } from '@jbrowse/plugin-jobs-management'
 
 import type { ApolloSessionModel } from './session'
 import type { ClientDataStoreModel } from './session/ClientDataStore'
-import { changeHandlers, isLocalChange } from './session/changeHandlers'
+import { clientChangeTypes } from './session/clientChangeTypes'
+import { clientValidations } from './validation/ClientValidationSet'
 
 export type JobInput = Parameters<JobsListModel['addJob']>[0]
 
@@ -87,7 +87,16 @@ export class ChangeManager {
       showJobStatusWidget()
     }
 
-    const result = await validationRegistry.frontendPreValidate(change)
+    const validationContext: ClientValidationContext = {
+      getFeature: (featureId) => {
+        const feature = this.dataStore.getFeature(featureId)
+        return feature && getSnapshot(feature)
+      },
+    }
+    const result = await clientValidations.preValidate(
+      change,
+      validationContext,
+    )
     if (!result.ok) {
       const msg = `Pre-validation failed: "${result.resultsMessages}"`
       if (updateJobStatusWidget) {
@@ -102,38 +111,55 @@ export class ChangeManager {
       return
     }
 
-    const changeName = change.typeName
-    const handler = isLocalChange(changeName)
-      ? changeHandlers[changeName]
-      : undefined
-    if (handler) {
-      try {
-        // submit to client data store
-        // @ts-expect-error change not narrowing
-        await handler(this.dataStore, change)
-      } catch (error) {
-        if (updateJobStatusWidget) {
-          jobStatusWidget.addJob({
-            name: job.name,
-            statusMessage: String(error),
-            state: 'aborted',
-          })
-        }
-        console.error(error)
-        session.notify(
-          `Error encountered in client: ${String(error)}. Data may be out of sync, please refresh the page`,
-          'error',
-        )
-        setChangeInProgress(false)
-        return
+    try {
+      await this.applyToClientDataStore(change)
+    } catch (error) {
+      if (updateJobStatusWidget) {
+        jobStatusWidget.addJob({
+          name: job.name,
+          statusMessage: String(error),
+          state: 'aborted',
+        })
       }
+      console.error(error)
+      session.notify(
+        `Error encountered in client: ${String(error)}. Data may be out of sync, please refresh the page`,
+        'error',
+      )
+      setChangeInProgress(false)
+      return
     }
 
     // post-validate
-    const results2 = await validationRegistry.frontendPostValidate(change)
+    const results2 = await clientValidations.postValidate(
+      change,
+      validationContext,
+    )
     if (!results2.ok) {
-      // notify of invalid change and revert
-      await this.undo(change)
+      // notify of invalid change and revert it locally; it was never sent to
+      // the backend
+      const msg = `Post-validation failed: "${results2.resultsMessages}"`
+      if (updateJobStatusWidget) {
+        jobStatusWidget.addJob({
+          name: job.name,
+          statusMessage: msg,
+          state: 'aborted',
+        })
+      }
+      session.notify(msg, 'error')
+      try {
+        // Revert without re-validating: a validation that also rejects the
+        // inverse change would otherwise never let the revert happen.
+        await this.applyToClientDataStore(change.getInverse())
+      } catch (error) {
+        console.error(error)
+        session.notify(
+          `Error reverting change in client: ${String(error)}. Data may be out of sync, please refresh the page`,
+          'error',
+        )
+      }
+      setChangeInProgress(false)
+      return
     }
 
     if (submitToBackend) {
@@ -166,7 +192,7 @@ export class ChangeManager {
         return
       }
       if (!backendResult.ok) {
-        const msg = `Post-validation failed: "${result.resultsMessages}"`
+        const msg = `Post-validation failed: "${backendResult.resultsMessages}"`
         if (updateJobStatusWidget) {
           jobStatusWidget.addJob({
             name: job.name,
@@ -196,6 +222,12 @@ export class ChangeManager {
       })
     }
     setChangeInProgress(false)
+  }
+
+  /** Apply a change to the client data store, if it has a client handler */
+  private async applyToClientDataStore(change: Change) {
+    const changeType = clientChangeTypes.get(change.typeName)
+    await changeType?.handler?.(change, { dataStore: this.dataStore })
   }
 
   async undo(change: Change, submitToBackend = true) {

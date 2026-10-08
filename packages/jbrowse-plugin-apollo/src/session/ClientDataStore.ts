@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
-  type AnnotationFeatureModel,
+  AnnotationFeatureModel,
   type AnnotationFeatureSnapshot,
   ApolloAssembly,
   type ApolloAssemblySnapshot,
@@ -49,9 +49,7 @@ import type { ApolloRootModel } from '../types'
 
 import type { ApolloSessionModel } from './session'
 
-export function clientDataStoreFactory(
-  AnnotationFeatureExtended: typeof AnnotationFeatureModel,
-) {
+export function clientDataStoreFactory() {
   return types
     .model('ClientDataStore', {
       typeName: types.optional(types.literal('Client'), 'Client'),
@@ -70,7 +68,7 @@ export function clientDataStoreFactory(
       },
       getFeature(featureId: string) {
         return resolveIdentifier(
-          AnnotationFeatureExtended,
+          AnnotationFeatureModel,
           self.assemblies,
           featureId,
         )

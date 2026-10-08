@@ -253,23 +253,33 @@ export class JBrowseService {
     if (!storedConfig) {
       return generatedConfig
     }
-    return merge(generatedConfig, storedConfig, {
-      arrayMerge: (target, source) => {
-        if (hasApolloPlugin(source)) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment
-          return [...source, ...target]
-        }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment
-        return [...target, ...source]
-      },
-    })
+    return mergeJBrowseConfig(generatedConfig, storedConfig)
   }
 }
 
-function hasApolloPlugin(arr: unknown[]) {
-  return arr.some(
-    (item) => isObject(item) && 'name' in item && item.name === 'Apollo',
-  )
+/**
+ * Merge a stored JBrowse config into the generated one. Arrays are
+ * concatenated, except for `plugins`: the generated Apollo plugin always comes
+ * first (so other plugins can rely on it being loaded) and any Apollo plugin
+ * entry in the stored config is dropped in its favor.
+ */
+export function mergeJBrowseConfig<T extends object>(
+  generatedConfig: T,
+  storedConfig: object,
+): T {
+  return merge(generatedConfig, storedConfig, {
+    customMerge: (key) =>
+      key === 'plugins'
+        ? (generatedPlugins: unknown[], storedPlugins: unknown[]) => [
+            ...generatedPlugins,
+            ...storedPlugins.filter((plugin) => !isApolloPlugin(plugin)),
+          ]
+        : undefined,
+  })
+}
+
+function isApolloPlugin(plugin: unknown) {
+  return isObject(plugin) && plugin.name === 'Apollo'
 }
 
 function isObject(val: unknown): val is Record<string, unknown> {

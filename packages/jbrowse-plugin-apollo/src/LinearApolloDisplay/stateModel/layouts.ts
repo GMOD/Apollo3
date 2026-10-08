@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 
+import type { BuiltInGlyphs } from '@apollo-annotation/common/client'
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import type { AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
@@ -18,10 +19,43 @@ import { cdsGlyph } from '../glyphs/CDSGlyph'
 import { exonGlyph } from '../glyphs/ExonGlyph'
 import { geneGlyph } from '../glyphs/GeneGlyph'
 import { genericChildGlyph } from '../glyphs/GenericChildGlyph'
-import type { Layout } from '../glyphs/Glyph'
+import type { Glyph, Layout } from '../glyphs/Glyph'
 import { transcriptGlyph } from '../glyphs/TranscriptGlyph'
 
 import { baseModelFactory } from './base'
+
+import type { LinearApolloDisplay } from '.'
+
+const builtInGlyphs: BuiltInGlyphs<LinearApolloDisplay> = {
+  box: boxGlyph,
+  gene: geneGlyph,
+  transcript: transcriptGlyph,
+  exon: exonGlyph,
+  cds: cdsGlyph,
+  genericChild: genericChildGlyph,
+}
+
+function getDefaultGlyph(
+  feature: AnnotationFeature,
+  session: Parameters<typeof isGeneFeature>[1],
+): Glyph {
+  if (isGeneFeature(feature, session)) {
+    return geneGlyph
+  }
+  if (isTranscriptFeature(feature, session)) {
+    return transcriptGlyph
+  }
+  if (isExonFeature(feature, session)) {
+    return exonGlyph
+  }
+  if (isCDSFeature(feature, session)) {
+    return cdsGlyph
+  }
+  if (feature.children?.size) {
+    return genericChildGlyph
+  }
+  return boxGlyph
+}
 
 export function layoutsModelFactory(
   pluginManager: PluginManager,
@@ -40,23 +74,16 @@ export function layoutsModelFactory(
       getAnnotationFeatureById(id: string) {
         return self.seenFeatures.get(id)
       },
-      getGlyph(feature: AnnotationFeature) {
-        if (isGeneFeature(feature, self.session)) {
-          return geneGlyph
-        }
-        if (isTranscriptFeature(feature, self.session)) {
-          return transcriptGlyph
-        }
-        if (isExonFeature(feature, self.session)) {
-          return exonGlyph
-        }
-        if (isCDSFeature(feature, self.session)) {
-          return cdsGlyph
-        }
-        if (feature.children?.size) {
-          return genericChildGlyph
-        }
-        return boxGlyph
+      /**
+       * The glyph used to draw a feature. Plugins can change it with the
+       * `Apollo-GetGlyph` extension point.
+       */
+      getGlyph(feature: AnnotationFeature): Glyph {
+        return pluginManager.evaluateExtensionPoint(
+          'Apollo-GetGlyph',
+          getDefaultGlyph(feature, self.session),
+          { feature, display: self, glyphs: builtInGlyphs },
+        )
       },
     }))
     .actions((self) => ({

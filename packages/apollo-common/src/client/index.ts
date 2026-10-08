@@ -1,0 +1,7 @@
+/**
+ * The client-side plugin API: types for extending the Apollo JBrowse plugin.
+ */
+export * from './ClientValidation.js'
+export * from './ClientChangeType.js'
+export * from './Glyph.js'
+export * from './ExtensionPoints.js'
