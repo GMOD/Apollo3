@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -17,25 +15,6 @@ const prefixes = new Map([
   ['SO:', 'http://purl.obolibrary.org/obo/SO_'],
   ['GO:', 'http://purl.obolibrary.org/obo/GO_'],
 ])
-
-// jsonpath uses an "obj instanceof Object" check in its "query", which fails in
-// tests because the mocked indexedDb uses a different scope and thus a
-// different "Object". This intercepts calls to "query" in this test and makes
-// sure the main scope "Object" is used.
-jest.mock('jsonpath', () => {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  const original = jest.requireActual<typeof import('jsonpath')>('jsonpath')
-  return {
-    ...original,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    query: jest.fn((obj: any, pathExpression: string, count?: number) => {
-      const newObj =
-        // eslint-disable-next-line unicorn/prefer-structured-clone
-        obj instanceof Object ? obj : JSON.parse(JSON.stringify(obj))
-      return original.query(newObj, pathExpression, count)
-    }),
-  }
-})
 
 let so: OntologyStore
 

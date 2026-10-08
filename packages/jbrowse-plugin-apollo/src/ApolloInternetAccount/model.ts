@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { Change } from '@apollo-annotation/common'
+import { Change, type SerializedChange } from '@apollo-annotation/common'
 import {
   type ChangeMessage,
   type CheckResultUpdate,
@@ -237,52 +237,57 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         resolve: (token: string) => void,
         reject: (error: Error) => void,
       ): Promise<void> {
-        const { baseURL } = self
-        const authType = await new Promise(
-          (resolve: (authType: AuthType) => void, reject) => {
-            const { session } = getRoot<ApolloRootModel>(self)
-            const { baseURL, name } = self
-            ;(session as unknown as AbstractSessionModel).queueDialog(
-              (doneCallback: () => void) => [
-                AuthTypeSelector,
-                {
-                  name,
-                  handleClose: (newAuthType?: AuthType | Error) => {
-                    if (!newAuthType) {
-                      reject(new Error('user cancelled entry'))
-                    } else if (newAuthType instanceof Error) {
-                      reject(newAuthType)
-                    } else {
-                      resolve(newAuthType)
-                    }
-                    doneCallback()
+        // JBrowse doesn't handle the promise this function returns, so errors
+        // have to go to `reject` instead of being thrown
+        try {
+          const { baseURL } = self
+          const authType = await new Promise(
+            (resolve: (authType: AuthType) => void, reject) => {
+              const { session } = getRoot<ApolloRootModel>(self)
+              const { baseURL, name } = self
+              ;(session as unknown as AbstractSessionModel).queueDialog(
+                (doneCallback: () => void) => [
+                  AuthTypeSelector,
+                  {
+                    name,
+                    handleClose: (newAuthType?: AuthType | Error) => {
+                      if (!newAuthType) {
+                        reject(new Error('user cancelled entry'))
+                      } else if (newAuthType instanceof Error) {
+                        reject(newAuthType)
+                      } else {
+                        resolve(newAuthType)
+                      }
+                      doneCallback()
+                    },
+                    baseURL,
                   },
-                  baseURL,
-                },
-              ],
-            )
-          },
-        )
-        if (authType.needsPopup) {
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          self.openAuthWindow(authType.name, resolve, reject)
-          return
-        }
-        const url = new URL('auth/login', baseURL)
-        const searchParams = new URLSearchParams({ type: authType.name })
-        url.search = searchParams.toString()
-        const uri = url.toString()
-        const response = await fetch(uri, { signal: self.controller.signal })
-        if (!response.ok) {
-          const errorMessage = await createFetchErrorMessage(
-            response,
-            'Error when logging in',
+                ],
+              )
+            },
           )
-          reject(new Error(errorMessage))
-          return
+          if (authType.needsPopup) {
+            await self.openAuthWindow(authType.name, resolve, reject)
+            return
+          }
+          const url = new URL('auth/login', baseURL)
+          const searchParams = new URLSearchParams({ type: authType.name })
+          url.search = searchParams.toString()
+          const uri = url.toString()
+          const response = await fetch(uri, { signal: self.controller.signal })
+          if (!response.ok) {
+            const errorMessage = await createFetchErrorMessage(
+              response,
+              'Error when logging in',
+            )
+            reject(new Error(errorMessage))
+            return
+          }
+          const { token } = await response.json()
+          resolve(token)
+        } catch (error) {
+          reject(error instanceof Error ? error : new Error(String(error)))
         }
-        const { token } = await response.json()
-        resolve(token)
       },
     }))
     .volatile(() => ({
@@ -352,25 +357,26 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           uri,
         })
 
-        let response: Response
+        let serializedChanges: SerializedChange[]
         try {
-          response = yield apolloFetch(uri, {
+          const response: Response = yield apolloFetch(uri, {
             method: 'GET',
             signal: self.controller.signal,
           })
+          if (!response.ok) {
+            console.error(
+              `Error when fetching the last updates to recover socket connection — ${response.status}`,
+            )
+            return
+          }
+          ;({ changes: serializedChanges } = yield response.json())
         } catch (error) {
+          // Reading the body can also be aborted, so it's inside the try too
           if (!self.controller.signal.aborted) {
             console.error(error)
           }
           return
         }
-        if (!response.ok) {
-          console.error(
-            `Error when fetching the last updates to recover socket connection — ${response.status}`,
-          )
-          return
-        }
-        const { changes: serializedChanges } = yield response.json()
         for (const serializedChange of serializedChanges) {
           const change = Change.fromJSON(serializedChange)
           void changeManager.submit(change, { submitToBackend: false })
@@ -395,6 +401,17 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         const { addCheckResult, changeManager, deleteCheckResult } =
           session.apolloDataStore
         socket.on('connect', () => {
+          // No baseline yet, so there is nothing to be missing: this is the
+          // first connect, and loadInitialState() is still fetching the
+          // sequence number getMissingChanges() needs. That call would throw
+          // without one, and as a `void` it would throw into nothing.
+          //
+          // These handlers used to be registered after that request rather
+          // than before it, which is why the case is new: the first connect
+          // arrived while nothing was listening for it.
+          if (!self.lastChangeSequenceNumber) {
+            return
+          }
           void self.getMissingChanges()
         })
         socket.on('connect_error', (error) => {
@@ -483,7 +500,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       }
       return { postUserLocation: debouncePostUserLocation(postUserLocation) }
     })
-    .volatile(() => ({ roleNotificationSent: false }))
     .actions((self) => {
       function beforeUnloadListener() {
         self.postUserLocation([])
@@ -500,28 +516,52 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
       }
       return {
-        initialize: flow(function* initialize(role: Role) {
+        /**
+         * The half of startup that must happen exactly once. None of it is a
+         * request, so nothing here is worth retrying — and all of it registers
+         * something that has no idea it has been registered before. A menu
+         * contribution is appended to a log the root model replays on every
+         * open, and each socket handler is a fresh arrow function socket.io
+         * cannot recognize as a repeat, so a second run means a second "Admin"
+         * submenu and every COMMON message submitted to the change manager
+         * twice. (The two addEventListener calls are the exception, and only by
+         * luck: the handler references are stable, so the browser de-duplicates
+         * them for us.)
+         *
+         * `addSocketListeners()` goes first because it is the only step that
+         * can throw — 'No Token found', before it has registered anything — so
+         * a failed run leaves nothing installed and the caller can simply try
+         * again. That ordering is what lets `afterAttach` enforce "at most
+         * once" without a flag.
+         */
+        install(role: Role) {
           if (role === 'none') {
-            if (!self.roleNotificationSent) {
-              const { session } = getRoot<ApolloRootModel>(self)
-              ;(session as unknown as AbstractSessionModel).notify(
-                'You have registered as an Apollo user but have not been given access. Ask your administrator to enable access for your account.',
-                'warning',
-              )
-              self.roleNotificationSent = true
-            }
+            const { session } = getRoot<ApolloRootModel>(self)
+            ;(session as unknown as AbstractSessionModel).notify(
+              'You have registered as an Apollo user but have not been given access. Ask your administrator to enable access for your account.',
+              'warning',
+            )
             return
           }
-          if (role === 'admin') {
-            const rootModel = getRoot(self)
-            if (isAbstractMenuManager(rootModel)) {
-              addTopLevelAdminMenus(rootModel)
-            }
+          self.addSocketListeners()
+          const rootModel = getRoot(self)
+          if (role === 'admin' && isAbstractMenuManager(rootModel)) {
+            addTopLevelAdminMenus(rootModel)
           }
+          window.addEventListener('beforeunload', beforeUnloadListener)
+          document.addEventListener(
+            'visibilitychange',
+            visibilityChangeListener,
+          )
+        },
+        /**
+         * The other half: everything that talks to the server, and so is
+         * expected to fail and be retried. It leaves nothing behind, so running
+         * it again costs a request and nothing else.
+         */
+        loadInitialState: flow(function* loadInitialState() {
           // Get and set server last change sequence into session storage
           yield self.updateLastChangeSequenceNumber()
-          // Open socket listeners
-          self.addSocketListeners()
           // request user locations
           const { baseURL } = self
           const uri = new URL('users/locations', baseURL).href
@@ -533,11 +573,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             method: 'GET',
             signal: self.controller.signal,
           })
-          window.addEventListener('beforeunload', beforeUnloadListener)
-          document.addEventListener(
-            'visibilitychange',
-            visibilityChangeListener,
-          )
         }),
         removeBeforeUnloadListener() {
           window.removeEventListener('beforeunload', beforeUnloadListener)
@@ -553,8 +588,25 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
     .actions((self) => ({
       afterAttach() {
         self.setRole()
+
+        // Two reactions rather than one, because the two halves of startup want
+        // opposite things: install() must run at most once and loadInitialState()
+        // must be free to run again.
+        //
+        // They were one, and it could not give both. Its dispose() sat behind
+        // both awaits, so the reaction stayed armed across two round trips
+        // while everything install() does had already been done — and what it
+        // tracks is `self.role`, which those very requests write: a 403 from
+        // either sends getFetcher through removeToken()/setRole(), clearing the
+        // role and then setting it again once a new token arrives. So an
+        // expired token at startup, the ordinary case, installed everything a
+        // second time.
+        //
+        // This one is synchronous, and that is what makes "at most once"
+        // structural rather than a flag: dispose() runs in the same tick as
+        // install(), so there is no window for anything to invalidate it.
         autorun(
-          async (reaction) => {
+          (reaction) => {
             if (inWebWorker) {
               return
             }
@@ -562,16 +614,41 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             // This can be undefined if there is no session loaded, e.g. on
             // the start screen
             // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-            if (!session) {
+            if (!session || !self.role) {
               return
             }
-            if (self.role) {
-              try {
-                await self.initialize(self.role)
-                reaction.dispose()
-              } catch {
-                // if initialize fails, do nothing so the autorun runs again
-              }
+            try {
+              self.install(self.role)
+            } catch {
+              // addSocketListeners threw before registering anything, so stay
+              // armed and install nothing until there is a token
+              return
+            }
+            reaction.dispose()
+          },
+          { name: 'ApolloInternetAccountInstall' },
+        )
+
+        autorun(
+          async (reaction) => {
+            if (inWebWorker) {
+              return
+            }
+            const { session } = getRoot<ApolloRootModel>(self)
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            if (!session || !self.role) {
+              return
+            }
+            if (self.role === 'none') {
+              // nothing to load for a user with no access
+              reaction.dispose()
+              return
+            }
+            try {
+              await self.loadInitialState()
+              reaction.dispose()
+            } catch {
+              // if it fails, do nothing so the autorun runs again
             }
           },
           { name: 'ApolloInternetAccount' },

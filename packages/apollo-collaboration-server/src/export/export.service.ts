@@ -17,11 +17,12 @@ import {
   type RefSeqDocument,
 } from '@apollo-annotation/schemas'
 import { GFFFormattingTransformer } from '@gmod/gff'
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
-import { type FilterQuery, Model } from 'mongoose'
-import StreamConcat from 'stream-concat'
+import { Model, type QueryFilter } from 'mongoose'
+
+import { concatStreams } from '../utils/concatStreams.js'
 
 import {
   FeatureDocToGFF3FeatureStream,
@@ -49,8 +50,6 @@ export class ExportService {
       true
     >,
   ) {}
-
-  private readonly logger = new Logger(ExportService.name)
 
   async getAssemblyName(assemblyId: string) {
     const assemblyDoc = await this.assemblyModel.findById(assemblyId)
@@ -116,10 +115,7 @@ export class ExportService {
       }
     }
     const streams = [headerStream, featureStream, ...sequenceStreams]
-    const combinedStream: Readable = new StreamConcat(
-      streams.map((stream) => Readable.fromWeb(stream)),
-    )
-    return [combinedStream, assembly.toString()]
+    return [concatStreams(streams), assembly.toString()]
   }
 
   async streamFromLocalFasta(
@@ -166,7 +162,7 @@ export class ExportService {
   }
 
   streamFromRefSeqCollection(
-    query: FilterQuery<RefSeqDocument>,
+    query: QueryFilter<RefSeqDocument>,
     fastaWidth?: number,
   ): ReadableStream<string>[] {
     const sequenceStream = Readable.toWeb(

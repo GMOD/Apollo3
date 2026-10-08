@@ -8,13 +8,19 @@ import {
   RefSeq,
   type RefSeqDocument,
 } from '@apollo-annotation/schemas'
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import {
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
-import StreamConcat from 'stream-concat'
 
 import { ChecksService } from '../checks/checks.service.js'
 import type { FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
+import { concatStreams } from '../utils/concatStreams.js'
 
 import type {
   FeatureCountRequest,
@@ -25,7 +31,8 @@ import { CheckFeatureStream, DocToJSONArrayStream } from './transforms.js'
 @Injectable()
 export class FeaturesService {
   constructor(
-    private readonly checksService: ChecksService,
+    @Inject(forwardRef(() => ChecksService))
+    private readonly checksService: Readonly<ChecksService>,
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
     @InjectModel(RefSeq.name)
@@ -76,13 +83,13 @@ export class FeaturesService {
 
   async getByIndexedId(getByIndexedIdRequest: GetByIndexedIdRequest) {
     const { assemblies, id, topLevel } = getByIndexedIdRequest
-    const refSeqsQuery: { refSeq?: RefSeqDocument[] } = {}
+    const refSeqsQuery: { refSeq?: RefSeqDocument['_id'][] } = {}
     if (assemblies) {
       const assemblyIds = assemblies.split(',')
       const refSeqs = await this.refSeqModel
         .find({ assembly: assemblyIds })
         .exec()
-      refSeqsQuery.refSeq = refSeqs
+      refSeqsQuery.refSeq = refSeqs.map((refSeq) => refSeq._id)
     }
     const topLevelFeatures = await this.featureModel
       .find({ indexedIds: id, ...refSeqsQuery })
@@ -161,8 +168,8 @@ export class FeaturesService {
       .exec()
 
     if (!topLevelFeature) {
-      const errMsg = `ERROR: The following featureId was not found in database ='${featureId}'`
-      this.logger.error(errMsg)
+      const errMsg = `The following featureId was not found in database ='${featureId}'`
+      this.logger.warn(errMsg)
       throw new NotFoundException(errMsg)
     }
 
@@ -173,11 +180,13 @@ export class FeaturesService {
       topLevel,
     )
     if (!foundFeature) {
-      const errMsg = 'ERROR when searching feature by featureId'
-      this.logger.error(errMsg)
+      const errMsg = `Feature "${featureId}" not found in its top-level feature`
+      this.logger.warn(errMsg)
       throw new NotFoundException(errMsg)
     }
-    this.logger.debug(`Feature found: ${JSON.stringify(foundFeature)}`)
+    this.logger.debug(
+      `Feature found: "${foundFeature._id.toString()}" (${foundFeature.type})`,
+    )
     return foundFeature
   }
 
@@ -193,11 +202,11 @@ export class FeaturesService {
     topLevel?: boolean,
     parent?: Feature | null,
   ): Feature | null {
-    this.logger.verbose(`Entry=${JSON.stringify(feature)}`)
+    this.logger.debug(`Checking feature "${feature._id.toString()}"`)
 
     if (feature._id.equals(featureId)) {
       this.logger.debug(
-        `Top level featureId matches in object ${JSON.stringify(feature)}`,
+        `Top level featureId matches in feature "${feature._id.toString()}"`,
       )
       if (topLevel && parent) {
         return parent
@@ -273,15 +282,13 @@ export class FeaturesService {
       },
     })
 
-    return new StreamConcat(
-      [
-        openBracket,
-        featuresStream,
-        comma,
-        checkResultsStream,
-        closeBracket,
-      ].map((stream) => Readable.fromWeb(stream)),
-    )
+    return concatStreams([
+      openBracket,
+      featuresStream,
+      comma,
+      checkResultsStream,
+      closeBracket,
+    ])
   }
 
   private byRangeQuery(searchDto: FeatureRangeSearchDto) {
@@ -308,7 +315,10 @@ export class FeaturesService {
       .find({ assembly: assemblyIds })
       .exec()
     return this.featureModel
-      .find({ $text: { $search: `"${term}"` }, refSeq: refSeqs })
+      .find({
+        $text: { $search: `"${term}"` },
+        refSeq: refSeqs.map((refSeq) => refSeq._id),
+      })
       .exec()
   }
 }

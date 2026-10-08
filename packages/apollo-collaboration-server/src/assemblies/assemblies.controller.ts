@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Head,
-  Logger,
-  Param,
-  Post,
-} from '@nestjs/common'
+import { Body, Controller, Get, Head, Param, Post } from '@nestjs/common'
 
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'
@@ -22,8 +14,6 @@ interface AssemblyDocument {
 @Controller('assemblies')
 export class AssembliesController {
   constructor(private readonly assembliesService: AssembliesService) {}
-  private readonly logger = new Logger(AssembliesController.name)
-
   @Head('checks')
   checksHead() {
     return ''

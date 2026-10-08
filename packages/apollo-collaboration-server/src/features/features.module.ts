@@ -36,12 +36,6 @@ import { FeaturesService } from './features.service.js'
           }
           FeatureSchema.post('save', runChecksOnDocument)
           FeatureSchema.post('updateOne', runChecksOnDocument)
-          FeatureSchema.post('update', async function () {
-            const features = await this.model.find<FeatureDocument>(
-              this.getQuery(),
-            )
-            await runChecksOnDocuments(features)
-          })
           FeatureSchema.post('findOneAndUpdate', async function () {
             const features = await this.model.find<FeatureDocument>(
               this.getQuery(),

@@ -11,7 +11,7 @@ import {
 import { Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
-import { type FilterQuery, Model } from 'mongoose'
+import { Model, type QueryFilter } from 'mongoose'
 
 import { MessagesGateway } from '../messages/messages.gateway.js'
 import {
@@ -51,6 +51,7 @@ function getSpecialUserType(email: string): SpecialUserType | undefined {
 export function toUserResponse(user: UserDocument) {
   const special = getSpecialUserType(user.email)
   const json = user.toJSON()
+  // eslint-disable-next-line @typescript-eslint/no-misused-spread
   return special ? { ...json, special } : json
 }
 
@@ -159,7 +160,7 @@ export class UsersService implements OnApplicationBootstrap {
   async findPage(findUsersDto: FindUsersDto) {
     const { page, pageSize, role, roleOperator, search, sortField, sortOrder } =
       findUsersDto
-    const queryCond: FilterQuery<UserDocument> = {
+    const queryCond: QueryFilter<UserDocument> = {
       email: { $nin: specialUserEmails },
     }
     if (search) {
@@ -171,9 +172,9 @@ export class UsersService implements OnApplicationBootstrap {
     }
     if (role) {
       const validRoles = new Set<string>(Object.values(Role))
-      const roles: (string | null)[] = role
+      const roles: (Role | null)[] = role
         .split(',')
-        .filter((r) => validRoles.has(r))
+        .filter((r): r is Role => validRoles.has(r))
       // Users with no role set are treated the same as role "none"
       if (roles.includes(Role.None)) {
         roles.push(null)
@@ -209,7 +210,7 @@ export class UsersService implements OnApplicationBootstrap {
   }
 
   async getCount() {
-    return this.userModel.count().exec()
+    return this.userModel.countDocuments().exec()
   }
 
   async onApplicationBootstrap() {
@@ -328,7 +329,7 @@ export class UsersService implements OnApplicationBootstrap {
       reqType: 'CURRENT_LOCATION',
     }
     this.logger.debug(
-      `*** Broadcasting request to resend users's current locations. Channel "${channel}", the message is "${JSON.stringify(
+      `Broadcasting request to resend users's current locations. Channel "${channel}", the message is "${JSON.stringify(
         msg,
       )}"`,
     )

@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
 import { getSession } from '@jbrowse/core/util'
-import { makeStyles } from '@jbrowse/core/util/tss-react'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Alert, Typography, alpha } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useCallback, useEffect, useRef } from 'react'
+import { makeStyles } from 'tss-react/mui'
 
 import { LinearApolloDisplay } from './LinearApolloDisplay/components'
 import type { LinearApolloDisplay as LinearApolloDisplayI } from './LinearApolloDisplay/stateModel'
@@ -98,7 +98,7 @@ const ResizeHandle = ({
 
   return (
     // TODO: a11y
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+    // eslint-disable-next-line jsx-a11y-x/click-events-have-key-events, jsx-a11y-x/no-static-element-interactions
     <div
       onMouseDown={(event: React.MouseEvent) => {
         event.stopPropagation()
@@ -138,7 +138,7 @@ const AccordionControl = observer(function AccordionControl({
     <div className={classes.accordionRoot}>
       {open && onResize ? <ResizeHandle onResize={onResize} /> : null}
       {/* TODO: a11y */}
-      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
+      {/* eslint-disable-next-line jsx-a11y-x/click-events-have-key-events, jsx-a11y-x/no-static-element-interactions */}
       <div className={classes.accordionControl} onClick={onClick}>
         {open ? (
           <ExpandLessIcon className={classes.expandIcon} />

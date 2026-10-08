@@ -79,7 +79,6 @@ export class FilesController {
     this.logger.debug(
       `Streaming file '${file.basename}' from server to client'`,
     )
-    this.logger.debug(`headers: ${JSON.stringify(req.headers)}`)
     const acceptEncodingHeader = req.headers['accept-encoding']
     const encodings =
       typeof acceptEncodingHeader === 'string'

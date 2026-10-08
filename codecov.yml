@@ -7,3 +7,36 @@ coverage:
     patch:
       default:
         informational: true
+flags:
+  unit-shared:
+    paths:
+      - packages/apollo-shared/src/
+  unit-plugin:
+    paths:
+      - packages/jbrowse-plugin-apollo/src/
+  unit-server:
+    paths:
+      - packages/apollo-collaboration-server/src/
+component_management:
+  individual_components:
+    - component_id: apollo-cli
+      paths:
+        - packages/apollo-cli/src/**
+    - component_id: apollo-collaboration-server
+      paths:
+        - packages/apollo-collaboration-server/src/**
+    - component_id: apollo-common
+      paths:
+        - packages/apollo-common/src/**
+    - component_id: apollo-mst
+      paths:
+        - packages/apollo-mst/src/**
+    - component_id: apollo-schemas
+      paths:
+        - packages/apollo-schemas/src/**
+    - component_id: apollo-shared
+      paths:
+        - packages/apollo-shared/src/**
+    - component_id: jbrowse-plugin-apollo
+      paths:
+        - packages/jbrowse-plugin-apollo/src/**

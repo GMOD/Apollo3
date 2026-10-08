@@ -18,11 +18,11 @@ export class CountersService {
       .findOneAndUpdate(
         { id: sequenceName },
         { $inc: { sequenceValue: 1 } },
-        { new: true, upsert: true },
+        { returnDocument: 'after', upsert: true },
       )
       .exec()
     if (!sequenceDocument) {
-      const errMsg = 'ERROR when getting next sequence value'
+      const errMsg = `Failed to get next sequence value for "${sequenceName}"`
       this.logger.error(errMsg)
       throw new NotFoundException(errMsg)
     }

@@ -56,6 +56,19 @@
       },
     },
     {
+      "label": "start jbrowse server",
+      "type": "npm",
+      "script": "browse",
+      "path": "packages/jbrowse-plugin-apollo",
+      "problemMatcher": [],
+      "detail": "serve --listen 8999 --symlinks .jbrowse",
+      "dependsOn": ["yarn"],
+      "isBackground": true,
+      "presentation": {
+        "group": "plugin-terminal",
+      },
+    },
+    {
       "label": "start plugin",
       "dependsOn": ["start plugin watch", "start plugin server"],
       "problemMatcher": [],
@@ -87,7 +100,12 @@
     },
     {
       "label": "Start-cypress",
-      "dependsOn": ["start shared", "start server cypress", "start plugin"],
+      "dependsOn": [
+        "start shared",
+        "start server cypress",
+        "start plugin",
+        "start jbrowse server",
+      ],
       "problemMatcher": [],
     },
     {

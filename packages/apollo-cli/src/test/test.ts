@@ -1260,7 +1260,7 @@ EOF`,
       false,
     )
     assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('ERROR'))
+    assert.ok(p.stderr.includes('featureId was not found'))
 
     p = new Shell(
       `${apollo} feature copy ${P} -i ${fid} -r FOOBAR -a dest -s 1`,

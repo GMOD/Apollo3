@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import type { CheckResultSnapshot } from '@apollo-annotation/mst'
 import {
   Check,
@@ -39,7 +38,9 @@ import { ChecksService } from './checks.service.js'
               channel: 'COMMON',
               userName: 'none',
               userSessionId: 'none',
-              checkResult: 'toJSON' in doc ? doc.toJSON() : doc,
+              checkResult: ('toJSON' in doc
+                ? doc.toJSON()
+                : doc) as unknown as CheckResultSnapshot,
             }
             await messagesGateway.create(message.channel, message)
           }
@@ -48,14 +49,13 @@ import { ChecksService } from './checks.service.js'
               channel: 'COMMON',
               userName: 'none',
               userSessionId: 'none',
-              checkResult: doc.toJSON(),
+              checkResult: doc.toJSON() as unknown as CheckResultSnapshot,
               deleted: true,
             }
             await messagesGateway.create(message.channel, message)
           }
           CheckResultSchema.post('save', broadcast)
           CheckResultSchema.post('updateOne', broadcast)
-          CheckResultSchema.post('remove', broadcastDeletion)
           CheckResultSchema.post('deleteOne', broadcastDeletion)
           CheckResultSchema.pre('findOneAndUpdate', async function () {
             const checkResults = await this.model.find<CheckResultDocument>(
@@ -65,14 +65,11 @@ import { ChecksService } from './checks.service.js'
               await broadcast(checkResult)
             }
           })
-          CheckResultSchema.pre(
-            'insertMany',
-            async function (_result, checkResults) {
-              for (const checkResult of checkResults) {
-                await broadcast(checkResult)
-              }
-            },
-          )
+          CheckResultSchema.pre('insertMany', async function (checkResults) {
+            for (const checkResult of checkResults as CheckResultDocument[]) {
+              await broadcast(checkResult)
+            }
+          })
           CheckResultSchema.pre('findOneAndDelete', async function () {
             const checkResults = await this.model.find<CheckResultDocument>(
               this.getQuery(),

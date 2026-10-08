@@ -3,6 +3,7 @@ import { Button, Paper, useTheme } from '@mui/material'
 import React, { useRef } from 'react'
 
 import { copyToClipboard } from '../util/copyToClipboard'
+
 import {
   type SequenceSegment,
   getSegmentColor,

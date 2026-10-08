@@ -16,7 +16,7 @@ creating and editing your first genome annotations.
 The user guide also covers more advanced topics in genome annotation and can
 serve as a "how-to" reference for more experienced users.
 
-<a href="docs/user-guide" className="button button--primary button--lg">Go to
+<a href="./01-user-guide/" className="button button--primary button--lg">Go to
 user guide</a>
 
 ## Setting up Apollo
@@ -30,7 +30,7 @@ If you don't need multi-user collaboration, see our single-user guide for
 instructions on how to quickly and easily set up Apollo to work on your genome
 annotations.
 
-<a href="docs/single-user" className="button button--primary button--lg">Go to
+<a href="./02-single-user/" className="button button--primary button--lg">Go to
 single-user setup guide</a>
 
 ### Multiple users
@@ -38,7 +38,7 @@ single-user setup guide</a>
 If you want to set up Apollo for multiple users to work collaboratively, then
 see this guide for links to installing an Apollo Collaboration Server.
 
-<a href="docs/multi-user" className="button button--primary button--lg">Go to
+<a href="./03-multi-user/" className="button button--primary button--lg">Go to
 multi-user setup guide</a>
 
 ## Developers
@@ -47,5 +47,5 @@ Apollo provides advanced customization options through Apollo plugins. If you'd
 like more information on how to create plugins for Apollo, see our developer
 guide.
 
-<a href="docs/developer-guide" className="button button--primary button--lg">Go
+<a href="./04-developer-guide/" className="button button--primary button--lg">Go
 to developer guide</a>

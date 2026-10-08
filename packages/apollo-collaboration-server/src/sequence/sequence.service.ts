@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-base-to-string */
-
 import {
   File,
   type FileDocument,
@@ -9,7 +7,7 @@ import {
   type RefSeqDocument,
 } from '@apollo-annotation/schemas'
 import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
-import { Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable, forwardRef } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { type GenericFilehandle, RemoteFile } from 'generic-filehandle2'
 import { Model } from 'mongoose'
@@ -51,10 +49,9 @@ export class SequenceService {
     private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
     @InjectModel(RefSeq.name)
     private readonly refSeqModel: Model<RefSeqDocument>,
-    private readonly assembliesService: AssembliesService,
+    @Inject(forwardRef(() => AssembliesService))
+    private readonly assembliesService: Readonly<AssembliesService>,
   ) {}
-
-  private readonly logger = new Logger(SequenceService.name)
 
   async getSequence({ end, refSeq: refSeqId, start }: GetSequenceDto) {
     let refSeq: RefSeqDocument | null | undefined = refSeqDocLRU.get(refSeqId)
@@ -152,7 +149,7 @@ export class SequenceService {
     const seq: string[] = []
     for await (const refSeqChunk of this.refSeqChunkModel
       .find({
-        refSeq,
+        refSeq: refSeq._id,
         $and: [{ n: { $gte: startChunk } }, { n: { $lte: endChunk } }],
       })
       .sort({ n: 1 })) {

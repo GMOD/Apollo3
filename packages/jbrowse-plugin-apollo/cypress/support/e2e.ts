@@ -20,6 +20,8 @@ import compareSnapshotCommand from 'cypress-image-diff-js'
 import { addCommands } from 'cypress-mongodb/dist/index-browser'
 // Import commands.js using ES2015 syntax:
 import './commands'
+import '@cypress/code-coverage/support'
+import './coverage'
 
 compareSnapshotCommand()
 

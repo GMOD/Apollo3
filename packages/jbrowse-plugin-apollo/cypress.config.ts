@@ -2,9 +2,16 @@
 
 import fs from 'node:fs'
 
+import registerCodeCoverageTasks from '@cypress/code-coverage/task.js'
 import { defineConfig } from 'cypress'
 import getCompareSnapshotsPlugin from 'cypress-image-diff-js/plugin'
 import { configurePlugin } from 'cypress-mongodb'
+
+// The package has no types, and the ones TypeScript infers from its JS are wrong
+const codeCoverageTask = registerCodeCoverageTasks as unknown as (
+  on: Cypress.PluginEvents,
+  config: Cypress.PluginConfigOptions,
+) => void
 
 export default defineConfig({
   // Make viewport long and thin to avoid the scrollbar on the right interfere
@@ -20,6 +27,10 @@ export default defineConfig({
       database: 'apolloTestDb',
     },
   },
+  expose: {
+    // Coverage is collected when the plugin is built with COVERAGE=true
+    coverage: process.env.COVERAGE === 'true',
+  },
   screenshotOnRunFailure: false,
   video: false,
   e2e: {
@@ -28,6 +39,7 @@ export default defineConfig({
       // @ts-expect-error types are wrong
       getCompareSnapshotsPlugin(on, config)
       configurePlugin(on)
+      codeCoverageTask(on, config)
       on('task', {
         readdirSync(path) {
           return fs.readdirSync(path)

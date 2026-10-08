@@ -2,7 +2,6 @@ import {
   Controller,
   DefaultValuePipe,
   Get,
-  Logger,
   ParseBoolPipe,
   ParseIntPipe,
   Query,
@@ -19,8 +18,6 @@ import { ExportService } from './export.service.js'
 @Controller('export')
 export class ExportController {
   constructor(private readonly exportService: ExportService) {}
-
-  private readonly logger = new Logger(ExportController.name)
 
   /**
    * Get and ID to be used with exportGFF3. ID will be valid for 5 minutes.

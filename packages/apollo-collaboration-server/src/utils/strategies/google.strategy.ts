@@ -26,20 +26,20 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     private readonly authService: AuthenticationService,
     configService: ConfigService<ConfigValues, true>,
   ) {
-    let clientID = configService.get('GOOGLE_CLIENT_ID', { infer: true })
+    let clientID = 'none'
+    clientID =
+      configService.get('GOOGLE_CLIENT_ID', { infer: true }) || clientID
     if (!clientID) {
       const clientIDFile = configService.get('GOOGLE_CLIENT_ID_FILE', {
         infer: true,
       })
-      clientID = clientIDFile && fs.readFileSync(clientIDFile, 'utf8').trim()
-    }
-    const configured = Boolean(clientID)
-    if (!configured) {
-      clientID = 'none'
+      clientID =
+        (clientIDFile && fs.readFileSync(clientIDFile, 'utf8').trim()) ??
+        clientID
     }
     let clientSecret = 'none'
     let callbackURL
-    if (configured) {
+    if (clientID !== 'none') {
       clientSecret = configService.get('GOOGLE_CLIENT_SECRET', { infer: true })
       if (!clientSecret) {
         // We can use non-null assertion since joi already checks this for us
@@ -57,12 +57,14 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       }auth/google`
       callbackURL = callbackURI.href
     }
+    // @ts-expect-error published types are missing boolean for "store"
     super({
       clientID,
       clientSecret,
       callbackURL,
       scope: ['email', 'profile'],
       store: true,
+      passReqToCallback: false,
     })
 
     // Apply proxy to OAuth2 instance

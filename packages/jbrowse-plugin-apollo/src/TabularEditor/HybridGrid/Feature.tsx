@@ -3,9 +3,9 @@
 
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type { AbstractSessionModel } from '@jbrowse/core/util'
-import { makeStyles } from '@jbrowse/core/util/tss-react'
 import { observer } from 'mobx-react'
 import React from 'react'
+import { makeStyles } from 'tss-react/mui'
 
 import { isOntologyClass } from '../../OntologyManager'
 import type OntologyStore from '../../OntologyManager/OntologyStore'
@@ -171,7 +171,7 @@ export const Feature = observer(function Feature({
         >
           {children?.size ? (
             // TODO: a11y
-            // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+            // eslint-disable-next-line jsx-a11y-x/click-events-have-key-events, jsx-a11y-x/no-static-element-interactions
             <div
               onClick={toggleExpanded}
               className={
