@@ -1,0 +1,4 @@
+# Cypress specific files
+cypress/videos
+cypress/screenshots
+cypress/downloads

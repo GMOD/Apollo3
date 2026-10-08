@@ -209,6 +209,91 @@ jobs:
           path: coverage-artifact/
           if-no-files-found: warn
 
+  e2e-plugin-example:
+    name: Cypress tests (example plugin)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.14
+          cache: yarn
+      - name: Install
+        run: yarn --immutable
+      - name: Get latest JBrowse
+        run: yarn run jbrowse create --nightly .jbrowse
+        working-directory: packages/jbrowse-plugin-apollo
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.12.1
+        with:
+          mongodb-version: 8
+          mongodb-replica-set: test-rs
+      # The server loads the example's server bundle when it starts, so build
+      # it first
+      - name: Build example plugin
+        run: yarn build
+        working-directory: packages/apollo-plugin-example
+      - name: Start example plugin file server
+        id: example-plugin-server
+        background: true
+        # Exits non-zero when it's stopped
+        continue-on-error: true
+        run: exec yarn --cwd packages/apollo-plugin-example serve:dist
+      - name: Start plugin file server
+        id: plugin-server
+        background: true
+        # Exits non-zero when it's stopped
+        continue-on-error: true
+        run: exec yarn --cwd packages/jbrowse-plugin-apollo start:server
+      - name: Start JBrowse file server
+        id: jbrowse-server
+        background: true
+        # Exits non-zero when it's stopped
+        continue-on-error: true
+        run: exec yarn --cwd packages/jbrowse-plugin-apollo browse
+      - name: Wait for example plugin file server to start
+        run:
+          timeout 60 bash -c 'until curl -sf -o /dev/null
+          http://localhost:3838/dist/server.bundle.js; do sleep 2; done'
+      - name: Start apollo-collaboration-server
+        id: apollo-collaboration-server
+        background: true
+        # Exits non-zero when it's stopped
+        continue-on-error: true
+        run:
+          exec yarn --cwd packages/apollo-collaboration-server
+          cypress:start:example
+      # Starting apollo builds shared and the server, so wait for it to finish
+      # before the plugin build (which also builds shared)
+      - name: Wait for servers to start
+        run:
+          timeout 300 bash -c 'until curl -sf http://localhost:3999/health &&
+          curl -sf -o /dev/null http://localhost:9000 && curl -sf -o /dev/null
+          http://localhost:8999; do sleep 2; done'
+      - name: Build Apollo JBrowse plugin
+        run: yarn build
+        working-directory: packages/jbrowse-plugin-apollo
+      - name: Run Cypress tests
+        run: yarn cypress:run --config screenshotOnRunFailure=true
+        working-directory: packages/apollo-plugin-example
+      - name: Upload Cypress screenshots
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: cypress-screenshots-plugin-example
+          path: packages/apollo-plugin-example/cypress/screenshots/
+          if-no-files-found: ignore
+      - name: Stop apollo
+        cancel: apollo-collaboration-server
+      - name: Stop JBrowse file server
+        cancel: jbrowse-server
+      - name: Stop plugin file server
+        cancel: plugin-server
+      - name: Stop example plugin file server
+        cancel: example-plugin-server
+
   cli:
     name: CLI tests
     runs-on: ubuntu-latest
