@@ -26,17 +26,14 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     private readonly authService: AuthenticationService,
     configService: ConfigService<ConfigValues, true>,
   ) {
-    let clientID = 'none'
-    clientID =
-      configService.get('GOOGLE_CLIENT_ID', { infer: true }) || clientID
+    let clientID = configService.get('GOOGLE_CLIENT_ID', { infer: true })
     if (!clientID) {
       const clientIDFile = configService.get('GOOGLE_CLIENT_ID_FILE', {
         infer: true,
       })
-      clientID =
-        (clientIDFile && fs.readFileSync(clientIDFile, 'utf8').trim()) ??
-        clientID
+      clientID = clientIDFile && fs.readFileSync(clientIDFile, 'utf8').trim()
     }
+    clientID ??= 'none'
     let clientSecret = 'none'
     let callbackURL
     if (clientID !== 'none') {
