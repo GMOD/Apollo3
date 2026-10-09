@@ -430,10 +430,8 @@ __metadata:
     "@types/jest": "npm:^30.0.0"
     "@types/multer": "npm:^2.0.0"
     "@types/node": "npm:^24.10.9"
-    "@types/passport-google-oauth20": "npm:^2.0.17"
     "@types/passport-jwt": "npm:^4.0.1"
     "@types/passport-local": "npm:^1.0.38"
-    "@types/passport-microsoft": "npm:^2.1.1"
     "@types/react": "npm:^18.3.4"
     "@types/stream-concat": "npm:^2.0.0"
     "@types/supertest": "npm:^2.0.11"
@@ -442,7 +440,6 @@ __metadata:
     express: "npm:^5.2.1"
     express-session: "npm:^1.17.3"
     generic-filehandle2: "npm:^2.2.1"
-    https-proxy-agent: "npm:^7.0.6"
     jest: "npm:^29.6.2"
     jest-util: "npm:^30.2.0"
     joi: "npm:^17.7.0"
@@ -453,11 +450,10 @@ __metadata:
     mongoose: "npm:^9.9.3"
     mongoose-id-validator: "patch:mongoose-id-validator@npm%3A0.6.0#~/.yarn/patches/mongoose-id-validator-npm-0.6.0-041e6742e1.patch"
     multer: "npm:^2.0.2"
+    openid-client: "npm:^6.8.8"
     passport: "npm:^0.7.0"
-    passport-google-oauth20: "npm:^2.0.0"
     passport-jwt: "npm:^4.0.1"
     passport-local: "npm:^1.0.0"
-    passport-microsoft: "npm:^2.1.0"
     prop-types: "npm:^15.8.1"
     quick-lru: "npm:^7.3.0"
     react: "npm:^18.2.0"
@@ -478,6 +474,7 @@ __metadata:
     tslib: "npm:^2.3.1"
     tss-react: "npm:^4.9.21"
     typescript: "npm:^6.0.3"
+    undici: "npm:^8.7.0"
   languageName: unknown
   linkType: soft
 
@@ -10200,30 +10197,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/oauth@npm:*":
-  version: 0.9.2
-  resolution: "@types/oauth@npm:0.9.2"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10c0/24ccc2792c0ef1b415ed318fe52ef656259e9f9c9f26bad76da4ce274823d6eb7297097989ca165cdfbc86aadeb9ddad087180b7653c39b486927b792a925205
-  languageName: node
-  linkType: hard
-
 "@types/parse-json@npm:^4.0.0":
   version: 4.0.0
   resolution: "@types/parse-json@npm:4.0.0"
   checksum: 10c0/1d3012ab2fcdad1ba313e1d065b737578f6506c8958e2a7a5bdbdef517c7e930796cb1599ee067d5dee942fb3a764df64b5eef7e9ae98548d776e86dcffba985
-  languageName: node
-  linkType: hard
-
-"@types/passport-google-oauth20@npm:^2.0.17":
-  version: 2.0.17
-  resolution: "@types/passport-google-oauth20@npm:2.0.17"
-  dependencies:
-    "@types/express": "npm:*"
-    "@types/passport": "npm:*"
-    "@types/passport-oauth2": "npm:*"
-  checksum: 10c0/b29e30e970bb506a78bb4bc283958f814ee125c10fc17f16aff019cf08883e40a873f05b736c0d153e47180b6b2edb84531372d9629956e3e7f027a8af4db588
   languageName: node
   linkType: hard
 
@@ -10245,26 +10222,6 @@ __metadata:
     "@types/passport": "npm:*"
     "@types/passport-strategy": "npm:*"
   checksum: 10c0/a8464df03f073a4bb9aef7fa7cc9e76a355f149a1148330da88346d0e9c600f845601e99ed40949a13287eacae0a7ad01cd0eb5ca00d8b81da263b1dfc3aee60
-  languageName: node
-  linkType: hard
-
-"@types/passport-microsoft@npm:^2.1.1":
-  version: 2.1.1
-  resolution: "@types/passport-microsoft@npm:2.1.1"
-  dependencies:
-    "@types/passport-oauth2": "npm:*"
-  checksum: 10c0/05f23ae5a83767e7c22b6c85b91da5758b4fc8a9b94c567b509efc876f5a9c9f967690c7686039c9bedab7ce2157ddf199d9632f4bb596fc3f8a1c7623100560
-  languageName: node
-  linkType: hard
-
-"@types/passport-oauth2@npm:*":
-  version: 1.4.13
-  resolution: "@types/passport-oauth2@npm:1.4.13"
-  dependencies:
-    "@types/express": "npm:*"
-    "@types/oauth": "npm:*"
-    "@types/passport": "npm:*"
-  checksum: 10c0/2609c51afc646ce10c1a9347dc233eca34dbbc86ff8255b8fc9ac735ec8106d7934b53e3a5c9564e9b3beaadc263f1b188d39d6c37965cbaa44865712c230473
   languageName: node
   linkType: hard
 
@@ -11646,13 +11603,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"agent-base@npm:^7.1.2":
-  version: 7.1.4
-  resolution: "agent-base@npm:7.1.4"
-  checksum: 10c0/c2c9ab7599692d594b6a161559ada307b7a624fa4c7b03e3afdb5a5e31cd0e53269115b620fcab024c5ac6a6f37fa5eb2e004f076ad30f5f7e6b8b671f7b35fe
-  languageName: node
-  linkType: hard
-
 "agentkeepalive@npm:^4.2.1":
   version: 4.5.0
   resolution: "agentkeepalive@npm:4.5.0"
@@ -12635,13 +12585,6 @@ __metadata:
   version: 2.0.0
   resolution: "base64id@npm:2.0.0"
   checksum: 10c0/6919efd237ed44b9988cbfc33eca6f173a10e810ce50292b271a1a421aac7748ef232a64d1e6032b08f19aae48dce6ee8f66c5ae2c9e5066c82b884861d4d453
-  languageName: node
-  linkType: hard
-
-"base64url@npm:3.x.x":
-  version: 3.0.1
-  resolution: "base64url@npm:3.0.1"
-  checksum: 10c0/5ca9d6064e9440a2a45749558dddd2549ca439a305793d4f14a900b7256b5f4438ef1b7a494e1addc66ced5d20f5c010716d353ed267e4b769e6c78074991241
   languageName: node
   linkType: hard
 
@@ -19270,16 +19213,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"https-proxy-agent@npm:^7.0.6":
-  version: 7.0.6
-  resolution: "https-proxy-agent@npm:7.0.6"
-  dependencies:
-    agent-base: "npm:^7.1.2"
-    debug: "npm:4"
-  checksum: 10c0/f729219bc735edb621fa30e6e84e60ee5d00802b8247aac0d7b79b0bd6d4b3294737a337b93b86a0bd9e68099d031858a39260c976dc14cdbba238ba1f8779ac
-  languageName: node
-  linkType: hard
-
 "human-signals@npm:^1.1.1":
   version: 1.1.1
   resolution: "human-signals@npm:1.1.1"
@@ -21164,6 +21097,13 @@ __metadata:
     "@sideway/formula": "npm:^3.0.1"
     "@sideway/pinpoint": "npm:^2.0.0"
   checksum: 10c0/9262aef1da3f1bec5b03caf50c46368899fe03b8ff26cbe3d53af4584dd1049079fc97230bbf1500b6149db7cc765b9ee45f0deb24bb6fc3fa06229d7148c17f
+  languageName: node
+  linkType: hard
+
+"jose@npm:^6.2.12":
+  version: 6.2.12
+  resolution: "jose@npm:6.2.12"
+  checksum: 10c0/e8582b946fabcae228819982dda4849908c353e9cb098f02f773635aa0d2f4917f17484c7441b8d526e564013b4cf96951455c94f81d0a39ee765bad44ce293d
   languageName: node
   linkType: hard
 
@@ -24036,17 +23976,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oauth@npm:0.10.x":
-  version: 0.10.2
-  resolution: "oauth@npm:0.10.2"
-  checksum: 10c0/5660d652b31eb2a90509989955a75b02311591d2e3cfb04a3fb91deae0d22c259aa5c31a9e8845f760d749af901032e3cfd06d151bbda9a5ebb9b76268d3aef9
-  languageName: node
-  linkType: hard
-
-"oauth@npm:0.9.x":
-  version: 0.9.15
-  resolution: "oauth@npm:0.9.15"
-  checksum: 10c0/52204f2a082850efca7e8406e6c6085d89318dc8a85f5a8d6c5594921da36149eb6228bba324af8e2fd9019f084d814ddf835ace6b697ced2b4be0d75f91fb30
+"oauth4webapi@npm:^3.8.8":
+  version: 3.8.8
+  resolution: "oauth4webapi@npm:3.8.8"
+  checksum: 10c0/1f7d35ba8d7d5aa9ce9ec5959a4611ed2b5dd7830172b1546749b91dda8c53f7934e669c6f81e912c64e3ae4fc681d4d6ce149b42cc9d17db97162bf8765e028
   languageName: node
   linkType: hard
 
@@ -24296,6 +24229,16 @@ __metadata:
   bin:
     opener: bin/opener-bin.js
   checksum: 10c0/dd56256ab0cf796585617bc28e06e058adf09211781e70b264c76a1dbe16e90f868c974e5bf5309c93469157c7d14b89c35dc53fe7293b0e40b4d2f92073bc79
+  languageName: node
+  linkType: hard
+
+"openid-client@npm:^6.8.8":
+  version: 6.8.8
+  resolution: "openid-client@npm:6.8.8"
+  dependencies:
+    jose: "npm:^6.2.12"
+    oauth4webapi: "npm:^3.8.8"
+  checksum: 10c0/b1d60ca45623c77b8869b5a9725e25309cca20d32823861c5f72f0e9126a3ce43da2a93be964bfe771a39560f356c06adaedb2be29fe1762c4d097f91a4b620e
   languageName: node
   linkType: hard
 
@@ -24621,15 +24564,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"passport-google-oauth20@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "passport-google-oauth20@npm:2.0.0"
-  dependencies:
-    passport-oauth2: "npm:1.x.x"
-  checksum: 10c0/158930bb97a48431aa0dcff453c3b698742ed51e2d590c362cb5d4ae7715cfb4fb1feae31b007aef0bc8435edc8ff678853c044b139da827756f3b5f3b597c7f
-  languageName: node
-  linkType: hard
-
 "passport-jwt@npm:^4.0.1":
   version: 4.0.1
   resolution: "passport-jwt@npm:4.0.1"
@@ -24646,41 +24580,6 @@ __metadata:
   dependencies:
     passport-strategy: "npm:1.x.x"
   checksum: 10c0/59becb988014921a5d6056470d9373c41db452fcf113323064f39d53baa6f184e72151bf269ca6770511f7f0260e13632dacc7b6afdbf60ebf63e90327e186d4
-  languageName: node
-  linkType: hard
-
-"passport-microsoft@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "passport-microsoft@npm:2.1.0"
-  dependencies:
-    passport-oauth2: "npm:1.8.0"
-  checksum: 10c0/cf7be62b1063e437d4127739c33af59c71ae0f0358b04bf68bc73db5873c4917afb490a1e3b5aa34a87342bdbb50e65056d48febaf63e93135ffce02d3891575
-  languageName: node
-  linkType: hard
-
-"passport-oauth2@npm:1.8.0":
-  version: 1.8.0
-  resolution: "passport-oauth2@npm:1.8.0"
-  dependencies:
-    base64url: "npm:3.x.x"
-    oauth: "npm:0.10.x"
-    passport-strategy: "npm:1.x.x"
-    uid2: "npm:0.0.x"
-    utils-merge: "npm:1.x.x"
-  checksum: 10c0/16b431bd856b84dfe0c9c913dcbea6ff54875befac1035171b0dce1c77f79072dc5e26d785b13c2e62c034c8174a1a47571751d1066bdbcdb9108de217c0b19b
-  languageName: node
-  linkType: hard
-
-"passport-oauth2@npm:1.x.x":
-  version: 1.7.0
-  resolution: "passport-oauth2@npm:1.7.0"
-  dependencies:
-    base64url: "npm:3.x.x"
-    oauth: "npm:0.9.x"
-    passport-strategy: "npm:1.x.x"
-    uid2: "npm:0.0.x"
-    utils-merge: "npm:1.x.x"
-  checksum: 10c0/adf7bdb09cdec3278357a576db2e534b9df1fe92eddd25e52b754273e8c13e3c3fbfa22f3720f941a90372355a366b97da31f438c0be1d6e2593d4722f180dfd
   languageName: node
   linkType: hard
 
@@ -30116,13 +30015,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uid2@npm:0.0.x":
-  version: 0.0.4
-  resolution: "uid2@npm:0.0.4"
-  checksum: 10c0/c3ed69da75d117214891f4743a1d8521db823d7a2f57644c1a9ae8b3bf25f0ba666d893264bf7e22be3dbbaa292d35a23d71d06ce7283458a65e8dd137c5c362
-  languageName: node
-  linkType: hard
-
 "uid@npm:2.0.2":
   version: 2.0.2
   resolution: "uid@npm:2.0.2"
@@ -30731,7 +30623,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"utils-merge@npm:1.0.1, utils-merge@npm:1.x.x, utils-merge@npm:^1.0.1":
+"utils-merge@npm:1.0.1, utils-merge@npm:^1.0.1":
   version: 1.0.1
   resolution: "utils-merge@npm:1.0.1"
   checksum: 10c0/02ba649de1b7ca8854bfe20a82f1dfbdda3fb57a22ab4a8972a63a34553cf7aa51bc9081cf7e001b035b88186d23689d69e71b510e610a09a4c66f68aa95b672

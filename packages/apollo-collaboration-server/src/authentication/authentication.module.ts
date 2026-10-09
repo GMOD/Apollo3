@@ -7,12 +7,11 @@ import { PassportModule } from '@nestjs/passport'
 
 import { PluginsService } from '../plugins/plugins.service.js'
 import { UsersModule } from '../users/users.module.js'
-import { GoogleStrategy } from '../utils/strategies/google.strategy.js'
 import { JwtStrategy } from '../utils/strategies/jwt.strategy.js'
-import { MicrosoftStrategy } from '../utils/strategies/microsoft.strategy.js'
 
 import { AuthenticationController } from './authentication.controller.js'
 import { AuthenticationService } from './authentication.service.js'
+import { OidcService } from './oidc/oidc.service.js'
 
 interface JWTSecretConfig {
   JWT_SECRET?: string
@@ -44,13 +43,7 @@ async function jwtConfigFactory(
     }),
   ],
   controllers: [AuthenticationController],
-  providers: [
-    AuthenticationService,
-    JwtStrategy,
-    GoogleStrategy,
-    MicrosoftStrategy,
-    PluginsService,
-  ],
+  providers: [AuthenticationService, JwtStrategy, OidcService, PluginsService],
   exports: [AuthenticationService],
 })
 export class AuthenticationModule {}

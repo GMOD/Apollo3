@@ -1,17 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import fs from 'node:fs/promises'
-
 import type { JWTPayload } from '@apollo-annotation/shared'
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common'
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import type { Request, Response } from 'express'
-import type { Profile as GoogleProfile } from 'passport-google-oauth20'
 
 import { PluginsService } from '../plugins/plugins.service.js'
 import { CreateUserDto } from '../users/dto/create-user.dto.js'
@@ -22,17 +13,10 @@ import {
   ROOT_USER_EMAIL,
 } from '../utils/constants.js'
 import { Role } from '../utils/role/role.enum.js'
-import type { Profile as MicrosoftProfile } from '../utils/strategies/microsoft.strategy.js'
 
-export interface RequestWithUserToken extends Request {
-  user: { token: string }
-}
+import { OidcService } from './oidc/oidc.service.js'
 
 interface ConfigValues {
-  MICROSOFT_CLIENT_ID?: string
-  MICROSOFT_CLIENT_ID_FILE?: string
-  GOOGLE_CLIENT_ID?: string
-  GOOGLE_CLIENT_ID_FILE?: string
   ALLOW_GUEST_USER: boolean
   DEFAULT_NEW_USER_ROLE: Role
   ROOT_USER_PASSWORD: string
@@ -68,27 +52,24 @@ export class AuthenticationService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService<ConfigValues, true>,
     private readonly pluginsService: PluginsService,
+    private readonly oidcService: OidcService,
   ) {
     this.defaultNewUserRole = configService.get('DEFAULT_NEW_USER_ROLE', {
       infer: true,
     })
   }
 
-  handleRedirect(req: RequestWithUserToken) {
-    if (!req.user) {
-      throw new BadRequestException()
-    }
-
-    const { redirect_uri } = (
-      req.authInfo as { state: { redirect_uri: string } }
-    ).state
-    const url = new URL(redirect_uri)
-    const searchParams = new URLSearchParams({ access_token: req.user.token })
+  /**
+   * Get the URL to send the user to after logging in, with their token added
+   */
+  getTokenRedirectUrl(redirectUri: string, token: string) {
+    const url = new URL(redirectUri)
+    const searchParams = new URLSearchParams({ access_token: token })
     url.search = searchParams.toString()
-    return { url: url.toString() }
+    return url.toString()
   }
 
-  async getLoginTypes() {
+  getLoginTypes() {
     const defaultAuthTypes = new Map<string, CustomAuthHandler>()
     const customAuthTypes = this.pluginsService.evaluateExtensionPoint(
       'Apollo-RegisterCustomAuth',
@@ -97,46 +78,24 @@ export class AuthenticationService {
     const loginTypes: { name: string; needsPopup: boolean; message: string }[] =
       []
     for (const [name, { needsPopup, message }] of customAuthTypes) {
+      if (this.oidcService.has(name)) {
+        this.logger.warn(
+          `Custom login type "${name}" is ignored because an OIDC provider with the same name is configured`,
+        )
+        continue
+      }
       loginTypes.push({ name, message, needsPopup })
     }
-    let microsoftClientID = this.configService.get('MICROSOFT_CLIENT_ID', {
-      infer: true,
-    })
-    if (!microsoftClientID) {
-      const clientIDFile = this.configService.get('MICROSOFT_CLIENT_ID_FILE', {
-        infer: true,
+    for (const { name, displayName } of this.oidcService.list()) {
+      loginTypes.push({
+        name,
+        message: `Sign in with ${displayName}`,
+        needsPopup: true,
       })
-      microsoftClientID =
-        clientIDFile && (await fs.readFile(clientIDFile, 'utf8'))
-      microsoftClientID = microsoftClientID?.trim()
-    }
-    let googleClientID = this.configService.get('GOOGLE_CLIENT_ID', {
-      infer: true,
-    })
-    if (!googleClientID) {
-      const clientIDFile = this.configService.get('GOOGLE_CLIENT_ID_FILE', {
-        infer: true,
-      })
-      googleClientID = clientIDFile && (await fs.readFile(clientIDFile, 'utf8'))
-      googleClientID = googleClientID?.trim()
     }
     const allowGuestUser = this.configService.get('ALLOW_GUEST_USER', {
       infer: true,
     })
-    if (microsoftClientID) {
-      loginTypes.push({
-        name: 'microsoft',
-        message: 'Sign in with Microsoft',
-        needsPopup: true,
-      })
-    }
-    if (googleClientID) {
-      loginTypes.push({
-        name: 'google',
-        message: 'Sign in with Google',
-        needsPopup: true,
-      })
-    }
     if (allowGuestUser) {
       loginTypes.push({
         name: 'guest',
@@ -145,33 +104,6 @@ export class AuthenticationService {
       })
     }
     return loginTypes
-  }
-
-  /**
-   * Log in with google
-   * @param profile - profile
-   * @returns Return either token with HttpResponse status 'HttpStatus.OK' OR null with 'HttpStatus.UNAUTHORIZED'
-   */
-  async googleLogin(profile: GoogleProfile) {
-    if (!profile._json.email) {
-      throw new UnauthorizedException('No email provided')
-    }
-    const { email, name } = profile._json
-    return this.logIn(name ?? 'N/A', email)
-  }
-
-  /**
-   * Log in with microsoft
-   * @param profile - profile
-   * @returns Return either token with HttpResponse status 'HttpStatus.OK' OR null with 'HttpStatus.UNAUTHORIZED'
-   */
-  async microsoftLogin(profile: MicrosoftProfile) {
-    const [email] = profile.emails
-    if (!email) {
-      throw new UnauthorizedException('No email provided')
-    }
-    const { displayName } = profile
-    return this.logIn(displayName, email.value)
   }
 
   /**
@@ -218,12 +150,9 @@ export class AuthenticationService {
       const logInResult = await this.logIn(result.name, result.email)
       if (customAuth.needsPopup && state) {
         const { redirect_uri } = JSON.parse(state) as { redirect_uri: string }
-        const url = new URL(redirect_uri)
-        const searchParams = new URLSearchParams({
-          access_token: logInResult.token,
-        })
-        url.search = searchParams.toString()
-        response.redirect(url.toString())
+        response.redirect(
+          this.getTokenRedirectUrl(redirect_uri, logInResult.token),
+        )
       }
       return logInResult
     }

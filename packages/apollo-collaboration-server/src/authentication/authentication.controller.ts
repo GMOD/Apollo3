@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 import {
   Body,
   Controller,
@@ -9,24 +8,22 @@ import {
   Redirect,
   Req,
   Res,
-  UseGuards,
 } from '@nestjs/common'
 import type { Request, Response } from 'express'
 
-import { GoogleAuthGuard } from '../utils/google.guard.js'
-import { MicrosoftAuthGuard } from '../utils/microsoft.guard.js'
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'
 
-import {
-  AuthenticationService,
-  type RequestWithUserToken,
-} from './authentication.service.js'
+import { AuthenticationService } from './authentication.service.js'
+import { OidcService } from './oidc/oidc.service.js'
 
 @Validations(Role.None)
 @Controller('auth')
 export class AuthenticationController {
-  constructor(private readonly authService: AuthenticationService) {}
+  constructor(
+    private readonly authService: AuthenticationService,
+    private readonly oidcService: OidcService,
+  ) {}
 
   @Get('types')
   getLoginTypes() {
@@ -43,20 +40,6 @@ export class AuthenticationController {
       ? `${type}?${new URLSearchParams({ redirect_uri }).toString()}`
       : type
     return { url }
-  }
-
-  @Get('google')
-  @Redirect()
-  @UseGuards(GoogleAuthGuard)
-  async handleRedirect(@Req() req: RequestWithUserToken) {
-    return this.authService.handleRedirect(req)
-  }
-
-  @Get('microsoft')
-  @Redirect()
-  @UseGuards(MicrosoftAuthGuard)
-  async microsoftHandleRedirect(@Req() req: RequestWithUserToken) {
-    return this.authService.handleRedirect(req)
   }
 
   @Get('guest')
@@ -77,6 +60,21 @@ export class AuthenticationController {
     @Query('redirect_uri') redirectUri?: string,
     @Query('state') state?: string,
   ) {
+    if (this.oidcService.has(id)) {
+      // The identity provider redirects back here with either a code or an
+      // error, otherwise this is the start of the login
+      if ('code' in req.query || 'error' in req.query) {
+        const { name, email, redirectUri } = await this.oidcService.finishLogin(
+          id,
+          req,
+        )
+        const { token } = await this.authService.logIn(name, email)
+        res.redirect(this.authService.getTokenRedirectUrl(redirectUri, token))
+        return
+      }
+      res.redirect(await this.oidcService.startLogin(id, req, redirectUri))
+      return
+    }
     const result = await this.authService.fallbackLogin(
       id,
       req,

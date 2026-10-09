@@ -56,6 +56,8 @@ const validationSchema = Joi.object({
   MICROSOFT_CLIENT_ID_FILE: Joi.string(),
   MICROSOFT_CLIENT_SECRET: Joi.string(),
   MICROSOFT_CLIENT_SECRET_FILE: Joi.string(),
+  MICROSOFT_TENANT: Joi.string(),
+  OIDC_PROVIDERS: Joi.string(),
   JWT_SECRET: Joi.string(),
   JWT_SECRET_FILE: Joi.string(),
   SESSION_SECRET: Joi.string(),
