@@ -54,3 +54,53 @@ start-mongodb:
 open:
     xdg-open http://localhost:3000/?config=http://localhost:3999/jbrowse/config.json
 ```
+
+## Local configuration overrides
+
+The collaboration server's development configuration lives in
+`packages/apollo-collaboration-server/.development.env`, which is committed. To
+change any of those values for your own setup, put them in
+`packages/apollo-collaboration-server/.development.local.env` instead. That file
+is gitignored, and any value in it takes precedence over `.development.env`.
+`just setup` creates it for you from
+`packages/apollo-collaboration-server/.development.local.env.example`, or you
+can copy that file yourself.
+
+The server doesn't watch these files, so restart it after editing them.
+
+## Optional: Google and Microsoft login for local development
+
+You don't need this for most development: the guest user and root user (see
+`.development.env`) both work out of the box. If you're working on login, you
+can create your own OAuth credentials and put them in `.development.local.env`.
+
+### Google
+
+Follow the
+[Google login instructions](packages/website/docs/03-multi-user/02-installation/03-login-management.md#set-up-google-login),
+with these values for local development:
+
+- Authorized JavaScript origin: `http://localhost:3999`
+- Authorized redirect URI: `http://localhost:3999/auth/google`
+
+On the OAuth consent screen, leave the app in "Testing" mode and add your own
+Google account as a test user. Then add the values to `.development.local.env`:
+
+```sh
+GOOGLE_CLIENT_ID=<your client ID>
+GOOGLE_CLIENT_SECRET=<your client secret>
+```
+
+### Microsoft
+
+Follow the
+[Microsoft login instructions](packages/website/docs/03-multi-user/02-installation/03-login-management.md#set-up-microsoft-login-incomplete).
+Under "Redirect URI", choose the "Web" platform and enter
+`http://localhost:3999/auth/microsoft`. Microsoft allows plain HTTP for
+`localhost`, so you don't need HTTPS for local development. Then add the values
+to `.development.local.env`:
+
+```sh
+MICROSOFT_CLIENT_ID=<your application (client) ID>
+MICROSOFT_CLIENT_SECRET=<your client secret value>
+```

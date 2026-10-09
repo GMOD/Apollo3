@@ -156,7 +156,10 @@ async function mongoDBURIFactory(
     ChecksModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: nodeEnv === 'production' ? '.env' : '.development.env',
+      envFilePath:
+        nodeEnv === 'production'
+          ? '.env'
+          : ['.development.local.env', '.development.env'],
       validationSchema,
     }),
     CountersModule,

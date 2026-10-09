@@ -14,12 +14,14 @@ In VSCode open the Apollo project as container as usual (Ctrl+Shift+P then
 `Dev container: Open folder in container`). Start Apollo for CLI testing:
 Ctrl+Shift+P then `Run task` (enter) `Start-cli-test`.
 
-Alternatively, the Apollo server must be configured to accept root user access.
-For this edit `packages/apollo-collaboration-server/.development.env` as:
+Alternatively, the Apollo server must be configured to accept root user access
+with the password the tests expect. For this, add the following to
+`packages/apollo-collaboration-server/.development.local.env` (a gitignored file
+that overrides `.development.env`):
 
 ```
-sed -i'' 's/# ALLOW_ROOT_USER=false/ALLOW_ROOT_USER=true/;
-          s/# ROOT_USER_PASSWORD=password/ROOT_USER_PASSWORD=pass/' packages/apollo-collaboration-server/.development.env
+ALLOW_ROOT_USER=true
+ROOT_USER_PASSWORD=pass
 ```
 
 then restart the collaboration server to make changes effective.
