@@ -2,10 +2,27 @@ import { type IDBPDatabase, openDB } from 'idb'
 
 Cypress.Commands.add('loginAsGuest', () => {
   cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
-  cy.contains('Continue as Guest', { timeout: 10_000 }).click()
-  // eslint-disable-next-line cypress/no-unnecessary-waiting
-  cy.wait(2000)
-  cy.reload()
+  // The login dialog doesn't always appear (e.g. in CI), so poll for it for a
+  // few seconds and continue on if it never shows up
+  const deadline = Date.now() + 2000
+  function clickGuestLoginIfPresent() {
+    cy.get('body').then(($body) => {
+      const guestLogin = $body.find(':contains("Continue as Guest")').last()
+      if (guestLogin.length > 0) {
+        cy.wrap(guestLogin).click()
+        // eslint-disable-next-line cypress/no-unnecessary-waiting
+        cy.wait(2000)
+        cy.reload()
+        return
+      }
+      if (Date.now() < deadline) {
+        // eslint-disable-next-line cypress/no-unnecessary-waiting
+        cy.wait(250)
+        clickGuestLoginIfPresent()
+      }
+    })
+  }
+  clickGuestLoginIfPresent()
 })
 
 Cypress.Commands.add('deleteAssemblies', () => {

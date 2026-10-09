@@ -1509,12 +1509,16 @@ EOF`,
   void globalThis.itName('User', () => {
     let p = new Shell(`${apollo} user get ${P}`)
     let out = JSON.parse(p.stdout)
-    assert.ok(out.length > 0)
+    assert.ok(out.length > 0, 'Expected at least one user')
 
     p = new Shell(`${apollo} user get ${P} -r admin`)
     const out2 = JSON.parse(p.stdout)
-    assert.ok(out.length > 0)
-    assert.ok(out.length > out2.length)
+    assert.ok(out2.length > 0, 'Expected at least one admin user')
+    // The test server's guest user is readOnly, so not all users are admins
+    assert.ok(
+      out.length > out2.length,
+      `Expected fewer admin users (${out2.length}) than total users (${out.length})`,
+    )
 
     p = new Shell(`${apollo} user get ${P} -r admin -u root`)
     out = JSON.parse(p.stdout)
