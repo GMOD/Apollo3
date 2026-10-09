@@ -30,8 +30,9 @@ SESSION_SECRET=g9fGaRuw06T7hs960Tm7KYyfcFaYEIaG9jfFnVEQ4QyFXmq7
 # SESSION_SECRET_FILE=/run/secrets/session-secret
 
 ##############################################################################
-## To enable users to log in, you need either (or both) Google or Microsoft ##
-## OAuth configured. Without them, only userless guest access is possible.  ##
+## To enable users to log in, you need at least one login provider (Google, ##
+## Microsoft, or another OpenID Connect provider) configured. Without one,  ##
+## only userless guest access is possible.                                  ##
 ##############################################################################
 
 # Google client id and secret.
@@ -49,6 +50,25 @@ MICROSOFT_CLIENT_ID=client_id_here
 MICROSOFT_CLIENT_SECRET=client_secret_here
 # Alternatively, can be a path to a file with the client secret
 # MICROSOFT_CLIENT_SECRET_FILE=/run/secrets/microsoft-client-secret
+# Optionally, only allow Microsoft accounts from a single organization by giving
+# its directory (tenant) ID. Defaults to "common", which allows any account.
+# MICROSOFT_TENANT=your_tenant_id
+
+# Other OpenID Connect login providers. A comma-separated list of names, each of
+# which is configured with OIDC_<NAME>_* keys, where <NAME> is the name in upper
+# case. The redirect URI to register with the provider is {URL}/auth/<name>.
+# OIDC_PROVIDERS=keycloak
+# OIDC_KEYCLOAK_ISSUER=https://sso.example.org/realms/apollo
+# OIDC_KEYCLOAK_CLIENT_ID=client_id_here
+# Alternatively, can be a path to a file with the client ID
+# OIDC_KEYCLOAK_CLIENT_ID_FILE=/run/secrets/keycloak-client-id
+# OIDC_KEYCLOAK_CLIENT_SECRET=client_secret_here
+# Alternatively, can be a path to a file with the client secret
+# OIDC_KEYCLOAK_CLIENT_SECRET_FILE=/run/secrets/keycloak-client-secret
+# Optional, text for the login button, e.g. "Sign in with University SSO"
+# OIDC_KEYCLOAK_DISPLAY_NAME=University SSO
+# Optional, space-separated scopes to request. Defaults to "openid email profile"
+# OIDC_KEYCLOAK_SCOPES=openid email profile
 
 ##############
 ## OPTIONAL ##
