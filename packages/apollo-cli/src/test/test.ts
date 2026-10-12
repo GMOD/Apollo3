@@ -86,31 +86,62 @@ void describe('Test CLI', () => {
 
   void globalThis.itName('Print help', () => {
     const p = new Shell(`${apollo} --help`)
-    assert.ok(p.stdout.includes('COMMANDS'))
+    assert.ok(
+      p.stdout.includes('COMMANDS'),
+      `Expected help output to list COMMANDS:\n${p.stdout}`,
+    )
   })
 
   void globalThis.itName('Get config file', () => {
     const p = new Shell(`${apollo} config --get-config-file`)
-    assert.ok(p.stdout.startsWith('/'))
+    assert.ok(
+      p.stdout.startsWith('/'),
+      `Expected an absolute config file path, got "${p.stdout}"`,
+    )
   })
 
   void globalThis.itName('Config invalid keys', () => {
     let p = new Shell(`${apollo} config ${P} address spam`, false)
-    assert.strictEqual(1, p.returncode)
-    assert.ok(p.stderr.includes('Invalid setting:'))
+    assert.strictEqual(
+      1,
+      p.returncode,
+      `Expected invalid address to exit with 1, got ${p.returncode}`,
+    )
+    assert.ok(
+      p.stderr.includes('Invalid setting:'),
+      `Expected "Invalid setting:" error for invalid address:\n${p.stderr}`,
+    )
 
     p = new Shell(`${apollo} config ${P} ADDRESS http://localhost:3999`, false)
-    assert.strictEqual(1, p.returncode)
-    assert.ok(p.stderr.includes('Invalid setting:'))
+    assert.strictEqual(
+      1,
+      p.returncode,
+      `Expected wrongly-cased key to exit with 1, got ${p.returncode}`,
+    )
+    assert.ok(
+      p.stderr.includes('Invalid setting:'),
+      `Expected "Invalid setting:" error for wrongly-cased key:\n${p.stderr}`,
+    )
 
     p = new Shell(`${apollo} config ${P} accessType spam`, false)
-    assert.strictEqual(1, p.returncode)
-    assert.ok(p.stderr.includes('Invalid setting:'))
+    assert.strictEqual(
+      1,
+      p.returncode,
+      `Expected invalid accessType to exit with 1, got ${p.returncode}`,
+    )
+    assert.ok(
+      p.stderr.includes('Invalid setting:'),
+      `Expected "Invalid setting:" error for invalid accessType:\n${p.stderr}`,
+    )
   })
 
   void globalThis.itName('Can change access type', () => {
     const p = new Shell(`${apollo} config ${P} accessType google`)
-    assert.strictEqual('', p.stdout.trim())
+    assert.strictEqual(
+      '',
+      p.stdout.trim(),
+      `Expected no output when setting accessType, got "${p.stdout}"`,
+    )
   })
 
   void globalThis.itName(
@@ -202,7 +233,10 @@ server.listen(0, () => {
           !stdout.includes('[object Object]'),
           `Select choices rendered a raw object instead of its name:\n${stdout}`,
         )
-        assert.ok(stdout.includes('guest'))
+        assert.ok(
+          stdout.includes('guest'),
+          `Expected "guest" login type to be shown as a choice:\n${stdout}`,
+        )
       } finally {
         child.kill()
         authServer.kill()
@@ -210,17 +244,29 @@ server.listen(0, () => {
       }
 
       const p = new Shell(`${apollo} config ${P} accessType`)
-      assert.strictEqual(p.stdout.trim(), 'guest')
+      assert.strictEqual(
+        p.stdout.trim(),
+        'guest',
+        `Expected selected accessType to be saved as "guest", got "${p.stdout.trim()}"`,
+      )
     },
   )
 
   void globalThis.itName('Apollo status', () => {
     let p = new Shell(`${apollo} status ${P}`)
-    assert.strictEqual(p.stdout.trim(), 'testAdmin: Logged in')
+    assert.strictEqual(
+      p.stdout.trim(),
+      'testAdmin: Logged in',
+      `Expected status to be logged in, got "${p.stdout.trim()}"`,
+    )
 
     new Shell(`${apollo} logout ${P}`)
     p = new Shell(`${apollo} status ${P}`)
-    assert.strictEqual(p.stdout.trim(), 'testAdmin: Logged out')
+    assert.strictEqual(
+      p.stdout.trim(),
+      'testAdmin: Logged out',
+      `Expected status to be logged out after logout, got "${p.stdout.trim()}"`,
+    )
 
     new Shell(`${apollo} login ${P} -f`)
   })
@@ -234,32 +280,65 @@ server.listen(0, () => {
     )
 
     let p = new Shell(`${apollo} feature get ${P} -a vv1`)
-    assert.ok(p.stdout.includes('ctgA'))
-    assert.ok(p.stdout.includes('SomeContig'))
+    assert.ok(
+      p.stdout.includes('ctgA'),
+      'Expected features of vv1 to include refseq ctgA',
+    )
+    assert.ok(
+      p.stdout.includes('SomeContig'),
+      'Expected features of vv1 to include SomeContig',
+    )
 
     p = new Shell(`${apollo} feature get ${P} -r ctgA`, false)
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('found in more than one assembly'))
+    assert.ok(
+      p.returncode != 0,
+      'Expected feature get with refseq in multiple assemblies to fail',
+    )
+    assert.ok(
+      p.stderr.includes('found in more than one assembly'),
+      `Expected ambiguous refseq error:\n${p.stderr}`,
+    )
 
     p = new Shell(`${apollo} feature get ${P} -a vv1 -r ctgA`)
     let out = JSON.parse(p.stdout)
-    assert.ok(Object.keys(out.at(0)).length > 2)
+    assert.ok(
+      Object.keys(out.at(0)).length > 2,
+      `Expected first feature to have more than 2 keys, got ${Object.keys(out.at(0)).length}`,
+    )
 
     p = new Shell(`${apollo} feature get ${P} -a vv1 -r ctgA -s 40 -e 41`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
+    assert.strictEqual(
+      out.length,
+      1,
+      `Expected 1 feature in ctgA:40..41, got ${out.length}`,
+    )
 
     p = new Shell(`${apollo} feature get ${P} -a vv1 -r ctgA -s 1000 -e 1000`)
     out = JSON.parse(p.stdout)
-    assert.deepStrictEqual(out, [])
+    assert.deepStrictEqual(
+      out,
+      [],
+      `Expected no features in ctgA:1000..1000, got ${out.length}`,
+    )
 
     p = new Shell(`${apollo} feature get ${P} -r FOOBAR`)
     out = JSON.parse(p.stdout)
-    assert.deepStrictEqual(out, [])
+    assert.deepStrictEqual(
+      out,
+      [],
+      `Expected no features for non-existent refseq, got ${out.length}`,
+    )
 
     p = new Shell(`${apollo} feature get ${P} -a FOOBAR -r ctgA`, false)
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('returned 0 assemblies'))
+    assert.ok(
+      p.returncode != 0,
+      'Expected feature get with non-existent assembly to fail',
+    )
+    assert.ok(
+      p.stderr.includes('returned 0 assemblies'),
+      `Expected "returned 0 assemblies" error:\n${p.stderr}`,
+    )
   })
 
   void globalThis.itName('Assembly get', () => {
@@ -273,21 +352,48 @@ server.listen(0, () => {
       `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a vv3 -e -f`,
     )
     let p = new Shell(`${apollo} assembly get ${P}`)
-    assert.ok(p.stdout.includes('vv1'))
-    assert.ok(p.stdout.includes('vv2'))
-    assert.ok(p.stdout.includes('vv3'))
+    assert.ok(
+      p.stdout.includes('vv1'),
+      'Expected all assemblies to include vv1',
+    )
+    assert.ok(
+      p.stdout.includes('vv2'),
+      'Expected all assemblies to include vv2',
+    )
+    assert.ok(
+      p.stdout.includes('vv3'),
+      'Expected all assemblies to include vv3',
+    )
 
     p = new Shell(`${apollo} assembly get ${P} -a vv1 vv2`)
-    assert.ok(p.stdout.includes('vv1'))
-    assert.ok(p.stdout.includes('vv2'))
-    assert.ok(p.stdout.includes('vv3') == false)
+    assert.ok(
+      p.stdout.includes('vv1'),
+      'Expected selected assemblies to include vv1',
+    )
+    assert.ok(
+      p.stdout.includes('vv2'),
+      'Expected selected assemblies to include vv2',
+    )
+    assert.ok(
+      p.stdout.includes('vv3') == false,
+      'Expected unselected assembly vv3 not to be returned',
+    )
 
     const out = JSON.parse(p.stdout)
     const aid = out.find((x: any) => x.name === 'vv1')._id
     p = new Shell(`${apollo} assembly get ${P} -a ${aid} vv2`)
-    assert.ok(p.stdout.includes('vv1'))
-    assert.ok(p.stdout.includes('vv2'))
-    assert.ok(p.stdout.includes('vv3') == false)
+    assert.ok(
+      p.stdout.includes('vv1'),
+      'Expected assembly selected by id to include vv1',
+    )
+    assert.ok(
+      p.stdout.includes('vv2'),
+      'Expected assembly selected by name to include vv2',
+    )
+    assert.ok(
+      p.stdout.includes('vv3') == false,
+      'Expected unselected assembly vv3 not to be returned',
+    )
   })
 
   void globalThis.itName('Delete assembly', () => {
@@ -307,15 +413,34 @@ server.listen(0, () => {
 
     p = new Shell(`${apollo} assembly delete ${P} -v -a ${aid} volvox2 volvox2`)
     const out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 2)
-    assert.ok(p.stderr.includes('2 '))
+    assert.strictEqual(
+      out.length,
+      2,
+      `Expected 2 deleted assemblies (duplicates ignored), got ${out.length}`,
+    )
+    assert.ok(
+      p.stderr.includes('2 '),
+      `Expected verbose output to report 2 deletions:\n${p.stderr}`,
+    )
 
     new Shell(`${apollo} assembly delete ${P} -a ${aid} volvox2`)
     p = new Shell(`${apollo} assembly get ${P}`)
-    assert.ok(p.stdout.includes(aid) == false)
-    assert.ok(p.stdout.includes('volvox1') == false)
-    assert.ok(p.stdout.includes('volvox2') == false)
-    assert.ok(p.stdout.includes('volvox3'))
+    assert.ok(
+      p.stdout.includes(aid) == false,
+      `Expected deleted assembly id ${aid} not to be returned`,
+    )
+    assert.ok(
+      p.stdout.includes('volvox1') == false,
+      'Expected deleted assembly volvox1 not to be returned',
+    )
+    assert.ok(
+      p.stdout.includes('volvox2') == false,
+      'Expected deleted assembly volvox2 not to be returned',
+    )
+    assert.ok(
+      p.stdout.includes('volvox3'),
+      'Expected non-deleted assembly volvox3 to be returned',
+    )
   })
 
   void globalThis.itName('Id reader', () => {
@@ -333,36 +458,58 @@ server.listen(0, () => {
 
     p = new Shell(`${apollo} assembly get ${P} -a v1 v2`)
     let out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 2)
+    assert.strictEqual(
+      out.length,
+      2,
+      `Expected 2 assemblies from command-line names, got ${out.length}`,
+    )
 
     // This is interpreted as an assembly named 'v1 v2'
     p = new Shell(`echo v1 v2 | ${apollo} assembly get ${P} -a -`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 0)
+    assert.strictEqual(
+      out.length,
+      0,
+      `Expected 0 assemblies for single stdin line "v1 v2", got ${out.length}`,
+    )
 
     // These are two assemblies
     p = new Shell(`echo -e 'v1 \n v2' | ${apollo} assembly get ${P} -a -`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 2)
+    assert.strictEqual(
+      out.length,
+      2,
+      `Expected 2 assemblies from two stdin lines, got ${out.length}`,
+    )
 
     p = new Shell(
       `${apollo} assembly get ${P} | ${apollo} assembly get ${P} -a -`,
     )
     out = JSON.parse(p.stdout)
-    assert.ok(out.length >= 3)
+    assert.ok(
+      out.length >= 3,
+      `Expected at least 3 assemblies from piped JSON, got ${out.length}`,
+    )
 
     // From json file
     new Shell(`${apollo} assembly get ${P} > test_data/tmp.json`)
     p = new Shell(`${apollo} assembly get ${P} -a test_data/tmp.json`)
     out = JSON.parse(p.stdout)
-    assert.ok(out.length >= 3)
+    assert.ok(
+      out.length >= 3,
+      `Expected at least 3 assemblies from JSON file, got ${out.length}`,
+    )
     fs.unlinkSync('test_data/tmp.json')
 
     // From text file, one name or id per line
     fs.writeFileSync('test_data/tmp.txt', 'v1 \n v2 \r\n v3 \n')
     p = new Shell(`${apollo} assembly get ${P} -a test_data/tmp.txt`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 3)
+    assert.strictEqual(
+      out.length,
+      3,
+      `Expected 3 assemblies from text file, got ${out.length}`,
+    )
     fs.unlinkSync('test_data/tmp.txt')
 
     // From json string
@@ -370,24 +517,44 @@ server.listen(0, () => {
     let j = `{"_id": "${aid}"}`
     p = new Shell(`${apollo} assembly get ${P} -a '${j}'`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
-    assert.strictEqual(out.at(0)._id, aid)
+    assert.strictEqual(
+      out.length,
+      1,
+      `Expected 1 assembly from JSON object string, got ${out.length}`,
+    )
+    assert.strictEqual(
+      out.at(0)._id,
+      aid,
+      `Expected assembly id ${aid}, got ${out.at(0)._id}`,
+    )
 
     const id1 = xall.at(0)._id
     const id2 = xall.at(1)._id
     j = `[{"_id": "${id1}"}, {"_id": "${id2}"}]`
     p = new Shell(`${apollo} assembly get ${P} -a '${j}'`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 2)
+    assert.strictEqual(
+      out.length,
+      2,
+      `Expected 2 assemblies from JSON array string, got ${out.length}`,
+    )
 
     j = `{"XYZ": "${aid}"}`
     p = new Shell(`${apollo} assembly get ${P} -a '${j}'`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 0)
+    assert.strictEqual(
+      out.length,
+      0,
+      `Expected 0 assemblies from JSON without _id, got ${out.length}`,
+    )
 
     p = new Shell(`${apollo} assembly get ${P} -a '[...'`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 0)
+    assert.strictEqual(
+      out.length,
+      0,
+      `Expected 0 assemblies from malformed JSON, got ${out.length}`,
+    )
   })
 
   void globalThis.itName('Add assembly from gff', () => {
@@ -395,12 +562,18 @@ server.listen(0, () => {
       `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 --omit-features -f`,
     )
     const out = JSON.parse(p.stdout)
-    assert.ok(Object.keys(out.fileIds).includes('fa'))
+    assert.ok(
+      Object.keys(out.fileIds).includes('fa'),
+      `Expected added assembly to have an "fa" file id, got ${JSON.stringify(out.fileIds)}`,
+    )
 
     // Get id of assembly named vv1 and check there are no features
     p = new Shell(`${apollo} assembly get ${P} -a vv1`)
-    assert.ok(p.stdout.includes('vv1'))
-    assert.ok(p.stdout.includes('vv2') == false)
+    assert.ok(p.stdout.includes('vv1'), 'Expected assembly vv1 to be returned')
+    assert.ok(
+      p.stdout.includes('vv2') == false,
+      'Expected only assembly vv1 to be returned',
+    )
     const asm_id = JSON.parse(p.stdout).at(0)._id
 
     p = new Shell(`${apollo} refseq get ${P}`)
@@ -410,21 +583,34 @@ server.listen(0, () => {
 
     p = new Shell(`${apollo} feature get ${P} -r ${refseq_id}`)
     const ff = JSON.parse(p.stdout)
-    assert.deepStrictEqual(ff, [])
+    assert.deepStrictEqual(
+      ff,
+      [],
+      `Expected no features with --omit-features, got ${ff.length}`,
+    )
 
     p = new Shell(
       `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1`,
       false,
     )
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('Error: Assembly "vv1" already exists'))
+    assert.ok(
+      p.returncode != 0,
+      'Expected adding existing assembly without -f to fail',
+    )
+    assert.ok(
+      p.stderr.includes('Error: Assembly "vv1" already exists'),
+      `Expected "already exists" error:\n${p.stderr}`,
+    )
 
     // Default assembly name
     new Shell(
       `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -f`,
     )
     p = new Shell(`${apollo} assembly get ${P} -a tiny.fasta.gff3`)
-    assert.ok(p.stdout.includes('tiny.fasta.gff3'))
+    assert.ok(
+      p.stdout.includes('tiny.fasta.gff3'),
+      'Expected assembly name to default to the file name',
+    )
   })
 
   void globalThis.itName('Add assembly large input', () => {
@@ -461,7 +647,11 @@ server.listen(0, () => {
     const out = JSON.parse(p.stdout)
 
     p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
-    assert.deepStrictEqual(p.stdout.trim(), '[]') // No failing check
+    assert.deepStrictEqual(
+      p.stdout.trim(),
+      '[]',
+      `Expected no failing checks initially, got:\n${p.stdout}`,
+    )
 
     // Get the ID of the CDS. We need need it to modify the CDS coordinates
     const gene = out.filter(
@@ -480,16 +670,30 @@ server.listen(0, () => {
     )
     p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
     const checks = JSON.parse(p.stdout)
-    assert.strictEqual(checks.length, 2)
-    assert.ok(p.stdout.includes('InternalStopCodon'))
-    assert.ok(p.stdout.includes('MissingStopCodon'))
+    assert.strictEqual(
+      checks.length,
+      2,
+      `Expected 2 failing checks after breaking CDS, got ${checks.length}`,
+    )
+    assert.ok(
+      p.stdout.includes('InternalStopCodon'),
+      `Expected an InternalStopCodon check:\n${p.stdout}`,
+    )
+    assert.ok(
+      p.stdout.includes('MissingStopCodon'),
+      `Expected a MissingStopCodon check:\n${p.stdout}`,
+    )
 
     // Problems fixed
     new Shell(
       `${apollo} feature edit-coords ${P} -i ${cds_id} --start 16 --end 27`,
     )
     p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
-    assert.deepStrictEqual(JSON.parse(p.stdout).length, 0)
+    assert.deepStrictEqual(
+      JSON.parse(p.stdout).length,
+      0,
+      `Expected no failing checks after fixing CDS, got:\n${p.stdout}`,
+    )
   })
 
   void globalThis.itName('FIXME: Checks stay after invalid operation', () => {
@@ -498,7 +702,11 @@ server.listen(0, () => {
     const out = JSON.parse(p.stdout)
 
     p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
-    assert.deepStrictEqual(p.stdout.trim(), '[]') // No failing check
+    assert.deepStrictEqual(
+      p.stdout.trim(),
+      '[]',
+      `Expected no failing checks initially, got:\n${p.stdout}`,
+    )
 
     // Get the ID of the CDS. We need need it to modify the CDS coordinates
     const gene = out.filter(
@@ -517,17 +725,33 @@ server.listen(0, () => {
     )
     p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
     const checks = JSON.parse(p.stdout)
-    assert.strictEqual(checks.length, 2)
-    assert.ok(p.stdout.includes('InternalStopCodon'))
-    assert.ok(p.stdout.includes('MissingStopCodon'))
+    assert.strictEqual(
+      checks.length,
+      2,
+      `Expected 2 failing checks after breaking CDS, got ${checks.length}`,
+    )
+    assert.ok(
+      p.stdout.includes('InternalStopCodon'),
+      `Expected an InternalStopCodon check:\n${p.stdout}`,
+    )
+    assert.ok(
+      p.stdout.includes('MissingStopCodon'),
+      `Expected a MissingStopCodon check:\n${p.stdout}`,
+    )
 
     // Do something invalid: extend CDS beyond parent
     p = new Shell(
       `${apollo} feature edit-coords ${P} -i ${cds_id} --end 30`,
       false,
     )
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('exceeds the bounds of its parent'))
+    assert.ok(
+      p.returncode != 0,
+      'Expected extending CDS beyond its parent to fail',
+    )
+    assert.ok(
+      p.stderr.includes('exceeds the bounds of its parent'),
+      `Expected "exceeds the bounds of its parent" error:\n${p.stderr}`,
+    )
 
     // FIXME: Checks should be the same as before the invalid edit
     // p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
@@ -542,30 +766,48 @@ server.listen(0, () => {
       `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a vv1 -e -f`,
     )
     const out = JSON.parse(p.stdout)
-    assert.ok(Object.keys(out.fileIds).includes('fa'))
+    assert.ok(
+      Object.keys(out.fileIds).includes('fa'),
+      `Expected added assembly to have an "fa" file id, got ${JSON.stringify(out.fileIds)}`,
+    )
 
     p = new Shell(`${apollo} assembly get ${P} -a vv1`)
-    assert.ok(p.stdout.includes('vv1'))
+    assert.ok(p.stdout.includes('vv1'), 'Expected assembly vv1 to be returned')
     p = new Shell(
       `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a vv1 -e`,
       false,
     )
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('Error: Assembly "vv1" already exists'))
+    assert.ok(
+      p.returncode != 0,
+      'Expected adding existing assembly without -f to fail',
+    )
+    assert.ok(
+      p.stderr.includes('Error: Assembly "vv1" already exists'),
+      `Expected "already exists" error:\n${p.stderr}`,
+    )
 
     p = new Shell(
       `${apollo} assembly add-from-fasta ${P} na.fa -a vv1 -e -f`,
       false,
     )
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('Input'))
+    assert.ok(
+      p.returncode != 0,
+      'Expected adding assembly from non-existent file to fail',
+    )
+    assert.ok(
+      p.stderr.includes('Input'),
+      `Expected an error about the input file:\n${p.stderr}`,
+    )
 
     // Test default name
     new Shell(
       `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -e -f`,
     )
     p = new Shell(`${apollo} assembly get ${P} -a tiny.fasta`)
-    assert.ok(p.stdout.includes('tiny.fasta'))
+    assert.ok(
+      p.stdout.includes('tiny.fasta'),
+      'Expected assembly name to default to the file name',
+    )
   })
 
   void globalThis.itName('Add assembly from external fasta', () => {
@@ -573,20 +815,30 @@ server.listen(0, () => {
       `${apollo} assembly add-from-fasta ${P} -a vv1 -f http://localhost:3131/volvox.fa.gz`,
     )
     const out = JSON.parse(p.stdout)
-    assert.ok(Object.keys(out.externalLocation).includes('fa'))
+    assert.ok(
+      Object.keys(out.externalLocation).includes('fa'),
+      `Expected added assembly to have an external "fa" location, got ${JSON.stringify(out.externalLocation)}`,
+    )
 
     p = new Shell(`${apollo} assembly get ${P} -a vv1`)
-    assert.ok(p.stdout.includes('vv1'))
+    assert.ok(p.stdout.includes('vv1'), 'Expected assembly vv1 to be returned')
 
     p = new Shell(`${apollo} assembly sequence ${P} -a vv1 -r ctgA -s 1 -e 10`)
     const seq = p.stdout.split(' ')
-    assert.strictEqual(seq[1], 'cattgttgcg')
+    assert.strictEqual(
+      seq[1],
+      'cattgttgcg',
+      `Unexpected sequence for ctgA:1..10: "${seq[1]}"`,
+    )
 
     p = new Shell(
       `${apollo} assembly add-from-fasta ${P} -a vv1 -f https://x.fa.gz --fai https://x.fa.gz.fai --gzi https://x.fa.gz.gzi`,
       false,
     )
-    assert.ok(p.returncode != 0)
+    assert.ok(
+      p.returncode != 0,
+      'Expected adding assembly from unreachable URLs to fail',
+    )
   })
 
   void globalThis.itName('Detect missing external index', () => {
@@ -594,8 +846,14 @@ server.listen(0, () => {
       `${apollo} assembly add-from-fasta ${P} -a vv1 -f http://localhost:3131/tiny.fasta`,
       false,
     )
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('Index file does not exist'))
+    assert.ok(
+      p.returncode != 0,
+      'Expected adding external fasta without index to fail',
+    )
+    assert.ok(
+      p.stderr.includes('Index file does not exist'),
+      `Expected "Index file does not exist" error:\n${p.stderr}`,
+    )
   })
 
   void globalThis.itName(
@@ -605,8 +863,14 @@ server.listen(0, () => {
       new Shell(cmd)
 
       const p = new Shell(`${cmd} -e`, false)
-      assert.ok(p.returncode != 0)
-      assert.ok(p.stderr.includes('External fasta files are not editable'))
+      assert.ok(
+        p.returncode != 0,
+        'Expected adding external fasta as editable to fail',
+      )
+      assert.ok(
+        p.stderr.includes('External fasta files are not editable'),
+        `Expected "External fasta files are not editable" error:\n${p.stderr}`,
+      )
     },
   )
 
@@ -616,7 +880,11 @@ server.listen(0, () => {
     )
     let p = new Shell(`${apollo} feature search ${P} -a vv1 -t BAC`)
     let out = JSON.parse(p.stdout).at(0)
-    assert.strictEqual(out.type, 'BAC')
+    assert.strictEqual(
+      out.type,
+      'BAC',
+      `Expected feature of type BAC, got ${out.type}`,
+    )
 
     p = new Shell(`${apollo} assembly get ${P} -a vv1`)
     const asm_id = JSON.parse(p.stdout).at(0)._id
@@ -635,7 +903,11 @@ server.listen(0, () => {
     new Shell(`echo '${j}' | ${apollo} feature edit ${P} -j -`)
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t G_quartet`)
     out = JSON.parse(p.stdout).at(0)
-    assert.strictEqual(out.type, 'G_quartet')
+    assert.strictEqual(
+      out.type,
+      'G_quartet',
+      `Expected feature type to be changed to G_quartet, got ${out.type}`,
+    )
   })
 
   void globalThis.itName('Edit feature type', () => {
@@ -656,11 +928,18 @@ server.listen(0, () => {
     // Get feature in vv1
     p = new Shell(`${apollo} feature get ${P} -r ${refseq}`)
     const features = JSON.parse(p.stdout)
-    assert.ok(features.length > 2)
+    assert.ok(
+      features.length > 2,
+      `Expected more than 2 features in ctgA, got ${features.length}`,
+    )
 
     // Get id of feature of type contig
     let contig = features.filter((x: any) => x.type === 'contig')
-    assert.strictEqual(contig.length, 1)
+    assert.strictEqual(
+      contig.length,
+      1,
+      `Expected 1 contig feature, got ${contig.length}`,
+    )
     const contig_id = contig.at(0)._id
 
     // Edit type of "contig" feature
@@ -670,11 +949,19 @@ server.listen(0, () => {
       `${apollo} feature get ${P} -r ${refseq} | jq '.[] | select(._id == "${contig_id}")'`,
     )
     contig = JSON.parse(p.stdout)
-    assert.deepStrictEqual(contig.type, 'region')
+    assert.deepStrictEqual(
+      contig.type,
+      'region',
+      `Expected feature type to be changed to region, got ${contig.type}`,
+    )
 
     // Return current type
     p = new Shell(`${apollo} feature edit-type ${P} -i ${contig_id}`)
-    assert.deepStrictEqual(p.stdout.trim(), 'region')
+    assert.deepStrictEqual(
+      p.stdout.trim(),
+      'region',
+      `Expected edit-type without -t to print current type, got "${p.stdout.trim()}"`,
+    )
   })
 
   void globalThis.itName('Edit feature coords', () => {
@@ -695,11 +982,18 @@ server.listen(0, () => {
     // Get feature in vv1
     p = new Shell(`${apollo} feature get ${P} -r ${refseq}`)
     const features = JSON.parse(p.stdout)
-    assert.ok(features.length > 2)
+    assert.ok(
+      features.length > 2,
+      `Expected more than 2 features in ctgA, got ${features.length}`,
+    )
 
     // Get id of feature of type contig
     let contig = features.filter((x: any) => x.type === 'contig')
-    assert.strictEqual(contig.length, 1)
+    assert.strictEqual(
+      contig.length,
+      1,
+      `Expected 1 contig feature, got ${contig.length}`,
+    )
     const contig_id = contig.at(0)._id
 
     // Edit start and end coordinates
@@ -710,33 +1004,61 @@ server.listen(0, () => {
       `${apollo} feature get ${P} -r ${refseq} | jq '.[] | select(._id == "${contig_id}")'`,
     )
     contig = JSON.parse(p.stdout)
-    assert.strictEqual(contig.min, 20 - 1)
-    assert.strictEqual(contig.max, 100)
+    assert.strictEqual(
+      contig.min,
+      20 - 1,
+      `Expected 0-based min of 19 after setting start to 20, got ${contig.min}`,
+    )
+    assert.strictEqual(
+      contig.max,
+      100,
+      `Expected max of 100 after setting end to 100, got ${contig.max}`,
+    )
 
     new Shell(`${apollo} feature edit-coords ${P} -i ${contig_id} -s 1 -e 1`)
     p = new Shell(
       `${apollo} feature get ${P} -r ${refseq} | jq '.[] | select(._id == "${contig_id}")'`,
     )
     contig = JSON.parse(p.stdout)
-    assert.strictEqual(contig.min, 0)
-    assert.strictEqual(contig.max, 1)
+    assert.strictEqual(
+      contig.min,
+      0,
+      `Expected 0-based min of 0 after setting start to 1, got ${contig.min}`,
+    )
+    assert.strictEqual(
+      contig.max,
+      1,
+      `Expected max of 1 after setting end to 1, got ${contig.max}`,
+    )
 
     p = new Shell(
       `${apollo} feature edit-coords ${P} -i ${contig_id} -s 0`,
       false,
     )
-    assert.strictEqual(p.returncode, 2)
-    assert.ok(p.stderr.includes('Coordinates must be greater than 0'))
+    assert.strictEqual(
+      p.returncode,
+      2,
+      `Expected start of 0 to exit with 2, got ${p.returncode}`,
+    )
+    assert.ok(
+      p.stderr.includes('Coordinates must be greater than 0'),
+      `Expected "Coordinates must be greater than 0" error:\n${p.stderr}`,
+    )
 
     p = new Shell(
       `${apollo} feature edit-coords ${P} -i ${contig_id} -s 10 -e 9`,
       false,
     )
-    assert.strictEqual(p.returncode, 2)
+    assert.strictEqual(
+      p.returncode,
+      2,
+      `Expected end lower than start to exit with 2, got ${p.returncode}`,
+    )
     assert.ok(
       p.stderr.includes(
         'Error: The new end coordinate is lower than the new start coordinate',
       ),
+      `Expected "end coordinate is lower than start" error:\n${p.stderr}`,
     )
 
     // Edit a feature by extending beyond the boundary of its parent and
@@ -745,14 +1067,20 @@ server.listen(0, () => {
     const eden_gene = features.find(
       (x: any) => x.type === 'gene' && x.attributes.gff_name.at(0) === 'EDEN',
     )
-    assert.ok(eden_gene)
+    assert.ok(eden_gene, 'Expected to find gene EDEN')
     const mrna_id = Object.keys(eden_gene.children).at(0)
     p = new Shell(
       `${apollo} feature edit-coords ${P} -i ${mrna_id} -s 1`,
       false,
     )
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('exceeds the bounds of its parent'))
+    assert.ok(
+      p.returncode != 0,
+      'Expected extending mRNA beyond its parent to fail',
+    )
+    assert.ok(
+      p.stderr.includes('exceeds the bounds of its parent'),
+      `Expected "exceeds the bounds of its parent" error:\n${p.stderr}`,
+    )
   })
 
   void globalThis.itName('Edit attributes', () => {
@@ -781,18 +1109,29 @@ server.listen(0, () => {
     )
     p = new Shell(`${apollo} feature edit-attribute ${P} -i ${fid} -a source`)
     let out = JSON.parse(p.stdout)
-    assert.deepStrictEqual(out.at(0), `Eggs & Stuff`)
+    assert.deepStrictEqual(
+      out.at(0),
+      `Eggs & Stuff`,
+      `Expected edited source attribute "Eggs & Stuff", got ${JSON.stringify(out)}`,
+    )
 
     // Add attribute
     new Shell(
       `${apollo} feature edit-attribute ${P} -i ${fid} -a newAttr -v stuff`,
     )
     p = new Shell(`${apollo} feature edit-attribute ${P} -i ${fid} -a newAttr`)
-    assert.ok(p.stdout.includes('stuf'))
+    assert.ok(
+      p.stdout.includes('stuf'),
+      `Expected new attribute value "stuff", got "${p.stdout.trim()}"`,
+    )
 
     // Non existing attr
     p = new Shell(`${apollo} feature edit-attribute ${P} -i ${fid} -a NonExist`)
-    assert.deepStrictEqual(p.stdout.trim(), '')
+    assert.deepStrictEqual(
+      p.stdout.trim(),
+      '',
+      `Expected no output for non-existent attribute, got "${p.stdout.trim()}"`,
+    )
 
     // List of values
     new Shell(
@@ -800,12 +1139,20 @@ server.listen(0, () => {
     )
     p = new Shell(`${apollo} feature edit-attribute ${P} -i ${fid} -a newAttr`)
     out = JSON.parse(p.stdout)
-    assert.deepStrictEqual(out, ['A', 'B', 'C'])
+    assert.deepStrictEqual(
+      out,
+      ['A', 'B', 'C'],
+      `Expected attribute values [A, B, C], got ${JSON.stringify(out)}`,
+    )
 
     // Delete attribute
     new Shell(`${apollo} feature edit-attribute ${P} -i ${fid} -a newAttr -d`)
     p = new Shell(`${apollo} feature edit-attribute ${P} -i ${fid} -a newAttr`)
-    assert.deepStrictEqual(p.stdout.trim(), '')
+    assert.deepStrictEqual(
+      p.stdout.trim(),
+      '',
+      `Expected no output for deleted attribute, got "${p.stdout.trim()}"`,
+    )
     // Delete again is ok
     new Shell(`${apollo} feature edit-attribute ${P} -i ${fid} -a newAttr -d`)
 
@@ -817,7 +1164,11 @@ server.listen(0, () => {
       `${apollo} feature edit-attribute ${P} -i ${fid} -a 'Gene Ontology'`,
     )
     out = JSON.parse(p.stdout)
-    assert.deepStrictEqual(out, ['GO:0051728', 'GO:0019090'])
+    assert.deepStrictEqual(
+      out,
+      ['GO:0051728', 'GO:0019090'],
+      `Expected Gene Ontology values [GO:0051728, GO:0019090], got ${JSON.stringify(out)}`,
+    )
 
     // This should fail
     new Shell(
@@ -835,64 +1186,126 @@ server.listen(0, () => {
 
     let p = new Shell(`${apollo} feature search ${P} -a vv1 vv2 -t EDEN`)
     let out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 2)
-    assert.ok(p.stdout.includes('EDEN'))
+    assert.strictEqual(
+      out.length,
+      2,
+      `Expected 2 EDEN matches across vv1 and vv2, got ${out.length}`,
+    )
+    assert.ok(
+      p.stdout.includes('EDEN'),
+      'Expected search results to include EDEN',
+    )
 
     p = new Shell(`${apollo} feature search ${P} -t EDEN`)
     out = JSON.parse(p.stdout)
-    assert.ok(out.length >= 2)
+    assert.ok(
+      out.length >= 2,
+      `Expected at least 2 EDEN matches across all assemblies, got ${out.length}`,
+    )
 
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t EDEN`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
-    assert.ok(p.stdout.includes('EDEN'))
+    assert.strictEqual(
+      out.length,
+      1,
+      `Expected 1 EDEN match in vv1, got ${out.length}`,
+    )
+    assert.ok(
+      p.stdout.includes('EDEN'),
+      'Expected search results to include EDEN',
+    )
 
     p = new Shell(`${apollo} feature search ${P} -a foobar -t EDEN`)
-    assert.strictEqual('[]', p.stdout.trim())
-    assert.ok(p.stderr.includes('Warning'))
+    assert.strictEqual(
+      '[]',
+      p.stdout.trim(),
+      `Expected no results for non-existent assembly, got:\n${p.stdout}`,
+    )
+    assert.ok(
+      p.stderr.includes('Warning'),
+      `Expected a warning for non-existent assembly:\n${p.stderr}`,
+    )
 
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t foobarspam`)
-    assert.deepStrictEqual(p.stdout.trim(), '[]')
+    assert.deepStrictEqual(
+      p.stdout.trim(),
+      '[]',
+      `Expected no results for unmatched term, got:\n${p.stdout}`,
+    )
 
     // It searches attributes values, not attribute names
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t multivalue`)
-    assert.deepStrictEqual(p.stdout.trim(), '[]')
+    assert.deepStrictEqual(
+      p.stdout.trim(),
+      '[]',
+      `Expected attribute names not to be searched, got:\n${p.stdout}`,
+    )
 
     // Search feature type
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t contig`)
-    assert.ok(p.stdout.includes('"type": "contig"'))
+    assert.ok(
+      p.stdout.includes('"type": "contig"'),
+      'Expected search by type to return a contig feature',
+    )
 
     // Search source (which in fact is an attribute)
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t someExample`)
-    assert.ok(p.stdout.includes('SomeContig'))
+    assert.ok(
+      p.stdout.includes('SomeContig'),
+      'Expected search by source to return SomeContig',
+    )
 
     // Case insensitive
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t SOMEexample`)
-    assert.ok(p.stdout.includes('SomeContig'))
+    assert.ok(
+      p.stdout.includes('SomeContig'),
+      'Expected case-insensitive search to return SomeContig',
+    )
 
     // No partial word match
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t Fingerpri`)
-    assert.deepStrictEqual(p.stdout.trim(), '[]')
+    assert.deepStrictEqual(
+      p.stdout.trim(),
+      '[]',
+      `Expected no results for partial word, got:\n${p.stdout}`,
+    )
 
     // Match full word not necessarily full value
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t Fingerprinted`)
-    assert.ok(p.stdout.includes('Fingerprinted'))
+    assert.ok(
+      p.stdout.includes('Fingerprinted'),
+      'Expected full-word search to match part of a value',
+    )
 
     // Does not search contig names (reference sequence name)
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t ctgB`)
-    assert.deepStrictEqual(p.stdout.trim(), '[]')
+    assert.deepStrictEqual(
+      p.stdout.trim(),
+      '[]',
+      `Expected refseq names not to be searched, got:\n${p.stdout}`,
+    )
 
     // Does not match common words (?) ...
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t with`)
-    assert.deepStrictEqual(p.stdout.trim(), '[]')
+    assert.deepStrictEqual(
+      p.stdout.trim(),
+      '[]',
+      `Expected common words not to be matched, got:\n${p.stdout}`,
+    )
 
     // ...But "fake" is ok
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t fake`)
-    assert.ok(p.stdout.includes('FakeSNP1'))
+    assert.ok(
+      p.stdout.includes('FakeSNP1'),
+      'Expected search for "fake" to return FakeSNP1',
+    )
 
     // ...or a single unusual letter
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t Q`)
-    assert.ok(p.stdout.includes('"Q"'))
+    assert.ok(
+      p.stdout.includes('"Q"'),
+      'Expected search for single letter "Q" to match',
+    )
   })
 
   void globalThis.itName('Get feature by indexed ID', () => {
@@ -906,43 +1319,80 @@ server.listen(0, () => {
     // Search multiple assemblies
     let p = new Shell(`${apollo} feature get-indexed-id ${P} MyGene -a vv1 vv2`)
     let out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 2)
-    assert.ok(p.stdout.includes('MyGene'))
+    assert.strictEqual(
+      out.length,
+      2,
+      `Expected 2 MyGene matches across vv1 and vv2, got ${out.length}`,
+    )
+    assert.ok(p.stdout.includes('MyGene'), 'Expected results to include MyGene')
 
     // Specifying no assembly defaults to searching all assemblies
     p = new Shell(`${apollo} feature get-indexed-id ${P} MyGene`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 2)
-    assert.ok(p.stdout.includes('MyGene'))
+    assert.strictEqual(
+      out.length,
+      2,
+      `Expected 2 MyGene matches across all assemblies, got ${out.length}`,
+    )
+    assert.ok(p.stdout.includes('MyGene'), 'Expected results to include MyGene')
 
     // Search single assembly
     p = new Shell(`${apollo} feature get-indexed-id ${P} MyGene -a vv1`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
-    assert.ok(p.stdout.includes('MyGene'))
+    assert.strictEqual(
+      out.length,
+      1,
+      `Expected 1 MyGene match in vv1, got ${out.length}`,
+    )
+    assert.ok(p.stdout.includes('MyGene'), 'Expected results to include MyGene')
 
     // Warn on unknown assembly
     p = new Shell(`${apollo} feature get-indexed-id ${P} EDEN -a foobar`)
-    assert.strictEqual('[]', p.stdout.trim())
-    assert.ok(p.stderr.includes('Warning'))
+    assert.strictEqual(
+      '[]',
+      p.stdout.trim(),
+      `Expected no results for non-existent assembly, got:\n${p.stdout}`,
+    )
+    assert.ok(
+      p.stderr.includes('Warning'),
+      `Expected a warning for non-existent assembly:\n${p.stderr}`,
+    )
 
     // Return empty array with no matches
     p = new Shell(`${apollo} feature get-indexed-id ${P} foobarspam -a vv1`)
-    assert.deepStrictEqual(p.stdout.trim(), '[]')
+    assert.deepStrictEqual(
+      p.stdout.trim(),
+      '[]',
+      `Expected no results for unmatched id, got:\n${p.stdout}`,
+    )
 
     // Gets subfeature
     p = new Shell(`${apollo} feature get-indexed-id ${P} myCDS.1 -a vv1`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
-    assert.ok(out.at(0)?.type === 'CDS')
+    assert.strictEqual(
+      out.length,
+      1,
+      `Expected 1 match for myCDS.1, got ${out.length}`,
+    )
+    assert.ok(
+      out.at(0)?.type === 'CDS',
+      `Expected subfeature of type CDS, got ${out.at(0)?.type}`,
+    )
 
     // Gets top-level feature from subfeature id
     p = new Shell(
       `${apollo} feature get-indexed-id ${P} myCDS.1 -a vv1 --topLevel`,
     )
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
-    assert.ok(out.at(0)?.type === 'gene')
+    assert.strictEqual(
+      out.length,
+      1,
+      `Expected 1 top-level match for myCDS.1, got ${out.length}`,
+    )
+    assert.ok(
+      out.at(0)?.type === 'gene',
+      `Expected top-level feature of type gene, got ${out.at(0)?.type}`,
+    )
 
     // Gets feature and child feature that were added manually (not imported)
     new Shell(
@@ -967,18 +1417,33 @@ EOF`,
     )
     p = new Shell(`${apollo} feature get-indexed-id ${P} match1 -a vv1`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
-    assert.ok(p.stdout.includes('match1'))
+    assert.strictEqual(
+      out.length,
+      1,
+      `Expected 1 match for manually added match1, got ${out.length}`,
+    )
+    assert.ok(p.stdout.includes('match1'), 'Expected results to include match1')
     p = new Shell(`${apollo} feature get-indexed-id ${P} matchPart1 -a vv1`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
-    assert.ok(p.stdout.includes('matchPart1'))
+    assert.strictEqual(
+      out.length,
+      1,
+      `Expected 1 match for manually added matchPart1, got ${out.length}`,
+    )
+    assert.ok(
+      p.stdout.includes('matchPart1'),
+      'Expected results to include matchPart1',
+    )
 
     // Doesn't get child feature after it was deleted
     const idToDelete = out[0]._id
     new Shell(`${apollo} feature delete ${P} -i ${idToDelete}`)
     p = new Shell(`${apollo} feature get-indexed-id ${P} matchPart1 -a vv1`)
-    assert.deepStrictEqual(p.stdout.trim(), '[]')
+    assert.deepStrictEqual(
+      p.stdout.trim(),
+      '[]',
+      `Expected deleted child matchPart1 not to be found, got:\n${p.stdout}`,
+    )
 
     // Gets feature after ID was manually added
     p = new Shell(
@@ -1000,8 +1465,12 @@ EOF`,
     )
     p = new Shell(`${apollo} feature get-indexed-id ${P} match2 -a vv1`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
-    assert.ok(p.stdout.includes('match2'))
+    assert.strictEqual(
+      out.length,
+      1,
+      `Expected 1 match for match2 after adding its ID, got ${out.length}`,
+    )
+    assert.ok(p.stdout.includes('match2'), 'Expected results to include match2')
 
     // Gets child featuer after it was added with an ID
     // add-child CLI command doesn't support adding attributes yet, so we'll
@@ -1014,8 +1483,15 @@ EOF`,
     )
     p = new Shell(`${apollo} feature get-indexed-id ${P} matchPart2 -a vv1`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
-    assert.ok(p.stdout.includes('matchPart2'))
+    assert.strictEqual(
+      out.length,
+      1,
+      `Expected 1 match for child matchPart2 added with an ID, got ${out.length}`,
+    )
+    assert.ok(
+      p.stdout.includes('matchPart2'),
+      'Expected results to include matchPart2',
+    )
 
     // Doesn't get feature or child after IDs were manually removed
     new Shell(`${apollo} feature edit-attribute ${P} -i ${_id} -a gff_id -d`)
@@ -1024,9 +1500,17 @@ EOF`,
       `${apollo} feature edit-attribute ${P} -i ${childId} -a gff_id -d`,
     )
     p = new Shell(`${apollo} feature get-indexed-id ${P} match2 -a vv1`)
-    assert.deepStrictEqual(p.stdout.trim(), '[]')
+    assert.deepStrictEqual(
+      p.stdout.trim(),
+      '[]',
+      `Expected match2 not to be found after removing its ID, got:\n${p.stdout}`,
+    )
     p = new Shell(`${apollo} feature get-indexed-id ${P} matchPart2 -a vv1`)
-    assert.deepStrictEqual(p.stdout.trim(), '[]')
+    assert.deepStrictEqual(
+      p.stdout.trim(),
+      '[]',
+      `Expected matchPart2 not to be found after removing its ID, got:\n${p.stdout}`,
+    )
   })
 
   void globalThis.itName('Delete features', () => {
@@ -1037,20 +1521,36 @@ EOF`,
     const fid = JSON.parse(p.stdout).at(0)._id
 
     p = new Shell(`${apollo} feature delete ${P} -i ${fid} --dry-run`)
-    assert.ok(p.stdout.includes(fid))
+    assert.ok(
+      p.stdout.includes(fid),
+      `Expected dry run to report feature ${fid}:\n${p.stdout}`,
+    )
 
     new Shell(`${apollo} feature delete ${P} -i ${fid}`)
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t EDEN`)
-    assert.deepStrictEqual(p.stdout.trim(), '[]')
+    assert.deepStrictEqual(
+      p.stdout.trim(),
+      '[]',
+      `Expected deleted feature not to be found, got:\n${p.stdout}`,
+    )
 
     p = new Shell(`${apollo} feature delete ${P} -i ${fid}`, false)
-    assert.strictEqual(p.returncode, 1)
+    assert.strictEqual(
+      p.returncode,
+      1,
+      `Expected deleting already-deleted feature to exit with 1, got ${p.returncode}`,
+    )
     assert.ok(
       p.stderr.includes('The following featureId was not found in database'),
+      `Expected "featureId was not found" error:\n${p.stderr}`,
     )
 
     p = new Shell(`${apollo} feature delete ${P} --force -i ${fid}`)
-    assert.strictEqual(p.returncode, 0)
+    assert.strictEqual(
+      p.returncode,
+      0,
+      `Expected deleting already-deleted feature with --force to succeed, got ${p.returncode}`,
+    )
   })
 
   void globalThis.itName('Add features', () => {
@@ -1060,7 +1560,11 @@ EOF`,
     let out = JSON.parse(p.stdout)
     const assemblyId = out._id
     p = new Shell(`${apollo} feature get ${P} -a tiny`)
-    assert.deepStrictEqual(p.stdout.trim(), '[]')
+    assert.deepStrictEqual(
+      p.stdout.trim(),
+      '[]',
+      `Expected new assembly to have no features, got:\n${p.stdout}`,
+    )
     // Can add a feature using flags
     p = new Shell(
       `${apollo} feature add ${P} -a tiny -r ctgA -s 1 -e 10 -t remark`,
@@ -1068,7 +1572,11 @@ EOF`,
     JSON.parse(p.stdout)
     p = new Shell(`${apollo} feature get ${P} -a tiny`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
+    assert.strictEqual(
+      out.length,
+      1,
+      `Expected 1 feature after adding with flags, got ${out.length}`,
+    )
     const refSeqId = out[0].refSeq
     // Can add a feature using assembly and refSeq ids
     new Shell(
@@ -1076,14 +1584,22 @@ EOF`,
     )
     p = new Shell(`${apollo} feature get ${P} -a ${assemblyId}`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 2)
+    assert.strictEqual(
+      out.length,
+      2,
+      `Expected 2 features after adding with assembly and refSeq ids, got ${out.length}`,
+    )
     // Can add a feature using JSON arg
     new Shell(
       `${apollo} feature add ${P} '{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":21,"max":30,"type":"remark"}'`,
     )
     p = new Shell(`${apollo} feature get ${P} -a ${assemblyId}`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 3)
+    assert.strictEqual(
+      out.length,
+      3,
+      `Expected 3 features after adding from JSON arg, got ${out.length}`,
+    )
     // Can add a feature using JSON from stdin
     new Shell(
       `${apollo} feature add ${P} <<EOF
@@ -1098,7 +1614,11 @@ EOF`,
     )
     p = new Shell(`${apollo} feature get ${P} -a ${assemblyId}`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 4)
+    assert.strictEqual(
+      out.length,
+      4,
+      `Expected 4 features after adding from stdin JSON, got ${out.length}`,
+    )
     // Can add a feature using JSON from a file
     fs.writeFileSync(
       'test_data/tmp.json',
@@ -1110,14 +1630,22 @@ EOF`,
     fs.unlinkSync('test_data/tmp.json')
     p = new Shell(`${apollo} feature get ${P} -a ${assemblyId}`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 5)
+    assert.strictEqual(
+      out.length,
+      5,
+      `Expected 5 features after adding from JSON file, got ${out.length}`,
+    )
     // Can add multiple features using JSON
     new Shell(
       `${apollo} feature add ${P} '[{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":51,"max":60,"type":"remark"},{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":61,"max":70,"type":"remark"}]'`,
     )
     p = new Shell(`${apollo} feature get ${P} -a ${assemblyId}`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 7)
+    assert.strictEqual(
+      out.length,
+      7,
+      `Expected 7 features after adding 2 from JSON array, got ${out.length}`,
+    )
     // Can add a feature with children from JSON
     new Shell(
       `${apollo} feature add ${P} '{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":71,"max":80,"type":"match","children":[{"min":71,"max":75,"type":"match_part"}]}'`,
@@ -1127,7 +1655,11 @@ EOF`,
     )
     out = JSON.parse(p.stdout)
     let feature = out.at(0)
-    assert.strictEqual(Object.keys(feature?.children).length, 1)
+    assert.strictEqual(
+      Object.keys(feature?.children).length,
+      1,
+      `Expected added feature to have 1 child, got ${Object.keys(feature?.children).length}`,
+    )
     // Can add a feature with attributes from JSON
     new Shell(
       `${apollo} feature add ${P} '{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":81,"max":90,"type":"remark","attributes":{"key1":["val1"]}}'`,
@@ -1137,7 +1669,11 @@ EOF`,
     )
     out = JSON.parse(p.stdout)
     feature = out.at(0)
-    assert.strictEqual(feature?.attributes?.key1?.[0], 'val1')
+    assert.strictEqual(
+      feature?.attributes?.key1?.[0],
+      'val1',
+      `Expected added feature attribute key1=val1, got ${JSON.stringify(feature?.attributes)}`,
+    )
     // Can add a feature with children from JSON
     new Shell(
       `${apollo} feature add ${P} '{"assembly":"${assemblyId}","refSeq":"${refSeqId}","min":91,"max":100,"type":"match","children":[{"min":91,"max":95,"type":"match_part","attributes":{"key2":["val2"]}}]}'`,
@@ -1148,8 +1684,16 @@ EOF`,
     out = JSON.parse(p.stdout)
     feature = out.at(0)
     const keys = Object.keys(feature?.children)
-    assert.strictEqual(keys.length, 1)
-    assert.strictEqual(feature.children[keys[0]].attributes.key2[0], 'val2')
+    assert.strictEqual(
+      keys.length,
+      1,
+      `Expected added feature to have 1 child, got ${keys.length}`,
+    )
+    assert.strictEqual(
+      feature.children[keys[0]].attributes.key2[0],
+      'val2',
+      `Expected child attribute key2=val2, got ${JSON.stringify(feature.children[keys[0]].attributes)}`,
+    )
   })
 
   void globalThis.itName('Add child features', () => {
@@ -1163,23 +1707,42 @@ EOF`,
       `${apollo} feature add-child ${P} -i ${fid} -s 10 -e 20 -t contig_read`,
     )
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t contig_read`)
-    assert.ok(p.stdout.includes('contig_read'))
-    assert.ok(p.stdout.includes('"min": 9'))
-    assert.ok(p.stdout.includes('"max": 20'))
+    assert.ok(
+      p.stdout.includes('contig_read'),
+      'Expected added child of type contig_read to be found',
+    )
+    assert.ok(
+      p.stdout.includes('"min": 9'),
+      `Expected added child to have 0-based min of 9:\n${p.stdout}`,
+    )
+    assert.ok(
+      p.stdout.includes('"max": 20'),
+      `Expected added child to have max of 20:\n${p.stdout}`,
+    )
 
     p = new Shell(
       `${apollo} feature add-child ${P} -i ${fid} -s 10 -e 2000 -t contig_read`,
       false,
     )
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('Child feature coordinates'))
+    assert.ok(
+      p.returncode != 0,
+      'Expected adding child beyond parent bounds to fail',
+    )
+    assert.ok(
+      p.stderr.includes('Child feature coordinates'),
+      `Expected "Child feature coordinates" error:\n${p.stderr}`,
+    )
 
     // Should this fail?
     p = new Shell(
       `${apollo} feature add-child ${P} -i ${fid} -s 10 -e 20 -t FOOBAR`,
       false,
     )
-    assert.strictEqual(p.returncode, 0)
+    assert.strictEqual(
+      p.returncode,
+      0,
+      `Expected adding child with unknown type to succeed, got ${p.returncode}:\n${p.stderr}`,
+    )
   })
 
   void globalThis.itName('Import features', () => {
@@ -1189,13 +1752,21 @@ EOF`,
     new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
     let p = new Shell(`${apollo} feature search ${P} -a vv1 -t contig`)
     let out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 2)
+    assert.strictEqual(
+      out.length,
+      2,
+      `Expected 2 contigs after first import, got ${out.length}`,
+    )
 
     // Import again: Add to existing feature
     new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t contig`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 4)
+    assert.strictEqual(
+      out.length,
+      4,
+      `Expected 4 contigs after importing again, got ${out.length}`,
+    )
 
     // Import again: delete ${P} existing
     new Shell(
@@ -1203,19 +1774,32 @@ EOF`,
     )
     p = new Shell(`${apollo} feature search ${P} -a vv1 -t contig`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 2)
+    assert.strictEqual(
+      out.length,
+      2,
+      `Expected 2 contigs after importing with -d, got ${out.length}`,
+    )
 
     new Shell(`${apollo} assembly delete ${P} -a vv2`)
     p = new Shell(
       `${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv2`,
       false,
     )
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('Assembly "vv2" does not exist'))
+    assert.ok(
+      p.returncode != 0,
+      'Expected importing into non-existent assembly to fail',
+    )
+    assert.ok(
+      p.stderr.includes('Assembly "vv2" does not exist'),
+      `Expected "Assembly does not exist" error:\n${p.stderr}`,
+    )
 
     p = new Shell(`${apollo} feature import ${P} foo.gff3 -a vv1`, false)
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('File "foo.gff3" does not exist'))
+    assert.ok(p.returncode != 0, 'Expected importing non-existent file to fail')
+    assert.ok(
+      p.stderr.includes('File "foo.gff3" does not exist'),
+      `Expected "File does not exist" error:\n${p.stderr}`,
+    )
   })
 
   void globalThis.itName('Copy feature', () => {
@@ -1234,8 +1818,16 @@ EOF`,
     new Shell(`${apollo} feature copy ${P} -i ${fid} -r ctgA -a dest -s 1`)
     p = new Shell(`${apollo} feature search ${P} -a dest -t contig`)
     let out = JSON.parse(p.stdout).at(0)
-    assert.strictEqual(out.min, 0)
-    assert.strictEqual(out.max, 50)
+    assert.strictEqual(
+      out.min,
+      0,
+      `Expected copied feature min of 0, got ${out.min}`,
+    )
+    assert.strictEqual(
+      out.max,
+      50,
+      `Expected copied feature max of 50, got ${out.max}`,
+    )
 
     // RefSeq id does not need assembly
     p = new Shell(`${apollo} refseq get ${P} -a dest2`)
@@ -1246,8 +1838,16 @@ EOF`,
     new Shell(`${apollo} feature copy ${P} -i ${fid} -r ${destRefSeq} -s 2`)
     p = new Shell(`${apollo} feature search ${P} -a dest2 -t contig`)
     out = JSON.parse(p.stdout).at(0)
-    assert.strictEqual(out.min, 1)
-    assert.strictEqual(out.max, 51)
+    assert.strictEqual(
+      out.min,
+      1,
+      `Expected feature copied by refseq id to have min of 1, got ${out.min}`,
+    )
+    assert.strictEqual(
+      out.max,
+      51,
+      `Expected feature copied by refseq id to have max of 51, got ${out.max}`,
+    )
 
     // Copy to same assembly
     new Shell(`${apollo} feature copy ${P} -i ${fid} -r ctgA -a source -s 10`)
@@ -1259,20 +1859,35 @@ EOF`,
       `${apollo} feature copy ${P} -i FOOBAR -r ctgA -a dest -s 1`,
       false,
     )
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('featureId was not found'))
+    assert.ok(
+      p.returncode != 0,
+      'Expected copying non-existent feature to fail',
+    )
+    assert.ok(
+      p.stderr.includes('featureId was not found'),
+      `Expected "featureId was not found" error:\n${p.stderr}`,
+    )
 
     p = new Shell(
       `${apollo} feature copy ${P} -i ${fid} -r FOOBAR -a dest -s 1`,
       false,
     )
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('No reference'))
+    assert.ok(
+      p.returncode != 0,
+      'Expected copying to non-existent refseq to fail',
+    )
+    assert.ok(
+      p.stderr.includes('No reference'),
+      `Expected "No reference" error:\n${p.stderr}`,
+    )
 
     // Ambiguous refseq
     p = new Shell(`${apollo} feature copy ${P} -i ${fid} -r ctgA -s 1`, false)
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('more than one'))
+    assert.ok(p.returncode != 0, 'Expected copying to ambiguous refseq to fail')
+    assert.ok(
+      p.stderr.includes('more than one'),
+      `Expected ambiguous refseq error:\n${p.stderr}`,
+    )
   })
 
   void globalThis.itName('Get changes', () => {
@@ -1288,13 +1903,28 @@ EOF`,
 
     let p = new Shell(`${apollo} change get ${P}`)
     JSON.parse(p.stdout)
-    assert.ok(p.stdout.includes('myAssembly'))
-    assert.ok(p.stdout.includes('yourAssembly'))
+    assert.ok(
+      p.stdout.includes('myAssembly'),
+      'Expected changes to include myAssembly',
+    )
+    assert.ok(
+      p.stdout.includes('yourAssembly'),
+      'Expected changes to include yourAssembly',
+    )
 
     p = new Shell(`${apollo} change get ${P} -a myAssembly ourAssembly`)
-    assert.ok(p.stdout.includes('myAssembly'))
-    assert.ok(p.stdout.includes('ourAssembly'))
-    assert.ok(p.stdout.includes('yourAssembly') == false)
+    assert.ok(
+      p.stdout.includes('myAssembly'),
+      'Expected filtered changes to include myAssembly',
+    )
+    assert.ok(
+      p.stdout.includes('ourAssembly'),
+      'Expected filtered changes to include ourAssembly',
+    )
+    assert.ok(
+      p.stdout.includes('yourAssembly') == false,
+      'Expected filtered changes not to include yourAssembly',
+    )
 
     // Delete assemblies and get changes by assembly name: Nothing is
     // returned because the assemblies collection doesn't contain that name
@@ -1304,7 +1934,11 @@ EOF`,
     )
     p = new Shell(`${apollo} change get ${P} -a myAssembly`)
     const out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 0)
+    assert.strictEqual(
+      out.length,
+      0,
+      `Expected no changes for deleted assembly name, got ${out.length}`,
+    )
   })
 
   void globalThis.itName('Get sequence', () => {
@@ -1316,38 +1950,91 @@ EOF`,
     )
 
     let p = new Shell(`${apollo} assembly sequence ${P} -a nonExistant`, false)
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('returned 0 assemblies'))
+    assert.ok(
+      p.returncode != 0,
+      'Expected getting sequence of non-existent assembly to fail',
+    )
+    assert.ok(
+      p.stderr.includes('returned 0 assemblies'),
+      `Expected "returned 0 assemblies" error:\n${p.stderr}`,
+    )
 
     p = new Shell(`${apollo} assembly sequence ${P} -a v1 -s 0`, false)
-    assert.ok(p.returncode != 0)
-    assert.match(p.stderr, /must be greater than 0/)
+    assert.ok(p.returncode != 0, 'Expected start of 0 to fail')
+    assert.match(
+      p.stderr,
+      /must be greater than 0/,
+      `Expected "must be greater than 0" error:\n${p.stderr}`,
+    )
 
     p = new Shell(`${apollo} assembly sequence ${P} -a v1`)
     let seq = p.stdout.split(' ')
-    assert.strictEqual(seq.length, 25)
-    assert.deepStrictEqual(seq.at(0), '>ctgA:1..420')
+    assert.strictEqual(
+      seq.length,
+      25,
+      `Expected 25 whitespace-separated sequence tokens, got ${seq.length}`,
+    )
+    assert.deepStrictEqual(
+      seq.at(0),
+      '>ctgA:1..420',
+      `Unexpected first header: ${seq.at(0)}`,
+    )
     assert.deepStrictEqual(
       seq.at(1),
       'cattgttgcggagttgaacaACGGCATTAGGAACACTTCCGTCTCtcacttttatacgattatgattggttctttagcct',
+      `Unexpected first ctgA sequence line: ${seq.at(1)}`,
     )
-    assert.deepStrictEqual(seq.at(6), 'ttggtcgctccgttgtaccc')
-    assert.deepStrictEqual(seq.at(7), '>ctgB:1..800')
-    assert.deepStrictEqual(seq.at(-1), 'ttggtcgctccgttgtaccc')
+    assert.deepStrictEqual(
+      seq.at(6),
+      'ttggtcgctccgttgtaccc',
+      `Unexpected last ctgA sequence line: ${seq.at(6)}`,
+    )
+    assert.deepStrictEqual(
+      seq.at(7),
+      '>ctgB:1..800',
+      `Unexpected second header: ${seq.at(7)}`,
+    )
+    assert.deepStrictEqual(
+      seq.at(-1),
+      'ttggtcgctccgttgtaccc',
+      `Unexpected last sequence line: ${seq.at(-1)}`,
+    )
 
     p = new Shell(`${apollo} assembly sequence ${P} -a v1 -r ctgB -s 1 -e 1`)
     seq = p.stdout.split(' ')
-    assert.deepStrictEqual(seq.at(0), '>ctgB:1..1')
-    assert.deepStrictEqual(seq.at(1), 'A')
+    assert.deepStrictEqual(
+      seq.at(0),
+      '>ctgB:1..1',
+      `Unexpected header for ctgB:1..1: ${seq.at(0)}`,
+    )
+    assert.deepStrictEqual(
+      seq.at(1),
+      'A',
+      `Unexpected sequence for ctgB:1..1: ${seq.at(1)}`,
+    )
 
     p = new Shell(`${apollo} assembly sequence ${P} -a v1 -r ctgB -s 2 -e 4`)
     seq = p.stdout.split(' ')
-    assert.deepStrictEqual(seq.at(0), '>ctgB:2..4')
-    assert.deepStrictEqual(seq.at(1), 'CAT')
+    assert.deepStrictEqual(
+      seq.at(0),
+      '>ctgB:2..4',
+      `Unexpected header for ctgB:2..4: ${seq.at(0)}`,
+    )
+    assert.deepStrictEqual(
+      seq.at(1),
+      'CAT',
+      `Unexpected sequence for ctgB:2..4: ${seq.at(1)}`,
+    )
 
     p = new Shell(`${apollo} assembly sequence ${P} -r ctgB`, false)
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('found in more than one'))
+    assert.ok(
+      p.returncode != 0,
+      'Expected getting sequence of ambiguous refseq to fail',
+    )
+    assert.ok(
+      p.stderr.includes('found in more than one'),
+      `Expected ambiguous refseq error:\n${p.stderr}`,
+    )
   })
 
   void globalThis.itName('Get feature by id', () => {
@@ -1361,16 +2048,36 @@ EOF`,
     const x2 = ff.at(1)._id
     p = new Shell(`${apollo} feature get-id ${P} -i ${x1} ${x1} ${x2}`)
     let out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 2)
-    assert.deepStrictEqual(out.at(0)._id, x1)
-    assert.deepStrictEqual(out.at(1)._id, x2)
+    assert.strictEqual(
+      out.length,
+      2,
+      `Expected 2 features (duplicates ignored), got ${out.length}`,
+    )
+    assert.deepStrictEqual(
+      out.at(0)._id,
+      x1,
+      `Expected first feature id ${x1}, got ${out.at(0)._id}`,
+    )
+    assert.deepStrictEqual(
+      out.at(1)._id,
+      x2,
+      `Expected second feature id ${x2}, got ${out.at(1)._id}`,
+    )
 
     p = new Shell(`${apollo} feature get-id ${P} -i FOOBAR`)
-    assert.deepStrictEqual(p.stdout.trim(), '[]')
+    assert.deepStrictEqual(
+      p.stdout.trim(),
+      '[]',
+      `Expected no features for non-existent id, got:\n${p.stdout}`,
+    )
 
     p = new Shell(`echo -e '${x1} \n ${x2}' | ${apollo} feature get-id ${P}`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 2)
+    assert.strictEqual(
+      out.length,
+      2,
+      `Expected 2 features from ids on stdin, got ${out.length}`,
+    )
   })
 
   void globalThis.itName('Assembly checks', () => {
@@ -1383,32 +2090,64 @@ EOF`,
     // Test view available check type
     let p = new Shell(`${apollo} assembly check ${P}`)
     let out = JSON.parse(p.stdout)
-    assert.ok(p.stdout.includes('CDSCheck'))
-    assert.ok(p.stdout.includes('TranscriptCheck'))
+    assert.ok(
+      p.stdout.includes('CDSCheck'),
+      `Expected available checks to include CDSCheck:\n${p.stdout}`,
+    )
+    assert.ok(
+      p.stdout.includes('TranscriptCheck'),
+      `Expected available checks to include TranscriptCheck:\n${p.stdout}`,
+    )
     const cdsCheckId = out.find((x: any) => x.name === 'CDSCheck')._id
 
     // Test view checks set for assembly
     p = new Shell(`${apollo} assembly check ${P} -a v1`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 2)
+    assert.strictEqual(
+      out.length,
+      2,
+      `Expected 2 checks set for v1 by default, got ${out.length}`,
+    )
 
     // Test non-existant assembly
     p = new Shell(`${apollo} assembly check ${P} -a non-existant`, false)
-    assert.strictEqual(p.returncode, 1)
-    assert.ok(p.stderr.includes('non-existant'))
+    assert.strictEqual(
+      p.returncode,
+      1,
+      `Expected non-existent assembly to exit with 1, got ${p.returncode}`,
+    )
+    assert.ok(
+      p.stderr.includes('non-existant'),
+      `Expected error to name the non-existent assembly:\n${p.stderr}`,
+    )
 
     // Test non-existant check
     p = new Shell(`${apollo} assembly check ${P} -a v1 -c not-a-check`, false)
-    assert.strictEqual(p.returncode, 1)
-    assert.ok(p.stderr.includes('not-a-check'))
+    assert.strictEqual(
+      p.returncode,
+      1,
+      `Expected non-existent check to exit with 1, got ${p.returncode}`,
+    )
+    assert.ok(
+      p.stderr.includes('not-a-check'),
+      `Expected error to name the non-existent check:\n${p.stderr}`,
+    )
 
     // Test add checks. Test check is added as opposed to replacing current
     // checks with input list
     new Shell(`${apollo} assembly check ${P} -a v1 -c CDSCheck CDSCheck`)
     p = new Shell(`${apollo} assembly check ${P} -a v1`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 2)
-    assert.deepStrictEqual(out.at(0).name, 'CDSCheck')
+    assert.strictEqual(
+      out.length,
+      2,
+      `Expected re-adding CDSCheck to keep 2 checks, got ${out.length}`,
+    )
+    assert.deepStrictEqual(
+      out.at(0).name,
+      'CDSCheck',
+      `Expected first check to be CDSCheck, got ${out.at(0).name}`,
+    )
 
     // Works also with check id
     new Shell(
@@ -1417,16 +2156,34 @@ EOF`,
     new Shell(`${apollo} assembly check ${P} -a v2 -c ${cdsCheckId}`)
     p = new Shell(`${apollo} assembly check ${P} -a v2`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 2)
-    assert.deepStrictEqual(out.at(0).name, 'CDSCheck')
+    assert.strictEqual(
+      out.length,
+      2,
+      `Expected adding CDSCheck by id to keep 2 checks, got ${out.length}`,
+    )
+    assert.deepStrictEqual(
+      out.at(0).name,
+      'CDSCheck',
+      `Expected first check to be CDSCheck, got ${out.at(0).name}`,
+    )
 
     // Delete check
     new Shell(`${apollo} assembly check ${P} -a v1 -d -c CDSCheck`)
     p = new Shell(`${apollo} assembly check ${P} -a v1`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
-    assert.ok(!p.stdout.includes('CDSCheck'))
-    assert.ok(p.stdout.includes('TranscriptCheck'))
+    assert.strictEqual(
+      out.length,
+      1,
+      `Expected 1 check after deleting CDSCheck, got ${out.length}`,
+    )
+    assert.ok(
+      !p.stdout.includes('CDSCheck'),
+      `Expected CDSCheck to be deleted:\n${p.stdout}`,
+    )
+    assert.ok(
+      p.stdout.includes('TranscriptCheck'),
+      `Expected TranscriptCheck to remain:\n${p.stdout}`,
+    )
   })
 
   void globalThis.itName('Feature checks', () => {
@@ -1436,17 +2193,29 @@ EOF`,
     new Shell(`${apollo} assembly check ${P} -a v1 -c CDSCheck`)
     let p = new Shell(`${apollo} feature check ${P} -a v1`)
     const out = JSON.parse(p.stdout)
-    assert.ok(out.length > 1)
-    assert.ok(p.stdout.includes('InternalStopCodon'))
+    assert.ok(
+      out.length > 1,
+      `Expected more than 1 check result, got ${out.length}`,
+    )
+    assert.ok(
+      p.stdout.includes('InternalStopCodon'),
+      'Expected an InternalStopCodon check result',
+    )
 
     // Ids with checks
     const ids: string[] = out.map((x: any) => x.ids)
-    assert.ok(new Set(ids).size > 1)
+    assert.ok(
+      new Set(ids).size > 1,
+      `Expected check results on more than 1 feature, got ${new Set(ids).size}`,
+    )
 
     // Retrieve by feature id
     const xid = [...ids].join(' ')
     p = new Shell(`${apollo} feature check ${P} -i ${xid}`)
-    assert.ok(p.stdout.includes('InternalStopCodon'))
+    assert.ok(
+      p.stdout.includes('InternalStopCodon'),
+      'Expected an InternalStopCodon check result when querying by feature id',
+    )
   })
 
   void globalThis.itName('Feature checks indexed', () => {
@@ -1459,17 +2228,29 @@ EOF`,
     )
     let p = new Shell(`${apollo} feature check ${P} -a v1`)
     const out = JSON.parse(p.stdout)
-    assert.ok(out.length > 1)
-    assert.ok(p.stdout.includes('InternalStopCodon'))
+    assert.ok(
+      out.length > 1,
+      `Expected more than 1 check result, got ${out.length}`,
+    )
+    assert.ok(
+      p.stdout.includes('InternalStopCodon'),
+      'Expected an InternalStopCodon check result',
+    )
 
     // Ids with checks
     const ids: string[] = out.map((x: any) => x.ids)
-    assert.ok(new Set(ids).size > 1)
+    assert.ok(
+      new Set(ids).size > 1,
+      `Expected check results on more than 1 feature, got ${new Set(ids).size}`,
+    )
 
     // Retrieve by feature id
     const xid = [...ids].join(' ')
     p = new Shell(`${apollo} feature check ${P} -i ${xid}`)
-    assert.ok(p.stdout.includes('InternalStopCodon'))
+    assert.ok(
+      p.stdout.includes('InternalStopCodon'),
+      'Expected an InternalStopCodon check result when querying by feature id',
+    )
   })
 
   void globalThis.itName(
@@ -1480,7 +2261,10 @@ EOF`,
       )
       let p = new Shell(`${apollo} feature check ${P} -a v1`)
       let checkResults = JSON.parse(p.stdout) as CheckResultSnapshot[]
-      assert.ok(checkResults.length > 1)
+      assert.ok(
+        checkResults.length > 1,
+        `Expected more than 1 check result initially, got ${checkResults.length}`,
+      )
 
       // Delete all checks and consequently delete all check results
       p = new Shell(`${apollo} assembly check ${P} -a v1`)
@@ -1492,16 +2276,24 @@ EOF`,
       )
       p = new Shell(`${apollo} feature check ${P} -a v1`)
       checkResults = JSON.parse(p.stdout)
-      assert.deepEqual(checkResults.length, 0)
+      assert.deepEqual(
+        checkResults.length,
+        0,
+        `Expected no check results after deleting all checks, got ${checkResults.length}`,
+      )
 
       // Put one check back
       new Shell(`${apollo} assembly check ${P} -a v1 -c CDSCheck`)
       p = new Shell(`${apollo} feature check ${P} -a v1`)
       checkResults = JSON.parse(p.stdout)
-      assert.ok(checkResults.length > 0)
+      assert.ok(
+        checkResults.length > 0,
+        'Expected check results after re-adding CDSCheck',
+      )
       assert.deepEqual(
         checkResults.filter((x) => x.name === 'CDSCheck').length,
         checkResults.length,
+        `Expected all check results to be from CDSCheck:\n${p.stdout}`,
       )
     },
   )
@@ -1522,11 +2314,19 @@ EOF`,
 
     p = new Shell(`${apollo} user get ${P} -r admin -u root`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
+    assert.strictEqual(
+      out.length,
+      1,
+      `Expected root to be the only admin named root, got ${out.length}`,
+    )
 
     p = new Shell(`${apollo} user get ${P} -r readOnly -u root`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 0)
+    assert.strictEqual(
+      out.length,
+      0,
+      `Expected no readOnly users named root, got ${out.length}`,
+    )
   })
 
   void globalThis.itName('Apollo profile env', () => {
@@ -1539,8 +2339,14 @@ EOF`,
           ${apollo} status
           ${apollo} user get`,
     )
-    assert.ok(p.stdout.includes('testAdmin2: Logged in'))
-    assert.ok(p.stdout.includes('createdAt'))
+    assert.ok(
+      p.stdout.includes('testAdmin2: Logged in'),
+      `Expected APOLLO_PROFILE profile to be logged in:\n${p.stdout}`,
+    )
+    assert.ok(
+      p.stdout.includes('createdAt'),
+      'Expected user get with APOLLO_PROFILE to return users',
+    )
   })
 
   void globalThis.itName('Apollo config create env', () => {
@@ -1551,9 +2357,18 @@ EOF`,
             ${apollo} config --config-file tmp.yml address http://localhost:3999`,
       false,
     )
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('does not exist yet'))
-    assert.ok(!fs.existsSync('tmp.yml'))
+    assert.ok(
+      p.returncode != 0,
+      'Expected config to fail with APOLLO_DISABLE_CONFIG_CREATE=1',
+    )
+    assert.ok(
+      p.stderr.includes('does not exist yet'),
+      `Expected "does not exist yet" error:\n${p.stderr}`,
+    )
+    assert.ok(
+      !fs.existsSync('tmp.yml'),
+      'Expected config file not to be created with APOLLO_DISABLE_CONFIG_CREATE=1',
+    )
 
     p = new Shell(
       `\
@@ -1561,8 +2376,15 @@ EOF`,
             rm -f tmp.yml
             ${apollo} config --config-file tmp.yml address http://localhost:3999`,
     )
-    assert.strictEqual(0, p.returncode)
-    assert.ok(fs.existsSync('tmp.yml'))
+    assert.strictEqual(
+      0,
+      p.returncode,
+      `Expected config to succeed with APOLLO_DISABLE_CONFIG_CREATE=0, got ${p.returncode}`,
+    )
+    assert.ok(
+      fs.existsSync('tmp.yml'),
+      'Expected config file to be created with APOLLO_DISABLE_CONFIG_CREATE=0',
+    )
 
     p = new Shell(
       `\
@@ -1570,16 +2392,30 @@ EOF`,
             rm -f tmp.yml
             ${apollo} config --config-file tmp.yml address http://localhost:3999`,
     )
-    assert.strictEqual(0, p.returncode)
-    assert.ok(fs.existsSync('tmp.yml'))
+    assert.strictEqual(
+      0,
+      p.returncode,
+      `Expected config to succeed with APOLLO_DISABLE_CONFIG_CREATE unset, got ${p.returncode}`,
+    )
+    assert.ok(
+      fs.existsSync('tmp.yml'),
+      'Expected config file to be created with APOLLO_DISABLE_CONFIG_CREATE unset',
+    )
 
     fs.unlinkSync('tmp.yml')
   })
 
   void globalThis.itName('Invalid access', () => {
     const p = new Shell(`${apollo} user get --profile foo`, false)
-    assert.strictEqual(1, p.returncode)
-    assert.ok(p.stderr.includes('Profile "foo" does not exist'))
+    assert.strictEqual(
+      1,
+      p.returncode,
+      `Expected non-existent profile to exit with 1, got ${p.returncode}`,
+    )
+    assert.ok(
+      p.stderr.includes('Profile "foo" does not exist'),
+      `Expected "Profile does not exist" error:\n${p.stderr}`,
+    )
   })
 
   void globalThis.itName('Refname alias configuration', () => {
@@ -1588,15 +2424,24 @@ EOF`,
     )
 
     let p = new Shell(`${apollo} assembly get ${P} -a asm1`)
-    assert.ok(p.stdout.includes('asm1'))
-    assert.ok(p.stdout.includes('asm2') == false)
+    assert.ok(
+      p.stdout.includes('asm1'),
+      'Expected assembly asm1 to be returned',
+    )
+    assert.ok(
+      p.stdout.includes('asm2') == false,
+      'Expected only assembly asm1 to be returned',
+    )
     const asm_id = JSON.parse(p.stdout)[0]._id
 
     p = new Shell(
       `${apollo} refseq add-alias ${P} test_data/alias.txt -a asm2`,
       false,
     )
-    assert.ok(p.stderr.includes('Assembly asm2 not found'))
+    assert.ok(
+      p.stderr.includes('Assembly asm2 not found'),
+      `Expected "Assembly asm2 not found" error:\n${p.stderr}`,
+    )
 
     p = new Shell(
       `${apollo} refseq add-alias ${P} test_data/alias.txt -a asm1`,
@@ -1606,6 +2451,7 @@ EOF`,
       p.stdout.includes(
         'Reference name aliases added successfully to assembly asm1',
       ),
+      `Expected aliases to be added successfully. Stdout:\n${p.stdout}\nStderr:\n${p.stderr}`,
     )
 
     p = new Shell(`${apollo} refseq get ${P}`)
@@ -1618,14 +2464,17 @@ EOF`,
     assert.deepStrictEqual(
       JSON.stringify(refname_aliases.ctgA.sort()),
       JSON.stringify(['ctga', 'CTGA'].sort()),
+      `Unexpected aliases for ctgA: ${JSON.stringify(refname_aliases.ctgA)}`,
     )
     assert.deepStrictEqual(
       JSON.stringify(refname_aliases.ctgB.sort()),
       JSON.stringify(['ctgb', 'CTGB'].sort()),
+      `Unexpected aliases for ctgB: ${JSON.stringify(refname_aliases.ctgB)}`,
     )
     assert.deepStrictEqual(
       JSON.stringify(refname_aliases.ctgC.sort()),
       JSON.stringify(['ctgc', 'CTGC'].sort()),
+      `Unexpected aliases for ctgC: ${JSON.stringify(refname_aliases.ctgC)}`,
     )
   })
 
@@ -1633,7 +2482,10 @@ EOF`,
   void globalThis.itName('Login', () => {
     // This should wait for user's input
     const p = new Shell(`${apollo} login ${P}`, false, 5000)
-    assert.ok(p.returncode != 0)
+    assert.ok(
+      p.returncode != 0,
+      'Expected login without --force to wait for input and time out',
+    )
     // This should be ok
     new Shell(`${apollo} login ${P} --force`, true, 5000)
   })
@@ -1641,23 +2493,44 @@ EOF`,
   void globalThis.itName('File upload', () => {
     let p = new Shell(`${apollo} file upload ${P} test_data/tiny.fasta`)
     let out = JSON.parse(p.stdout)
-    assert.deepStrictEqual(out.type, 'text/x-fasta')
-    assert.ok(out._id)
+    assert.deepStrictEqual(
+      out.type,
+      'text/x-fasta',
+      `Expected fasta upload type text/x-fasta, got ${out.type}`,
+    )
+    assert.ok(out._id, 'Expected uploaded file to have an _id')
 
     p = new Shell(`${apollo} file upload ${P} test_data/tiny.fasta`)
     out = JSON.parse(p.stdout)
-    assert.deepStrictEqual(out.type, 'text/x-fasta')
+    assert.deepStrictEqual(
+      out.type,
+      'text/x-fasta',
+      `Expected re-uploaded fasta type text/x-fasta, got ${out.type}`,
+    )
 
     p = new Shell(`${apollo} file upload ${P} test_data/tiny.fasta.gff3`)
     out = JSON.parse(p.stdout)
-    assert.deepStrictEqual(out.type, 'text/x-gff3')
+    assert.deepStrictEqual(
+      out.type,
+      'text/x-gff3',
+      `Expected gff3 upload type text/x-gff3, got ${out.type}`,
+    )
 
     p = new Shell(`${apollo} file upload ${P} test_data/guest.yaml`, false)
-    assert.ok(p.returncode != 0)
+    assert.ok(
+      p.returncode != 0,
+      'Expected uploading unsupported file type to fail',
+    )
 
     p = new Shell(`${apollo} file upload ${P} test_data/tiny.fasta.gz`, false)
-    assert.ok(p.stderr.includes('it may be gzip or bgzip compressed'))
-    assert.ok(p.returncode != 0)
+    assert.ok(
+      p.stderr.includes('it may be gzip or bgzip compressed'),
+      `Expected compressed file type detection error:\n${p.stderr}`,
+    )
+    assert.ok(
+      p.returncode != 0,
+      'Expected uploading gzip file without type to fail',
+    )
   })
 
   void globalThis.itName('File upload gzip', () => {
@@ -1669,7 +2542,11 @@ EOF`,
       `${apollo} file upload ${P} test_data/tiny.fasta.gz -t text/x-fasta`,
     )
     const out = JSON.parse(p.stdout)
-    assert.strictEqual(out.checksum, md5)
+    assert.strictEqual(
+      out.checksum,
+      md5,
+      `Expected gzip file to be uploaded unchanged (md5 ${md5}), got checksum ${out.checksum}`,
+    )
     new Shell(`${apollo} assembly add-from-fasta ${P} -e -f ${out._id}`)
   })
 
@@ -1679,8 +2556,14 @@ EOF`,
       `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta.gz -e -f -a vv1`,
     )
     let p = new Shell(`${apollo} assembly sequence ${P} -a vv1`)
-    assert.ok(p.stdout.startsWith('>'))
-    assert.ok(p.stdout.includes('cattgttgcggagttgaaca'))
+    assert.ok(
+      p.stdout.startsWith('>'),
+      'Expected sequence output to start with a fasta header',
+    )
+    assert.ok(
+      p.stdout.includes('cattgttgcggagttgaaca'),
+      'Expected sequence output to include ctgA sequence',
+    )
 
     // Skip autodetect
     fs.copyFileSync('test_data/tiny.fasta', 'test_data/tmp.gz')
@@ -1688,8 +2571,14 @@ EOF`,
       `${apollo} assembly add-from-fasta ${P} test_data/tmp.gz -e -f -a vv1 --decompressed`,
     )
     p = new Shell(`${apollo} assembly sequence ${P} -a vv1`)
-    assert.ok(p.stdout.startsWith('>'))
-    assert.ok(p.stdout.includes('cattgttgcggagttgaaca'))
+    assert.ok(
+      p.stdout.startsWith('>'),
+      'Expected sequence output to start with a fasta header (--decompressed)',
+    )
+    assert.ok(
+      p.stdout.includes('cattgttgcggagttgaaca'),
+      'Expected sequence output to include ctgA sequence (--decompressed)',
+    )
     fs.unlinkSync('test_data/tmp.gz')
 
     fs.copyFileSync('test_data/tiny.fasta.gz', 'test_data/fasta.tmp')
@@ -1697,15 +2586,24 @@ EOF`,
       `${apollo} assembly add-from-fasta ${P} test_data/fasta.tmp -e -f -a vv1 --gzip`,
     )
     p = new Shell(`${apollo} assembly sequence ${P} -a vv1`)
-    assert.ok(p.stdout.startsWith('>'))
-    assert.ok(p.stdout.includes('cattgttgcggagttgaaca'))
+    assert.ok(
+      p.stdout.startsWith('>'),
+      'Expected sequence output to start with a fasta header (--gzip)',
+    )
+    assert.ok(
+      p.stdout.includes('cattgttgcggagttgaaca'),
+      'Expected sequence output to include ctgA sequence (--gzip)',
+    )
 
     // Autodetect false positive
     p = new Shell(
       `${apollo} assembly add-from-fasta ${P} test_data/fasta.tmp -e -f -a vv1`,
       false,
     )
-    assert.ok(p.returncode != 0)
+    assert.ok(
+      p.returncode != 0,
+      'Expected gzip file without .gz extension to fail without --gzip',
+    )
     fs.unlinkSync('test_data/fasta.tmp')
   })
 
@@ -1715,23 +2613,41 @@ EOF`,
       `${apollo} assembly add-from-fasta ${P} -f test_data/tiny.fasta.gz`,
     )
     let p = new Shell(`${apollo} assembly sequence ${P} -a tiny.fasta.gz`)
-    assert.ok(p.stdout.startsWith('>'))
-    assert.ok(p.stdout.includes('cattgttgcggagttgaaca'))
+    assert.ok(
+      p.stdout.startsWith('>'),
+      'Expected sequence output to start with a fasta header',
+    )
+    assert.ok(
+      p.stdout.includes('cattgttgcggagttgaaca'),
+      'Expected sequence output to include ctgA sequence',
+    )
 
     p = new Shell(
       `${apollo} assembly add-from-fasta ${P} -f test_data/tiny.fasta`,
       false,
     )
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('unless option -e/--editable is set'))
+    assert.ok(
+      p.returncode != 0,
+      'Expected adding uncompressed fasta without -e to fail',
+    )
+    assert.ok(
+      p.stderr.includes('unless option -e/--editable is set'),
+      `Expected "-e/--editable" error:\n${p.stderr}`,
+    )
 
     // Setting --gzi & --fai
     new Shell(
       `${apollo} assembly add-from-fasta ${P} -f test_data/tiny2.fasta.gz --gzi test_data/tiny.fasta.gz.gzi --fai test_data/tiny.fasta.gz.fai`,
     )
     p = new Shell(`${apollo} assembly sequence ${P} -a tiny2.fasta.gz`)
-    assert.ok(p.stdout.startsWith('>'))
-    assert.ok(p.stdout.includes('cattgttgcggagttgaaca'))
+    assert.ok(
+      p.stdout.startsWith('>'),
+      'Expected sequence output to start with a fasta header (--gzi & --fai)',
+    )
+    assert.ok(
+      p.stdout.includes('cattgttgcggagttgaaca'),
+      'Expected sequence output to include ctgA sequence (--gzi & --fai)',
+    )
   })
 
   void globalThis.itName('Add assembly from file ids not editable', () => {
@@ -1751,14 +2667,23 @@ EOF`,
       `${apollo} assembly add-from-fasta ${P} -f ${fastaId} --fai test_data/tiny.fasta.gz.fai --gzi test_data/tiny.fasta.gz.gzi`,
     )
     p = new Shell(`${apollo} assembly sequence ${P} -a ${fastaId}`)
-    assert.ok(p.stdout.startsWith('>'))
-    assert.ok(p.stdout.includes('cattgttgcggagttgaaca'))
+    assert.ok(
+      p.stdout.startsWith('>'),
+      'Expected sequence output to start with a fasta header (local index files)',
+    )
+    assert.ok(
+      p.stdout.includes('cattgttgcggagttgaaca'),
+      'Expected sequence output to include ctgA sequence (local index files)',
+    )
 
     new Shell(
       `${apollo} assembly add-from-fasta ${P} -f ${fastaId} --fai ${faiId} --gzi ${gziId}`,
     )
     p = new Shell(`${apollo} assembly sequence ${P} -a ${fastaId}`)
-    assert.ok(p.stdout.startsWith('>'))
+    assert.ok(
+      p.stdout.startsWith('>'),
+      'Expected sequence output to start with a fasta header (index file ids)',
+    )
   })
 
   void globalThis.itName('Add assembly from file id', () => {
@@ -1766,8 +2691,16 @@ EOF`,
     const fid = JSON.parse(p.stdout)._id
     p = new Shell(`${apollo} assembly add-from-fasta ${P} ${fid} -a up -e -f`)
     const out = JSON.parse(p.stdout)
-    assert.deepStrictEqual(out.name, 'up')
-    assert.deepStrictEqual(out.fileIds.fa, fid)
+    assert.deepStrictEqual(
+      out.name,
+      'up',
+      `Expected assembly name "up", got ${out.name}`,
+    )
+    assert.deepStrictEqual(
+      out.fileIds.fa,
+      fid,
+      `Expected assembly fa file id ${fid}, got ${out.fileIds.fa}`,
+    )
   })
 
   void globalThis.itName('Get files', () => {
@@ -1777,16 +2710,27 @@ EOF`,
 
     p = new Shell(`${apollo} file get ${P}`)
     let out = JSON.parse(p.stdout)
-    assert.ok(out.length >= 2)
-    assert.ok(out.filter((x: any) => x._id === fid))
+    assert.ok(out.length >= 2, `Expected at least 2 files, got ${out.length}`)
+    assert.ok(
+      out.some((x: any) => x._id === fid),
+      `Expected file ${fid} to be returned`,
+    )
 
     p = new Shell(`${apollo} file get ${P} -i ${fid} ${fid}`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
+    assert.strictEqual(
+      out.length,
+      1,
+      `Expected 1 file (duplicates ignored), got ${out.length}`,
+    )
 
     p = new Shell(`${apollo} file get ${P} -i nonexists`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 0)
+    assert.strictEqual(
+      out.length,
+      0,
+      `Expected no files for non-existent id, got ${out.length}`,
+    )
   })
 
   void globalThis.itName('Download file', () => {
@@ -1800,19 +2744,37 @@ EOF`,
 
     new Shell(`${apollo} file download ${P} -i ${up._id}`)
     let down = fs.readFileSync(up.basename).toString()
-    assert.ok(down.startsWith('>'))
-    assert.ok(down.trim().endsWith('accc'))
+    assert.ok(
+      down.startsWith('>'),
+      'Expected downloaded file to start with a fasta header',
+    )
+    assert.ok(
+      down.trim().endsWith('accc'),
+      'Expected downloaded file to end with the last sequence',
+    )
     fs.unlinkSync(up.basename)
 
     new Shell(`${apollo} file download ${P} -i ${up._id} -o tmp.fa`)
     down = fs.readFileSync('tmp.fa').toString()
-    assert.ok(down.startsWith('>'))
-    assert.ok(down.trim().endsWith('accc'))
+    assert.ok(
+      down.startsWith('>'),
+      'Expected file downloaded with -o to start with a fasta header',
+    )
+    assert.ok(
+      down.trim().endsWith('accc'),
+      'Expected file downloaded with -o to end with the last sequence',
+    )
     fs.unlinkSync('tmp.fa')
 
     p = new Shell(`${apollo} file download ${P} -i ${up._id} -o -`)
-    assert.ok(p.stdout.startsWith('>'))
-    assert.ok(p.stdout.trim().endsWith('accc'))
+    assert.ok(
+      p.stdout.startsWith('>'),
+      'Expected file downloaded to stdout to start with a fasta header',
+    )
+    assert.ok(
+      p.stdout.trim().endsWith('accc'),
+      'Expected file downloaded to stdout to end with the last sequence',
+    )
   })
 
   void globalThis.itName('Delete file', () => {
@@ -1823,11 +2785,19 @@ EOF`,
 
     p = new Shell(`${apollo} file delete ${P} -i ${up1._id} ${up2._id}`)
     let out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 2)
+    assert.strictEqual(
+      out.length,
+      2,
+      `Expected 2 deleted files, got ${out.length}`,
+    )
 
     p = new Shell(`${apollo} file get ${P} -i ${up1._id} ${up2._id}`)
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 0)
+    assert.strictEqual(
+      out.length,
+      0,
+      `Expected deleted files not to be found, got ${out.length}`,
+    )
   })
 
   void globalThis.itName('Export gff3 from editable assembly', () => {
@@ -1837,21 +2807,55 @@ EOF`,
     new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
     let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
     let gff = p.stdout
-    assert.match(gff, /^##gff-version 3/)
-    assert.match(gff, /multivalue=val1,val2,val3/)
-    assert.match(gff, /##FASTA/)
-    assert.match(gff, /taccc$/)
+    assert.match(
+      gff,
+      /^##gff-version 3/,
+      'Expected GFF3 export to start with ##gff-version 3',
+    )
+    assert.match(
+      gff,
+      /multivalue=val1,val2,val3/,
+      'Expected GFF3 export to include multi-value attribute',
+    )
+    assert.match(
+      gff,
+      /##FASTA/,
+      'Expected GFF3 export with --include-fasta to include ##FASTA',
+    )
+    assert.match(
+      gff,
+      /taccc$/,
+      'Expected GFF3 export with --include-fasta to end with sequence',
+    )
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
     gff = p.stdout
-    assert.match(gff, /^##gff-version 3/)
-    assert.match(gff, /multivalue=val1,val2,val3/)
-    assert.doesNotMatch(gff, /##FASTA/)
+    assert.match(
+      gff,
+      /^##gff-version 3/,
+      'Expected GFF3 export to start with ##gff-version 3',
+    )
+    assert.match(
+      gff,
+      /multivalue=val1,val2,val3/,
+      'Expected GFF3 export to include multi-value attribute',
+    )
+    assert.doesNotMatch(
+      gff,
+      /##FASTA/,
+      'Expected GFF3 export without --include-fasta not to include ##FASTA',
+    )
 
     // Invalid assembly
     p = new Shell(`${apollo} export gff3 ${P} foobar`, false)
-    assert.ok(p.returncode != 0)
-    assert.ok(p.stderr.includes('foobar'))
+    assert.ok(
+      p.returncode != 0,
+      'Expected exporting non-existent assembly to fail',
+    )
+    assert.ok(
+      p.stderr.includes('foobar'),
+      `Expected error to name the non-existent assembly:\n${p.stderr}`,
+    )
   })
 
   void globalThis.itName('Export gff3 from non-editable assembly', () => {
@@ -1861,16 +2865,44 @@ EOF`,
     new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
     let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
     let gff = p.stdout
-    assert.match(gff, /^##gff-version 3/)
-    assert.match(gff, /multivalue=val1,val2,val3/)
-    assert.match(gff, /##FASTA/)
-    assert.match(gff, /taccc$/)
+    assert.match(
+      gff,
+      /^##gff-version 3/,
+      'Expected GFF3 export to start with ##gff-version 3',
+    )
+    assert.match(
+      gff,
+      /multivalue=val1,val2,val3/,
+      'Expected GFF3 export to include multi-value attribute',
+    )
+    assert.match(
+      gff,
+      /##FASTA/,
+      'Expected GFF3 export with --include-fasta to include ##FASTA',
+    )
+    assert.match(
+      gff,
+      /taccc$/,
+      'Expected GFF3 export with --include-fasta to end with sequence',
+    )
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
     gff = p.stdout
-    assert.match(gff, /^##gff-version 3/)
-    assert.match(gff, /multivalue=val1,val2,val3/)
-    assert.doesNotMatch(gff, /##FASTA/)
+    assert.match(
+      gff,
+      /^##gff-version 3/,
+      'Expected GFF3 export to start with ##gff-version 3',
+    )
+    assert.match(
+      gff,
+      /multivalue=val1,val2,val3/,
+      'Expected GFF3 export to include multi-value attribute',
+    )
+    assert.doesNotMatch(
+      gff,
+      /##FASTA/,
+      'Expected GFF3 export without --include-fasta not to include ##FASTA',
+    )
   })
 
   void globalThis.itName('Export gff3 from external assembly', () => {
@@ -1880,16 +2912,44 @@ EOF`,
     new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
     let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
     let gff = p.stdout
-    assert.match(gff, /^##gff-version 3/)
-    assert.match(gff, /multivalue=val1,val2,val3/)
-    assert.match(gff, /##FASTA/)
-    assert.match(gff, /taccc$/)
+    assert.match(
+      gff,
+      /^##gff-version 3/,
+      'Expected GFF3 export to start with ##gff-version 3',
+    )
+    assert.match(
+      gff,
+      /multivalue=val1,val2,val3/,
+      'Expected GFF3 export to include multi-value attribute',
+    )
+    assert.match(
+      gff,
+      /##FASTA/,
+      'Expected GFF3 export with --include-fasta to include ##FASTA',
+    )
+    assert.match(
+      gff,
+      /taccc$/,
+      'Expected GFF3 export with --include-fasta to end with sequence',
+    )
 
     p = new Shell(`${apollo} export gff3 ${P} vv1`)
     gff = p.stdout
-    assert.match(gff, /^##gff-version 3/)
-    assert.match(gff, /multivalue=val1,val2,val3/)
-    assert.doesNotMatch(gff, /##FASTA/)
+    assert.match(
+      gff,
+      /^##gff-version 3/,
+      'Expected GFF3 export to start with ##gff-version 3',
+    )
+    assert.match(
+      gff,
+      /multivalue=val1,val2,val3/,
+      'Expected GFF3 export to include multi-value attribute',
+    )
+    assert.doesNotMatch(
+      gff,
+      /##FASTA/,
+      'Expected GFF3 export without --include-fasta not to include ##FASTA',
+    )
   })
 
   void globalThis.itName(
@@ -1903,15 +2963,43 @@ EOF`,
 
       const p = new Shell(`${apollo} feature check ${P} -a vv1`)
       const out = JSON.parse(p.stdout)
-      assert.deepStrictEqual(out.length, 2)
+      assert.deepStrictEqual(
+        out.length,
+        2,
+        `Expected 2 check results, got ${out.length}`,
+      )
 
-      assert.deepStrictEqual(out.at(0).cause, 'InternalStopCodon')
-      assert.deepStrictEqual(out.at(0).start, 9)
-      assert.deepStrictEqual(out.at(0).end, 15)
+      assert.deepStrictEqual(
+        out.at(0).cause,
+        'InternalStopCodon',
+        `Expected first check cause InternalStopCodon, got ${out.at(0).cause}`,
+      )
+      assert.deepStrictEqual(
+        out.at(0).start,
+        9,
+        `Expected first check start 9, got ${out.at(0).start}`,
+      )
+      assert.deepStrictEqual(
+        out.at(0).end,
+        15,
+        `Expected first check end 15, got ${out.at(0).end}`,
+      )
 
-      assert.deepStrictEqual(out.at(1).cause, 'InternalStopCodon')
-      assert.deepStrictEqual(out.at(1).start, 21)
-      assert.deepStrictEqual(out.at(1).end, 24)
+      assert.deepStrictEqual(
+        out.at(1).cause,
+        'InternalStopCodon',
+        `Expected second check cause InternalStopCodon, got ${out.at(1).cause}`,
+      )
+      assert.deepStrictEqual(
+        out.at(1).start,
+        21,
+        `Expected second check start 21, got ${out.at(1).start}`,
+      )
+      assert.deepStrictEqual(
+        out.at(1).end,
+        24,
+        `Expected second check end 24, got ${out.at(1).end}`,
+      )
     },
   )
 
@@ -1925,14 +3013,42 @@ EOF`,
       new Shell(`${apollo} assembly check ${P} -a vv1 -c CDSCheck`)
       const p = new Shell(`${apollo} feature check ${P} -a vv1`)
       const out = JSON.parse(p.stdout)
-      assert.deepStrictEqual(out.length, 2)
-      assert.deepStrictEqual(out.at(0).cause, 'InternalStopCodon')
-      assert.deepStrictEqual(out.at(0).start, 3)
-      assert.deepStrictEqual(out.at(0).end, 18)
+      assert.deepStrictEqual(
+        out.length,
+        2,
+        `Expected 2 check results, got ${out.length}`,
+      )
+      assert.deepStrictEqual(
+        out.at(0).cause,
+        'InternalStopCodon',
+        `Expected first check cause InternalStopCodon, got ${out.at(0).cause}`,
+      )
+      assert.deepStrictEqual(
+        out.at(0).start,
+        3,
+        `Expected first check start 3, got ${out.at(0).start}`,
+      )
+      assert.deepStrictEqual(
+        out.at(0).end,
+        18,
+        `Expected first check end 18, got ${out.at(0).end}`,
+      )
 
-      assert.deepStrictEqual(out.at(1).cause, 'InternalStopCodon')
-      assert.deepStrictEqual(out.at(1).start, 18)
-      assert.deepStrictEqual(out.at(1).end, 21)
+      assert.deepStrictEqual(
+        out.at(1).cause,
+        'InternalStopCodon',
+        `Expected second check cause InternalStopCodon, got ${out.at(1).cause}`,
+      )
+      assert.deepStrictEqual(
+        out.at(1).start,
+        18,
+        `Expected second check start 18, got ${out.at(1).start}`,
+      )
+      assert.deepStrictEqual(
+        out.at(1).end,
+        21,
+        `Expected second check end 21, got ${out.at(1).end}`,
+      )
     },
   )
 
@@ -1944,11 +3060,30 @@ EOF`,
     new Shell(`${apollo} assembly check ${P} -a m1 -c CDSCheck`)
     const p = new Shell(`${apollo} feature check ${P} -a m1`)
     const out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
-    assert.deepStrictEqual(out.at(0).cause, 'MissingStartCodon')
-    assert.deepStrictEqual(out.at(0).start, 3)
-    assert.deepStrictEqual(out.at(0).end, 3)
-    assert.ok(out.at(0).message.includes('TTG'))
+    assert.strictEqual(
+      out.length,
+      1,
+      `Expected 1 check result, got ${out.length}`,
+    )
+    assert.deepStrictEqual(
+      out.at(0).cause,
+      'MissingStartCodon',
+      `Expected check cause MissingStartCodon, got ${out.at(0).cause}`,
+    )
+    assert.deepStrictEqual(
+      out.at(0).start,
+      3,
+      `Expected check start 3, got ${out.at(0).start}`,
+    )
+    assert.deepStrictEqual(
+      out.at(0).end,
+      3,
+      `Expected check end 3, got ${out.at(0).end}`,
+    )
+    assert.ok(
+      out.at(0).message.includes('TTG'),
+      `Expected check message to mention codon TTG: ${out.at(0).message}`,
+    )
   })
 
   void globalThis.itName('Detect missing start codon reverse', () => {
@@ -1959,11 +3094,30 @@ EOF`,
     new Shell(`${apollo} assembly check ${P} -a m1 -c CDSCheck`)
     const p = new Shell(`${apollo} feature check ${P} -a m1`)
     const out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 1)
-    assert.deepStrictEqual(out.at(0).cause, 'MissingStartCodon')
-    assert.deepStrictEqual(out.at(0).start, 23)
-    assert.deepStrictEqual(out.at(0).end, 23)
-    assert.ok(out.at(0).message.includes('agC'))
+    assert.strictEqual(
+      out.length,
+      1,
+      `Expected 1 check result, got ${out.length}`,
+    )
+    assert.deepStrictEqual(
+      out.at(0).cause,
+      'MissingStartCodon',
+      `Expected check cause MissingStartCodon, got ${out.at(0).cause}`,
+    )
+    assert.deepStrictEqual(
+      out.at(0).start,
+      23,
+      `Expected check start 23, got ${out.at(0).start}`,
+    )
+    assert.deepStrictEqual(
+      out.at(0).end,
+      23,
+      `Expected check end 23, got ${out.at(0).end}`,
+    )
+    assert.ok(
+      out.at(0).message.includes('agC'),
+      `Expected check message to mention codon agC: ${out.at(0).message}`,
+    )
   })
 
   void globalThis.itName('Edit exon inferred from CDS', () => {
@@ -1978,19 +3132,31 @@ EOF`,
     const mrna: any = Object.values(gene.children).at(0)
     const cdsExon: AnnotationFeature[] = Object.values(mrna.children)
     const exon = cdsExon.filter((x: any) => x.type === 'exon')
-    assert.deepStrictEqual(exon.length, 1)
+    assert.deepStrictEqual(
+      exon.length,
+      1,
+      `Expected 1 exon inferred from CDS, got ${exon.length}`,
+    )
     const exon_id = exon[0]._id
 
     // Before edit
     p = new Shell(`${apollo} feature get-id ${P} -i ${exon_id}`)
     out = JSON.parse(p.stdout) as AnnotationFeature[]
-    assert.deepStrictEqual(out.at(0)?.max, 20)
+    assert.deepStrictEqual(
+      out.at(0)?.max,
+      20,
+      `Expected inferred exon max of 20 before edit, got ${out.at(0)?.max}`,
+    )
 
     // After edit
     new Shell(`${apollo} feature edit-coords ${P} -i ${exon_id} -e 30`)
     p = new Shell(`${apollo} feature get-id ${P} -i ${exon_id}`)
     out = JSON.parse(p.stdout) as AnnotationFeature[]
-    assert.deepStrictEqual(out.at(0)?.max, 30)
+    assert.deepStrictEqual(
+      out.at(0)?.max,
+      30,
+      `Expected inferred exon max of 30 after edit, got ${out.at(0)?.max}`,
+    )
   })
 
   void globalThis.itName('Check splice site', () => {
@@ -2040,61 +3206,105 @@ EOF`,
       `${apollo} feature check ${P} -a checkSplice.fasta.gff3 -i ${okMrnaId.join(' ')}`,
     )
     let out = JSON.parse(p.stdout)
-    assert.deepStrictEqual(out, [])
+    assert.deepStrictEqual(
+      out,
+      [],
+      `Expected no splice site warnings for canonical transcripts:\n${p.stdout}`,
+    )
 
     // Check forward transcript
     p = new Shell(
       `${apollo} feature check ${P} -a checkSplice.fasta.gff3 -i ${warnMrnaIdForw}`,
     )
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 4)
+    assert.strictEqual(
+      out.length,
+      4,
+      `Expected 4 splice site warnings on forward transcript, got ${out.length}`,
+    )
     let chk = out.filter(
       (x: any) =>
         x.cause === 'NonCanonicalSpliceSiteAtFivePrime' && x.start === 11,
     )
-    assert.strictEqual(chk.length, 1)
+    assert.strictEqual(
+      chk.length,
+      1,
+      `Expected 1 forward five-prime warning at 11, got ${chk.length}`,
+    )
     chk = out.filter(
       (x: any) =>
         x.cause === 'NonCanonicalSpliceSiteAtFivePrime' && x.start === 31,
     )
-    assert.strictEqual(chk.length, 1)
+    assert.strictEqual(
+      chk.length,
+      1,
+      `Expected 1 forward five-prime warning at 31, got ${chk.length}`,
+    )
     chk = out.filter(
       (x: any) =>
         x.cause === 'NonCanonicalSpliceSiteAtThreePrime' && x.start === 17,
     )
-    assert.strictEqual(chk.length, 1)
+    assert.strictEqual(
+      chk.length,
+      1,
+      `Expected 1 forward three-prime warning at 17, got ${chk.length}`,
+    )
     chk = out.filter(
       (x: any) =>
         x.cause === 'NonCanonicalSpliceSiteAtThreePrime' && x.start === 37,
     )
-    assert.strictEqual(chk.length, 1)
+    assert.strictEqual(
+      chk.length,
+      1,
+      `Expected 1 forward three-prime warning at 37, got ${chk.length}`,
+    )
 
     // Check reverse transcript
     p = new Shell(
       `${apollo} feature check ${P} -a checkSplice.fasta.gff3 -i ${warnMrnaIdRev}`,
     )
     out = JSON.parse(p.stdout)
-    assert.strictEqual(out.length, 4)
+    assert.strictEqual(
+      out.length,
+      4,
+      `Expected 4 splice site warnings on reverse transcript, got ${out.length}`,
+    )
     chk = out.filter(
       (x: any) =>
         x.cause === 'NonCanonicalSpliceSiteAtThreePrime' && x.start === 11,
     )
-    assert.strictEqual(chk.length, 1)
+    assert.strictEqual(
+      chk.length,
+      1,
+      `Expected 1 reverse three-prime warning at 11, got ${chk.length}`,
+    )
     chk = out.filter(
       (x: any) =>
         x.cause === 'NonCanonicalSpliceSiteAtThreePrime' && x.start === 31,
     )
-    assert.strictEqual(chk.length, 1)
+    assert.strictEqual(
+      chk.length,
+      1,
+      `Expected 1 reverse three-prime warning at 31, got ${chk.length}`,
+    )
     chk = out.filter(
       (x: any) =>
         x.cause === 'NonCanonicalSpliceSiteAtFivePrime' && x.start === 17,
     )
-    assert.strictEqual(chk.length, 1)
+    assert.strictEqual(
+      chk.length,
+      1,
+      `Expected 1 reverse five-prime warning at 17, got ${chk.length}`,
+    )
     chk = out.filter(
       (x: any) =>
         x.cause === 'NonCanonicalSpliceSiteAtFivePrime' && x.start === 37,
     )
-    assert.strictEqual(chk.length, 1)
+    assert.strictEqual(
+      chk.length,
+      1,
+      `Expected 1 reverse five-prime warning at 37, got ${chk.length}`,
+    )
   })
 
   void globalThis.itName('Timeout option', async () => {
@@ -2144,15 +3354,26 @@ server.listen(0, () => {
         `${apollo} assembly get --profile fakeTimeout --timeout 1s`,
         false,
       )
-      assert.notStrictEqual(p.returncode, 0)
-      assert.ok(p.stderr.includes('UND_ERR_HEADERS_TIMEOUT'))
+      assert.notStrictEqual(
+        p.returncode,
+        0,
+        'Expected request to fail when timeout is shorter than server delay',
+      )
+      assert.ok(
+        p.stderr.includes('UND_ERR_HEADERS_TIMEOUT'),
+        `Expected a headers timeout error:\n${p.stderr}`,
+      )
 
       // Timeout longer than the server's response delay: the request
       // should succeed.
       p = new Shell(
         `${apollo} assembly get --profile fakeTimeout --timeout 10s`,
       )
-      assert.strictEqual(p.stdout.trim(), '[]')
+      assert.strictEqual(
+        p.stdout.trim(),
+        '[]',
+        `Expected request to succeed when timeout is longer than server delay, got:\n${p.stdout}\n${p.stderr}`,
+      )
     } finally {
       server.kill()
       fs.unlinkSync(serverScript)
