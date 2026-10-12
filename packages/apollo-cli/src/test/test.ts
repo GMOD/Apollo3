@@ -123,7 +123,7 @@ void describe('Test CLI', () => {
       `Expected "Invalid setting:" error for wrongly-cased key:\n${p.stderr}`,
     )
 
-    p = new Shell(`${apollo} config ${P} accessType spam`, false)
+    p = new Shell(`${apollo} config ${P} accessType not-a-type`, false)
     assert.strictEqual(
       1,
       p.returncode,
