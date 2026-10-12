@@ -2,6 +2,7 @@ import { Test, type TestingModule } from '@nestjs/testing'
 
 import { AuthenticationController } from './authentication.controller.js'
 import { AuthenticationService } from './authentication.service.js'
+import { DeviceLoginService } from './device/device-login.service.js'
 import { OidcService } from './oidc/oidc.service.js'
 
 describe('AuthenticationController', () => {
@@ -13,6 +14,7 @@ describe('AuthenticationController', () => {
       providers: [
         { provide: AuthenticationService, useValue: {} },
         { provide: OidcService, useValue: {} },
+        { provide: DeviceLoginService, useValue: {} },
       ],
     }).compile()
 

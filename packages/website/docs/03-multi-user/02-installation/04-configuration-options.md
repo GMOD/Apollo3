@@ -133,4 +133,10 @@ MICROSOFT_CLIENT_SECRET=client_secret_here
 
 # HTTP/HTTPS proxy for OAuth requests, if your server is behind a proxy
 # OAUTH_HTTP_PROXY=http://proxy.example.com:8080
+
+# Comma-separated list of other origins that logins may redirect back to with
+# the user's token. Logins can always redirect back to the origin of URL and to
+# this computer (localhost), so this is only needed if JBrowse is served from a
+# different origin than Apollo, e.g. a different domain or port.
+# ALLOWED_REDIRECT_ORIGINS=https://jbrowse.example.org
 ```

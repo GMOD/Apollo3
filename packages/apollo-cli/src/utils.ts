@@ -1,12 +1,7 @@
-import * as crypto from 'node:crypto'
-import type EventEmitter from 'node:events'
 import * as fs from 'node:fs'
 import { stdin } from 'node:process'
 
 import type { Response } from 'undici'
-
-export const CLI_SERVER_ADDRESS = 'http://127.0.0.1:5657'
-export const CLI_SERVER_ADDRESS_CALLBACK = `${CLI_SERVER_ADDRESS}/auth/callback`
 
 export interface UserCredentials {
   accessToken: string
@@ -51,49 +46,6 @@ export function filterJsonList(
     }
   }
   return results
-}
-
-export const generatePkceChallenge = (): {
-  state: string
-  codeVerifier: string
-  codeChallenge: string
-} => {
-  const codeVerifier = crypto.randomBytes(64).toString('hex')
-
-  const codeChallenge = crypto
-    .createHash('sha256')
-    .update(codeVerifier)
-    .digest('base64')
-    .replaceAll('+', '-')
-    .replaceAll('/', '_')
-    .replaceAll('=', '')
-
-  return {
-    state: crypto.randomBytes(32).toString('hex'),
-    codeVerifier,
-    codeChallenge,
-  }
-}
-
-export const waitFor = <T>(
-  eventName: string,
-  emitter: EventEmitter,
-): Promise<T> => {
-  const promise = new Promise<T>((resolve, reject) => {
-    const handleEvent = (eventData: T): void => {
-      if (eventData instanceof Error) {
-        reject(eventData)
-      } else {
-        resolve(eventData)
-      }
-
-      emitter.removeListener(eventName, handleEvent)
-    }
-
-    emitter.addListener(eventName, handleEvent)
-  })
-
-  return promise
 }
 
 export async function readStdin() {

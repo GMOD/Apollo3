@@ -73,3 +73,28 @@ To set up more than one provider, separate the names with commas in
 `openid email profile` scopes and identifies users by their email address, so
 the provider has to return an email for each user. Make sure to restart the
 Apollo Collaboration Server after updating these values.
+
+## Logging in from the CLI
+
+The [Apollo CLI](../guides/cli/login) can log in with any of these login types
+without any additional setup with the login provider. When you run
+`apollo login`, it prints a URL and a short code. Open the URL in a browser on
+any computer (it doesn't have to be the computer running the CLI), check that
+the page shows the same code, and sign in. The CLI then saves the token
+automatically. This means the CLI can be used on a remote server, e.g. over SSH,
+even though the server doesn't have a browser.
+
+The URL is based on the `URL` [configuration option](./configuration-options),
+so make sure it's the address users reach Apollo at from their browser.
+
+## Where logins can redirect
+
+After a login, Apollo sends the user's token back to the page that started the
+login. To keep tokens from being sent to other sites, Apollo only redirects to
+its own `URL`, to `localhost` (e.g. JBrowse Desktop), and to any origins listed
+in `ALLOWED_REDIRECT_ORIGINS`. If you serve JBrowse from a different domain or
+port than Apollo, add JBrowse's origin there, e.g.:
+
+```sh
+ALLOWED_REDIRECT_ORIGINS=https://jbrowse.example.org
+```

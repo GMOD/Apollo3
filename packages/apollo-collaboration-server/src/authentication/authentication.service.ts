@@ -1,5 +1,10 @@
 import type { JWTPayload } from '@apollo-annotation/shared'
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import type { Request, Response } from 'express'
@@ -17,12 +22,16 @@ import { Role } from '../utils/role/role.enum.js'
 import { OidcService } from './oidc/oidc.service.js'
 
 interface ConfigValues {
+  URL: string
+  ALLOWED_REDIRECT_ORIGINS?: string
   ALLOW_GUEST_USER: boolean
   DEFAULT_NEW_USER_ROLE: Role
   ROOT_USER_PASSWORD: string
 }
 
 const ROOT_USER_NAME = 'root'
+
+const LOOPBACK_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]'])
 
 export interface AuthHandlerRedirect {
   url: string
@@ -46,6 +55,7 @@ export interface CustomAuthHandler {
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name)
   private defaultNewUserRole: Role
+  private readonly allowedRedirectOrigins: Set<string>
 
   constructor(
     private readonly usersService: UsersService,
@@ -57,12 +67,45 @@ export class AuthenticationService {
     this.defaultNewUserRole = configService.get('DEFAULT_NEW_USER_ROLE', {
       infer: true,
     })
+    this.allowedRedirectOrigins = new Set(
+      (configService.get('ALLOWED_REDIRECT_ORIGINS', { infer: true }) ?? '')
+        .split(',')
+        .map((origin) => origin.trim())
+        .filter(Boolean)
+        .map((origin) => new URL(origin).origin),
+    )
+    this.allowedRedirectOrigins.add(
+      new URL(configService.get('URL', { infer: true })).origin,
+    )
+  }
+
+  /**
+   * Make sure a login redirect URI is somewhere we trust with the user's
+   * token: Apollo itself, an origin in ALLOWED_REDIRECT_ORIGINS, or this
+   * computer (e.g. JBrowse Desktop or a local development server)
+   */
+  assertAllowedRedirectUri(redirectUri: string) {
+    let url: URL
+    try {
+      url = new URL(redirectUri)
+    } catch {
+      throw new BadRequestException(`Invalid redirect_uri "${redirectUri}"`)
+    }
+    const isLoopback =
+      (url.protocol === 'http:' || url.protocol === 'https:') &&
+      LOOPBACK_HOSTNAMES.has(url.hostname)
+    if (!isLoopback && !this.allowedRedirectOrigins.has(url.origin)) {
+      throw new BadRequestException(
+        `redirect_uri origin "${url.origin}" is not allowed, add it to ALLOWED_REDIRECT_ORIGINS to allow it`,
+      )
+    }
   }
 
   /**
    * Get the URL to send the user to after logging in, with their token added
    */
   getTokenRedirectUrl(redirectUri: string, token: string) {
+    this.assertAllowedRedirectUri(redirectUri)
     const url = new URL(redirectUri)
     const searchParams = new URLSearchParams({ access_token: token })
     url.search = searchParams.toString()

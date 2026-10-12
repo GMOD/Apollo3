@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals'
+import { BadRequestException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import { Test, type TestingModule } from '@nestjs/testing'
@@ -30,8 +31,14 @@ describe('AuthenticationService', () => {
         {
           provide: ConfigService,
           useValue: {
-            get: jest.fn((key) =>
-              key === 'ALLOW_GUEST_USER' ? true : undefined,
+            get: jest.fn(
+              (key: string) =>
+                ({
+                  URL: 'https://example.org/apollo/',
+                  ALLOWED_REDIRECT_ORIGINS:
+                    'https://jbrowse.example.org, https://other.example.org/path',
+                  ALLOW_GUEST_USER: true,
+                })[key],
             ),
           },
         },
@@ -74,5 +81,36 @@ describe('AuthenticationService', () => {
     expect(
       service.getTokenRedirectUrl('http://localhost:3000/?config=a', 'abc'),
     ).toBe('http://localhost:3000/?access_token=abc')
+  })
+
+  it('allows redirects to Apollo, configured origins, and loopback', () => {
+    for (const uri of [
+      'https://example.org/auth/device/complete',
+      'https://jbrowse.example.org/?config=a',
+      'https://other.example.org/',
+      'http://localhost/auth',
+      'http://127.0.0.1:8999/',
+    ]) {
+      expect(() => {
+        service.assertAllowedRedirectUri(uri)
+      }).not.toThrow()
+    }
+  })
+
+  it('rejects redirects to other origins', () => {
+    for (const uri of [
+      'https://evil.example.com/',
+      'http://example.org/',
+      'https://jbrowse.example.org:8443/',
+      'javascript:alert(1)',
+      'not a url',
+    ]) {
+      expect(() => {
+        service.assertAllowedRedirectUri(uri)
+      }).toThrow(BadRequestException)
+    }
+    expect(() =>
+      service.getTokenRedirectUrl('https://evil.example.com/', 'abc'),
+    ).toThrow(BadRequestException)
   })
 })

@@ -214,6 +214,97 @@ server.listen(0, () => {
     },
   )
 
+  void globalThis.itName(
+    'Browser login prints a URL and code and polls for the token',
+    async () => {
+      const serverScript = 'test_data/tmp_device_login_server.mjs'
+      fs.writeFileSync(
+        serverScript,
+        `
+import http from 'node:http'
+let polls = 0
+const server = http.createServer((req, res) => {
+  const send = (status, body) => {
+    res.writeHead(status, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify(body))
+  }
+  if (req.url === '/auth/types') {
+    send(200, [{ name: 'my_sso', needsPopup: true, message: 'Sign in with SSO' }])
+    return
+  }
+  let body = ''
+  req.on('data', (chunk) => { body += chunk })
+  req.on('end', () => {
+    if (req.method === 'POST' && req.url === '/auth/device') {
+      if (JSON.parse(body).type !== 'my_sso') {
+        send(400, { message: 'wrong type' })
+        return
+      }
+      send(201, {
+        device_code: 'secret-device-code',
+        user_code: 'BCDF-GHJK',
+        verification_uri: 'https://apollo.example.org/auth/device',
+        verification_uri_complete: 'https://apollo.example.org/auth/device?user_code=BCDF-GHJK',
+        expires_in: 600,
+        interval: 1,
+      })
+      return
+    }
+    if (req.method === 'POST' && req.url === '/auth/device/token') {
+      if (JSON.parse(body).device_code !== 'secret-device-code') {
+        send(400, { error: 'expired_token' })
+        return
+      }
+      polls++
+      if (polls < 3) {
+        send(400, { error: 'authorization_pending' })
+        return
+      }
+      send(201, { token: 'device-login-token' })
+      return
+    }
+    send(404, { message: 'Not found' })
+  })
+})
+server.listen(0, () => {
+  console.log(server.address().port)
+})
+`,
+      )
+      const authServer = spawnChildProcess('node', [serverScript])
+      const authPort: string = await new Promise((resolve) => {
+        authServer.stdout.once('data', (data: Buffer) => {
+          resolve(data.toString().trim())
+        })
+      })
+      const profile = '--profile testDeviceLogin'
+      try {
+        new Shell(
+          `${apollo} config ${profile} address http://localhost:${authPort}`,
+        )
+        new Shell(`${apollo} config ${profile} accessType my_sso`)
+        const p = new Shell(
+          `${apollo} login ${profile} --force --no-browser`,
+          true,
+          60_000,
+        )
+        assert.ok(
+          p.stderr.includes(
+            'https://apollo.example.org/auth/device?user_code=BCDF-GHJK',
+          ),
+          p.stderr,
+        )
+        assert.ok(p.stderr.includes('BCDF-GHJK'), p.stderr)
+        assert.ok(!p.stderr.includes('secret-device-code'), p.stderr)
+        const token = new Shell(`${apollo} config ${profile} accessToken`)
+        assert.strictEqual(token.stdout.trim(), 'device-login-token')
+      } finally {
+        authServer.kill()
+        fs.unlinkSync(serverScript)
+      }
+    },
+  )
+
   void globalThis.itName('Apollo status', () => {
     let p = new Shell(`${apollo} status ${P}`)
     assert.strictEqual(p.stdout.trim(), 'testAdmin: Logged in')

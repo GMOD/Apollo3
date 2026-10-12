@@ -136,6 +136,9 @@ describe('loadOidcProviders', () => {
       loadOidcProviders(getter({ OIDC_PROVIDERS: 'guest' })),
     ).toThrow(/reserved/)
     expect(() =>
+      loadOidcProviders(getter({ OIDC_PROVIDERS: 'device' })),
+    ).toThrow(/reserved/)
+    expect(() =>
       loadOidcProviders(getter({ OIDC_PROVIDERS: 'my-sso' })),
     ).toThrow(/Invalid/)
     expect(() =>

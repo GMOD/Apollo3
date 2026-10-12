@@ -12,7 +12,13 @@ export interface OidcProviderConfig {
 }
 
 /** Login type names that are already used by other auth routes */
-export const RESERVED_LOGIN_TYPES = new Set(['login', 'types', 'guest', 'root'])
+export const RESERVED_LOGIN_TYPES = new Set([
+  'login',
+  'types',
+  'guest',
+  'root',
+  'device',
+])
 
 const DEFAULT_SCOPES = 'openid email profile'
 
