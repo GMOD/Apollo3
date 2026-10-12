@@ -5,7 +5,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { changeRegistry } from '@apollo-annotation/common'
 import type { AbstractSessionModel } from '@jbrowse/core/util'
-import { makeStyles } from '@jbrowse/core/util/tss-react'
 import {
   Button,
   DialogActions,
@@ -21,6 +20,7 @@ import {
   type GridSortModel,
 } from '@mui/x-data-grid'
 import React, { useEffect, useState } from 'react'
+import { makeStyles } from 'tss-react/mui'
 
 import type { GetChangesOpts } from '../BackendDrivers/BackendDriver'
 import type { ApolloSessionModel } from '../session'

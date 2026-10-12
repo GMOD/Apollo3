@@ -1,8 +1,8 @@
-import { makeStyles } from '@jbrowse/core/util/tss-react'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import BusinessIcon from '@mui/icons-material/Business'
 import { Button, type ButtonProps } from '@mui/material'
 import React from 'react'
+import { makeStyles } from 'tss-react/mui'
 
 import { Google, Microsoft } from './LoginIcons'
 

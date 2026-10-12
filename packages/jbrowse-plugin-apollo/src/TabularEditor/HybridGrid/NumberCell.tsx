@@ -1,8 +1,8 @@
 /* eslint-disable @eslint-react/set-state-in-effect */
 /* eslint-disable @typescript-eslint/unbound-method */
-import { makeStyles } from '@jbrowse/core/util/tss-react'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
+import { makeStyles } from 'tss-react/mui'
 
 const useStyles = makeStyles()((theme) => ({
   inputWrapper: {

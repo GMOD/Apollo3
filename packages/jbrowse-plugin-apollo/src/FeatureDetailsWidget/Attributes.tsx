@@ -2,7 +2,6 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import { FeatureAttributeChange } from '@apollo-annotation/shared'
 import { type AbstractSessionModel, getEnv } from '@jbrowse/core/util'
-import { makeStyles } from '@jbrowse/core/util/tss-react'
 import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
@@ -22,6 +21,7 @@ import {
 import { entries } from 'mobx'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
+import { makeStyles } from 'tss-react/mui'
 
 import type { ApolloSessionModel } from '../session'
 

@@ -156,7 +156,8 @@ export class ApolloConf extends Conf {
 
 const profileSchema = Joi.object({
   address: Joi.string().uri({ scheme: /https?/ }),
-  accessType: Joi.string().valid('google', 'microsoft', 'root', 'guest'),
+  // Same rule the server applies to login type names (see OIDC_PROVIDERS)
+  accessType: Joi.string().pattern(/^[a-z0-9_]+$/),
   accessToken: Joi.string(),
   rootPassword: Joi.string().when('accessType', {
     is: Joi.string().valid('root'),

@@ -3,7 +3,6 @@ import type {
   ApolloRefSeqI,
   TranscriptPartCoding,
 } from '@apollo-annotation/mst'
-import styled from '@emotion/styled'
 import {
   type AbstractSessionModel,
   defaultCodonTable,
@@ -19,6 +18,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
+import { styled } from '@mui/material/styles'
 import React, { useRef } from 'react'
 
 import type { ApolloSessionModel } from '../session'

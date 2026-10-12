@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import fs from 'node:fs/promises'
-
 import type {
   AuthHandlerRedirect,
   AuthHandlerUser,
@@ -15,7 +12,6 @@ import {
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import type { Request, Response } from 'express'
-import type { Profile as GoogleProfile } from 'passport-google-oauth20'
 
 import { PluginsService } from '../plugins/plugins.service.js'
 import { CreateUserDto } from '../users/dto/create-user.dto.js'
@@ -26,17 +22,12 @@ import {
   ROOT_USER_EMAIL,
 } from '../utils/constants.js'
 import { Role } from '../utils/role/role.enum.js'
-import type { Profile as MicrosoftProfile } from '../utils/strategies/microsoft.strategy.js'
 
-export interface RequestWithUserToken extends Request {
-  user: { token: string }
-}
+import { OidcService } from './oidc/oidc.service.js'
 
 interface ConfigValues {
-  MICROSOFT_CLIENT_ID?: string
-  MICROSOFT_CLIENT_ID_FILE?: string
-  GOOGLE_CLIENT_ID?: string
-  GOOGLE_CLIENT_ID_FILE?: string
+  URL: string
+  ALLOWED_REDIRECT_ORIGINS?: string
   ALLOW_GUEST_USER: boolean
   DEFAULT_NEW_USER_ROLE: Role
   ROOT_USER_PASSWORD: string
@@ -44,81 +35,92 @@ interface ConfigValues {
 
 const ROOT_USER_NAME = 'root'
 
+const LOOPBACK_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]'])
+
 @Injectable()
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name)
   private defaultNewUserRole: Role
+  private readonly allowedRedirectOrigins: Set<string>
 
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService<ConfigValues, true>,
     private readonly pluginsService: PluginsService,
+    private readonly oidcService: OidcService,
   ) {
     this.defaultNewUserRole = configService.get('DEFAULT_NEW_USER_ROLE', {
       infer: true,
     })
+    this.allowedRedirectOrigins = new Set(
+      (configService.get('ALLOWED_REDIRECT_ORIGINS', { infer: true }) ?? '')
+        .split(',')
+        .map((origin) => origin.trim())
+        .filter(Boolean)
+        .map((origin) => new URL(origin).origin),
+    )
+    this.allowedRedirectOrigins.add(
+      new URL(configService.get('URL', { infer: true })).origin,
+    )
   }
 
-  handleRedirect(req: RequestWithUserToken) {
-    if (!req.user) {
-      throw new BadRequestException()
+  /**
+   * Make sure a login redirect URI is somewhere we trust with the user's
+   * token: Apollo itself, an origin in ALLOWED_REDIRECT_ORIGINS, or this
+   * computer (e.g. JBrowse Desktop or a local development server)
+   */
+  assertAllowedRedirectUri(redirectUri: string) {
+    let url: URL
+    try {
+      url = new URL(redirectUri)
+    } catch {
+      throw new BadRequestException(`Invalid redirect_uri "${redirectUri}"`)
     }
-
-    const { redirect_uri } = (
-      req.authInfo as { state: { redirect_uri: string } }
-    ).state
-    const url = new URL(redirect_uri)
-    const searchParams = new URLSearchParams({ access_token: req.user.token })
-    url.search = searchParams.toString()
-    return { url: url.toString() }
+    const isLoopback =
+      (url.protocol === 'http:' || url.protocol === 'https:') &&
+      LOOPBACK_HOSTNAMES.has(url.hostname)
+    if (!isLoopback && !this.allowedRedirectOrigins.has(url.origin)) {
+      throw new BadRequestException(
+        `redirect_uri origin "${url.origin}" is not allowed, add it to ALLOWED_REDIRECT_ORIGINS to allow it`,
+      )
+    }
   }
 
-  async getLoginTypes() {
+  /**
+   * Get the URL to send the user to after logging in, with their token added
+   */
+  getTokenRedirectUrl(redirectUri: string, token: string) {
+    this.assertAllowedRedirectUri(redirectUri)
+    const url = new URL(redirectUri)
+    const searchParams = new URLSearchParams({ access_token: token })
+    url.search = searchParams.toString()
+    return url.toString()
+  }
+
+  getLoginTypes() {
     const customAuthTypes = this.pluginsService.getCustomAuthHandlers()
     const loginTypes: { name: string; needsPopup: boolean; message: string }[] =
       []
     for (const [name, { needsPopup, message }] of customAuthTypes) {
+      if (this.oidcService.has(name)) {
+        this.logger.warn(
+          `Custom login type "${name}" is ignored because an OIDC provider with the same name is configured`,
+        )
+        continue
+      }
       loginTypes.push({ name, message, needsPopup })
     }
-    let microsoftClientID = this.configService.get('MICROSOFT_CLIENT_ID', {
-      infer: true,
-    })
-    if (!microsoftClientID) {
-      const clientIDFile = this.configService.get('MICROSOFT_CLIENT_ID_FILE', {
-        infer: true,
+    for (const { name, displayName } of this.oidcService.list()) {
+      loginTypes.push({
+        name,
+        message: `Sign in with ${displayName}`,
+        needsPopup: true,
       })
-      microsoftClientID =
-        clientIDFile && (await fs.readFile(clientIDFile, 'utf8'))
-      microsoftClientID = microsoftClientID?.trim()
-    }
-    let googleClientID = this.configService.get('GOOGLE_CLIENT_ID', {
-      infer: true,
-    })
-    if (!googleClientID) {
-      const clientIDFile = this.configService.get('GOOGLE_CLIENT_ID_FILE', {
-        infer: true,
-      })
-      googleClientID = clientIDFile && (await fs.readFile(clientIDFile, 'utf8'))
-      googleClientID = googleClientID?.trim()
     }
     const allowGuestUser = this.configService.get('ALLOW_GUEST_USER', {
       infer: true,
     })
-    if (microsoftClientID) {
-      loginTypes.push({
-        name: 'microsoft',
-        message: 'Sign in with Microsoft',
-        needsPopup: true,
-      })
-    }
-    if (googleClientID) {
-      loginTypes.push({
-        name: 'google',
-        message: 'Sign in with Google',
-        needsPopup: true,
-      })
-    }
     if (allowGuestUser) {
       loginTypes.push({
         name: 'guest',
@@ -127,33 +129,6 @@ export class AuthenticationService {
       })
     }
     return loginTypes
-  }
-
-  /**
-   * Log in with google
-   * @param profile - profile
-   * @returns Return either token with HttpResponse status 'HttpStatus.OK' OR null with 'HttpStatus.UNAUTHORIZED'
-   */
-  async googleLogin(profile: GoogleProfile) {
-    if (!profile._json.email) {
-      throw new UnauthorizedException('No email provided')
-    }
-    const { email, name } = profile._json
-    return this.logIn(name ?? 'N/A', email)
-  }
-
-  /**
-   * Log in with microsoft
-   * @param profile - profile
-   * @returns Return either token with HttpResponse status 'HttpStatus.OK' OR null with 'HttpStatus.UNAUTHORIZED'
-   */
-  async microsoftLogin(profile: MicrosoftProfile) {
-    const [email] = profile.emails
-    if (!email) {
-      throw new UnauthorizedException('No email provided')
-    }
-    const { displayName } = profile
-    return this.logIn(displayName, email.value)
   }
 
   /**
@@ -196,12 +171,9 @@ export class AuthenticationService {
       const logInResult = await this.logIn(result.name, result.email)
       if (customAuth.needsPopup && state) {
         const { redirect_uri } = JSON.parse(state) as { redirect_uri: string }
-        const url = new URL(redirect_uri)
-        const searchParams = new URLSearchParams({
-          access_token: logInResult.token,
-        })
-        url.search = searchParams.toString()
-        response.redirect(url.toString())
+        response.redirect(
+          this.getTokenRedirectUrl(redirect_uri, logInResult.token),
+        )
       }
       return logInResult
     }

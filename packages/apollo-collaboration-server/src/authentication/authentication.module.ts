@@ -1,17 +1,19 @@
 import fs from 'node:fs/promises'
 
+import { DeviceLogin, DeviceLoginSchema } from '@apollo-annotation/schemas'
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { JwtModule, type JwtModuleOptions } from '@nestjs/jwt'
+import { MongooseModule } from '@nestjs/mongoose'
 import { PassportModule } from '@nestjs/passport'
 
 import { UsersModule } from '../users/users.module.js'
-import { GoogleStrategy } from '../utils/strategies/google.strategy.js'
 import { JwtStrategy } from '../utils/strategies/jwt.strategy.js'
-import { MicrosoftStrategy } from '../utils/strategies/microsoft.strategy.js'
 
 import { AuthenticationController } from './authentication.controller.js'
 import { AuthenticationService } from './authentication.service.js'
+import { DeviceLoginService } from './device/device-login.service.js'
+import { OidcService } from './oidc/oidc.service.js'
 
 interface JWTSecretConfig {
   JWT_SECRET?: string
@@ -36,6 +38,9 @@ async function jwtConfigFactory(
   imports: [
     UsersModule,
     PassportModule,
+    MongooseModule.forFeature([
+      { name: DeviceLogin.name, schema: DeviceLoginSchema },
+    ]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: jwtConfigFactory,
@@ -45,9 +50,9 @@ async function jwtConfigFactory(
   controllers: [AuthenticationController],
   providers: [
     AuthenticationService,
+    DeviceLoginService,
     JwtStrategy,
-    GoogleStrategy,
-    MicrosoftStrategy,
+    OidcService,
   ],
   exports: [AuthenticationService],
 })

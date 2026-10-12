@@ -5,11 +5,11 @@ import {
   LocationEndChange,
   LocationStartChange,
 } from '@apollo-annotation/shared'
-import styled from '@emotion/styled'
 import { type AbstractSessionModel, revcom } from '@jbrowse/core/util'
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
 import { Grid, Typography } from '@mui/material'
+import { styled } from '@mui/material/styles'
 import { observer } from 'mobx-react'
 
 import type { OntologyRecord } from '../OntologyManager'
