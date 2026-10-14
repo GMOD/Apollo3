@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import path from 'node:path'
 
 import { input, password, select } from '@inquirer/prompts'
 import { Args, Flags } from '@oclif/core'
-import { fetch } from 'undici'
 
 import {
   type ApolloConf,
@@ -12,7 +10,6 @@ import {
   optionDesc,
 } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
-import { createFetchErrorMessage, localhostToAddress } from '../utils.js'
 
 export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
   static summary = 'Get or set apollo configuration options'
@@ -93,7 +90,7 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
         return
       }
       if (args.key === 'accessType') {
-        config.setAccessType(profileName, args.value)
+        await config.setAccessType(profileName, args.value)
       } else {
         config.set(`${profileName}.${args.key}`, args.value)
       }
@@ -114,12 +111,9 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
       config.set(`${profileName}.${KEYS[KEYS.address]}`, address)
       setMe = false
     }
-    const address: string = config.get(
-      `${profileName}.${KEYS[KEYS.address]}`,
-    ) as string
-    const accessType = await this.selectAccessType(address)
+    const accessType = await this.selectAccessType(config, profileName)
 
-    config.setAccessType(profileName, accessType)
+    await config.setAccessType(profileName, accessType)
     if (accessType === 'root') {
       const password: string = await this.askPassword()
       config.set(`${profileName}.rootPassword`, password)
@@ -182,31 +176,12 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
     return answer.trim()
   }
 
-  private async selectAccessType(address: string): Promise<string> {
-    const choices = [{ name: 'root', value: 'root' }]
-    const types = await this.getLoginTypes(address)
-    for (const type of types) {
-      choices.push({ name: type.name, value: type.name })
-    }
-    const answer = await select({ message: 'Select login type', choices })
-    return answer
-  }
-
-  private async getLoginTypes(
-    address: string,
-  ): Promise<{ name: string; needsPopup: boolean; message: string }[]> {
-    const response = await fetch(localhostToAddress(`${address}/auth/types`))
-    if (!response.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        response,
-        `Unable to retrieve login types for address: "${address}"\n`,
-      )
-      throw new Error(errorMessage)
-    }
-    const dat = await response.json()
-    if (Array.isArray(dat)) {
-      return dat
-    }
-    throw new Error(`Unexpected object: ${JSON.stringify(dat)}`)
+  private async selectAccessType(
+    config: ApolloConf,
+    profileName: string,
+  ): Promise<string> {
+    const types = await config.getAccessTypes(profileName)
+    const choices = types.map((name) => ({ name, value: name }))
+    return select({ message: 'Select login type', choices })
   }
 }

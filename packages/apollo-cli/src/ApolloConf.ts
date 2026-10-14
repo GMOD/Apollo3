@@ -114,8 +114,41 @@ export class ApolloConf extends Conf {
     return Object.keys(this.store)
   }
 
-  public setAccessType(profileName: string, accessType: string) {
-    if (accessType != 'root') {
+  public async getAccessTypes(profileName: string): Promise<string[]> {
+    const address = this.get(`${profileName}.address`) as string | undefined
+    if (!address?.trim()) {
+      throw new ConfigError(
+        `Profile "${profileName}" has no address. Please run "apollo config" to set it up.`,
+      )
+    }
+    const response = await fetch(localhostToAddress(`${address}/auth/types`))
+    if (!response.ok) {
+      throw new ConfigError(
+        await createFetchErrorMessage(
+          response,
+          `Unable to retrieve login types for address: "${address}"`,
+        ),
+      )
+    }
+    const data = await response.json()
+    const schema = Joi.array()
+      .items(Joi.object({ name: Joi.string().required() }).unknown(true))
+      .required()
+    if (schema.validate(data).error) {
+      throw new ConfigError(`Unexpected login types: ${JSON.stringify(data)}`)
+    }
+    const types = data as { name: string }[]
+    return ['root', ...types.map(({ name }) => name)]
+  }
+
+  public async setAccessType(profileName: string, accessType: string) {
+    if (accessType !== 'root') {
+      const allowedTypes = await this.getAccessTypes(profileName)
+      if (!allowedTypes.includes(accessType)) {
+        throw new ConfigError(
+          `Unknown access type "${accessType}". Allowed types: ${allowedTypes.join(', ')}`,
+        )
+      }
       this.delete(`${profileName}.rootPassword`)
     }
     this.set(`${profileName}.accessType`, accessType)
@@ -156,7 +189,8 @@ export class ApolloConf extends Conf {
 
 const profileSchema = Joi.object({
   address: Joi.string().uri({ scheme: /https?/ }),
-  accessType: Joi.string().valid('google', 'microsoft', 'root', 'guest'),
+  // Server-specific types are validated by setAccessType via /auth/types.
+  accessType: Joi.string(),
   accessToken: Joi.string(),
   rootPassword: Joi.string().when('accessType', {
     is: Joi.string().valid('root'),
