@@ -220,11 +220,12 @@ export class AuthenticationController {
       // The identity provider redirects back here with either a code or an
       // error, otherwise this is the start of the login
       if ('code' in req.query || 'error' in req.query) {
-        const { name, email, redirectUri } = await this.oidcService.finishLogin(
-          id,
-          req,
-        )
-        const { token } = await this.authService.logIn(name, email)
+        const { name, email, claims, redirectUri } =
+          await this.oidcService.finishLogin(id, req)
+        const { token } = await this.authService.logIn(name, email, {
+          loginType: id,
+          claims,
+        })
         res.redirect(this.authService.getTokenRedirectUrl(redirectUri, token))
         return
       }

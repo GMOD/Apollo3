@@ -237,6 +237,11 @@ export class OidcService {
       throw new UnauthorizedException('Email address has not been verified')
     }
     const userName = typeof claims.name === 'string' ? claims.name : email
-    return { name: userName, email, redirectUri: loginState.redirectUri }
+    return {
+      name: userName,
+      email,
+      claims,
+      redirectUri: loginState.redirectUri,
+    }
   }
 }

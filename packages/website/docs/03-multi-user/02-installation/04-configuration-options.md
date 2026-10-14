@@ -172,3 +172,10 @@ subject to their role. To restrict users to particular assemblies, add a
 server-side plugin that registers the `Apollo-AssemblyAccess` extension point —
 see [Restricting assembly access](../../04-developer-guide/assembly-access.md)
 in the developer guide.
+
+## Setting user roles from an identity provider
+
+To manage users' roles in your identity provider instead of in Apollo, add a
+server-side plugin that registers the `Apollo-UserRole` extension point — see
+[Setting user roles](../../04-developer-guide/user-roles.md) in the developer
+guide.

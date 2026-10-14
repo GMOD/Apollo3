@@ -73,6 +73,16 @@ export class UsersService {
     return this.userModel.create(user)
   }
 
+  async updateRole(id: string, role: Role) {
+    return this.userModel
+      .findByIdAndUpdate(
+        id,
+        { role },
+        { returnDocument: 'after', runValidators: true },
+      )
+      .exec()
+  }
+
   async getCount() {
     return this.userModel.countDocuments().exec()
   }

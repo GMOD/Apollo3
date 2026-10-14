@@ -112,15 +112,16 @@ Every hook callback is called with a value to extend (the `extendee`) and some
 each callback gets the previous one's result, so add to the value you're given
 rather than replacing it.
 
-| Hook                                           | Value                                        | Props            | When it runs     |
-| ---------------------------------------------- | -------------------------------------------- | ---------------- | ---------------- |
-| [`Apollo-MongoDB`](#apollo-mongodb)            | none                                         | `{ connection }` | Once, at startup |
-| [`Apollo-RegisterChangeTypes`](changes.md)     | `Record<string, ServerChangeType>`           | none             | Once, at startup |
-| [`Apollo-RegisterValidations`](validations.md) | `(ChangeRule \| ServerValidation)[]`         | none             | Once, at startup |
-| [`Apollo-RegisterChecks`](checks.md)           | `Check[]`                                    | none             | Once, at startup |
-| [`Apollo-RegisterRoutes`](custom-routes.md)    | `PluginRoute[]`                              | `{ connection }` | Once, at startup |
-| [`Apollo-RegisterCustomAuth`](custom-login.md) | `Map<string, CustomAuthHandler>`             | none             | Once, at startup |
-| [`Apollo-AssemblyAccess`](assembly-access.md)  | `AssemblyAccess \| undefined` (starts empty) | `{ connection }` | On every request |
+| Hook                                           | Value                                        | Props                                                       | When it runs     |
+| ---------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------- | ---------------- |
+| [`Apollo-MongoDB`](#apollo-mongodb)            | none                                         | `{ connection }`                                            | Once, at startup |
+| [`Apollo-RegisterChangeTypes`](changes.md)     | `Record<string, ServerChangeType>`           | none                                                        | Once, at startup |
+| [`Apollo-RegisterValidations`](validations.md) | `(ChangeRule \| ServerValidation)[]`         | none                                                        | Once, at startup |
+| [`Apollo-RegisterChecks`](checks.md)           | `Check[]`                                    | none                                                        | Once, at startup |
+| [`Apollo-RegisterRoutes`](custom-routes.md)    | `PluginRoute[]`                              | `{ connection }`                                            | Once, at startup |
+| [`Apollo-RegisterCustomAuth`](custom-login.md) | `Map<string, CustomAuthHandler>`             | none                                                        | Once, at startup |
+| [`Apollo-AssemblyAccess`](assembly-access.md)  | `AssemblyAccess \| undefined` (starts empty) | `{ connection }`                                            | On every request |
+| [`Apollo-UserRole`](user-roles.md)             | `UserRole` (the role Apollo would give)      | `{ email, name, loginType, claims, isNewUser, connection }` | On every login   |
 
 ### When a callback throws
 
@@ -129,6 +130,7 @@ rather than replacing it.
   configuration error rather than silently skipped.
 - **`Apollo-AssemblyAccess`**: the error is logged and the request is denied
   access to every assembly. Hooks that guard access fail closed, never open.
+- **`Apollo-UserRole`**: the error is logged and the login is refused.
 
 ### Apollo-MongoDB
 

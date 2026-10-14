@@ -1,7 +1,8 @@
 import { jest } from '@jest/globals'
-import { BadRequestException } from '@nestjs/common'
+import { BadRequestException, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
+import { getConnectionToken } from '@nestjs/mongoose'
 import { Test, type TestingModule } from '@nestjs/testing'
 
 import { PluginsService } from '../plugins/plugins.service.js'
@@ -54,6 +55,7 @@ describe('AuthenticationService', () => {
               oidcProviders.some((provider) => provider.name === name),
           },
         },
+        { provide: getConnectionToken(), useValue: {} },
       ],
     }).compile()
 
@@ -112,5 +114,154 @@ describe('AuthenticationService', () => {
     expect(() =>
       service.getTokenRedirectUrl('https://evil.example.com/', 'abc'),
     ).toThrow(BadRequestException)
+  })
+})
+
+function decode(token: string) {
+  return JSON.parse(token) as { role: string; email: string }
+}
+
+describe('AuthenticationService.logIn with Apollo-UserRole', () => {
+  interface StoredUser {
+    id: string
+    email: string
+    username: string
+    role: string
+  }
+
+  let service: AuthenticationService
+  let users: StoredUser[]
+  let evaluateSecurityHook: jest.Mock<
+    (name: string, extendee: unknown, props: unknown) => Promise<unknown>
+  >
+  const sign = jest.fn((payload: object) => JSON.stringify(payload))
+  const connection = { name: 'connection' }
+
+  beforeEach(async () => {
+    users = [
+      { id: '1', email: 'admin@example.org', username: 'A', role: 'admin' },
+      { id: '2', email: 'old@example.org', username: 'O', role: 'readOnly' },
+    ]
+    evaluateSecurityHook = jest.fn((_name, extendee) =>
+      Promise.resolve(extendee),
+    )
+    const usersService = {
+      findByEmail: (email: string) =>
+        Promise.resolve(users.find((user) => user.email === email) ?? null),
+      findAll: () => Promise.resolve(users),
+      addNew: (user: Omit<StoredUser, 'id'>) => {
+        const created = { ...user, id: String(users.length + 1) }
+        users.push(created)
+        return Promise.resolve(created)
+      },
+      updateRole: (id: string, role: string) => {
+        const user = users.find((user) => user.id === id)
+        if (user) {
+          user.role = role
+        }
+        return Promise.resolve(user ?? null)
+      },
+    }
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        AuthenticationService,
+        { provide: UsersService, useValue: usersService },
+        { provide: JwtService, useValue: { sign } },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn(
+              (key: string) =>
+                ({
+                  URL: 'https://example.org/apollo/',
+                  DEFAULT_NEW_USER_ROLE: 'none',
+                })[key],
+            ),
+          },
+        },
+        { provide: PluginsService, useValue: { evaluateSecurityHook } },
+        { provide: OidcService, useValue: {} },
+        { provide: getConnectionToken(), useValue: connection },
+      ],
+    }).compile()
+
+    service = module.get<AuthenticationService>(AuthenticationService)
+  })
+
+  it('keeps the usual role when no plugin changes it', async () => {
+    const { token } = await service.logIn('New', 'new@example.org', {
+      loginType: 'keycloak',
+    })
+    expect(decode(token).role).toBe('none')
+  })
+
+  it('gives new users the role a plugin returns', async () => {
+    evaluateSecurityHook.mockResolvedValue('user')
+    const claims = { groups: ['curators'] }
+    const { token } = await service.logIn('New', 'new@example.org', {
+      loginType: 'keycloak',
+      claims,
+    })
+    expect(decode(token).role).toBe('user')
+    expect(users.at(-1)?.role).toBe('user')
+    expect(evaluateSecurityHook).toHaveBeenCalledWith(
+      'Apollo-UserRole',
+      'none',
+      {
+        email: 'new@example.org',
+        name: 'New',
+        loginType: 'keycloak',
+        claims,
+        isNewUser: true,
+        connection,
+      },
+    )
+  })
+
+  it('changes and saves the role of existing users', async () => {
+    evaluateSecurityHook.mockResolvedValue('user')
+    const { token } = await service.logIn('O', 'old@example.org', {
+      loginType: 'orcid',
+    })
+    expect(decode(token).role).toBe('user')
+    expect(users[1]?.role).toBe('user')
+    expect(evaluateSecurityHook).toHaveBeenCalledWith(
+      'Apollo-UserRole',
+      'readOnly',
+      expect.objectContaining({ isNewUser: false, loginType: 'orcid' }),
+    )
+  })
+
+  it('keeps the role when a plugin returns undefined', async () => {
+    evaluateSecurityHook.mockImplementation(() => Promise.resolve())
+    const { token } = await service.logIn('O', 'old@example.org', {
+      loginType: 'keycloak',
+    })
+    expect(decode(token).role).toBe('readOnly')
+  })
+
+  it('refuses the login when a plugin throws', async () => {
+    evaluateSecurityHook.mockRejectedValue(new Error('IdP down'))
+    await expect(
+      service.logIn('O', 'old@example.org', { loginType: 'keycloak' }),
+    ).rejects.toThrow(UnauthorizedException)
+    await expect(
+      service.logIn('New', 'new@example.org', { loginType: 'keycloak' }),
+    ).rejects.toThrow(UnauthorizedException)
+    expect(users).toHaveLength(2)
+    expect(users[1]?.role).toBe('readOnly')
+  })
+
+  it('refuses the login when a plugin returns something that is not a role', async () => {
+    evaluateSecurityHook.mockResolvedValue('superuser')
+    await expect(
+      service.logIn('O', 'old@example.org', { loginType: 'keycloak' }),
+    ).rejects.toThrow(UnauthorizedException)
+  })
+
+  it('does not ask plugins about logins without a context', async () => {
+    await service.logIn('Guest', 'guest_user')
+    await service.logIn('root', 'root_user')
+    expect(evaluateSecurityHook).not.toHaveBeenCalled()
   })
 })

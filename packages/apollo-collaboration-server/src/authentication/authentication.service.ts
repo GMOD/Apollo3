@@ -1,6 +1,8 @@
 import type {
   AuthHandlerRedirect,
   AuthHandlerUser,
+  UserRole,
+  UserRoleProps,
 } from '@apollo-annotation/common/server'
 import type { JWTPayload } from '@apollo-annotation/shared'
 import {
@@ -11,7 +13,9 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
+import { InjectConnection } from '@nestjs/mongoose'
 import type { Request, Response } from 'express'
+import type { Connection } from 'mongoose'
 
 import { PluginsService } from '../plugins/plugins.service.js'
 import { CreateUserDto } from '../users/dto/create-user.dto.js'
@@ -35,6 +39,18 @@ interface ConfigValues {
 
 const ROOT_USER_NAME = 'root'
 
+const USER_ROLE_EXTENSION_POINT = 'Apollo-UserRole'
+
+const ROLES = new Set<string>(Object.values(Role))
+
+/** How a user logged in, for logins through an identity provider or plugin */
+export interface LogInContext {
+  /** The login type, e.g. an OIDC provider's name or a custom login type */
+  loginType: string
+  /** The identity provider's claims about the user, for OIDC logins */
+  claims?: Record<string, unknown>
+}
+
 const LOOPBACK_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]'])
 
 @Injectable()
@@ -49,6 +65,8 @@ export class AuthenticationService {
     private readonly configService: ConfigService<ConfigValues, true>,
     private readonly pluginsService: PluginsService,
     private readonly oidcService: OidcService,
+    @InjectConnection()
+    private readonly connection: Connection,
   ) {
     this.defaultNewUserRole = configService.get('DEFAULT_NEW_USER_ROLE', {
       infer: true,
@@ -168,7 +186,9 @@ export class AuthenticationService {
       return result
     }
     if ('name' in result && 'email' in result) {
-      const logInResult = await this.logIn(result.name, result.email)
+      const logInResult = await this.logIn(result.name, result.email, {
+        loginType: id,
+      })
       if (customAuth.needsPopup && state) {
         const { redirect_uri } = JSON.parse(state) as { redirect_uri: string }
         response.redirect(
@@ -188,12 +208,57 @@ export class AuthenticationService {
   }
 
   /**
+   * Ask plugins what role a user logging in should have. Fails closed: if a
+   * plugin throws or returns something that isn't a role, the login is
+   * refused.
+   * @param role - The role the user would have without plugins
+   * @returns The role the user should have
+   */
+  private async getPluginUserRole(
+    role: UserRole,
+    props: Omit<UserRoleProps, 'connection'>,
+  ): Promise<Role> {
+    let evaluated: unknown
+    try {
+      evaluated = await this.pluginsService.evaluateSecurityHook<
+        UserRole | undefined
+      >(USER_ROLE_EXTENSION_POINT, role, {
+        ...props,
+        connection: this.connection,
+      } satisfies UserRoleProps)
+    } catch {
+      // PluginsService already logged which plugin threw
+      throw new UnauthorizedException(
+        'Could not determine the role for this user',
+      )
+    }
+    if (evaluated === undefined) {
+      return role as Role
+    }
+    // What a plugin hands back is untrusted, so check it rather than taking
+    // the declared type at face value
+    if (typeof evaluated !== 'string' || !ROLES.has(evaluated)) {
+      this.logger.error(
+        `"${USER_ROLE_EXTENSION_POINT}" evaluated to ${JSON.stringify(evaluated)}, expected one of ${[...ROLES].join(', ')}. Refusing login for "${props.email}".`,
+      )
+      throw new UnauthorizedException(
+        'Could not determine the role for this user',
+      )
+    }
+    return evaluated as Role
+  }
+
+  /**
    * Log in
    * @param name - User's display name
    * @param email - User's email
+   * @param context - How the user logged in. Plugins registering the
+   * `Apollo-UserRole` extension point decide the role of users logging in with
+   * a context, i.e. through an identity provider or custom login, but not of
+   * the root and guest users.
    * @returns Return token with HttpResponse status 'HttpStatus.OK'
    */
-  async logIn(name: string, email: string) {
+  async logIn(name: string, email: string, context?: LogInContext) {
     // Find user from Mongo
     let user = await this.usersService.findByEmail(email)
     if (!user) {
@@ -214,6 +279,14 @@ export class AuthenticationService {
         // log in will be made an admin
         newUserRole = hasAdmin ? this.defaultNewUserRole : Role.Admin
       }
+      if (context) {
+        newUserRole = await this.getPluginUserRole(newUserRole, {
+          email,
+          name,
+          ...context,
+          isNewUser: true,
+        })
+      }
       const newUser: CreateUserDto = {
         email,
         username: name,
@@ -223,6 +296,20 @@ export class AuthenticationService {
         `First time login for "${newUser.username}" (${newUser.email})`,
       )
       user = await this.usersService.addNew(newUser)
+    } else if (context) {
+      const role = await this.getPluginUserRole(user.role, {
+        email,
+        name,
+        ...context,
+        isNewUser: false,
+      })
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+      if (role !== user.role) {
+        this.logger.log(
+          `Changing role of "${user.username}" (${user.email}) from "${user.role}" to "${role}" as decided by "${USER_ROLE_EXTENSION_POINT}"`,
+        )
+        user = (await this.usersService.updateRole(user.id, role)) ?? user
+      }
     }
     this.logger.debug(`User found in Mongo: ${JSON.stringify(user)}`)
 

@@ -8,6 +8,7 @@ import type { CustomAuthHandler } from './CustomAuthHandler.js'
 import type { PluginRoute, PluginRouteProps } from './PluginRoute.js'
 import type { ServerChangeType } from './ServerChangeType.js'
 import type { ServerValidation } from './ServerValidation.js'
+import type { UserRole, UserRoleProps } from './UserRole.js'
 
 /**
  * Every hook a server plugin may register with, and the exact signature its
@@ -32,6 +33,15 @@ export interface ApolloServerHookMap {
     extendee: undefined,
     props: AssemblyAccessProps,
   ) => AssemblyAccess | undefined | Promise<AssemblyAccess | undefined>
+  /**
+   * Decides a user's role when they log in. Starts as the role Apollo would
+   * otherwise give them, and whatever the callback returns is saved as their
+   * role. Not evaluated for the root and guest users.
+   */
+  'Apollo-UserRole': (
+    extendee: UserRole,
+    props: UserRoleProps,
+  ) => UserRole | undefined | Promise<UserRole | undefined>
   /** Collects custom login methods. */
   'Apollo-RegisterCustomAuth': (
     extendee: Map<string, CustomAuthHandler>,
@@ -85,8 +95,8 @@ export interface ApolloServerHookRegistrar {
  * How a failing hook callback is handled:
  * - `startup-fatal`: evaluated once at boot; a thrown error aborts server
  *   startup, since these run before any traffic is served.
- * - `request-fail-closed`: evaluated per request; a thrown error is logged
- *   and denies access. Never falls back to "no plugin registered", which
+ * - `request-fail-closed`: evaluated per request (or per login); a thrown
+ *   error is logged and denies access. Never falls back to "no plugin registered", which
  *   would fail open instead of closed.
  */
 export type ApolloServerHookSeverity = 'request-fail-closed' | 'startup-fatal'
@@ -98,6 +108,7 @@ export const APOLLO_SERVER_HOOK_SEVERITY: Record<
   'Apollo-MongoDB': 'startup-fatal',
   'Apollo-RegisterRoutes': 'startup-fatal',
   'Apollo-AssemblyAccess': 'request-fail-closed',
+  'Apollo-UserRole': 'request-fail-closed',
   'Apollo-RegisterCustomAuth': 'startup-fatal',
   'Apollo-RegisterChangeTypes': 'startup-fatal',
   'Apollo-RegisterChecks': 'startup-fatal',
