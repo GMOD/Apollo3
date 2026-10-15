@@ -26,7 +26,7 @@ function exec(executable: string, args?: string[]) {
 
 const usage = `Prepare and push source code for new tag release. See code for details. Steps are:
 
-* 'yarn version' to update non-private packages to <tag>
+* 'yarn version' to update non-private packages and the collaboration server to <tag>
 
 * 'git add' all (and only) the package.json files from previous step
 
@@ -77,6 +77,14 @@ exec('yarn', [
   'foreach',
   '--all',
   '--no-private',
+  'version',
+  strategy,
+])
+// The server is private so the step above skips it, but it reports its version
+// to the JBrowse plugin, which expects the two to match
+exec('yarn', [
+  'workspace',
+  '@apollo-annotation/collaboration-server',
   'version',
   strategy,
 ])

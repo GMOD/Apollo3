@@ -33,6 +33,7 @@ import {
 import { autorun } from 'mobx'
 import { io } from 'socket.io-client'
 
+import { version as pluginVersion } from '../../package.json'
 import { addTopLevelAdminMenus } from '../menus/topLevelMenuAdmin'
 import type { Collaborator } from '../session'
 import type { ApolloRootModel } from '../types'
@@ -569,6 +570,51 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             signal: self.controller.signal,
           })
         }),
+        /**
+         * Warns the user if this plugin and the server it talks to are not the
+         * same version, since mismatched changes or endpoints can corrupt data
+         * or fail in confusing ways. Doesn't need a token, so it runs as soon as
+         * there's a session to show the warning in.
+         */
+        checkServerVersion: flow(function* checkServerVersion() {
+          const uri = new URL('health/version', self.baseURL).href
+          let serverVersion: string | undefined
+          try {
+            const response: Response = yield fetch(uri, {
+              signal: self.controller.signal,
+            })
+            if (response.ok) {
+              ;({ version: serverVersion } = yield response.json())
+            } else if (response.status !== 404) {
+              // 404 means a server from before this endpoint existed, which is
+              // a mismatch; anything else says nothing about the version
+              console.error(
+                yield createFetchErrorMessage(
+                  response,
+                  'Error when checking Apollo server version',
+                ),
+              )
+              return
+            }
+          } catch (error) {
+            if (!self.controller.signal.aborted) {
+              console.error(error)
+            }
+            return
+          }
+          if (serverVersion === pluginVersion || !isAlive(self)) {
+            return
+          }
+          const { session } = getRoot<ApolloRootModel>(self)
+          ;(session as unknown as AbstractSessionModel).notify(
+            `The Apollo server at ${self.baseURL} is ${
+              serverVersion ? `version ${serverVersion}` : 'an older version'
+            }, but this Apollo plugin is version ${pluginVersion}. Apollo may not work correctly until they match. Ask your administrator to update ${
+              serverVersion ? 'one of them' : 'the server'
+            }.`,
+            'error',
+          )
+        }),
         removeBeforeUnloadListener() {
           window.removeEventListener('beforeunload', beforeUnloadListener)
         },
@@ -583,6 +629,22 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
     .actions((self) => ({
       afterAttach() {
         self.setRole()
+
+        autorun(
+          (reaction) => {
+            if (inWebWorker) {
+              return
+            }
+            const { session } = getRoot<ApolloRootModel>(self)
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            if (!session) {
+              return
+            }
+            reaction.dispose()
+            void self.checkServerVersion()
+          },
+          { name: 'ApolloInternetAccountVersionCheck' },
+        )
 
         // Two reactions rather than one, because the two halves of startup want
         // opposite things: install() must run at most once and loadInitialState()
