@@ -160,7 +160,7 @@ export const AuthTypeSelector = ({
             handleClose()
           }}
         >
-          Cancel
+          Not now
         </Button>
       </DialogActions>
       {errorMessage ? (

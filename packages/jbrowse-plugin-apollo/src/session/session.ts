@@ -37,6 +37,10 @@ import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import SaveIcon from '@mui/icons-material/Save'
 import { autorun, flow, observable, when } from 'mobx'
 
+import {
+  LoginCancelledError,
+  LoginFailedError,
+} from '../ApolloInternetAccount/loginErrors'
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloJobModel } from '../ApolloJobModel'
 import type ApolloPluginConfigurationSchema from '../config'
@@ -367,7 +371,11 @@ export function extendSession(
                 try {
                   response = await fetch(uri, { signal })
                 } catch (error) {
-                  if (!self.abortController.signal.aborted) {
+                  if (error instanceof LoginCancelledError) {
+                    internetAccount.offerLogin()
+                  } else if (error instanceof LoginFailedError) {
+                    internetAccount.offerLogin(error)
+                  } else if (!self.abortController.signal.aborted) {
                     console.error(error)
                   }
                   continue

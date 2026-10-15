@@ -30,6 +30,7 @@ import {
   isAlive,
   types,
 } from '@jbrowse/mobx-state-tree'
+import LoginIcon from '@mui/icons-material/Login'
 import { autorun } from 'mobx'
 import { io } from 'socket.io-client'
 
@@ -39,7 +40,9 @@ import type { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import { AuthTypeSelector } from './components/AuthTypeSelector'
+import { LoginInProgress } from './components/LoginInProgress'
 import type { ApolloInternetAccountConfigModel } from './configSchema'
+import { LoginCancelledError, LoginFailedError } from './loginErrors'
 
 interface AuthType {
   name: string
@@ -49,6 +52,24 @@ interface AuthType {
 type Role = 'admin' | 'user' | 'readOnly' | 'none'
 
 const inWebWorker = typeof sessionStorage === 'undefined'
+
+/**
+ * The server explains why it refused a login in the "message" of its JSON
+ * error body, so show that instead of the raw response
+ */
+async function getLoginErrorMessage(response: Response) {
+  try {
+    const { message } = (await response.clone().json()) as {
+      message?: unknown
+    }
+    if (typeof message === 'string') {
+      return message
+    }
+  } catch {
+    // Not JSON, fall back to the raw response below
+  }
+  return createFetchErrorMessage(response, 'Error when logging in')
+}
 
 const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
   return InternetAccount.named('ApolloInternetAccount')
@@ -144,7 +165,11 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             },
             (error) => {
               self.removeToken()
-              reject(error)
+              reject(
+                error instanceof LoginCancelledError
+                  ? error
+                  : new LoginFailedError(error),
+              )
             },
           )
         })
@@ -153,6 +178,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
     }))
     .actions((self) => {
       let listener: (event: MessageEvent) => void
+      let popupClosedPoll: ReturnType<typeof setInterval> | undefined
+      let closeProgressDialog: (() => void) | undefined
       return {
         addMessageChannel(
           resolve: (token: string) => void,
@@ -165,6 +192,10 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         },
         deleteMessageChannel() {
           window.removeEventListener('message', listener)
+          clearInterval(popupClosedPoll)
+          popupClosedPoll = undefined
+          closeProgressDialog?.()
+          closeProgressDialog = undefined
         },
         finishOAuthWindow(
           event: MessageEvent,
@@ -195,6 +226,55 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           self.storeToken(token)
           self.setRole()
           resolve(token)
+        },
+        /**
+         * The login window can open behind the browser or get lost among other
+         * windows, so show that a login is underway and let the user find or
+         * abandon it
+         */
+        showLoginProgress(popup: Window, reject: (error: Error) => void) {
+          const { session } = getRoot<ApolloRootModel>(self)
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback: () => void) => {
+              closeProgressDialog = doneCallback
+              return [
+                LoginInProgress,
+                {
+                  name: self.name,
+                  handleShowWindow: () => {
+                    popup.focus()
+                  },
+                  handleCancel: () => {
+                    this.deleteMessageChannel()
+                    popup.close()
+                    reject(new LoginCancelledError())
+                  },
+                },
+              ]
+            },
+          )
+        },
+        /**
+         * If the user closes the login window without logging in, nothing is
+         * sent back, so treat it as them choosing not to log in
+         */
+        watchForPopupClosed(popup: Window, reject: (error: Error) => void) {
+          popupClosedPoll = setInterval(() => {
+            if (!popup.closed) {
+              return
+            }
+            clearInterval(popupClosedPoll)
+            const poll = popupClosedPoll
+            // The login window closes itself right after sending the login
+            // result, so give that message a moment to arrive
+            setTimeout(() => {
+              // A finished login clears the poll, and a new login replaces it
+              if (popupClosedPoll === poll) {
+                this.deleteMessageChannel()
+                reject(new LoginCancelledError())
+              }
+            }, 1000)
+          }, 500)
         },
         async openAuthWindow(
           type: string,
@@ -227,7 +307,18 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             this.finishOAuthWindow(eventFromDesktop, resolve, reject)
           } else {
             this.addMessageChannel(resolve, reject)
-            window.open(url, eventName, 'width=500,height=600')
+            const popup = window.open(url, eventName, 'width=500,height=600')
+            if (!popup) {
+              this.deleteMessageChannel()
+              reject(
+                new Error(
+                  'The login window was blocked. Allow pop-ups for this site and try again.',
+                ),
+              )
+              return
+            }
+            this.showLoginProgress(popup, reject)
+            this.watchForPopupClosed(popup, reject)
           }
         },
       }
@@ -252,7 +343,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
                     name,
                     handleClose: (newAuthType?: AuthType | Error) => {
                       if (!newAuthType) {
-                        reject(new Error('user cancelled entry'))
+                        reject(new LoginCancelledError())
                       } else if (newAuthType instanceof Error) {
                         reject(newAuthType)
                       } else {
@@ -276,11 +367,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           const uri = url.toString()
           const response = await fetch(uri, { signal: self.controller.signal })
           if (!response.ok) {
-            const errorMessage = await createFetchErrorMessage(
-              response,
-              'Error when logging in',
-            )
-            reject(new Error(errorMessage))
+            reject(new Error(await getLoginErrorMessage(response)))
             return
           }
           const { token } = await response.json()
@@ -290,6 +377,82 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
       },
     }))
+    .volatile(() => ({
+      loginMenuItemAdded: false,
+    }))
+    .actions((self) => ({
+      setLoginMenuItemAdded() {
+        self.loginMenuItemAdded = true
+      },
+    }))
+    .actions((self) => {
+      /**
+       * Reopen the login dialog. A successful login reloads the page so that
+       * the session loads this server's assemblies and tracks.
+       */
+      async function logIn() {
+        try {
+          await self.getToken()
+        } catch (error) {
+          if (error instanceof LoginCancelledError) {
+            return
+          }
+          offerLogin(
+            error instanceof Error ? error : new LoginFailedError(error),
+          )
+          return
+        }
+        globalThis.location.reload()
+      }
+
+      /**
+       * Called when the user didn't log in, either because they dismissed the
+       * login dialog or because logging in failed. Tells them what they are
+       * missing and gives them ways to log in later.
+       */
+      function offerLogin(error?: Error) {
+        const rootModel = getRoot<ApolloRootModel>(self)
+        const { internetAccounts } = rootModel
+        const session = rootModel.session as unknown as AbstractSessionModel
+        const logInAction = {
+          name: 'Log in',
+          onClick: () => {
+            void logIn()
+          },
+        }
+        if (error === undefined) {
+          session.notify(
+            `Not logged in to ${self.name}. Apollo features are unavailable until you log in.`,
+            'warning',
+            logInAction,
+          )
+        } else {
+          session.notifyError(
+            `Could not log in to ${self.name}: ${error.message}`,
+            error,
+            undefined,
+            logInAction,
+          )
+        }
+        // JBrowse menu items can't be removed, but logging in reloads the
+        // page, so this only needs adding once
+        if (!self.loginMenuItemAdded && isAbstractMenuManager(rootModel)) {
+          const apolloAccountCount = internetAccounts.filter(
+            (ia) => ia.type === 'ApolloInternetAccount',
+          ).length
+          rootModel.appendToMenu('Apollo', {
+            label: apolloAccountCount > 1 ? `Log in to ${self.name}` : 'Log in',
+            icon: LoginIcon,
+            onClick: () => {
+              void logIn()
+            },
+          })
+          self.setLoginMenuItemAdded()
+        }
+      }
+
+      return { logIn, offerLogin }
+    })
     .volatile(() => ({
       lastChangeSequenceNumber: undefined as number | undefined,
     }))
