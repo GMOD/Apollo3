@@ -4,6 +4,7 @@ import {
   DeleteUserChange,
   UserChange,
 } from '@apollo-annotation/shared'
+import type { AbstractSessionModel } from '@jbrowse/core/util'
 import { getRoot } from '@jbrowse/mobx-state-tree'
 import DeleteIcon from '@mui/icons-material/Delete'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
@@ -137,7 +138,11 @@ export function ManageUsers({
   const apolloInternetAccounts: ApolloInternetAccountModel[] = internetAccounts
     .filter((ia) => isApolloInternetAccount(ia))
     .filter((ia) => ia.role?.includes('admin'))
+  // Errors from user actions, cleared only when dismissed
   const [errorMessage, setErrorMessage] = useState('')
+  // Errors from loading the user list, cleared by the next successful load
+  const [loadErrorMessage, setLoadErrorMessage] = useState('')
+  const [addUserErrorMessage, setAddUserErrorMessage] = useState('')
   const [selectedInternetAccountId, setSelectedInternetAccountId] = useState(
     apolloInternetAccounts.at(0)?.internetAccountId,
   )
@@ -210,7 +215,7 @@ export function ManageUsers({
         { signal: controller.signal },
       )
       if (!response.ok) {
-        setErrorMessage(
+        setLoadErrorMessage(
           await createFetchErrorMessage(
             response,
             'Error when getting user data from db',
@@ -225,7 +230,7 @@ export function ManageUsers({
       setUsers(data.users.map((u) => toUserRow(u)))
       setSpecialUsers(data.specialUsers.map((u) => toUserRow(u)))
       setRowCount(data.totalCount)
-      setErrorMessage('')
+      setLoadErrorMessage('')
       // If this page is past the end (e.g. after deleting the last user on
       // the last page), step back a page
       if (data.users.length === 0 && paginationModel.page > 0) {
@@ -238,7 +243,7 @@ export function ManageUsers({
     getUsers(selectedInternetAccount)
       .catch((error: unknown) => {
         if (!controller.signal.aborted) {
-          setErrorMessage(String(error))
+          setLoadErrorMessage(String(error))
         }
       })
       .finally(() => {
@@ -374,7 +379,14 @@ export function ManageUsers({
   async function addUser(email: string, role: UserRole) {
     const change = new AddUserChange({ typeName: 'AddUserChange', email, role })
     setAddingUser(true)
+    setAddUserErrorMessage('')
     try {
+      // Check first, since the check after submitting can't tell a new user
+      // from an existing one
+      if (await fetchUserByEmail(email)) {
+        setAddUserErrorMessage(`A user with email "${email}" already exists`)
+        return
+      }
       await changeManager.submit(change, {
         internetAccountId: internetAccount.internetAccountId,
         addToRecents: false,
@@ -386,7 +398,8 @@ export function ManageUsers({
         setNewUserRole('user')
       }
     } catch (error) {
-      setErrorMessage(String(error))
+      // Shown in the add user dialog, since it covers the main error alert
+      setAddUserErrorMessage(String(error))
     } finally {
       setAddingUser(false)
       setRefreshCount((count) => count + 1)
@@ -513,6 +526,7 @@ export function ManageUsers({
     setSpecialUsers([])
     setRowCount(0)
     setErrorMessage('')
+    setLoadErrorMessage('')
     setPaginationModel((model) => ({ ...model, page: 0 }))
     setSelectedInternetAccountId(e.target.value)
   }
@@ -537,6 +551,9 @@ export function ManageUsers({
           >
             {errorMessage}
           </Alert>
+        ) : null}
+        {loadErrorMessage ? (
+          <Alert severity="error">{loadErrorMessage}</Alert>
         ) : null}
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           {apolloInternetAccounts.length > 1 ? (
@@ -563,6 +580,7 @@ export function ManageUsers({
             variant="contained"
             startIcon={<PersonAddIcon />}
             onClick={() => {
+              setAddUserErrorMessage('')
               setAddUserOpen(true)
             }}
           >
@@ -700,6 +718,9 @@ export function ManageUsers({
             <DialogContentText>
               Add a user by email who has not yet logged in.
             </DialogContentText>
+            {addUserErrorMessage ? (
+              <Alert severity="error">{addUserErrorMessage}</Alert>
+            ) : null}
             <TextField
               required
               type="email"
