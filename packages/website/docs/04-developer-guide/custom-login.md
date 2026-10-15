@@ -1,8 +1,10 @@
 # Custom login
 
-By default, Apollo provides the ability to set up user logins with Google and
-Microsoft credentials. You can also extend Apollo to be able to use other ways
-to log in as well.
+By default, Apollo provides the ability to set up user logins with Google,
+Microsoft, or any other provider that supports OpenID Connect, with only
+configuration (see
+[Login management](../03-multi-user/02-installation/03-login-management.md)). If
+you need to log in some other way, you can extend Apollo with a plugin.
 
 As an example, see this plugin that adds the ability to log in to Apollo with
 ORCID credentials: https://github.com/GMOD/jbrowse-plugin-apollo-orcid-login

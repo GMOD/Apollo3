@@ -1,6 +1,6 @@
 If you don't have any data in your Mongo database, you can load sample GFF3 into it as following:
 
-1. Connect into your MongoDb. Update also database connection string in .development.env file.
+1. Connect into your MongoDb. If needed, also set the database connection string (MONGODB_URI) in your .development.local.env file.
 
 2. In MongoShell, run the following commands
 use apolloDb                        // This creates new database apolloDb, if it doesn't exist yet.

@@ -2,7 +2,10 @@
 
 Apollo itself does not handle user logins. This lets us keep Apollo simpler and
 more secure, since it doesn't store passwords, but means you'll have to set up
-third-party logins through Google or Microsoft.
+third-party logins. Apollo can use any login provider that supports
+[OpenID Connect](https://openid.net/developers/how-connect-works/) (OIDC), such
+as Keycloak, Okta, Auth0, GitLab, or your institution's single sign-on. Google
+and Microsoft are built in, so they only need a client ID and secret.
 
 Apollo also allows a single admin-level access root user with a password,
 usually for use with the CLI, and a passwordless guest user with configurable
@@ -14,59 +17,84 @@ work).
 
 ## Set up Google login:
 
-We'll start by configuring Google. You'll need to use a Google account to create
-a "client ID" and "client secret" for your Apollo instance. Here is how to set
-up authentication with Google and get those values.
+Follow the instructions here to create a new Google OAuth client:
 
-- Go to https://console.developers.google.com/
-- Log in
-- To the left of the search, click on the project selector dropdown
-- Click "New project", enter a "Project name" and "Location"
-- Once in the project, click the top left hamburger menu -> "APIs & Services" ->
-  "Credentials"
-- Click "+ Create Credentials" at the top, select "OAuth client ID"
-- Select application type "Web application"
-- Give it a name (e.g. MyOrg's Apollo)
-- Enter the URL of your app as an authorized JavaScript origin, e.g.
-  `http://example.com`
-- Enter the following as an authorized redirect URI, replacing the `example.com`
-  with the correct value for your URL: `http://example.com/apollo/auth/google`
-- Click "Create"
-- Take note of Client ID and Client secret listed
+https://support.google.com/cloud/answer/15549257
 
-Now that you have the client ID and secret, you'll need to add them to your
-`apollo.env` file (or however else you are managing your Apollo environment
+For the redirect URI, use `http://{your_url}/apollo/auth/google`. When you're
+finished, take note of your client ID and client secret. You'll add these to
+your `apollo.env` file (or however else you are managing your Apollo environment
 variables). The keys for these values are `GOOGLE_CLIENT_ID` and
 `GOOGLE_CLIENT_SECRET`. Make sure to restart the Apollo Collaboration Server
 after updating these values.
 
 ## Set up Microsoft login (incomplete)
 
-The guide for Microsoft logins is still in development and is incomplete. A
-rough sketch for creating the necessary tokens is below. Microsoft logins,
-however, require HTTPS access, and this section requires more work to lay out
-the requirements and options of working with SSL certificates.
+Follow the instructions here to create a new Microsoft OAuth client:
 
-- Go to
-  https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade
-- Log in
-- Click "New registration"
-- Give the app a name
-- Select supported account types (suggest "Accounts in any organizational
-  directory (Any Azure AD directory - Multitenant) and personal Microsoft
-  accounts (e.g. Skype, Xbox)")
-  - Could be either or depending on use case
-- Click "Register"
-- Note Application (client) ID
-- Go to new app's details
-- Under "Client credentials" click "Add a certificate or secret"
-- Click "New client secret"
-- Enter a description and an expiration date
-  - Note the expiration date so you can rotate keys before then
-- Note newly registered client secret (Value, not Secret ID)
+https://learn.microsoft.com/en-us/azure/active-directory-b2c/tutorial-register-applications
 
-Now that you have the client ID and secret, you'll need to add them to your
-`apollo.env` file (or however else you are managing your Apollo environment
+For the redirect URI, use `http://{your_url}/apollo/auth/microsoft`. When you're
+finished, take note of your client ID and client secret. You'll add these to
+your `apollo.env` file (or however else you are managing your Apollo environment
 variables). The keys for these values are `MICROSOFT_CLIENT_ID` and
-`MICROSOFT_CLIENT_SECRET`. Make sure to restart the Apollo Collaboration Server
+`MICROSOFT_CLIENT_SECRET`. By default, anyone with a Microsoft account can log
+in. To only allow accounts from your organization, set `MICROSOFT_TENANT` to
+your directory (tenant) ID. Make sure to restart the Apollo Collaboration Server
 after updating these values.
+
+## Set up any OpenID Connect provider
+
+Register Apollo as a new client (sometimes called an "application") with your
+login provider. Choose a short name for the provider, using only letters,
+numbers, and underscores, e.g. `keycloak`. The name can't be `login`, `types`,
+`guest`, or `root`, or one already used by another login type. For the redirect
+URI, use `http://{your_url}/apollo/auth/{name}`, e.g.
+`http://{your_url}/apollo/auth/keycloak`. When you're finished, take note of
+your issuer URL, client ID, and client secret. The issuer URL is the address
+your provider publishes its configuration under, e.g.
+`https://sso.example.org/realms/apollo` for Keycloak. Apollo looks it up at
+`{issuer}/.well-known/openid-configuration`.
+
+Add the name to `OIDC_PROVIDERS` and the values to your `apollo.env` file, using
+the name in upper case in each key:
+
+```sh
+OIDC_PROVIDERS=keycloak
+OIDC_KEYCLOAK_ISSUER=https://sso.example.org/realms/apollo
+OIDC_KEYCLOAK_CLIENT_ID=client_id_here
+OIDC_KEYCLOAK_CLIENT_SECRET=client_secret_here
+# Optional: the login button will say "Sign in with University SSO"
+OIDC_KEYCLOAK_DISPLAY_NAME=University SSO
+```
+
+To set up more than one provider, separate the names with commas in
+`OIDC_PROVIDERS` and add a set of keys for each one. Apollo requests the
+`openid email profile` scopes and identifies users by their email address, so
+the provider has to return an email for each user. Make sure to restart the
+Apollo Collaboration Server after updating these values.
+
+## Logging in from the CLI
+
+The [Apollo CLI](../guides/cli/login) can log in with any of these login types
+without any additional setup with the login provider. When you run
+`apollo login`, it prints a URL and a short code. Open the URL in a browser on
+any computer (it doesn't have to be the computer running the CLI), check that
+the page shows the same code, and sign in. The CLI then saves the token
+automatically. This means the CLI can be used on a remote server, e.g. over SSH,
+even though the server doesn't have a browser.
+
+The URL is based on the `URL` [configuration option](./configuration-options),
+so make sure it's the address users reach Apollo at from their browser.
+
+## Where logins can redirect
+
+After a login, Apollo sends the user's token back to the page that started the
+login. To keep tokens from being sent to other sites, Apollo only redirects to
+its own `URL`, to `localhost` (e.g. JBrowse Desktop), and to any origins listed
+in `ALLOWED_REDIRECT_ORIGINS`. If you serve JBrowse from a different domain or
+port than Apollo, add JBrowse's origin there, e.g.:
+
+```sh
+ALLOWED_REDIRECT_ORIGINS=https://jbrowse.example.org
+```

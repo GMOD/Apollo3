@@ -17,6 +17,7 @@ setup-jbrowse:
 [private]
 setup-apollo:
     yarn
+    [ -f packages/apollo-collaboration-server/.development.local.env ] || cp packages/apollo-collaboration-server/.development.local.env.example packages/apollo-collaboration-server/.development.local.env
 
 # run everything
 [parallel]
