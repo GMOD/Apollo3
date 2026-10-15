@@ -4,7 +4,6 @@ import {
   DeleteUserChange,
   UserChange,
 } from '@apollo-annotation/shared'
-import { getSession } from '@jbrowse/core/util'
 import { getRoot } from '@jbrowse/mobx-state-tree'
 import DeleteIcon from '@mui/icons-material/Delete'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
@@ -134,6 +133,7 @@ export function ManageUsers({
   session,
 }: ManageUsersProps) {
   const { internetAccounts } = getRoot<ApolloRootModel>(session)
+  const { notify } = session as unknown as AbstractSessionModel
   const apolloInternetAccounts: ApolloInternetAccountModel[] = internetAccounts
     .filter((ia) => isApolloInternetAccount(ia))
     .filter((ia) => ia.role?.includes('admin'))
@@ -309,7 +309,7 @@ export function ManageUsers({
         addToRecents: false,
       })
       if (checkSucceeded(await fetchUser(user._id))) {
-        getSession(session).notify(successMessage, 'success')
+        notify(successMessage, 'success')
       }
     } catch (error) {
       setErrorMessage(String(error))
@@ -380,10 +380,7 @@ export function ManageUsers({
         addToRecents: false,
       })
       if (await fetchUserByEmail(email)) {
-        getSession(session).notify(
-          `Added "${email}" with role ${roleLabels[role]}`,
-          'success',
-        )
+        notify(`Added "${email}" with role ${roleLabels[role]}`, 'success')
         setAddUserOpen(false)
         setNewUserEmail('')
         setNewUserRole('user')
