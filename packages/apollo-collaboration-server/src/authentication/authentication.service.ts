@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises'
 
-import type { JWTPayload } from '@apollo-annotation/shared'
+import type { DecodedJWT, JWTPayload } from '@apollo-annotation/shared'
 import {
   BadRequestException,
   ForbiddenException,
@@ -330,6 +330,32 @@ export class AuthenticationService {
     const returnToken = this.jwtService.sign(payload)
     this.logger.debug(`User "${payload.username}" has logged in`)
     return { token: returnToken }
+  }
+
+  /**
+   * Issue a new token with the user's current role, so a user whose role has
+   * changed (e.g. an admin gave them access) doesn't have to log in again. The
+   * new token expires when the old one would have, so refreshing can't keep a
+   * login alive forever.
+   * @param user - The user from the request's (already verified) token
+   */
+  async refreshToken(user: Partial<DecodedJWT>) {
+    const { exp, id } = user
+    if (!id || !exp) {
+      throw new UnauthorizedException('Not logged in')
+    }
+    const currentUser = await this.usersService.findById(id)
+    if (!currentUser) {
+      throw new UnauthorizedException('User no longer exists')
+    }
+    const payload: JWTPayload = {
+      username: currentUser.username ?? user.username ?? '',
+      email: currentUser.email,
+      role: currentUser.role,
+      id: currentUser.id,
+    }
+    const expiresIn = exp - Math.floor(Date.now() / 1000)
+    return { token: this.jwtService.sign(payload, { expiresIn }) }
   }
 
   /**

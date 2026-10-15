@@ -30,6 +30,7 @@ import {
   isAlive,
   types,
 } from '@jbrowse/mobx-state-tree'
+import LockPersonIcon from '@mui/icons-material/LockPerson'
 import LoginIcon from '@mui/icons-material/Login'
 import { autorun } from 'mobx'
 import { io } from 'socket.io-client'
@@ -41,6 +42,7 @@ import { createFetchErrorMessage } from '../util'
 
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { LoginInProgress } from './components/LoginInProgress'
+import { NoAccess } from './components/NoAccess'
 import type { ApolloInternetAccountConfigModel } from './configSchema'
 import { LoginCancelledError, LoginFailedError } from './loginErrors'
 
@@ -80,6 +82,13 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
     .views((self) => ({
       get baseURL(): string {
         return getConf(self, 'baseURL')
+      },
+      /**
+       * Set when the user asks to log in with a different account, so the next
+       * login asks the identity provider to let them choose one
+       */
+      get selectAccountKey() {
+        return `${self.internetAccountId}-selectAccount`
       },
       getUserId() {
         const token = self.retrieveToken()
@@ -224,6 +233,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             return
           }
           self.storeToken(token)
+          sessionStorage.removeItem(self.selectAccountKey)
           self.setRole()
           resolve(token)
         },
@@ -289,6 +299,9 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             type,
             redirect_uri: redirectUri,
           })
+          if (sessionStorage.getItem(self.selectAccountKey)) {
+            params.set('prompt', 'select_account')
+          }
           url.search = params.toString()
           const eventName = `JBrowseAuthWindow-${self.internetAccountId}`
           if (isElectron) {
@@ -453,6 +466,67 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
 
       return { logIn, offerLogin }
     })
+    .actions((self) => ({
+      /**
+       * Ask the server for a token with the user's current role, and reload
+       * with it if an admin has given them access
+       * @returns whether the user has access now
+       */
+      async checkAccess() {
+        const token = self.retrieveToken()
+        if (!token) {
+          throw new Error('Not logged in')
+        }
+        const uri = new URL('auth/refresh', self.baseURL).href
+        const response = await fetch(uri, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!response.ok) {
+          throw new Error(await createFetchErrorMessage(response))
+        }
+        const { token: newToken } = (await response.json()) as {
+          token: string
+        }
+        const { role } = getDecodedToken(newToken)
+        if (!role || role === 'none') {
+          return false
+        }
+        self.storeToken(newToken)
+        globalThis.location.reload()
+        return true
+      },
+      switchAccount() {
+        self.removeToken()
+        sessionStorage.setItem(self.selectAccountKey, 'true')
+        globalThis.location.reload()
+      },
+    }))
+    .actions((self) => ({
+      showNoAccess() {
+        const token = self.retrieveToken()
+        const { email = '', username = '' } = token
+          ? getDecodedToken(token)
+          : {}
+        const { session } = getRoot<ApolloRootModel>(self)
+        ;(session as unknown as AbstractSessionModel).queueDialog(
+          (doneCallback: () => void) => [
+            NoAccess,
+            {
+              name: self.name,
+              username,
+              email,
+              handleCheckAgain: self.checkAccess,
+              handleSwitchAccount: () => {
+                doneCallback()
+                self.switchAccount()
+              },
+              handleClose: doneCallback,
+            },
+          ],
+        )
+      },
+    }))
     .volatile(() => ({
       lastChangeSequenceNumber: undefined as number | undefined,
     }))
@@ -699,11 +773,17 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
          */
         install(role: Role) {
           if (role === 'none') {
-            const { session } = getRoot<ApolloRootModel>(self)
-            ;(session as unknown as AbstractSessionModel).notify(
-              'You have registered as an Apollo user but have not been given access. Ask your administrator to enable access for your account.',
-              'warning',
-            )
+            self.showNoAccess()
+            const rootModel = getRoot(self)
+            if (isAbstractMenuManager(rootModel)) {
+              rootModel.appendToMenu('Apollo', {
+                label: 'Check access',
+                icon: LockPersonIcon,
+                onClick: () => {
+                  self.showNoAccess()
+                },
+              })
+            }
             return
           }
           self.addSocketListeners()
