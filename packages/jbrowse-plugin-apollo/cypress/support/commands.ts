@@ -220,11 +220,10 @@ Cypress.Commands.add(
       .parent()
       .should('contain', 'All operations successful')
     cy.get('button[aria-label="Close drawer"]', { timeout: 10_000 }).click()
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(1000)
+    cy.get('button[aria-label="Close drawer"]').should('not.exist')
     cy.reload()
     if (launch) {
-      cy.contains('Launch view').click()
+      cy.contains('button', 'Launch view', { timeout: 10_000 }).click()
     }
     cy.contains('Select assembly to view', { timeout: 10_000 })
   },

@@ -31,7 +31,8 @@ export default defineConfig({
     // Coverage is collected when the plugin is built with COVERAGE=true
     coverage: process.env.COVERAGE === 'true',
   },
-  screenshotOnRunFailure: false,
+  // Only in CI, where they're uploaded as an artifact to help debug failures
+  screenshotOnRunFailure: process.env.CI === 'true',
   video: false,
   e2e: {
     baseUrl: 'http://localhost:8999',
