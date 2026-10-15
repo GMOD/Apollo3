@@ -183,10 +183,17 @@ export class AuthenticationController {
     @Req() req: Request,
     @Res() res: Response,
     @Query('access_token') token?: string,
+    @Query('error') error?: string,
   ) {
     res.type('html')
     const userCode = req.session.deviceLogin?.userCode
     delete req.session.deviceLogin
+    // The user logged in but isn't allowed to use Apollo, so trying again
+    // won't help
+    if (error) {
+      res.status(403).send(renderErrorPage(error))
+      return
+    }
     const approved =
       userCode && token
         ? await this.deviceLoginService.approve(userCode, token)
