@@ -68,7 +68,7 @@ can copy that file yourself.
 
 The server doesn't watch these files, so restart it after editing them.
 
-## Optional: Google and Microsoft login for local development
+## Optional: Google, Microsoft, or other OIDC login for local development
 
 You don't need this for most development: the guest user and root user (see
 `.development.env`) both work out of the box. If you're working on login, you
@@ -103,4 +103,19 @@ to `.development.local.env`:
 ```sh
 MICROSOFT_CLIENT_ID=<your application (client) ID>
 MICROSOFT_CLIENT_SECRET=<your client secret value>
+```
+
+### Other OpenID Connect providers
+
+Follow the
+[OpenID Connect instructions](packages/website/docs/03-multi-user/02-installation/03-login-management.md#set-up-any-openid-connect-provider),
+with `http://localhost:3999/auth/<name>` as the redirect URI. For a provider
+running locally (e.g. Keycloak in a container), the issuer can use plain
+`http://`. The server logs a warning, but allows it.
+
+```sh
+OIDC_PROVIDERS=keycloak
+OIDC_KEYCLOAK_ISSUER=http://localhost:8080/realms/apollo
+OIDC_KEYCLOAK_CLIENT_ID=<your client ID>
+OIDC_KEYCLOAK_CLIENT_SECRET=<your client secret>
 ```

@@ -56,6 +56,8 @@ const validationSchema = Joi.object({
   MICROSOFT_CLIENT_ID_FILE: Joi.string(),
   MICROSOFT_CLIENT_SECRET: Joi.string(),
   MICROSOFT_CLIENT_SECRET_FILE: Joi.string(),
+  MICROSOFT_TENANT: Joi.string(),
+  OIDC_PROVIDERS: Joi.string(),
   JWT_SECRET: Joi.string(),
   JWT_SECRET_FILE: Joi.string(),
   SESSION_SECRET: Joi.string(),
@@ -118,6 +120,23 @@ const validationSchema = Joi.object({
     .default(''),
   PLUGIN_URLS_FILE: Joi.string(),
   OAUTH_HTTP_PROXY: Joi.string(),
+  ALLOWED_REDIRECT_ORIGINS: Joi.string()
+    .custom((value) => {
+      if (typeof value !== 'string') {
+        throw new TypeError('ALLOWED_REDIRECT_ORIGINS must be a string')
+      }
+      for (const origin of value.split(',')) {
+        try {
+          new URL(origin.trim())
+        } catch {
+          throw new Error(
+            'ALLOWED_REDIRECT_ORIGINS must be a comma-separated list of origins, e.g. https://jbrowse.example.org',
+          )
+        }
+      }
+      return value
+    })
+    .allow(''),
 })
   .xor('MONGODB_URI', 'MONGODB_URI_FILE')
   .oxor('GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_ID_FILE')
