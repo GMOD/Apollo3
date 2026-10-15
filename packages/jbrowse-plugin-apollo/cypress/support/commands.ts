@@ -220,7 +220,10 @@ Cypress.Commands.add(
       .parent()
       .should('contain', 'All operations successful')
     cy.get('button[aria-label="Close drawer"]', { timeout: 10_000 }).click()
-    cy.get('button[aria-label="Close drawer"]').should('not.exist')
+    // Give JBrowse's session autosave (debounced 400ms) time to catch up so the
+    // reload doesn't restore the session from before the change finished
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(1000)
     cy.reload()
     if (launch) {
       cy.contains('button', 'Launch view', { timeout: 10_000 }).click()

@@ -359,9 +359,17 @@ export function baseModelFactory(
               if (!self.lgv.initialized || self.regionCannotBeRendered()) {
                 return
               }
-              void self.session.apolloDataStore.loadFeatures(self.regions)
+              void self.session.apolloDataStore
+                .loadFeatures(self.regions)
+                .catch((error: unknown) => {
+                  console.error(error)
+                })
               if (self.lgv.bpPerPx <= self.zoomThreshold) {
-                void self.session.apolloDataStore.loadRefSeq(self.regions)
+                void self.session.apolloDataStore
+                  .loadRefSeq(self.regions)
+                  .catch((error: unknown) => {
+                    console.error(error)
+                  })
               }
             },
             { name: 'LinearApolloSixFrameDisplayLoadFeatures', delay: 1000 },
