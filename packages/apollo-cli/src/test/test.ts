@@ -33,6 +33,11 @@ import { Shell, deleteAllChecks } from './utils.js'
 
 const apollo = process.env.APOLLO_BIN ?? 'yarn dev'
 const P = '--profile testAdmin'
+
+function makeToken(payload: object) {
+  return `e30.${Buffer.from(JSON.stringify(payload)).toString('base64url')}.sig`
+}
+
 // let client = MongoClient
 let client: MongoClient
 let configFile = ''
@@ -360,6 +365,30 @@ server.listen(0, () => {
     )
 
     new Shell(`${apollo} login ${P} -f`)
+  })
+
+  void globalThis.itName('Apollo status with unusual tokens', () => {
+    const profile = '--profile statusTest'
+    const cases: [string, string][] = [
+      ['not-a-jwt', 'statusTest: Logged in'],
+      [makeToken({ email: 'a@example.com' }), 'statusTest: Logged in'],
+      [makeToken({ username: 42 }), 'statusTest: Logged in'],
+      [makeToken({ username: '   ' }), 'statusTest: Logged in'],
+      [makeToken({ username: '  alice \n' }), 'statusTest: Logged in as alice'],
+      [
+        makeToken({ username: '\u001B[2Kmallory\r' }),
+        'statusTest: Logged in as [2Kmallory',
+      ],
+    ]
+    for (const [token, expected] of cases) {
+      new Shell(`${apollo} config ${profile} accessToken '${token}'`)
+      const p = new Shell(`${apollo} status ${profile}`)
+      assert.strictEqual(
+        p.stdout,
+        expected,
+        `Unexpected status for token "${token}"`,
+      )
+    }
   })
 
   void globalThis.itName('Feature get', () => {
@@ -2461,7 +2490,7 @@ EOF`,
           ${apollo} user get`,
     )
     assert.ok(
-      p.stdout.includes('testAdmin2: Logged in'),
+      p.stdout.includes('testAdmin2: Logged in as root'),
       `Expected APOLLO_PROFILE profile to be logged in:\n${p.stdout}`,
     )
     assert.ok(
