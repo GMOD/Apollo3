@@ -23,18 +23,13 @@ export async function createFetchErrorMessage(
   return `${additionalText ? `${additionalText} — ` : ''}${responseMessage}`
 }
 
-/**
- * @deprecated Use this function while we wait to resolve the TypeError when using localhost in fetch.
- */
-export function localhostToAddress(url: string) {
-  /** This is hacked function that should become redundant: On my MacOS (?)
-   * localhost must be converted to address otherwise fetch throws TypeError
-   * */
-  return url.replace('//localhost', '127.0.0.1')
-}
-
 export function createApiURL(address: string, endpoint: string): URL {
-  const base = new URL(localhostToAddress(address))
+  const base = new URL(address)
+  // On some systems (macOS?) fetch throws a TypeError for localhost, so use
+  // the loopback address instead
+  if (base.hostname === 'localhost') {
+    base.hostname = '127.0.0.1'
+  }
   base.pathname = `${base.pathname.replace(/\/+$/, '')}/`
   return new URL(endpoint, base)
 }
