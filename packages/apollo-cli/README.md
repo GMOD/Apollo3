@@ -1323,8 +1323,9 @@ DESCRIPTION
   View authentication status
 
   This command returns "<profile>: Logged in" if the selected profile has an access token and "<profile>: Logged out"
-  otherwise. When the token contains a username, returns "<profile>: Logged in as <username>". Note that this command
-  does not check the validity of the access token.
+  otherwise. When the token contains a username, returns "<profile>: Logged in as <username>". If the token has expired,
+  " (token expired)" is appended. Note that this command does not check with the server whether the access token is
+  valid.
 ```
 
 _See code:

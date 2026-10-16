@@ -12,7 +12,8 @@ export default class Status extends BaseCommand<typeof Status> {
     'This command returns "<profile>: Logged in" if the selected profile \
 has an access token and "<profile>: Logged out" otherwise. \
 When the token contains a username, returns "<profile>: Logged in as <username>". \
-Note that this command does not check the validity of the access token.'
+If the token has expired, " (token expired)" is appended. \
+Note that this command does not check with the server whether the access token is valid.'
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(Status)
@@ -27,6 +28,7 @@ Note that this command does not check the validity of the access token.'
       this.log(`${profileName}: Logged out`)
     } else {
       let username: string | undefined
+      let expired = false
       try {
         const payload = JSON.parse(
           Buffer.from(accessToken.split('.')[1] ?? '', 'base64url').toString(
@@ -39,11 +41,14 @@ Note that this command does not check the validity of the access token.'
         if (typeof trimmed === 'string' && trimmed !== '') {
           username = trimmed
         }
+        if (typeof payload?.exp === 'number') {
+          expired = payload.exp * 1000 <= Date.now()
+        }
       } catch {
         // Keep reporting token presence if its payload cannot be decoded.
       }
       this.log(
-        `${profileName}: Logged in${username === undefined ? '' : ` as ${username}`}`,
+        `${profileName}: Logged in${username === undefined ? '' : ` as ${username}`}${expired ? ' (token expired)' : ''}`,
       )
     }
   }

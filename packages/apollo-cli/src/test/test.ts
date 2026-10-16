@@ -379,6 +379,16 @@ server.listen(0, () => {
         makeToken({ username: '\u001B[2Kmallory\r' }),
         'statusTest: Logged in as [2Kmallory',
       ],
+      [
+        makeToken({ username: 'alice', exp: 1 }),
+        'statusTest: Logged in as alice (token expired)',
+      ],
+      // 2100-01-01
+      [
+        makeToken({ username: 'alice', exp: 4_102_444_800 }),
+        'statusTest: Logged in as alice',
+      ],
+      [makeToken({ exp: 1 }), 'statusTest: Logged in (token expired)'],
     ]
     for (const [token, expected] of cases) {
       new Shell(`${apollo} config ${profile} accessToken '${token}'`)
