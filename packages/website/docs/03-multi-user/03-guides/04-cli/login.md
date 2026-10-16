@@ -50,4 +50,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/login.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/login.ts)_
+[src/commands/login.ts](https://github.com/GMOD/Apollo3/blob/v1.2.0/packages/apollo-cli/src/commands/login.ts)_

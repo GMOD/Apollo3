@@ -39,7 +39,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/user/add.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/user/add.ts)_
+[src/commands/user/add.ts](https://github.com/GMOD/Apollo3/blob/v1.2.0/packages/apollo-cli/src/commands/user/add.ts)_
 
 ## `apollo user get`
 
@@ -76,4 +76,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/user/get.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/user/get.ts)_
+[src/commands/user/get.ts](https://github.com/GMOD/Apollo3/blob/v1.2.0/packages/apollo-cli/src/commands/user/get.ts)_
