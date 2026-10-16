@@ -33,11 +33,9 @@ Note that this command does not check the validity of the access token.'
             'utf8',
           ),
         ) as Partial<DecodedJWT> | null
-        if (
-          typeof payload?.username === 'string' &&
-          payload.username.trim() !== ''
-        ) {
-          ;({ username } = payload)
+        const trimmed = payload?.username?.trim()
+        if (typeof trimmed === 'string' && trimmed !== '') {
+          username = trimmed
         }
       } catch {
         // Keep reporting token presence if its payload cannot be decoded.
