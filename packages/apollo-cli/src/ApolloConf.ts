@@ -154,8 +154,22 @@ export class ApolloConf extends Conf {
   }
 }
 
+const addressMessage =
+  '{{#label}} must be an http:// or https:// URL, e.g. http://localhost:3999'
+const addressSchema = Joi.string()
+  .uri({ scheme: /https?/ })
+  .messages({
+    'string.uri': addressMessage,
+    'string.uriCustomScheme': addressMessage,
+  })
+
+/** Returns an error message if the address is invalid, otherwise undefined */
+export function validateAddress(address: string): string | undefined {
+  return addressSchema.label('Address').validate(address).error?.message
+}
+
 const profileSchema = Joi.object({
-  address: Joi.string().uri({ scheme: /https?/ }),
+  address: addressSchema,
   // Same rule the server applies to login type names (see OIDC_PROVIDERS)
   accessType: Joi.string().pattern(/^[a-z0-9_]+$/),
   accessToken: Joi.string(),

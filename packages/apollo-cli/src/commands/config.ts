@@ -10,6 +10,7 @@ import {
   ConfigError,
   KEYS,
   optionDesc,
+  validateAddress,
 } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
 import { createApiURL, createFetchErrorMessage } from '../utils.js'
@@ -178,6 +179,7 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
     const answer = await input({
       message: 'Server address and port:',
       default: currentAddress,
+      validate: (value) => validateAddress(value.trim()) ?? true,
     })
     return answer.trim()
   }
