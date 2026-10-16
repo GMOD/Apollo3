@@ -25,9 +25,9 @@ import {
 
 import { ApolloConf, ConfigError } from './ApolloConf.js'
 import {
+  createApiURL,
   createFetchErrorMessage,
   filterJsonList,
-  localhostToAddress,
 } from './utils.js'
 
 interface AssemblyResponse {
@@ -107,7 +107,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
 
   private async getURL(endpoint: string) {
     const { address } = await this.getAccess()
-    return new URL(endpoint, localhostToAddress(address))
+    return createApiURL(address, endpoint)
   }
 
   private async getHeaders(options?: RequestInit, json = false) {
