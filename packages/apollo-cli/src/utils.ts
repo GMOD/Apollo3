@@ -33,6 +33,12 @@ export function localhostToAddress(url: string) {
   return url.replace('//localhost', '127.0.0.1')
 }
 
+export function createApiURL(address: string, endpoint: string): URL {
+  const base = new URL(localhostToAddress(address))
+  base.pathname = `${base.pathname.replace(/\/+$/, '')}/`
+  return new URL(endpoint, base)
+}
+
 export function filterJsonList(
   json: object[],
   keep: string[],
