@@ -1,0 +1,6 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": ["./src/**/*.test.ts", "./src/test"],
+  // references are not inherited from the extended config
+  "references": [{ "path": "../apollo-mst" }, { "path": "../apollo-shared" }],
+}

@@ -7,7 +7,7 @@ import Joi from 'joi'
 import { type RequestInit, fetch } from 'undici'
 import YAML from 'yaml'
 
-import { createFetchErrorMessage, localhostToAddress } from './utils.js'
+import { createApiURL, createFetchErrorMessage } from './utils.js'
 
 export class ConfigError extends Error {}
 
@@ -141,7 +141,7 @@ export class ApolloConf extends Conf {
         'Content-Type': 'application/json',
       },
     }
-    const url = new URL(localhostToAddress(`${address}/assemblies`))
+    const url = createApiURL(address, 'assemblies')
     const response = await fetch(url, auth)
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(
@@ -154,8 +154,22 @@ export class ApolloConf extends Conf {
   }
 }
 
+const addressMessage =
+  '{{#label}} must be an http:// or https:// URL, e.g. http://localhost:3999'
+const addressSchema = Joi.string()
+  .uri({ scheme: /https?/ })
+  .messages({
+    'string.uri': addressMessage,
+    'string.uriCustomScheme': addressMessage,
+  })
+
+/** Returns an error message if the address is invalid, otherwise undefined */
+export function validateAddress(address: string): string | undefined {
+  return addressSchema.label('Address').validate(address).error?.message
+}
+
 const profileSchema = Joi.object({
-  address: Joi.string().uri({ scheme: /https?/ }),
+  address: addressSchema,
   // Same rule the server applies to login type names (see OIDC_PROVIDERS)
   accessType: Joi.string().pattern(/^[a-z0-9_]+$/),
   accessToken: Joi.string(),

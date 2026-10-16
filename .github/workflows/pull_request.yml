@@ -67,6 +67,11 @@ jobs:
           flags: unit-shared
           disable_search: true
 
+      # apollo-cli unit tests
+      - name: Run apollo-cli unit tests
+        run: yarn run test:unit
+        working-directory: packages/apollo-cli
+
       # jbrowse-plugin-apollo tests
       - name: Run jbrowse-plugin-apollo tests
         run: yarn run test:ci
