@@ -3,37 +3,32 @@ import { type IDBPDatabase, openDB } from 'idb'
 /**
  * In CI, the browser sometimes fails to load one of JBrowse's code files
  * ("ChunkLoadError"), and JBrowse shows a "Fatal error" dialog instead of the
- * app. Waits for either the app's "File" menu or that dialog, and uses the
- * dialog's "Refresh" button if it's that error. Other fatal errors are left for
- * the test to fail on.
+ * app. On every page load, watch for that dialog and reload the page (what its
+ * "Refresh" button does) if it appears, at most a few times per test. Other
+ * fatal errors are left for the test to fail on. This runs in the page rather
+ * than as Cypress commands so it doesn't depend on what the test is doing.
  */
-function refreshIfJBrowseFailedToLoad(attemptsLeft = 3) {
-  cy.get('body', { withinSubject: null, log: false })
-    .contains(/^(File|Fatal error)$/, { timeout: 20_000, log: false })
-    .then(($el) => {
-      const dialogText = $el.closest('[role="dialog"]').text()
-      if (!dialogText.includes('ChunkLoadError') || attemptsLeft <= 0) {
-        return
-      }
-      cy.log('JBrowse failed to load a code file, refreshing')
-      cy.contains('button', 'Refresh').click()
-      refreshIfJBrowseFailedToLoad(attemptsLeft - 1)
-    })
-}
-
-Cypress.Commands.overwrite('visit', (originalFn, ...args) =>
-  originalFn(...args).then((win) => {
-    refreshIfJBrowseFailedToLoad()
-    cy.wrap(win, { log: false })
-  }),
-)
-
-Cypress.Commands.overwrite('reload', (originalFn, ...args) =>
-  originalFn(...args).then((win) => {
-    refreshIfJBrowseFailedToLoad()
-    cy.wrap(win, { log: false })
-  }),
-)
+const chunkLoadRefreshesKey = 'cypress-chunk-load-error-refreshes'
+Cypress.on('window:load', (win) => {
+  const timer = win.setInterval(() => {
+    const failed = [...win.document.querySelectorAll('[role="dialog"]')].some(
+      (dialog) =>
+        dialog.textContent.includes('Fatal error') &&
+        dialog.textContent.includes('ChunkLoadError'),
+    )
+    if (!failed) {
+      return
+    }
+    win.clearInterval(timer)
+    // sessionStorage is cleared between tests, so this is a per-test limit
+    const refreshes = Number(win.sessionStorage.getItem(chunkLoadRefreshesKey))
+    if (refreshes >= 3) {
+      return
+    }
+    win.sessionStorage.setItem(chunkLoadRefreshesKey, String(refreshes + 1))
+    win.location.reload()
+  }, 500)
+})
 
 Cypress.Commands.add('loginAsGuest', () => {
   cy.visit('/?config=http://localhost:3999/jbrowse/config.json')

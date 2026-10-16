@@ -170,10 +170,11 @@ jobs:
         # (uploaded below) since they're too long for the job log. Other stderr
         # output is kept too.
         run: |
-          yarn run test:e2e:coverage 2> >(awk '!/cdp-connection:recv/ || /Network\.loadingFailed/ || (/Network\.requestWillBeSent/ && /localhost:(3999|8999|9000)/)' > cypress-debug.log) || { sleep 5; tail -n 100 cypress-debug.log; exit 1; }
+          yarn run test:e2e:coverage 2> >(awk '!/cdp-connection:.*:recv:/ || /Network\.loadingFailed/ || (/Network\.requestWillBeSent/ && /localhost:(3999|8999|9000)/)' > cypress-debug.log) || { sleep 5; tail -n 100 cypress-debug.log; exit 1; }
         working-directory: packages/jbrowse-plugin-apollo
         env:
-          DEBUG: cypress-verbose:server:browsers:cdp-connection:recv:*
+          # The part between "cdp-connection" and "recv" is the browser target
+          DEBUG: cypress-verbose:server:browsers:cdp-connection:*:recv:*
       - name: Upload Cypress debug logs
         if: ${{ !cancelled() && steps.e2e-tests.outcome != 'skipped' }}
         uses: actions/upload-artifact@v7
