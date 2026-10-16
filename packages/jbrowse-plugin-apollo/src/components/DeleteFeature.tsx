@@ -300,6 +300,15 @@ export function DeleteFeature({
     if (selectedFeature?._id === sourceFeature._id) {
       setSelectedFeature()
     }
+    // `isTypeOf` answers false until a type's equivalents are loaded, which
+    // would skip resizing the parent and CDS
+    if (featureTypeOntology) {
+      await Promise.all(
+        ['transcript', 'pseudogenic_transcript', 'exon', 'CDS'].map((type) =>
+          featureTypeOntology.loadEquivalentTypes(type),
+        ),
+      )
+    }
 
     const locationChanges: LocationChange[] = []
     // const deleteChanges: DeleteFeatureChange = []

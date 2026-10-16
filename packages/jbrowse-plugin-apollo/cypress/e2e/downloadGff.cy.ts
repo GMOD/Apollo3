@@ -1,9 +1,8 @@
 describe('Download GFF', () => {
   beforeEach(() => {
-    cy.exec(`rm ${Cypress.config('downloadsFolder')}/*_apollo.gff3`, {
-      failOnNonZeroExit: false,
-    }).then((result) => {
-      cy.log(result.stderr)
+    cy.task('removeFiles', {
+      folder: Cypress.config('downloadsFolder'),
+      suffix: '_apollo.gff3',
     })
     cy.loginAsGuest()
   })

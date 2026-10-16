@@ -1,5 +1,6 @@
 import { randomBytes, timingSafeEqual } from 'node:crypto'
 
+import type { DecodedJWT } from '@apollo-annotation/shared'
 import {
   BadRequestException,
   Body,
@@ -42,6 +43,19 @@ function safeEqual(a: string, b: string) {
   return bufferA.length === bufferB.length && timingSafeEqual(bufferA, bufferB)
 }
 
+/**
+ * The only OIDC prompt the client may ask for: "select_account", so a user
+ * switching accounts gets to choose one instead of being logged straight back
+ * in to the one they're already signed in to with the identity provider
+ */
+function assertAllowedPrompt(
+  prompt?: string,
+): asserts prompt is 'select_account' | undefined {
+  if (prompt !== undefined && prompt !== 'select_account') {
+    throw new BadRequestException(`Unsupported prompt "${prompt}"`)
+  }
+}
+
 @Validations(Role.None)
 @Controller('auth')
 export class AuthenticationController {
@@ -61,14 +75,27 @@ export class AuthenticationController {
   handleLogin(
     @Query('type') type: string,
     @Query('redirect_uri') redirect_uri?: string,
+    @Query('prompt') prompt?: string,
   ) {
     if (redirect_uri) {
       this.authService.assertAllowedRedirectUri(redirect_uri)
     }
-    const url = redirect_uri
-      ? `${type}?${new URLSearchParams({ redirect_uri }).toString()}`
-      : type
+    assertAllowedPrompt(prompt)
+    const params = new URLSearchParams()
+    if (redirect_uri) {
+      params.set('redirect_uri', redirect_uri)
+    }
+    if (prompt) {
+      params.set('prompt', prompt)
+    }
+    const url = params.size > 0 ? `${type}?${params.toString()}` : type
     return { url }
+  }
+
+  /** Get a new token with the user's current role */
+  @Post('refresh')
+  refreshToken(@Req() req: Request) {
+    return this.authService.refreshToken(req.user as Partial<DecodedJWT>)
   }
 
   @Get('guest')
@@ -183,10 +210,17 @@ export class AuthenticationController {
     @Req() req: Request,
     @Res() res: Response,
     @Query('access_token') token?: string,
+    @Query('error') error?: string,
   ) {
     res.type('html')
     const userCode = req.session.deviceLogin?.userCode
     delete req.session.deviceLogin
+    // The user logged in but isn't allowed to use Apollo, so trying again
+    // won't help
+    if (error) {
+      res.status(403).send(renderErrorPage(error))
+      return
+    }
     const approved =
       userCode && token
         ? await this.deviceLoginService.approve(userCode, token)
@@ -212,6 +246,7 @@ export class AuthenticationController {
     @Res() res: Response,
     @Query('redirect_uri') redirectUri?: string,
     @Query('state') state?: string,
+    @Query('prompt') prompt?: string,
   ) {
     if (redirectUri) {
       this.authService.assertAllowedRedirectUri(redirectUri)
@@ -224,11 +259,17 @@ export class AuthenticationController {
           id,
           req,
         )
-        const { token } = await this.authService.logIn(name, email)
-        res.redirect(this.authService.getTokenRedirectUrl(redirectUri, token))
+        const result = await this.authService.oauthLogIn(name, email)
+        res.redirect(this.authService.getLoginRedirectUrl(redirectUri, result))
         return
       }
-      res.redirect(await this.oidcService.startLogin(id, req, redirectUri))
+      // Only check the prompt here: identity providers add their own "prompt"
+      // when redirecting back (e.g. Google sends "prompt=none"), and that one
+      // isn't ours
+      assertAllowedPrompt(prompt)
+      res.redirect(
+        await this.oidcService.startLogin(id, req, redirectUri, prompt),
+      )
       return
     }
     const result = await this.authService.fallbackLogin(

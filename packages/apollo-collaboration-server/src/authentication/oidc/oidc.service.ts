@@ -151,8 +151,15 @@ export class OidcService {
    * Start a login, returning the identity provider URL to redirect the user to
    * @param redirectUri - Where to send the user (with a token) once login
    * completes
+   * @param prompt - "select_account" to have the identity provider ask which
+   * account to use even if the user is already signed in
    */
-  async startLogin(name: string, req: Request, redirectUri?: string) {
+  async startLogin(
+    name: string,
+    req: Request,
+    redirectUri?: string,
+    prompt?: 'select_account',
+  ) {
     if (!redirectUri) {
       throw new BadRequestException('No redirect_uri provided')
     }
@@ -173,6 +180,7 @@ export class OidcService {
       nonce: loginState.nonce,
       code_challenge: await client.calculatePKCECodeChallenge(codeVerifier),
       code_challenge_method: 'S256',
+      ...(prompt ? { prompt } : {}),
     }).href
   }
 
