@@ -6,12 +6,23 @@ import type { DecodedJWT } from '@apollo-annotation/shared'
 import { KEYS } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
 
+// Strip control characters so a crafted value can't inject terminal escape
+// sequences or line breaks into the output
+function sanitize(value: unknown): string | undefined {
+  if (typeof value !== 'string') {
+    return undefined
+  }
+  const cleaned = value.replaceAll(/\p{Cc}/gu, '').trim()
+  return cleaned === '' ? undefined : cleaned
+}
+
 export default class Status extends BaseCommand<typeof Status> {
   static summary = 'View authentication status'
   static description =
     'This command returns "<profile>: Logged in" if the selected profile \
 has an access token and "<profile>: Logged out" otherwise. \
-When the token contains a username, returns "<profile>: Logged in as <username>". \
+When the token identifies the user, returns "<profile>: Logged in as <username> <<email>>" \
+(or just the username or email if only one is available). \
 If the token has expired, " (token expired)" is appended. \
 Note that this command does not check with the server whether the access token is valid.'
 
@@ -27,7 +38,7 @@ Note that this command does not check with the server whether the access token i
     if (accessToken === undefined || accessToken.trim() === '') {
       this.log(`${profileName}: Logged out`)
     } else {
-      let username: string | undefined
+      let identity: string | undefined
       let expired = false
       try {
         const payload = JSON.parse(
@@ -35,12 +46,16 @@ Note that this command does not check with the server whether the access token i
             'utf8',
           ),
         ) as Partial<DecodedJWT> | null
-        // Strip control characters so a crafted name can't inject terminal
-        // escape sequences or line breaks into the output
-        const trimmed = payload?.username?.replaceAll(/\p{Cc}/gu, '').trim()
-        if (typeof trimmed === 'string' && trimmed !== '') {
-          username = trimmed
+        const username = sanitize(payload?.username)
+        let email = sanitize(payload?.email)
+        // Root and guest users have placeholder emails like "root_user"
+        if (email !== undefined && !email.includes('@')) {
+          email = undefined
         }
+        identity =
+          username !== undefined && email !== undefined
+            ? `${username} <${email}>`
+            : username ?? email
         if (typeof payload?.exp === 'number') {
           expired = payload.exp * 1000 <= Date.now()
         }
@@ -48,7 +63,7 @@ Note that this command does not check with the server whether the access token i
         // Keep reporting token presence if its payload cannot be decoded.
       }
       this.log(
-        `${profileName}: Logged in${username === undefined ? '' : ` as ${username}`}${expired ? ' (token expired)' : ''}`,
+        `${profileName}: Logged in${identity === undefined ? '' : ` as ${identity}`}${expired ? ' (token expired)' : ''}`,
       )
     }
   }

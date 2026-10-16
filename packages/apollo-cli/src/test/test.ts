@@ -371,7 +371,19 @@ server.listen(0, () => {
     const profile = '--profile statusTest'
     const cases: [string, string][] = [
       ['not-a-jwt', 'statusTest: Logged in'],
-      [makeToken({ email: 'a@example.com' }), 'statusTest: Logged in'],
+      [makeToken({ email: 'root_user' }), 'statusTest: Logged in'],
+      [
+        makeToken({ email: 'a@example.com' }),
+        'statusTest: Logged in as a@example.com',
+      ],
+      [
+        makeToken({ username: 'John Smith', email: 'jsmith@example.com' }),
+        'statusTest: Logged in as John Smith <jsmith@example.com>',
+      ],
+      [
+        makeToken({ username: 'root', email: 'root_user' }),
+        'statusTest: Logged in as root',
+      ],
       [makeToken({ username: 42 }), 'statusTest: Logged in'],
       [makeToken({ username: '   ' }), 'statusTest: Logged in'],
       [makeToken({ username: '  alice \n' }), 'statusTest: Logged in as alice'],
