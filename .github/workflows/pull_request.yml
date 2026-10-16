@@ -171,6 +171,14 @@ jobs:
         id: e2e-tests
         run: yarn run test:e2e:coverage
         working-directory: packages/jbrowse-plugin-apollo
+      # Also uploaded when tests passed on a retry, to help debug flaky tests
+      - name: Upload Cypress failure screenshots
+        if: ${{ !cancelled() && steps.e2e-tests.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: cypress-screenshots
+          path: packages/jbrowse-plugin-apollo/cypress/screenshots/
+          if-no-files-found: ignore
       # Stop apollo before writing the coverage reports so its coverage is
       # written first
       - name: Stop apollo

@@ -37,12 +37,15 @@ describe('Warning signs', () => {
     cy.contains(/Missing stop codon/)
 
     // Fix the missing stop codon. Internal stop still expected
+    cy.intercept('POST', '/changes').as('changes')
     cy.get('div[data-testid="basic_information"]')
       .parent()
       .within(() => {
         cy.get('input[value="24"]').type('{selectall}{backspace}27{enter}')
       })
-    cy.get('button[data-testid="zoom_out"]').click()
+    // Not zooming out here since the view may already show the whole
+    // chromosome, which disables the zoom out button
+    cy.wait('@changes')
     cy.reload()
 
     cy.get('[data-testid^="ErrorIcon-"]', { timeout: 10_000 }).should(

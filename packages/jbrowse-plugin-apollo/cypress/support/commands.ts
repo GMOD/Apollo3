@@ -1,5 +1,35 @@
 import { type IDBPDatabase, openDB } from 'idb'
 
+/**
+ * In CI, the browser sometimes fails to load one of JBrowse's code files
+ * ("ChunkLoadError"), and JBrowse shows a "Fatal error" dialog instead of the
+ * app. On every page load, watch for that dialog and reload the page (what its
+ * "Refresh" button does) if it appears, at most a few times per test. Other
+ * fatal errors are left for the test to fail on. This runs in the page rather
+ * than as Cypress commands so it doesn't depend on what the test is doing.
+ */
+const chunkLoadRefreshesKey = 'cypress-chunk-load-error-refreshes'
+Cypress.on('window:load', (win) => {
+  const timer = win.setInterval(() => {
+    const failed = [...win.document.querySelectorAll('[role="dialog"]')].some(
+      (dialog) =>
+        dialog.textContent.includes('Fatal error') &&
+        dialog.textContent.includes('ChunkLoadError'),
+    )
+    if (!failed) {
+      return
+    }
+    win.clearInterval(timer)
+    // sessionStorage is cleared between tests, so this is a per-test limit
+    const refreshes = Number(win.sessionStorage.getItem(chunkLoadRefreshesKey))
+    if (refreshes >= 3) {
+      return
+    }
+    win.sessionStorage.setItem(chunkLoadRefreshesKey, String(refreshes + 1))
+    win.location.reload()
+  }, 500)
+})
+
 Cypress.Commands.add('loginAsGuest', () => {
   cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
   // The login dialog doesn't always appear (e.g. in CI), so poll for it for a
@@ -169,13 +199,38 @@ Cypress.Commands.add(
     if (!menuItemName) {
       return
     }
+    const [firstMenuItem] = menuItemPath
     const menuItemPathPrefix = menuItemPath.slice(0, -1)
-    cy.wrap(Cypress.$('body')).within(() => {
-      // eslint-disable-next-line cypress/no-unnecessary-waiting
-      cy.wait(3000)
+    // Some items (e.g. "Admin") are only added once the user's role is known,
+    // and an already-open menu doesn't pick them up, so reopen the menu until
+    // the item is there
+    const deadline = Date.now() + 10_000
+    function openApolloMenu() {
       cy.get('button', { timeout: 10_000 })
         .contains('Apollo')
         .click({ force: true, timeout: 10_000 })
+      cy.get('[role="menu"]', { timeout: 10_000 }).then(($menu) => {
+        if ($menu.text().includes(firstMenuItem) || Date.now() > deadline) {
+          return
+        }
+        // Already within <body>, so cy.root() is the body
+        cy.root().type('{esc}')
+        // eslint-disable-next-line cypress/no-unnecessary-waiting
+        cy.wait(500)
+        openApolloMenu()
+      })
+    }
+    cy.wrap(Cypress.$('body')).within(() => {
+      // Once the user is logged in, the Apollo session fetches the server's
+      // config and rebuilds the whole app with it, which replaces every element
+      // on the page, including an open menu. Wait for the rebuilt app, whose
+      // config has `hasRole` set.
+      cy.window({ timeout: 20_000 })
+        .its(
+          'JBrowseRootModel.jbrowse.configuration.ApolloPlugin.hasRole.value',
+        )
+        .should('equal', true)
+      openApolloMenu()
       for (const pathPart of menuItemPathPrefix) {
         cy.contains(pathPart, { timeout: 10_000 }).click()
       }
@@ -220,11 +275,13 @@ Cypress.Commands.add(
       .parent()
       .should('contain', 'All operations successful')
     cy.get('button[aria-label="Close drawer"]', { timeout: 10_000 }).click()
+    // Give JBrowse's session autosave (debounced 400ms) time to catch up so the
+    // reload doesn't restore the session from before the change finished
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(1000)
     cy.reload()
     if (launch) {
-      cy.contains('Launch view').click()
+      cy.contains('button', 'Launch view', { timeout: 10_000 }).click()
     }
     cy.contains('Select assembly to view', { timeout: 10_000 })
   },

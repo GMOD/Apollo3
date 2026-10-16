@@ -10,12 +10,13 @@ Get list of changes
 
 ```
 USAGE
-  $ apollo change get [--profile <value>] [--config-file <value>] [-a <value>]
+  $ apollo change get [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>...]
 
 FLAGS
   -a, --assembly=<value>...  Get changes only for these assembly names or IDs (but see description)
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get list of changes
@@ -26,4 +27,4 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/change/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.1/packages/apollo-cli/src/commands/change/get.ts)_
+[src/commands/change/get.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/change/get.ts)_

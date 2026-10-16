@@ -2,18 +2,18 @@
 
 Display help for apollo.
 
-- [`apollo help [COMMANDS]`](#apollo-help-commands)
+- [`apollo help [COMMAND]`](#apollo-help-command)
 
-## `apollo help [COMMANDS]`
+## `apollo help [COMMAND]`
 
 Display help for apollo.
 
 ```
 USAGE
-  $ apollo help [COMMANDS] [-n]
+  $ apollo help [COMMAND...] [-n]
 
 ARGUMENTS
-  COMMANDS  Command to show help for.
+  [COMMAND...]  Command to show help for.
 
 FLAGS
   -n, --nested-commands  Include all nested commands in the output.
@@ -23,4 +23,4 @@ DESCRIPTION
 ```
 
 _See code:
-[@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.8/src/commands/help.ts)_
+[@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/6.2.53/src/commands/help.ts)_

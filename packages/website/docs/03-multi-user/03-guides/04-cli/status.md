@@ -10,11 +10,12 @@ View authentication status
 
 ```
 USAGE
-  $ apollo status [--profile <value>] [--config-file <value>]
+  $ apollo status [--profile <value>] [--config-file <value>] [--timeout <value>]
 
 FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
   --profile=<value>      Use credentials from this profile
+  --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   View authentication status
@@ -24,4 +25,4 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/status.ts](https://github.com/GMOD/Apollo3/blob/v1.0.1/packages/apollo-cli/src/commands/status.ts)_
+[src/commands/status.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/status.ts)_

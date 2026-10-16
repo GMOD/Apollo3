@@ -13,12 +13,13 @@ Delete files from the Apollo server
 
 ```
 USAGE
-  $ apollo file delete [--profile <value>] [--config-file <value>] [-i <value>]
+  $ apollo file delete [--profile <value>] [--config-file <value>] [--timeout <value>] [-i <value>...]
 
 FLAGS
   -i, --file-id=<value>...   [default: -] IDs of the files to delete
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Delete files from the Apollo server
@@ -32,7 +33,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/file/delete.ts](https://github.com/GMOD/Apollo3/blob/v1.0.1/packages/apollo-cli/src/commands/file/delete.ts)_
+[src/commands/file/delete.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/file/delete.ts)_
 
 ## `apollo file download`
 
@@ -40,13 +41,14 @@ Download a file from the Apollo server
 
 ```
 USAGE
-  $ apollo file download [--profile <value>] [--config-file <value>] [-i <value>] [-o <value>]
+  $ apollo file download [--profile <value>] [--config-file <value>] [--timeout <value>] [-i <value>] [-o <value>]
 
 FLAGS
   -i, --file-id=<value>      [default: -] ID of the file to download
   -o, --output=<value>       Write output to this file or "-" for stdout. Default to the name of the uploaded file.
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Download a file from the Apollo server
@@ -60,7 +62,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/file/download.ts](https://github.com/GMOD/Apollo3/blob/v1.0.1/packages/apollo-cli/src/commands/file/download.ts)_
+[src/commands/file/download.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/file/download.ts)_
 
 ## `apollo file get`
 
@@ -68,12 +70,13 @@ Get list of files uploaded to the Apollo server
 
 ```
 USAGE
-  $ apollo file get [--profile <value>] [--config-file <value>] [-i <value>]
+  $ apollo file get [--profile <value>] [--config-file <value>] [--timeout <value>] [-i <value>...]
 
 FLAGS
   -i, --file-id=<value>...   Get files matching this IDs
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get list of files uploaded to the Apollo server
@@ -87,7 +90,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/file/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.1/packages/apollo-cli/src/commands/file/get.ts)_
+[src/commands/file/get.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/file/get.ts)_
 
 ## `apollo file upload INPUT-FILE`
 
@@ -95,7 +98,7 @@ Upload a local file to the Apollo server
 
 ```
 USAGE
-  $ apollo file upload INPUT-FILE [--profile <value>] [--config-file <value>] [-t
+  $ apollo file upload INPUT-FILE [--profile <value>] [--config-file <value>] [--timeout <value>] [-t
     text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi] [-z | -d]
 
 ARGUMENTS
@@ -109,6 +112,7 @@ FLAGS
   -z, --gzip                 Override autodetection and instruct that input is gzip compressed
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Upload a local file to the Apollo server
@@ -124,4 +128,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/file/upload.ts](https://github.com/GMOD/Apollo3/blob/v1.0.1/packages/apollo-cli/src/commands/file/upload.ts)_
+[src/commands/file/upload.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/file/upload.ts)_

@@ -29,7 +29,7 @@ describe('Add Assembly', () => {
     })
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
-    cy.contains('Launch view').click()
+    cy.contains('button', 'Launch view', { timeout: 10_000 }).click()
     cy.selectAssemblyToView('volvox')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
@@ -59,7 +59,7 @@ describe('Add Assembly', () => {
     })
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
-    cy.contains('Launch view').click()
+    cy.contains('button', 'Launch view', { timeout: 10_000 }).click()
     cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
       cy.contains('volvox')
     })
@@ -84,7 +84,7 @@ describe('Add Assembly', () => {
     })
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
-    cy.contains('Launch view').click()
+    cy.contains('button', 'Launch view', { timeout: 10_000 }).click()
     cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
       cy.contains('volvox')
     })
@@ -119,7 +119,7 @@ describe('Add Assembly', () => {
     })
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
-    cy.contains('Launch view').click()
+    cy.contains('button', 'Launch view', { timeout: 10_000 }).click()
     cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
       cy.contains('volvox')
     })
@@ -142,7 +142,7 @@ describe('Add Assembly', () => {
     })
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
-    cy.contains('Launch view').click()
+    cy.contains('button', 'Launch view', { timeout: 10_000 }).click()
     cy.selectAssemblyToView('volvox')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
@@ -174,7 +174,7 @@ describe('Add Assembly', () => {
     })
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
-    cy.contains('Launch view').click()
+    cy.contains('button', 'Launch view', { timeout: 10_000 }).click()
     cy.selectAssemblyToView('volvox')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
@@ -223,15 +223,19 @@ describe('Add Assembly', () => {
   })
 
   it('Add assembly from gzip GFF3 file', () => {
-    cy.exec(
-      'gzip -c test_data/volvox.fasta.gff3 > test_data/volvox.fasta.gff3.gz',
-    )
+    cy.task('gzipFile', {
+      source: 'test_data/volvox.fasta.gff3',
+      target: 'test_data/volvox.fasta.gff3.gz',
+    })
     cy.addAssemblyFromGff('volvox.fasta', 'test_data/volvox.fasta.gff3.gz')
-    cy.exec('rm test_data/volvox.fasta.gff3.gz')
+    cy.task('removeFile', 'test_data/volvox.fasta.gff3.gz')
   })
 
   it('Can override autodetection of gzip compression in FASTA', () => {
-    cy.exec('cp test_data/volvox.fa test_data/tmp.fake.gz')
+    cy.task('copyFile', {
+      source: 'test_data/volvox.fa',
+      target: 'test_data/tmp.fake.gz',
+    })
     cy.selectFromApolloMenu(['Admin', 'Add Assembly'])
     cy.get('form[data-testid="submit-form"]').within(() => {
       cy.get('input[type="TextField"]').type('volvox')
@@ -249,15 +253,18 @@ describe('Add Assembly', () => {
     })
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
-    cy.contains('Launch view').click()
+    cy.contains('button', 'Launch view', { timeout: 10_000 }).click()
     cy.get('[data-testid="assembly-selector-textfield"]').within(() => {
       cy.contains('volvox')
     })
-    cy.exec('rm test_data/tmp.fake.gz')
+    cy.task('removeFile', 'test_data/tmp.fake.gz')
   })
 
   it('Can override autodetection of gzip compression in GFF3', () => {
-    cy.exec('cp test_data/volvox.fasta.gff3 test_data/tmp.fake.gz')
+    cy.task('copyFile', {
+      source: 'test_data/volvox.fasta.gff3',
+      target: 'test_data/tmp.fake.gz',
+    })
     cy.selectFromApolloMenu(['Admin', 'Add Assembly'])
     cy.get('form[data-testid="submit-form"]').within(() => {
       cy.get('input[type="TextField"]').type('volvox')
@@ -281,7 +288,7 @@ describe('Add Assembly', () => {
     })
     cy.contains('added successfully', { timeout: 10_000 })
     cy.reload()
-    cy.contains('Launch view').click()
+    cy.contains('button', 'Launch view', { timeout: 10_000 }).click()
     cy.selectAssemblyToView('volvox')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
@@ -291,6 +298,6 @@ describe('Add Assembly', () => {
     cy.get('textarea').within(() => {
       cy.contains('"AddAssemblyAndFeaturesFromFileChange"')
     })
-    cy.exec('rm test_data/tmp.fake.gz')
+    cy.task('removeFile', 'test_data/tmp.fake.gz')
   })
 })

@@ -1,3 +1,15 @@
+/**
+ * Click "Yes" in the Delete feature dialog and wait for it to close. Deleting
+ * waits for the feature type ontology, which can take a while to load the first
+ * time.
+ */
+function confirmDelete() {
+  cy.contains('button', 'Yes').click()
+  cy.contains('Are you sure you want to delete the selected feature?', {
+    timeout: 30_000,
+  }).should('not.exist')
+}
+
 describe('Delete feature', () => {
   beforeEach(() => {
     cy.loginAsGuest()
@@ -20,7 +32,7 @@ describe('Delete feature', () => {
     // Delete this exon and check features are updated accordingly
     cy.contains('Id=exon01').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
-    cy.contains('button', 'Yes').click()
+    confirmDelete()
 
     cy.contains('Id=gene02')
       .parent()
@@ -52,7 +64,7 @@ describe('Delete feature', () => {
     // Delete this other exon
     cy.contains('Id=exon05').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
-    cy.contains('button', 'Yes').click()
+    confirmDelete()
 
     cy.contains('Id=gene02')
       .parent()
@@ -70,7 +82,7 @@ describe('Delete feature', () => {
     // Delete from right
     cy.contains('Id=exon09').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
-    cy.contains('button', 'Yes').click()
+    confirmDelete()
 
     cy.contains('Id=gene02')
       .parent()
@@ -81,7 +93,7 @@ describe('Delete feature', () => {
 
     cy.contains('Id=exon04').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
-    cy.contains('button', 'Yes').click()
+    confirmDelete()
     cy.refreshTableEditor()
 
     cy.contains('Id=mrna02')
@@ -92,7 +104,7 @@ describe('Delete feature', () => {
 
     cy.contains('Id=exon03').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
-    cy.contains('button', 'Yes').click()
+    confirmDelete()
     cy.refreshTableEditor()
 
     cy.contains('Id=mrna02')
@@ -110,10 +122,10 @@ describe('Delete feature', () => {
     // No side effect in deleting "exon_region"
     cy.contains('Id=exon_region2').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
-    cy.contains('button', 'Yes').click()
+    confirmDelete()
     cy.contains('Id=exon_region1').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
-    cy.contains('button', 'Yes').click()
+    confirmDelete()
     cy.refreshTableEditor()
 
     cy.contains('Id=exon08')
@@ -125,7 +137,7 @@ describe('Delete feature', () => {
 
     cy.contains('Id=cds1').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
-    cy.contains('button', 'Yes').click()
+    confirmDelete()
     cy.refreshTableEditor()
 
     cy.contains('Id=mrna02')
@@ -137,11 +149,11 @@ describe('Delete feature', () => {
 
     cy.contains('Id=exon02').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
-    cy.contains('button', 'Yes').click()
+    confirmDelete()
     // Delete last exon: Do not delete or resize transcript
     cy.contains('Id=exon10').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
-    cy.contains('button', 'Yes').click()
+    confirmDelete()
     cy.refreshTableEditor()
 
     cy.contains('Id=mrna02')
@@ -164,7 +176,7 @@ describe('Delete feature', () => {
 
     cy.contains('Id=exon03').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
-    cy.contains('button', 'Yes').click()
+    confirmDelete()
     cy.refreshTableEditor()
 
     cy.contains('Id=cds1')
@@ -186,7 +198,7 @@ describe('Delete feature', () => {
 
     cy.contains('Id=exon01').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
-    cy.contains('button', 'Yes').click()
+    confirmDelete()
     cy.refreshTableEditor()
 
     cy.contains('Id=cds1')
@@ -230,7 +242,7 @@ describe('Delete feature', () => {
     cy.contains('Id=cds2')
     cy.contains('Id=exon06').rightclick({ force: true })
     cy.contains('Delete feature', { timeout: 10_000 }).click()
-    cy.contains('button', 'Yes').click()
+    confirmDelete()
     cy.refreshTableEditor()
     cy.contains('Id=cds2').should('not.exist')
     cy.contains('Id=exon06').should('not.exist')

@@ -30,7 +30,7 @@
     "test:ci": "yarn tsx src/test/test.ts",
     "test:ci:coverage": "NODE_V8_COVERAGE=$PROJECT_CWD/coverage/tmp/cli APOLLO_BIN=\"node $PROJECT_CWD/packages/apollo-cli/bin/run.js\" tsx src/test/test.ts",
     "test:unit": "tsx --test --test-reporter spec \"src/**/*.test.ts\"",
-    "version": "oclif readme --multi --dir ../website/docs/03-guides/04-cli/ && oclif readme && git add README.md"
+    "version": "oclif readme --multi --dir ../website/docs/03-multi-user/03-guides/04-cli/ && oclif readme && git add README.md"
   },
   "oclif": {
     "bin": "apollo",
