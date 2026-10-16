@@ -169,13 +169,28 @@ Cypress.Commands.add(
     if (!menuItemName) {
       return
     }
+    const [firstMenuItem] = menuItemPath
     const menuItemPathPrefix = menuItemPath.slice(0, -1)
-    cy.wrap(Cypress.$('body')).within(() => {
-      // eslint-disable-next-line cypress/no-unnecessary-waiting
-      cy.wait(3000)
+    // Some items (e.g. "Admin") are only added once the user's role is known,
+    // and an already-open menu doesn't pick them up, so reopen the menu until
+    // the item is there
+    const deadline = Date.now() + 10_000
+    function openApolloMenu() {
       cy.get('button', { timeout: 10_000 })
         .contains('Apollo')
         .click({ force: true, timeout: 10_000 })
+      cy.get('[role="menu"]', { timeout: 10_000 }).then(($menu) => {
+        if ($menu.text().includes(firstMenuItem) || Date.now() > deadline) {
+          return
+        }
+        cy.get('body').type('{esc}')
+        // eslint-disable-next-line cypress/no-unnecessary-waiting
+        cy.wait(500)
+        openApolloMenu()
+      })
+    }
+    cy.wrap(Cypress.$('body')).within(() => {
+      openApolloMenu()
       for (const pathPart of menuItemPathPrefix) {
         cy.contains(pathPart, { timeout: 10_000 }).click()
       }
