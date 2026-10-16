@@ -162,6 +162,13 @@ jobs:
           timeout 300 bash -c 'until curl -sf http://localhost:3999/health &&
           curl -sf -o /dev/null http://localhost:9000 && curl -sf -o /dev/null
           http://localhost:8999; do sleep 2; done'
+      # TEMPORARY: an older Chrome than the runner's, to see whether the browser
+      # cancelling requests is new in recent versions
+      - name: Install Chrome 150
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: 150
       - name: Run Cypress tests
         id: e2e-tests
         # TEMPORARY: Chrome's messages to Cypress, to find out why the browser
@@ -169,10 +176,13 @@ jobs:
         # events and the local requests they refer to are kept, in a file
         # (uploaded below) since they're too long for the job log. Other stderr
         # output is kept too.
+        # TEMPORARY: the commands from `yarn run test:e2e:coverage`, but using
+        # the Chrome installed above
         run: |
-          yarn run test:e2e:coverage 2> >(awk '!/cdp-connection:.*:recv:/ || /Network\.loadingFailed/ || (/Network\.requestWillBeSent/ && /localhost:(3999|8999|9000)/)' > cypress-debug.log) || { sleep 5; tail -n 100 cypress-debug.log; exit 1; }
+          { COVERAGE=true yarn build && COVERAGE=true yarn cypress run --browser "$CHROME_PATH"; } 2> >(awk '!/cdp-connection:.*:recv:/ || /Network\.loadingFailed/ || (/Network\.requestWillBeSent/ && /localhost:(3999|8999|9000)/)' > cypress-debug.log) || { sleep 5; tail -n 100 cypress-debug.log; exit 1; }
         working-directory: packages/jbrowse-plugin-apollo
         env:
+          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
           # The part between "cdp-connection" and "recv" is the browser target
           DEBUG: cypress-verbose:server:browsers:cdp-connection:*:recv:*
       - name: Upload Cypress debug logs
