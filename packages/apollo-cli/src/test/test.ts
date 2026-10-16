@@ -347,7 +347,7 @@ server.listen(0, () => {
     let p = new Shell(`${apollo} status ${P}`)
     assert.strictEqual(
       p.stdout.trim(),
-      'testAdmin: Logged in',
+      'testAdmin: Logged in as root',
       `Expected status to be logged in, got "${p.stdout.trim()}"`,
     )
 
