@@ -6,7 +6,7 @@ import { Errors, Flags, ux } from '@oclif/core'
 import open from 'open'
 import { fetch } from 'undici'
 
-import { type ApolloConf, KEYS } from '../ApolloConf.js'
+import { type ApolloConf, KEYS, validateAddress } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
 import {
   type UserCredentials,
@@ -106,6 +106,10 @@ and sign in. This works even when running the command on a remote server, e.g. o
       flags.address ?? (config.get(`${profileName}.address`) as string)
     if (address === undefined) {
       this.error('Address to apollo must be set')
+    }
+    const addressError = validateAddress(address)
+    if (addressError) {
+      this.error(addressError)
     }
 
     let userCredentials: UserCredentials = { accessToken: '' }
