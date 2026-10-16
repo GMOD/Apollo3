@@ -65,7 +65,7 @@
     "socket.io-client": "^4.5.4"
   },
   "devDependencies": {
-    "@cypress/code-coverage": "^3.14.7",
+    "@cypress/code-coverage": "^4.0.3",
     "@jbrowse/cli": "^4.3.0",
     "@jbrowse/core": "^4.3.0",
     "@jbrowse/mobx-state-tree": "^5.8.7",
@@ -83,10 +83,10 @@
     "builtin-modules": "^5.0.0",
     "c8": "^12.0.0",
     "chalk": "^5.6.2",
-    "cypress": "15.19.0",
+    "cypress": "16.2.0",
     "cypress-image-diff-html-report": "^2.2.0",
     "cypress-image-diff-js": "^2.8.0",
-    "cypress-mongodb": "^6.2.0",
+    "cypress-mongodb": "^7.0.0",
     "fake-indexeddb": "^4.0.2",
     "istanbul-lib-instrument": "^6.0.3",
     "jest": "^29.6.2",

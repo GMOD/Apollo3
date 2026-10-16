@@ -1,17 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 import fs from 'node:fs'
+import path from 'node:path'
+import zlib from 'node:zlib'
 
-import registerCodeCoverageTasks from '@cypress/code-coverage/task.js'
+import registerCodeCoverageTasks from '@cypress/code-coverage/task'
 import { defineConfig } from 'cypress'
 import getCompareSnapshotsPlugin from 'cypress-image-diff-js/plugin'
 import { configurePlugin } from 'cypress-mongodb'
-
-// The package has no types, and the ones TypeScript infers from its JS are wrong
-const codeCoverageTask = registerCodeCoverageTasks as unknown as (
-  on: Cypress.PluginEvents,
-  config: Cypress.PluginConfigOptions,
-) => void
 
 export default defineConfig({
   // Make viewport long and thin to avoid the scrollbar on the right interfere
@@ -40,10 +34,40 @@ export default defineConfig({
       // @ts-expect-error types are wrong
       getCompareSnapshotsPlugin(on, config)
       configurePlugin(on)
-      codeCoverageTask(on, config)
+      registerCodeCoverageTasks(on, config)
+      // Paths are relative to the project root. Tasks must return something
+      // other than undefined, hence the nulls.
+      const resolve = (file: string) => path.resolve(config.projectRoot, file)
       on('task', {
-        readdirSync(path) {
-          return fs.readdirSync(path)
+        readdirSync(folder: string) {
+          return fs.readdirSync(folder)
+        },
+        copyFile({ source, target }: { source: string; target: string }) {
+          fs.copyFileSync(resolve(source), resolve(target))
+          return null
+        },
+        gzipFile({ source, target }: { source: string; target: string }) {
+          fs.writeFileSync(
+            resolve(target),
+            zlib.gzipSync(fs.readFileSync(resolve(source))),
+          )
+          return null
+        },
+        /** Remove the files in `folder` whose names end with `suffix` */
+        removeFiles({ folder, suffix }: { folder: string; suffix: string }) {
+          if (!fs.existsSync(resolve(folder))) {
+            return null
+          }
+          for (const file of fs.readdirSync(resolve(folder))) {
+            if (file.endsWith(suffix)) {
+              fs.rmSync(path.join(resolve(folder), file))
+            }
+          }
+          return null
+        },
+        removeFile(file: string) {
+          fs.rmSync(resolve(file), { force: true })
+          return null
         },
       })
       return config
