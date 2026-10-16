@@ -33,7 +33,9 @@ Note that this command does not check the validity of the access token.'
             'utf8',
           ),
         ) as Partial<DecodedJWT> | null
-        const trimmed = payload?.username?.trim()
+        // Strip control characters so a crafted name can't inject terminal
+        // escape sequences or line breaks into the output
+        const trimmed = payload?.username?.replaceAll(/\p{Cc}/gu, '').trim()
         if (typeof trimmed === 'string' && trimmed !== '') {
           username = trimmed
         }
