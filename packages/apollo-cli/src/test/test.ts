@@ -33,6 +33,11 @@ import { Shell, deleteAllChecks } from './utils.js'
 
 const apollo = process.env.APOLLO_BIN ?? 'yarn dev'
 const P = '--profile testAdmin'
+
+function makeToken(payload: object) {
+  return `e30.${Buffer.from(JSON.stringify(payload)).toString('base64url')}.sig`
+}
+
 // let client = MongoClient
 let client: MongoClient
 let configFile = ''
@@ -347,7 +352,7 @@ server.listen(0, () => {
     let p = new Shell(`${apollo} status ${P}`)
     assert.strictEqual(
       p.stdout.trim(),
-      'testAdmin: Logged in',
+      'testAdmin: Logged in as root',
       `Expected status to be logged in, got "${p.stdout.trim()}"`,
     )
 
@@ -360,6 +365,52 @@ server.listen(0, () => {
     )
 
     new Shell(`${apollo} login ${P} -f`)
+  })
+
+  void globalThis.itName('Apollo status with unusual tokens', () => {
+    const profile = '--profile statusTest'
+    const cases: [string, string][] = [
+      ['not-a-jwt', 'statusTest: Logged in'],
+      [makeToken({ email: 'root_user' }), 'statusTest: Logged in'],
+      [
+        makeToken({ email: 'a@example.com' }),
+        'statusTest: Logged in as a@example.com',
+      ],
+      [
+        makeToken({ username: 'John Smith', email: 'jsmith@example.com' }),
+        'statusTest: Logged in as John Smith <jsmith@example.com>',
+      ],
+      [
+        makeToken({ username: 'root', email: 'root_user' }),
+        'statusTest: Logged in as root',
+      ],
+      [makeToken({ username: 42 }), 'statusTest: Logged in'],
+      [makeToken({ username: '   ' }), 'statusTest: Logged in'],
+      [makeToken({ username: '  alice \n' }), 'statusTest: Logged in as alice'],
+      [
+        makeToken({ username: '\u001B[2Kmallory\r' }),
+        'statusTest: Logged in as [2Kmallory',
+      ],
+      [
+        makeToken({ username: 'alice', exp: 1 }),
+        'statusTest: Logged in as alice (token expired)',
+      ],
+      // 2100-01-01
+      [
+        makeToken({ username: 'alice', exp: 4_102_444_800 }),
+        'statusTest: Logged in as alice',
+      ],
+      [makeToken({ exp: 1 }), 'statusTest: Logged in (token expired)'],
+    ]
+    for (const [token, expected] of cases) {
+      new Shell(`${apollo} config ${profile} accessToken '${token}'`)
+      const p = new Shell(`${apollo} status ${profile}`)
+      assert.strictEqual(
+        p.stdout,
+        expected,
+        `Unexpected status for token "${token}"`,
+      )
+    }
   })
 
   void globalThis.itName('Feature get', () => {
@@ -2461,7 +2512,7 @@ EOF`,
           ${apollo} user get`,
     )
     assert.ok(
-      p.stdout.includes('testAdmin2: Logged in'),
+      p.stdout.includes('testAdmin2: Logged in as root'),
       `Expected APOLLO_PROFILE profile to be logged in:\n${p.stdout}`,
     )
     assert.ok(

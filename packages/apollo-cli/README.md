@@ -16,7 +16,7 @@ $ npm install -g @apollo-annotation/cli
 $ apollo COMMAND
 running command...
 $ apollo (--version)
-@apollo-annotation/cli/1.1.3 linux-x64 node-v24.14.1
+@apollo-annotation/cli/1.1.3 linux-x64 node-v24.19.0
 $ apollo --help [COMMAND]
 USAGE
   $ apollo COMMAND
@@ -1323,7 +1323,9 @@ DESCRIPTION
   View authentication status
 
   This command returns "<profile>: Logged in" if the selected profile has an access token and "<profile>: Logged out"
-  otherwise.Note that this command does not check the validity of the access token.
+  otherwise. When the token identifies the user, returns "<profile>: Logged in as <username> <<email>>" (or just the
+  username or email if only one is available). If the token has expired, " (token expired)" is appended. Note that this
+  command does not check with the server whether the access token is valid.
 ```
 
 _See code:
