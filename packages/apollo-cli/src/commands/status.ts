@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { Buffer } from 'node:buffer'
 
+import type { DecodedJWT } from '@apollo-annotation/shared'
+
 import { KEYS } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
 
@@ -26,16 +28,13 @@ Note that this command does not check the validity of the access token.'
     } else {
       let username: string | undefined
       try {
-        const payload: unknown = JSON.parse(
+        const payload = JSON.parse(
           Buffer.from(accessToken.split('.')[1] ?? '', 'base64url').toString(
             'utf8',
           ),
-        )
+        ) as Partial<DecodedJWT> | null
         if (
-          typeof payload === 'object' &&
-          payload !== null &&
-          'username' in payload &&
-          typeof payload.username === 'string' &&
+          typeof payload?.username === 'string' &&
           payload.username.trim() !== ''
         ) {
           ;({ username } = payload)
