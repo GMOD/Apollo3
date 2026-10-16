@@ -164,15 +164,16 @@ jobs:
           http://localhost:8999; do sleep 2; done'
       - name: Run Cypress tests
         id: e2e-tests
-        # TEMPORARY: Cypress proxy debug logs, to find out why requests to the
-        # local servers sometimes fail. They go to a file (uploaded below) since
-        # they're too long for the job log.
-        run:
-          yarn run test:e2e:coverage 2> cypress-debug.log || { tail -n 100
-          cypress-debug.log; exit 1; }
+        # TEMPORARY: Chrome's messages to Cypress, to find out why the browser
+        # sometimes fails requests to the local servers. Only failed-request
+        # events and the local requests they refer to are kept, in a file
+        # (uploaded below) since they're too long for the job log. Other stderr
+        # output is kept too.
+        run: |
+          yarn run test:e2e:coverage 2> >(awk '!/cdp-connection:recv/ || /Network\.loadingFailed/ || (/Network\.requestWillBeSent/ && /localhost:(3999|8999|9000)/)' > cypress-debug.log) || { sleep 5; tail -n 100 cypress-debug.log; exit 1; }
         working-directory: packages/jbrowse-plugin-apollo
         env:
-          DEBUG: cypress:proxy:*,cypress:network:*
+          DEBUG: cypress-verbose:server:browsers:cdp-connection:recv:*
       - name: Upload Cypress debug logs
         if: ${{ !cancelled() && steps.e2e-tests.outcome != 'skipped' }}
         uses: actions/upload-artifact@v7

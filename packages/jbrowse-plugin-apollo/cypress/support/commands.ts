@@ -1,5 +1,40 @@
 import { type IDBPDatabase, openDB } from 'idb'
 
+/**
+ * In CI, the browser sometimes fails to load one of JBrowse's code files
+ * ("ChunkLoadError"), and JBrowse shows a "Fatal error" dialog instead of the
+ * app. Waits for either the app's "File" menu or that dialog, and uses the
+ * dialog's "Refresh" button if it's that error. Other fatal errors are left for
+ * the test to fail on.
+ */
+function refreshIfJBrowseFailedToLoad(attemptsLeft = 3) {
+  cy.get('body', { withinSubject: null, log: false })
+    .contains(/^(File|Fatal error)$/, { timeout: 20_000, log: false })
+    .then(($el) => {
+      const dialogText = $el.closest('[role="dialog"]').text()
+      if (!dialogText.includes('ChunkLoadError') || attemptsLeft <= 0) {
+        return
+      }
+      cy.log('JBrowse failed to load a code file, refreshing')
+      cy.contains('button', 'Refresh').click()
+      refreshIfJBrowseFailedToLoad(attemptsLeft - 1)
+    })
+}
+
+Cypress.Commands.overwrite('visit', (originalFn, ...args) =>
+  originalFn(...args).then((win) => {
+    refreshIfJBrowseFailedToLoad()
+    cy.wrap(win, { log: false })
+  }),
+)
+
+Cypress.Commands.overwrite('reload', (originalFn, ...args) =>
+  originalFn(...args).then((win) => {
+    refreshIfJBrowseFailedToLoad()
+    cy.wrap(win, { log: false })
+  }),
+)
+
 Cypress.Commands.add('loginAsGuest', () => {
   cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
   // The login dialog doesn't always appear (e.g. in CI), so poll for it for a
@@ -183,7 +218,8 @@ Cypress.Commands.add(
         if ($menu.text().includes(firstMenuItem) || Date.now() > deadline) {
           return
         }
-        cy.get('body').type('{esc}')
+        // Already within <body>, so cy.root() is the body
+        cy.root().type('{esc}')
         // eslint-disable-next-line cypress/no-unnecessary-waiting
         cy.wait(500)
         openApolloMenu()
