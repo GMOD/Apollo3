@@ -10,16 +10,18 @@ Get or set apollo configuration options
 
 ```
 USAGE
-  $ apollo config [KEY] [VALUE] [--profile <value>] [---file <value>] [--get-config-file]
+  $ apollo config [KEY] [VALUE] [--profile <value>] [--config-file <value>] [--timeout <value>]
+    [--get-config-file]
 
 ARGUMENTS
-  KEY    Name of configuration parameter
-  VALUE  Parameter value
+  [KEY]    Name of configuration parameter
+  [VALUE]  Parameter value
 
 FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
   --get-config-file      Return the path to the config file and exit (this file may not exist yet)
   --profile=<value>      Profile to create or edit
+  --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get or set apollo configuration options
@@ -54,4 +56,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/config.ts](https://github.com/GMOD/Apollo3/blob/v1.0.1/packages/apollo-cli/src/commands/config.ts)_
+[src/commands/config.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/config.ts)_

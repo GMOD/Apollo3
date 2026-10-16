@@ -11,7 +11,7 @@ Add reference name aliases from a file
 
 ```
 USAGE
-  $ apollo refseq add-alias INPUT-FILE -a <value> [--profile <value>] [--config-file <value>]
+  $ apollo refseq add-alias INPUT-FILE -a <value> [--profile <value>] [--config-file <value>] [--timeout <value>]
 
 ARGUMENTS
   INPUT-FILE  Input refname alias file
@@ -20,6 +20,7 @@ FLAGS
   -a, --assembly=<value>     (required) Name for this assembly.
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Add reference name aliases from a file
@@ -34,7 +35,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/refseq/add-alias.ts](https://github.com/GMOD/Apollo3/blob/v1.0.1/packages/apollo-cli/src/commands/refseq/add-alias.ts)_
+[src/commands/refseq/add-alias.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/refseq/add-alias.ts)_
 
 ## `apollo refseq get`
 
@@ -42,12 +43,13 @@ Get reference sequences
 
 ```
 USAGE
-  $ apollo refseq get [--profile <value>] [--config-file <value>] [-a <value>]
+  $ apollo refseq get [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>...]
 
 FLAGS
   -a, --assembly=<value>...  Get reference sequences for these assembly names or IDs; use - to read it from stdin
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
+      --timeout=<value>      [default: 1h] Timeout for each request to the server
 
 DESCRIPTION
   Get reference sequences
@@ -66,4 +68,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/refseq/get.ts](https://github.com/GMOD/Apollo3/blob/v1.0.1/packages/apollo-cli/src/commands/refseq/get.ts)_
+[src/commands/refseq/get.ts](https://github.com/GMOD/Apollo3/blob/v1.1.3/packages/apollo-cli/src/commands/refseq/get.ts)_
