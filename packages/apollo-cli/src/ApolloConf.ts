@@ -7,7 +7,7 @@ import Joi from 'joi'
 import { type RequestInit, fetch } from 'undici'
 import YAML from 'yaml'
 
-import { createFetchErrorMessage, localhostToAddress } from './utils.js'
+import { createApiURL, createFetchErrorMessage } from './utils.js'
 
 export class ConfigError extends Error {}
 
@@ -141,7 +141,7 @@ export class ApolloConf extends Conf {
         'Content-Type': 'application/json',
       },
     }
-    const url = new URL(localhostToAddress(`${address}/assemblies`))
+    const url = createApiURL(address, 'assemblies')
     const response = await fetch(url, auth)
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(
