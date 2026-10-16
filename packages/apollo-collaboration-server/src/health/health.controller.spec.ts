@@ -18,4 +18,8 @@ describe('HealthController', () => {
   it('should be defined', () => {
     expect(controller).toBeDefined()
   })
+
+  it('should report the package version', () => {
+    expect(controller.getVersion().version).toMatch(/^\d+\.\d+\.\d+/)
+  })
 })

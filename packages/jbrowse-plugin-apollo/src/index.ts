@@ -109,6 +109,34 @@ function isApolloMessageData(data?: unknown): data is ApolloMessageData {
 
 const inWebWorker = 'WorkerGlobalScope' in globalThis
 
+const supportedJBrowseMajorVersion = 4
+
+/**
+ * Throws if this plugin is loaded in a JBrowse it wasn't built for. The JBrowse
+ * products (web, desktop, React app, etc.) put their version on the root model.
+ * There's no root model in a worker, but if the version is wrong there it was
+ * already caught on the main thread.
+ */
+function checkJBrowseVersion(pluginManager: PluginManager) {
+  const { rootModel } = pluginManager
+  if (!rootModel) {
+    return
+  }
+  const jbrowseVersion = (rootModel as { version?: unknown }).version
+  if (typeof jbrowseVersion !== 'string') {
+    console.warn(
+      `Could not determine JBrowse version. The Apollo plugin requires JBrowse ${supportedJBrowseMajorVersion}.x.x.`,
+    )
+    return
+  }
+  const majorVersion = Number.parseInt(jbrowseVersion.replace(/^v/, ''), 10)
+  if (majorVersion !== supportedJBrowseMajorVersion) {
+    throw new Error(
+      `The Apollo plugin (version ${version}) requires JBrowse ${supportedJBrowseMajorVersion}.x.x, but is running in JBrowse ${jbrowseVersion}`,
+    )
+  }
+}
+
 for (const [changeName, change] of Object.entries(changes)) {
   changeRegistry.registerChange(changeName, change)
 }
@@ -447,6 +475,7 @@ export default class ApolloPlugin extends Plugin {
   }
 
   configure(pluginManager: PluginManager) {
+    checkJBrowseVersion(pluginManager)
     if (isAbstractMenuManager(pluginManager.rootModel)) {
       pluginManager.jexl.addFunction(
         'geneBackgroundColor',
