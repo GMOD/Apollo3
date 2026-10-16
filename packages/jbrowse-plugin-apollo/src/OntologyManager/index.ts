@@ -41,7 +41,7 @@ export const OntologyRecordType = types
   })
   .volatile((_self) => ({
     dataStore: undefined as undefined | OntologyStore,
-    startedEquivalentTypeRequests: new Set<string>(),
+    equivalentTypeRequests: new Map<string, Promise<void>>(),
   }))
   .actions((self) => ({
     /** does nothing, just used to access the model to force its lifecycle hooks to run */
@@ -68,16 +68,12 @@ export const OntologyRecordType = types
       self.equivalentTypes.set(type, equivalentTypes)
     },
   }))
-  .actions((self) => ({
-    loadEquivalentTypes: flow(function* loadEquivalentTypes(type: string) {
-      if (!self.dataStore) {
-        return
-      }
-      if (self.startedEquivalentTypeRequests.has(type)) {
-        return
-      }
-      self.startedEquivalentTypeRequests.add(type)
-      const terms = (yield self.dataStore.getTermsWithLabelOrSynonym(
+  .actions((self) => {
+    const fetchEquivalentTypes = flow(function* fetchEquivalentTypes(
+      dataStore: OntologyStore,
+      type: string,
+    ) {
+      const terms = (yield dataStore.getTermsWithLabelOrSynonym(
         type,
       )) as unknown as OntologyTerm[]
       const equivalents: string[] = terms
@@ -86,8 +82,27 @@ export const OntologyRecordType = types
       if (isAlive(self)) {
         self.setEquivalentTypes(type, equivalents)
       }
-    }),
-  }))
+    })
+    return {
+      /**
+       * Load the types equivalent to `type` so `isTypeOf` can use them.
+       * Resolves once they're loaded, even if another caller started loading
+       * them first.
+       */
+      loadEquivalentTypes(type: string): Promise<void> {
+        const { dataStore } = self
+        if (!dataStore || self.equivalentTypes.has(type)) {
+          return Promise.resolve()
+        }
+        let request = self.equivalentTypeRequests.get(type)
+        if (!request) {
+          request = fetchEquivalentTypes(dataStore, type)
+          self.equivalentTypeRequests.set(type, request)
+        }
+        return request
+      },
+    }
+  })
   .actions((self) => ({
     afterCreate() {
       autorun((reaction) => {
@@ -100,6 +115,7 @@ export const OntologyRecordType = types
         void self.loadEquivalentTypes('pseudogenic_transcript')
         void self.loadEquivalentTypes('CDS')
         void self.loadEquivalentTypes('mRNA')
+        void self.loadEquivalentTypes('exon')
         reaction.dispose()
       })
     },

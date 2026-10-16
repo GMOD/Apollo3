@@ -439,6 +439,9 @@ export function baseModelFactory(
               self.setLoading(true)
               void self.session.apolloDataStore
                 .loadFeatures(self.regions)
+                .catch((error: unknown) => {
+                  console.error(error)
+                })
                 .then(() => {
                   setTimeout(() => {
                     self.setLoading(false)

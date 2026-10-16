@@ -14,7 +14,8 @@ import {
   RadioGroup,
   type SelectChangeEvent,
 } from '@mui/material'
-import React, { useState } from 'react'
+import { observer } from 'mobx-react'
+import React, { useEffect, useState } from 'react'
 
 import type { ChangeManager } from '../ChangeManager'
 import type { ApolloSessionModel } from '../session'
@@ -71,7 +72,7 @@ function makeRadioButtonName(transcript: AnnotationFeature): string {
   return `${id} [${transcript.min + 1}-${transcript.max}]`
 }
 
-export function MergeTranscripts({
+export const MergeTranscripts = observer(function MergeTranscripts({
   changeManager,
   handleClose,
   selectedFeature,
@@ -81,11 +82,27 @@ export function MergeTranscripts({
   sourceFeature,
 }: MergeTranscriptsProps) {
   const [errorMessage, setErrorMessage] = useState('')
-  const transcripts = getTranscripts(sourceFeature, session)
-  const firstTranscript = Object.keys(transcripts).at(0)
-  const [selectedTranscriptId, setSelectedTranscriptId] = useState<
-    string | undefined
-  >(firstTranscript)
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  // `isTypeOf` answers false until the transcript types are loaded, which
+  // would list no transcripts, so wait for them
+  const transcriptTypesLoaded =
+    featureTypeOntology?.equivalentTypes.has('transcript') ?? false
+  useEffect(() => {
+    void featureTypeOntology?.loadEquivalentTypes('transcript')
+  }, [featureTypeOntology])
+  const transcripts = transcriptTypesLoaded
+    ? getTranscripts(sourceFeature, session)
+    : {}
+  const [chosenTranscriptId, setChosenTranscriptId] = useState<string>()
+  const selectedTranscriptId =
+    chosenTranscriptId ?? Object.keys(transcripts).at(0)
+  let message = 'Loading transcripts…'
+  if (transcriptTypesLoaded) {
+    message =
+      Object.keys(transcripts).length === 0
+        ? 'There are no transcripts to merge with'
+        : 'Merge with transcript:'
+  }
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -117,7 +134,7 @@ export function MergeTranscripts({
   const handleTypeChange = (e: SelectChangeEvent) => {
     setErrorMessage('')
     const { value } = e.target
-    setSelectedTranscriptId(value)
+    setChosenTranscriptId(value)
   }
 
   return (
@@ -130,9 +147,7 @@ export function MergeTranscripts({
     >
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-          {Object.keys(transcripts).length === 0
-            ? 'There are no transcripts to merge with'
-            : 'Merge with transcript:'}
+          {message}
           <FormControl style={{ marginTop: 5 }}>
             <RadioGroup
               aria-labelledby="demo-radio-buttons-group-label"
@@ -179,4 +194,4 @@ export function MergeTranscripts({
       ) : null}
     </Dialog>
   )
-}
+})

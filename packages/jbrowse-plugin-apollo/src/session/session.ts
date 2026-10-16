@@ -575,6 +575,9 @@ export function extendSession(
   return types.snapshotProcessor(sm, {
     postProcessor(snap: SnapshotOut<typeof sm>, node) {
       snap.apolloSelectedFeature = undefined
+      // A change can't still be in progress in a restored session, and saving
+      // this as true would block all edits in it
+      snap.changeInProgress = false
       // @ts-expect-error ontologyManager isn't actually required
       snap.apolloDataStore = {
         typeName: 'Client',
