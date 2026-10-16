@@ -221,6 +221,15 @@ Cypress.Commands.add(
       })
     }
     cy.wrap(Cypress.$('body')).within(() => {
+      // Once the user is logged in, the Apollo session fetches the server's
+      // config and rebuilds the whole app with it, which replaces every element
+      // on the page, including an open menu. Wait for the rebuilt app, whose
+      // config has `hasRole` set.
+      cy.window({ timeout: 20_000 })
+        .its(
+          'JBrowseRootModel.jbrowse.configuration.ApolloPlugin.hasRole.value',
+        )
+        .should('equal', true)
       openApolloMenu()
       for (const pathPart of menuItemPathPrefix) {
         cy.contains(pathPart, { timeout: 10_000 }).click()
