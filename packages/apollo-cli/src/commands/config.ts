@@ -12,7 +12,7 @@ import {
   optionDesc,
 } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
-import { createFetchErrorMessage, localhostToAddress } from '../utils.js'
+import { createApiURL, createFetchErrorMessage } from '../utils.js'
 
 export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
   static summary = 'Get or set apollo configuration options'
@@ -195,7 +195,7 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
   private async getLoginTypes(
     address: string,
   ): Promise<{ name: string; needsPopup: boolean; message: string }[]> {
-    const response = await fetch(localhostToAddress(`${address}/auth/types`))
+    const response = await fetch(createApiURL(address, 'auth/types'))
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(
         response,

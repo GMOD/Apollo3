@@ -10,8 +10,8 @@ import { type ApolloConf, KEYS } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
 import {
   type UserCredentials,
+  createApiURL,
   createFetchErrorMessage,
-  localhostToAddress,
 } from '../utils.js'
 
 interface LoginType {
@@ -166,7 +166,7 @@ and sign in. This works even when running the command on a remote server, e.g. o
     address: string,
     accessType: string,
   ): Promise<LoginType> {
-    const url = localhostToAddress(`${address}/auth/types`)
+    const url = createApiURL(address, 'auth/types')
     const response = await fetch(url)
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(
@@ -190,7 +190,7 @@ and sign in. This works even when running the command on a remote server, e.g. o
     address: string,
     password: string,
   ): Promise<UserCredentials> {
-    const url = localhostToAddress(`${address}/auth/root`)
+    const url = createApiURL(address, 'auth/root')
     const response = await fetch(url, {
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
@@ -215,9 +215,8 @@ and sign in. This works even when running the command on a remote server, e.g. o
     address: string,
     accessType: string,
   ): Promise<UserCredentials> {
-    const url = localhostToAddress(
-      `${address}/auth/login?${new URLSearchParams({ type: accessType }).toString()}`,
-    )
+    const url = createApiURL(address, 'auth/login')
+    url.searchParams.set('type', accessType)
     const response = await fetch(url, {
       headers: { 'Content-Type': 'application/json' },
     })
@@ -244,7 +243,7 @@ and sign in. This works even when running the command on a remote server, e.g. o
     accessType: string,
     tryBrowser: boolean,
   ): Promise<UserCredentials> {
-    const response = await fetch(localhostToAddress(`${address}/auth/device`), {
+    const response = await fetch(createApiURL(address, 'auth/device'), {
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
       body: JSON.stringify({ type: accessType }),
@@ -293,14 +292,11 @@ and sign in. This works even when running the command on a remote server, e.g. o
     address: string,
     deviceLogin: DeviceLoginResponse,
   ): Promise<DeviceTokenResponse> {
-    const response = await fetch(
-      localhostToAddress(`${address}/auth/device/token`),
-      {
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-        body: JSON.stringify({ device_code: deviceLogin.device_code }),
-      },
-    )
+    const response = await fetch(createApiURL(address, 'auth/device/token'), {
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      body: JSON.stringify({ device_code: deviceLogin.device_code }),
+    })
     // Pending logins are reported as 400s with an error code
     if (response.ok || response.status === 400) {
       const dat = (await response.json()) as Partial<{
