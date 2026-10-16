@@ -21,7 +21,9 @@ describe('Delete feature', () => {
     cy.contains('Id=mrna02').rightclick({ force: true })
     cy.contains('Merge transcripts', { timeout: 10_000 }).click()
 
-    cy.contains('y [5-30]').within(() => {
+    // The dialog lists the transcripts once the feature type ontology has
+    // loaded, which can take a while the first time
+    cy.contains('y [5-30]', { timeout: 30_000 }).within(() => {
       cy.get('input').click()
     })
     cy.contains('Submit').click()
