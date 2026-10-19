@@ -30,6 +30,7 @@ import type { ChangeManager } from '../ChangeManager'
 import type { ApolloSessionModel } from '../session'
 
 import { Dialog } from './Dialog'
+import { copyFeatureCoordinates } from './copyFeatureCoordinates'
 
 interface CopyFeatureProps {
   session: ApolloSessionModel
@@ -92,7 +93,7 @@ export function CopyFeature({
   >(assemblies.find((a) => a.name !== sourceAssemblyId)?.name)
   const [refNames, setRefNames] = useState<Collection[]>([])
   const [selectedRefSeqId, setSelectedRefSeqId] = useState('')
-  const [start, setStart] = useState(sourceFeature.min)
+  const [start, setStart] = useState(sourceFeature.min + 1)
   const [errorMessage, setErrorMessage] = useState('')
 
   function handleChangeAssembly(e: SelectChangeEvent) {
@@ -153,19 +154,14 @@ export function CopyFeature({
       return
     }
 
-    const newEnd = start + featureLength
-    if (newEnd > region.end) {
-      setErrorMessage(
-        `Feature would extend beyond the bounds of the selected reference sequence. (Feature would end at ${newEnd}, but reference sequence ends at ${region.end})`,
-      )
+    let coordinates: { min: number; max: number }
+    try {
+      coordinates = copyFeatureCoordinates(start, featureLength, region)
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : String(error))
       return
     }
-    if (start < region.start) {
-      setErrorMessage(
-        `Reference sequence starts at ${region.start}, feature cannot start before that.`,
-      )
-      return
-    }
+    const { min: newStart, max: newEnd } = coordinates
 
     const featureIds: string[] = []
     // Let's add featureId to each child recursively
@@ -182,9 +178,9 @@ export function CopyFeature({
     }
 
     newFeatureLine.refSeq = selectedRefSeqId
-    const locationMove = start - newFeatureLine.min
-    newFeatureLine.min = start
-    newFeatureLine.max = start + featureLength
+    const locationMove = newStart - newFeatureLine.min
+    newFeatureLine.min = newStart
+    newFeatureLine.max = newEnd
     // Updates children start and end values
     const updatedChildren = updateRefSeqStartEnd(newFeatureLine, locationMove)
 
@@ -287,7 +283,7 @@ export function CopyFeature({
             ))}
           </Select>
           <DialogContentText>
-            Start position in target reference sequence
+            Start position in target reference sequence (1-based)
           </DialogContentText>
           <TextField
             margin="dense"
@@ -295,6 +291,7 @@ export function CopyFeature({
             fullWidth
             variant="outlined"
             value={start}
+            slotProps={{ htmlInput: { min: 1, step: 1 } }}
             onChange={(e) => {
               setStart(Number(e.target.value))
             }}
@@ -302,7 +299,12 @@ export function CopyFeature({
         </DialogContent>
         <DialogActions>
           <Button
-            disabled={!selectedAssemblyId || !selectedRefSeqId || !start}
+            disabled={
+              !selectedAssemblyId ||
+              !selectedRefSeqId ||
+              !Number.isInteger(start) ||
+              start < 1
+            }
             variant="contained"
             type="submit"
           >
