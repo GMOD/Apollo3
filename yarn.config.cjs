@@ -1,5 +1,3 @@
-// @ts-check
-
 /** @type {import('@yarnpkg/types')} */
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { defineConfig } = require('@yarnpkg/types')

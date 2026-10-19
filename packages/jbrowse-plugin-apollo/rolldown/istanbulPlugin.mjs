@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 // Instruments the plugin's own source for coverage collection in Cypress (via
 // @cypress/code-coverage). Rolldown strips TypeScript after plugin transforms
 // run, so this parses the original .ts/.tsx source directly and passes along
@@ -20,7 +16,10 @@ function makeInstrumenter(extraParserPlugins) {
   })
 }
 
-/** @param {{ srcPath: string }} options */
+/**
+ * @param {{ srcPath: string }} options
+ * @returns {import('rolldown').Plugin}
+ */
 export function istanbul({ srcPath }) {
   // JSX parsing is only enabled for .tsx, since it conflicts with <T> type
   // assertions in .ts files
@@ -28,10 +27,6 @@ export function istanbul({ srcPath }) {
   const tsxInstrumenter = makeInstrumenter(['typescript', 'jsx'])
   return {
     name: 'istanbul',
-    /**
-     * @param {string} code
-     * @param {string} id
-     */
     transform(code, id) {
       if (
         !id.startsWith(srcPath + path.sep) ||

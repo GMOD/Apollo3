@@ -9,6 +9,7 @@
     "./*.cjs",
     "./.*.cjs",
     "./rolldown/*.mjs",
+    "./rolldown/*.d.ts",
     "cypress.config.ts",
   ],
 }

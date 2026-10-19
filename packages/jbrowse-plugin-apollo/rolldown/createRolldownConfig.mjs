@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import fs from 'node:fs'
 import path from 'node:path'
 
@@ -21,6 +17,8 @@ import {
 const appPath = fs.realpathSync(process.cwd())
 const packageJsonPath = path.join(appPath, 'package.json')
 const packageJsonText = fs.readFileSync(packageJsonPath, 'utf8')
+/** @type {{ name?: string, config?: { jbrowse?: { plugin?: { name?: string } } } }} */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const packageJson = JSON.parse(packageJsonText)
 const packageName = safePackageName(packageJson.name ?? '')
 const umdName = `JBrowsePlugin${packageJson.config?.jbrowse?.plugin?.name}`
@@ -34,7 +32,12 @@ const resolve = {
   mainFields: ['module', 'main', 'browser'],
 }
 
+/**
+ * @param {string[]} jbrowseGlobals
+ * @param {boolean} [dotSyntax]
+ */
 function createGlobalMap(jbrowseGlobals, dotSyntax = false) {
+  /** @type {Record<string, string>} */
   const globalMap = {}
   for (const global of jbrowseGlobals) {
     globalMap[global] = dotSyntax
@@ -44,21 +47,33 @@ function createGlobalMap(jbrowseGlobals, dotSyntax = false) {
   return globalMap
 }
 
+/**
+ * @param {'cjs' | 'esmBundle' | 'umd'} mode
+ * @param {string[]} jbrowseGlobals
+ * @returns {import('rolldown').RolldownPluginOption}
+ */
 function getPlugins(mode, jbrowseGlobals) {
+  // tsc resolves these plugins' types, but typescript-eslint sees some of them
+  // as error types
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return [
     // Instrument the UMD bundle (the one Cypress loads) for coverage
     mode === 'umd' && process.env.COVERAGE === 'true' && istanbul({ srcPath }),
-    (mode === 'cjs' || mode === 'esmBundle' || mode === 'umd') &&
-      rollupExternalGlobals(createGlobalMap(jbrowseGlobals)),
-    (mode === 'esmBundle' || mode === 'umd') &&
-      // By default, nodePolyfills only polyfills code in node_modules/. We set
-      // include to null here to include the plugin source code itself (and for
-      // Yarn 2/3 compatibility, since it doesn't use node_modules/).
-      nodePolyfills({ include: null }),
+    rollupExternalGlobals(createGlobalMap(jbrowseGlobals)),
+    (mode === 'esmBundle' || mode === 'umd') && nodePolyfills(),
     (mode === 'cjs' || mode === 'esmBundle') && omitUnresolved(),
   ].filter(Boolean)
 }
 
+/**
+ * @param {string[]} jbrowseGlobals
+ * @param {{
+ *   includeUMD?: boolean | undefined
+ *   includeCJS?: boolean | undefined
+ *   includeESMBundle?: boolean | undefined
+ *   includeNPM?: boolean | undefined
+ * }} [options]
+ */
 export function createRolldownConfig(jbrowseGlobals, options) {
   const includeUMD =
     options?.includeUMD === true || options?.includeUMD === undefined
@@ -91,16 +106,23 @@ export function createRolldownConfig(jbrowseGlobals, options) {
           exports: 'named',
           codeSplitting: false,
         },
-        nodeEnv === 'production' && {
-          file: path.join(distPath, `${packageName}.cjs.production.min.js`),
-          format: 'cjs',
-          esModule: true,
-          sourcemap: true,
-          exports: 'named',
-          minify: true,
-          codeSplitting: false,
-        },
-      ].filter(Boolean),
+        ...(nodeEnv === 'production'
+          ? /** @type {import('rolldown').OutputOptions[]} */ ([
+              {
+                file: path.join(
+                  distPath,
+                  `${packageName}.cjs.production.min.js`,
+                ),
+                format: 'cjs',
+                esModule: true,
+                sourcemap: true,
+                exports: 'named',
+                minify: true,
+                codeSplitting: false,
+              },
+            ])
+          : []),
+      ],
     })
   const umdConfig =
     includeUMD &&
@@ -127,18 +149,25 @@ export function createRolldownConfig(jbrowseGlobals, options) {
           codeSplitting: false,
           globals: createGlobalMap(jbrowseGlobals, true),
         },
-        nodeEnv === 'production' && {
-          file: path.join(distPath, `${packageName}.umd.production.min.js`),
-          format: 'umd',
-          name: umdName,
-          esModule: true,
-          sourcemap: true,
-          exports: 'named',
-          codeSplitting: false,
-          globals: createGlobalMap(jbrowseGlobals, true),
-          minify: true,
-        },
-      ].filter(Boolean),
+        ...(nodeEnv === 'production'
+          ? /** @type {import('rolldown').OutputOptions[]} */ ([
+              {
+                file: path.join(
+                  distPath,
+                  `${packageName}.umd.production.min.js`,
+                ),
+                format: 'umd',
+                name: umdName,
+                esModule: true,
+                sourcemap: true,
+                exports: 'named',
+                codeSplitting: false,
+                globals: createGlobalMap(jbrowseGlobals, true),
+                minify: true,
+              },
+            ])
+          : []),
+      ],
       watch: { clearScreen: false },
     })
   const esmBundleConfig =
@@ -196,6 +225,7 @@ export function createRolldownConfig(jbrowseGlobals, options) {
       ],
       watch: { clearScreen: false },
     })
+  /** @type {import('rolldown').RolldownOptions[]} */
   const configs = []
   for (const conf of [umdConfig, esmBundleConfig, npmConfig, cjsConfig]) {
     if (conf) {

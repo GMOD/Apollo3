@@ -1,23 +1,25 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import fs from 'node:fs'
 import path from 'node:path'
 
 import chalk from 'chalk'
 
+/** @param {string} name */
 export function safePackageName(name) {
   return name
     .toLowerCase()
     .replaceAll(/(^@.*\/)|((^[^a-zA-Z]+)|[^\w.-])|([^a-zA-Z0-9]+$)/g, '')
 }
 
+/** @param {string} id */
 export function external(id) {
   return !id.startsWith('.') && !path.isAbsolute(id)
 }
 
+/**
+ * @param {string} packageName
+ * @param {string} distPath
+ * @returns {import('rolldown').Plugin}
+ */
 export function writeIndex(packageName, distPath) {
   return {
     name: 'write-index-file',
@@ -39,6 +41,7 @@ ${baseLine}.cjs.development.js')
   }
 }
 
+/** @returns {import('rolldown').Plugin} */
 export function omitUnresolved() {
   const suffix = '?unresolved'
   return {

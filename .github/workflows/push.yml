@@ -47,6 +47,8 @@ jobs:
         working-directory: packages/apollo-shared
       - name: Lint codebase
         run: yarn eslint --max-warnings 0
+      - name: Type check config files and scripts
+        run: yarn typecheck:node
   docker:
     if: ${{ github.ref == 'refs/heads/main' }}
     uses: ./.github/workflows/docker.yml

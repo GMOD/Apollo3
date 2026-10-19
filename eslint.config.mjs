@@ -1,5 +1,6 @@
 import js from '@eslint/js'
 import pluginReact from '@eslint-react/eslint-plugin'
+import { defineConfig } from 'eslint/config'
 import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript'
 import pluginCypress from 'eslint-plugin-cypress/flat'
 import pluginImportX from 'eslint-plugin-import-x'
@@ -10,8 +11,7 @@ import pluginUnicorn from 'eslint-plugin-unicorn'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
-/** @type {import('eslint').Linter.Config[]} */
-export default [
+export default defineConfig([
   {
     ignores: [
       '.pnp.*',
@@ -154,4 +154,4 @@ export default [
     files: ['packages/apollo-collaboration-server/src/**/*.ts'],
     rules: { 'no-console': 'error' },
   },
-]
+])

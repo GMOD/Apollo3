@@ -15,7 +15,7 @@ function main() {
     .split(/[\n\r]+/)
     // Ignore deleted files
     .map((line) => (line.startsWith('D\t') ? undefined : line.split('\t')[1]))
-    .filter(Boolean)
+    .filter((fileName) => fileName !== undefined)
 
   if (
     changedFiles.some(

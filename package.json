@@ -15,7 +15,8 @@
     "start:plugin": "yarn workspace @apollo-annotation/jbrowse-plugin-apollo run start",
     "start:server": "yarn workspace @apollo-annotation/collaboration-server run start",
     "start:shared": "yarn workspace @apollo-annotation/shared run start",
-    "test": "yarn workspaces foreach --all run test:ci"
+    "test": "yarn workspaces foreach --all run test:ci",
+    "typecheck:node": "tsc -b --noEmit tsconfig.node.json packages/jbrowse-plugin-apollo/tsconfig.node.json"
   },
   "resolutions": {
     "eslint-plugin-tsdoc/@typescript-eslint/utils": "^8.61.0"

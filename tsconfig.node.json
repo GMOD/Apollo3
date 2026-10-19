@@ -36,6 +36,7 @@
 
     "composite": true,
     "allowJs": true,
+    "checkJs": true,
     "noEmit": true,
   },
   "include": [

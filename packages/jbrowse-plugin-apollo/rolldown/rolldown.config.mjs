@@ -1,9 +1,8 @@
-/** @type {import('rolldown').RolldownOptions} */
-
 import globals from '@jbrowse/core/ReExports/list'
 
 import { createRolldownConfig } from './createRolldownConfig.mjs'
 
+/** @param {string | undefined} string */
 function stringToBoolean(string) {
   if (string === undefined) {
     return
