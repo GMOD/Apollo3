@@ -229,9 +229,7 @@ Cypress.Commands.add(
       // on the page, including an open menu. Wait for the rebuilt app, whose
       // config has `hasRole` set.
       cy.window({ timeout: 20_000 })
-        .its(
-          'JBrowseRootModel.jbrowse.configuration.ApolloPlugin.hasRole.value',
-        )
+        .its('JBrowseRootModel.jbrowse.configuration.ApolloPlugin.hasRole')
         .should('equal', true)
       openApolloMenu()
       for (const pathPart of menuItemPathPrefix) {
