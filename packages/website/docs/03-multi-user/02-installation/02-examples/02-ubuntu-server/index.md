@@ -190,7 +190,6 @@ To set this up, we first need to enable some mods on our apache2 server.
 ```sh
 sudo a2enmod proxy
 sudo a2enmod proxy_http
-sudo a2enmod proxy_wstunnel
 ```
 
 Now we'll configure the proxy by editing the file
@@ -205,7 +204,7 @@ Add these lines near the bottom of the file, above the `</VirtualHost>` line.
 ```txt
 	ProxyPass "/config.json" "http://localhost:3999/jbrowse/config.json"
 	ProxyPassReverse "/config.json" "http://localhost:3999/jbrowse/config.json"
-	ProxyPassMatch "^/apollo/(.*)$" "http://localhost:3999/$1" upgrade=websocket connectiontimeout=3600 timeout=3600
+	ProxyPassMatch "^/apollo/(.*)$" "http://localhost:3999/$1" connectiontimeout=3600 timeout=3600
 	ProxyPassReverse "/apollo/" "http://localhost:3999/"
 ```
 
