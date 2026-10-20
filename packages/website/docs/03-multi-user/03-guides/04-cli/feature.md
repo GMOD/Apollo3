@@ -353,7 +353,7 @@ Get features in assembly, reference sequence or genomic window
 ```
 USAGE
   $ apollo feature get [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>] [-r <value>]
-    [-s <value>] [-e <value>]
+    [-s <value>] [--include-checks] [-e <value>]
 
 FLAGS
   -a, --assembly=<value>     Find input reference sequence in this assembly
@@ -361,6 +361,7 @@ FLAGS
   -r, --refseq=<value>       Reference sequence. If unset, query all sequences
   -s, --start=<value>        [default: 1] Start coordinate (1-based)
       --config-file=<value>  Use this config file (mostly for testing)
+      --include-checks       Output [features, checks] instead of only features
       --profile=<value>      Use credentials from this profile
       --timeout=<value>      [default: 1h] Timeout for each request to the server
 
@@ -368,6 +369,10 @@ DESCRIPTION
   Get features in assembly, reference sequence or genomic window
 
 EXAMPLES
+  Get features and validation checks as [features, checks]:
+
+    $ apollo feature get -a myAssembly --include-checks
+
   Get all features in myAssembly:
 
     $ apollo feature get -a myAssembly
