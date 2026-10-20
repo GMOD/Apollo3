@@ -8,6 +8,11 @@ export default class Get extends BaseCommand<typeof Get> {
 
   static examples = [
     {
+      description: 'Get features and validation checks as [features, checks]:',
+      command:
+        '<%= config.bin %> <%= command.id %> -a myAssembly --include-checks',
+    },
+    {
       description: 'Get all features in myAssembly:',
       command: '<%= config.bin %> <%= command.id %> -a myAssembly',
     },
@@ -33,6 +38,9 @@ export default class Get extends BaseCommand<typeof Get> {
       description: 'Start coordinate (1-based)',
       default: 1,
     }),
+    'include-checks': Flags.boolean({
+      description: 'Output [features, checks] instead of only features',
+    }),
     end: Flags.integer({
       char: 'e',
       description: 'End coordinate',
@@ -53,20 +61,36 @@ export default class Get extends BaseCommand<typeof Get> {
     )
 
     const results: object[] = []
+    const checks: object[] = []
     for (const refseq of refseqIds) {
-      const json = await this.getFeatures(refseq, flags.start, endCoord)
-      for (const x of json[0] as object[]) {
-        results.push(x)
+      const [refseqFeatures, refseqChecks] = await this.getFeatures(
+        refseq,
+        flags.start,
+        endCoord,
+      )
+      for (const feature of refseqFeatures) {
+        results.push(feature)
+      }
+      if (flags['include-checks']) {
+        for (const check of refseqChecks) {
+          checks.push(check)
+        }
       }
     }
-    this.log(JSON.stringify(results, null, 2))
+    this.log(
+      JSON.stringify(
+        flags['include-checks'] ? [results, checks] : results,
+        null,
+        2,
+      ),
+    )
   }
 
   private async getFeatures(
     refSeq: string,
     start: number,
     end: number,
-  ): Promise<object[]> {
+  ): Promise<[object[], object[]]> {
     const searchParams = new URLSearchParams({
       refSeq,
       start: start.toString(),
@@ -74,6 +98,6 @@ export default class Get extends BaseCommand<typeof Get> {
     })
     return (await this.get(
       `features/getFeatures?${searchParams.toString()}`,
-    )) as object[]
+    )) as [object[], object[]]
   }
 }
