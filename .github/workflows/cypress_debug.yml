@@ -4,7 +4,10 @@ on: workflow_dispatch
 jobs:
   build:
     name: End-to-end test
-    runs-on: ubuntu-latest
+    # MongoDB 8 refuses to start on the ubuntu-24.04 runner's 7.0 kernel. Go
+    # back to ubuntu-latest once MongoDB 8.0.35/8.3.14 are out.
+    # https://github.com/actions/runner-images/issues/15005
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out
         uses: actions/checkout@v7
