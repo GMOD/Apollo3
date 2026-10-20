@@ -98,8 +98,35 @@ async function bootstrap() {
       })
     }
   } else {
-    // Lets process managers like PM2 stop or reload this process cleanly
-    app.enableShutdownHooks()
+    // Close the app and exit on these signals, so process managers like PM2 and
+    // container runtimes can stop this process cleanly. Exit explicitly instead
+    // of using app.enableShutdownHooks(), which re-sends the signal to exit, and
+    // a re-sent signal is ignored when this is PID 1 (e.g. in a container).
+    for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+      process.once(signal, () => {
+        logger.log(`Received ${signal}, shutting down`)
+        // A second signal exits right away
+        process.once(signal, () => {
+          process.exit(1)
+        })
+        // These exits are still part of handling the signal, which the lint
+        // rule can't tell once they're inside a callback
+        app.close().then(
+          () => {
+            // eslint-disable-next-line unicorn/no-process-exit
+            process.exit(0)
+          },
+          (error: unknown) => {
+            logger.error(
+              'Error while shutting down',
+              error instanceof Error ? error.stack : String(error),
+            )
+            // eslint-disable-next-line unicorn/no-process-exit
+            process.exit(1)
+          },
+        )
+      })
+    }
   }
 
   const { httpAdapter } = app.get(HttpAdapterHost)
