@@ -20,7 +20,6 @@ import {
 import type { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
 import {
   type AbstractSessionModel,
-  type SessionWithAddTracks,
   type SessionWithDrawerWidgets,
   isElectron,
 } from '@jbrowse/core/util'
@@ -33,6 +32,7 @@ import {
   getSnapshot,
   types,
 } from '@jbrowse/mobx-state-tree'
+import type { JobsListModel } from '@jbrowse/plugin-jobs-management'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import SaveIcon from '@mui/icons-material/Save'
 import { autorun, flow, observable, when } from 'mobx'
@@ -42,8 +42,7 @@ import {
   LoginFailedError,
 } from '../ApolloInternetAccount/loginErrors'
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { ApolloJobModel } from '../ApolloJobModel'
-import type ApolloPluginConfigurationSchema from '../config'
+import type { ApolloPluginConfigModel } from '../config'
 import { type ApolloRootModel, isApolloInternetAccount } from '../types'
 import { createFetchErrorMessage } from '../util'
 
@@ -52,6 +51,14 @@ import {
   clientDataStoreFactory,
 } from './ClientDataStore'
 import { handleApolloFeaturesUrlParam } from './handleApolloFeaturesUrlParam'
+
+interface JBrowseConfigWithTracks {
+  addTrackConf(conf: {
+    trackId: string
+    type: string
+    [key: string]: unknown
+  }): unknown
+}
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreModel
@@ -85,7 +92,6 @@ export function extendSession(
     .props({
       apolloDataStore: types.optional(ClientDataStore, { typeName: 'Client' }),
       apolloSelectedFeature: types.safeReference(AnnotationFeatureExtended),
-      jobsManager: types.optional(ApolloJobModel, {}),
       isLocked: types.optional(types.boolean, false),
       changeInProgress: types.optional(types.boolean, false),
     })
@@ -116,7 +122,22 @@ export function extendSession(
         },
       }
     })
+    .views((self) => ({
+      get jobStatusWidget() {
+        const { widgets } = self as unknown as SessionWithDrawerWidgets
+        const jobStatusWidget =
+          widgets.get('JobsList') ??
+          // @ts-expect-error: addWidget function not detected on the session
+          self.addWidget('JobsListWidget', 'JobsList')
+        return jobStatusWidget as unknown as JobsListModel
+      },
+    }))
     .actions((self) => ({
+      showJobStatusWidget() {
+        ;(self as unknown as SessionWithDrawerWidgets).showWidget(
+          self.jobStatusWidget,
+        )
+      },
       apolloSetSelectedFeature(feature?: AnnotationFeature | string) {
         // @ts-expect-error Not sure why TS thinks these MST types don't match
         self.apolloSelectedFeature = feature
@@ -131,9 +152,7 @@ export function extendSession(
         )
         if (!hasTrack) {
           ;(
-            getRoot<ApolloRootModel>(self).jbrowse as {
-              addTrackConf: SessionWithAddTracks['addTrackConf']
-            }
+            getRoot<ApolloRootModel>(self).jbrowse as JBrowseConfigWithTracks
           ).addTrackConf({
             type: 'ApolloTrack',
             trackId,
@@ -153,9 +172,7 @@ export function extendSession(
         const { jbrowse } = getRoot<ApolloRootModel>(self)
         const pluginConfiguration =
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          jbrowse.configuration.ApolloPlugin as Instance<
-            typeof ApolloPluginConfigurationSchema
-          >
+          jbrowse.configuration.ApolloPlugin as ApolloPluginConfigModel
         return pluginConfiguration
       },
       broadcastLocations() {
@@ -296,17 +313,12 @@ export function extendSession(
               // snapshot after the updated config.json loads.
               const pluginConfiguration =
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                jbrowse.configuration.ApolloPlugin as Instance<
-                  typeof ApolloPluginConfigurationSchema
-                >
-              const hasRole = readConfObject(
-                pluginConfiguration,
-                'hasRole',
-              ) as boolean
+                jbrowse.configuration.ApolloPlugin as ApolloPluginConfigModel
+              const hasRole = readConfObject(pluginConfiguration, 'hasRole')
               const featureTypeOntologyName = readConfObject(
                 pluginConfiguration,
                 'featureTypeOntologyName',
-              ) as string
+              )
               const hasApolloInternetAccount = internetAccounts.some((ia) =>
                 isApolloInternetAccount(ia),
               )
@@ -335,7 +347,6 @@ export function extendSession(
                     readConfObject(ont, 'name') === featureTypeOntologyName,
                 )
                 if (!featureTypeOntology) {
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                   pluginConfiguration.addOntology({
                     name: 'Sequence Ontology',
                     version: '01c33c6d9b6c8dca12e7d3e37b49ee113093c2fa',
@@ -348,7 +359,6 @@ export function extendSession(
                 for (const a of nonApolloAssemblies) {
                   self.addApolloLocalTrackConfig(a)
                 }
-                // @ts-expect-error not sure why snapshot type is wrong for snapshot
                 applySnapshot(self, self.previousSnapshot)
                 reaction.dispose()
                 return
@@ -469,7 +479,7 @@ export function extendSession(
           ) {
             return superTrackActions?.(conf)
           }
-          const trackId = readConfObject(conf, 'trackId') as string
+          const trackId = readConfObject(conf, 'trackId')
           const sessionTrackIdentifier = '-sessionTrack'
           const isSessionTrack = trackId.endsWith(sessionTrackIdentifier)
           return isSessionTrack

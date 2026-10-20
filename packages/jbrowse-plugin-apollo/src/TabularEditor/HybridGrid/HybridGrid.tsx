@@ -114,19 +114,12 @@ const HybridGrid = observer(function HybridGrid({
       </table>
       <Menu
         open={Boolean(contextMenu)}
-        onMenuItemClick={(_, callback) => {
+        onMenuItemClick={(callback) => {
           callback()
           setContextMenu(null)
         }}
         onClose={() => {
           setContextMenu(null)
-        }}
-        slotProps={{
-          transition: {
-            onExit: () => {
-              setContextMenu(null)
-            },
-          },
         }}
         style={{ zIndex: theme.zIndex.tooltip }}
         menuItems={contextMenu?.items ?? []}
