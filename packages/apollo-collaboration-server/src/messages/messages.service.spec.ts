@@ -78,4 +78,8 @@ describe('MessagesService', () => {
     expect(ids).toEqual([expect.any(String), expect.any(String)])
     expect(new Set(ids).size).toBe(2)
   })
+
+  it('reports that it is receiving events without a database', () => {
+    expect(service.isTailing()).toBe(true)
+  })
 })

@@ -32,6 +32,16 @@ function nextEvents(service: MessagesService, count: number) {
   return firstValueFrom(service.subscribe().pipe(take(count), toArray()))
 }
 
+async function waitUntil(condition: () => boolean, timeoutMs = 5000) {
+  const deadline = Date.now() + timeoutMs
+  while (!condition()) {
+    if (Date.now() > deadline) {
+      throw new Error('Timed out waiting for condition')
+    }
+    await new Promise((resolve) => setTimeout(resolve, 20))
+  }
+}
+
 function withoutIds(events: MessageEvent[]) {
   return events.map(({ type, data }) => ({ type, data }))
 }
@@ -110,6 +120,10 @@ describe('MessagesService across server processes', () => {
     ])
   })
 
+  it('reports that it is receiving events once its cursor is open', async () => {
+    await waitUntil(() => services.every((service) => service.isTailing()))
+  })
+
   it('keeps delivering after its cursor closes', async () => {
     const [first, second] = services
     // Simulate a dropped connection to MongoDB
@@ -121,6 +135,7 @@ describe('MessagesService across server processes', () => {
     await expect(received.then(withoutIds)).resolves.toEqual([
       { type: 'COMMON', data: { afterReconnect: true } },
     ])
+    expect(second.isTailing()).toBe(true)
   })
 
   it('does not redeliver earlier events to a process that starts later', async () => {

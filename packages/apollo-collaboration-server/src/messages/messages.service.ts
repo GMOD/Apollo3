@@ -56,6 +56,7 @@ export class MessagesService implements OnModuleInit, OnModuleDestroy {
   private cursor?: mongo.FindCursor<ServerEventDocument>
   private ready?: Promise<void>
   private stopped = false
+  private tailing = false
   private lastSeenId?: Types.ObjectId
   private readonly seenIds = new QuickLRU<string, true>({ maxSize: 10_000 })
 
@@ -96,6 +97,15 @@ export class MessagesService implements OnModuleInit, OnModuleDestroy {
 
   subscribe() {
     return this.events.asObservable()
+  }
+
+  /**
+   * Whether this process is receiving events broadcast by other processes.
+   * Always true without a database connection, since there are no other
+   * processes to receive from.
+   */
+  isTailing() {
+    return !this.connection || this.tailing
   }
 
   private async publish(type: string, data: object) {
@@ -200,10 +210,16 @@ export class MessagesService implements OnModuleInit, OnModuleDestroy {
         )
         this.cursor = cursor
         let gotEvents = false
-        for await (const event of cursor) {
-          gotEvents = true
-          backoff = 100
-          this.handleEvent(event)
+        try {
+          for await (const event of cursor) {
+            gotEvents = true
+            // The first event arrives once the cursor is open
+            this.tailing = true
+            backoff = 100
+            this.handleEvent(event)
+          }
+        } finally {
+          this.tailing = false
         }
         if (!gotEvents) {
           // The last event we saw has rolled out of the capped collection
