@@ -157,7 +157,7 @@ export function MergeExons({
                   key={key}
                   control={<Radio />}
                   label={
-                    <Box display="flex" alignItems="center">
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       {makeRadioButtonName(key, neighboringExons)}
                     </Box>
                   }

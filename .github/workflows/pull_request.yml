@@ -127,8 +127,10 @@ jobs:
           cache: yarn
       - name: Install
         run: yarn --immutable
-      - name: Get latest JBrowse
-        run: yarn run jbrowse create .jbrowse
+      - name: Get JBrowse
+        run: |
+          version=$(yarn info @jbrowse/core --json | jq -r '.children.Version')
+          yarn run jbrowse create --branch "v$version" .jbrowse
         working-directory: packages/jbrowse-plugin-apollo
       - name: Start MongoDB
         uses: supercharge/mongodb-github-action@1.12.1
