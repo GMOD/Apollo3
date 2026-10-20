@@ -483,6 +483,64 @@ server.listen(0, () => {
     )
   })
 
+  void globalThis.itName('Feature get includes checks when requested', () => {
+    new Shell(
+      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
+    )
+    let p = new Shell(`${apollo} feature get ${P} -a vv1`)
+    const features = JSON.parse(p.stdout) as AnnotationFeatureSnapshot[]
+    p = new Shell(`${apollo} feature check ${P} -a vv1`)
+    const checks = JSON.parse(p.stdout) as CheckResultSnapshot[]
+    assert.ok(checks.length > 0, 'Expected failing checks in the test assembly')
+
+    p = new Shell(`${apollo} feature get ${P} -a vv1 --include-checks`)
+    const [includedFeatures, includedChecks] = JSON.parse(p.stdout) as [
+      AnnotationFeatureSnapshot[],
+      CheckResultSnapshot[],
+    ]
+    assert.deepStrictEqual(includedFeatures, features)
+    const summarizeChecks = (results: CheckResultSnapshot[]) =>
+      results
+        .map((check) =>
+          JSON.stringify([
+            check.name,
+            check.cause,
+            check.message,
+            check.refSeq,
+            check.start,
+            check.end,
+            check.ids,
+          ]),
+        )
+        .sort()
+    assert.deepStrictEqual(
+      summarizeChecks(includedChecks),
+      summarizeChecks(checks),
+    )
+
+    p = new Shell(`${apollo} feature get ${P} -a vv1 -r ctgA -s 40 -e 41`)
+    const regionalFeatures = JSON.parse(p.stdout) as AnnotationFeatureSnapshot[]
+    p = new Shell(
+      `${apollo} feature get ${P} -a vv1 -r ctgA -s 40 -e 41 --include-checks`,
+    )
+    const [includedRegionalFeatures, includedRegionalChecks] = JSON.parse(
+      p.stdout,
+    ) as [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
+    assert.deepStrictEqual(includedRegionalFeatures, regionalFeatures)
+    assert.ok(Array.isArray(includedRegionalChecks))
+
+    p = new Shell(
+      `${apollo} feature get ${P} -a vv1 -r FOOBAR --include-checks`,
+    )
+    assert.deepStrictEqual(JSON.parse(p.stdout), [[], []])
+
+    new Shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a empty -e -f`,
+    )
+    p = new Shell(`${apollo} feature get ${P} -a empty --include-checks`)
+    assert.deepStrictEqual(JSON.parse(p.stdout), [[], []])
+  })
+
   void globalThis.itName('Assembly get', () => {
     new Shell(
       `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a vv1 -e -f`,
