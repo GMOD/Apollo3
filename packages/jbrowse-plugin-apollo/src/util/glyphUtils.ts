@@ -236,12 +236,12 @@ export function getMinAndMaxPx(
   const minPxInfo = lgv.bpToPx({
     refName,
     coord: feature.min,
-    regionNumber,
+    displayedRegionIndex: regionNumber,
   })
   const maxPxInfo = lgv.bpToPx({
     refName,
     coord: feature.max,
-    regionNumber,
+    displayedRegionIndex: regionNumber,
   })
   if (minPxInfo === undefined || maxPxInfo === undefined) {
     return
@@ -314,8 +314,8 @@ export function getContextMenuItemsForFeature(
   const role = internetAccount ? internetAccount.role : 'admin'
   const readOnly = !(role && ['admin', 'user'].includes(role))
   const [region] = regions
-  const sourceAssemblyId = display.getAssemblyId(region.assemblyName) as string
-  const currentAssemblyId = display.getAssemblyId(region.assemblyName) as string
+  const sourceAssemblyId = display.getAssemblyId(region.assemblyName)
+  const currentAssemblyId = display.getAssemblyId(region.assemblyName)
   menuItems.push(
     {
       label: makeFeatureLabel(sourceFeature),
