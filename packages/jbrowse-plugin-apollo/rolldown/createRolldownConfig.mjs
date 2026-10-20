@@ -12,6 +12,7 @@ import rollupExternalGlobals from 'rollup-plugin-external-globals'
 
 import { istanbul } from './istanbulPlugin.mjs'
 import {
+  esModuleInterop,
   external,
   omitUnresolved,
   safePackageName,
@@ -56,6 +57,8 @@ function getPlugins(mode, jbrowseGlobals) {
       // Yarn 2/3 compatibility, since it doesn't use node_modules/).
       nodePolyfills({ include: null }),
     (mode === 'cjs' || mode === 'esmBundle') && omitUnresolved(),
+    (mode === 'cjs' || mode === 'esmBundle' || mode === 'umd') &&
+      esModuleInterop(),
   ].filter(Boolean)
 }
 
