@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { annotationFeatureToGFF3 } from '@apollo-annotation/shared'
 import { GFFFormattingTransformer } from '@gmod/gff'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import type { AbstractSessionModel } from '@jbrowse/core/util'
 import {
@@ -62,7 +61,7 @@ export function DownloadGFF3({
   }
 
   const { assemblyManager } = session as unknown as AbstractSessionModel
-  const assembly = assemblyManager.get(assemblyName) as Assembly | undefined
+  const assembly = assemblyManager.get(assemblyName)
   if (!assembly) {
     setErrorMessage(`Assembly "${assemblyName}" not found`)
     return

@@ -8,6 +8,7 @@ import rollupExternalGlobals from 'rollup-plugin-external-globals'
 
 import { istanbul } from './istanbulPlugin.mjs'
 import {
+  esModuleInterop,
   external,
   omitUnresolved,
   safePackageName,
@@ -62,6 +63,7 @@ function getPlugins(mode, jbrowseGlobals) {
     rollupExternalGlobals(createGlobalMap(jbrowseGlobals)),
     (mode === 'esmBundle' || mode === 'umd') && nodePolyfills(),
     (mode === 'cjs' || mode === 'esmBundle') && omitUnresolved(),
+    esModuleInterop(),
   ].filter(Boolean)
 }
 

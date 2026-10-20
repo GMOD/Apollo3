@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { changeRegistry, checkRegistry } from '@apollo-annotation/common'
-import type { AnnotationFeature } from '@apollo-annotation/mst'
 import {
   CDSCheck,
   CoreValidation,
@@ -13,7 +11,6 @@ import {
 } from '@apollo-annotation/shared'
 import Plugin from '@jbrowse/core/Plugin'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import type BaseResult from '@jbrowse/core/TextSearch/BaseResults'
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import {
   DisplayType,
@@ -25,6 +22,7 @@ import {
   createBaseTrackConfig,
   createBaseTrackModel,
 } from '@jbrowse/core/pluggableElementTypes'
+import type { WorkerHandle } from '@jbrowse/core/rpc/WebWorkerRpcDriver'
 import {
   type AbstractSessionModel,
   type Region,
@@ -44,6 +42,7 @@ import {
 import { installApolloRefNameAliasAdapter } from './ApolloRefNameAliasAdapter'
 import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
 import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
+import type { ApolloSearchResult } from './ApolloTextSearchAdapter/ApolloTextSearchAdapter'
 import {
   ApolloFeatureDetailsWidget,
   ApolloFeatureDetailsWidgetModel,
@@ -66,8 +65,8 @@ import {
 import { AddFeature } from './components'
 import ApolloPluginConfigurationSchema from './config'
 import {
+  annotationFromAlignmentRead,
   annotationFromJBrowseFeature,
-  annotationFromPileup,
 } from './extensions'
 import {
   LinearApolloDisplayComponent,
@@ -75,13 +74,6 @@ import {
 } from './makeDisplayComponent'
 import { addTopLevelMenus } from './menus'
 import { type ApolloSessionModel, extendSession } from './session'
-
-interface RpcHandle {
-  client: {
-    on?(event: string, listener: (event: MessageEvent) => void): void
-  }
-  worker: Worker
-}
 
 interface ApolloMessageData {
   apollo: true
@@ -109,7 +101,7 @@ function isApolloMessageData(data?: unknown): data is ApolloMessageData {
 
 const inWebWorker = 'WorkerGlobalScope' in globalThis
 
-const supportedJBrowseMajorVersion = 4
+const supportedJBrowseMajorVersion = 5
 
 /**
  * Throws if this plugin is loaded in a JBrowse it wasn't built for. The JBrowse
@@ -153,8 +145,7 @@ validationRegistry.registerValidation(new ParentChildValidation())
 export default class ApolloPlugin extends Plugin {
   name = 'ApolloPlugin'
   version = version
-  configurationSchema: ReturnType<typeof ConfigurationSchema> =
-    ApolloPluginConfigurationSchema
+  configurationSchema = ApolloPluginConfigurationSchema
 
   install(pluginManager: PluginManager) {
     installApolloSequenceAdapter(pluginManager)
@@ -259,9 +250,9 @@ export default class ApolloPlugin extends Plugin {
       })
     })
 
+    // @ts-expect-error Extendee type doesn't match for some reason
     pluginManager.addToExtensionPoint(
       'Core-extendSession',
-      // @ts-expect-error not sure how to deal with snapshot model types
       extendSession.bind(this, pluginManager),
     )
 
@@ -269,28 +260,29 @@ export default class ApolloPlugin extends Plugin {
       'Core-extendPluggableElement',
       (pluggableElement: PluggableElementType) => {
         if (pluggableElement.name === 'LinearGenomeView') {
-          const { stateModel } = pluggableElement as ViewType
-          const lgv = stateModel as LinearGenomeViewStateModel
-          const newStateModel = lgv.views((self) => {
-            const superRubberBandMenuItems = self.rubberBandMenuItems
-            return {
-              rubberBandMenuItems() {
-                return [
-                  ...superRubberBandMenuItems(),
-                  {
-                    label: 'Add new feature',
-                    icon: AddIcon,
-                    onClick: () => {
-                      const session = getSession(
-                        self,
-                      ) as unknown as ApolloSessionModel
-                      const { leftOffset, rightOffset } = self
-                      const selectedRegions = self.getSelectedRegions(
-                        leftOffset,
-                        rightOffset,
-                      )
-                      ;(session as unknown as AbstractSessionModel).queueDialog(
-                        (doneCallback) => [
+          ;(pluggableElement as ViewType).extendStateModel((stateModel) => {
+            const lgv = stateModel as LinearGenomeViewStateModel
+            return lgv.views((self) => {
+              const superRubberBandMenuItems = self.rubberBandMenuItems
+              return {
+                rubberBandMenuItems() {
+                  return [
+                    ...superRubberBandMenuItems(),
+                    {
+                      label: 'Add new feature',
+                      icon: AddIcon,
+                      onClick: () => {
+                        const session = getSession(
+                          self,
+                        ) as unknown as ApolloSessionModel
+                        const { leftOffset, rightOffset } = self
+                        const selectedRegions = self.getSelectedRegions(
+                          leftOffset,
+                          rightOffset,
+                        )
+                        ;(
+                          session as unknown as AbstractSessionModel
+                        ).queueDialog((doneCallback) => [
                           AddFeature,
                           {
                             session,
@@ -301,15 +293,14 @@ export default class ApolloPlugin extends Plugin {
                             changeManager:
                               session.apolloDataStore.changeManager,
                           },
-                        ],
-                      )
+                        ])
+                      },
                     },
-                  },
-                ]
-              },
-            }
+                  ]
+                },
+              }
+            })
           })
-          ;(pluggableElement as ViewType).stateModel = newStateModel
         }
         return pluggableElement
       },
@@ -317,13 +308,14 @@ export default class ApolloPlugin extends Plugin {
 
     pluginManager.addToExtensionPoint(
       'Core-extendPluggableElement',
-      annotationFromPileup,
+      annotationFromAlignmentRead,
     )
     pluginManager.addToExtensionPoint(
       'Core-extendPluggableElement',
       annotationFromJBrowseFeature,
     )
 
+    // @ts-expect-error Extendee type doesn't match for some reason
     pluginManager.addToExtensionPoint(
       'Core-preProcessTrackConfig',
       (snap: JBrowseTrackConfig): JBrowseTrackConfig => {
@@ -361,34 +353,31 @@ export default class ApolloPlugin extends Plugin {
       },
     )
 
-    pluginManager.addToExtensionPoint(
+    pluginManager.listenToExtensionPoint(
       'LinearGenomeView-searchResultSelected',
-      (_: any, props: Record<string, unknown>) => {
-        const { session, result } = props as {
-          session: ApolloSessionModel
-          result: BaseResult
-        }
+      ({ result, session }) => {
         const trackId = result.getTrackId()
-        const matchedFeature = result.matchedObject
+        const { matchedFeature } = result as ApolloSearchResult
 
-        if (trackId?.startsWith('apollo_track_') && matchedFeature) {
-          const geneFeature = matchedFeature as AnnotationFeature
-          void session.apolloSetEventualSelectedFeature(geneFeature._id)
+        if (trackId?.startsWith('apollo_track_')) {
+          void (
+            session as unknown as ApolloSessionModel
+          ).apolloSetEventualSelectedFeature(matchedFeature._id)
         }
-
-        /* eslint-disable-next-line @typescript-eslint/no-unsafe-return */
-        return _
       },
     )
 
     if (!inWebWorker) {
       pluginManager.addToExtensionPoint(
         'Core-extendWorker',
-        (handle: RpcHandle) => {
-          if (!('on' in handle.client && handle.client.on)) {
+        (handle: WorkerHandle) => {
+          if (!handle.on || !handle.postMessage) {
             return handle
           }
-          handle.client.on('apollo', async (event: MessageEvent) => {
+          // bound once: `postMessage` is a method reading the handle's own
+          // worker, and it is called from inside the listener
+          const postMessage = handle.postMessage.bind(handle)
+          handle.on('apollo', async (event) => {
             if (!isApolloMessageData(event)) {
               return
             }
@@ -411,7 +400,7 @@ export default class ApolloPlugin extends Plugin {
                 }
                 const { seq: sequence } =
                   await backendDriver.getSequence(region)
-                handle.worker.postMessage({
+                postMessage({
                   apollo,
                   messageId,
                   sequence,
@@ -433,7 +422,7 @@ export default class ApolloPlugin extends Plugin {
                   break
                 }
                 const regions = await backendDriver.getRegions(assembly)
-                handle.worker.postMessage({
+                postMessage({
                   apollo,
                   messageId,
                   regions,
@@ -456,7 +445,7 @@ export default class ApolloPlugin extends Plugin {
                 }
                 const refNameAliases =
                   await backendDriver.getRefNameAliases(assembly)
-                handle.worker.postMessage({
+                postMessage({
                   apollo,
                   messageId,
                   refNameAliases,
