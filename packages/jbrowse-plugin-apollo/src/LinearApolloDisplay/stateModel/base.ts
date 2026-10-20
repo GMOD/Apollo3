@@ -5,7 +5,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import {
   type AnyConfigurationSchemaType,
   ConfigurationReference,
@@ -18,7 +17,6 @@ import {
   getContainingView,
   getSession,
 } from '@jbrowse/core/util'
-import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import {
   addDisposer,
@@ -70,18 +68,6 @@ export function baseModelFactory(
       ),
       filteredFeatureTypes: types.array(types.string),
       loadingState: false,
-    })
-    .views((self) => {
-      const { configuration, renderProps: superRenderProps } = self
-      return {
-        renderProps() {
-          return {
-            ...superRenderProps(),
-            ...getParentRenderProps(self),
-            config: configuration.renderer,
-          }
-        },
-      }
     })
     .volatile(() => ({
       scrollTop: 0,
@@ -141,9 +127,7 @@ export function baseModelFactory(
         const { assemblyName } = region
         const { assemblyManager } =
           self.session as unknown as AbstractSessionModel
-        const assembly = assemblyManager.get(assemblyName) as
-          | Assembly
-          | undefined
+        const assembly = assemblyManager.get(assemblyName)
         if (!assembly) {
           throw new Error(`No assembly found with name ${assemblyName}`)
         }
