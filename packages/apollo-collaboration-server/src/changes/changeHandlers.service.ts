@@ -61,7 +61,7 @@ import { type ClientSession, Model } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service.js'
 import { FilesService } from '../files/files.service.js'
-import { MessagesGateway } from '../messages/messages.gateway.js'
+import { MessagesService } from '../messages/messages.service.js'
 import { PluginsService } from '../plugins/plugins.service.js'
 import { normalizeEmail } from '../users/users.service.js'
 import { Role } from '../utils/role/role.enum.js'
@@ -96,7 +96,7 @@ export class ChangeHandlersService implements ChangeHandlers {
     private readonly filesService: FilesService,
     private readonly countersService: CountersService,
     private readonly pluginsService: PluginsService,
-    private readonly messagesGateway: MessagesGateway,
+    private readonly messagesService: MessagesService,
   ) {}
 
   private readonly logger = new Logger(ChangeHandlersService.name)

@@ -13,7 +13,7 @@ import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, type QueryFilter } from 'mongoose'
 
-import { MessagesGateway } from '../messages/messages.gateway.js'
+import { MessagesService } from '../messages/messages.service.js'
 import {
   GUEST_USER_EMAIL,
   GUEST_USER_NAME,
@@ -75,7 +75,7 @@ export class UsersService implements OnApplicationBootstrap {
   constructor(
     @InjectModel(UserSchema.name)
     private readonly userModel: Model<UserDocument>,
-    private readonly messagesGateway: MessagesGateway,
+    private readonly messagesService: MessagesService,
     private readonly configService: ConfigService<
       {
         BROADCAST_USER_LOCATION: boolean
@@ -311,7 +311,7 @@ export class UsersService implements OnApplicationBootstrap {
         msg,
       )}"`,
     )
-    return this.messagesGateway.create(channel, msg)
+    this.messagesService.broadcast(channel, msg)
   }
 
   /**
@@ -333,6 +333,6 @@ export class UsersService implements OnApplicationBootstrap {
         msg,
       )}"`,
     )
-    return this.messagesGateway.create(channel, msg)
+    this.messagesService.broadcast(channel, msg)
   }
 }
