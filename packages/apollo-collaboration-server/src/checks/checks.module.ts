@@ -12,8 +12,8 @@ import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import idValidator from 'mongoose-id-validator'
 
-import { MessagesGateway } from '../messages/messages.gateway.js'
 import { MessagesModule } from '../messages/messages.module.js'
+import { MessagesService } from '../messages/messages.service.js'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module.js'
 import { SequenceModule } from '../sequence/sequence.module.js'
 
@@ -29,9 +29,9 @@ import { ChecksService } from './checks.service.js'
     MongooseModule.forFeatureAsync([
       {
         name: CheckResult.name,
-        useFactory: (connection, messagesGateway: MessagesGateway) => {
+        useFactory: (connection, messagesService: MessagesService) => {
           CheckResultSchema.plugin(idValidator, { connection })
-          const broadcast = async (
+          const broadcast = (
             doc: CheckResultDocument | CheckResultSnapshot,
           ) => {
             const message: CheckResultUpdate = {
@@ -42,9 +42,9 @@ import { ChecksService } from './checks.service.js'
                 ? doc.toJSON()
                 : doc) as unknown as CheckResultSnapshot,
             }
-            await messagesGateway.create(message.channel, message)
+            messagesService.broadcast(message.channel, message)
           }
-          const broadcastDeletion = async (doc: CheckResultDocument) => {
+          const broadcastDeletion = (doc: CheckResultDocument) => {
             const message: CheckResultUpdate = {
               channel: 'COMMON',
               userName: 'none',
@@ -52,7 +52,7 @@ import { ChecksService } from './checks.service.js'
               checkResult: doc.toJSON() as unknown as CheckResultSnapshot,
               deleted: true,
             }
-            await messagesGateway.create(message.channel, message)
+            messagesService.broadcast(message.channel, message)
           }
           CheckResultSchema.post('save', broadcast)
           CheckResultSchema.post('updateOne', broadcast)
@@ -62,12 +62,12 @@ import { ChecksService } from './checks.service.js'
               this.getQuery(),
             )
             for (const checkResult of checkResults) {
-              await broadcast(checkResult)
+              broadcast(checkResult)
             }
           })
-          CheckResultSchema.pre('insertMany', async function (checkResults) {
+          CheckResultSchema.pre('insertMany', function (checkResults) {
             for (const checkResult of checkResults as CheckResultDocument[]) {
-              await broadcast(checkResult)
+              broadcast(checkResult)
             }
           })
           CheckResultSchema.pre('findOneAndDelete', async function () {
@@ -75,7 +75,7 @@ import { ChecksService } from './checks.service.js'
               this.getQuery(),
             )
             for (const checkResult of checkResults) {
-              await broadcastDeletion(checkResult)
+              broadcastDeletion(checkResult)
             }
           })
           CheckResultSchema.pre('deleteMany', async function () {
@@ -83,13 +83,13 @@ import { ChecksService } from './checks.service.js'
               this.getQuery(),
             )
             for (const checkResult of checkResults) {
-              await broadcastDeletion(checkResult)
+              broadcastDeletion(checkResult)
             }
           })
           return CheckResultSchema
         },
         imports: [MessagesModule],
-        inject: [getConnectionToken(), MessagesGateway],
+        inject: [getConnectionToken(), MessagesService],
       },
       { name: Check.name, useFactory: () => CheckSchema },
     ]),
