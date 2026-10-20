@@ -12,7 +12,10 @@ import { describe, expect, it } from '@jest/globals'
 import type { ApolloSessionModel } from '../session'
 import { changeHandlers } from '../session/changeHandlers'
 
-import { getPropagatedLocationChanges } from './mouseEventsUtils'
+import {
+  baseUnderMouse,
+  getPropagatedLocationChanges,
+} from './mouseEventsUtils'
 
 function createGene(strand: 1 | -1 = 1) {
   const feature = (_id: string, type: string, min: number, max: number) => ({
@@ -283,5 +286,29 @@ describe('CDS boundary propagation', () => {
         (c) => c.featureId,
       ),
     ).toEqual(['cds1', 'mrna02'])
+  })
+})
+
+describe('baseUnderMouse', () => {
+  const region = { start: 100, end: 200, oob: false }
+
+  it('returns the base at an offset in a forward region', () => {
+    expect(baseUnderMouse({ ...region, offset: 0, coord0: 100 })).toBe(100)
+    expect(baseUnderMouse({ ...region, offset: 5.5, coord0: 105 })).toBe(105)
+  })
+
+  it('returns the base drawn at an offset in a reversed region', () => {
+    const reversed = { ...region, reversed: true }
+    // The region's first column is base 199, not coord0's 200
+    expect(baseUnderMouse({ ...reversed, offset: 0, coord0: 200 })).toBe(199)
+    // A base's leftmost column is that base, not the one after it
+    expect(baseUnderMouse({ ...reversed, offset: 5, coord0: 195 })).toBe(194)
+    expect(baseUnderMouse({ ...reversed, offset: 5.5, coord0: 194 })).toBe(194)
+  })
+
+  it('falls back to coord0 out of bounds', () => {
+    expect(
+      baseUnderMouse({ ...region, oob: true, offset: 105, coord0: 205 }),
+    ).toBe(205)
   })
 })

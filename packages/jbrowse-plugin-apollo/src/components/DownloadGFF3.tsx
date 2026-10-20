@@ -3,8 +3,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { annotationFeatureToGFF3 } from '@apollo-annotation/shared'
 import { GFFFormattingTransformer } from '@gmod/gff'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
-import { getConf } from '@jbrowse/core/configuration'
 import type { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
@@ -26,7 +24,7 @@ import type {
 } from '../BackendDrivers'
 import { openDb } from '../BackendDrivers/LocalDriver/db'
 import type { ApolloSessionModel } from '../session'
-import { createFetchErrorMessage } from '../util'
+import { createFetchErrorMessage, getAssemblyMetadata } from '../util'
 
 import { Dialog } from './Dialog'
 
@@ -62,16 +60,13 @@ export function DownloadGFF3({
   }
 
   const { assemblyManager } = session as unknown as AbstractSessionModel
-  const assembly = assemblyManager.get(assemblyName) as Assembly | undefined
+  const assembly = assemblyManager.get(assemblyName)
   if (!assembly) {
     setErrorMessage(`Assembly "${assemblyName}" not found`)
     return
   }
 
-  const { internetAccountConfigId } = getConf(assembly, [
-    'sequence',
-    'metadata',
-  ]) as { internetAccountConfigId?: string }
+  const { internetAccountConfigId } = getAssemblyMetadata(assembly)
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()

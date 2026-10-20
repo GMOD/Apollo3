@@ -170,7 +170,7 @@ export const ApolloTranscriptDetailsWidget = observer(
             aria-controls="panel1-content"
             id="panel1-header"
           >
-            <Typography component="span" fontWeight={'bold'}>
+            <Typography component="span" sx={{ fontWeight: 'bold' }}>
               Summary
             </Typography>
           </StyledAccordionSummary>
@@ -192,7 +192,7 @@ export const ApolloTranscriptDetailsWidget = observer(
             aria-controls="panel2-content"
             id="panel2-header"
           >
-            <Typography component="span" fontWeight={'bold'}>
+            <Typography component="span" sx={{ fontWeight: 'bold' }}>
               Location
             </Typography>
           </StyledAccordionSummary>
@@ -223,7 +223,7 @@ export const ApolloTranscriptDetailsWidget = observer(
             id="panel3-header"
           >
             <div style={{ display: 'flex', alignItems: 'center' }}>
-              <Typography component="span" fontWeight={'bold'}>
+              <Typography component="span" sx={{ fontWeight: 'bold' }}>
                 Attributes{' '}
               </Typography>
               <Tooltip title="Separate multiple values for the attribute with commas">
@@ -259,7 +259,7 @@ export const ApolloTranscriptDetailsWidget = observer(
             aria-controls="panel4-content"
             id="panel4-header"
           >
-            <Typography component="span" fontWeight={'bold'}>
+            <Typography component="span" sx={{ fontWeight: 'bold' }}>
               Sequence
             </Typography>
           </StyledAccordionSummary>
