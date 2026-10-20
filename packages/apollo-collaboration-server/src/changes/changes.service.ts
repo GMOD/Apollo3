@@ -99,21 +99,106 @@ export class ChangesService {
       }
     }
 
-    let changeDoc: ChangeDocument | undefined
-    await this.featureModel.db.transaction(async (session) => {
+    try {
+      const handler =
+        this.changeHandlersService[change.typeName as keyof typeof changes]
+      // @ts-expect-error change not narrowed
+      await handler.bind(this.changeHandlersService)(change, {
+        user: uniqUserId,
+      })
+    } catch (error) {
+      // Clean up old "temporary document" -documents
+      this.logger.error(
+        `Failed to apply "${change.typeName}" change, cleaning up temporary documents`,
+        error instanceof Error ? error.stack : String(error),
+      )
+      await this.assemblyModel
+        .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
+        .exec()
+      await this.featureModel
+        .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
+        .exec()
+      await this.refSeqModel
+        .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
+        .exec()
+      await this.refSeqChunkModel
+        .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
+        .exec()
+      throw new UnprocessableEntityException(String(error))
+    }
+
+    // Add entry to change collection. This happens after the handler's writes
+    // have already committed (there is no surrounding transaction), so a
+    // failure here leaves the feature data correct but the audit-log entry
+    // missing; that gap is logged loudly rather than silently swallowed.
+    let savedChangedLogDoc: ChangeDocument | undefined
+    try {
+      ;[savedChangedLogDoc] = await this.changeModel.create([
+        // eslint-disable-next-line @typescript-eslint/no-misused-spread
+        { ...change, user: user.email, sequence },
+      ])
+    } catch (error) {
+      this.logger.error(
+        `Failed to write change-log entry for already-applied change ${JSON.stringify(change)}: ${String(error)}`,
+      )
+      throw error
+    }
+    const changeDoc = savedChangedLogDoc
+    const validationResult2 = await validationRegistry.backendPostValidate(
+      change,
+      { featureModel: this.featureModel },
+    )
+    if (!validationResult2.ok) {
+      const errorMessage = validationResult2.resultsMessages
+      throw new UnprocessableEntityException(
+        `Error in backend post-validation: ${errorMessage}`,
+      )
+    }
+
+    // TODO: temporary solution to set status of add feature change to 0
+    if (change.typeName === 'AddFeatureChange') {
+      const addFeatureChange = change as AddFeatureChange
+      const addFeatureChangeDetails: AddFeatureChangeDetails[] =
+        addFeatureChange.changes
+      for (const addFeatureChangeDetail of addFeatureChangeDetails) {
+        const { addedFeature } = addFeatureChangeDetail
+
+        try {
+          await this.featureModel
+            .updateMany(
+              {
+                $and: [{ status: -1, user: uniqUserId, _id: addedFeature._id }],
+              },
+              { $set: { status: 0 } },
+            )
+            .exec()
+        } catch (error) {
+          this.logger.error(
+            'Failed to set status of add feature change to 0',
+            error instanceof Error ? error.stack : String(error),
+          )
+          await this.featureModel
+            .deleteMany({
+              $and: [{ status: -1, user: uniqUserId, _id: addedFeature._id }],
+            })
+            .exec()
+        }
+      }
+    }
+
+    if (STATUS_ZERO_CHANGE_TYPES.has(change.typeName)) {
+      // manual finalization of change since the data is too big for a transaction
+      this.logger.debug('Temporary data inserted')
+      // Set "temporary document" -status --> "valid" -status i.e. (-1 --> 0)
       try {
-        const handler =
-          this.changeHandlersService[change.typeName as keyof typeof changes]
-        // @ts-expect-error change not narrowed
-        await handler.bind(this.changeHandlersService)(change, {
-          session,
-          user: uniqUserId,
-        })
+        await this.batchUpdateMany(this.assemblyModel, uniqUserId)
+        await this.batchUpdateMany(this.refSeqChunkModel, uniqUserId)
+        await this.batchUpdateMany(this.featureModel, uniqUserId)
+        await this.batchUpdateMany(this.refSeqModel, uniqUserId)
       } catch (error) {
         // Clean up old "temporary document" -documents
-        // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
         this.logger.error(
-          `Failed to apply "${change.typeName}" change, cleaning up temporary documents`,
+          'Failed to finalize temporary documents, cleaning them up',
           error instanceof Error ? error.stack : String(error),
         )
         await this.assemblyModel
@@ -128,96 +213,11 @@ export class ChangesService {
         await this.refSeqChunkModel
           .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
           .exec()
+        if (error instanceof Error) {
+          throw error
+        }
         throw new UnprocessableEntityException(String(error))
       }
-
-      // Add entry to change collection
-      const [savedChangedLogDoc] = await this.changeModel.create([
-        // eslint-disable-next-line @typescript-eslint/no-misused-spread
-        { ...change, user: user.email, sequence },
-      ])
-      changeDoc = savedChangedLogDoc
-      const validationResult2 = await validationRegistry.backendPostValidate(
-        change,
-        { featureModel: this.featureModel, session },
-      )
-      if (!validationResult2.ok) {
-        const errorMessage = validationResult2.resultsMessages
-        throw new UnprocessableEntityException(
-          `Error in backend post-validation: ${errorMessage}`,
-        )
-      }
-    })
-
-    // TODO: temporary solution to set status of add feature change to 0
-    if (change.typeName === 'AddFeatureChange') {
-      const addFeatureChange = change as AddFeatureChange
-      const addFeatureChangeDetails: AddFeatureChangeDetails[] =
-        addFeatureChange.changes
-      for (const addFeatureChangeDetail of addFeatureChangeDetails) {
-        const { addedFeature } = addFeatureChangeDetail
-
-        await this.featureModel.db.transaction(async () => {
-          try {
-            await this.featureModel
-              .updateMany(
-                {
-                  $and: [
-                    { status: -1, user: uniqUserId, _id: addedFeature._id },
-                  ],
-                },
-                { $set: { status: 0 } },
-              )
-              .exec()
-          } catch (error) {
-            this.logger.error(
-              'Failed to set status of add feature change to 0',
-              error instanceof Error ? error.stack : String(error),
-            )
-            await this.featureModel
-              .deleteMany({
-                $and: [{ status: -1, user: uniqUserId, _id: addedFeature._id }],
-              })
-              .exec()
-          }
-        })
-      }
-    }
-
-    if (STATUS_ZERO_CHANGE_TYPES.has(change.typeName)) {
-      // manual finalization of change since the data is too big for a transaction
-      this.logger.debug('Temporary data inserted')
-      // Set "temporary document" -status --> "valid" -status i.e. (-1 --> 0)
-      await this.featureModel.db.transaction(async () => {
-        try {
-          await this.batchUpdateMany(this.assemblyModel, uniqUserId)
-          await this.batchUpdateMany(this.refSeqChunkModel, uniqUserId)
-          await this.batchUpdateMany(this.featureModel, uniqUserId)
-          await this.batchUpdateMany(this.refSeqModel, uniqUserId)
-        } catch (error) {
-          // Clean up old "temporary document" -documents
-          this.logger.error(
-            'Failed to finalize temporary documents, cleaning them up',
-            error instanceof Error ? error.stack : String(error),
-          )
-          await this.assemblyModel
-            .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
-            .exec()
-          await this.featureModel
-            .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
-            .exec()
-          await this.refSeqModel
-            .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
-            .exec()
-          await this.refSeqChunkModel
-            .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
-            .exec()
-          if (error instanceof Error) {
-            throw error
-          }
-          throw new UnprocessableEntityException(String(error))
-        }
-      })
     }
 
     this.logger.debug(`Change document: ${changeDoc?._id.toString()}`)
