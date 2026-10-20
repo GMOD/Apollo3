@@ -4,7 +4,7 @@ import type { Change } from '@apollo-annotation/common'
 import type { FeatureDocument } from '@apollo-annotation/schemas'
 import type { ExecutionContext } from '@nestjs/common'
 import type { Reflector } from '@nestjs/core'
-import type { ClientSession, Model } from 'mongoose'
+import type { Model } from 'mongoose'
 
 export interface Context {
   context: ExecutionContext
@@ -41,7 +41,7 @@ export abstract class Validation {
 
   async backendPostValidate(
     _change: Change,
-    _context: { session: ClientSession; featureModel: Model<FeatureDocument> },
+    _context: { featureModel: Model<FeatureDocument> },
   ): Promise<ValidationResult> {
     return { validationName: this.name }
   }

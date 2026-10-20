@@ -47,6 +47,7 @@ import {
   UserChange,
   attributesToRecords,
   changes,
+  checkChildFeatureBoundaries,
   filterJBrowseConfig,
   findAndDeleteChildFeature,
   gff3ToAnnotationFeature,
@@ -57,7 +58,7 @@ import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
 import { Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { RemoteFile } from 'generic-filehandle2'
-import { type ClientSession, Model } from 'mongoose'
+import { Model } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service.js'
 import { FilesService } from '../files/files.service.js'
@@ -69,7 +70,7 @@ import { Role } from '../utils/role/role.enum.js'
 type ChangeHandlers = {
   [K in keyof typeof changes]: (
     change: InstanceType<(typeof changes)[K]>,
-    context: { session: ClientSession; user: string },
+    context: { user: string },
   ) => Promise<void>
 }
 
@@ -101,18 +102,12 @@ export class ChangeHandlersService implements ChangeHandlers {
 
   private readonly logger = new Logger(ChangeHandlersService.name)
 
-  async AddFeatureChange(
-    change: AddFeatureChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async AddFeatureChange(change: AddFeatureChange, context: { user: string }) {
     const { assemblyModel, featureModel, refSeqModel } = this
     const { assembly, changes } = change
-    const { session, user } = context
+    const { user } = context
 
-    const assemblyDoc = await assemblyModel
-      .findById(assembly)
-      .session(session)
-      .exec()
+    const assemblyDoc = await assemblyModel.findById(assembly).exec()
     if (!assemblyDoc) {
       const errMsg = `Assembly with id "${assembly}" not found`
       this.logger.error(errMsg)
@@ -135,10 +130,7 @@ export class ChangeHandlersService implements ChangeHandlers {
       const { addedFeature, allIds, copyFeature, parentFeatureId } = c
       const { _id, refSeq } = addedFeature
       this.logger.debug(`Adding feature "${_id}"`)
-      const refSeqDoc = await refSeqModel
-        .findById(refSeq)
-        .session(session)
-        .exec()
+      const refSeqDoc = await refSeqModel.findById(refSeq).exec()
       if (!refSeqDoc) {
         throw new Error(
           `RefSeq was not found by assembly "${assembly}" and seq_id "${refSeq}" not found`,
@@ -149,18 +141,15 @@ export class ChangeHandlersService implements ChangeHandlers {
       if (copyFeature) {
         const indexedIds = change.getIndexedIds(addedFeature, idsToIndex)
         // Add into Mongo
-        const [newFeatureDoc] = await featureModel.create(
-          [
-            {
-              ...addedFeature,
-              allIds,
-              indexedIds,
-              status: -1,
-              user,
-            } as unknown as Partial<Feature>,
-          ],
-          { session },
-        )
+        const [newFeatureDoc] = await featureModel.create([
+          {
+            ...addedFeature,
+            allIds,
+            indexedIds,
+            status: -1,
+            user,
+          } as unknown as Partial<Feature>,
+        ])
         if (newFeatureDoc) {
           this.logger.debug(
             `Copied feature, docId "${newFeatureDoc.id}" to assembly "${assembly}"`,
@@ -173,7 +162,6 @@ export class ChangeHandlersService implements ChangeHandlers {
         if (parentFeatureId) {
           const topLevelFeature = await featureModel
             .findOne({ allIds: parentFeatureId })
-            .session(session)
             .exec()
           if (!topLevelFeature) {
             throw new Error(
@@ -200,17 +188,14 @@ export class ChangeHandlersService implements ChangeHandlers {
         } else {
           const childIds = change.getChildFeatureIds(addedFeature)
           const allIdsV2 = [_id, ...childIds]
-          const [newFeatureDoc] = await featureModel.create(
-            [
-              {
-                allIds: allIdsV2,
-                indexedIds,
-                status: 0,
-                ...addedFeature,
-              } as unknown as Partial<Feature>,
-            ],
-            { session },
-          )
+          const [newFeatureDoc] = await featureModel.create([
+            {
+              allIds: allIdsV2,
+              indexedIds,
+              status: 0,
+              ...addedFeature,
+            } as unknown as Partial<Feature>,
+          ])
           if (newFeatureDoc) {
             this.logger.debug(`Added docId "${newFeatureDoc.id}"`)
           }
@@ -221,13 +206,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     this.logger.debug(`Added ${featureCnt} new feature(s) into database.`)
   }
 
-  async DeleteFeatureChange(
-    change: DeleteFeatureChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async DeleteFeatureChange(change: DeleteFeatureChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
 
     const { INDEXED_IDS } = process.env
     let idsToIndex: string[] | undefined
@@ -240,7 +221,6 @@ export class ChangeHandlersService implements ChangeHandlers {
 
       const featureDoc = await featureModel
         .findOne({ allIds: deletedFeature._id })
-        .session(session)
         .exec()
       if (!featureDoc) {
         const errMsg = `The following featureId was not found in database ='${deletedFeature._id}'`
@@ -298,13 +278,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async FeatureAttributeChange(
-    change: FeatureAttributeChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async FeatureAttributeChange(change: FeatureAttributeChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
 
     const featuresForChanges: {
       feature: Feature
@@ -315,7 +291,6 @@ export class ChangeHandlersService implements ChangeHandlers {
 
       const topLevelFeature = await featureModel
         .findOne({ allIds: featureId })
-        .session(session)
         .exec()
 
       if (!topLevelFeature) {
@@ -378,13 +353,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async LocationEndChange(
-    change: LocationEndChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async LocationEndChange(change: LocationEndChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     const topLevelFeatures: FeatureDocument[] = []
     for (const c of changes) {
       const { featureId, oldEnd, newEnd } = c
@@ -402,7 +373,6 @@ export class ChangeHandlersService implements ChangeHandlers {
       if (!topLevelFeature) {
         topLevelFeature = await featureModel
           .findOne({ allIds: featureId })
-          .session(session)
           .exec()
         if (topLevelFeature) {
           topLevelFeatures.push(topLevelFeature)
@@ -439,6 +409,12 @@ export class ChangeHandlersService implements ChangeHandlers {
         topLevelFeature.markModified('children')
       }
     }
+    // Validate every mutated top-level document in-memory before saving any
+    // of them: there is no transaction to roll back a save that would later
+    // turn out to violate parent/child bounds.
+    for (const tlv of topLevelFeatures) {
+      checkChildFeatureBoundaries(tlv)
+    }
     for (const tlv of topLevelFeatures) {
       try {
         await tlv.save()
@@ -452,13 +428,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async LocationStartChange(
-    change: LocationStartChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async LocationStartChange(change: LocationStartChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     const topLevelFeatures: FeatureDocument[] = []
     for (const c of changes) {
       const { featureId, oldStart, newStart } = c
@@ -476,7 +448,6 @@ export class ChangeHandlersService implements ChangeHandlers {
       if (!topLevelFeature) {
         topLevelFeature = await featureModel
           .findOne({ allIds: featureId })
-          .session(session)
           .exec()
         if (topLevelFeature) {
           topLevelFeatures.push(topLevelFeature)
@@ -513,6 +484,10 @@ export class ChangeHandlersService implements ChangeHandlers {
         topLevelFeature.markModified('children')
       }
     }
+    // See LocationEndChange: validate all mutated documents before saving any.
+    for (const tlv of topLevelFeatures) {
+      checkChildFeatureBoundaries(tlv)
+    }
     for (const tlv of topLevelFeatures) {
       try {
         await tlv.save()
@@ -526,18 +501,13 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async MergeExonsChange(
-    change: MergeExonsChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async MergeExonsChange(change: MergeExonsChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     for (const c of changes) {
       const { firstExon, secondExon } = c
       const topLevelFeature = await featureModel
         .findOne({ allIds: firstExon._id })
-        .session(session)
         .exec()
       if (!topLevelFeature) {
         const errMsg = `The following featureId was not found in database ='${firstExon._id}'`
@@ -576,18 +546,13 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async MergeTranscriptsChange(
-    change: MergeTranscriptsChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async MergeTranscriptsChange(change: MergeTranscriptsChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     for (const c of changes) {
       const { firstTranscript, secondTranscript } = c
       const topLevelFeature = await featureModel
         .findOne({ allIds: firstTranscript._id })
-        .session(session)
         .exec()
       if (!topLevelFeature) {
         const errMsg = `The following featureId was not found in database ='${firstTranscript._id}'`
@@ -617,13 +582,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async SplitExonChange(
-    change: SplitExonChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async SplitExonChange(change: SplitExonChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     for (const c of changes) {
       const {
         exonToBeSplit,
@@ -635,7 +596,6 @@ export class ChangeHandlersService implements ChangeHandlers {
       } = c
       const topLevelFeature = await featureModel
         .findOne({ allIds: exonToBeSplit._id })
-        .session(session)
         .exec()
       if (!topLevelFeature) {
         const errMsg = `The following featureId was not found in database ='${exonToBeSplit._id}'`
@@ -689,13 +649,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async StrandChange(
-    change: StrandChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async StrandChange(change: StrandChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     const featuresForChanges: {
       feature: Feature
       topLevelFeature: FeatureDocument
@@ -705,7 +661,6 @@ export class ChangeHandlersService implements ChangeHandlers {
 
       const topLevelFeature = await featureModel
         .findOne({ allIds: featureId })
-        .session(session)
         .exec()
 
       if (!topLevelFeature) {
@@ -760,13 +715,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async TypeChange(
-    change: TypeChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async TypeChange(change: TypeChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     const featuresForChanges: {
       feature: Feature
       topLevelFeature: FeatureDocument
@@ -776,7 +727,6 @@ export class ChangeHandlersService implements ChangeHandlers {
 
       const topLevelFeature = await featureModel
         .findOne({ allIds: featureId })
-        .session(session)
         .exec()
 
       if (!topLevelFeature) {
@@ -831,13 +781,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async UndoMergeExonsChange(
-    change: UndoMergeExonsChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async UndoMergeExonsChange(change: UndoMergeExonsChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     for (const c of changes) {
       const { exonsToRestore, parentFeatureId } = c
       if (exonsToRestore.length !== 2) {
@@ -847,7 +793,6 @@ export class ChangeHandlersService implements ChangeHandlers {
       }
       const topLevelFeature = await featureModel
         .findOne({ allIds: parentFeatureId })
-        .session(session)
         .exec()
       if (!topLevelFeature) {
         throw new Error(`Could not find feature with ID "${parentFeatureId}"`)
@@ -871,13 +816,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async UndoMergeTranscriptsChange(
-    change: UndoMergeTranscriptsChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async UndoMergeTranscriptsChange(change: UndoMergeTranscriptsChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     for (const c of changes) {
       const { transcriptsToRestore, parentFeatureId } = c
       if (transcriptsToRestore.length !== 2) {
@@ -887,7 +828,6 @@ export class ChangeHandlersService implements ChangeHandlers {
       }
       const topLevelFeature = await featureModel
         .findOne({ allIds: parentFeatureId })
-        .session(session)
         .exec()
       if (!topLevelFeature) {
         throw new Error(`Could not find feature with ID "${parentFeatureId}"`)
@@ -911,18 +851,13 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async UndoSplitExonChange(
-    change: UndoSplitExonChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async UndoSplitExonChange(change: UndoSplitExonChange) {
     const { featureModel } = this
     const { changes } = change
-    const { session } = context
     for (const c of changes) {
       const { exonToRestore, parentFeatureId, idsToDelete } = c
       const topLevelFeature = await featureModel
         .findOne({ allIds: parentFeatureId })
-        .session(session)
         .exec()
       if (!topLevelFeature) {
         throw new Error(`Could not find feature with ID "${parentFeatureId}"`)
@@ -1288,10 +1223,7 @@ export class ChangeHandlersService implements ChangeHandlers {
 
   // ── handlers for non-feature changes ──
 
-  async DeleteAssemblyChange(
-    change: DeleteAssemblyChange,
-    _context: { session: ClientSession; user: string },
-  ) {
+  async DeleteAssemblyChange(change: DeleteAssemblyChange) {
     const { assemblyModel, featureModel, refSeqChunkModel, refSeqModel } = this
     const { assembly } = change
     const assemblyDoc = await assemblyModel.findById(assembly).exec()
@@ -1309,13 +1241,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     this.logger.debug(`Assembly "${assembly}" deleted from database.`)
   }
 
-  async AddUserChange(
-    change: AddUserChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async AddUserChange(change: AddUserChange) {
     const { userModel } = this
     const { role } = change
-    const { session } = context
     const email = normalizeEmail(change.email)
     if (!/^[^\s@]+@[^\s@]+$/.test(email)) {
       throw new Error(`"${change.email}" is not a valid email address`)
@@ -1326,26 +1254,18 @@ export class ChangeHandlersService implements ChangeHandlers {
     const existingUser = await userModel
       .findOne({ email })
       .collation({ locale: 'en', strength: 2 })
-      .session(session)
       .exec()
     if (existingUser) {
       throw new Error(`A user with email "${email}" already exists`)
     }
-    await userModel.create([{ email, role }], { session })
+    await userModel.create([{ email, role }])
     this.logger.log(`Added pre-approved user (${email}) with role "${role}"`)
   }
 
-  async DeleteUserChange(
-    change: DeleteUserChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async DeleteUserChange(change: DeleteUserChange) {
     const { userModel } = this
     const { userId } = change
-    const { session } = context
-    const user = await userModel
-      .findOneAndDelete({ _id: userId })
-      .session(session)
-      .exec()
+    const user = await userModel.findOneAndDelete({ _id: userId }).exec()
     if (!user) {
       const errMsg = `User with id "${userId}" not found`
       this.logger.error(errMsg)
@@ -1353,20 +1273,13 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async UserChange(
-    change: UserChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async UserChange(change: UserChange) {
     const { userModel } = this
     const { changes, userId } = change
-    const { session } = context
     for (const c of changes) {
       const { role } = c
       this.logger.debug(`Setting role of user "${userId}" to "${role}"`)
-      const user = await userModel
-        .findByIdAndUpdate(userId, { role })
-        .session(session)
-        .exec()
+      const user = await userModel.findByIdAndUpdate(userId, { role }).exec()
       if (!user) {
         const errMsg = `User with id "${userId}" not found`
         this.logger.error(errMsg)
@@ -1375,10 +1288,7 @@ export class ChangeHandlersService implements ChangeHandlers {
     }
   }
 
-  async ImportJBrowseConfigChange(
-    change: ImportJBrowseConfigChange,
-    _context: { session: ClientSession; user: string },
-  ) {
+  async ImportJBrowseConfigChange(change: ImportJBrowseConfigChange) {
     const { jbrowseConfigModel } = this
     const { newJBrowseConfig } = change
     await jbrowseConfigModel.deleteMany()
@@ -1392,13 +1302,9 @@ export class ChangeHandlersService implements ChangeHandlers {
     this.logger.debug('Stored new JBrowse Config')
   }
 
-  async AddRefSeqAliasesChange(
-    change: AddRefSeqAliasesChange,
-    context: { session: ClientSession; user: string },
-  ) {
+  async AddRefSeqAliasesChange(change: AddRefSeqAliasesChange) {
     const { refSeqModel } = this
     const { assembly, refSeqAliases } = change
-    const { session } = context
     for (const refSeqAlias of refSeqAliases) {
       this.logger.debug(
         `Updating Refname alias for assembly: ${assembly}, refSeqAlias: ${JSON.stringify(refSeqAlias)}`,
@@ -1406,14 +1312,11 @@ export class ChangeHandlersService implements ChangeHandlers {
       const { aliases, refName } = refSeqAlias
       await refSeqModel
         .updateOne({ assembly, name: refName }, { $set: { aliases } })
-        .session(session)
+        .exec()
     }
   }
 
-  async AddAssemblyAliasesChange(
-    change: AddAssemblyAliasesChange,
-    _context: { session: ClientSession; user: string },
-  ) {
+  async AddAssemblyAliasesChange(change: AddAssemblyAliasesChange) {
     const { assemblyModel } = this
     const { aliases, assembly } = change
     this.logger.debug(
@@ -1429,7 +1332,7 @@ export class ChangeHandlersService implements ChangeHandlers {
 
   async AddAssemblyFromExternalChange(
     change: AddAssemblyFromExternalChange,
-    context: { session: ClientSession; user: string },
+    context: { user: string },
   ) {
     const { assemblyModel, checkModel, refSeqModel } = this
     const { assembly, changes } = change
@@ -1494,7 +1397,7 @@ export class ChangeHandlersService implements ChangeHandlers {
 
   async AddAssemblyFromFileChange(
     change: AddAssemblyFromFileChange,
-    context: { session: ClientSession; user: string },
+    context: { user: string },
   ) {
     const { changes } = change
     const { user } = context
@@ -1518,7 +1421,7 @@ export class ChangeHandlersService implements ChangeHandlers {
 
   async AddAssemblyAndFeaturesFromFileChange(
     change: AddAssemblyAndFeaturesFromFileChange,
-    context: { session: ClientSession; user: string },
+    context: { user: string },
   ) {
     const { assemblyModel, checkModel, fileModel, filesService } = this
     const { assembly, changes } = change
@@ -1594,7 +1497,7 @@ export class ChangeHandlersService implements ChangeHandlers {
 
   async AddFeaturesFromFileChange(
     change: AddFeaturesFromFileChange,
-    context: { session: ClientSession; user: string },
+    context: { user: string },
   ) {
     const { fileModel, filesService } = this
     const { assembly, changes, deleteExistingFeatures } = change
