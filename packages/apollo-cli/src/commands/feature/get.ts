@@ -1,3 +1,4 @@
+import type { CheckResultSnapshot } from '@apollo-annotation/mst'
 import { Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'
@@ -8,11 +9,6 @@ export default class Get extends BaseCommand<typeof Get> {
 
   static examples = [
     {
-      description: 'Get features and validation checks as [features, checks]:',
-      command:
-        '<%= config.bin %> <%= command.id %> -a myAssembly --include-checks',
-    },
-    {
       description: 'Get all features in myAssembly:',
       command: '<%= config.bin %> <%= command.id %> -a myAssembly',
     },
@@ -21,6 +17,11 @@ export default class Get extends BaseCommand<typeof Get> {
         'Get features intersecting chr1:1..1000. You can omit the assembly name if there are no other reference sequences named chr1:',
       command:
         '<%= config.bin %> <%= command.id %> -a myAssembly -r chr1 -s 1 -e 1000',
+    },
+    {
+      description: 'Get features and validation checks as [features, checks]:',
+      command:
+        '<%= config.bin %> <%= command.id %> -a myAssembly --include-checks',
     },
   ]
 
@@ -38,12 +39,12 @@ export default class Get extends BaseCommand<typeof Get> {
       description: 'Start coordinate (1-based)',
       default: 1,
     }),
-    'include-checks': Flags.boolean({
-      description: 'Output [features, checks] instead of only features',
-    }),
     end: Flags.integer({
       char: 'e',
       description: 'End coordinate',
+    }),
+    'include-checks': Flags.boolean({
+      description: 'Output [features, checks] instead of only features',
     }),
   }
 
@@ -60,44 +61,39 @@ export default class Get extends BaseCommand<typeof Get> {
       flags.assembly,
     )
 
-    const results: object[] = []
-    const checks: object[] = []
+    const features: object[] = []
+    const checks: CheckResultSnapshot[] = []
     for (const refseq of refseqIds) {
       const [refseqFeatures, refseqChecks] = await this.getFeatures(
         refseq,
         flags.start,
         endCoord,
       )
-      for (const feature of refseqFeatures) {
-        results.push(feature)
-      }
-      if (flags['include-checks']) {
-        for (const check of refseqChecks) {
-          checks.push(check)
-        }
-      }
+      features.push(...refseqFeatures)
+      checks.push(...refseqChecks)
     }
-    this.log(
-      JSON.stringify(
-        flags['include-checks'] ? [results, checks] : results,
-        null,
-        2,
-      ),
-    )
+    if (flags['include-checks']) {
+      checks.sort((a, b) => a.start - b.start)
+      this.log(JSON.stringify([features, checks], null, 2))
+    } else {
+      this.log(JSON.stringify(features, null, 2))
+    }
   }
 
   private async getFeatures(
     refSeq: string,
     start: number,
     end: number,
-  ): Promise<[object[], object[]]> {
+  ): Promise<[object[], CheckResultSnapshot[]]> {
+    // The server compares against 0-based, half-open feature coordinates, so
+    // convert the 1-based, closed window to match
     const searchParams = new URLSearchParams({
       refSeq,
       start: start.toString(),
-      end: end.toString(),
+      end: (end - 1).toString(),
     })
     return (await this.get(
       `features/getFeatures?${searchParams.toString()}`,
-    )) as [object[], object[]]
+    )) as [object[], CheckResultSnapshot[]]
   }
 }
