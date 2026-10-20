@@ -1,4 +1,8 @@
-import { TransformStream } from 'node:stream/web'
+import {
+  ReadableStream,
+  type ReadableStreamDefaultReader,
+  TransformStream,
+} from 'node:stream/web'
 
 import type { FeatureDocument } from '@apollo-annotation/schemas'
 
@@ -40,4 +44,33 @@ export class DocToJSONArrayStream<T> extends TransformStream<T, string> {
       },
     })
   }
+}
+
+/**
+ * Wrap a stream so it isn't created until it's first read from. Useful when
+ * the stream depends on state that another stream produces first, e.g. when
+ * concatenating streams.
+ * @param create - creates the underlying stream
+ * @returns a stream that creates and reads from the underlying stream on demand
+ */
+export function lazyStream<T>(create: () => ReadableStream<T>) {
+  let reader: ReadableStreamDefaultReader<T> | undefined
+  return new ReadableStream<T>(
+    {
+      async pull(controller) {
+        reader ??= create().getReader()
+        const { done, value } = await reader.read()
+        if (done) {
+          controller.close()
+        } else {
+          controller.enqueue(value)
+        }
+      },
+      async cancel(reason) {
+        await reader?.cancel(reason)
+      },
+    },
+    // Without this, the stream would pull as soon as it's constructed
+    { highWaterMark: 0 },
+  )
 }

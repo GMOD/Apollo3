@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Readable } from 'node:stream'
-import { ReadableStream } from 'node:stream/web'
+import { ReadableStream, TransformStream } from 'node:stream/web'
 
 import {
+  type CheckResultDocument,
   Feature,
   type FeatureDocument,
   RefSeq,
@@ -26,7 +27,11 @@ import type {
   FeatureCountRequest,
   GetByIndexedIdRequest,
 } from './dto/feature.dto.js'
-import { CheckFeatureStream, DocToJSONArrayStream } from './transforms.js'
+import {
+  CheckFeatureStream,
+  DocToJSONArrayStream,
+  lazyStream,
+} from './transforms.js'
 
 @Injectable()
 export class FeaturesService {
@@ -253,15 +258,53 @@ export class FeaturesService {
    * @returns a stream of the JSON body `[[...features],[...checkResults]]`
    */
   findByRangeStream(searchDto: FeatureRangeSearchDto): Readable {
+    // Record the span and IDs of the returned features so the checkResults
+    // can be limited to those features, including checks outside the window
+    let min = Number.POSITIVE_INFINITY
+    let max = Number.NEGATIVE_INFINITY
+    const featureIds = new Set<string>()
     const featuresStream = Readable.toWeb(
       this.featureModel.find(this.byRangeQuery(searchDto)).cursor(),
     )
       .pipeThrough(new CheckFeatureStream(this.checksService))
+      .pipeThrough(
+        new TransformStream<FeatureDocument, FeatureDocument>({
+          transform(doc, controller) {
+            min = Math.min(min, doc.min)
+            max = Math.max(max, doc.max)
+            for (const id of doc.allIds) {
+              featureIds.add(id)
+            }
+            controller.enqueue(doc)
+          },
+        }),
+      )
       .pipeThrough(new DocToJSONArrayStream())
 
-    const checkResultsStream = Readable.toWeb(
-      this.checksService.findByRangeCursor(searchDto),
-    ).pipeThrough(new DocToJSONArrayStream())
+    // Don't query the checkResults until the features stream is done, since
+    // CheckFeatureStream updates them as it goes
+    const checkResultsStream = lazyStream(() => {
+      if (featureIds.size === 0) {
+        return ReadableStream.from(['[]'])
+      }
+      return Readable.toWeb(
+        this.checksService.findByRangeCursor({
+          refSeq: searchDto.refSeq,
+          start: min,
+          end: max,
+        }),
+      )
+        .pipeThrough(
+          new TransformStream<CheckResultDocument, CheckResultDocument>({
+            transform(doc, controller) {
+              if (doc.ids.some((id) => featureIds.has(id.toString()))) {
+                controller.enqueue(doc)
+              }
+            },
+          }),
+        )
+        .pipeThrough(new DocToJSONArrayStream())
+    })
 
     const openBracket = new ReadableStream<string>({
       start(controller) {

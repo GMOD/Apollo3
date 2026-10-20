@@ -518,16 +518,40 @@ server.listen(0, () => {
       summarizeChecks(checks),
     )
 
-    p = new Shell(`${apollo} feature get ${P} -a vv1 -r ctgA -s 40 -e 41`)
+    // The checks for every returned feature are included, even ones outside
+    // the requested window
+    p = new Shell(`${apollo} feature get ${P} -a vv1 -r ctgC -s 120 -e 121`)
     const regionalFeatures = JSON.parse(p.stdout) as AnnotationFeatureSnapshot[]
     p = new Shell(
-      `${apollo} feature get ${P} -a vv1 -r ctgA -s 40 -e 41 --include-checks`,
+      `${apollo} feature get ${P} -a vv1 -r ctgC -s 120 -e 121 --include-checks`,
     )
     const [includedRegionalFeatures, includedRegionalChecks] = JSON.parse(
       p.stdout,
     ) as [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
     assert.deepStrictEqual(includedRegionalFeatures, regionalFeatures)
-    assert.ok(Array.isArray(includedRegionalChecks))
+    const regionalIds = new Set<string>()
+    const collectIds = (feature: AnnotationFeatureSnapshot) => {
+      regionalIds.add(feature._id)
+      for (const child of Object.values(feature.children ?? {})) {
+        collectIds(child)
+      }
+    }
+    for (const feature of regionalFeatures) {
+      collectIds(feature)
+    }
+    const expectedRegionalChecks = checks.filter((check) =>
+      check.ids?.some(
+        (id) => id !== undefined && regionalIds.has(id.toString()),
+      ),
+    )
+    assert.ok(
+      expectedRegionalChecks.some((check) => check.start > 121),
+      'Expected a check outside ctgC:120..121 on a feature inside it',
+    )
+    assert.deepStrictEqual(
+      includedRegionalChecks.map((check) => check._id),
+      expectedRegionalChecks.map((check) => check._id),
+    )
 
     p = new Shell(
       `${apollo} feature get ${P} -a vv1 -r FOOBAR --include-checks`,

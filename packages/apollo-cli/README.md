@@ -16,7 +16,7 @@ $ npm install -g @apollo-annotation/cli
 $ apollo COMMAND
 running command...
 $ apollo (--version)
-@apollo-annotation/cli/1.2.0 darwin-arm64 node-v24.19.0
+@apollo-annotation/cli/1.2.0 linux-x64 node-v24.19.0
 $ apollo --help [COMMAND]
 USAGE
   $ apollo COMMAND
@@ -737,7 +737,7 @@ Get features in assembly, reference sequence or genomic window
 ```
 USAGE
   $ apollo feature get [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>] [-r <value>]
-    [-s <value>] [--include-checks] [-e <value>]
+    [-s <value>] [-e <value>] [--include-checks]
 
 FLAGS
   -a, --assembly=<value>     Find input reference sequence in this assembly
@@ -753,10 +753,6 @@ DESCRIPTION
   Get features in assembly, reference sequence or genomic window
 
 EXAMPLES
-  Get features and validation checks as [features, checks]:
-
-    $ apollo feature get -a myAssembly --include-checks
-
   Get all features in myAssembly:
 
     $ apollo feature get -a myAssembly
@@ -765,6 +761,10 @@ EXAMPLES
   named chr1:
 
     $ apollo feature get -a myAssembly -r chr1 -s 1 -e 1000
+
+  Get features and validation checks as [features, checks]:
+
+    $ apollo feature get -a myAssembly --include-checks
 ```
 
 _See code:
