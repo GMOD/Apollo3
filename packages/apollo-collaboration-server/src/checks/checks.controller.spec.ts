@@ -1,5 +1,7 @@
 import { Test, type TestingModule } from '@nestjs/testing'
 
+import { AssemblyAccessService } from '../assemblyAccess/assemblyAccess.service.js'
+
 import { ChecksController } from './checks.controller.js'
 import { ChecksService } from './checks.service.js'
 
@@ -9,7 +11,10 @@ describe('ChecksController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ChecksController],
-      providers: [{ provide: ChecksService, useValue: {} }],
+      providers: [
+        { provide: ChecksService, useValue: {} },
+        { provide: AssemblyAccessService, useValue: {} },
+      ],
     }).compile()
 
     controller = module.get<ChecksController>(ChecksController)

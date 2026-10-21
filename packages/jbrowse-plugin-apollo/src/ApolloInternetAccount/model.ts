@@ -30,7 +30,6 @@ import LoginIcon from '@mui/icons-material/Login'
 import { autorun } from 'mobx'
 
 import { version as pluginVersion } from '../../package.json'
-import { addTopLevelAdminMenus } from '../menus/topLevelMenuAdmin'
 import type { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
@@ -747,13 +746,12 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         /**
          * The half of startup that must happen exactly once. None of it is a
          * request, so nothing here is worth retrying — and all of it registers
-         * something that has no idea it has been registered before. A menu
-         * contribution is appended to a log the root model replays on every
-         * open, and each run opens a fresh EventSource with its own handlers,
-         * so a second run means a second "Admin" submenu and every COMMON
-         * message submitted to the change manager twice. (The two addEventListener calls are the exception, and only by
-         * luck: the handler references are stable, so the browser de-duplicates
-         * them for us.)
+         * something that has no idea it has been registered before. Each run
+         * opens a fresh EventSource with its own handlers, so a second run
+         * means every COMMON message submitted to the change manager twice.
+         * (The two addEventListener calls are the exception, and only by luck:
+         * the handler references are stable, so the browser de-duplicates them
+         * for us.)
          *
          * `addEventSourceListeners()` goes first because it is the only step that
          * can throw — 'No Token found', before it has registered anything — so
@@ -777,10 +775,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             return
           }
           self.addEventSourceListeners()
-          const rootModel = getRoot(self)
-          if (role === 'admin' && isAbstractMenuManager(rootModel)) {
-            addTopLevelAdminMenus(rootModel)
-          }
           window.addEventListener('beforeunload', beforeUnloadListener)
           document.addEventListener(
             'visibilitychange',
@@ -796,6 +790,9 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           // Get and set server last change sequence into session storage
           yield self.updateLastChangeSequenceNumber()
           // request user locations
+          if (!isAlive(self)) {
+            return
+          }
           const { baseURL } = self
           const uri = new URL('users/locations', baseURL).href
           const apolloFetch = self.getFetcher({
