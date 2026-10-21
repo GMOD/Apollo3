@@ -27,5 +27,11 @@ COPY --from=build /app/packages/apollo-mst/dist /app/packages/apollo-mst/dist
 COPY --from=build /app/packages/apollo-schemas/dist /app/packages/apollo-schemas/dist
 COPY --from=build /app/packages/apollo-shared/dist /app/packages/apollo-shared/dist
 RUN yarn workspaces focus --production @apollo-annotation/collaboration-server
+WORKDIR /app/packages/apollo-collaboration-server
+ENV NODE_ENV=production
 EXPOSE 3999
-CMD ["yarn", "start:prod"]
+# Run node directly instead of through `yarn start:prod`, since yarn exits as
+# soon as it gets SIGTERM, which stops the container before the server has
+# shut down cleanly. The server handles signals itself, so it needs no init
+# process.
+CMD ["node", "--require", "/app/.pnp.cjs", "--experimental-loader", "/app/.pnp.loader.mjs", "dist/main.js"]
