@@ -50,7 +50,7 @@ describe('AuthenticationService', () => {
         },
         {
           provide: PluginsService,
-          useValue: { evaluateExtensionPoint: () => customAuthTypes },
+          useValue: { getCustomAuthHandlers: () => customAuthTypes },
         },
         {
           provide: OidcService,
