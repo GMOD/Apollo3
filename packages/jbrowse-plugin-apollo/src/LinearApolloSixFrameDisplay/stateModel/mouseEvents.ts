@@ -201,6 +201,7 @@ export function mouseEventsModelFactory(
           current.bp,
           edge,
           shrinkParent,
+          self.session.apolloDataStore.ontologyManager.featureTypeOntology,
         )
 
         const change: LocationEndChange | LocationStartChange =

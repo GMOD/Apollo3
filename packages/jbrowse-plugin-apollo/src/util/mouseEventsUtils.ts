@@ -1,6 +1,8 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 
+import type { OntologyRecord } from '../OntologyManager'
+
 type MinEdge = 'min'
 type MaxEdge = 'max'
 export type Edge = MinEdge | MaxEdge
@@ -15,17 +17,44 @@ function expandFeatures(
   feature: AnnotationFeature,
   newLocation: number,
   edge: Edge,
+  featureTypeOntology?: Pick<OntologyRecord, 'isTypeOf'>,
 ): LocationChange[] {
   const featureId = feature._id
   const oldLocation = feature[edge]
   const changes: LocationChange[] = [{ featureId, oldLocation, newLocation }]
   const { parent } = feature
   if (
+    featureTypeOntology?.isTypeOf(feature.type, 'CDS') ??
+    feature.type === 'CDS'
+  ) {
+    for (const exon of parent?.children?.values() ?? []) {
+      const isExon =
+        featureTypeOntology?.isTypeOf(exon.type, 'exon') ?? exon.type === 'exon'
+      const containsOldEdge =
+        edge === 'min'
+          ? exon.min <= oldLocation && oldLocation < exon.max
+          : exon.min < oldLocation && oldLocation <= exon.max
+      const extendsExon =
+        edge === 'min' ? newLocation < exon.min : newLocation > exon.max
+      if (isExon && containsOldEdge && extendsExon) {
+        // CDS and exon are siblings: extending the CDS must also keep its
+        // terminal coding bases inside the exon, without moving other exons.
+        changes.push({
+          featureId: exon._id,
+          oldLocation: exon[edge],
+          newLocation,
+        })
+      }
+    }
+  }
+  if (
     parent &&
     ((edge === 'min' && parent[edge] > newLocation) ||
       (edge === 'max' && parent[edge] < newLocation))
   ) {
-    changes.push(...expandFeatures(parent, newLocation, edge))
+    changes.push(
+      ...expandFeatures(parent, newLocation, edge, featureTypeOntology),
+    )
   }
   return changes
 }
@@ -95,6 +124,7 @@ export function getPropagatedLocationChanges(
   newLocation: number,
   edge: Edge,
   shrinkParent = false,
+  featureTypeOntology?: Pick<OntologyRecord, 'isTypeOf'>,
 ): LocationChange[] {
   const oldLocation = feature[edge]
   if (newLocation === oldLocation) {
@@ -105,12 +135,12 @@ export function getPropagatedLocationChanges(
       // shrinking feature, may need to shrink children and/or parents
       return shrinkFeatures(feature, newLocation, edge, shrinkParent)
     }
-    return expandFeatures(feature, newLocation, edge)
+    return expandFeatures(feature, newLocation, edge, featureTypeOntology)
   }
   if (newLocation < oldLocation) {
     return shrinkFeatures(feature, newLocation, edge, shrinkParent)
   }
-  return expandFeatures(feature, newLocation, edge)
+  return expandFeatures(feature, newLocation, edge, featureTypeOntology)
 }
 
 /** extended information about the position of the mouse on the canvas, including the refName, bp, and displayedRegion number */
