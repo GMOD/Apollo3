@@ -312,6 +312,79 @@ jobs:
           path: coverage-artifact/
           if-no-files-found: warn
 
-      # - name: Run docker tests
-      #   working-directory: packages/apollo-cli
-      #   run: python3 ./src/test/test_docker.py
+  docker:
+    name: Docker images
+    # MongoDB 8 refuses to start on the ubuntu-24.04 runner's 7.0 kernel. Go
+    # back to ubuntu-latest once MongoDB 8.0.35/8.3.14 are out.
+    # https://github.com/actions/runner-images/issues/15005
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Build Collaboration Server image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: apollo-collaboration-server:test
+          cache-from: type=gha,scope=collaboration-server
+          cache-to: type=gha,mode=max,scope=collaboration-server
+      # The published CLI image installs from npm, so test the one built from
+      # the repo
+      - name: Build CLI image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: packages/apollo-cli/dev.Dockerfile
+          load: true
+          tags: apollo-cli:test
+          cache-from: type=gha,scope=cli
+          cache-to: type=gha,mode=max,scope=cli
+      - name: Start MongoDB and apollo-collaboration-server
+        run: |
+          docker network create apollo
+          docker run --detach --name mongo --network apollo mongo:8
+          docker run --detach --name apollo --network apollo --publish 3999:3999 \
+            --env NAME="Docker test" \
+            --env URL=http://localhost:3999 \
+            --env MONGODB_URI=mongodb://mongo:27017/apolloDb \
+            --env FILE_UPLOAD_FOLDER=/data/uploads \
+            --env JWT_SECRET=jwt-secret \
+            --env SESSION_SECRET=session-secret \
+            --env ALLOW_ROOT_USER=true \
+            --env ROOT_USER_PASSWORD=pass \
+            --env NO_COLOR=true \
+            apollo-collaboration-server:test
+      - name: Wait for apollo to start
+        run:
+          timeout 120 bash -c 'until curl -sf http://localhost:3999/health; do
+          sleep 2; done'
+      - name: Use the CLI image with the server
+        run: |
+          mkdir cli-config
+          touch cli-config/config.yml
+          apollo() {
+            docker run --rm --network apollo \
+              --volume "$PWD/cli-config:/root/.config/apollo-cli" \
+              --volume "$PWD/packages/apollo-cli/test_data:/data" \
+              apollo-cli:test "$@"
+          }
+          apollo config address http://apollo:3999
+          apollo config accessType root
+          apollo config rootPassword pass
+          apollo login
+          apollo assembly add-from-gff /data/tiny.fasta.gff3 --assembly vv1
+          apollo assembly get --assembly vv1 | grep vv1
+      # The server exits with 0 when it shuts down cleanly on SIGTERM, and
+      # Docker kills it (exit code 137) if it takes too long
+      - name: Stop apollo-collaboration-server
+        run: |
+          docker stop apollo
+          exit_code=$(docker inspect --format '{{.State.ExitCode}}' apollo)
+          echo "Exit code: $exit_code"
+          test "$exit_code" = 0
+      - name: Show apollo-collaboration-server logs
+        if: ${{ !cancelled() }}
+        run: docker logs apollo
