@@ -15,6 +15,8 @@ import Joi from 'joi'
 import type { Connection } from 'mongoose'
 
 import { AssembliesModule } from './assemblies/assemblies.module.js'
+import { AssemblyAccessGuard } from './assemblyAccess/assemblyAccess.guard.js'
+import { AssemblyAccessModule } from './assemblyAccess/assemblyAccess.module.js'
 import { AuthenticationModule } from './authentication/authentication.module.js'
 import { ChangesModule } from './changes/changes.module.js'
 import { ChecksModule } from './checks/checks.module.js'
@@ -121,6 +123,9 @@ const validationSchema = Joi.object({
     })
     .default(''),
   PLUGIN_URLS_FILE: Joi.string(),
+  // Comma-separated list of npm package specifiers to load as server plugins,
+  // in addition to (not instead of) PLUGIN_URLS/PLUGIN_URLS_FILE
+  PLUGIN_PACKAGES: Joi.string(),
   OAUTH_HTTP_PROXY: Joi.string(),
   ALLOWED_REDIRECT_ORIGINS: Joi.string()
     .custom((value) => {
@@ -189,6 +194,7 @@ async function mongoDBURIFactory(
 @Module({
   imports: [
     AssembliesModule,
+    AssemblyAccessModule,
     AuthenticationModule,
     ChangesModule,
     ChecksModule,
@@ -221,6 +227,7 @@ async function mongoDBURIFactory(
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: ValidationGuard },
+    { provide: APP_GUARD, useClass: AssemblyAccessGuard },
   ],
 })
 export class AppModule implements NestModule {
