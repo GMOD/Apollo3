@@ -1,0 +1,42 @@
+{
+  "assemblies": [
+    {
+      "name": "volvox",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "volvox_refseq",
+        "adapter": {
+          "type": "TwoBitAdapter",
+          "twoBitLocation": {
+            "uri": "http://localhost:9000/test_data/volvox.2bit",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    }
+  ],
+  "configuration": {
+    "ApolloPlugin": {
+      "ontologies": [
+        {
+          "name": "Sequence Ontology",
+          "version": "unversioned",
+          "source": {
+            "uri": "http://localhost:9000/test_data/so-2024-11-18.json",
+            "locationType": "UriLocation"
+          }
+        }
+      ]
+    }
+  },
+  "defaultSession": {
+    "name": "Apollo",
+    "views": [{ "type": "LinearGenomeView" }]
+  },
+  "plugins": [
+    {
+      "name": "Apollo",
+      "url": "http://localhost:9000/dist/jbrowse-plugin-apollo.umd.development.js"
+    }
+  ]
+}
