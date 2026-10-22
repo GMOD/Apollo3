@@ -2,7 +2,7 @@
 /* eslint-disable unicorn/no-nested-ternary */
 
 import type { AnnotationFeature } from '@apollo-annotation/mst'
-import type { AbstractSessionModel } from '@jbrowse/core/util'
+import { type AbstractSessionModel, getEnv } from '@jbrowse/core/util'
 import { computed } from 'mobx'
 import { observer } from 'mobx-react'
 import React, { useMemo } from 'react'
@@ -12,6 +12,7 @@ import { isOntologyClass } from '../../OntologyManager'
 import type OntologyStore from '../../OntologyManager/OntologyStore'
 import { OntologyTermAutocomplete } from '../../components/OntologyTermAutocomplete'
 import { navToFeatureCenter } from '../../util'
+import { extendFeatureContextMenuItems } from '../../util/extendFeatureContextMenuItems'
 import type { DisplayStateModel } from '../types'
 
 import {
@@ -74,16 +75,21 @@ function makeContextMenuItems(
     filteredTranscripts,
     updateFilteredTranscripts,
   } = display
-  return featureContextMenuItems(
-    feature,
-    regions[0],
-    getAssemblyId,
-    selectedFeature,
-    setSelectedFeature,
-    session,
-    changeManager,
-    filteredTranscripts,
-    updateFilteredTranscripts,
+  const { pluginManager } = getEnv(session)
+  return extendFeatureContextMenuItems(
+    pluginManager,
+    featureContextMenuItems(
+      feature,
+      regions[0],
+      getAssemblyId,
+      selectedFeature,
+      setSelectedFeature,
+      session,
+      changeManager,
+      filteredTranscripts,
+      updateFilteredTranscripts,
+    ),
+    { feature, session, location: 'TabularEditor' },
   )
 }
 

@@ -1,14 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { changeRegistry, checkRegistry } from '@apollo-annotation/common'
-import {
-  CDSCheck,
-  CoreValidation,
-  ParentChildValidation,
-  TranscriptCheck,
-  changes,
-  validationRegistry,
-} from '@apollo-annotation/shared'
+import { type Change, checkRegistry } from '@apollo-annotation/common'
+import { CDSCheck, TranscriptCheck, changes } from '@apollo-annotation/shared'
 import Plugin from '@jbrowse/core/Plugin'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
@@ -76,8 +69,14 @@ import {
 } from './makeDisplayComponent'
 import { addTopLevelMenus } from './menus'
 import { addTopLevelAdminMenus } from './menus/topLevelMenuAdmin'
+import { registerPluginContributions } from './pluginContributions'
 import { type ApolloSessionModel, extendSession } from './session'
+import type { ClientDataStoreModel } from './session/ClientDataStore'
+import { changeHandlers } from './session/changeHandlers'
+import { clientChangeTypes } from './session/clientChangeTypes'
 import { isApolloInternetAccount } from './types'
+import { clientValidations } from './validation/ClientValidationSet'
+import { CoreValidation } from './validation/CoreValidation'
 
 interface ApolloMessageData {
   apollo: true
@@ -133,8 +132,17 @@ function checkJBrowseVersion(pluginManager: PluginManager) {
   }
 }
 
-for (const [changeName, change] of Object.entries(changes)) {
-  changeRegistry.registerChange(changeName, change)
+for (const [changeName, changeType] of Object.entries(changes)) {
+  const handler = changeHandlers[changeName as keyof typeof changeHandlers] as
+    | ((dataStore: ClientDataStoreModel, change: Change) => Promise<void>)
+    | undefined
+  clientChangeTypes.register(changeName, {
+    changeType,
+    handler: handler
+      ? (change, { dataStore }) =>
+          handler(dataStore as ClientDataStoreModel, change)
+      : undefined,
+  })
 }
 
 const cdsCheck = new CDSCheck()
@@ -143,8 +151,7 @@ checkRegistry.registerCheck(cdsCheck.name, cdsCheck)
 const transcriptCheck = new TranscriptCheck()
 checkRegistry.registerCheck(transcriptCheck.name, transcriptCheck)
 
-validationRegistry.registerValidation(new CoreValidation())
-validationRegistry.registerValidation(new ParentChildValidation())
+clientValidations.register(new CoreValidation())
 
 export default class ApolloPlugin extends Plugin {
   name = 'ApolloPlugin'
@@ -469,6 +476,7 @@ export default class ApolloPlugin extends Plugin {
 
   configure(pluginManager: PluginManager) {
     checkJBrowseVersion(pluginManager)
+    registerPluginContributions(pluginManager)
     const { rootModel } = pluginManager
     if (isAbstractMenuManager(rootModel)) {
       pluginManager.jexl.addFunction(

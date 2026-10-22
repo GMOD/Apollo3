@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig",
+  "compilerOptions": {
+    "composite": true,
+    "incremental": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
+    "lib": ["esnext", "dom"],
+    "types": ["node"],
+  },
+  "include": ["./src"],
+  "references": [
+    { "path": "../apollo-common" },
+    { "path": "../apollo-mst" },
+    { "path": "./tsconfig.node.json" },
+  ],
+}

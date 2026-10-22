@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "lib": ["es2022", "dom"],
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "types": ["cypress", "node"],
+  },
+  "include": ["**/*.ts"],
+}
