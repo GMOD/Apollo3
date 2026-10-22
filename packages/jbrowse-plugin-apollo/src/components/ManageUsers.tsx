@@ -4,8 +4,8 @@ import {
   DeleteUserChange,
   UserChange,
 } from '@apollo-annotation/shared'
+import { readConfObject } from '@jbrowse/core/configuration'
 import type { AbstractSessionModel } from '@jbrowse/core/util'
-import { getRoot } from '@jbrowse/mobx-state-tree'
 import DeleteIcon from '@mui/icons-material/Delete'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import {
@@ -42,10 +42,8 @@ import {
 } from '@mui/x-data-grid'
 import React, { useEffect, useState } from 'react'
 
-import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import type { ChangeManager } from '../ChangeManager'
 import type { ApolloSessionModel } from '../session'
-import { type ApolloRootModel, isApolloInternetAccount } from '../types'
 import { createFetchErrorMessage } from '../util'
 
 import { Dialog } from './Dialog'
@@ -109,17 +107,9 @@ function getDisplayName(user: UserResponse) {
   return user.username ?? user.email
 }
 
-async function apolloFetch(
-  internetAccount: ApolloInternetAccountModel,
-  path: string,
-  init?: RequestInit,
-) {
-  const uri = new URL(path, internetAccount.baseURL).href
-  const fetcher = internetAccount.getFetcher({
-    locationType: 'UriLocation',
-    uri,
-  })
-  return fetcher(uri, { method: 'GET', ...init })
+async function apolloFetch(path: string, init?: RequestInit) {
+  const uri = new URL(path, globalThis.location.href).href
+  return fetch(uri, { method: 'GET', ...init })
 }
 
 interface ManageUsersProps {
@@ -128,24 +118,48 @@ interface ManageUsersProps {
   changeManager: ChangeManager
 }
 
+/** Get a user from the server, or undefined if the user doesn't exist */
+async function fetchUser(userId: string) {
+  const response = await apolloFetch(`users/${userId}`)
+  if (!response.ok) {
+    throw new Error(
+      await createFetchErrorMessage(response, 'Error when getting user'),
+    )
+  }
+  const text = await response.text()
+  return text ? toUserRow(JSON.parse(text) as UserResponse) : undefined
+}
+
+/** Get a user from the server by email, or undefined if not found */
+async function fetchUserByEmail(email: string) {
+  const params = new URLSearchParams({
+    page: '0',
+    pageSize: '10',
+    search: email,
+  })
+  const response = await apolloFetch(`users?${params.toString()}`)
+  if (!response.ok) {
+    throw new Error(
+      await createFetchErrorMessage(response, 'Error when getting user'),
+    )
+  }
+  const data = (await response.json()) as UsersPageResponse
+  return data.users.find(
+    (user) => user.email.toLowerCase() === email.toLowerCase(),
+  )
+}
+
 export function ManageUsers({
   changeManager,
   handleClose,
   session,
 }: ManageUsersProps) {
-  const { internetAccounts } = getRoot<ApolloRootModel>(session)
   const { notify } = session as unknown as AbstractSessionModel
-  const apolloInternetAccounts: ApolloInternetAccountModel[] = internetAccounts
-    .filter((ia) => isApolloInternetAccount(ia))
-    .filter((ia) => ia.role?.includes('admin'))
   // Errors from user actions, cleared only when dismissed
   const [errorMessage, setErrorMessage] = useState('')
   // Errors from loading the user list, cleared by the next successful load
   const [loadErrorMessage, setLoadErrorMessage] = useState('')
   const [addUserErrorMessage, setAddUserErrorMessage] = useState('')
-  const [selectedInternetAccountId, setSelectedInternetAccountId] = useState(
-    apolloInternetAccounts.at(0)?.internetAccountId,
-  )
   const [users, setUsers] = useState<UserRow[]>([])
   const [specialUsers, setSpecialUsers] = useState<UserRow[]>([])
   const [rowCount, setRowCount] = useState(0)
@@ -170,16 +184,9 @@ export function ManageUsers({
   // IDs of users with a change in progress
   const [pendingUserIds, setPendingUserIds] = useState<string[]>([])
 
-  const selectedInternetAccount = apolloInternetAccounts.find(
-    (ia) => ia.internetAccountId === selectedInternetAccountId,
-  )
-
   useEffect(() => {
-    if (!selectedInternetAccount) {
-      return
-    }
     const controller = new AbortController()
-    async function getUsers(internetAccount: ApolloInternetAccountModel) {
+    async function getUsers() {
       setLoading(true)
       const params = new URLSearchParams({
         page: String(paginationModel.page),
@@ -209,11 +216,9 @@ export function ManageUsers({
           )
         }
       }
-      const response = await apolloFetch(
-        internetAccount,
-        `users?${params.toString()}`,
-        { signal: controller.signal },
-      )
+      const response = await apolloFetch(`users?${params.toString()}`, {
+        signal: controller.signal,
+      })
       if (!response.ok) {
         setLoadErrorMessage(
           await createFetchErrorMessage(
@@ -240,7 +245,7 @@ export function ManageUsers({
         }))
       }
     }
-    getUsers(selectedInternetAccount)
+    getUsers()
       .catch((error: unknown) => {
         if (!controller.signal.aborted) {
           setLoadErrorMessage(String(error))
@@ -254,48 +259,7 @@ export function ManageUsers({
     return () => {
       controller.abort()
     }
-  }, [
-    selectedInternetAccount,
-    paginationModel,
-    sortModel,
-    filterModel,
-    refreshCount,
-  ])
-
-  if (!selectedInternetAccount) {
-    return (
-      <Dialog
-        open
-        title="Manage users"
-        handleClose={handleClose}
-        data-testid="manage-users"
-      >
-        <DialogContent>
-          <Alert severity="error">
-            No Apollo account with the admin role was found
-          </Alert>
-        </DialogContent>
-        <DialogActions>
-          <Button variant="outlined" onClick={handleClose}>
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
-    )
-  }
-  const internetAccount = selectedInternetAccount
-
-  /** Get a user from the server, or undefined if the user doesn't exist */
-  async function fetchUser(userId: string) {
-    const response = await apolloFetch(internetAccount, `users/${userId}`)
-    if (!response.ok) {
-      throw new Error(
-        await createFetchErrorMessage(response, 'Error when getting user'),
-      )
-    }
-    const text = await response.text()
-    return text ? toUserRow(JSON.parse(text) as UserResponse) : undefined
-  }
+  }, [paginationModel, sortModel, filterModel, refreshCount])
 
   /**
    * Run a user change. `ChangeManager.submit` reports its own errors and
@@ -309,10 +273,7 @@ export function ManageUsers({
   ) {
     setPendingUserIds((ids) => [...ids, user._id])
     try {
-      await changeManager.submit(change, {
-        internetAccountId: internetAccount.internetAccountId,
-        addToRecents: false,
-      })
+      await changeManager.submit(change, { addToRecents: false })
       if (checkSucceeded(await fetchUser(user._id))) {
         notify(successMessage, 'success')
       }
@@ -354,28 +315,6 @@ export function ManageUsers({
     )
   }
 
-  /** Get a user from the server by email, or undefined if not found */
-  async function fetchUserByEmail(email: string) {
-    const params = new URLSearchParams({
-      page: '0',
-      pageSize: '10',
-      search: email,
-    })
-    const response = await apolloFetch(
-      internetAccount,
-      `users?${params.toString()}`,
-    )
-    if (!response.ok) {
-      throw new Error(
-        await createFetchErrorMessage(response, 'Error when getting user'),
-      )
-    }
-    const data = (await response.json()) as UsersPageResponse
-    return data.users.find(
-      (user) => user.email.toLowerCase() === email.toLowerCase(),
-    )
-  }
-
   async function addUser(email: string, role: UserRole) {
     const change = new AddUserChange({ typeName: 'AddUserChange', email, role })
     setAddingUser(true)
@@ -387,10 +326,7 @@ export function ManageUsers({
         setAddUserErrorMessage(`A user with email "${email}" already exists`)
         return
       }
-      await changeManager.submit(change, {
-        internetAccountId: internetAccount.internetAccountId,
-        addToRecents: false,
-      })
+      await changeManager.submit(change, { addToRecents: false })
       if (await fetchUserByEmail(email)) {
         notify(`Added "${email}" with role ${roleLabels[role]}`, 'success')
         setAddUserOpen(false)
@@ -407,7 +343,9 @@ export function ManageUsers({
   }
 
   function isCurrentUser(user: UserRow) {
-    return user._id === internetAccount.getUserId()
+    return (
+      user._id === readConfObject(session.getPluginConfiguration(), 'userId')
+    )
   }
 
   function canEditRole(user: UserRow) {
@@ -521,16 +459,6 @@ export function ManageUsers({
     },
   ]
 
-  function handleChangeInternetAccount(e: SelectChangeEvent) {
-    setUsers([])
-    setSpecialUsers([])
-    setRowCount(0)
-    setErrorMessage('')
-    setLoadErrorMessage('')
-    setPaginationModel((model) => ({ ...model, page: 0 }))
-    setSelectedInternetAccountId(e.target.value)
-  }
-
   return (
     <Dialog
       open
@@ -556,26 +484,6 @@ export function ManageUsers({
           <Alert severity="error">{loadErrorMessage}</Alert>
         ) : null}
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          {apolloInternetAccounts.length > 1 ? (
-            <FormControl size="small" sx={{ minWidth: 240 }}>
-              <InputLabel id="manage-users-account-label">Account</InputLabel>
-              <Select
-                labelId="manage-users-account-label"
-                label="Account"
-                value={internetAccount.internetAccountId}
-                onChange={handleChangeInternetAccount}
-              >
-                {apolloInternetAccounts.map((ia) => (
-                  <MenuItem
-                    key={ia.internetAccountId}
-                    value={ia.internetAccountId}
-                  >
-                    {ia.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          ) : null}
           <Button
             variant="contained"
             startIcon={<PersonAddIcon />}

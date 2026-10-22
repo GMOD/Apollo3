@@ -1,0 +1,37 @@
+{
+  "assemblies": [
+    {
+      "name": "SM_V10_3.fasta.gff3.gz",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "smV103RefSeq",
+        "adapter": {
+          "type": "UnindexedFastaAdapter",
+          "fastaLocation": {
+            "uri": "./SM_V10_3.fa",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    }
+  ],
+  "plugins": [
+    {
+      "name": "Apollo",
+      "url": "http://localhost:9000/dist/jbrowse-plugin-apollo.umd.development.js"
+    }
+  ],
+  "configuration": {
+    "ApolloPlugin": {
+      "ontologies": [
+        {
+          "name": "Sequence Ontology",
+          "source": {
+            "uri": "http://localhost:9000/test_data/so-2024-11-18.json",
+            "locationType": "UriLocation"
+          }
+        }
+      ]
+    }
+  }
+}

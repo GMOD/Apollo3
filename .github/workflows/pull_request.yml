@@ -135,6 +135,10 @@ jobs:
       - name: Get latest JBrowse
         run: yarn run jbrowse create --nightly .jbrowse
         working-directory: packages/jbrowse-plugin-apollo
+      # The server seeds its assemblies from these config files at startup
+      - name: Copy JBrowse test fixtures
+        run: yarn run copy-jbrowse-test-fixtures
+        working-directory: packages/jbrowse-plugin-apollo
       - name: Start MongoDB
         uses: supercharge/mongodb-github-action@1.12.1
         with:
@@ -245,6 +249,10 @@ jobs:
       - name: Get latest JBrowse
         run: yarn run jbrowse create --nightly .jbrowse
         working-directory: packages/jbrowse-plugin-apollo
+      # The server creates the "example" assembly from these at startup
+      - name: Copy JBrowse test fixtures
+        run: yarn run copy-jbrowse-test-fixtures
+        working-directory: packages/apollo-plugin-example
       - name: Start MongoDB
         uses: supercharge/mongodb-github-action@1.12.1
         with:
@@ -434,11 +442,35 @@ jobs:
           tags: apollo-cli:test
           cache-from: type=gha,scope=cli
           cache-to: type=gha,mode=max,scope=cli
+      # The server creates its assemblies from the JBrowse config in
+      # JBROWSE_DIR when it starts
+      - name: Make JBrowse config
+        run: |
+          mkdir docker-jbrowse
+          cp packages/apollo-collaboration-server/test/data/tiny.fasta* docker-jbrowse/
+          cat > docker-jbrowse/config.json <<'EOF'
+          {
+            "assemblies": [
+              {
+                "name": "vv1",
+                "sequence": {
+                  "adapter": {
+                    "type": "IndexedFastaAdapter",
+                    "fastaLocation": { "uri": "tiny.fasta" },
+                    "faiLocation": { "uri": "tiny.fasta.fai" }
+                  }
+                }
+              }
+            ]
+          }
+          EOF
       - name: Start MongoDB and apollo-collaboration-server
         run: |
           docker network create apollo
           docker run --detach --name mongo --network apollo mongo:8
           docker run --detach --name apollo --network apollo --publish 3999:3999 \
+            --volume "$PWD/docker-jbrowse:/data/jbrowse" \
+            --env JBROWSE_DIR=/data/jbrowse \
             --env NAME="Docker test" \
             --env URL=http://localhost:3999 \
             --env MONGODB_URI=mongodb://mongo:27017/apolloDb \
@@ -467,8 +499,9 @@ jobs:
           apollo config accessType root
           apollo config rootPassword pass
           apollo login
-          apollo assembly add-from-gff /data/tiny.fasta.gff3 --assembly vv1
           apollo assembly get --assembly vv1 | grep vv1
+          apollo feature import /data/tiny.fasta.gff3 --assembly vv1
+          apollo feature get --assembly vv1 | grep ctgA
       # The server exits with 0 when it shuts down cleanly on SIGTERM, and
       # Docker kills it (exit code 137) if it takes too long
       - name: Stop apollo-collaboration-server

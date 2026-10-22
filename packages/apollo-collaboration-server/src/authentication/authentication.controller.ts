@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common'
 import type { Request, Response } from 'express'
 
+import { setAuthCookie } from '../utils/auth-cookie.util.js'
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'
 
@@ -92,15 +93,34 @@ export class AuthenticationController {
     return { url }
   }
 
-  /** Get a new token with the user's current role */
+  /** Get a new token (and auth cookie) with the user's current role */
   @Post('refresh')
-  refreshToken(@Req() req: Request) {
-    return this.authService.refreshToken(req.user as Partial<DecodedJWT>)
+  async refreshToken(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.refreshToken(
+      req.user as Partial<DecodedJWT>,
+    )
+    setAuthCookie(res, result.token)
+    return result
   }
 
   @Get('guest')
-  guestLogin() {
-    return this.authService.guestLogin()
+  async guestLogin(
+    @Res() res: Response,
+    @Query('redirect_uri') redirectUri?: string,
+  ) {
+    if (redirectUri) {
+      this.authService.assertAllowedRedirectUri(redirectUri)
+    }
+    const { token } = await this.authService.guestLogin()
+    setAuthCookie(res, token)
+    if (redirectUri) {
+      res.redirect(redirectUri)
+      return
+    }
+    res.json({ token })
   }
 
   @Post('root')
@@ -260,6 +280,9 @@ export class AuthenticationController {
           req,
         )
         const result = await this.authService.oauthLogIn(name, email)
+        if ('token' in result) {
+          setAuthCookie(res, result.token)
+        }
         res.redirect(this.authService.getLoginRedirectUrl(redirectUri, result))
         return
       }

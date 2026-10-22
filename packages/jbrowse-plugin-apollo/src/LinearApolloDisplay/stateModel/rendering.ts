@@ -181,7 +181,9 @@ export function renderingModelFactory(
               if (!ctx) {
                 return
               }
-              const featureLayouts = layouts.get(lgv.assemblyNames[0])
+              const featureLayouts = layouts.get(
+                self.getAssemblyId(lgv.assemblyNames[0]),
+              )
               if (!featureLayouts) {
                 return
               }

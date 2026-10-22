@@ -3,6 +3,7 @@ import { validationSchema } from './configValidationSchema.js'
 const requiredConfig = {
   URL: 'http://localhost:3999',
   NAME: 'Test',
+  JBROWSE_DIR: './assets',
   MONGODB_URI: 'mongodb://localhost:27017/test',
   FILE_UPLOAD_FOLDER: '/data',
   JWT_SECRET: 'secret',

@@ -20,8 +20,6 @@ export interface SubmitOpts {
   submitToBackend?: boolean
   /** defaults to true */
   addToRecents?: boolean
-  /** defaults to undefined */
-  internetAccountId?: string
   /** defaults to false */
   updateJobStatusWidget?: boolean
 }

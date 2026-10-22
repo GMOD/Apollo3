@@ -6,15 +6,11 @@ import {
 } from '@apollo-annotation/common'
 import type { ServerValidationContext } from '@apollo-annotation/common/server'
 import {
-  Assembly,
-  type AssemblyDocument,
   Change,
   type ChangeDocument,
   Feature,
   type FeatureDocument,
   RefSeq,
-  RefSeqChunk,
-  type RefSeqChunkDocument,
   type RefSeqDocument,
 } from '@apollo-annotation/schemas'
 import {
@@ -42,22 +38,13 @@ import {
   serverChangeTypes,
 } from './serverChangeTypes.js'
 
-const STATUS_ZERO_CHANGE_TYPES = new Set([
-  'AddAssemblyAndFeaturesFromFileChange',
-  'AddAssemblyFromExternalChange',
-  'AddAssemblyFromFileChange',
-  'AddFeaturesFromFileChange',
-])
+const STATUS_ZERO_CHANGE_TYPES = new Set(['AddFeaturesFromFileChange'])
 export class ChangesService {
   constructor(
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
-    @InjectModel(Assembly.name)
-    private readonly assemblyModel: Model<AssemblyDocument>,
     @InjectModel(RefSeq.name)
     private readonly refSeqModel: Model<RefSeqDocument>,
-    @InjectModel(RefSeqChunk.name)
-    private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
     private readonly countersService: CountersService,
@@ -128,16 +115,7 @@ export class ChangesService {
         `Failed to apply "${change.typeName}" change, cleaning up temporary documents`,
         error instanceof Error ? error.stack : String(error),
       )
-      await this.assemblyModel
-        .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
-        .exec()
       await this.featureModel
-        .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
-        .exec()
-      await this.refSeqModel
-        .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
-        .exec()
-      await this.refSeqChunkModel
         .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
         .exec()
       throw new UnprocessableEntityException(String(error))
@@ -147,9 +125,9 @@ export class ChangesService {
     // have already committed (there is no surrounding transaction), so a
     // failure here leaves the feature data correct but the audit-log entry
     // missing; that gap is logged loudly rather than silently swallowed.
-    let savedChangedLogDoc: ChangeDocument | undefined
+    let changeDoc: ChangeDocument | undefined
     try {
-      ;[savedChangedLogDoc] = await this.changeModel.create([
+      ;[changeDoc] = await this.changeModel.create([
         // eslint-disable-next-line @typescript-eslint/no-misused-spread
         { ...change, user: user.email, sequence },
       ])
@@ -159,7 +137,6 @@ export class ChangesService {
       )
       throw error
     }
-    const changeDoc = savedChangedLogDoc
     const validationResult2 = await serverValidations.postValidate(
       change,
       validationContext,
@@ -207,26 +184,14 @@ export class ChangesService {
       this.logger.debug('Temporary data inserted')
       // Set "temporary document" -status --> "valid" -status i.e. (-1 --> 0)
       try {
-        await this.batchUpdateMany(this.assemblyModel, uniqUserId)
-        await this.batchUpdateMany(this.refSeqChunkModel, uniqUserId)
         await this.batchUpdateMany(this.featureModel, uniqUserId)
-        await this.batchUpdateMany(this.refSeqModel, uniqUserId)
       } catch (error) {
         // Clean up old "temporary document" -documents
         this.logger.error(
           'Failed to finalize temporary documents, cleaning them up',
           error instanceof Error ? error.stack : String(error),
         )
-        await this.assemblyModel
-          .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
-          .exec()
         await this.featureModel
-          .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
-          .exec()
-        await this.refSeqModel
-          .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
-          .exec()
-        await this.refSeqChunkModel
           .deleteMany({ $and: [{ status: -1, user: uniqUserId }] })
           .exec()
         if (error instanceof Error) {

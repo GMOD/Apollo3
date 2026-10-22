@@ -1,17 +1,10 @@
-import { Change as BaseChange } from '@apollo-annotation/common'
+import {
+  AssemblySpecificChange,
+  Change as BaseChange,
+} from '@apollo-annotation/common'
 import type { ServerChangeType } from '@apollo-annotation/common/server'
-import {
-  Assembly,
-  Change,
-  Feature,
-  RefSeq,
-  RefSeqChunk,
-} from '@apollo-annotation/schemas'
-import {
-  AddRefSeqAliasesChange,
-  type DecodedJWT,
-  LocationEndChange,
-} from '@apollo-annotation/shared'
+import { Change, Feature, RefSeq } from '@apollo-annotation/schemas'
+import { type DecodedJWT, LocationEndChange } from '@apollo-annotation/shared'
 import { jest } from '@jest/globals'
 import { getModelToken } from '@nestjs/mongoose'
 import { Test, type TestingModule } from '@nestjs/testing'
@@ -21,6 +14,17 @@ import { MessagesService } from '../messages/messages.service.js'
 
 import { ChangesService } from './changes.service.js'
 import { serverChangeTypes } from './serverChangeTypes.js'
+
+/** A plugin-style change that is assembly-specific but not a feature change */
+class PluginAssemblyChange extends AssemblySpecificChange {
+  typeName = 'TestPluginAssemblyChange' as const
+  toJSON() {
+    return { typeName: this.typeName, assembly: this.assembly }
+  }
+  getInverse() {
+    return this
+  }
+}
 
 /** A plugin-style change that isn't assembly-specific */
 class PluginChange extends BaseChange {
@@ -50,7 +54,7 @@ const deleteMany = () => ({ exec: () => Promise.resolve() })
 
 for (const [name, changeType] of [
   ['LocationEndChange', LocationEndChange],
-  ['AddRefSeqAliasesChange', AddRefSeqAliasesChange],
+  ['TestPluginAssemblyChange', PluginAssemblyChange],
 ] as const) {
   if (!serverChangeTypes.has(name)) {
     serverChangeTypes.register(name, {
@@ -92,9 +96,7 @@ describe('ChangesService', () => {
       providers: [
         ChangesService,
         { provide: getModelToken(Feature.name), useValue: featureModel },
-        { provide: getModelToken(Assembly.name), useValue: { deleteMany } },
         { provide: getModelToken(RefSeq.name), useValue: refSeqModel },
-        { provide: getModelToken(RefSeqChunk.name), useValue: { deleteMany } },
         { provide: getModelToken(Change.name), useValue: changeModel },
         {
           provide: CountersService,
@@ -174,10 +176,9 @@ describe('ChangesService', () => {
   })
 
   it('broadcasts other assembly-specific changes on the COMMON channel', async () => {
-    const change = new AddRefSeqAliasesChange({
-      typeName: 'AddRefSeqAliasesChange',
+    const change = new PluginAssemblyChange({
+      typeName: 'TestPluginAssemblyChange',
       assembly: 'asm1',
-      refSeqAliases: [{ refName: 'ctgA', aliases: ['chrA'] }],
     })
 
     await service.create(change, user)

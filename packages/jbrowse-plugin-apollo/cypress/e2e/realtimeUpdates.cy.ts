@@ -6,12 +6,17 @@ describe('Real-time updates from other users', () => {
   })
 
   afterEach(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
   })
 
   it("Shows another user's feature edit without reloading", () => {
     const assemblyName = 'space.gff3'
-    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
+    cy.importFeatures(
+      `test_data/${assemblyName}`,
+      assemblyName,
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
     cy.selectAssemblyToView(assemblyName, 'ctgA:9400..9600')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
