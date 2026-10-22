@@ -32,6 +32,7 @@ Cypress.on('window:load', (win) => {
 
 Cypress.Commands.add('loginAsGuest', () => {
   cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
+  cy.contains('Yes, I trust it', { timeout: 10_000 }).click()
   // The login dialog doesn't always appear (e.g. in CI), so poll for it for a
   // few seconds and continue on if it never shows up
   const deadline = Date.now() + 2000
@@ -162,6 +163,8 @@ Cypress.Commands.add(
       cy.get('[data-testid="track_menu_icon"]').click()
       cy.contains('Appearance').trigger('mouseover')
       cy.contains(appearance).click()
+      cy.press(Cypress.Keyboard.Keys.ESC)
+      cy.press(Cypress.Keyboard.Keys.ESC)
     })
   },
 )
@@ -226,9 +229,7 @@ Cypress.Commands.add(
       // on the page, including an open menu. Wait for the rebuilt app, whose
       // config has `hasRole` set.
       cy.window({ timeout: 20_000 })
-        .its(
-          'JBrowseRootModel.jbrowse.configuration.ApolloPlugin.hasRole.value',
-        )
+        .its('JBrowseRootModel.jbrowse.configuration.ApolloPlugin.hasRole')
         .should('equal', true)
       openApolloMenu()
       for (const pathPart of menuItemPathPrefix) {
@@ -264,16 +265,16 @@ Cypress.Commands.add(
       cy.wait('@changes').its('response.statusCode').should('match', /2../)
     })
 
-    cy.contains('UploadAssemblyFile')
+    cy.contains(`UploadAssemblyFile for ${assemblyName}`)
       .parent()
-      .should('contain', 'All operations successful')
+      .should('contain', 'Uploaded')
     cy.contains(
       loadFeatures
         ? 'AddAssemblyAndFeaturesFromFileChange'
         : 'AddAssemblyFromFileChange',
     )
       .parent()
-      .should('contain', 'All operations successful')
+      .should('contain', 'Finished')
     cy.get('button[aria-label="Close drawer"]', { timeout: 10_000 }).click()
     // Give JBrowse's session autosave (debounced 400ms) time to catch up so the
     // reload doesn't restore the session from before the change finished
@@ -292,11 +293,14 @@ Cypress.Commands.add(
   (assemblyName, locationOrSearch) => {
     cy.contains('Select assembly to view', { timeout: 10_000 })
 
-    cy.get('input[data-testid="assembly-selector"]')
+    cy.contains('Assembly')
+
+    cy.get('div')
+      .contains('Assembly')
       .parent()
       .then((el) => {
         if (!el.text().includes(assemblyName)) {
-          cy.get('input[data-testid="assembly-selector"]').parent().click()
+          cy.get('div').contains('Assembly').parent().click()
           cy.get('li').contains(assemblyName).click()
         }
       })
@@ -323,7 +327,7 @@ Cypress.Commands.add('searchFeatures', (query, expectedNumOfHits) => {
     `{selectall}{backspace}${query}{enter}`,
   )
   if (expectedNumOfHits === 0) {
-    cy.contains(`Error: Unknown feature or sequence "${query}"`)
+    cy.contains(`No results found for "${query}"`)
   } else if (expectedNumOfHits === 1) {
     cy.wait(`@search ${query}`)
   } else {
@@ -398,10 +402,10 @@ Cypress.Commands.add(
     cy.contains('button', 'Submit').click()
     cy.contains('Importing features for')
       .parent()
-      .should('contain', 'All operations successful')
+      .should('contain', 'Imported features')
     cy.contains('AddFeaturesFromFileChange')
       .parent()
-      .should('contain', 'All operations successful')
+      .should('contain', 'Finished')
   },
 )
 
@@ -409,4 +413,14 @@ Cypress.Commands.add('refreshTableEditor', () => {
   // Refresh table editor by close & re-open
   cy.annotationTrackAppearance('Show graphical display')
   cy.annotationTrackAppearance('Show both graphical and table display')
+})
+
+Cypress.Commands.add('loginAsOtherGuest', () => {
+  // Session IDs include the token's issued-at time in seconds, so wait to make
+  // sure this is a different session from the browser's
+  // eslint-disable-next-line cypress/no-unnecessary-waiting
+  cy.wait(1100)
+  return cy
+    .request<{ token: string }>('http://localhost:3999/auth/guest')
+    .then(({ body }) => body.token)
 })

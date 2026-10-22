@@ -8,44 +8,64 @@
   },
   "sideEffects": false,
   "type": "module",
-  "exports": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./client": "./dist/client/index.js",
+    "./server": "./dist/server/index.js"
+  },
   "scripts": {
     "build": "tsc --build"
   },
-  "dependencies": {
-    "@apollo-annotation/schemas": "workspace:^",
-    "@jbrowse/core": "^4.3.0",
-    "bson-objectid": "^2.0.4"
-  },
   "devDependencies": {
     "@apollo-annotation/mst": "workspace:^",
-    "@emotion/react": "^11.10.6",
-    "@emotion/styled": "^11.10.6",
-    "@gmod/gff": "^2.1.0",
+    "@apollo-annotation/schemas": "workspace:^",
+    "@jbrowse/core": "^5.0.0-beta.17",
     "@nestjs/common": "^11.2.1",
     "@nestjs/core": "^11.2.1",
+    "@types/express": "^4.17.13",
     "@types/node": "^24.10.9",
     "@types/react": "^18.3.4",
-    "generic-filehandle2": "^2.2.1",
+    "express": "^5.2.1",
     "mongoose": "^9.9.3",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.4.0",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
-    "@jbrowse/mobx-state-tree": "^5.8.7",
-    "@mui/material": "^7.3.11",
-    "@mui/x-data-grid": "^8.0.0",
-    "mobx": "^6.6.1",
-    "mobx-react": "^7.2.1",
-    "prop-types": "^15.8.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.4.0",
-    "tss-react": "^4.9.21"
+    "@apollo-annotation/mst": "workspace:^",
+    "@apollo-annotation/schemas": "workspace:^",
+    "@jbrowse/core": "^5.0.0-beta.17",
+    "@nestjs/common": "^11.2.1",
+    "@nestjs/core": "^11.2.1",
+    "@types/express": "^4.17.13",
+    "@types/react": "^18.3.4",
+    "mongoose": "^9.9.3"
+  },
+  "peerDependenciesMeta": {
+    "@apollo-annotation/mst": {
+      "optional": true
+    },
+    "@apollo-annotation/schemas": {
+      "optional": true
+    },
+    "@jbrowse/core": {
+      "optional": true
+    },
+    "@nestjs/common": {
+      "optional": true
+    },
+    "@nestjs/core": {
+      "optional": true
+    },
+    "@types/express": {
+      "optional": true
+    },
+    "@types/react": {
+      "optional": true
+    },
+    "mongoose": {
+      "optional": true
+    }
   },
   "publishConfig": {
     "access": "public"

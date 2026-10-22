@@ -2,7 +2,7 @@
 /* eslint-disable unicorn/no-nested-ternary */
 
 import type { AnnotationFeature } from '@apollo-annotation/mst'
-import type { AbstractSessionModel } from '@jbrowse/core/util'
+import { type AbstractSessionModel, getEnv } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'
@@ -11,6 +11,7 @@ import { isOntologyClass } from '../../OntologyManager'
 import type OntologyStore from '../../OntologyManager/OntologyStore'
 import { OntologyTermAutocomplete } from '../../components/OntologyTermAutocomplete'
 import { navToFeatureCenter } from '../../util'
+import { extendFeatureContextMenuItems } from '../../util/extendFeatureContextMenuItems'
 import type { DisplayStateModel } from '../types'
 
 import {
@@ -72,16 +73,21 @@ function makeContextMenuItems(
     filteredTranscripts,
     updateFilteredTranscripts,
   } = display
-  return featureContextMenuItems(
-    feature,
-    regions[0],
-    getAssemblyId,
-    selectedFeature,
-    setSelectedFeature,
-    session,
-    changeManager,
-    filteredTranscripts,
-    updateFilteredTranscripts,
+  const { pluginManager } = getEnv(session)
+  return extendFeatureContextMenuItems(
+    pluginManager,
+    featureContextMenuItems(
+      feature,
+      regions[0],
+      getAssemblyId,
+      selectedFeature,
+      setSelectedFeature,
+      session,
+      changeManager,
+      filteredTranscripts,
+      updateFilteredTranscripts,
+    ),
+    { feature, session, location: 'TabularEditor' },
   )
 }
 
@@ -191,10 +197,10 @@ export const Feature = observer(function Feature({
               fetchValidTerms={fetchValidTypeTerms.bind(null, feature)}
               renderInput={(params) => {
                 return (
-                  <div ref={params.InputProps.ref}>
+                  <div ref={params.slotProps.input.ref}>
                     <input
                       type="text"
-                      {...params.inputProps}
+                      {...params.slotProps.htmlInput}
                       className={classes.typeInputElement}
                       style={{ width: 170 }}
                     />

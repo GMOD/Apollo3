@@ -45,10 +45,14 @@ let forwardFillLight: CanvasPattern | null = null
 let backwardFillLight: CanvasPattern | null = null
 let forwardFillDark: CanvasPattern | null = null
 let backwardFillDark: CanvasPattern | null = null
-const canvas = globalThis.document.createElement('canvas')
-// @ts-expect-error getContext is undefined in the web worker
+// globalThis.document is undefined in the web worker, where this module is
+// also loaded (but never uses these patterns, which are main-thread-only
+// rendering fills)
+// eslint disables are for when the script loads in a web worker
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-if (canvas?.getContext) {
+const canvas = globalThis.document?.createElement('canvas')
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+if (canvas) {
   for (const direction of ['forward', 'backward']) {
     for (const themeMode of ['light', 'dark']) {
       const canvas = document.createElement('canvas')
@@ -174,7 +178,7 @@ function draw(
     (lgv.bpToPx({
       refName,
       coord: min,
-      regionNumber: displayedRegionIndex,
+      displayedRegionIndex,
     })?.offsetPx ?? 0) - offsetPx
   const topLevelFeatureWidthPx = topLevelFeature.length / bpPerPx
   const topLevelFeatureStartPx = reversed
@@ -275,7 +279,7 @@ function draw(
         (lgv.bpToPx({
           refName,
           coord: exon.min,
-          regionNumber: displayedRegionIndex,
+          displayedRegionIndex,
         })?.offsetPx ?? 0) - offsetPx
       const widthPx = exon.length / bpPerPx
       const startPx = reversed ? minX - widthPx : minX
@@ -341,7 +345,7 @@ function draw(
             (lgv.bpToPx({
               refName,
               coord: cds.min,
-              regionNumber: displayedRegionIndex,
+              displayedRegionIndex,
             })?.offsetPx ?? 0) - offsetPx
           cdsStartPx = reversed ? minX - cdsWidthPx : minX
           ctx.fillStyle = theme.palette.text.primary
@@ -525,7 +529,7 @@ function drawOverlay(
         (lgv.bpToPx({
           refName,
           coord: cds.min,
-          regionNumber: layoutIndex,
+          displayedRegionIndex: layoutIndex,
         })?.offsetPx ?? 0) - offsetPx
       const cdsStartPx = reversed ? minX - cdsWidthPx : minX
       const frame = getFrame(cds.min, cds.max, strand ?? 1, cds.phase)
@@ -788,7 +792,7 @@ function drawTooltip(
     (lgv.bpToPx({
       refName,
       coord: reversed ? max : min,
-      regionNumber: layoutIndex,
+      displayedRegionIndex: layoutIndex,
     })?.offsetPx ?? 0) - offsetPx
   const frame = getFrame(min, max, strand ?? 1, phase)
   const frameOffsets = showFeatureLabels
@@ -855,7 +859,7 @@ function getContextMenuItems(
     session,
   } = display
   const [region] = regions
-  const currentAssemblyId = display.getAssemblyId(region.assemblyName) as string
+  const currentAssemblyId = display.getAssemblyId(region.assemblyName)
   const menuItems: MenuItem[] = []
   const role = internetAccount ? internetAccount.role : 'admin'
   const readOnly = !(role && ['admin', 'user'].includes(role))

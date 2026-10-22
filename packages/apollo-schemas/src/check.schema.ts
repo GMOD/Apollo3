@@ -24,3 +24,6 @@ export class Check {
   version: number
 }
 export const CheckSchema = SchemaFactory.createForClass(Check)
+
+// Several server processes may register the same check at once
+CheckSchema.index({ name: 1 }, { unique: true })

@@ -3,32 +3,21 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import fs from 'node:fs'
 
-import {
-  type Check,
-  changeRegistry,
-  checkRegistry,
-} from '@apollo-annotation/common'
-import { CheckSchema } from '@apollo-annotation/schemas'
-import {
-  CDSCheck,
-  CoreValidation,
-  ParentChildValidation,
-  TranscriptCheck,
-  changes,
-  validationRegistry,
-} from '@apollo-annotation/shared'
+import { checkRegistry } from '@apollo-annotation/common'
+import { Check, type CheckDocument } from '@apollo-annotation/schemas'
+import { CDSCheck, TranscriptCheck } from '@apollo-annotation/shared'
 import type { LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
+import { getModelToken } from '@nestjs/mongoose'
 import connectMongoDBSession from 'connect-mongodb-session'
 import { json, urlencoded } from 'express'
 import session from 'express-session'
-import mongoose from 'mongoose'
+import type { Model } from 'mongoose'
 
 import { AppModule } from './app.module.js'
 import { GlobalExceptionsFilter } from './global-exceptions.filter.js'
 import { ApolloLogger } from './utils/apollo-logger.service.js'
 import { LoggingInterceptor } from './utils/logging.interceptor.js'
-import { AuthorizationValidation } from './utils/validation/AuthorizationValidation.js'
 
 const MongoDBStore = connectMongoDBSession(session)
 
@@ -71,19 +60,11 @@ async function bootstrap() {
     sessionSecret = fs.readFileSync(SESSION_SECRET_FILE, 'utf8').trim()
   }
 
-  for (const [changeName, change] of Object.entries(changes)) {
-    changeRegistry.registerChange(changeName, change)
-  }
-
   const cdsCheck = new CDSCheck()
   checkRegistry.registerCheck(cdsCheck.name, cdsCheck)
 
   const transcriptCheck = new TranscriptCheck()
   checkRegistry.registerCheck(transcriptCheck.name, transcriptCheck)
-
-  validationRegistry.registerValidation(new CoreValidation())
-  validationRegistry.registerValidation(new AuthorizationValidation())
-  validationRegistry.registerValidation(new ParentChildValidation())
 
   const cors = convertToBoolean(CORS)
 
@@ -98,6 +79,36 @@ async function bootstrap() {
     for (const signal of ['SIGINT', 'SIGTERM'] as const) {
       process.once(signal, () => {
         process.exit(0)
+      })
+    }
+  } else {
+    // Close the app and exit on these signals, so process managers like PM2 and
+    // container runtimes can stop this process cleanly. Exit explicitly instead
+    // of using app.enableShutdownHooks(), which re-sends the signal to exit, and
+    // a re-sent signal is ignored when this is PID 1 (e.g. in a container).
+    for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+      process.once(signal, () => {
+        logger.log(`Received ${signal}, shutting down`)
+        // A second signal exits right away
+        process.once(signal, () => {
+          process.exit(1)
+        })
+        // These exits are still part of handling the signal, which the lint
+        // rule can't tell once they're inside a callback
+        app.close().then(
+          () => {
+            // eslint-disable-next-line unicorn/no-process-exit
+            process.exit(0)
+          },
+          (error: unknown) => {
+            logger.error(
+              'Error while shutting down',
+              error instanceof Error ? error.stack : String(error),
+            )
+            // eslint-disable-next-line unicorn/no-process-exit
+            process.exit(1)
+          },
+        )
       })
     }
   }
@@ -125,24 +136,34 @@ async function bootstrap() {
   server.headersTimeout = 24 * 60 * 60 * 1000 // one day
   server.requestTimeout = 24 * 60 * 60 * 1000 // one day
 
-  // Add/update checks if needed
-  const checksMap: Map<string, Check> = checkRegistry.getChecks()
-  await mongoose.connect(mongodbURI, {})
-  const ChecksModel = mongoose.model('checks', CheckSchema)
-  for (const [key, check] of checksMap.entries()) {
-    const checkByName = await ChecksModel.find({ name: key }).exec()
-    const firstCheck = checkByName.at(0)
-    if (firstCheck) {
-      const checkByNameAndVersion = await ChecksModel.find({
-        name: key,
-        version: check.version,
-      }).exec()
-      if (checkByNameAndVersion.length === 0) {
-        firstCheck.version = check.version
-        await firstCheck.save()
-      }
-    } else {
-      await ChecksModel.create(check)
+  // Add/update checks if needed. These are upserts so that several server
+  // processes starting at the same time don't add duplicate checks.
+  const checkModel = app.get<Model<CheckDocument>>(getModelToken(Check.name))
+  for (const [name, check] of checkRegistry.getChecks()) {
+    const { causes, isDefault, version } = check
+    const now = new Date()
+    const { upsertedCount } = await checkModel
+      .updateOne(
+        { name },
+        {
+          $setOnInsert: {
+            name,
+            version,
+            causes,
+            isDefault,
+            createdAt: now,
+            updatedAt: now,
+          },
+        },
+        // Don't bump updatedAt for existing checks, it decides which
+        // features get re-checked
+        { upsert: true, timestamps: false },
+      )
+      .exec()
+    if (upsertedCount === 0) {
+      await checkModel
+        .updateOne({ name, version: { $ne: version } }, { $set: { version } })
+        .exec()
     }
   }
   logger.log(`Application is running on: ${await app.getUrl()}, CORS = ${cors}`)
