@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import type { Feature } from '@apollo-annotation/schemas'
-
+import type { FeatureNode } from './AnnotationFeatureData.js'
 import {
   Change,
   type ChangeOptions,
@@ -31,14 +29,13 @@ export abstract class AssemblySpecificChange extends Change {
   }
 
   getIndexedIds(
-    feature: AnnotationFeatureSnapshot | Feature,
+    feature: FeatureNode,
     idsToIndex: string[] | undefined,
   ): string[] {
     const indexedIds: string[] = []
     for (const additionalId of idsToIndex ?? []) {
       const { attributes } = feature
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const idValue: string[] =
+      const idValue =
         attributes instanceof Map
           ? attributes.get(additionalId)
           : attributes?.[additionalId]

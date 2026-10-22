@@ -1,13 +1,12 @@
 import crypto from 'node:crypto'
 import fsPromises from 'node:fs/promises'
-import os from 'node:os'
 import path from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import type {
   ApolloServerPlugin,
   ApolloServerPluginConstructor,
-} from '@apollo-annotation/common'
+} from '@apollo-annotation/common/server'
 import {
   type DynamicModule,
   Logger,
@@ -15,6 +14,10 @@ import {
   type Provider,
 } from '@nestjs/common'
 
+import {
+  parseCommaSeparatedList,
+  parsePluginIntegrity,
+} from './pluginConfig.js'
 import { PluginRoutesController } from './pluginRoutes.controller.js'
 import { APOLLO_PLUGINS } from './plugins.constants.js'
 import { PluginsService } from './plugins.service.js'
@@ -28,14 +31,23 @@ export class InvalidApolloServerPluginError extends Error {}
 
 const logger = new Logger('PluginsModule')
 
+/** Root of this package, the same from both `src/plugins` and `dist/plugins` */
+const packageRoot = fileURLToPath(new URL('../../', import.meta.url))
+
+/**
+ * Fetched plugin bundles are cached inside this package by default so that
+ * bare imports in them (e.g. `@apollo-annotation/common`, `mongoose`) resolve
+ * against the server's own dependencies, which also means they share the
+ * server's copies of those packages.
+ */
+const defaultPluginCacheDir = path.join(packageRoot, '.plugin-cache')
+
 @Module({})
 export class PluginsModule {
   static async registerAsync(): Promise<DynamicModule> {
     const { PLUGIN_PACKAGES, PLUGIN_URLS, PLUGIN_URLS_FILE } = process.env
-    const pluginPackages = PLUGIN_PACKAGES
-      ? PLUGIN_PACKAGES.split(',').map((entry) => entry.trim())
-      : []
-    let pluginURLs = PLUGIN_URLS ? PLUGIN_URLS.split(',') : []
+    const pluginPackages = parseCommaSeparatedList(PLUGIN_PACKAGES)
+    let pluginURLs = parseCommaSeparatedList(PLUGIN_URLS)
     if (pluginURLs.length === 0 && PLUGIN_URLS_FILE) {
       const pluginURLsFileText = await fsPromises.readFile(
         PLUGIN_URLS_FILE,
@@ -102,17 +114,23 @@ export class PluginsModule {
    * ergonomics (e.g. hosted/managed deployments). The bundle must be a
    * Node-targeted ESM/CJS build, not a browser/UMD bundle.
    *
-   * Fetched bytes are cached by content hash under `PLUGIN_CACHE_DIR` (an OS
-   * cache dir by default). If an integrity hash for this URL is configured
+   * Fetched bytes are cached by content hash under `PLUGIN_CACHE_DIR`
+   * (`.plugin-cache` in this package by default; bare imports in a bundle only
+   * resolve if the cache is inside this package). If an integrity hash for this URL is configured
    * (`PLUGIN_INTEGRITY`) and already cached, the network is skipped entirely.
    * Without a configured hash, the content isn't known until after fetching,
    * so the URL is always requested, but the cache still avoids rewriting an
    * unchanged file to disk.
    */
   private static async loadUrlPlugin(url: string): Promise<ApolloServerPlugin> {
-    const cacheDir =
-      process.env.PLUGIN_CACHE_DIR ??
-      path.join(os.tmpdir(), 'apollo-plugin-cache')
+    const cacheDir = path.resolve(
+      process.env.PLUGIN_CACHE_DIR ?? defaultPluginCacheDir,
+    )
+    if (path.relative(packageRoot, cacheDir).startsWith('..')) {
+      logger.warn(
+        `PLUGIN_CACHE_DIR "${cacheDir}" is outside the Apollo server package, so plugins loaded from URLs must be fully self-contained bundles: bare imports such as "@apollo-annotation/common" will not resolve`,
+      )
+    }
     await fsPromises.mkdir(cacheDir, { recursive: true })
 
     const expectedIntegrity = PluginsModule.getExpectedIntegrity(url)
@@ -182,17 +200,7 @@ export class PluginsModule {
   }
 
   private static getExpectedIntegrity(url: string): string | undefined {
-    const raw = process.env.PLUGIN_INTEGRITY
-    if (!raw) {
-      return undefined
-    }
-    for (const entry of raw.split(',')) {
-      const [entryUrl, hash] = entry.split('=')
-      if (entryUrl === url) {
-        return hash
-      }
-    }
-    return undefined
+    return parsePluginIntegrity(process.env.PLUGIN_INTEGRITY).get(url)
   }
 
   private static instantiate(

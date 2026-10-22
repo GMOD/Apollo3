@@ -3,16 +3,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import fs from 'node:fs'
 
-import { changeRegistry, checkRegistry } from '@apollo-annotation/common'
+import { checkRegistry } from '@apollo-annotation/common'
 import { Check, type CheckDocument } from '@apollo-annotation/schemas'
-import {
-  CDSCheck,
-  CoreValidation,
-  ParentChildValidation,
-  TranscriptCheck,
-  changes,
-  validationRegistry,
-} from '@apollo-annotation/shared'
+import { CDSCheck, TranscriptCheck } from '@apollo-annotation/shared'
 import type { LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import { getModelToken } from '@nestjs/mongoose'
@@ -25,7 +18,6 @@ import { AppModule } from './app.module.js'
 import { GlobalExceptionsFilter } from './global-exceptions.filter.js'
 import { ApolloLogger } from './utils/apollo-logger.service.js'
 import { LoggingInterceptor } from './utils/logging.interceptor.js'
-import { AuthorizationValidation } from './utils/validation/AuthorizationValidation.js'
 
 const MongoDBStore = connectMongoDBSession(session)
 
@@ -68,19 +60,11 @@ async function bootstrap() {
     sessionSecret = fs.readFileSync(SESSION_SECRET_FILE, 'utf8').trim()
   }
 
-  for (const [changeName, change] of Object.entries(changes)) {
-    changeRegistry.registerChange(changeName, change)
-  }
-
   const cdsCheck = new CDSCheck()
   checkRegistry.registerCheck(cdsCheck.name, cdsCheck)
 
   const transcriptCheck = new TranscriptCheck()
   checkRegistry.registerCheck(transcriptCheck.name, transcriptCheck)
-
-  validationRegistry.registerValidation(new CoreValidation())
-  validationRegistry.registerValidation(new AuthorizationValidation())
-  validationRegistry.registerValidation(new ParentChildValidation())
 
   const cors = convertToBoolean(CORS)
 
