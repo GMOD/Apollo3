@@ -20,6 +20,7 @@ import {
   isMousePositionWithFeature,
   setCanvasSize,
 } from '../../util'
+import { extendFeatureContextMenuItems } from '../../util/extendFeatureContextMenuItems'
 import { getRowContents } from '../rows'
 import type { CanvasMouseEvent } from '../types'
 
@@ -162,7 +163,15 @@ export function mouseEventsModelFactory(
       const { topLevelFeature } = hoveredFeature.feature
       const glyph = self.getGlyph(topLevelFeature)
       if (isMousePositionWithFeature(mousePosition)) {
-        return glyph.getContextMenuItems(self, mousePosition)
+        return extendFeatureContextMenuItems(
+          pluginManager,
+          glyph.getContextMenuItems(self, mousePosition),
+          {
+            feature: hoveredFeature.feature,
+            session: self.session,
+            location: 'LinearApolloSixFrameDisplay',
+          },
+        )
       }
       return []
     },

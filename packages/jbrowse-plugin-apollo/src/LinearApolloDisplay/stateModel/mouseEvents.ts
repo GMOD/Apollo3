@@ -22,6 +22,7 @@ import {
   selectFeatureAndOpenWidget,
   setCanvasSize,
 } from '../../util'
+import { extendFeatureContextMenuItems } from '../../util/extendFeatureContextMenuItems'
 import { isMouseOnFeatureEdge } from '../glyphs/util'
 import type { CanvasMouseEvent } from '../types'
 
@@ -134,19 +135,31 @@ export function mouseEventsModelFactory(
     contextMenuItems(event: React.MouseEvent<HTMLDivElement>): MenuItem[] {
       const mousePosition = self.getMousePosition(event)
       const features = self.getFeaturesAtMousePosition(mousePosition)
+      const extendMenuItems = (
+        feature: AnnotationFeature,
+        menuItems: MenuItem[],
+      ) =>
+        extendFeatureContextMenuItems(pluginManager, menuItems, {
+          feature,
+          session: self.session,
+          location: 'LinearApolloDisplay',
+        })
       if (features.length === 1) {
-        return getContextMenuItemsForFeature(self, features[0])
+        return extendMenuItems(
+          features[0],
+          getContextMenuItemsForFeature(self, features[0]),
+        )
       }
       const menuItems: MenuItem[] = []
       for (const feature of features) {
         const glyph = self.getGlyph(feature)
         menuItems.push({
           label: feature.type,
-          subMenu: [
+          subMenu: extendMenuItems(feature, [
             ...getContextMenuItemsForFeature(self, feature),
             // @ts-expect-error ts doesn't understand mst extension
             ...glyph.getContextMenuItems(self, feature),
-          ],
+          ]),
         })
       }
       return menuItems
