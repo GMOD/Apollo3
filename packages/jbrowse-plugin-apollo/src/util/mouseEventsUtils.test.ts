@@ -9,6 +9,7 @@ import {
 import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import { describe, expect, it } from '@jest/globals'
 
+import type { ApolloSessionModel } from '../session'
 import { changeHandlers } from '../session/changeHandlers'
 
 import { getPropagatedLocationChanges } from './mouseEventsUtils'
@@ -263,8 +264,11 @@ describe('CDS boundary propagation', () => {
         (type === 'coding_exon' && parent === 'CDS') ||
         (type === 'noncoding_exon' && parent === 'exon'),
     }
+    const session = {
+      apolloDataStore: { ontologyManager: { featureTypeOntology: ontology } },
+    } as ApolloSessionModel
     expect(
-      getPropagatedLocationChanges(cds, 33, 'max', true, ontology).map(
+      getPropagatedLocationChanges(cds, 33, 'max', true, session).map(
         (c) => c.featureId,
       ),
     ).toEqual(['cds1', 'exon2', 'mrna02'])

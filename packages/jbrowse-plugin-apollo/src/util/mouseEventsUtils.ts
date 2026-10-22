@@ -1,7 +1,9 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 
-import type { OntologyRecord } from '../OntologyManager'
+import type { ApolloSessionModel } from '../session'
+
+import { isCDSFeature, isExonFeature } from './glyphUtils'
 
 type MinEdge = 'min'
 type MaxEdge = 'max'
@@ -17,19 +19,17 @@ function expandFeatures(
   feature: AnnotationFeature,
   newLocation: number,
   edge: Edge,
-  featureTypeOntology?: Pick<OntologyRecord, 'isTypeOf'>,
+  session?: ApolloSessionModel,
 ): LocationChange[] {
   const featureId = feature._id
   const oldLocation = feature[edge]
   const changes: LocationChange[] = [{ featureId, oldLocation, newLocation }]
   const { parent } = feature
-  if (
-    featureTypeOntology?.isTypeOf(feature.type, 'CDS') ??
-    feature.type === 'CDS'
-  ) {
+  if (session ? isCDSFeature(feature, session) : feature.type === 'CDS') {
     for (const exon of parent?.children?.values() ?? []) {
-      const isExon =
-        featureTypeOntology?.isTypeOf(exon.type, 'exon') ?? exon.type === 'exon'
+      const isExon = session
+        ? isExonFeature(exon, session)
+        : exon.type === 'exon'
       const containsOldEdge =
         edge === 'min'
           ? exon.min <= oldLocation && oldLocation < exon.max
@@ -52,9 +52,7 @@ function expandFeatures(
     ((edge === 'min' && parent[edge] > newLocation) ||
       (edge === 'max' && parent[edge] < newLocation))
   ) {
-    changes.push(
-      ...expandFeatures(parent, newLocation, edge, featureTypeOntology),
-    )
+    changes.push(...expandFeatures(parent, newLocation, edge, session))
   }
   return changes
 }
@@ -124,7 +122,7 @@ export function getPropagatedLocationChanges(
   newLocation: number,
   edge: Edge,
   shrinkParent = false,
-  featureTypeOntology?: Pick<OntologyRecord, 'isTypeOf'>,
+  session?: ApolloSessionModel,
 ): LocationChange[] {
   const oldLocation = feature[edge]
   if (newLocation === oldLocation) {
@@ -135,12 +133,12 @@ export function getPropagatedLocationChanges(
       // shrinking feature, may need to shrink children and/or parents
       return shrinkFeatures(feature, newLocation, edge, shrinkParent)
     }
-    return expandFeatures(feature, newLocation, edge, featureTypeOntology)
+    return expandFeatures(feature, newLocation, edge, session)
   }
   if (newLocation < oldLocation) {
     return shrinkFeatures(feature, newLocation, edge, shrinkParent)
   }
-  return expandFeatures(feature, newLocation, edge, featureTypeOntology)
+  return expandFeatures(feature, newLocation, edge, session)
 }
 
 /** extended information about the position of the mouse on the canvas, including the refName, bp, and displayedRegion number */
