@@ -6,11 +6,8 @@
         "type": "ReferenceSequenceTrack",
         "trackId": "volvox_refseq",
         "adapter": {
-          "type": "TwoBitAdapter",
-          "twoBitLocation": {
-            "uri": "http://localhost:9000/test_data/volvox.2bit",
-            "locationType": "UriLocation"
-          }
+          "type": "UnindexedFastaAdapter",
+          "uri": "http://localhost:9000/test_data/gene.fa"
         }
       }
     }
