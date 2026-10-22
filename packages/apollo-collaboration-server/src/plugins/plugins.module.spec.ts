@@ -3,7 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-import type { ApolloServerPlugin } from '@apollo-annotation/common'
+import type { ApolloServerPlugin } from '@apollo-annotation/common/server'
 import { jest } from '@jest/globals'
 import type { FactoryProvider } from '@nestjs/common'
 
@@ -134,6 +134,30 @@ describe('PluginsModule', () => {
 
       expect(plugin.name).toBe('ValidPlugin')
       expect(globalThis.fetch).toHaveBeenCalledTimes(1)
+    })
+
+    it('resolves bare imports in a bundle cached inside the server package', async () => {
+      const packageCacheDir = await fsPromises.mkdtemp(
+        path.join(__dirname, '..', '..', '.plugin-cache-test-'),
+      )
+      try {
+        process.env.PLUGIN_CACHE_DIR = packageCacheDir
+        await mockFetchReturning('importing-plugin.mjs')
+        process.env.PLUGIN_URLS = 'https://example.com/importing-plugin.mjs'
+
+        const plugin = await loadSinglePlugin()
+
+        expect(plugin.name).toBe('ImportingPlugin')
+      } finally {
+        await fsPromises.rm(packageCacheDir, { recursive: true, force: true })
+      }
+    })
+
+    it('cannot resolve bare imports in a bundle cached outside the server package', async () => {
+      await mockFetchReturning('importing-plugin.mjs')
+      process.env.PLUGIN_URLS = 'https://example.com/importing-plugin.mjs'
+
+      await expect(loadPlugins()).rejects.toThrow(/Could not load plugin/)
     })
 
     it('caches the fetched bundle by content hash', async () => {

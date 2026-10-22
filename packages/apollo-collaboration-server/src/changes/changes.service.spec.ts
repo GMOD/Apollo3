@@ -1,3 +1,5 @@
+import { Change as BaseChange } from '@apollo-annotation/common'
+import type { ServerChangeType } from '@apollo-annotation/common/server'
 import {
   Assembly,
   Change,
@@ -17,8 +19,19 @@ import { Test, type TestingModule } from '@nestjs/testing'
 import { CountersService } from '../counters/counters.service.js'
 import { MessagesService } from '../messages/messages.service.js'
 
-import { ChangeHandlersService } from './changeHandlers.service.js'
 import { ChangesService } from './changes.service.js'
+import { serverChangeTypes } from './serverChangeTypes.js'
+
+/** A plugin-style change that isn't assembly-specific */
+class PluginChange extends BaseChange {
+  typeName = 'TestPluginChange'
+  toJSON() {
+    return { typeName: this.typeName }
+  }
+  getInverse() {
+    return this
+  }
+}
 
 const user: DecodedJWT = {
   id: 'user1',
@@ -31,6 +44,20 @@ const user: DecodedJWT = {
 
 function exec<T>(value: T) {
   return { exec: () => Promise.resolve(value) }
+}
+
+const deleteMany = () => ({ exec: () => Promise.resolve() })
+
+for (const [name, changeType] of [
+  ['LocationEndChange', LocationEndChange],
+  ['AddRefSeqAliasesChange', AddRefSeqAliasesChange],
+] as const) {
+  if (!serverChangeTypes.has(name)) {
+    serverChangeTypes.register(name, {
+      changeType,
+      handler: () => Promise.resolve(),
+    })
+  }
 }
 
 describe('ChangesService', () => {
@@ -50,41 +77,69 @@ describe('ChangesService', () => {
           await fn({})
         },
       },
+      deleteMany,
     }
     const refSeqModel = {
       findById: (featureId: string) =>
         exec({ name: featureRefNames[featureId] }),
+      deleteMany,
     }
     const changeModel = {
       create: ([doc]: [object]) =>
         Promise.resolve([{ ...doc, _id: 'change1', sequence: 42 }]),
     }
-    const changeHandlers = {
-      LocationEndChange: () => Promise.resolve(),
-      AddRefSeqAliasesChange: () => Promise.resolve(),
-    }
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ChangesService,
         { provide: getModelToken(Feature.name), useValue: featureModel },
-        { provide: getModelToken(Assembly.name), useValue: {} },
+        { provide: getModelToken(Assembly.name), useValue: { deleteMany } },
         { provide: getModelToken(RefSeq.name), useValue: refSeqModel },
-        { provide: getModelToken(RefSeqChunk.name), useValue: {} },
+        { provide: getModelToken(RefSeqChunk.name), useValue: { deleteMany } },
         { provide: getModelToken(Change.name), useValue: changeModel },
         {
           provide: CountersService,
           useValue: { getNextSequenceValue: () => Promise.resolve(42) },
         },
         { provide: MessagesService, useValue: { broadcast } },
-        { provide: ChangeHandlersService, useValue: changeHandlers },
       ],
     }).compile()
 
     service = module.get<ChangesService>(ChangesService)
   })
 
-  it('should be defined', () => {
-    expect(service).toBeDefined()
+  it('applies a plugin change type with its registered handler', async () => {
+    const handler = jest.fn<ServerChangeType['handler']>()
+    if (!serverChangeTypes.has('TestPluginChange')) {
+      serverChangeTypes.register('TestPluginChange', {
+        changeType: PluginChange,
+        handler: (change, context) => handler(change, context),
+      })
+    }
+    const change = new PluginChange({ typeName: 'TestPluginChange' })
+
+    await service.create(change, user)
+
+    expect(handler).toHaveBeenCalledTimes(1)
+    expect(handler).toHaveBeenCalledWith(
+      change,
+      expect.objectContaining({
+        user: {
+          id: 'user1',
+          username: 'User One',
+          email: 'user1@example.com',
+          role: 'admin',
+        },
+      }),
+    )
+  })
+
+  it('rejects a change type with no registered handler', async () => {
+    const change = new PluginChange({ typeName: 'TestPluginChange' })
+    change.typeName = 'UnregisteredChange'
+
+    await expect(service.create(change, user)).rejects.toThrow(
+      /No handler registered for change type "UnregisteredChange"/,
+    )
   })
 
   it('broadcasts a feature change on each affected assembly-refSeq channel', async () => {
