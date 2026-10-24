@@ -187,15 +187,15 @@ export function renderingModelFactory(
               }
               ctx.clearRect(0, 0, canvas.width, canvas.height)
               for (const block of dynamicBlocks.contentBlocks) {
+                const layout = featureLayouts.get(block.refName)
+                if (!layout) {
+                  continue
+                }
                 const blockLeftPx = block.offsetPx - offsetPx
                 ctx.save()
                 ctx.beginPath()
                 ctx.rect(blockLeftPx, 0, block.widthPx, canvas.height)
                 ctx.clip()
-                const layout = featureLayouts.get(block.refName)
-                if (!layout) {
-                  return
-                }
                 const { byRow } = layout
                 for (const [row, layoutRow] of byRow.entries()) {
                   for (const layoutFeature of layoutRow) {
