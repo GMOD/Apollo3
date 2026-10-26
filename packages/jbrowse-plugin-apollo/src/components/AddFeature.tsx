@@ -2,6 +2,7 @@
 
 import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
+import type { AbstractSessionModel } from '@jbrowse/core/util'
 import type { Region } from '@jbrowse/core/util/types'
 import InfoIcon from '@mui/icons-material/Info'
 import {
@@ -29,6 +30,7 @@ import { CollaborationServerDriver } from '../BackendDrivers'
 import type { ChangeManager } from '../ChangeManager'
 import { isOntologyClass } from '../OntologyManager'
 import type { ApolloSessionModel } from '../session'
+import { getApolloAssemblyId } from '../util'
 
 import { Dialog } from './Dialog'
 import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
@@ -111,6 +113,13 @@ export function AddFeature({
       setErrorMessage('No backend driver found')
       return
     }
+    const { assemblyManager } = session as unknown as AbstractSessionModel
+    const assemblyConfig = assemblyManager.get(region.assemblyName)
+    if (!assemblyConfig) {
+      setErrorMessage(`Could not find assembly named ${region.assemblyName}`)
+      return
+    }
+    const assemblyId = getApolloAssemblyId(assemblyConfig)
     let refSeqId = region.refName
     if (backendDriver instanceof CollaborationServerDriver) {
       const backendRefSeqId = await backendDriver.getRefSeqId(
@@ -138,7 +147,7 @@ export function AddFeature({
       const change = new AddFeatureChange({
         changedIds: [id],
         typeName: 'AddFeatureChange',
-        assembly: region.assemblyName,
+        assembly: assemblyId,
         addedFeature: {
           _id: id,
           refSeq: refSeqId,
@@ -165,7 +174,7 @@ export function AddFeature({
       const change = new AddFeatureChange({
         changedIds: [mRNA._id],
         typeName: 'AddFeatureChange',
-        assembly: region.assemblyName,
+        assembly: assemblyId,
         addedFeature: mRNA,
       })
       void changeManager.submit(change).then(() => {
@@ -183,7 +192,7 @@ export function AddFeature({
     const change = new AddFeatureChange({
       changedIds: [id],
       typeName: 'AddFeatureChange',
-      assembly: region.assemblyName,
+      assembly: assemblyId,
       addedFeature: {
         _id: id,
         refSeq: refSeqId,

@@ -6,13 +6,13 @@ function notesPath(featureId: string) {
 
 describe('Example plugin server half', () => {
   beforeEach(() => {
-    cy.setupJBrowseConfig()
+    cy.preloadOntology()
     cy.loginAsGuest()
-    cy.addAssemblyFromGff('example', 'cypress/fixtures/example.fasta.gff3')
+    cy.importFeatures('cypress/fixtures/example.fasta.gff3', 'example')
   })
 
   afterEach(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
   })
 
   it('Serves a feature’s notes from the custom route', () => {
@@ -33,6 +33,9 @@ describe('Example plugin server half', () => {
 
   it('Requires a logged-in user for the custom route', () => {
     cy.getFeature('gene01').then(({ _id }) => {
+      // cy.request() sends the browser's cookies, including the login from
+      // beforeEach, so remove it
+      cy.clearCookie('apollo_jwt')
       cy.request({
         url: `http://localhost:3999${notesPath(_id.toHexString())}`,
         failOnStatusCode: false,

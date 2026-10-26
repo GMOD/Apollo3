@@ -1,4 +1,5 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
+import { readConfObject } from '@jbrowse/core/configuration'
 import type { MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
@@ -17,7 +18,6 @@ import {
   SplitExon,
 } from '../../components'
 import type { ApolloSessionModel } from '../../session'
-import { getApolloInternetAccount } from '../../util'
 
 export function featureContextMenuItems(
   feature: AnnotationFeature | undefined,
@@ -30,8 +30,10 @@ export function featureContextMenuItems(
   filteredTranscripts: string[],
   updateFilteredTranscripts: (forms: string[]) => void,
 ) {
-  const internetAccount = getApolloInternetAccount(session)
-  const role = internetAccount ? internetAccount.role : 'admin'
+  const role =
+    (readConfObject(session.getPluginConfiguration(), 'role') as
+      | string
+      | undefined) ?? 'admin'
   const readOnly = !(role && ['admin', 'user'].includes(role))
   const menuItems: MenuItem[] = []
   if (feature) {
@@ -73,7 +75,6 @@ export function featureContextMenuItems(
                 changeManager,
                 sourceFeature: feature,
                 sourceAssemblyId,
-                internetAccount,
               },
             ],
           )

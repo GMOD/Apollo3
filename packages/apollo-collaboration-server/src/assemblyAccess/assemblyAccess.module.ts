@@ -2,6 +2,7 @@ import { Global, Module } from '@nestjs/common'
 
 import { AssembliesModule } from '../assemblies/assemblies.module.js'
 import { FeaturesModule } from '../features/features.module.js'
+import { JBrowseConfigModule } from '../jbrowse/jbrowseConfig.module.js'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module.js'
 
 import { AssemblyAccessService } from './assemblyAccess.service.js'
@@ -13,7 +14,12 @@ import { AssemblyAccessService } from './assemblyAccess.service.js'
  */
 @Global()
 @Module({
-  imports: [AssembliesModule, FeaturesModule, RefSeqsModule],
+  imports: [
+    AssembliesModule,
+    FeaturesModule,
+    JBrowseConfigModule,
+    RefSeqsModule,
+  ],
   providers: [AssemblyAccessService],
   exports: [AssemblyAccessService],
 })

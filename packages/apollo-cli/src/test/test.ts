@@ -27,7 +27,7 @@ import type {
   AnnotationFeatureSnapshot,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
-import { MongoClient } from 'mongodb'
+import { MongoClient, type ObjectId } from 'mongodb'
 
 import { Shell, deleteAllChecks } from './utils.js'
 
@@ -42,9 +42,16 @@ function makeToken(payload: object) {
 let client: MongoClient
 let configFile = ''
 let configFileBak = ''
+// Assemblies are seeded once, at server startup, from a JBrowse config.json
+// (see packages/apollo-collaboration-server/test/data/config.json) - they
+// can no longer be created or deleted through the CLI, so tests share this
+// fixed pool instead of creating their own. Some tests do mutate an
+// assembly's `checks` array, so we snapshot it here and restore it after
+// every test to keep tests order-independent.
+let assemblyChecksSnapshot: { _id: ObjectId; checks: ObjectId[] }[] = []
 
 void describe('Test CLI', () => {
-  before(() => {
+  before(async () => {
     const uri =
       'mongodb://localhost:27017/apolloTestCliDb?directConnection=true'
     client = new MongoClient(uri)
@@ -59,6 +66,12 @@ void describe('Test CLI', () => {
     new Shell(`${apollo} config ${P} accessType root`)
     new Shell(`${apollo} config ${P} rootPassword pass`)
     new Shell(`${apollo} login ${P} -f`)
+
+    const database = client.db('apolloTestCliDb')
+    assemblyChecksSnapshot = (await database
+      .collection('assemblies')
+      .find({}, { projection: { checks: 1 } })
+      .toArray()) as unknown as { _id: ObjectId; checks: ObjectId[] }[]
   })
 
   after(async () => {
@@ -73,16 +86,21 @@ void describe('Test CLI', () => {
   afterEach(async () => {
     const database = client.db('apolloTestCliDb')
     await Promise.all(
-      [
-        'assemblies',
-        'changes',
-        'counters',
-        'features',
-        'files',
-        'refseqchunks',
-        'refseqs',
-      ].map((collectionName) =>
-        database.collection(collectionName).deleteMany({}),
+      ['changes', 'checkresults', 'counters', 'features', 'files'].map(
+        (collectionName) => database.collection(collectionName).deleteMany({}),
+      ),
+    )
+    // Assemblies/refseqs are seeded once at server startup and not
+    // recreated per test, so instead of wiping them, restore whichever
+    // assemblies' `checks` a test may have changed.
+    await Promise.all(
+      assemblyChecksSnapshot.map((assembly) =>
+        database
+          .collection('assemblies')
+          .updateOne(
+            { _id: assembly._id },
+            { $set: { checks: assembly.checks } },
+          ),
       ),
     )
     // Put back starting config file
@@ -414,12 +432,8 @@ server.listen(0, () => {
   })
 
   void globalThis.itName('Feature get', () => {
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
-    )
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv2 -f`,
-    )
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv2`)
 
     let p = new Shell(`${apollo} feature get ${P} -a vv1`)
     assert.ok(
@@ -484,9 +498,7 @@ server.listen(0, () => {
   })
 
   void globalThis.itName('Feature get includes checks when requested', () => {
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
-    )
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
     let p = new Shell(`${apollo} feature get ${P} -a vv1`)
     const features = JSON.parse(p.stdout) as AnnotationFeatureSnapshot[]
     p = new Shell(`${apollo} feature check ${P} -a vv1`)
@@ -534,23 +546,12 @@ server.listen(0, () => {
     )
     assert.deepStrictEqual(JSON.parse(p.stdout), [[], []])
 
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a empty -e -f`,
-    )
-    p = new Shell(`${apollo} feature get ${P} -a empty --include-checks`)
+    // vv2 is seeded but has no features imported in this test
+    p = new Shell(`${apollo} feature get ${P} -a vv2 --include-checks`)
     assert.deepStrictEqual(JSON.parse(p.stdout), [[], []])
   })
 
   void globalThis.itName('Assembly get', () => {
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a vv1 -e -f`,
-    )
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a vv2 -e -f`,
-    )
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a vv3 -e -f`,
-    )
     let p = new Shell(`${apollo} assembly get ${P}`)
     assert.ok(
       p.stdout.includes('vv1'),
@@ -596,67 +597,11 @@ server.listen(0, () => {
     )
   })
 
-  void globalThis.itName('Delete assembly', () => {
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a volvox1 -f`,
-    )
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a volvox2 -f`,
-    )
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a volvox3 -f`,
-    )
-    let p = new Shell(
-      `${apollo} assembly get ${P} | jq '.[] | select(.name == "volvox1") | ._id'`,
-    )
-    const aid = p.stdout.trim()
-
-    p = new Shell(`${apollo} assembly delete ${P} -v -a ${aid} volvox2 volvox2`)
-    const out = JSON.parse(p.stdout)
-    assert.strictEqual(
-      out.length,
-      2,
-      `Expected 2 deleted assemblies (duplicates ignored), got ${out.length}`,
-    )
-    assert.ok(
-      p.stderr.includes('2 '),
-      `Expected verbose output to report 2 deletions:\n${p.stderr}`,
-    )
-
-    new Shell(`${apollo} assembly delete ${P} -a ${aid} volvox2`)
-    p = new Shell(`${apollo} assembly get ${P}`)
-    assert.ok(
-      p.stdout.includes(aid) == false,
-      `Expected deleted assembly id ${aid} not to be returned`,
-    )
-    assert.ok(
-      p.stdout.includes('volvox1') == false,
-      'Expected deleted assembly volvox1 not to be returned',
-    )
-    assert.ok(
-      p.stdout.includes('volvox2') == false,
-      'Expected deleted assembly volvox2 not to be returned',
-    )
-    assert.ok(
-      p.stdout.includes('volvox3'),
-      'Expected non-deleted assembly volvox3 to be returned',
-    )
-  })
-
   void globalThis.itName('Id reader', () => {
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a v1 -f`,
-    )
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a v2 -f`,
-    )
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a v3 -f`,
-    )
     let p = new Shell(`${apollo} assembly get ${P}`)
     const xall = JSON.parse(p.stdout)
 
-    p = new Shell(`${apollo} assembly get ${P} -a v1 v2`)
+    p = new Shell(`${apollo} assembly get ${P} -a vv1 vv2`)
     let out = JSON.parse(p.stdout)
     assert.strictEqual(
       out.length,
@@ -664,17 +609,17 @@ server.listen(0, () => {
       `Expected 2 assemblies from command-line names, got ${out.length}`,
     )
 
-    // This is interpreted as an assembly named 'v1 v2'
-    p = new Shell(`echo v1 v2 | ${apollo} assembly get ${P} -a -`)
+    // This is interpreted as an assembly named 'vv1 vv2'
+    p = new Shell(`echo vv1 vv2 | ${apollo} assembly get ${P} -a -`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(
       out.length,
       0,
-      `Expected 0 assemblies for single stdin line "v1 v2", got ${out.length}`,
+      `Expected 0 assemblies for single stdin line "vv1 vv2", got ${out.length}`,
     )
 
     // These are two assemblies
-    p = new Shell(`echo -e 'v1 \n v2' | ${apollo} assembly get ${P} -a -`)
+    p = new Shell(`echo -e 'vv1 \n vv2' | ${apollo} assembly get ${P} -a -`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(
       out.length,
@@ -702,7 +647,7 @@ server.listen(0, () => {
     fs.unlinkSync('test_data/tmp.json')
 
     // From text file, one name or id per line
-    fs.writeFileSync('test_data/tmp.txt', 'v1 \n v2 \r\n v3 \n')
+    fs.writeFileSync('test_data/tmp.txt', 'vv1 \n vv2 \r\n vv3 \n')
     p = new Shell(`${apollo} assembly get ${P} -a test_data/tmp.txt`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(
@@ -757,96 +702,12 @@ server.listen(0, () => {
     )
   })
 
-  void globalThis.itName('Add assembly from gff', () => {
-    let p = new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 --omit-features -f`,
-    )
-    const out = JSON.parse(p.stdout)
-    assert.ok(
-      Object.keys(out.fileIds).includes('fa'),
-      `Expected added assembly to have an "fa" file id, got ${JSON.stringify(out.fileIds)}`,
-    )
-
-    // Get id of assembly named vv1 and check there are no features
-    p = new Shell(`${apollo} assembly get ${P} -a vv1`)
-    assert.ok(p.stdout.includes('vv1'), 'Expected assembly vv1 to be returned')
-    assert.ok(
-      p.stdout.includes('vv2') == false,
-      'Expected only assembly vv1 to be returned',
-    )
-    const asm_id = JSON.parse(p.stdout).at(0)._id
-
-    p = new Shell(`${apollo} refseq get ${P}`)
-    const refseq = JSON.parse(p.stdout.trim())
-    const vv1ref = refseq.filter((x: any) => x.assembly === asm_id)
-    const refseq_id = vv1ref.find((x: any) => x.name === 'ctgA')._id
-
-    p = new Shell(`${apollo} feature get ${P} -r ${refseq_id}`)
-    const ff = JSON.parse(p.stdout)
-    assert.deepStrictEqual(
-      ff,
-      [],
-      `Expected no features with --omit-features, got ${ff.length}`,
-    )
-
-    p = new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1`,
-      false,
-    )
-    assert.ok(
-      p.returncode != 0,
-      'Expected adding existing assembly without -f to fail',
-    )
-    assert.ok(
-      p.stderr.includes('Error: Assembly "vv1" already exists'),
-      `Expected "already exists" error:\n${p.stderr}`,
-    )
-
-    // Default assembly name
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -f`,
-    )
-    p = new Shell(`${apollo} assembly get ${P} -a tiny.fasta.gff3`)
-    assert.ok(
-      p.stdout.includes('tiny.fasta.gff3'),
-      'Expected assembly name to default to the file name',
-    )
-  })
-
-  void globalThis.itName('Add assembly large input', () => {
-    fs.writeFileSync('test_data/tmp.fa', '>chr1\n')
-    const stream = fs.createWriteStream('test_data/tmp.fa', { flags: 'a' })
-    for (let i = 0; i < 10_000; i++) {
-      stream.write('CATTGTTGCGGAGTTGAACAACGGCATTAGGAACACTTCCGTCTC\n')
-    }
-    stream.close()
-
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tmp.fa -a test -e -f`,
-      true,
-      60_000,
-    )
-
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tmp.fa -a test -f`,
-      false,
-      60_000,
-    )
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tmp.fa -a test -e -f`,
-      true,
-      60_000,
-    )
-
-    fs.unlinkSync('test_data/tmp.fa')
-  })
-
   void globalThis.itName('Checks are triggered and resolved', () => {
-    new Shell(`${apollo} assembly add-from-gff ${P} test_data/checks.gff -f`)
-    let p = new Shell(`${apollo} feature get ${P} -a checks.gff`)
+    new Shell(`${apollo} feature import ${P} test_data/checks.gff -a checks`)
+    let p = new Shell(`${apollo} feature get ${P} -a checks`)
     const out = JSON.parse(p.stdout)
 
-    p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
+    p = new Shell(`${apollo} feature check ${P} -a checks`)
     assert.deepStrictEqual(
       p.stdout.trim(),
       '[]',
@@ -868,7 +729,7 @@ server.listen(0, () => {
     new Shell(
       `${apollo} feature edit-coords ${P} -i ${cds_id} --start 4 --end 24`,
     )
-    p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
+    p = new Shell(`${apollo} feature check ${P} -a checks`)
     const checks = JSON.parse(p.stdout)
     assert.strictEqual(
       checks.length,
@@ -888,7 +749,7 @@ server.listen(0, () => {
     new Shell(
       `${apollo} feature edit-coords ${P} -i ${cds_id} --start 16 --end 27`,
     )
-    p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
+    p = new Shell(`${apollo} feature check ${P} -a checks`)
     assert.deepStrictEqual(
       JSON.parse(p.stdout).length,
       0,
@@ -897,11 +758,11 @@ server.listen(0, () => {
   })
 
   void globalThis.itName('FIXME: Checks stay after invalid operation', () => {
-    new Shell(`${apollo} assembly add-from-gff ${P} test_data/checks.gff -f`)
-    let p = new Shell(`${apollo} feature get ${P} -a checks.gff`)
+    new Shell(`${apollo} feature import ${P} test_data/checks.gff -a checks`)
+    let p = new Shell(`${apollo} feature get ${P} -a checks`)
     const out = JSON.parse(p.stdout)
 
-    p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
+    p = new Shell(`${apollo} feature check ${P} -a checks`)
     assert.deepStrictEqual(
       p.stdout.trim(),
       '[]',
@@ -923,7 +784,7 @@ server.listen(0, () => {
     new Shell(
       `${apollo} feature edit-coords ${P} -i ${cds_id} --start 4 --end 24`,
     )
-    p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
+    p = new Shell(`${apollo} feature check ${P} -a checks`)
     const checks = JSON.parse(p.stdout)
     assert.strictEqual(
       checks.length,
@@ -954,130 +815,15 @@ server.listen(0, () => {
     )
 
     // FIXME: Checks should be the same as before the invalid edit
-    // p = new Shell(`${apollo} feature check ${P} -a checks.gff`)
+    // p = new Shell(`${apollo} feature check ${P} -a checks`)
     // checks = JSON.parse(p.stdout)
     //assert.strictEqual(checks.length, 2)
     //assert.ok(p.stdout.includes('InternalStopCodon'))
     //assert.ok(p.stdout.includes('MissingStopCodon'))
   })
 
-  void globalThis.itName('Add assembly from local fasta', () => {
-    let p = new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a vv1 -e -f`,
-    )
-    const out = JSON.parse(p.stdout)
-    assert.ok(
-      Object.keys(out.fileIds).includes('fa'),
-      `Expected added assembly to have an "fa" file id, got ${JSON.stringify(out.fileIds)}`,
-    )
-
-    p = new Shell(`${apollo} assembly get ${P} -a vv1`)
-    assert.ok(p.stdout.includes('vv1'), 'Expected assembly vv1 to be returned')
-    p = new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a vv1 -e`,
-      false,
-    )
-    assert.ok(
-      p.returncode != 0,
-      'Expected adding existing assembly without -f to fail',
-    )
-    assert.ok(
-      p.stderr.includes('Error: Assembly "vv1" already exists'),
-      `Expected "already exists" error:\n${p.stderr}`,
-    )
-
-    p = new Shell(
-      `${apollo} assembly add-from-fasta ${P} na.fa -a vv1 -e -f`,
-      false,
-    )
-    assert.ok(
-      p.returncode != 0,
-      'Expected adding assembly from non-existent file to fail',
-    )
-    assert.ok(
-      p.stderr.includes('Input'),
-      `Expected an error about the input file:\n${p.stderr}`,
-    )
-
-    // Test default name
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -e -f`,
-    )
-    p = new Shell(`${apollo} assembly get ${P} -a tiny.fasta`)
-    assert.ok(
-      p.stdout.includes('tiny.fasta'),
-      'Expected assembly name to default to the file name',
-    )
-  })
-
-  void globalThis.itName('Add assembly from external fasta', () => {
-    let p = new Shell(
-      `${apollo} assembly add-from-fasta ${P} -a vv1 -f http://localhost:3131/volvox.fa.gz`,
-    )
-    const out = JSON.parse(p.stdout)
-    assert.ok(
-      Object.keys(out.externalLocation).includes('fa'),
-      `Expected added assembly to have an external "fa" location, got ${JSON.stringify(out.externalLocation)}`,
-    )
-
-    p = new Shell(`${apollo} assembly get ${P} -a vv1`)
-    assert.ok(p.stdout.includes('vv1'), 'Expected assembly vv1 to be returned')
-
-    p = new Shell(`${apollo} assembly sequence ${P} -a vv1 -r ctgA -s 1 -e 10`)
-    const seq = p.stdout.split(' ')
-    assert.strictEqual(
-      seq[1],
-      'cattgttgcg',
-      `Unexpected sequence for ctgA:1..10: "${seq[1]}"`,
-    )
-
-    p = new Shell(
-      `${apollo} assembly add-from-fasta ${P} -a vv1 -f https://x.fa.gz --fai https://x.fa.gz.fai --gzi https://x.fa.gz.gzi`,
-      false,
-    )
-    assert.ok(
-      p.returncode != 0,
-      'Expected adding assembly from unreachable URLs to fail',
-    )
-  })
-
-  void globalThis.itName('Detect missing external index', () => {
-    const p = new Shell(
-      `${apollo} assembly add-from-fasta ${P} -a vv1 -f http://localhost:3131/tiny.fasta`,
-      false,
-    )
-    assert.ok(
-      p.returncode != 0,
-      'Expected adding external fasta without index to fail',
-    )
-    assert.ok(
-      p.stderr.includes('Index file does not exist'),
-      `Expected "Index file does not exist" error:\n${p.stderr}`,
-    )
-  })
-
-  void globalThis.itName(
-    'Editable sequence not allowed with external source',
-    () => {
-      const cmd = `${apollo} assembly add-from-fasta ${P} -a vv1 -f http://localhost:3131/tiny.fasta.gz`
-      new Shell(cmd)
-
-      const p = new Shell(`${cmd} -e`, false)
-      assert.ok(
-        p.returncode != 0,
-        'Expected adding external fasta as editable to fail',
-      )
-      assert.ok(
-        p.stderr.includes('External fasta files are not editable'),
-        `Expected "External fasta files are not editable" error:\n${p.stderr}`,
-      )
-    },
-  )
-
   void globalThis.itName('Submit change from json', () => {
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
-    )
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
     let p = new Shell(`${apollo} feature search ${P} -a vv1 -t BAC`)
     let out = JSON.parse(p.stdout).at(0)
     assert.strictEqual(
@@ -1111,9 +857,7 @@ server.listen(0, () => {
   })
 
   void globalThis.itName('Edit feature type', () => {
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
-    )
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
 
     // Get id of assembly named vv1
     let p = new Shell(`${apollo} assembly get ${P} -a vv1`)
@@ -1165,9 +909,7 @@ server.listen(0, () => {
   })
 
   void globalThis.itName('Edit feature coords', () => {
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
-    )
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
 
     // Get id of assembly named vv1
     let p = new Shell(`${apollo} assembly get ${P} -a vv1`)
@@ -1284,9 +1026,7 @@ server.listen(0, () => {
   })
 
   void globalThis.itName('Edit attributes', () => {
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
-    )
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
 
     // Get id of assembly named vv1
     let p = new Shell(`${apollo} assembly get ${P} -a vv1`)
@@ -1377,12 +1117,8 @@ server.listen(0, () => {
   })
 
   void globalThis.itName('Search features', () => {
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
-    )
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv2 -f`,
-    )
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv2`)
 
     let p = new Shell(`${apollo} feature search ${P} -a vv1 vv2 -t EDEN`)
     let out = JSON.parse(p.stdout)
@@ -1509,12 +1245,8 @@ server.listen(0, () => {
   })
 
   void globalThis.itName('Get feature by indexed ID', () => {
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
-    )
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv2 -f`,
-    )
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv2`)
 
     // Search multiple assemblies
     let p = new Shell(`${apollo} feature get-indexed-id ${P} MyGene -a vv1 vv2`)
@@ -1714,9 +1446,7 @@ EOF`,
   })
 
   void globalThis.itName('Delete features', () => {
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
-    )
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
     let p = new Shell(`${apollo} feature search ${P} -a vv1 -t EDEN`)
     const fid = JSON.parse(p.stdout).at(0)._id
 
@@ -1754,23 +1484,21 @@ EOF`,
   })
 
   void globalThis.itName('Add features', () => {
-    let p = new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta.gz -a tiny -f`,
-    )
+    let p = new Shell(`${apollo} assembly get ${P} -a tinyGz`)
     let out = JSON.parse(p.stdout)
-    const assemblyId = out._id
-    p = new Shell(`${apollo} feature get ${P} -a tiny`)
+    const assemblyId = out.at(0)._id
+    p = new Shell(`${apollo} feature get ${P} -a tinyGz`)
     assert.deepStrictEqual(
       p.stdout.trim(),
       '[]',
-      `Expected new assembly to have no features, got:\n${p.stdout}`,
+      `Expected seeded assembly to have no features, got:\n${p.stdout}`,
     )
     // Can add a feature using flags
     p = new Shell(
-      `${apollo} feature add ${P} -a tiny -r ctgA -s 1 -e 10 -t remark`,
+      `${apollo} feature add ${P} -a tinyGz -r ctgA -s 1 -e 10 -t remark`,
     )
     JSON.parse(p.stdout)
-    p = new Shell(`${apollo} feature get ${P} -a tiny`)
+    p = new Shell(`${apollo} feature get ${P} -a tinyGz`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(
       out.length,
@@ -1897,9 +1625,7 @@ EOF`,
   })
 
   void globalThis.itName('Add child features', () => {
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a vv1 -f`,
-    )
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
     let p = new Shell(`${apollo} feature search ${P} -a vv1 -t contig`)
     const fid = JSON.parse(p.stdout).at(0)._id
 
@@ -1946,9 +1672,6 @@ EOF`,
   })
 
   void globalThis.itName('Import features', () => {
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a vv1 -e -f`,
-    )
     new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
     let p = new Shell(`${apollo} feature search ${P} -a vv1 -t contig`)
     let out = JSON.parse(p.stdout)
@@ -1980,9 +1703,8 @@ EOF`,
       `Expected 2 contigs after importing with -d, got ${out.length}`,
     )
 
-    new Shell(`${apollo} assembly delete ${P} -a vv2`)
     p = new Shell(
-      `${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv2`,
+      `${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a doesNotExist`,
       false,
     )
     assert.ok(
@@ -1990,7 +1712,7 @@ EOF`,
       'Expected importing into non-existent assembly to fail',
     )
     assert.ok(
-      p.stderr.includes('Assembly "vv2" does not exist'),
+      p.stderr.includes('Assembly "doesNotExist" does not exist'),
       `Expected "Assembly does not exist" error:\n${p.stderr}`,
     )
 
@@ -2003,20 +1725,12 @@ EOF`,
   })
 
   void globalThis.itName('Copy feature', () => {
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a source -f`,
-    )
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a dest -e -f`,
-    )
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a dest2 -e -f`,
-    )
-    let p = new Shell(`${apollo} feature search ${P} -a source -t contig`)
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
+    let p = new Shell(`${apollo} feature search ${P} -a vv1 -t contig`)
     const fid = JSON.parse(p.stdout).at(0)._id
 
-    new Shell(`${apollo} feature copy ${P} -i ${fid} -r ctgA -a dest -s 1`)
-    p = new Shell(`${apollo} feature search ${P} -a dest -t contig`)
+    new Shell(`${apollo} feature copy ${P} -i ${fid} -r ctgA -a vv2 -s 1`)
+    p = new Shell(`${apollo} feature search ${P} -a vv2 -t contig`)
     let out = JSON.parse(p.stdout).at(0)
     assert.strictEqual(
       out.min,
@@ -2030,13 +1744,13 @@ EOF`,
     )
 
     // RefSeq id does not need assembly
-    p = new Shell(`${apollo} refseq get ${P} -a dest2`)
+    p = new Shell(`${apollo} refseq get ${P} -a vv3`)
     const destRefSeq = JSON.parse(p.stdout).find(
       (x: any) => x.name === 'ctgA',
     )._id
 
     new Shell(`${apollo} feature copy ${P} -i ${fid} -r ${destRefSeq} -s 2`)
-    p = new Shell(`${apollo} feature search ${P} -a dest2 -t contig`)
+    p = new Shell(`${apollo} feature search ${P} -a vv3 -t contig`)
     out = JSON.parse(p.stdout).at(0)
     assert.strictEqual(
       out.min,
@@ -2050,13 +1764,13 @@ EOF`,
     )
 
     // Copy to same assembly
-    new Shell(`${apollo} feature copy ${P} -i ${fid} -r ctgA -a source -s 10`)
-    p = new Shell(`${apollo} feature search ${P} -a source -t contig`)
+    new Shell(`${apollo} feature copy ${P} -i ${fid} -r ctgA -a vv1 -s 10`)
+    p = new Shell(`${apollo} feature search ${P} -a vv1 -t contig`)
     JSON.parse(p.stdout)
 
     // Copy non-existant feature or refseq
     p = new Shell(
-      `${apollo} feature copy ${P} -i FOOBAR -r ctgA -a dest -s 1`,
+      `${apollo} feature copy ${P} -i FOOBAR -r ctgA -a vv2 -s 1`,
       false,
     )
     assert.ok(
@@ -2069,7 +1783,7 @@ EOF`,
     )
 
     p = new Shell(
-      `${apollo} feature copy ${P} -i ${fid} -r FOOBAR -a dest -s 1`,
+      `${apollo} feature copy ${P} -i ${fid} -r FOOBAR -a vv2 -s 1`,
       false,
     )
     assert.ok(
@@ -2091,64 +1805,54 @@ EOF`,
   })
 
   void globalThis.itName('Get changes', () => {
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a myAssembly -e -f`,
+    let p = new Shell(`${apollo} assembly get ${P} -a vv1 vv2 vv3`)
+    const assemblies = JSON.parse(p.stdout)
+    const vv1Id = assemblies.find((x: any) => x.name === 'vv1')._id
+    const vv2Id = assemblies.find((x: any) => x.name === 'vv2')._id
+    const vv3Id = assemblies.find((x: any) => x.name === 'vv3')._id
+
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv2`)
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv3`)
+
+    p = new Shell(`${apollo} change get ${P}`)
+    let out = JSON.parse(p.stdout)
+    assert.ok(
+      out.some((x: any) => x.assembly === vv1Id),
+      'Expected changes to include vv1',
     )
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a yourAssembly -e -f`,
-    )
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a ourAssembly -e -f`,
+    assert.ok(
+      out.some((x: any) => x.assembly === vv2Id),
+      'Expected changes to include vv2',
     )
 
-    let p = new Shell(`${apollo} change get ${P}`)
-    JSON.parse(p.stdout)
+    p = new Shell(`${apollo} change get ${P} -a vv1 vv3`)
+    out = JSON.parse(p.stdout)
     assert.ok(
-      p.stdout.includes('myAssembly'),
-      'Expected changes to include myAssembly',
+      out.some((x: any) => x.assembly === vv1Id),
+      'Expected filtered changes to include vv1',
     )
     assert.ok(
-      p.stdout.includes('yourAssembly'),
-      'Expected changes to include yourAssembly',
+      out.some((x: any) => x.assembly === vv3Id),
+      'Expected filtered changes to include vv3',
+    )
+    assert.ok(
+      out.every((x: any) => x.assembly !== vv2Id),
+      'Expected filtered changes not to include vv2',
     )
 
-    p = new Shell(`${apollo} change get ${P} -a myAssembly ourAssembly`)
-    assert.ok(
-      p.stdout.includes('myAssembly'),
-      'Expected filtered changes to include myAssembly',
-    )
-    assert.ok(
-      p.stdout.includes('ourAssembly'),
-      'Expected filtered changes to include ourAssembly',
-    )
-    assert.ok(
-      p.stdout.includes('yourAssembly') == false,
-      'Expected filtered changes not to include yourAssembly',
-    )
-
-    // Delete assemblies and get changes by assembly name: Nothing is
-    // returned because the assemblies collection doesn't contain that name
-    // anymore. Ideally you should still be able to get changes by name?
-    new Shell(
-      `${apollo} assembly delete ${P} -a myAssembly yourAssembly ourAssembly`,
-    )
-    p = new Shell(`${apollo} change get ${P} -a myAssembly`)
-    const out = JSON.parse(p.stdout)
+    // Querying changes by an assembly name that was never seeded returns
+    // nothing.
+    p = new Shell(`${apollo} change get ${P} -a doesNotExist`)
+    out = JSON.parse(p.stdout)
     assert.strictEqual(
       out.length,
       0,
-      `Expected no changes for deleted assembly name, got ${out.length}`,
+      `Expected no changes for non-existent assembly name, got ${out.length}`,
     )
   })
 
   void globalThis.itName('Get sequence', () => {
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a v1 -e -f`,
-    )
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta -a v2 -e -f`,
-    )
-
     let p = new Shell(`${apollo} assembly sequence ${P} -a nonExistant`, false)
     assert.ok(
       p.returncode != 0,
@@ -2159,7 +1863,7 @@ EOF`,
       `Expected "returned 0 assemblies" error:\n${p.stderr}`,
     )
 
-    p = new Shell(`${apollo} assembly sequence ${P} -a v1 -s 0`, false)
+    p = new Shell(`${apollo} assembly sequence ${P} -a vv1 -s 0`, false)
     assert.ok(p.returncode != 0, 'Expected start of 0 to fail')
     assert.match(
       p.stderr,
@@ -2167,7 +1871,7 @@ EOF`,
       `Expected "must be greater than 0" error:\n${p.stderr}`,
     )
 
-    p = new Shell(`${apollo} assembly sequence ${P} -a v1`)
+    p = new Shell(`${apollo} assembly sequence ${P} -a vv1`)
     let seq = p.stdout.split(' ')
     assert.strictEqual(
       seq.length,
@@ -2200,7 +1904,7 @@ EOF`,
       `Unexpected last sequence line: ${seq.at(-1)}`,
     )
 
-    p = new Shell(`${apollo} assembly sequence ${P} -a v1 -r ctgB -s 1 -e 1`)
+    p = new Shell(`${apollo} assembly sequence ${P} -a vv1 -r ctgB -s 1 -e 1`)
     seq = p.stdout.split(' ')
     assert.deepStrictEqual(
       seq.at(0),
@@ -2213,7 +1917,7 @@ EOF`,
       `Unexpected sequence for ctgB:1..1: ${seq.at(1)}`,
     )
 
-    p = new Shell(`${apollo} assembly sequence ${P} -a v1 -r ctgB -s 2 -e 4`)
+    p = new Shell(`${apollo} assembly sequence ${P} -a vv1 -r ctgB -s 2 -e 4`)
     seq = p.stdout.split(' ')
     assert.deepStrictEqual(
       seq.at(0),
@@ -2238,10 +1942,8 @@ EOF`,
   })
 
   void globalThis.itName('Get feature by id', () => {
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a v1 -f`,
-    )
-    let p = new Shell(`${apollo} feature get ${P} -a v1`)
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
+    let p = new Shell(`${apollo} feature get ${P} -a vv1`)
     const ff = JSON.parse(p.stdout)
 
     const x1 = ff.at(0)._id
@@ -2283,9 +1985,7 @@ EOF`,
   void globalThis.itName('Assembly checks', () => {
     // TODO: Improve tests once more checks exist (currently there is only
     // CDSCheck)
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a v1 -f`,
-    )
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
 
     // Test view available check type
     let p = new Shell(`${apollo} assembly check ${P}`)
@@ -2301,7 +2001,7 @@ EOF`,
     const cdsCheckId = out.find((x: any) => x.name === 'CDSCheck')._id
 
     // Test view checks set for assembly
-    p = new Shell(`${apollo} assembly check ${P} -a v1`)
+    p = new Shell(`${apollo} assembly check ${P} -a vv1`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(
       out.length,
@@ -2322,7 +2022,7 @@ EOF`,
     )
 
     // Test non-existant check
-    p = new Shell(`${apollo} assembly check ${P} -a v1 -c not-a-check`, false)
+    p = new Shell(`${apollo} assembly check ${P} -a vv1 -c not-a-check`, false)
     assert.strictEqual(
       p.returncode,
       1,
@@ -2335,8 +2035,8 @@ EOF`,
 
     // Test add checks. Test check is added as opposed to replacing current
     // checks with input list
-    new Shell(`${apollo} assembly check ${P} -a v1 -c CDSCheck CDSCheck`)
-    p = new Shell(`${apollo} assembly check ${P} -a v1`)
+    new Shell(`${apollo} assembly check ${P} -a vv1 -c CDSCheck CDSCheck`)
+    p = new Shell(`${apollo} assembly check ${P} -a vv1`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(
       out.length,
@@ -2350,11 +2050,9 @@ EOF`,
     )
 
     // Works also with check id
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a v2 -f`,
-    )
-    new Shell(`${apollo} assembly check ${P} -a v2 -c ${cdsCheckId}`)
-    p = new Shell(`${apollo} assembly check ${P} -a v2`)
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv2`)
+    new Shell(`${apollo} assembly check ${P} -a vv2 -c ${cdsCheckId}`)
+    p = new Shell(`${apollo} assembly check ${P} -a vv2`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(
       out.length,
@@ -2368,8 +2066,8 @@ EOF`,
     )
 
     // Delete check
-    new Shell(`${apollo} assembly check ${P} -a v1 -d -c CDSCheck`)
-    p = new Shell(`${apollo} assembly check ${P} -a v1`)
+    new Shell(`${apollo} assembly check ${P} -a vv1 -d -c CDSCheck`)
+    p = new Shell(`${apollo} assembly check ${P} -a vv1`)
     out = JSON.parse(p.stdout)
     assert.strictEqual(
       out.length,
@@ -2387,11 +2085,9 @@ EOF`,
   })
 
   void globalThis.itName('Feature checks', () => {
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a v1 -f`,
-    )
-    new Shell(`${apollo} assembly check ${P} -a v1 -c CDSCheck`)
-    let p = new Shell(`${apollo} feature check ${P} -a v1`)
+    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
+    new Shell(`${apollo} assembly check ${P} -a vv1 -c CDSCheck`)
+    let p = new Shell(`${apollo} feature check ${P} -a vv1`)
     const out = JSON.parse(p.stdout)
     assert.ok(
       out.length > 1,
@@ -2419,14 +2115,11 @@ EOF`,
   })
 
   void globalThis.itName('Feature checks indexed', () => {
+    new Shell(`${apollo} assembly check ${P} -a tinyGz -c CDSCheck`)
     new Shell(
-      `${apollo} assembly add-from-fasta ${P} -a v1 test_data/tiny.fasta.gz -f`,
+      `${apollo} feature import ${P} -a tinyGz test_data/tiny.fasta.gff3 -d`,
     )
-    new Shell(`${apollo} assembly check ${P} -a v1 -c CDSCheck`)
-    new Shell(
-      `${apollo} feature import ${P} -a v1 test_data/tiny.fasta.gff3 -d`,
-    )
-    let p = new Shell(`${apollo} feature check ${P} -a v1`)
+    let p = new Shell(`${apollo} feature check ${P} -a tinyGz`)
     const out = JSON.parse(p.stdout)
     assert.ok(
       out.length > 1,
@@ -2457,9 +2150,9 @@ EOF`,
     'Delete check results when unregistering a check',
     () => {
       new Shell(
-        `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a v1 -f`,
+        `${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`,
       )
-      let p = new Shell(`${apollo} feature check ${P} -a v1`)
+      let p = new Shell(`${apollo} feature check ${P} -a vv1`)
       let checkResults = JSON.parse(p.stdout) as CheckResultSnapshot[]
       assert.ok(
         checkResults.length > 1,
@@ -2467,14 +2160,14 @@ EOF`,
       )
 
       // Delete all checks and consequently delete all check results
-      p = new Shell(`${apollo} assembly check ${P} -a v1`)
+      p = new Shell(`${apollo} assembly check ${P} -a vv1`)
       const checkNames = (JSON.parse(p.stdout) as CheckResultSnapshot[]).map(
         (x) => x.name,
       )
       new Shell(
-        `${apollo} assembly check ${P} -a v1 -d -c ${checkNames.join(' ')}`,
+        `${apollo} assembly check ${P} -a vv1 -d -c ${checkNames.join(' ')}`,
       )
-      p = new Shell(`${apollo} feature check ${P} -a v1`)
+      p = new Shell(`${apollo} feature check ${P} -a vv1`)
       checkResults = JSON.parse(p.stdout)
       assert.deepEqual(
         checkResults.length,
@@ -2483,8 +2176,8 @@ EOF`,
       )
 
       // Put one check back
-      new Shell(`${apollo} assembly check ${P} -a v1 -c CDSCheck`)
-      p = new Shell(`${apollo} feature check ${P} -a v1`)
+      new Shell(`${apollo} assembly check ${P} -a vv1 -c CDSCheck`)
+      p = new Shell(`${apollo} feature check ${P} -a vv1`)
       checkResults = JSON.parse(p.stdout)
       assert.ok(
         checkResults.length > 0,
@@ -2648,66 +2341,6 @@ EOF`,
     )
   })
 
-  void globalThis.itName('Refname alias configuration', () => {
-    new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/tiny.fasta.gff3 -a asm1 -f`,
-    )
-
-    let p = new Shell(`${apollo} assembly get ${P} -a asm1`)
-    assert.ok(
-      p.stdout.includes('asm1'),
-      'Expected assembly asm1 to be returned',
-    )
-    assert.ok(
-      p.stdout.includes('asm2') == false,
-      'Expected only assembly asm1 to be returned',
-    )
-    const asm_id = JSON.parse(p.stdout)[0]._id
-
-    p = new Shell(
-      `${apollo} refseq add-alias ${P} test_data/alias.txt -a asm2`,
-      false,
-    )
-    assert.ok(
-      p.stderr.includes('Assembly asm2 not found'),
-      `Expected "Assembly asm2 not found" error:\n${p.stderr}`,
-    )
-
-    p = new Shell(
-      `${apollo} refseq add-alias ${P} test_data/alias.txt -a asm1`,
-      false,
-    )
-    assert.ok(
-      p.stdout.includes(
-        'Reference name aliases added successfully to assembly asm1',
-      ),
-      `Expected aliases to be added successfully. Stdout:\n${p.stdout}\nStderr:\n${p.stderr}`,
-    )
-
-    p = new Shell(`${apollo} refseq get ${P}`)
-    const refseq = JSON.parse(p.stdout.trim())
-    const vv1ref = refseq.filter((x: any) => x.assembly === asm_id)
-    const refname_aliases: Record<string, string[]> = {}
-    for (const x of vv1ref) {
-      refname_aliases[x.name] = x.aliases
-    }
-    assert.deepStrictEqual(
-      JSON.stringify(refname_aliases.ctgA.sort()),
-      JSON.stringify(['ctga', 'CTGA'].sort()),
-      `Unexpected aliases for ctgA: ${JSON.stringify(refname_aliases.ctgA)}`,
-    )
-    assert.deepStrictEqual(
-      JSON.stringify(refname_aliases.ctgB.sort()),
-      JSON.stringify(['ctgb', 'CTGB'].sort()),
-      `Unexpected aliases for ctgB: ${JSON.stringify(refname_aliases.ctgB)}`,
-    )
-    assert.deepStrictEqual(
-      JSON.stringify(refname_aliases.ctgC.sort()),
-      JSON.stringify(['ctgc', 'CTGC'].sort()),
-      `Unexpected aliases for ctgC: ${JSON.stringify(refname_aliases.ctgC)}`,
-    )
-  })
-
   // Works locally but fails on github
   void globalThis.itName('Login', () => {
     // This should wait for user's input
@@ -2776,160 +2409,6 @@ EOF`,
       out.checksum,
       md5,
       `Expected gzip file to be uploaded unchanged (md5 ${md5}), got checksum ${out.checksum}`,
-    )
-    new Shell(`${apollo} assembly add-from-fasta ${P} -e -f ${out._id}`)
-  })
-
-  void globalThis.itName('Add assembly gzip', () => {
-    // Autodetect format
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta.gz -e -f -a vv1`,
-    )
-    let p = new Shell(`${apollo} assembly sequence ${P} -a vv1`)
-    assert.ok(
-      p.stdout.startsWith('>'),
-      'Expected sequence output to start with a fasta header',
-    )
-    assert.ok(
-      p.stdout.includes('cattgttgcggagttgaaca'),
-      'Expected sequence output to include ctgA sequence',
-    )
-
-    // Skip autodetect
-    fs.copyFileSync('test_data/tiny.fasta', 'test_data/tmp.gz')
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tmp.gz -e -f -a vv1 --decompressed`,
-    )
-    p = new Shell(`${apollo} assembly sequence ${P} -a vv1`)
-    assert.ok(
-      p.stdout.startsWith('>'),
-      'Expected sequence output to start with a fasta header (--decompressed)',
-    )
-    assert.ok(
-      p.stdout.includes('cattgttgcggagttgaaca'),
-      'Expected sequence output to include ctgA sequence (--decompressed)',
-    )
-    fs.unlinkSync('test_data/tmp.gz')
-
-    fs.copyFileSync('test_data/tiny.fasta.gz', 'test_data/fasta.tmp')
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/fasta.tmp -e -f -a vv1 --gzip`,
-    )
-    p = new Shell(`${apollo} assembly sequence ${P} -a vv1`)
-    assert.ok(
-      p.stdout.startsWith('>'),
-      'Expected sequence output to start with a fasta header (--gzip)',
-    )
-    assert.ok(
-      p.stdout.includes('cattgttgcggagttgaaca'),
-      'Expected sequence output to include ctgA sequence (--gzip)',
-    )
-
-    // Autodetect false positive
-    p = new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/fasta.tmp -e -f -a vv1`,
-      false,
-    )
-    assert.ok(
-      p.returncode != 0,
-      'Expected gzip file without .gz extension to fail without --gzip',
-    )
-    fs.unlinkSync('test_data/fasta.tmp')
-  })
-
-  void globalThis.itName('Add editable assembly', () => {
-    // It would be good to check that really there was no sequence loading
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} -f test_data/tiny.fasta.gz`,
-    )
-    let p = new Shell(`${apollo} assembly sequence ${P} -a tiny.fasta.gz`)
-    assert.ok(
-      p.stdout.startsWith('>'),
-      'Expected sequence output to start with a fasta header',
-    )
-    assert.ok(
-      p.stdout.includes('cattgttgcggagttgaaca'),
-      'Expected sequence output to include ctgA sequence',
-    )
-
-    p = new Shell(
-      `${apollo} assembly add-from-fasta ${P} -f test_data/tiny.fasta`,
-      false,
-    )
-    assert.ok(
-      p.returncode != 0,
-      'Expected adding uncompressed fasta without -e to fail',
-    )
-    assert.ok(
-      p.stderr.includes('unless option -e/--editable is set'),
-      `Expected "-e/--editable" error:\n${p.stderr}`,
-    )
-
-    // Setting --gzi & --fai
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} -f test_data/tiny2.fasta.gz --gzi test_data/tiny.fasta.gz.gzi --fai test_data/tiny.fasta.gz.fai`,
-    )
-    p = new Shell(`${apollo} assembly sequence ${P} -a tiny2.fasta.gz`)
-    assert.ok(
-      p.stdout.startsWith('>'),
-      'Expected sequence output to start with a fasta header (--gzi & --fai)',
-    )
-    assert.ok(
-      p.stdout.includes('cattgttgcggagttgaaca'),
-      'Expected sequence output to include ctgA sequence (--gzi & --fai)',
-    )
-  })
-
-  void globalThis.itName('Add assembly from file ids not editable', () => {
-    // Upload and get Ids for: bgzip fasta, fai and gzi
-    let p = new Shell(
-      `${apollo} file upload ${P} test_data/tiny.fasta.gz -t application/x-bgzip-fasta`,
-    )
-    const fastaId = JSON.parse(p.stdout)._id
-
-    p = new Shell(`${apollo} file upload ${P} test_data/tiny.fasta.gz.fai`)
-    const faiId = JSON.parse(p.stdout)._id
-
-    p = new Shell(`${apollo} file upload ${P} test_data/tiny.fasta.gz.gzi`)
-    const gziId = JSON.parse(p.stdout)._id
-
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} -f ${fastaId} --fai test_data/tiny.fasta.gz.fai --gzi test_data/tiny.fasta.gz.gzi`,
-    )
-    p = new Shell(`${apollo} assembly sequence ${P} -a ${fastaId}`)
-    assert.ok(
-      p.stdout.startsWith('>'),
-      'Expected sequence output to start with a fasta header (local index files)',
-    )
-    assert.ok(
-      p.stdout.includes('cattgttgcggagttgaaca'),
-      'Expected sequence output to include ctgA sequence (local index files)',
-    )
-
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} -f ${fastaId} --fai ${faiId} --gzi ${gziId}`,
-    )
-    p = new Shell(`${apollo} assembly sequence ${P} -a ${fastaId}`)
-    assert.ok(
-      p.stdout.startsWith('>'),
-      'Expected sequence output to start with a fasta header (index file ids)',
-    )
-  })
-
-  void globalThis.itName('Add assembly from file id', () => {
-    let p = new Shell(`${apollo} file upload ${P} test_data/tiny.fasta`)
-    const fid = JSON.parse(p.stdout)._id
-    p = new Shell(`${apollo} assembly add-from-fasta ${P} ${fid} -a up -e -f`)
-    const out = JSON.parse(p.stdout)
-    assert.deepStrictEqual(
-      out.name,
-      'up',
-      `Expected assembly name "up", got ${out.name}`,
-    )
-    assert.deepStrictEqual(
-      out.fileIds.fa,
-      fid,
-      `Expected assembly fa file id ${fid}, got ${out.fileIds.fa}`,
     )
   })
 
@@ -3030,12 +2509,11 @@ EOF`,
     )
   })
 
-  void globalThis.itName('Export gff3 from editable assembly', () => {
+  void globalThis.itName('Export gff3', () => {
     new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta.gz -a vv1 -f --editable`,
+      `${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a tinyGz`,
     )
-    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
-    let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
+    let p = new Shell(`${apollo} export gff3 ${P} tinyGz --include-fasta`)
     let gff = p.stdout
     assert.match(
       gff,
@@ -3058,7 +2536,7 @@ EOF`,
       'Expected GFF3 export with --include-fasta to end with sequence',
     )
 
-    p = new Shell(`${apollo} export gff3 ${P} vv1`)
+    p = new Shell(`${apollo} export gff3 ${P} tinyGz`)
     gff = p.stdout
     assert.match(
       gff,
@@ -3088,59 +2566,11 @@ EOF`,
     )
   })
 
-  void globalThis.itName('Export gff3 from non-editable assembly', () => {
-    new Shell(
-      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta.gz -a vv1 -f`,
-    )
-    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
-    let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
-    let gff = p.stdout
-    assert.match(
-      gff,
-      /^##gff-version 3/,
-      'Expected GFF3 export to start with ##gff-version 3',
-    )
-    assert.match(
-      gff,
-      /multivalue=val1,val2,val3/,
-      'Expected GFF3 export to include multi-value attribute',
-    )
-    assert.match(
-      gff,
-      /##FASTA/,
-      'Expected GFF3 export with --include-fasta to include ##FASTA',
-    )
-    assert.match(
-      gff,
-      /taccc$/,
-      'Expected GFF3 export with --include-fasta to end with sequence',
-    )
-
-    p = new Shell(`${apollo} export gff3 ${P} vv1`)
-    gff = p.stdout
-    assert.match(
-      gff,
-      /^##gff-version 3/,
-      'Expected GFF3 export to start with ##gff-version 3',
-    )
-    assert.match(
-      gff,
-      /multivalue=val1,val2,val3/,
-      'Expected GFF3 export to include multi-value attribute',
-    )
-    assert.doesNotMatch(
-      gff,
-      /##FASTA/,
-      'Expected GFF3 export without --include-fasta not to include ##FASTA',
-    )
-  })
-
   void globalThis.itName('Export gff3 from external assembly', () => {
     new Shell(
-      `${apollo} assembly add-from-fasta ${P} http://localhost:3131/tiny.fasta.gz -a vv1 -f`,
+      `${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a external`,
     )
-    new Shell(`${apollo} feature import ${P} test_data/tiny.fasta.gff3 -a vv1`)
-    let p = new Shell(`${apollo} export gff3 ${P} vv1 --include-fasta`)
+    let p = new Shell(`${apollo} export gff3 ${P} external --include-fasta`)
     let gff = p.stdout
     assert.match(
       gff,
@@ -3163,7 +2593,7 @@ EOF`,
       'Expected GFF3 export with --include-fasta to end with sequence',
     )
 
-    p = new Shell(`${apollo} export gff3 ${P} vv1`)
+    p = new Shell(`${apollo} export gff3 ${P} external`)
     gff = p.stdout
     assert.match(
       gff,
@@ -3186,12 +2616,16 @@ EOF`,
     'Position of internal stop codon warning in forward',
     () => {
       new Shell(
-        `${apollo} assembly add-from-gff ${P} test_data/warningPositionForward.gff -a vv1 -f`,
+        `${apollo} feature import ${P} test_data/warningPositionForward.gff -a warningPositionForward`,
       )
-      deleteAllChecks(apollo, P, 'vv1')
-      new Shell(`${apollo} assembly check ${P} -a vv1 -c CDSCheck`)
+      deleteAllChecks(apollo, P, 'warningPositionForward')
+      new Shell(
+        `${apollo} assembly check ${P} -a warningPositionForward -c CDSCheck`,
+      )
 
-      const p = new Shell(`${apollo} feature check ${P} -a vv1`)
+      const p = new Shell(
+        `${apollo} feature check ${P} -a warningPositionForward`,
+      )
       const out = JSON.parse(p.stdout)
       assert.deepStrictEqual(
         out.length,
@@ -3237,11 +2671,15 @@ EOF`,
     'Position of internal stop codon warning in reverse',
     () => {
       new Shell(
-        `${apollo} assembly add-from-gff ${P} test_data/warningPositionReverse.gff -a vv1 -f`,
+        `${apollo} feature import ${P} test_data/warningPositionReverse.gff -a warningPositionReverse`,
       )
-      deleteAllChecks(apollo, P, 'vv1')
-      new Shell(`${apollo} assembly check ${P} -a vv1 -c CDSCheck`)
-      const p = new Shell(`${apollo} feature check ${P} -a vv1`)
+      deleteAllChecks(apollo, P, 'warningPositionReverse')
+      new Shell(
+        `${apollo} assembly check ${P} -a warningPositionReverse -c CDSCheck`,
+      )
+      const p = new Shell(
+        `${apollo} feature check ${P} -a warningPositionReverse`,
+      )
       const out = JSON.parse(p.stdout)
       assert.deepStrictEqual(
         out.length,
@@ -3284,11 +2722,15 @@ EOF`,
 
   void globalThis.itName('Detect missing start codon forward', () => {
     new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/missingStartCodonForward.gff3 -a m1 -f`,
+      `${apollo} feature import ${P} test_data/missingStartCodonForward.gff3 -a missingStartCodonForward`,
     )
-    deleteAllChecks(apollo, P, 'm1')
-    new Shell(`${apollo} assembly check ${P} -a m1 -c CDSCheck`)
-    const p = new Shell(`${apollo} feature check ${P} -a m1`)
+    deleteAllChecks(apollo, P, 'missingStartCodonForward')
+    new Shell(
+      `${apollo} assembly check ${P} -a missingStartCodonForward -c CDSCheck`,
+    )
+    const p = new Shell(
+      `${apollo} feature check ${P} -a missingStartCodonForward`,
+    )
     const out = JSON.parse(p.stdout)
     assert.strictEqual(
       out.length,
@@ -3318,11 +2760,15 @@ EOF`,
 
   void globalThis.itName('Detect missing start codon reverse', () => {
     new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/missingStartCodonReverse.gff3 -a m1 -f`,
+      `${apollo} feature import ${P} test_data/missingStartCodonReverse.gff3 -a missingStartCodonReverse`,
     )
-    deleteAllChecks(apollo, P, 'm1')
-    new Shell(`${apollo} assembly check ${P} -a m1 -c CDSCheck`)
-    const p = new Shell(`${apollo} feature check ${P} -a m1`)
+    deleteAllChecks(apollo, P, 'missingStartCodonReverse')
+    new Shell(
+      `${apollo} assembly check ${P} -a missingStartCodonReverse -c CDSCheck`,
+    )
+    const p = new Shell(
+      `${apollo} feature check ${P} -a missingStartCodonReverse`,
+    )
     const out = JSON.parse(p.stdout)
     assert.strictEqual(
       out.length,
@@ -3352,10 +2798,10 @@ EOF`,
 
   void globalThis.itName('Edit exon inferred from CDS', () => {
     new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/cdsWithoutExon.gff3 -f`,
+      `${apollo} feature import ${P} test_data/cdsWithoutExon.gff3 -a cdsWithoutExon`,
     )
     let p = new Shell(
-      `${apollo} feature search ${P} -t mrna01 -a cdsWithoutExon.gff3`,
+      `${apollo} feature search ${P} -t mrna01 -a cdsWithoutExon`,
     )
     let out = JSON.parse(p.stdout)
     const gene: any = out.at(0)
@@ -3391,14 +2837,12 @@ EOF`,
 
   void globalThis.itName('Check splice site', () => {
     new Shell(
-      `${apollo} assembly add-from-gff ${P} test_data/checkSplice.fasta.gff3 -f`,
+      `${apollo} feature import ${P} test_data/checkSplice.fasta.gff3 -a checkSplice`,
     )
-    deleteAllChecks(apollo, P, 'checkSplice.fasta.gff3')
-    new Shell(
-      `${apollo} assembly check ${P} -a checkSplice.fasta.gff3 -c TranscriptCheck`,
-    )
+    deleteAllChecks(apollo, P, 'checkSplice')
+    new Shell(`${apollo} assembly check ${P} -a checkSplice -c TranscriptCheck`)
 
-    let p = new Shell(`${apollo} feature get ${P} -a checkSplice.fasta.gff3`)
+    let p = new Shell(`${apollo} feature get ${P} -a checkSplice`)
     const features = JSON.parse(p.stdout)
 
     const okMrnaId = []
@@ -3433,7 +2877,7 @@ EOF`,
     }
 
     p = new Shell(
-      `${apollo} feature check ${P} -a checkSplice.fasta.gff3 -i ${okMrnaId.join(' ')}`,
+      `${apollo} feature check ${P} -a checkSplice -i ${okMrnaId.join(' ')}`,
     )
     let out = JSON.parse(p.stdout)
     assert.deepStrictEqual(
@@ -3444,7 +2888,7 @@ EOF`,
 
     // Check forward transcript
     p = new Shell(
-      `${apollo} feature check ${P} -a checkSplice.fasta.gff3 -i ${warnMrnaIdForw}`,
+      `${apollo} feature check ${P} -a checkSplice -i ${warnMrnaIdForw}`,
     )
     out = JSON.parse(p.stdout)
     assert.strictEqual(
@@ -3491,7 +2935,7 @@ EOF`,
 
     // Check reverse transcript
     p = new Shell(
-      `${apollo} feature check ${P} -a checkSplice.fasta.gff3 -i ${warnMrnaIdRev}`,
+      `${apollo} feature check ${P} -a checkSplice -i ${warnMrnaIdRev}`,
     )
     out = JSON.parse(p.stdout)
     assert.strictEqual(

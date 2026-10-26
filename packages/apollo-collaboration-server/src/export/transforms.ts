@@ -5,7 +5,6 @@ import { TransformStream } from 'node:stream/web'
 import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import type {
   FeatureDocument,
-  RefSeqChunkDocument,
   RefSeqDocument,
 } from '@apollo-annotation/schemas'
 import {
@@ -18,14 +17,12 @@ interface FastaTransformOptions {
   fastaWidth?: number
 }
 
-function makeFastaHeader(refSeqDoc: {
-  description: string
-  name: string
-}): string {
-  const refSeqDescription = refSeqDoc.description
-    ? ` ${refSeqDoc.description}`
-    : ''
-  return `>${refSeqDoc.name}${refSeqDescription}\n`
+interface SequenceAdapter {
+  getSequence(
+    name: string,
+    start: number,
+    end: number,
+  ): Promise<string | undefined>
 }
 
 export class FeatureDocToGFF3FeatureStream extends TransformStream<
@@ -77,57 +74,38 @@ export class RefSeqDocToGFF3HeaderStream extends TransformStream<
   }
 }
 
-export class RefSeqChunkDocToFASTAStream extends TransformStream<
-  RefSeqChunkDocument,
+/**
+ * Streams FASTA text for a sequence of RefSeq documents, fetching each
+ * refSeq's full sequence from a JBrowse config.json-backed sequence
+ * adapter (see JBrowseConfigService.getSequenceAdapterForAssembly).
+ */
+export class RefSeqDocToAdapterFASTAStream extends TransformStream<
+  RefSeqDocument,
   string
 > {
-  constructor(opts?: FastaTransformOptions) {
-    let lineBuffer = ''
-    let currentRefSeq: string | undefined
+  constructor(sequenceAdapter: SequenceAdapter, opts?: FastaTransformOptions) {
     const { fastaWidth = 80 } = opts ?? {}
-    const flushLineBuffer = (
-      controller: TransformStreamDefaultController<string>,
-    ) => {
-      if (lineBuffer) {
-        controller.enqueue(`${lineBuffer}\n`)
-        lineBuffer = ''
-      }
-    }
     super({
       start(controller) {
         controller.enqueue('##FASTA\n')
       },
-      transform(chunk, controller) {
-        const refSeqDoc = chunk.refSeq as unknown as RefSeqDocument
-        const refSeqDocId = refSeqDoc._id.toString()
-        if (refSeqDocId !== currentRefSeq) {
-          flushLineBuffer(controller)
-          controller.enqueue(makeFastaHeader(refSeqDoc))
-          currentRefSeq = refSeqDocId
-        }
-        let { sequence } = chunk
-        if (lineBuffer) {
-          const neededLength = fastaWidth - lineBuffer.length
-          const bufferFiller = sequence.slice(0, neededLength)
-          sequence = sequence.slice(neededLength)
-          lineBuffer += bufferFiller
-          if (lineBuffer.length === fastaWidth) {
-            flushLineBuffer(controller)
-          } else {
-            return
-          }
+      async transform(refSeqDoc, controller) {
+        controller.enqueue(`>${refSeqDoc.name}\n`)
+        const sequence = await sequenceAdapter.getSequence(
+          refSeqDoc.name,
+          0,
+          refSeqDoc.length,
+        )
+        if (sequence === undefined) {
+          controller.error(
+            new Error(`Sequence not found for refSeq "${refSeqDoc.name}"`),
+          )
+          return
         }
         const seqLines = splitStringIntoChunks(sequence, fastaWidth)
-        const lastLine = seqLines.at(-1) ?? ''
-        if (lastLine.length > 0 && lastLine.length !== fastaWidth) {
-          lineBuffer = seqLines.pop() ?? ''
-        }
         if (seqLines.length > 0) {
           controller.enqueue(`${seqLines.join('\n')}\n`)
         }
-      },
-      flush(controller) {
-        flushLineBuffer(controller)
       },
     })
   }

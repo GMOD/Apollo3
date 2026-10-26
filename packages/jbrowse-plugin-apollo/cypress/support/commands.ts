@@ -31,38 +31,64 @@ Cypress.on('window:load', (win) => {
 })
 
 Cypress.Commands.add('loginAsGuest', () => {
-  cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
-  cy.contains('Yes, I trust it', { timeout: 10_000 }).click()
-  // The login dialog doesn't always appear (e.g. in CI), so poll for it for a
-  // few seconds and continue on if it never shows up
-  const deadline = Date.now() + 2000
-  function clickGuestLoginIfPresent() {
-    cy.get('body').then(($body) => {
-      const guestLogin = $body.find(':contains("Continue as Guest")').last()
-      if (guestLogin.length > 0) {
-        cy.wrap(guestLogin).click()
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
-        cy.wait(2000)
-        cy.reload()
-        return
-      }
-      if (Date.now() < deadline) {
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
-        cy.wait(250)
-        clickGuestLoginIfPresent()
-      }
+  Cypress.expose('isLocalSession', false)
+  // Visiting while unauthenticated redirects (server-side, before the
+  // JBrowse app loads) to the login page; only after logging in as guest
+  // does it redirect back and the app's own "external config" trust dialog
+  // appear.
+  cy.visit('/')
+  // Visit the link instead of clicking it. Cypress doesn't reliably wait for
+  // the page load from the click's redirects, so the next commands could get
+  // elements from the login page or from the app before it finished loading.
+  cy.contains('Continue as Guest', { timeout: 10_000 })
+    .should('have.prop', 'href')
+    .then((href) => {
+      cy.visit(String(href))
     })
-  }
-  clickGuestLoginIfPresent()
 })
 
-Cypress.Commands.add('deleteAssemblies', () => {
-  for (const x of ['assemblies', 'features']) {
+Cypress.Commands.add('clearFeatures', () => {
+  for (const x of [
+    'changes',
+    'checkresults',
+    'counters',
+    'features',
+    'files',
+  ]) {
     cy.log(x)
     cy.deleteMany({}, { collection: x }).then((results: undefined) => {
       cy.log(`Collection ${x}: ${results}`)
     })
   }
+})
+
+Cypress.Commands.add('visitLocalSession', () => {
+  // A local-editing session (config_local.json, no "apollo" sequence
+  // metadata) is never served through the collaboration server's config
+  // allowlist, so it has to be loaded from the plain static server that
+  // doesn't sit behind a login.
+  Cypress.expose('isLocalSession', true)
+  const localAppUrl = Cypress.expose('localAppUrl') as string
+  cy.visit(`${localAppUrl}/?config=config_local.json`)
+  // Unlike a collaboration-server session, a local one has no
+  // defaultSession with a view already open, so JBrowse Web's own "pick a
+  // view to launch" screen appears first.
+  cy.contains('Launch view', { timeout: 10_000 }).click()
+})
+
+Cypress.Commands.add('clearLocalFeatures', () => {
+  // Local-editing sessions store features in IndexedDB (one database per
+  // assembly, see BackendDrivers/LocalDriver/db.ts) instead of MongoDB, so
+  // there's nothing for clearFeatures/deleteMany to clean up here.
+  cy.wrap(
+    globalThis.indexedDB.databases().then((dbs) => {
+      for (const db of dbs) {
+        if (db.name) {
+          globalThis.indexedDB.deleteDatabase(db.name)
+        }
+      }
+    }),
+  )
 })
 
 type OntologyKey = 'nodes' | 'edges' | 'meta'
@@ -115,26 +141,6 @@ async function loadOntology(
 }
 
 Cypress.Commands.add('addOntologies', () => {
-  cy.deleteMany({}, { collection: 'jbrowseconfigs' })
-  cy.insertOne(
-    {
-      configuration: {
-        ApolloPlugin: {
-          ontologies: [
-            {
-              name: 'Sequence Ontology',
-              version: 'unversioned',
-              source: {
-                uri: 'http://localhost:9000/test_data/so-2024-11-18.json',
-                locationType: 'UriLocation',
-              },
-            },
-          ],
-        },
-      },
-    },
-    { collection: 'jbrowseconfigs' },
-  )
   // so.json.gz was generated from an IndexedDB dump using the script found at
   // https://gist.github.com/loilo/ed43739361ec718129a15ae5d531095b
   cy.readFile<ArrayBuffer>('cypress/data/so.json.gz', null).then((soGZip) => {
@@ -163,8 +169,13 @@ Cypress.Commands.add(
       cy.get('[data-testid="track_menu_icon"]').click()
       cy.contains('Appearance').trigger('mouseover')
       cy.contains(appearance).click()
+      // Close the submenu, then the track menu. Wait for each to close first,
+      // or the second Escape can come before focus is back in the track menu
+      // and leave it open.
       cy.press(Cypress.Keyboard.Keys.ESC)
+      cy.contains(appearance).should('not.exist')
       cy.press(Cypress.Keyboard.Keys.ESC)
+      cy.get('[role="menu"]').should('not.exist')
     })
   },
 )
@@ -223,68 +234,25 @@ Cypress.Commands.add(
         openApolloMenu()
       })
     }
-    cy.wrap(Cypress.$('body')).within(() => {
-      // Once the user is logged in, the Apollo session fetches the server's
-      // config and rebuilds the whole app with it, which replaces every element
-      // on the page, including an open menu. Wait for the rebuilt app, whose
-      // config has `hasRole` set.
-      cy.window({ timeout: 20_000 })
-        .its('JBrowseRootModel.jbrowse.configuration.ApolloPlugin.hasRole')
-        .should('equal', true)
+    // Once the user is logged in, the Apollo session fetches the server's
+    // config and rebuilds the whole app with it, which replaces every element
+    // on the page, including an open menu. Wait for the rebuilt app, whose
+    // config has `hasRole` set. This also waits out the page load from the
+    // login redirect, so do it before getting <body>.
+    cy.window({ timeout: 20_000 })
+      .its('JBrowseRootModel.jbrowse.configuration.ApolloPlugin.hasRole')
+      .should('equal', true)
+    // `withinSubject: null` keeps an enclosing within() from limiting the search
+    // (see https://github.com/cypress-io/cypress/issues/6666), and unlike
+    // Cypress.$('body') it gets <body> when the command runs, not when it's
+    // queued
+    cy.get('body', { withinSubject: null }).within(() => {
       openApolloMenu()
       for (const pathPart of menuItemPathPrefix) {
         cy.contains(pathPart, { timeout: 10_000 }).click()
       }
       cy.contains(menuItemName, { timeout: 10_000 }).click()
     })
-  },
-)
-
-Cypress.Commands.add(
-  'addAssemblyFromGff',
-  (assemblyName, fin, launch = true, loadFeatures = true) => {
-    cy.selectFromApolloMenu(['Admin', 'Add Assembly'])
-    cy.get('form[data-testid="submit-form"]').within(() => {
-      cy.get('input[type="TextField"]').type(assemblyName)
-      cy.contains('GFF3 input')
-        .parent()
-        .parent()
-        .within(() => {
-          cy.get('button').click()
-        })
-      cy.get('input[data-testid="gff3-input-file"]').selectFile(fin)
-      cy.contains('Load features from GFF3').within(() => {
-        cy.get('input[type="checkbox"]').should('be.checked')
-        if (!loadFeatures) {
-          cy.get('input[type="checkbox"]').click()
-          cy.get('input[type="checkbox"]').should('not.be.checked')
-        }
-      })
-      cy.intercept('/changes').as('changes')
-      cy.get('Button[data-testid="submit-button"]').click()
-      cy.wait('@changes').its('response.statusCode').should('match', /2../)
-    })
-
-    cy.contains(`UploadAssemblyFile for ${assemblyName}`)
-      .parent()
-      .should('contain', 'Uploaded')
-    cy.contains(
-      loadFeatures
-        ? 'AddAssemblyAndFeaturesFromFileChange'
-        : 'AddAssemblyFromFileChange',
-    )
-      .parent()
-      .should('contain', 'Finished')
-    cy.get('button[aria-label="Close drawer"]', { timeout: 10_000 }).click()
-    // Give JBrowse's session autosave (debounced 400ms) time to catch up so the
-    // reload doesn't restore the session from before the change finished
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(1000)
-    cy.reload()
-    if (launch) {
-      cy.contains('button', 'Launch view', { timeout: 10_000 }).click()
-    }
-    cy.contains('Select assembly to view', { timeout: 10_000 })
   },
 )
 
@@ -304,7 +272,13 @@ Cypress.Commands.add(
           cy.get('li').contains(assemblyName).click()
         }
       })
-    cy.intercept('POST', '/users/userLocation').as('selectAssemblyToViewDone')
+    // A local-editing session has no collaboration server to persist the
+    // user's location to, so there's no `/users/userLocation` request to
+    // wait for - only wait for it in a collaboration-server session.
+    const isLocalSession = Cypress.expose('isLocalSession') as boolean
+    if (!isLocalSession) {
+      cy.intercept('POST', '/users/userLocation').as('selectAssemblyToViewDone')
+    }
     if (locationOrSearch) {
       cy.get('input[placeholder="Search for location"]').type(
         `{selectall}{backspace}${locationOrSearch}{enter}`,
@@ -312,7 +286,11 @@ Cypress.Commands.add(
     } else {
       cy.contains('button', /^Open$/, { matchCase: false }).click()
     }
-    cy.wait('@selectAssemblyToViewDone')
+    if (isLocalSession) {
+      cy.contains('Select assembly to view').should('not.exist')
+    } else {
+      cy.wait('@selectAssemblyToViewDone')
+    }
   },
 )
 
@@ -423,4 +401,35 @@ Cypress.Commands.add('loginAsOtherGuest', () => {
   return cy
     .request<{ token: string }>('http://localhost:3999/auth/guest')
     .then(({ body }) => body.token)
+})
+
+Cypress.Commands.add('openAnnotationsTrack', () => {
+  // Depending on how the view was launched, the Annotations track can
+  // already be active (e.g. after a location search navigates straight
+  // into an existing session), or the view can start out completely empty
+  // (a freshly launched local-editing session, which has no defaultSession
+  // to restore tracks from) and still be settling in - wait for the page
+  // to reach one of those two states before branching on it, rather than
+  // taking a one-off snapshot that can race the view's initial render.
+  // Note: don't fold a `button[aria-label="Minimize drawer"]` check into
+  // this wait - that generic aria-label is shared with unrelated drawers
+  // (e.g. the jobs-list widget that pops up while an ontology loads), so
+  // it can be present well before the track selector/track itself is.
+  cy.get('body', { timeout: 20_000 }).should(($body) => {
+    const text = $body.text()
+    expect(
+      text.includes('Open track selector') || text.includes('Annotations ('),
+    ).to.equal(true)
+  })
+  cy.get('body').then(($body) => {
+    if ($body.text().includes('Open track selector')) {
+      cy.contains('Open track selector').click()
+      cy.contains('Annotations (').click()
+    }
+  })
+  cy.get('body').then(($body) => {
+    if ($body.find('button[aria-label="Minimize drawer"]').length > 0) {
+      cy.get('button[aria-label="Minimize drawer"]').click()
+    }
+  })
 })

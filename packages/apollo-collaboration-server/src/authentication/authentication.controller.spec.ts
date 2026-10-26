@@ -71,7 +71,8 @@ describe('AuthenticationController', () => {
       query: { code: 'xyz', prompt: 'none' },
     } as unknown as Request
     const redirect = jest.fn()
-    const res = { redirect } as unknown as Response
+    const cookie = jest.fn()
+    const res = { redirect, cookie } as unknown as Response
     await controller.fallbackLogin(
       'google',
       req,

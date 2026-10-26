@@ -1,5 +1,5 @@
 import type { CheckResultI } from '@apollo-annotation/mst'
-import { type AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
+import { doesIntersect2 } from '@jbrowse/core/util'
 import ErrorIcon from '@mui/icons-material/Error'
 import { Avatar, Badge, Box, Tooltip } from '@mui/material'
 import { observer } from 'mobx-react'
@@ -17,29 +17,38 @@ export const CheckResultWarnings = observer(function CheckResultWarnings({
   const { classes } = useStyles()
   const { apolloDragging, apolloRowHeight, lgv, session, showCheckResults } =
     display
-  const { assemblyManager } = session as unknown as AbstractSessionModel
   if (!showCheckResults) {
     return null
   }
   return lgv.dynamicBlocks.contentBlocks.map((block) => {
     const widthBp = lgv.bpPerPx * apolloRowHeight
-    const assembly = assemblyManager.get(block.assemblyName)
-    if (!assembly) {
-      return null
-    }
+    const assemblyId = display.getAssemblyId(block.assemblyName)
     const filteredCheckResults = [
       ...session.apolloDataStore.checkResults.values(),
-    ].filter(
-      (checkResult) =>
-        assembly.isValidRefName(checkResult.refSeq) &&
-        assembly.getCanonicalRefName(checkResult.refSeq) === block.refName &&
+    ].filter((checkResult) => {
+      // A checkResult's refSeq is the backend's internal refSeq id, not a
+      // display refName, so it has to be resolved the same way features
+      // are (via the display's own assembly/refSeq lookup) rather than
+      // through the JBrowse assembly, which only knows about names.
+      let canonicalRefName: string
+      try {
+        canonicalRefName = display.getCanonicalRefName(
+          assemblyId,
+          checkResult.refSeq,
+        )
+      } catch {
+        return false
+      }
+      return (
+        canonicalRefName === block.refName &&
         doesIntersect2(
           block.start,
           block.end,
           checkResult.start,
           checkResult.end,
-        ),
-    )
+        )
+      )
+    })
     const checkResults = clusterResultByMessage<CheckResultI>(
       filteredCheckResults,
       widthBp,

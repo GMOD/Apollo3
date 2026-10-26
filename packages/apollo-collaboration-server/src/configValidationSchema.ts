@@ -10,6 +10,12 @@ export const validationSchema = Joi.object({
   // Required
   URL: Joi.string().uri().required(),
   NAME: Joi.string().required(),
+  // Exactly one of these two is required (see the `.xor` below): JBROWSE_DIR
+  // for serving a built JBrowse Web + Apollo plugin bundle from disk,
+  // JBROWSE_DEV_SERVER_URL for proxying to a running JBrowse dev server
+  // instead (dev-only; see IndexHtmlController and DevServerProxyController).
+  JBROWSE_DIR: Joi.string(),
+  JBROWSE_DEV_SERVER_URL: Joi.string().uri(),
   MONGODB_URI: Joi.string(),
   MONGODB_URI_FILE: Joi.string(),
   FILE_UPLOAD_FOLDER: Joi.string().required(),
@@ -31,6 +37,15 @@ export const validationSchema = Joi.object({
   DESCRIPTION: Joi.string(),
   FEATURE_TYPE_ONTOLOGY_LOCATION: Joi.string(),
   PLUGIN_LOCATION: Joi.string(),
+  // Comma-separated list of config.json filenames this server serves
+  // (resolved the same way as config.json: off JBROWSE_DIR on disk, or
+  // fetched from JBROWSE_DEV_SERVER_URL). Each listed file is served, at its
+  // own literal path, as the Apollo-augmented config (see
+  // ConfigFileController) - e.g. "config.json,config_mouse.json" makes both
+  // "/config.json" and "/config_mouse.json" augmented, with no extra query
+  // param needed. Defaults to a single "config.json" when unset (see
+  // JBrowseConfigService.getConfigFileNames).
+  JBROWSE_CONFIG_FILES: Joi.string(),
   SKIPPED_ATTRIBUTES_ON_COPY: Joi.string().default(''),
   INDEXED_IDS: Joi.string().default('gff_id'),
   ALLOW_ROOT_USER: Joi.boolean().default(false),
@@ -55,8 +70,6 @@ export const validationSchema = Joi.object({
       return value
     })
     .default('log,warn,error'),
-  // default for this is set in the refSeq mongoose schema
-  CHUNK_SIZE: Joi.number(),
   DEFAULT_NEW_USER_ROLE: Joi.string()
     .valid('admin', 'user', 'readOnly', 'none')
     .default('none'),
@@ -114,6 +127,7 @@ export const validationSchema = Joi.object({
     .positive()
     .default(64 * 1024 * 1024),
 })
+  .xor('JBROWSE_DIR', 'JBROWSE_DEV_SERVER_URL')
   .xor('MONGODB_URI', 'MONGODB_URI_FILE')
   .oxor('GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_ID_FILE')
   .oxor('GOOGLE_CLIENT_SECRET', 'GOOGLE_CLIENT_SECRET_FILE')
