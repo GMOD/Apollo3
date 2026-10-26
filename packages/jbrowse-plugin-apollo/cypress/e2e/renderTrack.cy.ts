@@ -1,8 +1,16 @@
 /* eslint-disable cypress/no-unnecessary-waiting */
-function closeDrawerIfOpen() {
+// The drawer can hold several widgets (e.g. the track selector and the jobs
+// list from importing features), and closing it only closes the top one, so
+// keep closing until it's gone. Otherwise it narrows the view and changes the
+// snapshots.
+function closeDrawers(attemptsLeft = 5) {
   cy.get('body').then(($body) => {
-    if ($body.find('button[aria-label="Close drawer"]').length > 0) {
+    if (
+      attemptsLeft > 0 &&
+      $body.find('button[aria-label="Close drawer"]').length > 0
+    ) {
       cy.get('button[aria-label="Close drawer"]').click()
+      closeDrawers(attemptsLeft - 1)
     }
   })
 }
@@ -44,7 +52,7 @@ describe('Simple tests for visuals', () => {
     it('Shows correct gene model', () => {
       cy.importFeatures('test_data/so_types.gff3', 'so_types.gff3')
       cy.selectAssemblyToView('so_types.gff3')
-      closeDrawerIfOpen()
+      closeDrawers()
 
       cy.searchFeatures('TGGT1_200010', 1)
       cy.wait(5000)
@@ -74,7 +82,7 @@ describe('Simple tests for visuals', () => {
       cy.contains('Open track selector').click()
       cy.contains('Reference sequence (').click()
       cy.contains('Annotations (').click()
-      closeDrawerIfOpen()
+      closeDrawers()
     })
 
     it('Shows sequence track', () => {
@@ -116,7 +124,7 @@ describe('Simple tests for visuals', () => {
       cy.contains('Reference sequence (').click()
       cy.contains('Annotations (so_types.gff3)').click()
 
-      closeDrawerIfOpen()
+      closeDrawers()
 
       // The track's own Paper container is two ".MuiPaper-root" ancestors up
       // from its label text: the label has its own Paper, and its parent is

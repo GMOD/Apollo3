@@ -9,7 +9,14 @@ interface JBrowseDebugWindow extends Window {
       }
       tracks: {
         configuration: { trackId: string }
-        displays: { mouseoverExtraInformation?: string }[]
+        displays: {
+          // Only the "text" type (e.g. hovering a read) has a title and lines
+          mouseoverExtraInformation?: {
+            type: string
+            title?: string
+            lines?: string[]
+          }
+        }[]
       }[]
     }[]
   }
@@ -113,12 +120,14 @@ function canCreateApolloAnnotationFromReadEvidence() {
   // records in this file share the read name "ERR6365560.70743" (they're
   // secondary/supplementary alignments of the same fragment); the one we
   // want is uniquely identified by its exact coordinates and strand, which
-  // is exactly what JBrowse reports as the tooltip for whatever the mouse is
-  // over. Every copy of this read starts at the same reference position, so
-  // probe straight down that pixel column until the tooltip matches, then
-  // fire a real contextmenu event there - the same thing a user right-click
-  // would do - to open Apollo's "Create Apollo annotation" menu item.
-  const targetTooltip = 'ERR6365560.70743 SM_V10_3:418,159-423,701 (-)'
+  // JBrowse's tooltip for whatever the mouse is over shows (as the read name
+  // title and then a first line with the location and strand). Every copy of
+  // this read starts at the same reference position, so probe straight down
+  // that pixel column until the tooltip matches, then fire a real
+  // contextmenu event there - the same thing a user right-click would do -
+  // to open Apollo's "Create Apollo annotation" menu item.
+  const targetReadName = 'ERR6365560.70743'
+  const targetLocation = 'SM_V10_3:418,159-423,701 (-)'
   cy.window().then(async (win) => {
     const debugWin = win as unknown as JBrowseDebugWindow
     const view = debugWin.JBrowseSession?.views[0]
@@ -151,7 +160,12 @@ function canCreateApolloAnnotationFromReadEvidence() {
             }),
           )
           await sleep(5)
-          if (display.mouseoverExtraInformation === targetTooltip) {
+          const tooltip = display.mouseoverExtraInformation
+          if (
+            tooltip?.type === 'text' &&
+            tooltip.title === targetReadName &&
+            tooltip.lines?.[0] === targetLocation
+          ) {
             canvas.dispatchEvent(
               new MouseEvent('contextmenu', {
                 clientX: x,
@@ -167,7 +181,9 @@ function canCreateApolloAnnotationFromReadEvidence() {
       }
       await sleep(200)
     }
-    throw new Error(`Could not find a read matching "${targetTooltip}"`)
+    throw new Error(
+      `Could not find a read matching "${targetReadName} ${targetLocation}"`,
+    )
   })
 
   cy.contains('Create Apollo annotation').click()

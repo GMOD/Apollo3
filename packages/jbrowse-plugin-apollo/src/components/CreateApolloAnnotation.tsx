@@ -28,6 +28,7 @@ import {
   Typography,
 } from '@mui/material'
 import ObjectID from 'bson-objectid'
+import { observer } from 'mobx-react'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import type { ApolloSessionModel } from '../session'
@@ -155,7 +156,7 @@ const getFeatureNameOrId = (feature: AnnotationFeatureSnapshot) => {
   return feature.type
 }
 
-export function CreateApolloAnnotation({
+export const CreateApolloAnnotation = observer(function CreateApolloAnnotation({
   annotationFeature,
   assembly,
   handleClose,
@@ -640,4 +641,4 @@ export function CreateApolloAnnotation({
       ) : null}
     </Dialog>
   )
-}
+})
