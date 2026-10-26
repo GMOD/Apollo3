@@ -195,6 +195,7 @@ export function mouseEventsModelFactory(
             current.bp,
             edge,
             shrinkParent,
+            self.session,
           )
 
           const change: LocationEndChange | LocationStartChange =
