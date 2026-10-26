@@ -86,7 +86,9 @@ describe('Rubberband selection', () => {
 
     cy.get('[data-testid="rubberband_controls"]').trigger('mouseover')
     cy.get('[data-testid="rubberband_controls"]').trigger('mousedown', 140, 5)
-    cy.get('[data-testid="rubberband_controls"]').trigger('mousemove', 160, 5)
+    cy.get('[data-testid="rubberband_controls"]').trigger('mousemove', 160, 5, {
+      force: true,
+    })
     cy.get('[data-testid="rubberband_controls"]').trigger('mouseup', 160, 5, {
       force: true,
     })

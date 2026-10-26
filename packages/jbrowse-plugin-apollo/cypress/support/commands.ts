@@ -37,7 +37,14 @@ Cypress.Commands.add('loginAsGuest', () => {
   // does it redirect back and the app's own "external config" trust dialog
   // appear.
   cy.visit('/')
-  cy.contains('Continue as Guest', { timeout: 10_000 }).click()
+  // Visit the link instead of clicking it. Cypress doesn't reliably wait for
+  // the page load from the click's redirects, so the next commands could get
+  // elements from the login page or from the app before it finished loading.
+  cy.contains('Continue as Guest', { timeout: 10_000 })
+    .should('have.prop', 'href')
+    .then((href) => {
+      cy.visit(String(href))
+    })
 })
 
 Cypress.Commands.add('clearFeatures', () => {
@@ -162,8 +169,13 @@ Cypress.Commands.add(
       cy.get('[data-testid="track_menu_icon"]').click()
       cy.contains('Appearance').trigger('mouseover')
       cy.contains(appearance).click()
+      // Close the submenu, then the track menu. Wait for each to close first,
+      // or the second Escape can come before focus is back in the track menu
+      // and leave it open.
       cy.press(Cypress.Keyboard.Keys.ESC)
+      cy.contains(appearance).should('not.exist')
       cy.press(Cypress.Keyboard.Keys.ESC)
+      cy.get('[role="menu"]').should('not.exist')
     })
   },
 )
@@ -222,14 +234,19 @@ Cypress.Commands.add(
         openApolloMenu()
       })
     }
-    cy.wrap(Cypress.$('body')).within(() => {
-      // Once the user is logged in, the Apollo session fetches the server's
-      // config and rebuilds the whole app with it, which replaces every element
-      // on the page, including an open menu. Wait for the rebuilt app, whose
-      // config has `hasRole` set.
-      cy.window({ timeout: 20_000 })
-        .its('JBrowseRootModel.jbrowse.configuration.ApolloPlugin.hasRole')
-        .should('equal', true)
+    // Once the user is logged in, the Apollo session fetches the server's
+    // config and rebuilds the whole app with it, which replaces every element
+    // on the page, including an open menu. Wait for the rebuilt app, whose
+    // config has `hasRole` set. This also waits out the page load from the
+    // login redirect, so do it before getting <body>.
+    cy.window({ timeout: 20_000 })
+      .its('JBrowseRootModel.jbrowse.configuration.ApolloPlugin.hasRole')
+      .should('equal', true)
+    // `withinSubject: null` keeps an enclosing within() from limiting the search
+    // (see https://github.com/cypress-io/cypress/issues/6666), and unlike
+    // Cypress.$('body') it gets <body> when the command runs, not when it's
+    // queued
+    cy.get('body', { withinSubject: null }).within(() => {
       openApolloMenu()
       for (const pathPart of menuItemPathPrefix) {
         cy.contains(pathPart, { timeout: 10_000 }).click()
