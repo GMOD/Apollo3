@@ -55,6 +55,14 @@ Cypress.Commands.add('loginAsGuest', () => {
   clickGuestLoginIfPresent()
 })
 
+/**
+ * Open JBrowse with a static config that declares the Apollo plugin, so Apollo
+ * runs without a collaboration server and stores features in IndexedDB
+ */
+Cypress.Commands.add('openLocalApollo', () => {
+  cy.visit('/?config=http://localhost:9000/cypress/fixtures/local.config.json')
+})
+
 Cypress.Commands.add('deleteAssemblies', () => {
   for (const x of ['assemblies', 'features']) {
     cy.log(x)
@@ -134,6 +142,10 @@ Cypress.Commands.add('addOntologies', () => {
     },
     { collection: 'jbrowseconfigs' },
   )
+  cy.preloadSequenceOntology()
+})
+
+Cypress.Commands.add('preloadSequenceOntology', () => {
   // so.json.gz was generated from an IndexedDB dump using the script found at
   // https://gist.github.com/loilo/ed43739361ec718129a15ae5d531095b
   cy.readFile<ArrayBuffer>('cypress/data/so.json.gz', null).then((soGZip) => {
