@@ -132,6 +132,8 @@ jobs:
           cache: yarn
       - name: Install
         run: yarn --immutable
+      # Use the JBrowse build matching the @jbrowse/core version the plugin is
+      # built against
       - name: Get JBrowse
         run: |
           version=$(yarn info @jbrowse/core --json | jq -r '.children.Version')
@@ -264,6 +266,8 @@ jobs:
           cache: yarn
       - name: Install
         run: yarn --immutable
+      # Use the JBrowse build matching the @jbrowse/core version the plugin is
+      # built against
       - name: Get JBrowse
         run: |
           version=$(yarn info @jbrowse/core --json | jq -r '.children.Version')
