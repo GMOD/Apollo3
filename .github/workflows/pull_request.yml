@@ -132,8 +132,12 @@ jobs:
           cache: yarn
       - name: Install
         run: yarn --immutable
-      - name: Get latest JBrowse
-        run: yarn run jbrowse create --nightly .jbrowse
+      # Use the JBrowse build matching the @jbrowse/core version the plugin is
+      # built against
+      - name: Get JBrowse
+        run: |
+          version=$(yarn info @jbrowse/core --json | jq -r '.children.Version')
+          yarn run jbrowse create --branch "v$version" .jbrowse
         working-directory: packages/jbrowse-plugin-apollo
       # The server seeds its assemblies from these config files at startup
       - name: Copy JBrowse test fixtures
@@ -246,8 +250,12 @@ jobs:
           cache: yarn
       - name: Install
         run: yarn --immutable
-      - name: Get latest JBrowse
-        run: yarn run jbrowse create --nightly .jbrowse
+      # Use the JBrowse build matching the @jbrowse/core version the plugin is
+      # built against
+      - name: Get JBrowse
+        run: |
+          version=$(yarn info @jbrowse/core --json | jq -r '.children.Version')
+          yarn run jbrowse create --branch "v$version" .jbrowse
         working-directory: packages/jbrowse-plugin-apollo
       # The server creates the "example" assembly from these at startup
       - name: Copy JBrowse test fixtures
