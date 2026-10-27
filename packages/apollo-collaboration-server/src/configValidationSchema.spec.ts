@@ -57,3 +57,28 @@ describe('config validation schema, plugin options', () => {
     expect(validate({ PLUGIN_CACHE_DIR: '/data/cache' })).toBeUndefined()
   })
 })
+
+describe('config validation schema, MongoDB options', () => {
+  const { MONGODB_URI, ...withoutMongoDB } = requiredConfig
+
+  it('accepts MONGODB_EMBEDDED_DIR on its own', () => {
+    expect(
+      validationSchema.validate({
+        ...withoutMongoDB,
+        MONGODB_EMBEDDED_DIR: './embedded-db',
+      }).error,
+    ).toBeUndefined()
+  })
+
+  it('rejects MONGODB_EMBEDDED_DIR together with MONGODB_URI', () => {
+    expect(validate({ MONGODB_EMBEDDED_DIR: './embedded-db' })).toMatch(
+      /MONGODB_EMBEDDED_DIR/,
+    )
+  })
+
+  it('requires a MongoDB option', () => {
+    expect(validationSchema.validate(withoutMongoDB).error?.message).toMatch(
+      /MONGODB_URI/,
+    )
+  })
+})

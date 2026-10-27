@@ -55,6 +55,17 @@ open:
     xdg-open http://localhost:3000/?config=http://localhost:3999/test_data/config.json
 ```
 
+### Without installing MongoDB
+
+To try things out without installing MongoDB, start the collaboration server
+with `yarn workspace @apollo-annotation/collaboration-server start:embedded-db`
+instead. This uses the `.embedded.env` configuration, which is the same as
+`.development.env` but starts an embedded MongoDB that stores its data in
+`packages/apollo-collaboration-server/test/embedded-db/`. The first start
+downloads a MongoDB binary (about 100 MB). Don't set `MONGODB_URI` in
+`.development.local.env` if you use this, since only one MongoDB option can be
+set.
+
 ## Local configuration overrides
 
 The collaboration server's development configuration lives in

@@ -18,6 +18,9 @@ export const validationSchema = Joi.object({
   JBROWSE_DEV_SERVER_URL: Joi.string().uri(),
   MONGODB_URI: Joi.string(),
   MONGODB_URI_FILE: Joi.string(),
+  // Directory for an embedded MongoDB's data, for trying out Apollo without
+  // installing MongoDB (see utils/embeddedMongoDB.ts). Not for production.
+  MONGODB_EMBEDDED_DIR: Joi.string(),
   FILE_UPLOAD_FOLDER: Joi.string().required(),
   GOOGLE_CLIENT_ID: Joi.string(),
   GOOGLE_CLIENT_ID_FILE: Joi.string(),
@@ -128,7 +131,7 @@ export const validationSchema = Joi.object({
     .default(64 * 1024 * 1024),
 })
   .xor('JBROWSE_DIR', 'JBROWSE_DEV_SERVER_URL')
-  .xor('MONGODB_URI', 'MONGODB_URI_FILE')
+  .xor('MONGODB_URI', 'MONGODB_URI_FILE', 'MONGODB_EMBEDDED_DIR')
   .oxor('GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_ID_FILE')
   .oxor('GOOGLE_CLIENT_SECRET', 'GOOGLE_CLIENT_SECRET_FILE')
   .oxor('MICROSOFT_CLIENT_ID', 'MICROSOFT_CLIENT_ID_FILE')

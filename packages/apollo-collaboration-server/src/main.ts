@@ -15,6 +15,10 @@ import session from 'express-session'
 import { AppModule } from './app.module.js'
 import { GlobalExceptionsFilter } from './global-exceptions.filter.js'
 import { ApolloLogger } from './utils/apollo-logger.service.js'
+import {
+  getEmbeddedMongoDBURI,
+  stopEmbeddedMongoDB,
+} from './utils/embeddedMongoDB.js'
 import { LoggingInterceptor } from './utils/logging.interceptor.js'
 
 const MongoDBStore = connectMongoDBSession(session)
@@ -25,6 +29,7 @@ async function bootstrap() {
   const {
     CORS,
     LOG_LEVELS,
+    MONGODB_EMBEDDED_DIR,
     MONGODB_URI,
     MONGODB_URI_FILE,
     PORT,
@@ -39,13 +44,6 @@ async function bootstrap() {
   }
   if (!PORT) {
     throw new Error('No PORT found in .env file')
-  }
-  let mongodbURI = MONGODB_URI
-  if (!mongodbURI) {
-    if (!MONGODB_URI_FILE) {
-      throw new Error('No MONGODB_URI or MONGODB_URI_FILE found in .env file')
-    }
-    mongodbURI = fs.readFileSync(MONGODB_URI_FILE, 'utf8').trim()
   }
 
   let sessionSecret = SESSION_SECRET
@@ -71,6 +69,21 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule, { logger, cors })
 
+  // Resolved after creating the app so an embedded MongoDB is the one that
+  // AppModule already started
+  let mongodbURI = MONGODB_URI
+  if (!mongodbURI) {
+    if (MONGODB_URI_FILE) {
+      mongodbURI = fs.readFileSync(MONGODB_URI_FILE, 'utf8').trim()
+    } else if (MONGODB_EMBEDDED_DIR) {
+      mongodbURI = await getEmbeddedMongoDBURI(MONGODB_EMBEDDED_DIR)
+    } else {
+      throw new Error(
+        'No MONGODB_URI, MONGODB_URI_FILE, or MONGODB_EMBEDDED_DIR found in .env file',
+      )
+    }
+  }
+
   // When collecting coverage, exit cleanly on signals so V8 writes the coverage
   // data. The default signal handlers kill the process before it's written.
   if (process.env.NODE_V8_COVERAGE) {
@@ -93,20 +106,23 @@ async function bootstrap() {
         })
         // These exits are still part of handling the signal, which the lint
         // rule can't tell once they're inside a callback
-        app.close().then(
-          () => {
-            // eslint-disable-next-line unicorn/no-process-exit
-            process.exit(0)
-          },
-          (error: unknown) => {
-            logger.error(
-              'Error while shutting down',
-              error instanceof Error ? error.stack : String(error),
-            )
-            // eslint-disable-next-line unicorn/no-process-exit
-            process.exit(1)
-          },
-        )
+        app
+          .close()
+          .then(stopEmbeddedMongoDB)
+          .then(
+            () => {
+              // eslint-disable-next-line unicorn/no-process-exit
+              process.exit(0)
+            },
+            (error: unknown) => {
+              logger.error(
+                'Error while shutting down',
+                error instanceof Error ? error.stack : String(error),
+              )
+              // eslint-disable-next-line unicorn/no-process-exit
+              process.exit(1)
+            },
+          )
       })
     }
   }

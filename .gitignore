@@ -123,6 +123,7 @@ test/data/downloaded
 test/uploaded
 test/downloaded
 packages/apollo-collaboration-server/test/uploaded
+packages/apollo-collaboration-server/test/embedded-db
 
 # Vim
 *.swp

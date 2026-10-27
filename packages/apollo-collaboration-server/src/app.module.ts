@@ -38,6 +38,7 @@ import { RefSeqsModule } from './refSeqs/refSeqs.module.js'
 import { SequenceModule } from './sequence/sequence.module.js'
 import { UsersModule } from './users/users.module.js'
 import { CorrelationIdMiddleware } from './utils/correlation-id.middleware.js'
+import { getEmbeddedMongoDBURI } from './utils/embeddedMongoDB.js'
 import { resolveJBrowseDir } from './utils/jbrowse-dir.util.js'
 import { JwtAuthGuard } from './utils/jwt-auth.guard.js'
 import { AuthorizationGuard } from './utils/validation/authorization.guard.js'
@@ -45,6 +46,7 @@ import { AuthorizationGuard } from './utils/validation/authorization.guard.js'
 interface MongoDBURIConfig {
   MONGODB_URI?: string
   MONGODB_URI_FILE?: string
+  MONGODB_EMBEDDED_DIR?: string
 }
 
 interface JBrowseDirConfig {
@@ -55,6 +57,7 @@ interface JBrowseDirConfig {
 const nodeEnv = process.env.NODE_ENV ?? 'production'
 const envFilesByNodeEnv: Record<string, string | string[]> = {
   development: ['.development.local.env', '.development.env'],
+  embedded: ['.development.local.env', '.embedded.env'],
   cypress: '.cypress.env',
   test: '.test.env',
 }
@@ -64,11 +67,18 @@ async function mongoDBURIFactory(
 ): Promise<MongooseModuleFactoryOptions> {
   let uri = configService.get('MONGODB_URI', { infer: true })
   if (!uri) {
-    // We can use non-null assertion since joi already checks this for us
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const uriFile = configService.get('MONGODB_URI_FILE', { infer: true })!
-    const uriFileText = await fs.readFile(uriFile, 'utf8')
-    uri = uriFileText.trim()
+    const uriFile = configService.get('MONGODB_URI_FILE', { infer: true })
+    if (uriFile) {
+      const uriFileText = await fs.readFile(uriFile, 'utf8')
+      uri = uriFileText.trim()
+    } else {
+      // We can use non-null assertion since joi already checks this for us
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const embeddedDir = configService.get('MONGODB_EMBEDDED_DIR', {
+        infer: true,
+      })!
+      uri = await getEmbeddedMongoDBURI(embeddedDir)
+    }
   }
   return {
     uri,
