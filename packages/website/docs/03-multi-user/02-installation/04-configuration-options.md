@@ -15,6 +15,10 @@ NAME=My Apollo Server
 MONGODB_URI=mongodb://127.0.0.1:27017/apolloDb
 # Alternatively, can be a path to a file with the URI
 # MONGODB_URI_FILE=/run/secrets/mongodb-uri
+# Or, to try out Apollo without installing MongoDB, a directory where an
+# embedded MongoDB stores its data. The first start downloads a MongoDB binary
+# (about 100 MB). Not for production use.
+# MONGODB_EMBEDDED_DIR=./embedded-db
 
 # Output folder for uploaded files
 FILE_UPLOAD_FOLDER=./test/uploaded
