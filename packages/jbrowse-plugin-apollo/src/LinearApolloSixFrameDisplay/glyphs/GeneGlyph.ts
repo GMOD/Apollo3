@@ -2,14 +2,17 @@ import type {
   AnnotationFeature,
   TranscriptPartCoding,
 } from '@apollo-annotation/mst'
+import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import type { MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
+  doesIntersect2,
   getContainingView,
   getFrame,
   intersection2,
   measureText,
 } from '@jbrowse/core/util'
+import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 import { getSnapshot } from '@jbrowse/mobx-state-tree'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material'
@@ -22,6 +25,7 @@ import {
   type MousePositionWithFeature,
   getAdjacentExons,
   getContextMenuItemsForFeature,
+  getLeftPx,
   getMinAndMaxPx,
   getOverlappingEdge,
   getRelatedFeatures,
@@ -133,11 +137,11 @@ function drawTextLabels(
 }
 
 function draw(
+  stateModel: LinearApolloSixFrameDisplayRendering,
   ctx: CanvasRenderingContext2D,
   topLevelFeature: AnnotationFeature,
   _row: number,
-  stateModel: LinearApolloSixFrameDisplayRendering,
-  displayedRegionIndex: number,
+  block: ContentBlock,
 ): void {
   const {
     apolloRowHeight,
@@ -149,16 +153,15 @@ function draw(
     selectedFeature,
     showFeatureLabels,
   } = stateModel
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[displayedRegionIndex]
-  const { refName, reversed } = displayedRegion
+  const { bpPerPx } = lgv
+  const { reversed } = block
   const rowHeight = apolloRowHeight
   const exonHeight = rowHeight
   const cdsHeight = rowHeight
   const topLevelFeatureHeight = rowHeight
   const featureLabelSpacer = showFeatureLabels ? 2 : 1
   const textColor = theme.palette.text.primary
-  const { attributes, children, min, strand } = topLevelFeature
+  const { attributes, children, strand } = topLevelFeature
   if (!children) {
     return
   }
@@ -170,16 +173,8 @@ function draw(
   const labelArray: Label[] = []
 
   // Draw background for gene
-  const topLevelFeatureMinX =
-    (lgv.bpToPx({
-      refName,
-      coord: min,
-      regionNumber: displayedRegionIndex,
-    })?.offsetPx ?? 0) - offsetPx
+  const topLevelFeatureStartPx = getLeftPx(stateModel, topLevelFeature, block)
   const topLevelFeatureWidthPx = topLevelFeature.length / bpPerPx
-  const topLevelFeatureStartPx = reversed
-    ? topLevelFeatureMinX - topLevelFeatureWidthPx
-    : topLevelFeatureMinX
   const topLevelRow = (strand == 1 ? 3 : 4) * featureLabelSpacer
   const topLevelFeatureTop = topLevelRow * rowHeight
   ctx.fillStyle = theme.palette.text.primary
@@ -271,14 +266,8 @@ function draw(
       if (!featureTypeOntology.isTypeOf(exon.type, 'exon')) {
         continue
       }
-      const minX =
-        (lgv.bpToPx({
-          refName,
-          coord: exon.min,
-          regionNumber: displayedRegionIndex,
-        })?.offsetPx ?? 0) - offsetPx
       const widthPx = exon.length / bpPerPx
-      const startPx = reversed ? minX - widthPx : minX
+      const startPx = getLeftPx(stateModel, exon, block)
 
       const exonTop =
         topLevelFeatureTop + (topLevelFeatureHeight - exonHeight) / 2
@@ -337,13 +326,7 @@ function draw(
           !deepSetHas(renderedCDS, cds)
         ) {
           const cdsWidthPx = (cds.max - cds.min) / bpPerPx
-          const minX =
-            (lgv.bpToPx({
-              refName,
-              coord: cds.min,
-              regionNumber: displayedRegionIndex,
-            })?.offsetPx ?? 0) - offsetPx
-          cdsStartPx = reversed ? minX - cdsWidthPx : minX
+          cdsStartPx = getLeftPx(stateModel, cds, block)
           ctx.fillStyle = theme.palette.text.primary
           const frame = getFrame(cds.min, cds.max, child.strand ?? 1, cds.phase)
           const frameOffsets = showFeatureLabels
@@ -443,24 +426,46 @@ function draw(
   }
 }
 
+/** @returns the content blocks that show some part of the given feature */
+function getBlocksForFeature(
+  display: LinearApolloSixFrameDisplayRendering,
+  feature: AnnotationFeature,
+): ContentBlock[] {
+  const { lgv, session } = display
+  const { assemblyManager } = session as unknown as AbstractSessionModel
+  return lgv.dynamicBlocks.contentBlocks.filter((block) => {
+    const assembly = assemblyManager.get(block.assemblyName) as
+      | Assembly
+      | undefined
+    return (
+      block.refName === assembly?.getCanonicalRefName(feature.refSeq) &&
+      doesIntersect2(block.start, block.end, feature.min, feature.max)
+    )
+  })
+}
+
 function drawDragPreview(
   stateModel: LinearApolloSixFrameDisplay,
   overlayCtx: CanvasRenderingContext2D,
 ) {
   const { apolloDragging, apolloRowHeight, lgv, theme } = stateModel
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
+  const { offsetPx } = lgv
   if (!apolloDragging) {
     return
   }
   const { current, edge, feature, start } = apolloDragging
 
   const row = Math.floor(start.y / apolloRowHeight)
-  const region = displayedRegions[start.regionNumber]
   const rowCount = 1
-  const featureEdgeBp = region.reversed
-    ? region.end - feature[edge]
-    : feature[edge] - region.start
-  const featureEdgePx = featureEdgeBp / bpPerPx - offsetPx
+  const featureEdgePxInfo = lgv.bpToPx({
+    refName: start.refName,
+    coord: feature[edge],
+    regionNumber: start.regionNumber,
+  })
+  if (!featureEdgePxInfo) {
+    return
+  }
+  const featureEdgePx = featureEdgePxInfo.offsetPx - offsetPx
   const rectX = Math.min(current.x, featureEdgePx)
   const rectY = row * apolloRowHeight
   const rectWidth = Math.abs(current.x - featureEdgePx)
@@ -503,67 +508,61 @@ function drawOverlay(
   if (featureID && filteredTranscripts.includes(featureID)) {
     return
   }
-  const position = stateModel.getFeatureLayoutPosition(feature)
-  if (!position) {
-    return
-  }
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const { layoutIndex } = position
-  const displayedRegion = displayedRegions[layoutIndex]
-  const { refName, reversed } = displayedRegion
+  const { bpPerPx, offsetPx } = lgv
   const rowHeight = apolloRowHeight
   const cdsHeight = rowHeight
   const featureLabelSpacer = showFeatureLabels ? 2 : 1
   const { cdsLocations, strand } = feature
-  for (const cdsRow of cdsLocations) {
-    let prevCDSTop = 0
-    let prevCDSEndPx = 0
-    let counter = 1
-    for (const cds of cdsRow.toSorted((a, b) => a.max - b.max)) {
-      const cdsWidthPx = (cds.max - cds.min) / bpPerPx
-      const minX =
-        (lgv.bpToPx({
-          refName,
-          coord: cds.min,
-          regionNumber: layoutIndex,
-        })?.offsetPx ?? 0) - offsetPx
-      const cdsStartPx = reversed ? minX - cdsWidthPx : minX
-      const frame = getFrame(cds.min, cds.max, strand ?? 1, cds.phase)
-      const frameOffsets = showFeatureLabels
-        ? [0, 4, 2, 0, 14, 12, 10]
-        : [0, 2, 1, 0, 7, 6, 5]
-      const row = frameOffsets.at(frame)
-      if (row === undefined) {
-        continue
-      }
-      const cdsTop = row * rowHeight
-      if (counter > 1) {
-        // Mid-point for intron line "hat"
-        const midPoint: [number, number] = [
-          (cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx,
-          Math.max(
-            frame < 0 ? rowHeight * featureLabelSpacer * highestRow + 1 : 1, // Avoid render ceiling
-            Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
-          ),
-        ]
-        ctx.strokeStyle = 'rgb(0, 0, 0)'
-        ctx.lineWidth = 2
-        ctx.beginPath()
-        ctx.moveTo(prevCDSEndPx, prevCDSTop)
-        ctx.lineTo(...midPoint)
-        ctx.stroke()
-        ctx.moveTo(...midPoint)
-        ctx.lineTo(cdsStartPx, cdsTop + rowHeight / 2)
-        ctx.stroke()
-      }
-      prevCDSEndPx = cdsStartPx + cdsWidthPx
-      prevCDSTop = cdsTop + rowHeight / 2
-      counter += 1
-      if (cdsWidthPx > 2) {
-        ctx.fillStyle = 'rgba(255,0,0,0.6)'
-        ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
+  for (const block of getBlocksForFeature(stateModel, feature)) {
+    ctx.save()
+    ctx.beginPath()
+    ctx.rect(block.offsetPx - offsetPx, 0, block.widthPx, ctx.canvas.height)
+    ctx.clip()
+    for (const cdsRow of cdsLocations) {
+      let prevCDSTop = 0
+      let prevCDSEndPx = 0
+      let counter = 1
+      for (const cds of cdsRow.toSorted((a, b) => a.max - b.max)) {
+        const cdsWidthPx = (cds.max - cds.min) / bpPerPx
+        const cdsStartPx = getLeftPx(stateModel, cds, block)
+        const frame = getFrame(cds.min, cds.max, strand ?? 1, cds.phase)
+        const frameOffsets = showFeatureLabels
+          ? [0, 4, 2, 0, 14, 12, 10]
+          : [0, 2, 1, 0, 7, 6, 5]
+        const row = frameOffsets.at(frame)
+        if (row === undefined) {
+          continue
+        }
+        const cdsTop = row * rowHeight
+        if (counter > 1) {
+          // Mid-point for intron line "hat"
+          const midPoint: [number, number] = [
+            (cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx,
+            Math.max(
+              frame < 0 ? rowHeight * featureLabelSpacer * highestRow + 1 : 1, // Avoid render ceiling
+              Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
+            ),
+          ]
+          ctx.strokeStyle = 'rgb(0, 0, 0)'
+          ctx.lineWidth = 2
+          ctx.beginPath()
+          ctx.moveTo(prevCDSEndPx, prevCDSTop)
+          ctx.lineTo(...midPoint)
+          ctx.stroke()
+          ctx.moveTo(...midPoint)
+          ctx.lineTo(cdsStartPx, cdsTop + rowHeight / 2)
+          ctx.stroke()
+        }
+        prevCDSEndPx = cdsStartPx + cdsWidthPx
+        prevCDSTop = cdsTop + rowHeight / 2
+        counter += 1
+        if (cdsWidthPx > 2) {
+          ctx.fillStyle = 'rgba(255,0,0,0.6)'
+          ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
+        }
       }
     }
+    ctx.restore()
   }
 }
 
@@ -755,18 +754,11 @@ function drawTooltip(
     return
   }
   const { attributes, strand, type } = feature
-  const position = display.getFeatureLayoutPosition(feature)
-  if (!position) {
-    return
-  }
   const featureID: string | undefined = attributes.get('gff_id')?.toString()
   if (featureID && filteredTranscripts.includes(featureID)) {
     return
   }
-  const { layoutIndex } = position
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[layoutIndex]
-  const { refName, reversed } = displayedRegion
+  const { bpPerPx } = lgv
   const rowHeight = apolloRowHeight
   let location = 'Loc: '
   let cds: TranscriptPartCoding | undefined = undefined
@@ -784,12 +776,13 @@ function drawTooltip(
   const { max, min, phase } = cds
   location += `${min + 1}–${max}`
 
-  let startPx =
-    (lgv.bpToPx({
-      refName,
-      coord: reversed ? max : min,
-      regionNumber: layoutIndex,
-    })?.offsetPx ?? 0) - offsetPx
+  const block = getBlocksForFeature(display, feature).find(
+    (b) => bp >= b.start && bp <= b.end,
+  )
+  if (!block) {
+    return
+  }
+  let startPx = getLeftPx(display, cds, block)
   const frame = getFrame(min, max, strand ?? 1, phase)
   const frameOffsets = showFeatureLabels
     ? [0, 4, 2, 0, 14, 12, 10]
@@ -896,7 +889,7 @@ function getContextMenuItems(
             icon: getStreamIcon(
               feature.strand,
               true,
-              lgv.displayedRegions.at(0)?.reversed,
+              lgv.displayedRegions.at(mousePosition.regionNumber)?.reversed,
             ),
             onClick: () => {
               lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
@@ -911,7 +904,7 @@ function getContextMenuItems(
             icon: getStreamIcon(
               feature.strand,
               false,
-              lgv.displayedRegions.at(0)?.reversed,
+              lgv.displayedRegions.at(mousePosition.regionNumber)?.reversed,
             ),
             onClick: () => {
               lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))

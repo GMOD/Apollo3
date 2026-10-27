@@ -184,7 +184,6 @@ export function renderingModelFactory(
                 apolloRowHeight,
                 canvas,
                 featureLayouts,
-                featuresHeight,
                 lgv,
                 session,
                 theme,
@@ -192,80 +191,91 @@ export function renderingModelFactory(
                 showStartCodons,
                 showStopCodons,
               } = self
-              if (!lgv.initialized || self.regionCannotBeRendered()) {
+              if (
+                !lgv.initialized ||
+                self.regionCannotBeRendered() ||
+                !canvas
+              ) {
                 return
               }
-              const { bpPerPx, offsetPx, displayedRegions, dynamicBlocks } = lgv
+              const { bpPerPx, offsetPx, dynamicBlocks } = lgv
 
-              const ctx = canvas?.getContext('2d')
+              const ctx = canvas.getContext('2d')
               if (!ctx) {
                 return
               }
-              ctx.clearRect(0, 0, dynamicBlocks.totalWidthPx, featuresHeight)
+              ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-              for (const [idx, featureLayout] of featureLayouts.entries()) {
-                const displayedRegion = displayedRegions[idx]
-                for (const [row, featureLayoutRow] of featureLayout.entries()) {
-                  for (const { feature } of featureLayoutRow) {
-                    if (!looksLikeGene(feature, self.session)) {
-                      continue
-                    }
-                    if (
-                      !doesIntersect2(
-                        displayedRegion.start,
-                        displayedRegion.end,
-                        feature.min,
-                        feature.max,
-                      )
-                    ) {
-                      continue
-                    }
-                    const { topLevelFeature } = feature
-                    const glyph = self.getGlyph(topLevelFeature)
-                    if (glyph !== undefined) {
-                      glyph.draw(ctx, topLevelFeature, row, self, idx)
+              for (const block of dynamicBlocks.contentBlocks) {
+                const blockLeftPx = block.offsetPx - offsetPx
+                ctx.save()
+                ctx.beginPath()
+                ctx.rect(blockLeftPx, 0, block.widthPx, canvas.height)
+                ctx.clip()
+                const featureLayout = featureLayouts.at(block.regionNumber ?? 0)
+                if (featureLayout) {
+                  for (const [
+                    row,
+                    featureLayoutRow,
+                  ] of featureLayout.entries()) {
+                    for (const { feature } of featureLayoutRow) {
+                      if (!looksLikeGene(feature, self.session)) {
+                        continue
+                      }
+                      if (
+                        !doesIntersect2(
+                          block.start,
+                          block.end,
+                          feature.min,
+                          feature.max,
+                        )
+                      ) {
+                        continue
+                      }
+                      const { topLevelFeature } = feature
+                      const glyph = self.getGlyph(topLevelFeature)
+                      if (glyph !== undefined) {
+                        glyph.draw(self, ctx, topLevelFeature, row, block)
+                      }
                     }
                   }
                 }
-              }
 
-              if (showStartCodons || showStopCodons) {
-                const { apolloDataStore } = session
-                for (const block of dynamicBlocks.contentBlocks) {
+                if (showStartCodons || showStopCodons) {
+                  const { apolloDataStore } = session
                   const assembly = apolloDataStore.assemblies.get(
                     block.assemblyName,
                   )
                   const ref = assembly?.getByRefName(block.refName)
                   const roundedStart = Math.floor(block.start)
                   const roundedEnd = Math.ceil(block.end)
-                  let seq = ref?.getSequence(roundedStart, roundedEnd)
-                  if (!seq) {
-                    break
-                  }
-                  seq = seq.toUpperCase()
-                  const baseOffsetPx = (block.start - roundedStart) / bpPerPx
-                  const seqLeftPx = Math.round(
-                    block.offsetPx - offsetPx - baseOffsetPx,
-                  )
-                  for (let i = 0; i < seq.length; i++) {
-                    const bp = roundedStart + i
-                    const codon = seq.slice(i, i + 3)
-                    drawCodon(
-                      ctx,
-                      codon,
-                      seqLeftPx,
-                      i,
-                      theme,
-                      true,
-                      bpPerPx,
-                      bp,
-                      apolloRowHeight,
-                      showFeatureLabels,
-                      showStartCodons,
-                      showStopCodons,
-                    )
+                  const seq = ref
+                    ?.getSequence(roundedStart, roundedEnd)
+                    .toUpperCase()
+                  if (seq) {
+                    const baseOffsetPx = (block.start - roundedStart) / bpPerPx
+                    const seqLeftPx = Math.round(blockLeftPx - baseOffsetPx)
+                    for (let i = 0; i < seq.length; i++) {
+                      const bp = roundedStart + i
+                      const codon = seq.slice(i, i + 3)
+                      drawCodon(
+                        ctx,
+                        codon,
+                        seqLeftPx,
+                        i,
+                        theme,
+                        true,
+                        bpPerPx,
+                        bp,
+                        apolloRowHeight,
+                        showFeatureLabels,
+                        showStartCodons,
+                        showStopCodons,
+                      )
+                    }
                   }
                 }
+                ctx.restore()
               }
             },
             { name: 'LinearApolloSixFrameDisplayRenderFeatures' },

@@ -1,5 +1,6 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type { MenuItem } from '@jbrowse/core/ui'
+import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 
 import type { MousePositionWithFeature } from '../../util'
 import type { LinearApolloSixFrameDisplayMouseEvents } from '../stateModel/mouseEvents'
@@ -9,11 +10,11 @@ import type { CanvasMouseEvent } from '../types'
 export interface Glyph {
   /** draw the feature's primary rendering on the canvas */
   draw(
+    display: LinearApolloSixFrameDisplayRendering,
     ctx: CanvasRenderingContext2D,
     feature: AnnotationFeature,
     row: number,
-    stateModel: LinearApolloSixFrameDisplayRendering,
-    displayedRegionIndex: number,
+    block: ContentBlock,
   ): void
 
   drawOverlay(

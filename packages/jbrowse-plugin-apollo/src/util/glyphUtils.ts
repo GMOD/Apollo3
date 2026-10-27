@@ -8,6 +8,7 @@ import {
   type AbstractSessionModel,
   isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
+import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import SkipNextRoundedIcon from '@mui/icons-material/SkipNextRounded'
 import SkipPreviousRoundedIcon from '@mui/icons-material/SkipPreviousRounded'
@@ -225,6 +226,22 @@ export function getStreamIcon(
         : SkipPreviousRoundedIcon
   }
   return icon
+}
+
+export function getLeftPx(
+  display: { lgv: { bpPerPx: number; offsetPx: number } },
+  feature: { max: number; min: number },
+  block: ContentBlock,
+) {
+  const { lgv } = display
+  const { bpPerPx, offsetPx } = lgv
+  const blockLeftPx = block.offsetPx - offsetPx
+  const featureLeftBpDistanceFromBlockLeftBp = block.reversed
+    ? block.end - feature.max
+    : feature.min - block.start
+  const featureLeftPxDistanceFromBlockLeftPx =
+    featureLeftBpDistanceFromBlockLeftBp / bpPerPx
+  return blockLeftPx + featureLeftPxDistanceFromBlockLeftPx
 }
 
 export function getMinAndMaxPx(

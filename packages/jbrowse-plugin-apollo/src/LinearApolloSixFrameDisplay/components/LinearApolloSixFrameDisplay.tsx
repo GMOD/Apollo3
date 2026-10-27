@@ -23,7 +23,7 @@ import {
   clusterResultByMessage,
   useStyles,
 } from '../../util/displayUtils'
-import { looksLikeGene } from '../../util/glyphUtils'
+import { getLeftPx, looksLikeGene } from '../../util/glyphUtils'
 import type { LinearApolloSixFrameDisplay as LinearApolloSixFrameDisplayI } from '../stateModel'
 
 import { TrackLines } from './TrackLines'
@@ -156,9 +156,9 @@ export const LinearApolloSixFrameDisplay = observer(
                 style={{ cursor: cursor ?? 'default' }}
                 data-testid="overlayCanvas"
               />
-              {lgv.displayedRegions.flatMap((region, idx) => {
+              {lgv.dynamicBlocks.contentBlocks.flatMap((block) => {
                 const widthBp = lgv.bpPerPx * apolloRowHeight
-                const assembly = assemblyManager.get(region.assemblyName) as
+                const assembly = assemblyManager.get(block.assemblyName) as
                   | Assembly
                   | undefined
                 if (showCheckResults) {
@@ -168,10 +168,10 @@ export const LinearApolloSixFrameDisplay = observer(
                     (checkResult) =>
                       assembly?.isValidRefName(checkResult.refSeq) &&
                       assembly.getCanonicalRefName(checkResult.refSeq) ===
-                        region.refName &&
+                        block.refName &&
                       doesIntersect2(
-                        region.start,
-                        region.end,
+                        block.start,
+                        block.end,
                         checkResult.start,
                         checkResult.end,
                       ),
@@ -182,12 +182,9 @@ export const LinearApolloSixFrameDisplay = observer(
                     true,
                   )
                   return checkResults.map((checkResult) => {
-                    const left =
-                      (lgv.bpToPx({
-                        refName: region.refName,
-                        coord: checkResult.start,
-                        regionNumber: idx,
-                      })?.offsetPx ?? 0) - lgv.offsetPx
+                    const left = Math.round(
+                      getLeftPx(model, checkResult.range, block),
+                    )
                     const [feature] = checkResult.featureIds
                     if (
                       !feature?.parent ||
@@ -233,7 +230,7 @@ export const LinearApolloSixFrameDisplay = observer(
                     const height = apolloRowHeight
                     return (
                       <Tooltip
-                        key={checkResult._id}
+                        key={`${block.key}-${checkResult._id}`}
                         title={checkResult.message}
                       >
                         <Box

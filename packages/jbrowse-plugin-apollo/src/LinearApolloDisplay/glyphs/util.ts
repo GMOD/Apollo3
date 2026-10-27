@@ -3,26 +3,13 @@ import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 import type {} from '../../util'
 import { alpha } from '@mui/material'
 
+import { getLeftPx } from '../../util/glyphUtils'
 import type { LinearApolloDisplay } from '../stateModel'
 import type { MousePosition } from '../stateModel/mouseEvents'
 
 import type { OverlayType } from './Glyph'
 
-export function getLeftPx(
-  display: LinearApolloDisplay,
-  feature: { max: number; min: number },
-  block: ContentBlock,
-) {
-  const { lgv } = display
-  const { bpPerPx, offsetPx } = lgv
-  const blockLeftPx = block.offsetPx - offsetPx
-  const featureLeftBpDistanceFromBlockLeftBp = block.reversed
-    ? block.end - feature.max
-    : feature.min - block.start
-  const featureLeftPxDistanceFromBlockLeftPx =
-    featureLeftBpDistanceFromBlockLeftBp / bpPerPx
-  return blockLeftPx + featureLeftPxDistanceFromBlockLeftPx
-}
+export { getLeftPx } from '../../util/glyphUtils'
 
 export function getFeatureBox(
   display: LinearApolloDisplay,
