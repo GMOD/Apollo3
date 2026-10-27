@@ -13,7 +13,6 @@ export interface Glyph {
     display: LinearApolloSixFrameDisplayRendering,
     ctx: CanvasRenderingContext2D,
     feature: AnnotationFeature,
-    row: number,
     block: ContentBlock,
   ): void
 

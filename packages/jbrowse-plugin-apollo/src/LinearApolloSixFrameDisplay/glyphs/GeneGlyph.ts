@@ -38,6 +38,7 @@ import {
   navToFeatureCenter,
   selectFeatureAndOpenWidget,
 } from '../../util'
+import { getCDSRow, getStrandRow } from '../rows'
 import type { LinearApolloSixFrameDisplay } from '../stateModel'
 import type { LinearApolloSixFrameDisplayMouseEvents } from '../stateModel/mouseEvents'
 import type { LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
@@ -140,7 +141,6 @@ function draw(
   stateModel: LinearApolloSixFrameDisplayRendering,
   ctx: CanvasRenderingContext2D,
   topLevelFeature: AnnotationFeature,
-  _row: number,
   block: ContentBlock,
 ): void {
   const {
@@ -175,7 +175,7 @@ function draw(
   // Draw background for gene
   const topLevelFeatureStartPx = getLeftPx(stateModel, topLevelFeature, block)
   const topLevelFeatureWidthPx = topLevelFeature.length / bpPerPx
-  const topLevelRow = (strand == 1 ? 3 : 4) * featureLabelSpacer
+  const topLevelRow = getStrandRow(strand, showFeatureLabels)
   const topLevelFeatureTop = topLevelRow * rowHeight
   ctx.fillStyle = theme.palette.text.primary
   ctx.fillRect(
@@ -329,13 +329,7 @@ function draw(
           cdsStartPx = getLeftPx(stateModel, cds, block)
           ctx.fillStyle = theme.palette.text.primary
           const frame = getFrame(cds.min, cds.max, child.strand ?? 1, cds.phase)
-          const frameOffsets = showFeatureLabels
-            ? [0, 4, 2, 0, 14, 12, 10]
-            : [0, 2, 1, 0, 7, 6, 5]
-          const row = frameOffsets.at(frame)
-          if (row === undefined) {
-            continue
-          }
+          const row = getCDSRow(frame, showFeatureLabels)
           cdsTop = row * rowHeight
           ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
 
@@ -526,13 +520,7 @@ function drawOverlay(
         const cdsWidthPx = (cds.max - cds.min) / bpPerPx
         const cdsStartPx = getLeftPx(stateModel, cds, block)
         const frame = getFrame(cds.min, cds.max, strand ?? 1, cds.phase)
-        const frameOffsets = showFeatureLabels
-          ? [0, 4, 2, 0, 14, 12, 10]
-          : [0, 2, 1, 0, 7, 6, 5]
-        const row = frameOffsets.at(frame)
-        if (row === undefined) {
-          continue
-        }
+        const row = getCDSRow(frame, showFeatureLabels)
         const cdsTop = row * rowHeight
         if (counter > 1) {
           // Mid-point for intron line "hat"
@@ -784,13 +772,7 @@ function drawTooltip(
   }
   let startPx = getLeftPx(display, cds, block)
   const frame = getFrame(min, max, strand ?? 1, phase)
-  const frameOffsets = showFeatureLabels
-    ? [0, 4, 2, 0, 14, 12, 10]
-    : [0, 2, 1, 0, 7, 6, 5]
-  const row = frameOffsets.at(frame)
-  if (row === undefined) {
-    return
-  }
+  const row = getCDSRow(frame, showFeatureLabels)
   const cdsTop = row * rowHeight
   const cdsWidthPx = (max - min) / bpPerPx
 

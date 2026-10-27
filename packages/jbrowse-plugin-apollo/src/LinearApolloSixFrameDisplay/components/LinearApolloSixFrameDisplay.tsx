@@ -9,7 +9,6 @@ import {
   type AbstractSessionModel,
   doesIntersect2,
   getContainingView,
-  getFrame,
 } from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import ErrorIcon from '@mui/icons-material/Error'
@@ -44,7 +43,7 @@ export const LinearApolloSixFrameDisplay = observer(
       contextMenuItems: getContextMenuItems,
       cursor,
       featuresHeight,
-      geneTrackRowNums,
+      getRowForFeature,
       isShown,
       onMouseDown,
       onMouseLeave,
@@ -57,7 +56,6 @@ export const LinearApolloSixFrameDisplay = observer(
       setOverlayCanvas,
       setTheme,
       showCheckResults,
-      showFeatureLabels,
     } = model
     const { classes } = useStyles()
     const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
@@ -193,37 +191,9 @@ export const LinearApolloSixFrameDisplay = observer(
                       return null
                     }
 
-                    let row
-                    for (const loc of feature.cdsLocations) {
-                      for (const cds of loc) {
-                        const frame = getFrame(
-                          cds.min,
-                          cds.max,
-                          feature.strand ?? 1,
-                          cds.phase,
-                        )
-                        const frameOffsets = showFeatureLabels
-                          ? [0, 5, 3, 1, 15, 13, 11]
-                          : [0, 2, 1, 0, 8, 7, 6]
-                        const rowNum = frameOffsets.at(frame)
-                        if (rowNum === undefined) {
-                          continue
-                        }
-                        if (
-                          checkResult.start >= cds.min &&
-                          checkResult.start <= cds.max
-                        ) {
-                          row = rowNum - 1
-                          break
-                        }
-                      }
-                    }
+                    const row = getRowForFeature(feature, checkResult.start)
                     if (row === undefined) {
-                      const rowNum =
-                        feature.strand == 1
-                          ? geneTrackRowNums[0]
-                          : geneTrackRowNums[1]
-                      row = rowNum - 1
+                      return null
                     }
 
                     const top = row * apolloRowHeight

@@ -11,25 +11,25 @@ const blocks = ['empty', 'annotated'].map((refName, i) => ({
   offsetPx: i * 100,
   widthPx: 100,
 }))
-const gene = { min: 10, max: 20 }
-Object.assign(gene, { topLevelFeature: gene })
-const layoutFor = (refName: string) =>
-  refName === 'annotated'
-    ? new Map([[4, [{ rowNum: 4, feature: gene }]]])
-    : new Map()
+const gene = { _id: 'gene', min: 10, max: 20 }
 const getSequence = jest.fn((start: number, end: number) =>
   'A'.repeat(end - start),
 )
 const codonState = { showStartCodons: false }
 
-jest.unstable_mockModule('../../util/glyphUtils', () => ({
-  looksLikeGene: () => true,
-}))
 jest.unstable_mockModule('../../util/displayUtils', () => ({
   codonColorCode: () => 'red',
 }))
-jest.unstable_mockModule('./layouts', () => ({
-  layoutsModelFactory: () =>
+jest.unstable_mockModule('../../util/glyphUtils', () => ({
+  isCDSFeature: () => false,
+  isTranscriptFeature: () => false,
+  looksLikeGene: () => true,
+}))
+jest.unstable_mockModule('../glyphs/GeneGlyph', () => ({
+  geneGlyph: { draw },
+}))
+jest.unstable_mockModule('./base', () => ({
+  baseModelFactory: () =>
     types
       .model({})
       .volatile(() => ({
@@ -50,7 +50,9 @@ jest.unstable_mockModule('./layouts', () => ({
                 'assembly',
                 {
                   getByRefName: (refName: string) =>
-                    refName === 'annotated' ? { getSequence } : undefined,
+                    refName === 'annotated'
+                      ? { getSequence, features: new Map([['gene', gene]]) }
+                      : undefined,
                 },
               ],
             ]),
@@ -58,17 +60,13 @@ jest.unstable_mockModule('./layouts', () => ({
         },
       }))
       .views(() => ({
-        get featureLayouts() {
-          return blocks.map((block) => layoutFor(block.refName))
-        },
         get showStartCodons() {
           return codonState.showStartCodons
         },
-        get highestRow() {
-          return 5
+        get regions() {
+          return blocks
         },
         regionCannotBeRendered: () => false,
-        getGlyph: () => ({ draw }),
       })),
 }))
 
@@ -117,7 +115,7 @@ it.each([
       } as unknown as HTMLCanvasElement)
       expect(depth).toBe(0)
       expect(ctx.clip).toHaveBeenCalledTimes(blocks.length)
-      expect(draw.mock.calls.map((call) => call[4])).toEqual(annotatedBlocks)
+      expect(draw.mock.calls.map((call) => call[3])).toEqual(annotatedBlocks)
       if (showStartCodons) {
         expect(getSequence).toHaveBeenCalledTimes(annotatedBlocks.length)
         const drawnBlockOffsets = new Set(

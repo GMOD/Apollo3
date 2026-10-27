@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import type { AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
 import {
@@ -7,14 +8,25 @@ import {
   getFrame,
   revcom,
 } from '@jbrowse/core/util'
-import { type Instance, addDisposer, types } from '@jbrowse/mobx-state-tree'
+import {
+  type Instance,
+  addDisposer,
+  isAlive,
+  types,
+} from '@jbrowse/mobx-state-tree'
 import { type Theme, createTheme } from '@mui/material'
-import { autorun } from 'mobx'
+import { autorun, observable } from 'mobx'
 
 import { codonColorCode } from '../../util/displayUtils'
-import { looksLikeGene } from '../../util/glyphUtils'
+import {
+  isCDSFeature,
+  isTranscriptFeature,
+  looksLikeGene,
+} from '../../util/glyphUtils'
+import { geneGlyph } from '../glyphs/GeneGlyph'
+import { getCDSRow, getStrandRow } from '../rows'
 
-import { layoutsModelFactory } from './layouts'
+import { baseModelFactory } from './base'
 
 function drawCodon(
   ctx: CanvasRenderingContext2D,
@@ -30,16 +42,10 @@ function drawCodon(
   showStartCodons: boolean,
   showStopCodons: boolean,
 ) {
-  const frameOffsets = (
-    showFeatureLabels ? [0, 4, 2, 0, 14, 12, 10] : [0, 2, 1, 0, 7, 6, 5]
-  ).map((b) => b * rowHeight)
   const strands = [-1, 1] as const
   for (const strand of strands) {
     const frame = getFrame(bp, bp + 3, strand, 0)
-    const top = frameOffsets.at(frame)
-    if (top === undefined) {
-      continue
-    }
+    const top = getCDSRow(frame, showFeatureLabels) * rowHeight
     const left = Math.round(leftPx + index / bpPerPx)
     const width = Math.round(3 / bpPerPx) === 0 ? 1 : Math.round(3 / bpPerPx)
     const codonCode = strand === 1 ? codon : revcom(codon)
@@ -61,12 +67,12 @@ export function renderingModelFactory(
   pluginManager: PluginManager,
   configSchema: AnyConfigurationSchemaType,
 ) {
-  const LinearApolloSixFrameDisplayLayouts = layoutsModelFactory(
+  const BaseLinearApolloSixFrameDisplay = baseModelFactory(
     pluginManager,
     configSchema,
   )
 
-  return LinearApolloSixFrameDisplayLayouts.named(
+  return BaseLinearApolloSixFrameDisplay.named(
     'LinearApolloSixFrameDisplayRendering',
   )
     .props({
@@ -82,6 +88,88 @@ export function renderingModelFactory(
       overlayCanvas: null as HTMLCanvasElement | null,
       collaboratorCanvas: null as HTMLCanvasElement | null,
       theme: createTheme(),
+      seenFeatures: observable.map<string, AnnotationFeature>(),
+    }))
+    .views((self) => ({
+      getGlyph(_feature: AnnotationFeature) {
+        return geneGlyph
+      },
+      /** Top-level gene features that overlap the given region */
+      getGenesInRegion(region: {
+        assemblyName: string
+        refName: string
+        start: number
+        end: number
+      }) {
+        const assembly = self.session.apolloDataStore.assemblies.get(
+          region.assemblyName,
+        )
+        const features = assembly?.getByRefName(region.refName)?.features
+        const genes: AnnotationFeature[] = []
+        if (!features) {
+          return genes
+        }
+        for (const [, feature] of features) {
+          if (
+            doesIntersect2(
+              region.start,
+              region.end,
+              feature.min,
+              feature.max,
+            ) &&
+            looksLikeGene(feature, self.session)
+          ) {
+            genes.push(feature)
+          }
+        }
+        return genes
+      },
+      /**
+       * 0-based row the feature is drawn in. A transcript is drawn in a row for
+       * each of its CDS frames, so if `bp` is given, the row of the CDS
+       * containing it is used, otherwise the row of the first CDS.
+       */
+      getRowForFeature(feature: AnnotationFeature, bp?: number) {
+        const { session, showFeatureLabels } = self
+        if (isCDSFeature(feature, session)) {
+          const transcript = feature.parent
+          if (!transcript) {
+            return
+          }
+          for (const cds of transcript.cdsLocations.flat()) {
+            if (doesIntersect2(cds.min, cds.max, feature.min, feature.max)) {
+              const frame = getFrame(
+                cds.min,
+                cds.max,
+                transcript.strand ?? 1,
+                cds.phase,
+              )
+              return getCDSRow(frame, showFeatureLabels)
+            }
+          }
+          return
+        }
+        if (isTranscriptFeature(feature, session)) {
+          const cdss = feature.cdsLocations.flat()
+          const cds =
+            bp === undefined
+              ? cdss.at(0)
+              : cdss.find((c) => bp >= c.min && bp <= c.max)
+          if (cds) {
+            const frame = getFrame(
+              cds.min,
+              cds.max,
+              feature.strand ?? 1,
+              cds.phase,
+            )
+            return getCDSRow(frame, showFeatureLabels)
+          }
+        }
+        return getStrandRow(feature.strand, showFeatureLabels)
+      },
+      get highestRow() {
+        return 5
+      },
     }))
     .views((self) => ({
       get featuresHeight() {
@@ -93,6 +181,12 @@ export function renderingModelFactory(
       },
     }))
     .actions((self) => ({
+      addSeenFeature(feature: AnnotationFeature) {
+        self.seenFeatures.set(feature._id, feature)
+      },
+      deleteSeenFeature(featureId: string) {
+        self.seenFeatures.delete(featureId)
+      },
       toggleShown() {
         self.isShown = !self.isShown
       },
@@ -119,6 +213,45 @@ export function renderingModelFactory(
     }))
     .actions((self) => ({
       afterAttach() {
+        addDisposer(
+          self,
+          autorun(
+            () => {
+              if (!self.lgv.initialized || self.regionCannotBeRendered()) {
+                return
+              }
+              for (const [id, feature] of self.seenFeatures.entries()) {
+                if (!isAlive(feature)) {
+                  self.deleteSeenFeature(id)
+                }
+              }
+              for (const region of self.regions) {
+                const assembly = self.session.apolloDataStore.assemblies.get(
+                  region.assemblyName,
+                )
+                const ref = assembly?.getByRefName(region.refName)
+                const features = ref?.features
+                if (!features) {
+                  continue
+                }
+                for (const [, feature] of features) {
+                  if (
+                    doesIntersect2(
+                      region.start,
+                      region.end,
+                      feature.min,
+                      feature.max,
+                    ) &&
+                    !self.seenFeatures.has(feature._id)
+                  ) {
+                    self.addSeenFeature(feature)
+                  }
+                }
+              }
+            },
+            { name: 'LinearApolloSixFrameDisplaySetSeenFeatures', delay: 1000 },
+          ),
+        )
         addDisposer(
           self,
           autorun(
@@ -183,7 +316,6 @@ export function renderingModelFactory(
               const {
                 apolloRowHeight,
                 canvas,
-                featureLayouts,
                 lgv,
                 session,
                 theme,
@@ -212,33 +344,8 @@ export function renderingModelFactory(
                 ctx.beginPath()
                 ctx.rect(blockLeftPx, 0, block.widthPx, canvas.height)
                 ctx.clip()
-                const featureLayout = featureLayouts.at(block.regionNumber ?? 0)
-                if (featureLayout) {
-                  for (const [
-                    row,
-                    featureLayoutRow,
-                  ] of featureLayout.entries()) {
-                    for (const { feature } of featureLayoutRow) {
-                      if (!looksLikeGene(feature, self.session)) {
-                        continue
-                      }
-                      if (
-                        !doesIntersect2(
-                          block.start,
-                          block.end,
-                          feature.min,
-                          feature.max,
-                        )
-                      ) {
-                        continue
-                      }
-                      const { topLevelFeature } = feature
-                      const glyph = self.getGlyph(topLevelFeature)
-                      if (glyph !== undefined) {
-                        glyph.draw(self, ctx, topLevelFeature, row, block)
-                      }
-                    }
-                  }
+                for (const gene of self.getGenesInRegion(block)) {
+                  self.getGlyph(gene).draw(self, ctx, gene, block)
                 }
 
                 if (showStartCodons || showStopCodons) {
