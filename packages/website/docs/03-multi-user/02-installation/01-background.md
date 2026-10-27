@@ -53,6 +53,8 @@ collaboration server, or it can be external.
 
 ## Deployment examples
 
+- [Quick start with `apollo setup`](../installation/examples/apollo-setup),
+  which installs and configures the collaboration server for you
 - [Deploying with Docker](../installation/examples/docker-compose)
 - [Deploying on Ubuntu](../installation/examples/ubuntu-server)
 
