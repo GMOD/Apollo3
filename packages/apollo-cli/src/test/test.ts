@@ -20,6 +20,8 @@ import assert from 'node:assert'
 import { spawn as spawnChildProcess } from 'node:child_process'
 import * as crypto from 'node:crypto'
 import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { after, afterEach, before, beforeEach, describe } from 'node:test'
 
 import type {
@@ -272,6 +274,121 @@ server.listen(0, () => {
         'guest',
         `Expected selected accessType to be saved as "guest", got "${p.stdout.trim()}"`,
       )
+    },
+  )
+
+  void globalThis.itName(
+    'Interactive setup dry run asks every question and writes nothing',
+    async () => {
+      const root = fs.mkdtempSync(path.join(os.tmpdir(), 'apollo-setup-'))
+      const installDir = path.join(root, 'apollo')
+      const jbrowseDir = path.join(root, 'jbrowse')
+      fs.mkdirSync(jbrowseDir)
+      fs.writeFileSync(path.join(jbrowseDir, 'index.html'), '<html></html>')
+      fs.writeFileSync(path.join(jbrowseDir, 'version.txt'), '4.3.0\n')
+      fs.writeFileSync(
+        path.join(jbrowseDir, 'config_mouse.json'),
+        '{"assemblies":[]}',
+      )
+      const jbrowseFilesBefore = fs.readdirSync(jbrowseDir).sort()
+
+      const child = spawnChildProcess(`${apollo} setup --dry-run`, {
+        shell: '/bin/bash',
+      })
+      let stdout = ''
+      let stderr = ''
+      child.stdout.on('data', (data: Buffer) => {
+        stdout += data.toString()
+      })
+      child.stderr.on('data', (data: Buffer) => {
+        stderr += data.toString()
+      })
+      let seen = 0
+      // Wait for a prompt that hasn't been answered yet, then answer it
+      const answer = async (pattern: string, keys: string) => {
+        await new Promise<void>((resolve, reject) => {
+          const timer = setTimeout(() => {
+            clearInterval(interval)
+            reject(
+              new Error(
+                `Timed out waiting for "${pattern}". Stdout so far:\n${stdout}\nStderr so far:\n${stderr}`,
+              ),
+            )
+          }, 15_000)
+          const interval = setInterval(() => {
+            const index = stdout.indexOf(pattern, seen)
+            if (index !== -1) {
+              seen = index + pattern.length
+              clearInterval(interval)
+              clearTimeout(timer)
+              resolve()
+            }
+          }, 50)
+        })
+        await new Promise((resolve) => setTimeout(resolve, 200))
+        child.stdin.write(keys)
+      }
+
+      try {
+        await answer('Install directory', `${installDir}\r`)
+        await answer('Apollo version to install', '1.3.0\r')
+        await answer('Existing JBrowse Web directory', `${jbrowseDir}\r`)
+        await answer('JBrowse config file(s)', 'config_mouse.json\r')
+        await answer('Public URL', '\r')
+        await answer('Port for the server', '\r')
+        await answer('Server name', '\r')
+        await answer('Server description', 'Test server\r')
+        // Move down to "Use embedded MongoDB"
+        await answer('MongoDB:', '\u001B[B\r')
+        await answer('Directory for the embedded MongoDB data', '\r')
+        await answer('Use the embedded MongoDB?', '\r')
+        // Keep the default root and guest logins
+        await answer('Login methods', '\r')
+        await answer('Root user password', 'secret-pw\r')
+        await answer('Role for the guest user', '\r')
+        await answer('Email of the first admin', 'admin@example.org\r')
+        await answer('Role for new users', '\r')
+        await answer('Directory for uploaded files', '\r')
+
+        const exitCode: number | null = await new Promise((resolve) => {
+          child.on('exit', resolve)
+        })
+        assert.strictEqual(
+          exitCode,
+          0,
+          `Expected "apollo setup --dry-run" to exit cleanly. Stdout:\n${stdout}\nStderr:\n${stderr}`,
+        )
+        for (const expected of [
+          `JBROWSE_DIR=${jbrowseDir}`,
+          'JBROWSE_CONFIG_FILES=config_mouse.json',
+          'PLUGIN_LOCATION=apollo-v1.3.0.js',
+          `MONGODB_EMBEDDED_DIR=${path.join(installDir, 'data', 'mongodb')}`,
+          "DESCRIPTION='Test server'",
+          'ALLOW_ROOT_USER=true',
+          'ROOT_USER_PASSWORD=********',
+          'ALLOW_GUEST_USER=true',
+          'INITIAL_ADMIN_EMAIL=admin@example.org',
+          'start-apollo.sh',
+        ]) {
+          assert.ok(
+            stdout.includes(expected),
+            `Expected "${expected}" in the output:\n${stdout}`,
+          )
+        }
+        assert.ok(
+          !stdout.includes('secret-pw'),
+          'The root password should be masked',
+        )
+        assert.ok(!fs.existsSync(installDir), 'Dry run created the install dir')
+        assert.deepStrictEqual(
+          fs.readdirSync(jbrowseDir).sort(),
+          jbrowseFilesBefore,
+          'Dry run changed the JBrowse directory',
+        )
+      } finally {
+        child.kill()
+        fs.rmSync(root, { recursive: true, force: true })
+      }
     },
   )
 
