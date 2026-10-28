@@ -50,7 +50,8 @@ export const LinearApolloSixFrameDisplay = observer(
       onMouseLeave,
       onMouseMove,
       onMouseUp,
-      regionCannotBeRendered,
+      densityMessage,
+      displayMode,
       session,
       setCanvas,
       setCollaboratorCanvas,
@@ -68,7 +69,9 @@ export const LinearApolloSixFrameDisplay = observer(
     const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
     const [mouseCoord, setMouseCoord] = useState<Coord>()
 
-    const message = regionCannotBeRendered()
+    const message =
+      densityMessage ??
+      (displayMode === 'features' ? undefined : 'Zoom in to see annotations')
     if (!isShown) {
       return null
     }
@@ -98,8 +101,6 @@ export const LinearApolloSixFrameDisplay = observer(
               <LockIcon />
             </div>
           ) : null}
-          {/* This type is wrong in @jbrowse/core */}
-          {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
           {message ? (
             <Alert
               severity="warning"

@@ -32,7 +32,8 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
     contextMenuItems: getContextMenuItems,
     featuresHeight: getFeaturesHeight,
     isShown,
-    regionCannotBeRendered,
+    densityMessage,
+    displayMode,
     session,
     setCanvas,
     setCollaboratorCanvas,
@@ -46,7 +47,9 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   }, [theme, setTheme])
   const [contextCoord, setContextCoord] = useState<Coord>()
   const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
-  const message = regionCannotBeRendered()
+  const message =
+    densityMessage ??
+    (displayMode === 'features' ? undefined : 'Zoom in to see annotations')
   if (!isShown) {
     return null
   }
@@ -80,8 +83,6 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
           <CircularProgress size="18px" />
         </div>
       ) : null}
-      {/* This type is wrong in @jbrowse/core */}
-      {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
       {message ? (
         <Alert
           severity="warning"

@@ -286,9 +286,7 @@ export function mouseEventsModelFactory(
           self,
           autorun(
             () => {
-              // This type is wrong in @jbrowse/core
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-              if (!self.lgv.initialized || self.regionCannotBeRendered()) {
+              if (!self.lgv.initialized || self.displayMode !== 'features') {
                 return
               }
               const ctx = self.overlayCanvas?.getContext('2d')

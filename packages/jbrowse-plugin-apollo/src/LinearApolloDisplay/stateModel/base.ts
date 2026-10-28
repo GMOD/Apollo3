@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
@@ -45,7 +44,8 @@ import { ViewChangeLog } from '../../components/ViewChangeLog'
 import { ViewCheckResults } from '../../components/ViewCheckResults'
 import type { ApolloSessionModel, HoveredFeature } from '../../session'
 import type { ApolloRootModel } from '../../types'
-import { EditZoomThresholdDialog } from '../../util/displayUtils'
+import { FeatureDisplayThresholdDialog } from '../../util/displayUtils'
+import { FeatureDensityMixin } from '../../util/featureDensityModel'
 
 const minDisplayHeight = 20
 
@@ -53,14 +53,15 @@ export function baseModelFactory(
   _pluginManager: PluginManager,
   configSchema: AnyConfigurationSchemaType,
 ) {
-  return BaseDisplay.named('BaseLinearApolloDisplay')
+  return types
+    .compose(BaseDisplay, FeatureDensityMixin())
+    .named('BaseLinearApolloDisplay')
     .props({
       type: types.literal('LinearApolloDisplay'),
       configuration: ConfigurationReference(configSchema),
       graphical: true,
       table: false,
       showCheckResults: true,
-      zoomThreshold: 200,
       heightPreConfig: types.maybe(
         types.refinement(
           'displayHeight',
@@ -105,9 +106,6 @@ export function baseModelFactory(
       get loading() {
         return self.loadingState
       },
-      get zoomThresholdSetting() {
-        return self.zoomThreshold ?? getConf(self, 'zoomThreshold')
-      },
     }))
     .views((self) => ({
       get rendererTypeName() {
@@ -128,10 +126,7 @@ export function baseModelFactory(
         return regions
       },
       regionCannotBeRendered(/* region */) {
-        if (self.lgv && self.lgv.bpPerPx >= self.zoomThreshold) {
-          return 'Zoom in to see annotations'
-        }
-        return
+        return self.densityMessage
       },
     }))
     .views((self) => ({
@@ -208,9 +203,6 @@ export function baseModelFactory(
       setLoading(loading: boolean) {
         self.loadingState = loading
       },
-      setZoomThresholdSetting({ zoomThreshold }: { zoomThreshold: number }) {
-        self.zoomThreshold = zoomThreshold
-      },
     }))
     .views((self) => {
       const { filteredFeatureTypes, trackMenuItems: superTrackMenuItems } = self
@@ -260,10 +252,10 @@ export function baseModelFactory(
                   },
                 },
                 {
-                  label: 'Change zoom threshold',
+                  label: 'Feature display threshold',
                   onClick: () => {
                     getSession(self).queueDialog((handleClose) => [
-                      EditZoomThresholdDialog,
+                      FeatureDisplayThresholdDialog,
                       { model: self, handleClose },
                     ])
                   },
@@ -433,7 +425,7 @@ export function baseModelFactory(
           self,
           autorun(
             () => {
-              if (!self.lgv.initialized || self.regionCannotBeRendered()) {
+              if (!self.lgv.initialized || !self.canLoadFeatures) {
                 return
               }
               self.setLoading(true)
