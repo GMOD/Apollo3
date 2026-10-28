@@ -311,9 +311,6 @@ export function mouseEventsModelFactory(
               // draw mouseover hovers
               glyph.drawOverlay(self, ctx)
 
-              // draw tooltip on hover
-              glyph.drawTooltip(self, ctx)
-
               // dragging previews
               if (apolloDragging) {
                 // NOTE: the glyph where the drag started is responsible for drawing the preview.

@@ -25,7 +25,7 @@ import {
   roundPxSpan,
 } from '../../util/glyphUtils'
 import { geneGlyph } from '../glyphs/GeneGlyph'
-import { getCDSRow, getStrandRow } from '../rows'
+import { getCDSRow, getStrandRow, rowCount } from '../rows'
 
 import { baseModelFactory } from './base'
 
@@ -81,7 +81,6 @@ export function renderingModelFactory(
       apolloRowHeight: 20,
       detailsMinHeight: 200,
       detailsHeight: 200,
-      lastRowTooltipBufferHeight: 120,
       isShown: true,
       filteredTranscripts: types.array(types.string),
     })
@@ -169,17 +168,15 @@ export function renderingModelFactory(
         }
         return getStrandRow(feature.strand, showFeatureLabels)
       },
-      get highestRow() {
-        return 5
+      /** 0-based row of the first reverse-strand frame (frame -1) */
+      get firstReverseFrameRow() {
+        return getCDSRow(-1, self.showFeatureLabels)
       },
     }))
     .views((self) => ({
       get featuresHeight() {
         const featureLabelSpacer = self.showFeatureLabels ? 2 : 1
-        return (
-          featureLabelSpacer * ((self.highestRow + 1) * self.apolloRowHeight) +
-          self.lastRowTooltipBufferHeight
-        )
+        return featureLabelSpacer * rowCount * self.apolloRowHeight
       },
     }))
     .actions((self) => ({

@@ -50,10 +50,9 @@ export interface Glyph {
     event: CanvasMouseEvent,
   ): void
 
-  drawTooltip(
+  getTooltipLines(
     display: LinearApolloSixFrameDisplayMouseEvents,
-    context: CanvasRenderingContext2D,
-  ): void
+  ): string[] | undefined
 
   getContextMenuItemsForFeature(
     display: LinearApolloSixFrameDisplayMouseEvents,

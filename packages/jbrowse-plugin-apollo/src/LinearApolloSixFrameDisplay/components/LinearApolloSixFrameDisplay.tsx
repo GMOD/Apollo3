@@ -25,6 +25,7 @@ import {
 import { getLeftPx, looksLikeGene } from '../../util/glyphUtils'
 import type { LinearApolloSixFrameDisplay as LinearApolloSixFrameDisplayI } from '../stateModel'
 
+import { Tooltip as LinearApolloSixFrameDisplayTooltip } from './Tooltip'
 import { TrackLines } from './TrackLines'
 
 interface LinearApolloSixFrameDisplayProps {
@@ -65,6 +66,7 @@ export const LinearApolloSixFrameDisplay = observer(
     }, [theme, setTheme])
     const [contextCoord, setContextCoord] = useState<Coord>()
     const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
+    const [mouseCoord, setMouseCoord] = useState<Coord>()
 
     const message = regionCannotBeRendered()
     if (!isShown) {
@@ -146,13 +148,24 @@ export const LinearApolloSixFrameDisplay = observer(
                 }}
                 width={lgv.dynamicBlocks.totalWidthPx}
                 height={featuresHeight}
-                onMouseMove={onMouseMove}
-                onMouseLeave={onMouseLeave}
+                onMouseMove={(...args) => {
+                  const [event] = args
+                  setMouseCoord([event.clientX, event.clientY])
+                  onMouseMove(...args)
+                }}
+                onMouseLeave={(...args) => {
+                  setMouseCoord(undefined)
+                  onMouseLeave(...args)
+                }}
                 onMouseDown={onMouseDown}
                 onMouseUp={onMouseUp}
                 className={classes.canvas}
                 style={{ cursor: cursor ?? 'default' }}
                 data-testid="overlayCanvas"
+              />
+              <LinearApolloSixFrameDisplayTooltip
+                mouseCoordinate={mouseCoord}
+                model={model}
               />
               {lgv.dynamicBlocks.contentBlocks.flatMap((block) => {
                 const widthBp = lgv.bpPerPx * apolloRowHeight

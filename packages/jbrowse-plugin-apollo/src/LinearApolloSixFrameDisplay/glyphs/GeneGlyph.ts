@@ -148,7 +148,7 @@ function draw(
     apolloRowHeight,
     session,
     theme,
-    highestRow,
+    firstReverseFrameRow,
     filteredTranscripts,
     selectedFeature,
     showFeatureLabels,
@@ -158,7 +158,6 @@ function draw(
   const exonHeight = rowHeight
   const cdsHeight = rowHeight
   const topLevelFeatureHeight = rowHeight
-  const featureLabelSpacer = showFeatureLabels ? 2 : 1
   const textColor = theme.palette.text.primary
   const { attributes, children, strand } = topLevelFeature
   if (!children) {
@@ -338,7 +337,7 @@ function draw(
             const midPoint: [number, number] = [
               Math.round((cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx),
               Math.max(
-                frame < 0 ? rowHeight * featureLabelSpacer * highestRow + 1 : 1, // Avoid render ceiling
+                frame < 0 ? rowHeight * firstReverseFrameRow + 1 : 1, // Avoid render ceiling
                 Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
               ),
             ]
@@ -480,7 +479,7 @@ function drawOverlay(
     apolloRowHeight,
     filteredTranscripts,
     lgv,
-    highestRow,
+    firstReverseFrameRow,
     session,
     showFeatureLabels,
   } = stateModel
@@ -505,7 +504,6 @@ function drawOverlay(
   const { offsetPx } = lgv
   const rowHeight = apolloRowHeight
   const cdsHeight = rowHeight
-  const featureLabelSpacer = showFeatureLabels ? 2 : 1
   const { cdsLocations, strand } = feature
   for (const block of getBlocksForFeature(stateModel, feature)) {
     const clip = roundPxSpan(block.offsetPx - offsetPx, block.widthPx)
@@ -531,7 +529,7 @@ function drawOverlay(
           const midPoint: [number, number] = [
             Math.round((cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx),
             Math.max(
-              frame < 0 ? rowHeight * featureLabelSpacer * highestRow + 1 : 1, // Avoid render ceiling
+              frame < 0 ? rowHeight * firstReverseFrameRow + 1 : 1, // Avoid render ceiling
               Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
             ),
           ]
@@ -720,18 +718,10 @@ function getDraggableFeatureInfo(
   return
 }
 
-function drawTooltip(
+function getTooltipLines(
   display: LinearApolloSixFrameDisplayMouseEvents,
-  context: CanvasRenderingContext2D,
-): void {
-  const {
-    hoveredFeature,
-    apolloRowHeight,
-    filteredTranscripts,
-    session,
-    showFeatureLabels,
-    theme,
-  } = display
+): string[] | undefined {
+  const { hoveredFeature, filteredTranscripts, session } = display
   if (!hoveredFeature) {
     return
   }
@@ -744,13 +734,11 @@ function drawTooltip(
   if (!isTranscript) {
     return
   }
-  const { attributes, strand, type } = feature
+  const { attributes, type } = feature
   const featureID: string | undefined = attributes.get('gff_id')?.toString()
   if (featureID && filteredTranscripts.includes(featureID)) {
     return
   }
-  const rowHeight = apolloRowHeight
-  let location = 'Loc: '
   let cds: TranscriptPartCoding | undefined = undefined
   for (const loc of feature.cdsLocations) {
     for (const cdsLoc of loc) {
@@ -763,58 +751,13 @@ function drawTooltip(
   if (!cds) {
     return
   }
-  const { max, min, phase } = cds
-  location += `${min + 1}–${max}`
-
-  const block = getBlocksForFeature(display, feature).find(
-    (b) => bp >= b.start && bp <= b.end,
-  )
-  if (!block) {
-    return
-  }
-  const cdsPx = getFeaturePx(display, cds, block)
-  const frame = getFrame(min, max, strand ?? 1, phase)
-  const row = getCDSRow(frame, showFeatureLabels)
-  const cdsTop = row * rowHeight
-
-  const featureType = `Type: ${cds.type}`
+  const lines = [`Type: ${cds.type}`]
   const featureName = attributes.get('gff_name')?.find((name) => name !== '')
-  const textWidth = [
-    context.measureText(featureType).width,
-    context.measureText(location).width,
-  ]
   if (featureName) {
-    textWidth.push(
-      context.measureText(`Parent Type: ${type}`).width,
-      context.measureText(`Parent Name: ${featureName}`).width,
-    )
+    lines.push(`Parent Type: ${type}`, `Parent Name: ${featureName}`)
   }
-  const maxWidth = Math.round(Math.max(...textWidth))
-
-  const startPx = cdsPx.startPx + cdsPx.widthPx + 5
-  context.fillStyle = alpha(theme.palette.text.primary, 0.7)
-  context.fillRect(
-    startPx,
-    cdsTop,
-    maxWidth + 4,
-    textWidth.length === 4 ? 55 : 35,
-  )
-  context.beginPath()
-  context.moveTo(startPx, cdsTop)
-  context.lineTo(startPx - 5, cdsTop + 5)
-  context.lineTo(startPx, cdsTop + 10)
-  context.fill()
-  context.fillStyle = theme.palette.background.default
-  let textTop = cdsTop + 12
-  context.fillText(featureType, startPx + 2, textTop)
-  if (featureName) {
-    textTop = textTop + 12
-    context.fillText(`Parent Type: ${type}`, startPx + 2, textTop)
-    textTop = textTop + 12
-    context.fillText(`Parent Name: ${featureName}`, startPx + 2, textTop)
-  }
-  textTop = textTop + 12
-  context.fillText(location, startPx + 2, textTop)
+  lines.push(`Loc: ${cds.min + 1}..${cds.max}`)
+  return lines
 }
 
 function getContextMenuItems(
@@ -985,7 +928,7 @@ export const geneGlyph: Glyph = {
   draw,
   drawDragPreview,
   drawOverlay,
-  drawTooltip,
+  getTooltipLines,
   getContextMenuItems,
   getContextMenuItemsForFeature,
   onMouseDown,

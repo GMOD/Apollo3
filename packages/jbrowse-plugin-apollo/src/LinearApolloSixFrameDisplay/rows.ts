@@ -12,6 +12,9 @@
 //   6    frame -2
 //   7    frame -3
 
+/** Number of rows, not counting the empty rows left for labels */
+export const rowCount = 8
+
 export type RowContents =
   | { type: 'gene'; strand: 1 | -1 }
   | { type: 'cds'; frame: number }
@@ -53,7 +56,7 @@ export function getRowContents(
   if (baseRow === 4) {
     return { type: 'gene', strand: -1 }
   }
-  if (baseRow < 8) {
+  if (baseRow < rowCount) {
     return { type: 'cds', frame: 4 - baseRow }
   }
   return
