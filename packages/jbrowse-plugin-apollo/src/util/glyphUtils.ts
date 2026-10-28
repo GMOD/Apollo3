@@ -244,6 +244,31 @@ export function getLeftPx(
   return blockLeftPx + featureLeftPxDistanceFromBlockLeftPx
 }
 
+/**
+ * Round a horizontal span to whole pixels. Both edges are rounded, rather than
+ * the left edge and width separately, so spans that touch still touch.
+ */
+export function roundPxSpan(leftPx: number, widthPx: number) {
+  const startPx = Math.round(leftPx)
+  return { startPx, widthPx: Math.round(leftPx + widthPx) - startPx }
+}
+
+/**
+ * Whole-pixel left edge and width of a feature in a block. The width is at
+ * least 1px so small features stay visible.
+ */
+export function getFeaturePx(
+  display: { lgv: { bpPerPx: number; offsetPx: number } },
+  feature: { max: number; min: number },
+  block: ContentBlock,
+) {
+  const { startPx, widthPx } = roundPxSpan(
+    getLeftPx(display, feature, block),
+    (feature.max - feature.min) / display.lgv.bpPerPx,
+  )
+  return { startPx, widthPx: Math.max(widthPx, 1) }
+}
+
 export function getMinAndMaxPx(
   feature: AnnotationFeature | TranscriptPartCoding,
   refName: string,

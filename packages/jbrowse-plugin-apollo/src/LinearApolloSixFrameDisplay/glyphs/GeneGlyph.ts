@@ -25,7 +25,7 @@ import {
   type MousePositionWithFeature,
   getAdjacentExons,
   getContextMenuItemsForFeature,
-  getLeftPx,
+  getFeaturePx,
   getMinAndMaxPx,
   getOverlappingEdge,
   getRelatedFeatures,
@@ -36,6 +36,7 @@ import {
   // isTranscriptFeature,
   isSelectedFeature,
   navToFeatureCenter,
+  roundPxSpan,
   selectFeatureAndOpenWidget,
 } from '../../util'
 import { getCDSRow, getStrandRow } from '../rows'
@@ -125,7 +126,7 @@ function drawTextLabels(
     ctx.fillStyle = label.color
     const labelRowX = label.x + 1
     const labelRowY = label.y + label.h
-    const textWidth = measureText(label.text, 10)
+    const textWidth = Math.round(measureText(label.text, 10))
     if (label.isSelected) {
       ctx.font = 'bold '.concat(font)
     }
@@ -145,7 +146,6 @@ function draw(
 ): void {
   const {
     apolloRowHeight,
-    lgv,
     session,
     theme,
     highestRow,
@@ -153,7 +153,6 @@ function draw(
     selectedFeature,
     showFeatureLabels,
   } = stateModel
-  const { bpPerPx } = lgv
   const { reversed } = block
   const rowHeight = apolloRowHeight
   const exonHeight = rowHeight
@@ -173,8 +172,8 @@ function draw(
   const labelArray: Label[] = []
 
   // Draw background for gene
-  const topLevelFeatureStartPx = getLeftPx(stateModel, topLevelFeature, block)
-  const topLevelFeatureWidthPx = topLevelFeature.length / bpPerPx
+  const { startPx: topLevelFeatureStartPx, widthPx: topLevelFeatureWidthPx } =
+    getFeaturePx(stateModel, topLevelFeature, block)
   const topLevelRow = getStrandRow(strand, showFeatureLabels)
   const topLevelFeatureTop = topLevelRow * rowHeight
   ctx.fillStyle = theme.palette.text.primary
@@ -266,8 +265,7 @@ function draw(
       if (!featureTypeOntology.isTypeOf(exon.type, 'exon')) {
         continue
       }
-      const widthPx = exon.length / bpPerPx
-      const startPx = getLeftPx(stateModel, exon, block)
+      const { startPx, widthPx } = getFeaturePx(stateModel, exon, block)
 
       const exonTop =
         topLevelFeatureTop + (topLevelFeatureHeight - exonHeight) / 2
@@ -325,8 +323,9 @@ function draw(
             featureTypeOntology.isTypeOf(selectedFeature.type, 'CDS')) ||
           !deepSetHas(renderedCDS, cds)
         ) {
-          const cdsWidthPx = (cds.max - cds.min) / bpPerPx
-          cdsStartPx = getLeftPx(stateModel, cds, block)
+          const cdsPx = getFeaturePx(stateModel, cds, block)
+          const cdsWidthPx = cdsPx.widthPx
+          cdsStartPx = cdsPx.startPx
           ctx.fillStyle = theme.palette.text.primary
           const frame = getFrame(cds.min, cds.max, child.strand ?? 1, cds.phase)
           const row = getCDSRow(frame, showFeatureLabels)
@@ -337,7 +336,7 @@ function draw(
           if (counter > 1) {
             // Mid-point for intron line "hat"
             const midPoint: [number, number] = [
-              (cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx,
+              Math.round((cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx),
               Math.max(
                 frame < 0 ? rowHeight * featureLabelSpacer * highestRow + 1 : 1, // Avoid render ceiling
                 Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
@@ -459,10 +458,11 @@ function drawDragPreview(
   if (!featureEdgePxInfo) {
     return
   }
-  const featureEdgePx = featureEdgePxInfo.offsetPx - offsetPx
-  const rectX = Math.min(current.x, featureEdgePx)
+  const featureEdgePx = Math.round(featureEdgePxInfo.offsetPx - offsetPx)
+  const currentPx = Math.round(current.x)
+  const rectX = Math.min(currentPx, featureEdgePx)
   const rectY = row * apolloRowHeight
-  const rectWidth = Math.abs(current.x - featureEdgePx)
+  const rectWidth = Math.abs(currentPx - featureEdgePx)
   const rectHeight = apolloRowHeight * rowCount
   overlayCtx.strokeStyle = theme.palette.info.main
   overlayCtx.setLineDash([6])
@@ -502,30 +502,34 @@ function drawOverlay(
   if (featureID && filteredTranscripts.includes(featureID)) {
     return
   }
-  const { bpPerPx, offsetPx } = lgv
+  const { offsetPx } = lgv
   const rowHeight = apolloRowHeight
   const cdsHeight = rowHeight
   const featureLabelSpacer = showFeatureLabels ? 2 : 1
   const { cdsLocations, strand } = feature
   for (const block of getBlocksForFeature(stateModel, feature)) {
+    const clip = roundPxSpan(block.offsetPx - offsetPx, block.widthPx)
     ctx.save()
     ctx.beginPath()
-    ctx.rect(block.offsetPx - offsetPx, 0, block.widthPx, ctx.canvas.height)
+    ctx.rect(clip.startPx, 0, clip.widthPx, ctx.canvas.height)
     ctx.clip()
     for (const cdsRow of cdsLocations) {
       let prevCDSTop = 0
       let prevCDSEndPx = 0
       let counter = 1
       for (const cds of cdsRow.toSorted((a, b) => a.max - b.max)) {
-        const cdsWidthPx = (cds.max - cds.min) / bpPerPx
-        const cdsStartPx = getLeftPx(stateModel, cds, block)
+        const { startPx: cdsStartPx, widthPx: cdsWidthPx } = getFeaturePx(
+          stateModel,
+          cds,
+          block,
+        )
         const frame = getFrame(cds.min, cds.max, strand ?? 1, cds.phase)
         const row = getCDSRow(frame, showFeatureLabels)
         const cdsTop = row * rowHeight
         if (counter > 1) {
           // Mid-point for intron line "hat"
           const midPoint: [number, number] = [
-            (cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx,
+            Math.round((cdsStartPx - prevCDSEndPx) / 2 + prevCDSEndPx),
             Math.max(
               frame < 0 ? rowHeight * featureLabelSpacer * highestRow + 1 : 1, // Avoid render ceiling
               Math.min(prevCDSTop, cdsTop) - rowHeight / 2,
@@ -724,7 +728,6 @@ function drawTooltip(
     hoveredFeature,
     apolloRowHeight,
     filteredTranscripts,
-    lgv,
     session,
     showFeatureLabels,
     theme,
@@ -746,7 +749,6 @@ function drawTooltip(
   if (featureID && filteredTranscripts.includes(featureID)) {
     return
   }
-  const { bpPerPx } = lgv
   const rowHeight = apolloRowHeight
   let location = 'Loc: '
   let cds: TranscriptPartCoding | undefined = undefined
@@ -770,11 +772,10 @@ function drawTooltip(
   if (!block) {
     return
   }
-  let startPx = getLeftPx(display, cds, block)
+  const cdsPx = getFeaturePx(display, cds, block)
   const frame = getFrame(min, max, strand ?? 1, phase)
   const row = getCDSRow(frame, showFeatureLabels)
   const cdsTop = row * rowHeight
-  const cdsWidthPx = (max - min) / bpPerPx
 
   const featureType = `Type: ${cds.type}`
   const featureName = attributes.get('gff_name')?.find((name) => name !== '')
@@ -788,9 +789,9 @@ function drawTooltip(
       context.measureText(`Parent Name: ${featureName}`).width,
     )
   }
-  const maxWidth = Math.max(...textWidth)
+  const maxWidth = Math.round(Math.max(...textWidth))
 
-  startPx = startPx + cdsWidthPx + 5
+  const startPx = cdsPx.startPx + cdsPx.widthPx + 5
   context.fillStyle = alpha(theme.palette.text.primary, 0.7)
   context.fillRect(
     startPx,

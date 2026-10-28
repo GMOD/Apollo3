@@ -3,7 +3,7 @@ import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 import type {} from '../../util'
 import { alpha } from '@mui/material'
 
-import { getLeftPx } from '../../util/glyphUtils'
+import { getFeaturePx } from '../../util/glyphUtils'
 import type { LinearApolloDisplay } from '../stateModel'
 import type { MousePosition } from '../stateModel/mouseEvents'
 
@@ -17,11 +17,13 @@ export function getFeatureBox(
   row: number,
   block: ContentBlock,
 ): [number, number, number, number] {
-  const { apolloRowHeight, lgv } = display
-  const { bpPerPx } = lgv
-  const left = Math.round(getLeftPx(display, feature, block))
+  const { apolloRowHeight } = display
+  const { startPx: left, widthPx: width } = getFeaturePx(
+    display,
+    feature,
+    block,
+  )
   const top = row * apolloRowHeight
-  const width = Math.round((feature.max - feature.min) / bpPerPx)
   const height = apolloRowHeight
   return [top, left, width, height]
 }

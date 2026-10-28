@@ -24,6 +24,10 @@ jest.unstable_mockModule('../../util/glyphUtils', () => ({
   isCDSFeature: () => false,
   isTranscriptFeature: () => false,
   looksLikeGene: () => true,
+  roundPxSpan: (leftPx: number, widthPx: number) => ({
+    startPx: Math.round(leftPx),
+    widthPx: Math.round(leftPx + widthPx) - Math.round(leftPx),
+  }),
 }))
 jest.unstable_mockModule('../glyphs/GeneGlyph', () => ({
   geneGlyph: { draw },

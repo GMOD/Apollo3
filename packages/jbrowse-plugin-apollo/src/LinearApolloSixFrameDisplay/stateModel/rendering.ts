@@ -22,6 +22,7 @@ import {
   isCDSFeature,
   isTranscriptFeature,
   looksLikeGene,
+  roundPxSpan,
 } from '../../util/glyphUtils'
 import { geneGlyph } from '../glyphs/GeneGlyph'
 import { getCDSRow, getStrandRow } from '../rows'
@@ -47,7 +48,8 @@ function drawCodon(
     const frame = getFrame(bp, bp + 3, strand, 0)
     const top = getCDSRow(frame, showFeatureLabels) * rowHeight
     const left = Math.round(leftPx + index / bpPerPx)
-    const width = Math.round(3 / bpPerPx) === 0 ? 1 : Math.round(3 / bpPerPx)
+    const right = Math.round(leftPx + (index + 3) / bpPerPx)
+    const width = Math.max(right - left, 1)
     const codonCode = strand === 1 ? codon : revcom(codon)
     const aminoAcidCode =
       defaultCodonTable[codonCode as keyof typeof defaultCodonTable]
@@ -289,9 +291,13 @@ export function renderingModelFactory(
                     if (!locationStartPxInfo) {
                       continue
                     }
-                    const locationStartPx =
-                      locationStartPxInfo.offsetPx - self.lgv.offsetPx
-                    const locationWidthPx = (end - start) / self.lgv.bpPerPx
+                    const {
+                      startPx: locationStartPx,
+                      widthPx: locationWidthPx,
+                    } = roundPxSpan(
+                      locationStartPxInfo.offsetPx - self.lgv.offsetPx,
+                      (end - start) / self.lgv.bpPerPx,
+                    )
                     ctx.fillStyle = 'rgba(0,255,0,.2)'
                     ctx.fillRect(locationStartPx, 1, locationWidthPx, 100)
                     ctx.fillStyle = 'black'
@@ -340,9 +346,10 @@ export function renderingModelFactory(
 
               for (const block of dynamicBlocks.contentBlocks) {
                 const blockLeftPx = block.offsetPx - offsetPx
+                const clip = roundPxSpan(blockLeftPx, block.widthPx)
                 ctx.save()
                 ctx.beginPath()
-                ctx.rect(blockLeftPx, 0, block.widthPx, canvas.height)
+                ctx.rect(clip.startPx, 0, clip.widthPx, canvas.height)
                 ctx.clip()
                 for (const gene of self.getGenesInRegion(block)) {
                   self.getGlyph(gene).draw(self, ctx, gene, block)
@@ -361,7 +368,7 @@ export function renderingModelFactory(
                     .toUpperCase()
                   if (seq) {
                     const baseOffsetPx = (block.start - roundedStart) / bpPerPx
-                    const seqLeftPx = Math.round(blockLeftPx - baseOffsetPx)
+                    const seqLeftPx = blockLeftPx - baseOffsetPx
                     for (let i = 0; i < seq.length; i++) {
                       const bp = roundedStart + i
                       const codon = seq.slice(i, i + 3)
