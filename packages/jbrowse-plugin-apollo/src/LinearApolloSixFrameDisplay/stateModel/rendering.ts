@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
+import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import type { AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
 import {
@@ -7,14 +8,26 @@ import {
   getFrame,
   revcom,
 } from '@jbrowse/core/util'
-import { type Instance, addDisposer, types } from '@jbrowse/mobx-state-tree'
+import {
+  type Instance,
+  addDisposer,
+  isAlive,
+  types,
+} from '@jbrowse/mobx-state-tree'
 import { type Theme, createTheme } from '@mui/material'
-import { autorun } from 'mobx'
+import { autorun, observable } from 'mobx'
 
 import { codonColorCode } from '../../util/displayUtils'
-import { looksLikeGene } from '../../util/glyphUtils'
+import {
+  isCDSFeature,
+  isTranscriptFeature,
+  looksLikeGene,
+  roundPxSpan,
+} from '../../util/glyphUtils'
+import { geneGlyph } from '../glyphs/GeneGlyph'
+import { getCDSRow, getStrandRow, rowCount } from '../rows'
 
-import { layoutsModelFactory } from './layouts'
+import { baseModelFactory } from './base'
 
 function drawCodon(
   ctx: CanvasRenderingContext2D,
@@ -30,18 +43,13 @@ function drawCodon(
   showStartCodons: boolean,
   showStopCodons: boolean,
 ) {
-  const frameOffsets = (
-    showFeatureLabels ? [0, 4, 2, 0, 14, 12, 10] : [0, 2, 1, 0, 7, 6, 5]
-  ).map((b) => b * rowHeight)
   const strands = [-1, 1] as const
   for (const strand of strands) {
     const frame = getFrame(bp, bp + 3, strand, 0)
-    const top = frameOffsets.at(frame)
-    if (top === undefined) {
-      continue
-    }
+    const top = getCDSRow(frame, showFeatureLabels) * rowHeight
     const left = Math.round(leftPx + index / bpPerPx)
-    const width = Math.round(3 / bpPerPx) === 0 ? 1 : Math.round(3 / bpPerPx)
+    const right = Math.round(leftPx + (index + 3) / bpPerPx)
+    const width = Math.max(right - left, 1)
     const codonCode = strand === 1 ? codon : revcom(codon)
     const aminoAcidCode =
       defaultCodonTable[codonCode as keyof typeof defaultCodonTable]
@@ -61,19 +69,18 @@ export function renderingModelFactory(
   pluginManager: PluginManager,
   configSchema: AnyConfigurationSchemaType,
 ) {
-  const LinearApolloSixFrameDisplayLayouts = layoutsModelFactory(
+  const BaseLinearApolloSixFrameDisplay = baseModelFactory(
     pluginManager,
     configSchema,
   )
 
-  return LinearApolloSixFrameDisplayLayouts.named(
+  return BaseLinearApolloSixFrameDisplay.named(
     'LinearApolloSixFrameDisplayRendering',
   )
     .props({
       apolloRowHeight: 20,
       detailsMinHeight: 200,
       detailsHeight: 200,
-      lastRowTooltipBufferHeight: 120,
       isShown: true,
       filteredTranscripts: types.array(types.string),
     })
@@ -82,17 +89,103 @@ export function renderingModelFactory(
       overlayCanvas: null as HTMLCanvasElement | null,
       collaboratorCanvas: null as HTMLCanvasElement | null,
       theme: createTheme(),
+      seenFeatures: observable.map<string, AnnotationFeature>(),
+    }))
+    .views((self) => ({
+      getGlyph(_feature: AnnotationFeature) {
+        return geneGlyph
+      },
+      /** Top-level gene features that overlap the given region */
+      getGenesInRegion(region: {
+        assemblyName: string
+        refName: string
+        start: number
+        end: number
+      }) {
+        const assembly = self.session.apolloDataStore.assemblies.get(
+          region.assemblyName,
+        )
+        const features = assembly?.getByRefName(region.refName)?.features
+        const genes: AnnotationFeature[] = []
+        if (!features) {
+          return genes
+        }
+        for (const [, feature] of features) {
+          if (
+            doesIntersect2(
+              region.start,
+              region.end,
+              feature.min,
+              feature.max,
+            ) &&
+            looksLikeGene(feature, self.session)
+          ) {
+            genes.push(feature)
+          }
+        }
+        return genes
+      },
+      /**
+       * 0-based row the feature is drawn in. A transcript is drawn in a row for
+       * each of its CDS frames, so if `bp` is given, the row of the CDS
+       * containing it is used, otherwise the row of the first CDS.
+       */
+      getRowForFeature(feature: AnnotationFeature, bp?: number) {
+        const { session, showFeatureLabels } = self
+        if (isCDSFeature(feature, session)) {
+          const transcript = feature.parent
+          if (!transcript) {
+            return
+          }
+          for (const cds of transcript.cdsLocations.flat()) {
+            if (doesIntersect2(cds.min, cds.max, feature.min, feature.max)) {
+              const frame = getFrame(
+                cds.min,
+                cds.max,
+                transcript.strand ?? 1,
+                cds.phase,
+              )
+              return getCDSRow(frame, showFeatureLabels)
+            }
+          }
+          return
+        }
+        if (isTranscriptFeature(feature, session)) {
+          const cdss = feature.cdsLocations.flat()
+          const cds =
+            bp === undefined
+              ? cdss.at(0)
+              : cdss.find((c) => bp >= c.min && bp <= c.max)
+          if (cds) {
+            const frame = getFrame(
+              cds.min,
+              cds.max,
+              feature.strand ?? 1,
+              cds.phase,
+            )
+            return getCDSRow(frame, showFeatureLabels)
+          }
+        }
+        return getStrandRow(feature.strand, showFeatureLabels)
+      },
+      /** 0-based row of the first reverse-strand frame (frame -1) */
+      get firstReverseFrameRow() {
+        return getCDSRow(-1, self.showFeatureLabels)
+      },
     }))
     .views((self) => ({
       get featuresHeight() {
         const featureLabelSpacer = self.showFeatureLabels ? 2 : 1
-        return (
-          featureLabelSpacer * ((self.highestRow + 1) * self.apolloRowHeight) +
-          self.lastRowTooltipBufferHeight
-        )
+        return featureLabelSpacer * rowCount * self.apolloRowHeight
       },
     }))
     .actions((self) => ({
+      addSeenFeature(feature: AnnotationFeature) {
+        self.seenFeatures.set(feature._id, feature)
+      },
+      deleteSeenFeature(featureId: string) {
+        self.seenFeatures.delete(featureId)
+      },
       toggleShown() {
         self.isShown = !self.isShown
       },
@@ -119,6 +212,45 @@ export function renderingModelFactory(
     }))
     .actions((self) => ({
       afterAttach() {
+        addDisposer(
+          self,
+          autorun(
+            () => {
+              if (!self.lgv.initialized || self.regionCannotBeRendered()) {
+                return
+              }
+              for (const [id, feature] of self.seenFeatures.entries()) {
+                if (!isAlive(feature)) {
+                  self.deleteSeenFeature(id)
+                }
+              }
+              for (const region of self.regions) {
+                const assembly = self.session.apolloDataStore.assemblies.get(
+                  region.assemblyName,
+                )
+                const ref = assembly?.getByRefName(region.refName)
+                const features = ref?.features
+                if (!features) {
+                  continue
+                }
+                for (const [, feature] of features) {
+                  if (
+                    doesIntersect2(
+                      region.start,
+                      region.end,
+                      feature.min,
+                      feature.max,
+                    ) &&
+                    !self.seenFeatures.has(feature._id)
+                  ) {
+                    self.addSeenFeature(feature)
+                  }
+                }
+              }
+            },
+            { name: 'LinearApolloSixFrameDisplaySetSeenFeatures', delay: 1000 },
+          ),
+        )
         addDisposer(
           self,
           autorun(
@@ -156,9 +288,13 @@ export function renderingModelFactory(
                     if (!locationStartPxInfo) {
                       continue
                     }
-                    const locationStartPx =
-                      locationStartPxInfo.offsetPx - self.lgv.offsetPx
-                    const locationWidthPx = (end - start) / self.lgv.bpPerPx
+                    const {
+                      startPx: locationStartPx,
+                      widthPx: locationWidthPx,
+                    } = roundPxSpan(
+                      locationStartPxInfo.offsetPx - self.lgv.offsetPx,
+                      (end - start) / self.lgv.bpPerPx,
+                    )
                     ctx.fillStyle = 'rgba(0,255,0,.2)'
                     ctx.fillRect(locationStartPx, 1, locationWidthPx, 100)
                     ctx.fillStyle = 'black'
@@ -183,8 +319,6 @@ export function renderingModelFactory(
               const {
                 apolloRowHeight,
                 canvas,
-                featureLayouts,
-                featuresHeight,
                 lgv,
                 session,
                 theme,
@@ -192,80 +326,67 @@ export function renderingModelFactory(
                 showStartCodons,
                 showStopCodons,
               } = self
-              if (!lgv.initialized || self.regionCannotBeRendered()) {
+              if (
+                !lgv.initialized ||
+                self.regionCannotBeRendered() ||
+                !canvas
+              ) {
                 return
               }
-              const { bpPerPx, offsetPx, displayedRegions, dynamicBlocks } = lgv
+              const { bpPerPx, offsetPx, dynamicBlocks } = lgv
 
-              const ctx = canvas?.getContext('2d')
+              const ctx = canvas.getContext('2d')
               if (!ctx) {
                 return
               }
-              ctx.clearRect(0, 0, dynamicBlocks.totalWidthPx, featuresHeight)
+              ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-              for (const [idx, featureLayout] of featureLayouts.entries()) {
-                const displayedRegion = displayedRegions[idx]
-                for (const [row, featureLayoutRow] of featureLayout.entries()) {
-                  for (const { feature } of featureLayoutRow) {
-                    if (!looksLikeGene(feature, self.session)) {
-                      continue
-                    }
-                    if (
-                      !doesIntersect2(
-                        displayedRegion.start,
-                        displayedRegion.end,
-                        feature.min,
-                        feature.max,
-                      )
-                    ) {
-                      continue
-                    }
-                    const { topLevelFeature } = feature
-                    const glyph = self.getGlyph(topLevelFeature)
-                    if (glyph !== undefined) {
-                      glyph.draw(ctx, topLevelFeature, row, self, idx)
-                    }
-                  }
+              for (const block of dynamicBlocks.contentBlocks) {
+                const blockLeftPx = block.offsetPx - offsetPx
+                const clip = roundPxSpan(blockLeftPx, block.widthPx)
+                ctx.save()
+                ctx.beginPath()
+                ctx.rect(clip.startPx, 0, clip.widthPx, canvas.height)
+                ctx.clip()
+                for (const gene of self.getGenesInRegion(block)) {
+                  self.getGlyph(gene).draw(self, ctx, gene, block)
                 }
-              }
 
-              if (showStartCodons || showStopCodons) {
-                const { apolloDataStore } = session
-                for (const block of dynamicBlocks.contentBlocks) {
+                if (showStartCodons || showStopCodons) {
+                  const { apolloDataStore } = session
                   const assembly = apolloDataStore.assemblies.get(
                     block.assemblyName,
                   )
                   const ref = assembly?.getByRefName(block.refName)
                   const roundedStart = Math.floor(block.start)
                   const roundedEnd = Math.ceil(block.end)
-                  let seq = ref?.getSequence(roundedStart, roundedEnd)
-                  if (!seq) {
-                    break
-                  }
-                  seq = seq.toUpperCase()
-                  const baseOffsetPx = (block.start - roundedStart) / bpPerPx
-                  const seqLeftPx = Math.round(
-                    block.offsetPx - offsetPx - baseOffsetPx,
-                  )
-                  for (let i = 0; i < seq.length; i++) {
-                    const bp = roundedStart + i
-                    const codon = seq.slice(i, i + 3)
-                    drawCodon(
-                      ctx,
-                      codon,
-                      seqLeftPx,
-                      i,
-                      theme,
-                      true,
-                      bpPerPx,
-                      bp,
-                      apolloRowHeight,
-                      showFeatureLabels,
-                      showStartCodons,
-                      showStopCodons,
-                    )
+                  const seq = ref
+                    ?.getSequence(roundedStart, roundedEnd)
+                    .toUpperCase()
+                  if (seq) {
+                    const baseOffsetPx = (block.start - roundedStart) / bpPerPx
+                    const seqLeftPx = blockLeftPx - baseOffsetPx
+                    for (let i = 0; i < seq.length; i++) {
+                      const bp = roundedStart + i
+                      const codon = seq.slice(i, i + 3)
+                      drawCodon(
+                        ctx,
+                        codon,
+                        seqLeftPx,
+                        i,
+                        theme,
+                        true,
+                        bpPerPx,
+                        bp,
+                        apolloRowHeight,
+                        showFeatureLabels,
+                        showStartCodons,
+                        showStopCodons,
+                      )
+                    }
                   }
                 }
+                ctx.restore()
               }
             },
             { name: 'LinearApolloSixFrameDisplayRenderFeatures' },

@@ -8,6 +8,7 @@ import {
   type AbstractSessionModel,
   isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
+import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import SkipNextRoundedIcon from '@mui/icons-material/SkipNextRounded'
 import SkipPreviousRoundedIcon from '@mui/icons-material/SkipPreviousRounded'
@@ -225,6 +226,47 @@ export function getStreamIcon(
         : SkipPreviousRoundedIcon
   }
   return icon
+}
+
+export function getLeftPx(
+  display: { lgv: { bpPerPx: number; offsetPx: number } },
+  feature: { max: number; min: number },
+  block: ContentBlock,
+) {
+  const { lgv } = display
+  const { bpPerPx, offsetPx } = lgv
+  const blockLeftPx = block.offsetPx - offsetPx
+  const featureLeftBpDistanceFromBlockLeftBp = block.reversed
+    ? block.end - feature.max
+    : feature.min - block.start
+  const featureLeftPxDistanceFromBlockLeftPx =
+    featureLeftBpDistanceFromBlockLeftBp / bpPerPx
+  return blockLeftPx + featureLeftPxDistanceFromBlockLeftPx
+}
+
+/**
+ * Round a horizontal span to whole pixels. Both edges are rounded, rather than
+ * the left edge and width separately, so spans that touch still touch.
+ */
+export function roundPxSpan(leftPx: number, widthPx: number) {
+  const startPx = Math.round(leftPx)
+  return { startPx, widthPx: Math.round(leftPx + widthPx) - startPx }
+}
+
+/**
+ * Whole-pixel left edge and width of a feature in a block. The width is at
+ * least 1px so small features stay visible.
+ */
+export function getFeaturePx(
+  display: { lgv: { bpPerPx: number; offsetPx: number } },
+  feature: { max: number; min: number },
+  block: ContentBlock,
+) {
+  const { startPx, widthPx } = roundPxSpan(
+    getLeftPx(display, feature, block),
+    (feature.max - feature.min) / display.lgv.bpPerPx,
+  )
+  return { startPx, widthPx: Math.max(widthPx, 1) }
 }
 
 export function getMinAndMaxPx(

@@ -12,6 +12,7 @@ import {
   MergeTranscripts,
 } from '../../components'
 import {
+  getFeaturePx,
   isCDSFeature,
   isExonFeature,
   isSelectedFeature,
@@ -20,7 +21,7 @@ import type { LinearApolloDisplay } from '../stateModel'
 
 import { boxGlyph } from './BoxGlyph'
 import type { Glyph, LayoutRow, OverlayType } from './Glyph'
-import { drawOverlayBox, getFeatureBox, getLeftPx } from './util'
+import { drawOverlayBox, getFeatureBox } from './util'
 
 function* range(start: number, stop: number, step = 1): Generator<number> {
   if (start === stop) {
@@ -44,13 +45,18 @@ function drawTranscriptLine(
   row: number,
   block: ContentBlock,
 ) {
-  const { apolloRowHeight, lgv, theme } = display
-  const { bpPerPx } = lgv
+  const { apolloRowHeight, theme } = display
   const { reversed } = block
-  const left = Math.round(getLeftPx(display, transcript, block))
-  const width = Math.round(transcript.length / bpPerPx)
-  const top = Math.round(apolloRowHeight / 2) + row * apolloRowHeight
+  const { startPx: left, widthPx: width } = getFeaturePx(
+    display,
+    transcript,
+    block,
+  )
+  // Offset by half a pixel so the 1px line covers one pixel row instead of
+  // being split across two
+  const top = Math.round(apolloRowHeight / 2) + row * apolloRowHeight + 0.5
   ctx.strokeStyle = theme.palette.text.primary
+  ctx.lineWidth = 1
   const { strand = 1 } = transcript
   ctx.beginPath()
   // If view is reversed, draw forward as reverse and vice versa
@@ -75,9 +81,12 @@ function drawTranscriptLine(
       ? range(arrowsStart, arrowsEnd, 20)
       : range(arrowsEnd, arrowsStart, 20)
   for (const arrowLocation of arrowRange) {
-    ctx.moveTo(arrowLocation + offset, top + offset)
-    ctx.lineTo(arrowLocation, top)
-    ctx.lineTo(arrowLocation + offset, top - offset)
+    // Also offset arrows by half a pixel horizontally so their diagonals pass
+    // through pixel centers like the line does
+    const arrowX = arrowLocation + 0.5
+    ctx.moveTo(arrowX + offset, top + offset)
+    ctx.lineTo(arrowX, top)
+    ctx.lineTo(arrowX + offset, top - offset)
   }
   ctx.stroke()
 }

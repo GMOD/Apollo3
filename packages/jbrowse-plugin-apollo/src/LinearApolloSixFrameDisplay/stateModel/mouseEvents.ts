@@ -19,6 +19,7 @@ import {
   getPropagatedLocationChanges,
   isMousePositionWithFeature,
 } from '../../util'
+import { getRowContents } from '../rows'
 import type { CanvasMouseEvent } from '../types'
 
 import { renderingModelFactory } from './rendering'
@@ -49,10 +50,10 @@ export function mouseEventsModelIntermediateFactory(
       getMousePosition(event: React.MouseEvent): MousePosition {
         const mousePosition = getMousePosition(event, self.lgv)
         const { bp, regionNumber, y } = mousePosition
-        const row = Math.floor(y / self.apolloRowHeight) + 1
-        const featureLayout = self.featureLayouts[regionNumber]
-        const layoutRow = featureLayout.get(row)
-        if (!layoutRow) {
+        const row = Math.floor(y / self.apolloRowHeight)
+        const rowContents = getRowContents(row, self.showFeatureLabels)
+        const region = self.lgv.displayedRegions.at(regionNumber)
+        if (!rowContents || !region) {
           return mousePosition
         }
         const { featureTypeOntology } =
@@ -60,54 +61,55 @@ export function mouseEventsModelIntermediateFactory(
         if (!featureTypeOntology) {
           throw new Error('featureTypeOntology is undefined')
         }
-        const foundFeature = self.geneTrackRowNums.includes(row)
-          ? layoutRow.find(
-              (f) =>
-                f.feature.type == 'exon' &&
-                bp >= f.feature.min &&
-                bp <= f.feature.max,
-            ) ??
-            layoutRow.find((f) => bp >= f.feature.min && bp <= f.feature.max)
-          : layoutRow.find((f) => {
-              const { feature } = f
-              const featureID = feature.attributes.get('gff_id')?.toString()
-              const isTranscript = featureTypeOntology.isTypeOf(
-                feature.type,
-                'transcript',
-              )
-              if (!isTranscript) {
-                return false
-              }
-              for (const loc of feature.cdsLocations) {
-                for (const cds of loc) {
-                  const frame = getFrame(
+        const genes = self
+          .getGenesInRegion(region)
+          .filter((gene) => bp >= gene.min && bp <= gene.max)
+        const transcripts = genes.flatMap((gene) =>
+          [...(gene.children?.values() ?? [])].filter((child) =>
+            featureTypeOntology.isTypeOf(child.type, 'transcript'),
+          ),
+        )
+        let feature: AnnotationFeature | undefined
+        if (rowContents.type === 'gene') {
+          const { strand } = rowContents
+          feature =
+            transcripts
+              .flatMap((transcript) => [
+                ...(transcript.children?.values() ?? []),
+              ])
+              .find(
+                (exon) =>
+                  featureTypeOntology.isTypeOf(exon.type, 'exon') &&
+                  (exon.strand === 1 ? 1 : -1) === strand &&
+                  bp >= exon.min &&
+                  bp <= exon.max,
+              ) ?? genes.find((gene) => (gene.strand === 1 ? 1 : -1) === strand)
+        } else {
+          const { frame } = rowContents
+          feature = transcripts.find((transcript) => {
+            const featureID = transcript.attributes.get('gff_id')?.toString()
+            if (featureID && self.filteredTranscripts.includes(featureID)) {
+              return false
+            }
+            return transcript.cdsLocations
+              .flat()
+              .some(
+                (cds) =>
+                  bp >= cds.min &&
+                  bp <= cds.max &&
+                  getFrame(
                     cds.min,
                     cds.max,
-                    feature.strand ?? 1,
+                    transcript.strand ?? 1,
                     cds.phase,
-                  )
-                  const frameOffsets = self.showFeatureLabels
-                    ? [0, 5, 3, 1, 15, 13, 11]
-                    : [0, 2, 1, 0, 8, 7, 6]
-                  const rowNum = frameOffsets.at(frame)
-                  if (row === rowNum && bp >= cds.min && bp <= cds.max) {
-                    return (
-                      featureID === undefined ||
-                      !self.filteredTranscripts.includes(featureID)
-                    )
-                  }
-                }
-              }
-              return false
-            })
-        if (!foundFeature) {
+                  ) === frame,
+              )
+          })
+        }
+        if (!feature) {
           return mousePosition
         }
-        const { feature } = foundFeature
-        return {
-          ...mousePosition,
-          feature,
-        }
+        return { ...mousePosition, feature }
       },
     }))
     .actions((self) => ({
@@ -308,9 +310,6 @@ export function mouseEventsModelFactory(
 
               // draw mouseover hovers
               glyph.drawOverlay(self, ctx)
-
-              // draw tooltip on hover
-              glyph.drawTooltip(self, ctx)
 
               // dragging previews
               if (apolloDragging) {

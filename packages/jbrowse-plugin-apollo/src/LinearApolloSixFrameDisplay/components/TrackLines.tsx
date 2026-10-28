@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react'
 import React from 'react'
 
+import { getStrandRow } from '../rows'
 import type { LinearApolloSixFrameDisplay } from '../stateModel'
 
 export const TrackLines = observer(function TrackLines({
@@ -12,7 +13,7 @@ export const TrackLines = observer(function TrackLines({
   hrStyle?: React.CSSProperties
   idx: number
 }) {
-  const { apolloRowHeight, highestRow, showFeatureLabels } = model
+  const { apolloRowHeight, showFeatureLabels } = model
   const featureLabelSpacer = showFeatureLabels ? 2 : 1
 
   return (
@@ -21,8 +22,8 @@ export const TrackLines = observer(function TrackLines({
         position: 'absolute',
         left: 0,
         top:
-          (apolloRowHeight * featureLabelSpacer * (highestRow + 1)) / 2 +
-          idx * featureLabelSpacer * apolloRowHeight,
+          (getStrandRow(1, showFeatureLabels) + idx * featureLabelSpacer) *
+          apolloRowHeight,
         width: '100%',
       }}
     >
