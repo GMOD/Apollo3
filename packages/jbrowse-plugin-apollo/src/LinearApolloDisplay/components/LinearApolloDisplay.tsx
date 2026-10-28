@@ -98,9 +98,9 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             <div>{message}</div>
           </Tooltip>
         </Alert>
-      ) : showHistogram ? (
-        <FeatureDensityHistogram model={model} />
-      ) : (
+      ) : null}
+      {showHistogram ? <FeatureDensityHistogram model={model} /> : null}
+      {message || showHistogram ? null : (
         // Promise.resolve() in these 2 callbacks is to avoid infinite rendering loop
         // https://github.com/mobxjs/mobx/issues/3728#issuecomment-1715400931
         <>
