@@ -94,7 +94,7 @@ describe('FeatureDensityMixin', () => {
     const display = makeDisplay({ maxFeatureCount: 100 })
     expect(display.displayMode).toBe('pending')
     expect(display.densityStatsNeeded).toBe(true)
-    display.fetchDensityStats()
+    display.fetchDensityStats(display.densityKey)
     expect(getFeatureDensity).toHaveBeenCalledTimes(1)
     await respond(50)
     expect(display.displayMode).toBe('features')
@@ -107,7 +107,7 @@ describe('FeatureDensityMixin', () => {
 
   it('shows density when the count is over the limit', async () => {
     const display = makeDisplay({ maxFeatureCount: 100 })
-    display.fetchDensityStats()
+    display.fetchDensityStats(display.densityKey)
     await respond(500)
     expect(display.displayMode).toBe('density')
     expect(display.canLoadFeatures).toBe(false)
@@ -121,23 +121,23 @@ describe('FeatureDensityMixin', () => {
 
   it("doesn't load features using stale stats after zooming out", async () => {
     const display = makeDisplay({ maxFeatureCount: 100 })
-    display.fetchDensityStats()
+    display.fetchDensityStats(display.densityKey)
     await respond(50)
     setView(1000, 0, 100_000)
     // Keeps showing features until the new stats arrive...
     expect(display.displayMode).toBe('features')
     // ...but doesn't load any more
     expect(display.canLoadFeatures).toBe(false)
-    display.fetchDensityStats()
+    display.fetchDensityStats(display.densityKey)
     await respond(5000)
     expect(display.displayMode).toBe('density')
   })
 
   it('ignores responses for views that are no longer current', async () => {
     const display = makeDisplay({ maxFeatureCount: 100 })
-    display.fetchDensityStats()
+    display.fetchDensityStats(display.densityKey)
     setView(1000, 0, 100_000)
-    display.fetchDensityStats()
+    display.fetchDensityStats(display.densityKey)
     // The first request responds after the second was made
     await respond(50)
     expect(display.densityStats).toBeUndefined()
@@ -147,7 +147,7 @@ describe('FeatureDensityMixin', () => {
 
   it('refreshes the density after features are edited', async () => {
     const display = makeDisplay({ maxFeatureCount: 100 })
-    display.fetchDensityStats()
+    display.fetchDensityStats(display.densityKey)
     await respond(500)
     expect(display.featureCountInView).toBe(500)
     runInAction(() => {
@@ -156,10 +156,25 @@ describe('FeatureDensityMixin', () => {
     // Keeps showing the old density until the new one arrives
     expect(display.displayMode).toBe('density')
     expect(display.featureCountInView).toBeUndefined()
-    display.fetchDensityStats()
+    display.fetchDensityStats(display.densityKey)
     expect(getFeatureDensity).toHaveBeenCalledTimes(2)
     await respond(501)
     expect(display.featureCountInView).toBe(501)
+  })
+
+  it('fetches new stats from its autorun when the view changes', async () => {
+    const display = makeDisplay({ maxFeatureCount: 100 })
+    // The autorun is debounced
+    await new Promise((resolve) => setTimeout(resolve, 600))
+    expect(getFeatureDensity).toHaveBeenCalledTimes(1)
+    await respond(500)
+    expect(display.displayMode).toBe('density')
+    // Zooming in while still showing density needs new stats
+    setView(1, 1400, 1600)
+    await new Promise((resolve) => setTimeout(resolve, 600))
+    expect(getFeatureDensity).toHaveBeenCalledTimes(2)
+    await respond(50)
+    expect(display.displayMode).toBe('features')
   })
 
   it('uses the zoom threshold in fixed mode', () => {
@@ -180,7 +195,7 @@ describe('FeatureDensityMixin', () => {
       .spyOn(console, 'error')
       .mockImplementation(jest.fn())
     const display = makeDisplay()
-    display.fetchDensityStats()
+    display.fetchDensityStats(display.densityKey)
     await Promise.resolve()
     await Promise.resolve()
     expect(display.densityError).toBe('Server error')

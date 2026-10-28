@@ -312,8 +312,11 @@ export function FeatureDensityMixin() {
         self.densityError =
           error instanceof Error ? error.message : String(error)
       },
-      fetchDensityStats() {
-        const key = self.densityKey
+      /**
+       * @param key - the current `densityKey`. Passed in so the caller's
+       * autorun tracks it; actions are untracked.
+       */
+      fetchDensityStats(key: string) {
         if (
           key === self.pendingDensityKey ||
           (key === self.densityStats?.key && !self.densityError)
@@ -372,9 +375,7 @@ export function FeatureDensityMixin() {
               ) {
                 return
               }
-              // Read here so panning re-runs this, since the action is untracked
-              void self.densityKey
-              self.fetchDensityStats()
+              self.fetchDensityStats(self.densityKey)
             },
             { name: 'FeatureDensityFetchStats', delay: 500 },
           ),
