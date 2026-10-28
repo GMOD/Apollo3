@@ -10,6 +10,10 @@ import { Alert, CircularProgress, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 
+import {
+  FeatureDensityHistogram,
+  densityHistogramHeight,
+} from '../../components/FeatureDensityHistogram'
 import { type Coord, useStyles } from '../../util/displayUtils'
 import type { LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
 
@@ -47,13 +51,14 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   }, [theme, setTheme])
   const [contextCoord, setContextCoord] = useState<Coord>()
   const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
-  const message =
-    densityMessage ??
-    (displayMode === 'features' ? undefined : 'Zoom in to see annotations')
+  const message = densityMessage
+  const showHistogram = !message && displayMode !== 'features'
   if (!isShown) {
     return null
   }
-  const featuresHeight = getFeaturesHeight(lgv.assemblyNames[0])
+  const featuresHeight = showHistogram
+    ? densityHistogramHeight
+    : getFeaturesHeight(lgv.assemblyNames[0])
   return (
     <div
       className={classes.canvasContainer}
@@ -93,6 +98,8 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             <div>{message}</div>
           </Tooltip>
         </Alert>
+      ) : showHistogram ? (
+        <FeatureDensityHistogram model={model} />
       ) : (
         // Promise.resolve() in these 2 callbacks is to avoid infinite rendering loop
         // https://github.com/mobxjs/mobx/issues/3728#issuecomment-1715400931

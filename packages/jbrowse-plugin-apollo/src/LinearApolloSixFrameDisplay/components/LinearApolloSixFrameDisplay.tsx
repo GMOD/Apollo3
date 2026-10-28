@@ -18,6 +18,10 @@ import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 
 import {
+  FeatureDensityHistogram,
+  densityHistogramHeight,
+} from '../../components/FeatureDensityHistogram'
+import {
   type Coord,
   clusterResultByMessage,
   useStyles,
@@ -69,9 +73,8 @@ export const LinearApolloSixFrameDisplay = observer(
     const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
     const [mouseCoord, setMouseCoord] = useState<Coord>()
 
-    const message =
-      densityMessage ??
-      (displayMode === 'features' ? undefined : 'Zoom in to see annotations')
+    const message = densityMessage
+    const showHistogram = !message && displayMode !== 'features'
     if (!isShown) {
       return null
     }
@@ -82,7 +85,7 @@ export const LinearApolloSixFrameDisplay = observer(
           className={classes.canvasContainer}
           style={{
             width: lgv.dynamicBlocks.totalWidthPx,
-            height: featuresHeight,
+            height: showHistogram ? densityHistogramHeight : featuresHeight,
           }}
           onContextMenu={(event) => {
             event.preventDefault()
@@ -111,6 +114,8 @@ export const LinearApolloSixFrameDisplay = observer(
                 <div>{message}</div>
               </Tooltip>
             </Alert>
+          ) : showHistogram ? (
+            <FeatureDensityHistogram model={model} />
           ) : (
             // Promise.resolve() in these 3 callbacks is to avoid infinite rendering loop
             // https://github.com/mobxjs/mobx/issues/3728#issuecomment-1715400931
