@@ -30,7 +30,8 @@ const useStyles = makeStyles()((theme) => ({
   banner: {
     position: 'absolute',
     top: 0,
-    left: 0,
+    // On the right, since JBrowse's track label overlaps the left
+    right: 0,
     display: 'flex',
     alignItems: 'center',
     gap: theme.spacing(1),
