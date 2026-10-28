@@ -58,11 +58,11 @@ export class FeaturesService {
       number | string | { $lte: number } | { $gte: number }
     > = { status: 0 }
 
-    if (end) {
-      filter.start = { $lte: end }
+    if (end !== undefined) {
+      filter.min = { $lte: end }
     }
-    if (start) {
-      filter.end = { $gte: start }
+    if (start !== undefined) {
+      filter.max = { $gte: start }
     }
 
     if (refSeqId) {
