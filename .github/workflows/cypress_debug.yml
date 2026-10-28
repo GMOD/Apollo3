@@ -36,23 +36,24 @@ jobs:
         background: true
         # Exits non-zero when it's stopped
         continue-on-error: true
-        run:
-          exec yarn --cwd packages/apollo-collaboration-server/test/data/ serve
-          --listen 3131
+        run: exec yarn serve --listen 3131 test/data/
+        working-directory: packages/apollo-collaboration-server
 
       - name: Start plugin file server
         id: plugin-server
         background: true
         # Exits non-zero when it's stopped
         continue-on-error: true
-        run: exec yarn --cwd packages/jbrowse-plugin-apollo start:server
+        run: exec yarn start:server
+        working-directory: packages/jbrowse-plugin-apollo
 
       - name: Start JBrowse file server
         id: jbrowse-server
         background: true
         # Exits non-zero when it's stopped
         continue-on-error: true
-        run: exec yarn --cwd packages/jbrowse-plugin-apollo browse
+        run: exec yarn browse
+        working-directory: packages/jbrowse-plugin-apollo
 
       - name: Start apollo-collaboration-server
         id: apollo-collaboration-server
@@ -61,7 +62,8 @@ jobs:
         continue-on-error: true
         # Same as the `cypress:start` script, but without watch and with more
         # log levels
-        run: exec yarn --cwd packages/apollo-collaboration-server start:no-watch
+        run: exec yarn start:no-watch
+        working-directory: packages/apollo-collaboration-server
         env:
           GUEST_USER_ROLE: admin
           MONGODB_URI: mongodb://localhost:27017/apolloTestDb?directConnection=true
