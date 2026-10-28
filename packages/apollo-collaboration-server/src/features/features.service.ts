@@ -10,6 +10,11 @@ import {
   type RefSeqDocument,
 } from '@apollo-annotation/schemas'
 import {
+  type FeatureDensity,
+  alignBins,
+  coverageFromBoundaries,
+} from '@apollo-annotation/shared'
+import {
   Inject,
   Injectable,
   Logger,
@@ -17,7 +22,7 @@ import {
   forwardRef,
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model } from 'mongoose'
+import { Model, Types } from 'mongoose'
 
 import { ChecksService } from '../checks/checks.service.js'
 import type { FeatureRangeSearchDto } from '../entity/gff3Object.dto.js'
@@ -32,6 +37,10 @@ import {
   DocToJSONArrayStream,
   lazyStream,
 } from './transforms.js'
+
+function binCountPairs(groups: { _id: number; count: number }[]) {
+  return groups.map(({ _id, count }): [number, number] => [_id, count])
+}
 
 @Injectable()
 export class FeaturesService {
@@ -84,6 +93,89 @@ export class FeaturesService {
 
     this.logger.debug(`Number of features is ${count}`)
     return count
+  }
+
+  /**
+   * Count the features overlapping a range, and how many overlap each bin of
+   * the range expanded to multiples of `binSize`
+   */
+  async getFeatureDensity(
+    refSeq: string,
+    start: number,
+    end: number,
+    binSize: number,
+  ): Promise<FeatureDensity> {
+    const aligned = alignBins(start, end, binSize)
+    const alignedEnd = aligned.start + aligned.nBins * binSize
+    // These mirror binRange() in @apollo-annotation/shared
+    const firstBin = {
+      $max: [
+        0,
+        {
+          $floor: {
+            $divide: [{ $subtract: ['$min', aligned.start] }, binSize],
+          },
+        },
+      ],
+    }
+    const featureEnd = { $max: ['$max', { $add: ['$min', 1] }] }
+    const endBin = {
+      $add: [
+        {
+          $min: [
+            aligned.nBins - 1,
+            {
+              $floor: {
+                $divide: [
+                  { $subtract: [featureEnd, aligned.start + 1] },
+                  binSize,
+                ],
+              },
+            },
+          ],
+        },
+        1,
+      ],
+    }
+    // Aggregations aren't cast by mongoose, so cast the ObjectId here
+    const [result] = await this.featureModel.aggregate<{
+      count: { count: number }[]
+      firstBins: { _id: number; count: number }[]
+      endBins: { _id: number; count: number }[]
+    }>([
+      {
+        $match: {
+          refSeq: new Types.ObjectId(refSeq),
+          min: { $lt: alignedEnd },
+          max: { $gt: aligned.start },
+          status: 0,
+        },
+      },
+      { $project: { _id: 0, min: 1, max: 1 } },
+      {
+        $facet: {
+          count: [
+            { $match: { min: { $lt: end }, max: { $gt: start } } },
+            { $count: 'count' },
+          ],
+          firstBins: [{ $group: { _id: firstBin, count: { $sum: 1 } } }],
+          endBins: [{ $group: { _id: endBin, count: { $sum: 1 } } }],
+        },
+      },
+    ])
+    if (!result) {
+      throw new Error('Feature density aggregation returned no result')
+    }
+    return {
+      count: result.count.at(0)?.count ?? 0,
+      start: aligned.start,
+      binSize,
+      bins: coverageFromBoundaries(
+        binCountPairs(result.firstBins),
+        binCountPairs(result.endBins),
+        aligned.nBins,
+      ),
+    }
   }
 
   async getByIndexedId(getByIndexedIdRequest: GetByIndexedIdRequest) {

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -21,9 +22,12 @@ import { Validations } from '../utils/validation/validatation.decorator.js'
 
 import type {
   FeatureCountRequest,
+  FeatureDensityRequest,
   GetByIndexedIdRequest,
 } from './dto/feature.dto.js'
 import { FeaturesService } from './features.service.js'
+
+const maxDensityBins = 10_000
 
 @Validations(Role.ReadOnly)
 @Controller('features')
@@ -88,6 +92,39 @@ export class FeaturesController {
     const count =
       await this.featuresService.getFeatureCount(featureCountRequest)
     return { count }
+  }
+
+  /**
+   * Summarize the features in a range: how many overlap it, and how many
+   * overlap each bin of the range expanded to multiples of `binSize`
+   */
+  @Get('getFeatureDensity')
+  getFeatureDensity(@Query() request: FeatureDensityRequest) {
+    const start = Number(request.start)
+    const end = Number(request.end)
+    const binSize = Number(request.binSize)
+    if (
+      !request.refSeq ||
+      !Number.isFinite(start) ||
+      !Number.isFinite(end) ||
+      !(binSize >= 1) ||
+      end < start
+    ) {
+      throw new BadRequestException(
+        'refSeq, start, end, and a binSize of at least 1 are required',
+      )
+    }
+    if ((end - start) / binSize > maxDensityBins) {
+      throw new BadRequestException(
+        `Too many bins requested, maximum is ${maxDensityBins}`,
+      )
+    }
+    return this.featuresService.getFeatureDensity(
+      request.refSeq,
+      start,
+      end,
+      binSize,
+    )
   }
 
   @Get('getByIndexedId')

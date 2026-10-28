@@ -5,6 +5,14 @@ export interface FeatureCountRequest {
   end?: number
 }
 
+/** Query parameters arrive as strings */
+export interface FeatureDensityRequest {
+  refSeq: string
+  start: string
+  end: string
+  binSize: string
+}
+
 export interface GetByIndexedIdRequest {
   id: string
   assemblies?: string
