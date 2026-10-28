@@ -3,7 +3,10 @@ import type {
   AnnotationFeatureSnapshot,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
-import type { ValidationResultSet } from '@apollo-annotation/shared'
+import type {
+  FeatureDensity,
+  ValidationResultSet,
+} from '@apollo-annotation/shared'
 import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import type { Region } from '@jbrowse/core/util'
 
@@ -47,6 +50,15 @@ export abstract class BackendDriver {
   abstract getFeatures(
     region: Region,
   ): Promise<[AnnotationFeatureSnapshot[], CheckResultSnapshot[]]>
+
+  /**
+   * Count the features in a region and how many overlap each bin of the region
+   * expanded to multiples of `binSize`, without loading the features
+   */
+  abstract getFeatureDensity(
+    region: Region,
+    binSize: number,
+  ): Promise<FeatureDensity>
 
   abstract getSequence(region: Region): Promise<{ seq: string; refSeq: string }>
 
