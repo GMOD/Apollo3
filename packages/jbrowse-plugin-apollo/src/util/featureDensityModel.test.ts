@@ -28,11 +28,13 @@ const getFeatureDensity = jest.fn(
     }),
 )
 
+const apolloDataStore = observable({ getFeatureDensity, changeCount: 0 })
+
 const actualUtil = await import('@jbrowse/core/util')
 jest.unstable_mockModule('@jbrowse/core/util', () => ({
   ...actualUtil,
   getContainingView: () => lgv,
-  getSession: () => ({ apolloDataStore: { getFeatureDensity } }),
+  getSession: () => ({ apolloDataStore }),
 }))
 const actualConfiguration = await import('@jbrowse/core/configuration')
 jest.unstable_mockModule('@jbrowse/core/configuration', () => ({
@@ -141,6 +143,23 @@ describe('FeatureDensityMixin', () => {
     expect(display.densityStats).toBeUndefined()
     await respond(5000)
     expect(display.displayMode).toBe('density')
+  })
+
+  it('refreshes the density after features are edited', async () => {
+    const display = makeDisplay({ maxFeatureCount: 100 })
+    display.fetchDensityStats()
+    await respond(500)
+    expect(display.featureCountInView).toBe(500)
+    runInAction(() => {
+      apolloDataStore.changeCount++
+    })
+    // Keeps showing the old density until the new one arrives
+    expect(display.displayMode).toBe('density')
+    expect(display.featureCountInView).toBeUndefined()
+    display.fetchDensityStats()
+    expect(getFeatureDensity).toHaveBeenCalledTimes(2)
+    await respond(501)
+    expect(display.featureCountInView).toBe(501)
   })
 
   it('uses the zoom threshold in fixed mode', () => {

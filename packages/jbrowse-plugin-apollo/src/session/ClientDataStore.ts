@@ -168,8 +168,16 @@ export function clientDataStoreFactory(
         self as ClientDataStoreModel,
       ),
       localDriver: new LocalDriver(self as ClientDataStoreModel),
+      /**
+       * Incremented after each change is applied and saved, so that summaries
+       * of the data (like feature density) know to refresh
+       */
+      changeCount: 0,
     }))
     .actions((self) => ({
+      incrementChangeCount() {
+        self.changeCount++
+      },
       afterCreate() {
         addDisposer(
           self,

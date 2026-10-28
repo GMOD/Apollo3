@@ -67,8 +67,9 @@ function getDisplayConf(self: object, slotName: string): unknown {
   return getConf(self as Parameters<typeof getConf>[0], slotName)
 }
 
-function regionsKey(regions: Region[], binSize: number) {
+function regionsKey(regions: Region[], binSize: number, changeCount: number) {
   return JSON.stringify([
+    changeCount,
     binSize,
     regions.map(({ assemblyName, end, refName, start }) => [
       assemblyName,
@@ -154,7 +155,15 @@ export function FeatureDensityMixin() {
     }))
     .views((self) => ({
       get densityKey() {
-        return regionsKey(self.densityRegions, self.densityBinSize)
+        const { apolloDataStore } = getSession(
+          self,
+        ) as unknown as ApolloSessionModel
+        // Including the change count refreshes the density after edits
+        return regionsKey(
+          self.densityRegions,
+          self.densityBinSize,
+          apolloDataStore.changeCount,
+        )
       },
       /**
        * Whether the regions in view are within regions already known to have
