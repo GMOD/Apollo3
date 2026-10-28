@@ -43,6 +43,7 @@ const useStyles = makeStyles()((theme) => ({
     width: '1.6em',
     textAlign: 'center',
     cursor: 'pointer',
+    userSelect: 'none',
   },
   arrowExpanded: {
     transform: 'rotate(90deg)',
@@ -181,6 +182,10 @@ export const Feature = observer(function FeatureRow({
             // eslint-disable-next-line jsx-a11y-x/click-events-have-key-events, jsx-a11y-x/no-static-element-interactions
             <div
               onClick={toggleExpanded}
+              onDoubleClick={(e) => {
+                // don't let toggling quickly navigate to the feature
+                e.stopPropagation()
+              }}
               className={
                 classes.arrow + (expanded ? ` ${classes.arrowExpanded}` : '')
               }
