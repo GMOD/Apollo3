@@ -337,6 +337,10 @@ export function mouseEventsModelFactory(
               if (row === undefined) {
                 return
               }
+              const featureRefName = self.getCanonicalRefName(
+                feature.assemblyId,
+                feature.refSeq,
+              )
 
               for (const block of dynamicBlocks.contentBlocks) {
                 const clip = roundPxSpan(
@@ -349,6 +353,7 @@ export function mouseEventsModelFactory(
                 ctx.clip()
                 if (
                   block.assemblyName === feature.assemblyId &&
+                  block.refName === featureRefName &&
                   doesIntersect2(
                     block.start,
                     block.end,
@@ -376,6 +381,7 @@ export function mouseEventsModelFactory(
                   const dragMin = Math.min(current.bp, start.bp)
                   const dragMax = Math.max(current.bp, start.bp)
                   if (
+                    block.refName === start.refName &&
                     doesIntersect2(block.start, block.end, dragMin, dragMax)
                   ) {
                     const dragGlyph = self.getGlyph(dragFeature)
