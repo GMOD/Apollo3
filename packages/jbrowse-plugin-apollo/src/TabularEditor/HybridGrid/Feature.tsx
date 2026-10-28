@@ -94,7 +94,7 @@ function navigateHere(
   )
 }
 
-export const Feature = observer(function Feature({
+export const Feature = observer(function FeatureRow({
   depth,
   feature,
   isHovered,
