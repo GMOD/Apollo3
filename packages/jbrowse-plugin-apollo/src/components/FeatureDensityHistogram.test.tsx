@@ -17,9 +17,13 @@ function makeStyles() {
 }
 jest.unstable_mockModule('tss-react/mui', () => ({ makeStyles }))
 
-const { FeatureDensityHistogram, getDensityBars, getScaleTicks } = await import(
-  './FeatureDensityHistogram'
-)
+const {
+  FeatureDensityHistogram,
+  getBarSegments,
+  getDensityBars,
+  getScaleTicks,
+  getTickPositions,
+} = await import('./FeatureDensityHistogram')
 
 type Lgv = Parameters<typeof getDensityBars>[0]
 
@@ -85,6 +89,29 @@ describe('getDensityBars', () => {
     ])
   })
 
+  it('carries strand counts for each bin', () => {
+    const lgv = makeLgv([{ refName: 'ctgA', start: 0, end: 300, offsetPx: 0 }])
+    const bars = getDensityBars(
+      lgv,
+      [
+        {
+          ...density,
+          strandBins: {
+            forward: [1, 0, 2],
+            reverse: [0, 2, 0],
+            unstranded: [0, 0, 1],
+          },
+        },
+      ],
+      [{ assemblyName: 'asm', refName: 'ctgA' }],
+    )
+    expect(bars.map(({ strandCounts }) => strandCounts)).toEqual([
+      { forward: 1, reverse: 0, unstranded: 0 },
+      { forward: 0, reverse: 2, unstranded: 0 },
+      { forward: 2, reverse: 0, unstranded: 1 },
+    ])
+  })
+
   it('ignores densities for other reference sequences', () => {
     const lgv = makeLgv([{ refName: 'ctgB', start: 0, end: 300, offsetPx: 0 }])
     expect(
@@ -106,9 +133,60 @@ describe('getScaleTicks', () => {
     })
   })
 
+  it('uses fewer ticks when asked', () => {
+    expect(getScaleTicks(23, 2)).toEqual({ scaleMax: 40, ticks: [0, 20, 40] })
+  })
+
   it('uses whole-number steps for small counts', () => {
     expect(getScaleTicks(1)).toEqual({ scaleMax: 1, ticks: [0, 1] })
     expect(getScaleTicks(3)).toEqual({ scaleMax: 3, ticks: [0, 1, 2, 3] })
+  })
+})
+
+describe('getBarSegments', () => {
+  const bar = {
+    key: 'bar',
+    x: 0,
+    width: 10,
+    count: 6,
+    assemblyName: 'asm',
+    refName: 'ctgA',
+    start: 0,
+    end: 100,
+    strandCounts: { forward: 3, reverse: 1, unstranded: 2 },
+  }
+
+  it('grows a single segment up from the bottom without strands', () => {
+    expect(getBarSegments(bar, 10, false, 'blue')).toEqual([
+      { key: 'all', color: 'blue', y: 0, height: 0.6 },
+    ])
+  })
+
+  it('mirrors + above and − below the middle, splitting unstranded', () => {
+    const segments = getBarSegments(bar, 4, true, 'blue')
+    expect(segments.map(({ height, key, y }) => ({ key, y, height }))).toEqual([
+      { key: 'forward', y: 0.5, height: 0.375 },
+      { key: 'unstranded-up', y: 0.875, height: 0.125 },
+      { key: 'reverse', y: 0.375, height: 0.125 },
+      { key: 'unstranded-down', y: 0.25, height: 0.125 },
+    ])
+  })
+})
+
+describe('getTickPositions', () => {
+  it('repeats ticks above and below the middle when mirrored', () => {
+    expect(
+      getTickPositions([0, 10, 20], 20, true).map(({ position, value }) => [
+        value,
+        position,
+      ]),
+    ).toEqual([
+      [0, 0.5],
+      [10, 0.75],
+      [10, 0.25],
+      [20, 1],
+      [20, 0],
+    ])
   })
 })
 
@@ -122,7 +200,19 @@ function makeModel(
     densityStats: {
       key: 'key',
       regions: [{ assemblyName: 'asm', refName: 'ctgA', start: 0, end: 300 }],
-      densities: [{ count: 1234, start: 0, binSize: 100, bins: [1, 2, 3] }],
+      densities: [
+        {
+          count: 1234,
+          start: 0,
+          binSize: 100,
+          bins: [1, 2, 3],
+          strandBins: {
+            forward: [1, 0, 1],
+            reverse: [0, 2, 1],
+            unstranded: [0, 0, 1],
+          },
+        },
+      ],
     },
     displayMode: 'density',
     featureCountInView: 1234,
@@ -143,6 +233,21 @@ describe('FeatureDensityHistogram', () => {
     expect(markup).toContain('show them anyway')
     expect(markup.match(/data-testid="feature-density-bar"/g)).toHaveLength(3)
     expect(markup).toContain('data-testid="feature-density-scale"')
+    // A hover target per bar plus segments for the non-zero strand counts
+    // (and each half of the unstranded count)
+    expect(markup.match(/<rect/g)).toHaveLength(9)
+    expect(markup).toContain('no strand')
+  })
+
+  it('draws single-color bars without strand information', () => {
+    const model = makeModel({})
+    const [density] = model.densityStats?.densities ?? []
+    delete density.strandBins
+    const markup = renderToStaticMarkup(
+      <FeatureDensityHistogram model={model} />,
+    )
+    expect(markup.match(/<rect/g)).toHaveLength(6)
+    expect(markup).not.toContain('no strand')
   })
 
   it('explains fixed mode', () => {

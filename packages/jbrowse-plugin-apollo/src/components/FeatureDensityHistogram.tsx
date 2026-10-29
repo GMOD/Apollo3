@@ -1,4 +1,9 @@
-import { type FeatureDensity, niceBinSize } from '@apollo-annotation/shared'
+import {
+  type DensityStrand,
+  type FeatureDensity,
+  densityStrands,
+  niceBinSize,
+} from '@apollo-annotation/shared'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { Button, CircularProgress, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
@@ -10,6 +15,19 @@ import type {
   DisplayMode,
   ThresholdMode,
 } from '../util/featureDensityModel'
+
+/** Same as JBrowse's alignments strand colors */
+const strandColors: Record<DensityStrand, string> = {
+  forward: '#EC8B8B',
+  reverse: '#8F8FD8',
+  unstranded: '#999999',
+}
+
+const strandLabels: Record<DensityStrand, string> = {
+  forward: '+',
+  reverse: '−',
+  unstranded: 'no strand',
+}
 
 /** Space above the bars for the banner, in px */
 const bannerHeight = 24
@@ -62,6 +80,12 @@ const useStyles = makeStyles()((theme) => ({
     width: 4,
     borderTop: `1px solid ${theme.palette.text.secondary}`,
   },
+  legendSwatch: {
+    display: 'inline-block',
+    width: 8,
+    height: 8,
+    marginRight: 2,
+  },
   tickLabel: {
     padding: '0 2px',
     background: theme.palette.background.paper,
@@ -94,6 +118,8 @@ export interface Bar {
   refName: string
   start: number
   end: number
+  /** `count` split by strand, if the backend provides it */
+  strandCounts?: Record<DensityStrand, number>
 }
 
 export interface FeatureDensityHistogramModel {
@@ -138,6 +164,7 @@ export function getDensityBars(
           continue
         }
         const leftBp = block.reversed ? block.end - end : start - block.start
+        const { strandBins } = density
         bars.push({
           key: `${block.key}-${idx}-${binIdx}`,
           x: blockLeftPx + leftBp / bpPerPx,
@@ -147,6 +174,11 @@ export function getDensityBars(
           refName: block.refName,
           start: binStart,
           end: binEnd,
+          strandCounts: strandBins && {
+            forward: strandBins.forward[binIdx],
+            reverse: strandBins.reverse[binIdx],
+            unstranded: strandBins.unstranded[binIdx],
+          },
         })
       }
     }
@@ -159,14 +191,122 @@ export function getDensityBars(
  * rounded up to a whole number of "nice" (1/2/5 × 10ⁿ) steps, so it gets a
  * label too.
  */
-export function getScaleTicks(maxCount: number) {
-  const step = niceBinSize(maxCount / 4)
+export function getScaleTicks(maxCount: number, divisions = 4) {
+  const step = niceBinSize(maxCount / divisions)
   const scaleMax = Math.max(step, Math.ceil(maxCount / step) * step)
   const ticks: number[] = []
   for (let tick = 0; tick <= scaleMax; tick += step) {
     ticks.push(tick)
   }
   return { scaleMax, ticks }
+}
+
+function tooltipText(bar: Bar) {
+  const { count, end, refName, start, strandCounts } = bar
+  const range = `${refName}:${(start + 1).toLocaleString()}-${end.toLocaleString()}`
+  let text = `${range}: ${count.toLocaleString()} feature${count === 1 ? '' : 's'}`
+  if (strandCounts && count > 0) {
+    const byStrand = densityStrands
+      .filter((strand) => strandCounts[strand] > 0)
+      .map(
+        (strand) =>
+          `${strandLabels[strand]} ${strandCounts[strand].toLocaleString()}`,
+      )
+    text += ` (${byStrand.join(', ')})`
+  }
+  return `${text} (click to zoom in)`
+}
+
+/**
+ * How far a bar reaches from the baseline: the whole count, or when mirrored,
+ * the larger of the + side and the − side (each with half the unstranded
+ * features)
+ */
+function getBarExtent(bar: Bar, mirrored: boolean) {
+  if (!mirrored) {
+    return bar.count
+  }
+  const { forward, reverse, unstranded } = getStrandCounts(bar)
+  return Math.max(forward, reverse) + unstranded / 2
+}
+
+function getStrandCounts(bar: Bar) {
+  // Treat counts without strand information as unstranded
+  return bar.strandCounts ?? { forward: 0, reverse: 0, unstranded: bar.count }
+}
+
+/**
+ * Split a bar into segments. Without strand information, a single segment
+ * grows up from the bottom. Mirrored, + grows up and − grows down from the
+ * middle, and each side ends with half of the unstranded features.
+ * @returns segments with `y` (bottom edge, from the bottom of the plot) and
+ * `height` as fractions of the plot height
+ */
+export function getBarSegments(
+  bar: Bar,
+  scaleMax: number,
+  mirrored: boolean,
+  defaultColor: string,
+) {
+  if (!mirrored) {
+    return [
+      { key: 'all', color: defaultColor, y: 0, height: bar.count / scaleMax },
+    ]
+  }
+  const perCount = 0.5 / scaleMax
+  const { forward, reverse, unstranded } = getStrandCounts(bar)
+  const forwardHeight = forward * perCount
+  const reverseHeight = reverse * perCount
+  const unstrandedHeight = (unstranded / 2) * perCount
+  const { forward: forwardColor, reverse: reverseColor } = strandColors
+  return [
+    { key: 'forward', color: forwardColor, y: 0.5, height: forwardHeight },
+    {
+      key: 'unstranded-up',
+      color: strandColors.unstranded,
+      y: 0.5 + forwardHeight,
+      height: unstrandedHeight,
+    },
+    {
+      key: 'reverse',
+      color: reverseColor,
+      y: 0.5 - reverseHeight,
+      height: reverseHeight,
+    },
+    {
+      key: 'unstranded-down',
+      color: strandColors.unstranded,
+      y: 0.5 - reverseHeight - unstrandedHeight,
+      height: unstrandedHeight,
+    },
+  ].filter((segment) => segment.height > 0)
+}
+
+/**
+ * Place the scale's ticks. Mirrored, 0 is in the middle and the ticks repeat
+ * above and below it.
+ * @returns ticks with `position` as a fraction of the plot height from the
+ * bottom
+ */
+export function getTickPositions(
+  ticks: number[],
+  scaleMax: number,
+  mirrored: boolean,
+) {
+  if (!mirrored) {
+    return ticks.map((value) => ({
+      key: String(value),
+      value,
+      position: value / scaleMax,
+    }))
+  }
+  return ticks.flatMap((value) => {
+    const offset = (value / scaleMax) * 0.5
+    const up = { key: `+${value}`, value, position: 0.5 + offset }
+    return value === 0
+      ? [up]
+      : [up, { key: `-${value}`, value, position: 0.5 - offset }]
+  })
 }
 
 function bannerText(model: FeatureDensityHistogramModel) {
@@ -209,8 +349,13 @@ export const FeatureDensityHistogram = observer(
       densityStats.densities,
       densityStats.regions,
     )
-    const maxCount = Math.max(1, ...bars.map((bar) => bar.count))
-    const { scaleMax, ticks } = getScaleTicks(maxCount)
+    const hasStrands = bars.some((bar) => bar.strandCounts)
+    const maxExtent = Math.max(
+      1,
+      ...bars.map((bar) => getBarExtent(bar, hasStrands)),
+    )
+    // Each half of a mirrored plot has half the room for ticks
+    const { scaleMax, ticks } = getScaleTicks(maxExtent, hasStrands ? 2 : 4)
 
     return (
       <div
@@ -230,16 +375,20 @@ export const FeatureDensityHistogram = observer(
           >
             show them anyway
           </Button>
+          {hasStrands
+            ? densityStrands.map((strand) => (
+                <span key={strand}>
+                  <span
+                    className={classes.legendSwatch}
+                    style={{ background: strandColors[strand] }}
+                  />
+                  {strandLabels[strand]}
+                </span>
+              ))
+            : null}
         </div>
         <div className={classes.plot} style={{ width: totalWidthPx }}>
-          <Tooltip
-            followCursor
-            title={
-              hovered
-                ? `${hovered.refName}:${(hovered.start + 1).toLocaleString()}-${hovered.end.toLocaleString()}: ${hovered.count.toLocaleString()} feature${hovered.count === 1 ? '' : 's'} (click to zoom in)`
-                : ''
-            }
-          >
+          <Tooltip followCursor title={hovered ? tooltipText(hovered) : ''}>
             <svg
               className={classes.svg}
               width={totalWidthPx}
@@ -250,7 +399,17 @@ export const FeatureDensityHistogram = observer(
               }}
             >
               {bars.map((bar) => {
-                const height = (bar.count / scaleMax) * plotHeight
+                const width = Math.max(bar.width - 0.5, 0.5)
+                const segments = getBarSegments(
+                  bar,
+                  scaleMax,
+                  hasStrands,
+                  theme.palette.primary.main,
+                )
+                const bottom = Math.min(...segments.map(({ y }) => y))
+                const top = Math.max(
+                  ...segments.map(({ height, y }) => y + height),
+                )
                 return (
                   <g
                     key={bar.key}
@@ -279,42 +438,65 @@ export const FeatureDensityHistogram = observer(
                       height={plotHeight}
                       fill="transparent"
                     />
-                    <rect
-                      x={bar.x}
-                      y={plotHeight - height}
-                      width={Math.max(bar.width - 0.5, 0.5)}
-                      height={height}
-                      fill={
-                        hovered?.key === bar.key
-                          ? theme.palette.secondary.main
-                          : theme.palette.primary.main
-                      }
-                    />
+                    {segments.map((segment) => (
+                      <rect
+                        key={segment.key}
+                        x={bar.x}
+                        y={plotHeight * (1 - segment.y - segment.height)}
+                        width={width}
+                        height={plotHeight * segment.height}
+                        fill={segment.color}
+                      />
+                    ))}
+                    {hovered?.key === bar.key ? (
+                      <rect
+                        x={bar.x}
+                        y={plotHeight * (1 - top)}
+                        width={width}
+                        height={plotHeight * (top - bottom)}
+                        fill="none"
+                        stroke={theme.palette.text.primary}
+                        strokeWidth={1.5}
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    ) : null}
                   </g>
                 )
               })}
+              {hasStrands ? (
+                <line
+                  x1={0}
+                  x2={totalWidthPx}
+                  y1={plotHeight / 2}
+                  y2={plotHeight / 2}
+                  stroke={theme.palette.text.secondary}
+                  strokeWidth={1}
+                  vectorEffect="non-scaling-stroke"
+                  pointerEvents="none"
+                />
+              ) : null}
             </svg>
           </Tooltip>
           <div className={classes.scale} data-testid="feature-density-scale">
-            {ticks.map((tick) => {
+            {getTickPositions(ticks, scaleMax, hasStrands).map((tick) => {
               // Keep the end labels inside the plot
               let shift = '50%'
-              if (tick === 0) {
+              if (tick.position === 0) {
                 shift = '0%'
-              } else if (tick === scaleMax) {
+              } else if (tick.position === 1) {
                 shift = '100%'
               }
               return (
                 <div
-                  key={tick}
+                  key={tick.key}
                   className={classes.tick}
                   style={{
-                    bottom: `${(tick / scaleMax) * 100}%`,
+                    bottom: `${tick.position * 100}%`,
                     transform: `translateY(${shift})`,
                   }}
                 >
                   <span className={classes.tickLabel}>
-                    {tick.toLocaleString()}
+                    {tick.value.toLocaleString()}
                   </span>
                   <span className={classes.tickMark} />
                 </div>
