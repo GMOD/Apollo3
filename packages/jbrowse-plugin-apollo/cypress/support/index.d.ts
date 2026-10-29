@@ -39,5 +39,7 @@ declare namespace Cypress {
     ): Chainable<void>
     closeSearchBox(): Chainable<void>
     refreshTableEditor(): Chainable<void>
+    /** Log in as a separate guest session and yield its token */
+    loginAsOtherGuest(): Chainable<string>
   }
 }

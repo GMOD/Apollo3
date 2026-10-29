@@ -2,7 +2,6 @@ import type {
   AnnotationFeature,
   TranscriptPartCoding,
 } from '@apollo-annotation/mst'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import type { MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
@@ -51,10 +50,14 @@ let forwardFillLight: CanvasPattern | null = null
 let backwardFillLight: CanvasPattern | null = null
 let forwardFillDark: CanvasPattern | null = null
 let backwardFillDark: CanvasPattern | null = null
-const canvas = globalThis.document.createElement('canvas')
-// @ts-expect-error getContext is undefined in the web worker
+// globalThis.document is undefined in the web worker, where this module is
+// also loaded (but never uses these patterns, which are main-thread-only
+// rendering fills)
+// eslint disables are for when the script loads in a web worker
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-if (canvas?.getContext) {
+const canvas = globalThis.document?.createElement('canvas')
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+if (canvas) {
   for (const direction of ['forward', 'backward']) {
     for (const themeMode of ['light', 'dark']) {
       const canvas = document.createElement('canvas')
@@ -426,9 +429,7 @@ function getBlocksForFeature(
   const { lgv, session } = display
   const { assemblyManager } = session as unknown as AbstractSessionModel
   return lgv.dynamicBlocks.contentBlocks.filter((block) => {
-    const assembly = assemblyManager.get(block.assemblyName) as
-      | Assembly
-      | undefined
+    const assembly = assemblyManager.get(block.assemblyName)
     return (
       block.refName === assembly?.getCanonicalRefName(feature.refSeq) &&
       doesIntersect2(block.start, block.end, feature.min, feature.max)
@@ -452,7 +453,7 @@ function drawDragPreview(
   const featureEdgePxInfo = lgv.bpToPx({
     refName: start.refName,
     coord: feature[edge],
-    regionNumber: start.regionNumber,
+    displayedRegionIndex: start.regionNumber,
   })
   if (!featureEdgePxInfo) {
     return
@@ -774,7 +775,7 @@ function getContextMenuItems(
     session,
   } = display
   const [region] = regions
-  const currentAssemblyId = display.getAssemblyId(region.assemblyName) as string
+  const currentAssemblyId = display.getAssemblyId(region.assemblyName)
   const menuItems: MenuItem[] = []
   const role = internetAccount ? internetAccount.role : 'admin'
   const readOnly = !(role && ['admin', 'user'].includes(role))

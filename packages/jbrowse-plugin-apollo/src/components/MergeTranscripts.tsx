@@ -161,7 +161,7 @@ export const MergeTranscripts = observer(function MergeTranscripts({
                   key={key}
                   control={<Radio />}
                   label={
-                    <Box display="flex" alignItems="center">
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       {makeRadioButtonName(transcripts[key])}
                     </Box>
                   }

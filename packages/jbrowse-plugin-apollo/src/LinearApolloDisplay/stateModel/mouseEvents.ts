@@ -21,6 +21,7 @@ import {
   roundPxSpan,
   selectFeatureAndOpenWidget,
 } from '../../util'
+import { extendFeatureContextMenuItems } from '../../util/extendFeatureContextMenuItems'
 import { isMouseOnFeatureEdge } from '../glyphs/util'
 import type { CanvasMouseEvent } from '../types'
 
@@ -133,19 +134,31 @@ export function mouseEventsModelFactory(
     contextMenuItems(event: React.MouseEvent<HTMLDivElement>): MenuItem[] {
       const mousePosition = self.getMousePosition(event)
       const features = self.getFeaturesAtMousePosition(mousePosition)
+      const extendMenuItems = (
+        feature: AnnotationFeature,
+        menuItems: MenuItem[],
+      ) =>
+        extendFeatureContextMenuItems(pluginManager, menuItems, {
+          feature,
+          session: self.session,
+          location: 'LinearApolloDisplay',
+        })
       if (features.length === 1) {
-        return getContextMenuItemsForFeature(self, features[0])
+        return extendMenuItems(
+          features[0],
+          getContextMenuItemsForFeature(self, features[0]),
+        )
       }
       const menuItems: MenuItem[] = []
       for (const feature of features) {
         const glyph = self.getGlyph(feature)
         menuItems.push({
           label: feature.type,
-          subMenu: [
+          subMenu: extendMenuItems(feature, [
             ...getContextMenuItemsForFeature(self, feature),
             // @ts-expect-error ts doesn't understand mst extension
             ...glyph.getContextMenuItems(self, feature),
-          ],
+          ]),
         })
       }
       return menuItems
@@ -172,7 +185,7 @@ export function mouseEventsModelFactory(
             current: mousePosition,
             feature,
             edge,
-            shrinkParent,
+            shrinkParent: shrinkParent as boolean,
           }
         },
         endDrag() {
@@ -190,7 +203,7 @@ export function mouseEventsModelFactory(
           }
           const { displayedRegions } = self.lgv
           const region = displayedRegions[start.regionNumber]
-          const assembly = self.getAssemblyId(region.assemblyName) as string
+          const assembly = self.getAssemblyId(region.assemblyName)
           const changes = getPropagatedLocationChanges(
             feature,
             current.bp,
@@ -314,8 +327,6 @@ export function mouseEventsModelFactory(
               const { lgv, overlayCanvas } = self
               if (
                 !lgv.initialized ||
-                // This type is wrong in @jbrowse/core
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 self.regionCannotBeRendered() ||
                 !overlayCanvas
               ) {

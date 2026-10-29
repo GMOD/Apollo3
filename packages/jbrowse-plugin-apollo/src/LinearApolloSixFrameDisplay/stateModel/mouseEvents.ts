@@ -19,6 +19,7 @@ import {
   getPropagatedLocationChanges,
   isMousePositionWithFeature,
 } from '../../util'
+import { extendFeatureContextMenuItems } from '../../util/extendFeatureContextMenuItems'
 import { getRowContents } from '../rows'
 import type { CanvasMouseEvent } from '../types'
 
@@ -161,7 +162,15 @@ export function mouseEventsModelFactory(
       const { topLevelFeature } = hoveredFeature.feature
       const glyph = self.getGlyph(topLevelFeature)
       if (isMousePositionWithFeature(mousePosition)) {
-        return glyph.getContextMenuItems(self, mousePosition)
+        return extendFeatureContextMenuItems(
+          pluginManager,
+          glyph.getContextMenuItems(self, mousePosition),
+          {
+            feature: hoveredFeature.feature,
+            session: self.session,
+            location: 'LinearApolloSixFrameDisplay',
+          },
+        )
       }
       return []
     },
@@ -180,7 +189,7 @@ export function mouseEventsModelFactory(
           current: mousePosition,
           feature,
           edge,
-          shrinkParent,
+          shrinkParent: shrinkParent as boolean,
         }
       },
       endDrag() {
@@ -197,7 +206,7 @@ export function mouseEventsModelFactory(
         }
         const { displayedRegions } = self.lgv
         const region = displayedRegions[start.regionNumber]
-        const assembly = self.getAssemblyId(region.assemblyName) as string
+        const assembly = self.getAssemblyId(region.assemblyName)
         const changes = getPropagatedLocationChanges(
           feature,
           current.bp,
@@ -286,8 +295,6 @@ export function mouseEventsModelFactory(
           self,
           autorun(
             () => {
-              // This type is wrong in @jbrowse/core
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
               if (!self.lgv.initialized || self.regionCannotBeRendered()) {
                 return
               }
