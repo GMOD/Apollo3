@@ -13,6 +13,29 @@ export interface FeatureDensity {
    * `[start + i * binSize, start + (i + 1) * binSize)`.
    */
   bins: number[]
+  /**
+   * `bins` split by the strand of the features. Missing from servers that
+   * predate it.
+   */
+  strandBins?: Record<DensityStrand, number[]>
+}
+
+export type DensityStrand = 'forward' | 'reverse' | 'unstranded'
+
+export const densityStrands: DensityStrand[] = [
+  'forward',
+  'reverse',
+  'unstranded',
+]
+
+export function getDensityStrand(strand?: number | null): DensityStrand {
+  if (strand === 1) {
+    return 'forward'
+  }
+  if (strand === -1) {
+    return 'reverse'
+  }
+  return 'unstranded'
 }
 
 /**
@@ -100,16 +123,24 @@ export function coverageFromBoundaries(
  * include ones outside the region; those are ignored.
  */
 export function computeFeatureDensity(
-  features: Iterable<{ min: number; max: number }>,
+  features: Iterable<{ min: number; max: number; strand?: number }>,
   start: number,
   end: number,
   binSize: number,
 ): FeatureDensity {
   const aligned = alignBins(start, end, binSize)
-  const firstBins: [number, number][] = []
-  const endBins: [number, number][] = []
+  const firstBins: Record<DensityStrand, [number, number][]> = {
+    forward: [],
+    reverse: [],
+    unstranded: [],
+  }
+  const endBins: Record<DensityStrand, [number, number][]> = {
+    forward: [],
+    reverse: [],
+    unstranded: [],
+  }
   let count = 0
-  for (const { max, min } of features) {
+  for (const { max, min, strand } of features) {
     if (min < end && max > start) {
       count++
     }
@@ -121,14 +152,36 @@ export function computeFeatureDensity(
       aligned.nBins,
     )
     if (endBin > first) {
-      firstBins.push([first, 1])
-      endBins.push([endBin, 1])
+      const densityStrand = getDensityStrand(strand)
+      firstBins[densityStrand].push([first, 1])
+      endBins[densityStrand].push([endBin, 1])
     }
   }
   return {
     count,
     start: aligned.start,
     binSize,
-    bins: coverageFromBoundaries(firstBins, endBins, aligned.nBins),
+    bins: coverageFromBoundaries(
+      Object.values(firstBins).flat(),
+      Object.values(endBins).flat(),
+      aligned.nBins,
+    ),
+    strandBins: {
+      forward: coverageFromBoundaries(
+        firstBins.forward,
+        endBins.forward,
+        aligned.nBins,
+      ),
+      reverse: coverageFromBoundaries(
+        firstBins.reverse,
+        endBins.reverse,
+        aligned.nBins,
+      ),
+      unstranded: coverageFromBoundaries(
+        firstBins.unstranded,
+        endBins.unstranded,
+        aligned.nBins,
+      ),
+    },
   }
 }

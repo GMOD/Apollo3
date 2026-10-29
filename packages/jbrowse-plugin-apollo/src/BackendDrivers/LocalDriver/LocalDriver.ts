@@ -84,14 +84,14 @@ export class LocalDriver extends BackendDriver {
     const db = await openDb(assemblyName, refNames)
     const aligned = alignBins(start, end, binSize)
     const alignedEnd = aligned.start + aligned.nBins * binSize
-    const intervals: { min: number; max: number }[] = []
+    const intervals: { min: number; max: number; strand?: number }[] = []
     const tx = db.transaction(`features-${refName}`)
     for await (const cursor of tx.store
       .index('min')
       .iterate(IDBKeyRange.upperBound(alignedEnd, true))) {
-      const { max, min } = cursor.value as AnnotationFeatureSnapshot
+      const { max, min, strand } = cursor.value as AnnotationFeatureSnapshot
       if (max >= aligned.start) {
-        intervals.push({ min, max })
+        intervals.push({ min, max, strand })
       }
     }
     return computeFeatureDensity(intervals, start, end, binSize)

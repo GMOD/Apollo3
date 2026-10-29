@@ -16,8 +16,8 @@ describe('LocalDriver', () => {
       ])
     const db = await openDb(assemblyName, ['ctgA'])
     const features = [
-      { _id: 'long', min: 0, max: 10_000 },
-      { _id: 'short', min: 250, max: 260 },
+      { _id: 'long', min: 0, max: 10_000, strand: 1 },
+      { _id: 'short', min: 250, max: 260, strand: -1 },
       { _id: 'outside', min: 2000, max: 3000 },
     ]
     for (const feature of features) {
@@ -34,6 +34,11 @@ describe('LocalDriver', () => {
       start: 0,
       binSize: 100,
       bins: [1, 1, 2, 1, 1, 1, 1, 1, 1, 1],
+      strandBins: {
+        forward: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        reverse: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+        unstranded: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      },
     })
   })
 })

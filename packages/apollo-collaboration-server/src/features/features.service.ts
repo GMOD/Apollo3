@@ -10,9 +10,12 @@ import {
   type RefSeqDocument,
 } from '@apollo-annotation/schemas'
 import {
+  type DensityStrand,
   type FeatureDensity,
   alignBins,
   coverageFromBoundaries,
+  densityStrands,
+  getDensityStrand,
 } from '@apollo-annotation/shared'
 import {
   Inject,
@@ -38,8 +41,19 @@ import {
   lazyStream,
 } from './transforms.js'
 
-function binCountPairs(groups: { _id: number; count: number }[]) {
-  return groups.map(({ _id, count }): [number, number] => [_id, count])
+interface BinGroup {
+  _id: { bin: number; strand?: number | null }
+  count: number
+}
+
+function binCountPairs(groups: BinGroup[], densityStrand?: DensityStrand) {
+  return groups
+    .filter(
+      ({ _id }) =>
+        densityStrand === undefined ||
+        getDensityStrand(_id.strand) === densityStrand,
+    )
+    .map(({ _id, count }): [number, number] => [_id.bin, count])
 }
 
 @Injectable()
@@ -140,8 +154,8 @@ export class FeaturesService {
     // Aggregations aren't cast by mongoose, so cast the ObjectId here
     const [result] = await this.featureModel.aggregate<{
       count: { count: number }[]
-      firstBins: { _id: number; count: number }[]
-      endBins: { _id: number; count: number }[]
+      firstBins: BinGroup[]
+      endBins: BinGroup[]
     }>([
       {
         $match: {
@@ -151,15 +165,29 @@ export class FeaturesService {
           status: 0,
         },
       },
-      { $project: { _id: 0, min: 1, max: 1 } },
+      { $project: { _id: 0, min: 1, max: 1, strand: 1 } },
       {
         $facet: {
           count: [
             { $match: { min: { $lt: end }, max: { $gt: start } } },
             { $count: 'count' },
           ],
-          firstBins: [{ $group: { _id: firstBin, count: { $sum: 1 } } }],
-          endBins: [{ $group: { _id: endBin, count: { $sum: 1 } } }],
+          firstBins: [
+            {
+              $group: {
+                _id: { bin: firstBin, strand: '$strand' },
+                count: { $sum: 1 },
+              },
+            },
+          ],
+          endBins: [
+            {
+              $group: {
+                _id: { bin: endBin, strand: '$strand' },
+                count: { $sum: 1 },
+              },
+            },
+          ],
         },
       },
     ])
@@ -175,6 +203,16 @@ export class FeaturesService {
         binCountPairs(result.endBins),
         aligned.nBins,
       ),
+      strandBins: Object.fromEntries(
+        densityStrands.map((densityStrand) => [
+          densityStrand,
+          coverageFromBoundaries(
+            binCountPairs(result.firstBins, densityStrand),
+            binCountPairs(result.endBins, densityStrand),
+            aligned.nBins,
+          ),
+        ]),
+      ) as Record<DensityStrand, number[]>,
     }
   }
 

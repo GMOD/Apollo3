@@ -86,6 +86,30 @@ describe('computeFeatureDensity', () => {
       start: 0,
       binSize: 100,
       bins: [1, 1, 2, 1, 1, 1, 1, 1, 1, 1],
+      strandBins: {
+        forward: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        reverse: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        unstranded: [1, 1, 2, 1, 1, 1, 1, 1, 1, 1],
+      },
+    })
+  })
+  it('splits bins by strand', () => {
+    const density = computeFeatureDensity(
+      [
+        { min: 0, max: 300, strand: 1 },
+        { min: 150, max: 250, strand: -1 },
+        { min: 0, max: 100, strand: 1 },
+        { min: 220, max: 230 },
+      ],
+      0,
+      300,
+      100,
+    )
+    expect(density.bins).to.deep.equal([2, 2, 3])
+    expect(density.strandBins).to.deep.equal({
+      forward: [2, 1, 1],
+      reverse: [0, 1, 1],
+      unstranded: [0, 0, 1],
     })
   })
   it('only counts features overlapping the unaligned region', () => {
