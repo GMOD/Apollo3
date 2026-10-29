@@ -10,10 +10,7 @@ import { Alert, CircularProgress, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 
-import {
-  FeatureDensityHistogram,
-  densityHistogramHeight,
-} from '../../components/FeatureDensityHistogram'
+import { FeatureDensityHistogram } from '../../components/FeatureDensityHistogram'
 import { type Coord, useStyles } from '../../util/displayUtils'
 import type { LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
 
@@ -56,15 +53,14 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   if (!isShown) {
     return null
   }
-  const featuresHeight = showHistogram
-    ? densityHistogramHeight
-    : getFeaturesHeight(lgv.assemblyNames[0])
+  const featuresHeight = getFeaturesHeight(lgv.assemblyNames[0])
   return (
     <div
       className={classes.canvasContainer}
       style={{
         width: lgv.dynamicBlocks.totalWidthPx,
-        height: featuresHeight,
+        // The histogram fills the track
+        height: showHistogram ? '100%' : featuresHeight,
       }}
       onContextMenu={(event) => {
         event.preventDefault()

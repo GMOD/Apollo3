@@ -17,7 +17,7 @@ function makeStyles() {
 }
 jest.unstable_mockModule('tss-react/mui', () => ({ makeStyles }))
 
-const { FeatureDensityHistogram, getDensityBars } = await import(
+const { FeatureDensityHistogram, getDensityBars, getScaleTicks } = await import(
   './FeatureDensityHistogram'
 )
 
@@ -97,6 +97,21 @@ describe('getDensityBars', () => {
   })
 })
 
+describe('getScaleTicks', () => {
+  it('rounds the top of the scale up to a nice step', () => {
+    expect(getScaleTicks(23)).toEqual({ scaleMax: 30, ticks: [0, 10, 20, 30] })
+    expect(getScaleTicks(1000)).toEqual({
+      scaleMax: 1000,
+      ticks: [0, 500, 1000],
+    })
+  })
+
+  it('uses whole-number steps for small counts', () => {
+    expect(getScaleTicks(1)).toEqual({ scaleMax: 1, ticks: [0, 1] })
+    expect(getScaleTicks(3)).toEqual({ scaleMax: 3, ticks: [0, 1, 2, 3] })
+  })
+})
+
 function makeModel(
   overrides: Partial<FeatureDensityHistogramModel>,
 ): FeatureDensityHistogramModel {
@@ -127,6 +142,7 @@ describe('FeatureDensityHistogram', () => {
     expect(markup).toContain('1,234 features in view')
     expect(markup).toContain('show them anyway')
     expect(markup.match(/data-testid="feature-density-bar"/g)).toHaveLength(3)
+    expect(markup).toContain('data-testid="feature-density-scale"')
   })
 
   it('explains fixed mode', () => {

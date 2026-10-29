@@ -1,4 +1,4 @@
-import type { FeatureDensity } from '@apollo-annotation/shared'
+import { type FeatureDensity, niceBinSize } from '@apollo-annotation/shared'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { Button, CircularProgress, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
@@ -11,21 +11,61 @@ import type {
   ThresholdMode,
 } from '../util/featureDensityModel'
 
-/** Height of the histogram, in px */
-export const densityHistogramHeight = 80
 /** Space above the bars for the banner, in px */
 const bannerHeight = 24
+/**
+ * Height of the plot in SVG user units. The SVG is stretched vertically to
+ * fill the track, so bar heights are fractions of this.
+ */
+const plotHeight = 100
 
 const useStyles = makeStyles()((theme) => ({
   container: {
     position: 'relative',
-    height: densityHistogramHeight,
+    height: '100%',
+  },
+  plot: {
+    position: 'absolute',
+    left: 0,
+    top: bannerHeight,
+    bottom: 0,
   },
   svg: {
     position: 'absolute',
     left: 0,
     top: 0,
+    height: '100%',
     cursor: 'zoom-in',
+  },
+  scale: {
+    position: 'absolute',
+    // On the right, like the banner, since JBrowse's track label overlaps the
+    // left
+    right: 0,
+    top: 0,
+    bottom: 0,
+    borderRight: `1px solid ${theme.palette.text.secondary}`,
+    pointerEvents: 'none',
+  },
+  tick: {
+    position: 'absolute',
+    right: 0,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 2,
+    fontSize: 10,
+    lineHeight: 1,
+    color: theme.palette.text.primary,
+    whiteSpace: 'nowrap',
+  },
+  tickMark: {
+    width: 4,
+    borderTop: `1px solid ${theme.palette.text.secondary}`,
+  },
+  tickLabel: {
+    padding: '0 2px',
+    background: theme.palette.background.paper,
+    opacity: 0.85,
   },
   banner: {
     position: 'absolute',
@@ -114,6 +154,21 @@ export function getDensityBars(
   return bars
 }
 
+/**
+ * Pick the top of the count scale and the tick values on it. The top is
+ * rounded up to a whole number of "nice" (1/2/5 × 10ⁿ) steps, so it gets a
+ * label too.
+ */
+export function getScaleTicks(maxCount: number) {
+  const step = niceBinSize(maxCount / 4)
+  const scaleMax = Math.max(step, Math.ceil(maxCount / step) * step)
+  const ticks: number[] = []
+  for (let tick = 0; tick <= scaleMax; tick += step) {
+    ticks.push(tick)
+  }
+  return { scaleMax, ticks }
+}
+
 function bannerText(model: FeatureDensityHistogramModel) {
   const { featureCountInView, thresholdModeSetting, zoomThresholdSetting } =
     model
@@ -155,7 +210,7 @@ export const FeatureDensityHistogram = observer(
       densityStats.regions,
     )
     const maxCount = Math.max(1, ...bars.map((bar) => bar.count))
-    const plotHeight = densityHistogramHeight - bannerHeight
+    const { scaleMax, ticks } = getScaleTicks(maxCount)
 
     return (
       <div
@@ -175,72 +230,98 @@ export const FeatureDensityHistogram = observer(
           >
             show them anyway
           </Button>
-          <span style={{ color: theme.palette.text.secondary }}>
-            (max {maxCount.toLocaleString()} per bar)
-          </span>
         </div>
-        <Tooltip
-          followCursor
-          title={
-            hovered
-              ? `${hovered.refName}:${(hovered.start + 1).toLocaleString()}-${hovered.end.toLocaleString()}: ${hovered.count.toLocaleString()} feature${hovered.count === 1 ? '' : 's'} (click to zoom in)`
-              : ''
-          }
-        >
-          <svg
-            className={classes.svg}
-            width={totalWidthPx}
-            height={densityHistogramHeight}
-            onMouseLeave={() => {
-              setHovered(undefined)
-            }}
+        <div className={classes.plot} style={{ width: totalWidthPx }}>
+          <Tooltip
+            followCursor
+            title={
+              hovered
+                ? `${hovered.refName}:${(hovered.start + 1).toLocaleString()}-${hovered.end.toLocaleString()}: ${hovered.count.toLocaleString()} feature${hovered.count === 1 ? '' : 's'} (click to zoom in)`
+                : ''
+            }
           >
-            {bars.map((bar) => {
-              const height = (bar.count / maxCount) * plotHeight
+            <svg
+              className={classes.svg}
+              width={totalWidthPx}
+              viewBox={`0 0 ${totalWidthPx} ${plotHeight}`}
+              preserveAspectRatio="none"
+              onMouseLeave={() => {
+                setHovered(undefined)
+              }}
+            >
+              {bars.map((bar) => {
+                const height = (bar.count / scaleMax) * plotHeight
+                return (
+                  <g
+                    key={bar.key}
+                    data-testid="feature-density-bar"
+                    data-count={bar.count}
+                    onMouseEnter={() => {
+                      setHovered(bar)
+                    }}
+                    onClick={() => {
+                      // Zoom in 10x, centered on the bar
+                      const center = (bar.start + bar.end) / 2
+                      const halfWidth = (lgv.bpPerPx * lgv.width) / 20
+                      lgv.navTo({
+                        assemblyName: bar.assemblyName,
+                        refName: bar.refName,
+                        start: Math.max(0, Math.round(center - halfWidth)),
+                        end: Math.round(center + halfWidth),
+                      })
+                    }}
+                  >
+                    {/* Full-height target so small bars are easy to hover */}
+                    <rect
+                      x={bar.x}
+                      y={0}
+                      width={bar.width}
+                      height={plotHeight}
+                      fill="transparent"
+                    />
+                    <rect
+                      x={bar.x}
+                      y={plotHeight - height}
+                      width={Math.max(bar.width - 0.5, 0.5)}
+                      height={height}
+                      fill={
+                        hovered?.key === bar.key
+                          ? theme.palette.secondary.main
+                          : theme.palette.primary.main
+                      }
+                    />
+                  </g>
+                )
+              })}
+            </svg>
+          </Tooltip>
+          <div className={classes.scale} data-testid="feature-density-scale">
+            {ticks.map((tick) => {
+              // Keep the end labels inside the plot
+              let shift = '50%'
+              if (tick === 0) {
+                shift = '0%'
+              } else if (tick === scaleMax) {
+                shift = '100%'
+              }
               return (
-                <g
-                  key={bar.key}
-                  data-testid="feature-density-bar"
-                  data-count={bar.count}
-                  onMouseEnter={() => {
-                    setHovered(bar)
-                  }}
-                  onClick={() => {
-                    // Zoom in 10x, centered on the bar
-                    const center = (bar.start + bar.end) / 2
-                    const halfWidth = (lgv.bpPerPx * lgv.width) / 20
-                    lgv.navTo({
-                      assemblyName: bar.assemblyName,
-                      refName: bar.refName,
-                      start: Math.max(0, Math.round(center - halfWidth)),
-                      end: Math.round(center + halfWidth),
-                    })
+                <div
+                  key={tick}
+                  className={classes.tick}
+                  style={{
+                    bottom: `${(tick / scaleMax) * 100}%`,
+                    transform: `translateY(${shift})`,
                   }}
                 >
-                  {/* Full-height target so small bars are easy to hover */}
-                  <rect
-                    x={bar.x}
-                    y={bannerHeight}
-                    width={bar.width}
-                    height={plotHeight}
-                    fill="transparent"
-                  />
-                  <rect
-                    x={bar.x}
-                    y={densityHistogramHeight - height}
-                    width={Math.max(bar.width - 0.5, 0.5)}
-                    height={height}
-                    fill={
-                      hovered?.key === bar.key
-                        ? theme.palette.secondary.main
-                        : theme.palette.primary.main
-                    }
-                  />
-                </g>
+                  <span className={classes.tickLabel}>
+                    {tick.toLocaleString()}
+                  </span>
+                  <span className={classes.tickMark} />
+                </div>
               )
             })}
-          </svg>
-        </Tooltip>
+          </div>
+        </div>
       </div>
     )
   },

@@ -17,10 +17,7 @@ import { Alert, Avatar, Badge, Box, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 
-import {
-  FeatureDensityHistogram,
-  densityHistogramHeight,
-} from '../../components/FeatureDensityHistogram'
+import { FeatureDensityHistogram } from '../../components/FeatureDensityHistogram'
 import {
   type Coord,
   clusterResultByMessage,
@@ -85,7 +82,8 @@ export const LinearApolloSixFrameDisplay = observer(
           className={classes.canvasContainer}
           style={{
             width: lgv.dynamicBlocks.totalWidthPx,
-            height: showHistogram ? densityHistogramHeight : featuresHeight,
+            // The histogram fills the track
+            height: showHistogram ? '100%' : featuresHeight,
           }}
           onContextMenu={(event) => {
             event.preventDefault()
