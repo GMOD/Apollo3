@@ -3,8 +3,9 @@
 
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type { AbstractSessionModel } from '@jbrowse/core/util'
+import { computed } from 'mobx'
 import { observer } from 'mobx-react'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { isOntologyClass } from '../../OntologyManager'
@@ -42,6 +43,7 @@ const useStyles = makeStyles()((theme) => ({
     width: '1.6em',
     textAlign: 'center',
     cursor: 'pointer',
+    userSelect: 'none',
   },
   arrowExpanded: {
     transform: 'rotate(90deg)',
@@ -94,11 +96,9 @@ function navigateHere(
   )
 }
 
-export const Feature = observer(function Feature({
+export const Feature = observer(function FeatureRow({
   depth,
   feature,
-  isHovered,
-  isSelected,
   model: displayState,
   selectedFeatureClass,
   setContextMenu,
@@ -106,21 +106,29 @@ export const Feature = observer(function Feature({
   model: DisplayStateModel
   feature: AnnotationFeature
   depth: number
-  isHovered: boolean
-  isSelected: boolean
   selectedFeatureClass: string
   setContextMenu: (menu: ContextMenuState) => void
 }) {
   const { classes } = useStyles()
   const {
     changeManager,
-    hoveredFeature,
-    selectedFeature,
     session,
     tabularEditor: tabularEditorState,
   } = displayState
   const { featureCollapsed, filterText } = tabularEditorState
   const { _id, children, max, min, strand, type } = feature
+  // Wrapping these in computed values means a row only re-renders when its own
+  // hovered or selected state changes, not every time any row is hovered
+  const isHoveredComputed = useMemo(
+    () => computed(() => displayState.hoveredFeature?.feature._id === _id),
+    [displayState, _id],
+  )
+  const isSelectedComputed = useMemo(
+    () => computed(() => displayState.selectedFeature?._id === _id),
+    [displayState, _id],
+  )
+  const isHovered = isHoveredComputed.get()
+  const isSelected = isSelectedComputed.get()
   const expanded = !featureCollapsed.get(_id)
   const toggleExpanded = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -174,6 +182,10 @@ export const Feature = observer(function Feature({
             // eslint-disable-next-line jsx-a11y-x/click-events-have-key-events, jsx-a11y-x/no-static-element-interactions
             <div
               onClick={toggleExpanded}
+              onDoubleClick={(e) => {
+                // don't let toggling quickly navigate to the feature
+                e.stopPropagation()
+              }}
               className={
                 classes.arrow + (expanded ? ` ${classes.arrowExpanded}` : '')
               }
@@ -259,13 +271,8 @@ export const Feature = observer(function Feature({
               return text.includes(filterText)
             })
             .map(([featureId, childFeature]) => {
-              const childHovered =
-                hoveredFeature?.feature._id === childFeature._id
-              const childSelected = selectedFeature?._id === childFeature._id
               return (
                 <Feature
-                  isHovered={childHovered}
-                  isSelected={childSelected}
                   selectedFeatureClass={selectedFeatureClass}
                   key={featureId}
                   depth={(depth || 0) + 1}
