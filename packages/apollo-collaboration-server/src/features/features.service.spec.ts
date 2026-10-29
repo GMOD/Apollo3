@@ -87,4 +87,28 @@ describe('FeaturesService', () => {
       },
     })
   })
+
+  it('only matches the requested feature types', async () => {
+    aggregate.mockReturnValue(
+      Promise.resolve([{ count: [], firstBins: [], endBins: [] }]),
+    )
+    await service.getFeatureDensity('0123456789abcdef01234567', 0, 300, 100, [
+      'gene',
+    ])
+    const [[pipeline]] = aggregate.mock.calls as [
+      [{ $match?: Record<string, unknown> }[]],
+    ]
+    expect(pipeline.at(0)?.$match).toMatchObject({ type: { $in: ['gene'] } })
+  })
+
+  it('matches all feature types by default', async () => {
+    aggregate.mockReturnValue(
+      Promise.resolve([{ count: [], firstBins: [], endBins: [] }]),
+    )
+    await service.getFeatureDensity('0123456789abcdef01234567', 0, 300, 100)
+    const [[pipeline]] = aggregate.mock.calls as [
+      [{ $match?: Record<string, unknown> }[]],
+    ]
+    expect(pipeline.at(0)?.$match).not.toHaveProperty('type')
+  })
 })

@@ -112,12 +112,15 @@ export class FeaturesService {
   /**
    * Count the features overlapping a range, and how many overlap each bin of
    * the range expanded to multiples of `binSize`
+   * @param featureTypes - only count top-level features of these types, or
+   * all features if empty
    */
   async getFeatureDensity(
     refSeq: string,
     start: number,
     end: number,
     binSize: number,
+    featureTypes: string[] = [],
   ): Promise<FeatureDensity> {
     const aligned = alignBins(start, end, binSize)
     const alignedEnd = aligned.start + aligned.nBins * binSize
@@ -163,6 +166,7 @@ export class FeaturesService {
           min: { $lt: alignedEnd },
           max: { $gt: aligned.start },
           status: 0,
+          ...(featureTypes.length > 0 && { type: { $in: featureTypes } }),
         },
       },
       { $project: { _id: 0, min: 1, max: 1, strand: 1 } },

@@ -77,6 +77,27 @@ function makeDisplay(snapshot = {}) {
   return root.display
 }
 
+/** A display that filters features by type, like LinearApolloDisplay */
+function makeFilteredDisplay(snapshot = {}) {
+  const FilteredDisplay = FeatureDensityMixin()
+    .volatile(() => ({ filter: [] as string[] }))
+    .views((self) => ({
+      get densityFeatureTypes() {
+        return self.filter
+      },
+    }))
+    .actions((self) => ({
+      setFilter(filter: string[]) {
+        self.filter = filter
+      },
+    }))
+  const root = types
+    .model({ display: FilteredDisplay })
+    .create({ display: snapshot })
+  roots.push(root)
+  return root.display
+}
+
 describe('FeatureDensityMixin', () => {
   afterEach(() => {
     for (const root of roots.splice(0)) {
@@ -175,6 +196,45 @@ describe('FeatureDensityMixin', () => {
     expect(getFeatureDensity).toHaveBeenCalledTimes(2)
     await respond(50)
     expect(display.displayMode).toBe('features')
+  })
+
+  it('counts only the feature types the display shows', async () => {
+    const display = makeFilteredDisplay({ maxFeatureCount: 100 })
+    display.fetchDensityStats(display.densityKey)
+    expect(getFeatureDensity).toHaveBeenLastCalledWith(
+      expect.anything(),
+      expect.any(Number),
+      [],
+    )
+    await respond(500)
+    expect(display.displayMode).toBe('density')
+    display.setFilter(['gene'])
+    // Filtering changes the key, so the old count no longer applies
+    expect(display.featureCountInView).toBeUndefined()
+    display.fetchDensityStats(display.densityKey)
+    expect(getFeatureDensity).toHaveBeenLastCalledWith(
+      expect.anything(),
+      expect.any(Number),
+      ['gene'],
+    )
+    await respond(50)
+    expect(display.displayMode).toBe('features')
+  })
+
+  it('reuses under-limit counts only for the same or fewer types', async () => {
+    const display = makeFilteredDisplay({ maxFeatureCount: 100 })
+    display.setFilter(['gene', 'pseudogene'])
+    display.fetchDensityStats(display.densityKey)
+    await respond(50)
+    expect(display.isKnownUnderLimit).toBe(true)
+    // Fewer types can only mean fewer features
+    display.setFilter(['gene'])
+    expect(display.isKnownUnderLimit).toBe(true)
+    // Showing all types could mean more features
+    display.setFilter([])
+    expect(display.isKnownUnderLimit).toBe(false)
+    display.setFilter(['gene', 'ncRNA_gene'])
+    expect(display.isKnownUnderLimit).toBe(false)
   })
 
   it('uses the zoom threshold in fixed mode', () => {

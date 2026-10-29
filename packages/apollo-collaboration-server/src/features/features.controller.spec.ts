@@ -32,7 +32,33 @@ describe('FeaturesController', () => {
       end: '20100',
       binSize: '200',
     })
-    expect(getFeatureDensity).toHaveBeenCalledWith('refSeq1', 100, 20_100, 200)
+    expect(getFeatureDensity).toHaveBeenCalledWith(
+      'refSeq1',
+      100,
+      20_100,
+      200,
+      [],
+    )
+  })
+
+  it.each([
+    { type: 'gene', expected: ['gene'] },
+    { type: ['gene', 'pseudogene'], expected: ['gene', 'pseudogene'] },
+  ])('passes feature types $type through', ({ expected, type }) => {
+    void controller.getFeatureDensity({
+      refSeq: 'refSeq1',
+      start: '0',
+      end: '100',
+      binSize: '10',
+      type,
+    })
+    expect(getFeatureDensity).toHaveBeenCalledWith(
+      'refSeq1',
+      0,
+      100,
+      10,
+      expected,
+    )
   })
 
   it.each([

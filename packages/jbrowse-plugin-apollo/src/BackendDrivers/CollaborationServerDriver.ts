@@ -144,7 +144,11 @@ export class CollaborationServerDriver extends BackendDriver {
     >
   }
 
-  async getFeatureDensity(region: Region, binSize: number) {
+  async getFeatureDensity(
+    region: Region,
+    binSize: number,
+    featureTypes: string[] = [],
+  ) {
     const { assemblyName, end, refName, start } = region
     const refSeqMap = await this.getRefSeqMapping(assemblyName)
     const refSeqEntry = refSeqMap.get(refName)
@@ -153,12 +157,16 @@ export class CollaborationServerDriver extends BackendDriver {
     }
     const internetAccount = this.clientStore.getInternetAccount(assemblyName)
     const url = new URL('features/getFeatureDensity', internetAccount.baseURL)
-    url.search = new URLSearchParams({
+    const searchParams = new URLSearchParams({
       refSeq: refSeqEntry.id,
       start: String(start),
       end: String(end),
       binSize: String(binSize),
-    }).toString()
+    })
+    for (const featureType of featureTypes) {
+      searchParams.append('type', featureType)
+    }
+    url.search = searchParams.toString()
     const response = await this.fetch(internetAccount, url.toString())
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(

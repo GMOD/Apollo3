@@ -77,6 +77,7 @@ export class LocalDriver extends BackendDriver {
   async getFeatureDensity(
     region: Region,
     binSize: number,
+    featureTypes: string[] = [],
   ): Promise<FeatureDensity> {
     const { assemblyName, end, refName, start } = region
     const regions = await this.getRegions(assemblyName)
@@ -89,8 +90,12 @@ export class LocalDriver extends BackendDriver {
     for await (const cursor of tx.store
       .index('min')
       .iterate(IDBKeyRange.upperBound(alignedEnd, true))) {
-      const { max, min, strand } = cursor.value as AnnotationFeatureSnapshot
-      if (max >= aligned.start) {
+      const { max, min, strand, type } =
+        cursor.value as AnnotationFeatureSnapshot
+      if (
+        max >= aligned.start &&
+        (featureTypes.length === 0 || featureTypes.includes(type))
+      ) {
         intervals.push({ min, max, strand })
       }
     }

@@ -60,6 +60,8 @@ export interface DensityStats {
 export interface UnderLimitEntry {
   regions: Region[]
   count: number
+  /** Feature types counted, or empty if all types were counted */
+  featureTypes: string[]
 }
 
 /** The display this is mixed into provides the configuration */
@@ -67,10 +69,16 @@ function getDisplayConf(self: object, slotName: string): unknown {
   return getConf(self as Parameters<typeof getConf>[0], slotName)
 }
 
-function regionsKey(regions: Region[], binSize: number, changeCount: number) {
+function regionsKey(
+  regions: Region[],
+  binSize: number,
+  featureTypes: string[],
+  changeCount: number,
+) {
   return JSON.stringify([
     changeCount,
     binSize,
+    featureTypes.toSorted(),
     regions.map(({ assemblyName, end, refName, start }) => [
       assemblyName,
       refName,
@@ -78,6 +86,20 @@ function regionsKey(regions: Region[], binSize: number, changeCount: number) {
       end,
     ]),
   ])
+}
+
+/**
+ * Whether a count of `countedTypes` is at least as large as a count of
+ * `featureTypes` would be. An empty list means all types.
+ */
+function countsAtLeast(countedTypes: string[], featureTypes: string[]) {
+  if (countedTypes.length === 0) {
+    return true
+  }
+  return (
+    featureTypes.length > 0 &&
+    featureTypes.every((type) => countedTypes.includes(type))
+  )
 }
 
 /**
@@ -104,6 +126,13 @@ export function FeatureDensityMixin() {
       forceLoadBpPerPx: undefined as number | undefined,
     }))
     .views((self) => ({
+      /**
+       * Only count top-level features of these types, or all features if
+       * empty. Displays that filter features by type override this.
+       */
+      get densityFeatureTypes(): string[] {
+        return []
+      },
       get densityLgv() {
         return getContainingView(self) as unknown as LinearGenomeViewModel
       },
@@ -162,6 +191,7 @@ export function FeatureDensityMixin() {
         return regionsKey(
           self.densityRegions,
           self.densityBinSize,
+          self.densityFeatureTypes,
           apolloDataStore.changeCount,
         )
       },
@@ -174,6 +204,7 @@ export function FeatureDensityMixin() {
         return self.underLimit.some(
           (entry) =>
             entry.count <= self.maxFeatureCountSetting &&
+            countsAtLeast(entry.featureTypes, self.densityFeatureTypes) &&
             regions.every((region) =>
               entry.regions.some(
                 (known) =>
@@ -275,6 +306,7 @@ export function FeatureDensityMixin() {
       setDensityStats(
         key: string,
         regions: Region[],
+        featureTypes: string[],
         densities: (FeatureDensity | undefined)[],
       ) {
         if (key !== self.pendingDensityKey) {
@@ -298,10 +330,10 @@ export function FeatureDensityMixin() {
           count += density.count
         }
         if (count <= self.maxFeatureCountSetting) {
-          self.underLimit = [{ regions, count }, ...self.underLimit].slice(
-            0,
-            maxUnderLimitEntries,
-          )
+          self.underLimit = [
+            { regions, count, featureTypes },
+            ...self.underLimit,
+          ].slice(0, maxUnderLimitEntries)
         }
       },
       setDensityError(key: string, error: unknown) {
@@ -326,16 +358,17 @@ export function FeatureDensityMixin() {
         self.pendingDensityKey = key
         const regions = self.densityRegions
         const binSize = self.densityBinSize
+        const featureTypes = self.densityFeatureTypes
         const { apolloDataStore } = getSession(
           self,
         ) as unknown as ApolloSessionModel
         Promise.all(
           regions.map((region) =>
-            apolloDataStore.getFeatureDensity(region, binSize),
+            apolloDataStore.getFeatureDensity(region, binSize, featureTypes),
           ),
         ).then(
           (densities) => {
-            this.setDensityStats(key, regions, densities)
+            this.setDensityStats(key, regions, featureTypes, densities)
           },
           (error: unknown) => {
             console.error(error)

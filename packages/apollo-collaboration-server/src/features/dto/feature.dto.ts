@@ -11,6 +11,8 @@ export interface FeatureDensityRequest {
   start: string
   end: string
   binSize: string
+  /** Only count top-level features of these types. Repeat for more types. */
+  type?: string | string[]
 }
 
 export interface GetByIndexedIdRequest {

@@ -16,9 +16,9 @@ describe('LocalDriver', () => {
       ])
     const db = await openDb(assemblyName, ['ctgA'])
     const features = [
-      { _id: 'long', min: 0, max: 10_000, strand: 1 },
-      { _id: 'short', min: 250, max: 260, strand: -1 },
-      { _id: 'outside', min: 2000, max: 3000 },
+      { _id: 'long', type: 'gene', min: 0, max: 10_000, strand: 1 },
+      { _id: 'short', type: 'ncRNA_gene', min: 250, max: 260, strand: -1 },
+      { _id: 'outside', type: 'gene', min: 2000, max: 3000 },
     ]
     for (const feature of features) {
       await db.put('features-ctgA', feature, feature._id)
@@ -40,5 +40,13 @@ describe('LocalDriver', () => {
         unstranded: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       },
     })
+
+    const geneDensity = await driver.getFeatureDensity(
+      { assemblyName, refName: 'ctgA', start: 0, end: 1000 },
+      100,
+      ['gene'],
+    )
+    expect(geneDensity.count).toBe(1)
+    expect(geneDensity.bins).toEqual([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
   })
 })

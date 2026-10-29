@@ -54,10 +54,13 @@ export abstract class BackendDriver {
   /**
    * Count the features in a region and how many overlap each bin of the region
    * expanded to multiples of `binSize`, without loading the features
+   * @param featureTypes - only count top-level features of these types, or
+   * all features if empty
    */
   abstract getFeatureDensity(
     region: Region,
     binSize: number,
+    featureTypes?: string[],
   ): Promise<FeatureDensity>
 
   abstract getSequence(region: Region): Promise<{ seq: string; refSeq: string }>

@@ -128,6 +128,10 @@ export function baseModelFactory(
       regionCannotBeRendered(/* region */) {
         return self.densityMessage
       },
+      /** The density only counts the feature types the display shows */
+      get densityFeatureTypes() {
+        return [...self.filteredFeatureTypes]
+      },
     }))
     .views((self) => ({
       get apolloInternetAccount() {

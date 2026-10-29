@@ -269,9 +269,10 @@ export function clientDataStoreFactory(
       async getFeatureDensity(
         region: Region,
         binSize: number,
+        featureTypes?: string[],
       ): Promise<FeatureDensity | undefined> {
         const backendDriver = this.getBackendDriver(region.assemblyName)
-        return backendDriver?.getFeatureDensity(region, binSize)
+        return backendDriver?.getFeatureDensity(region, binSize, featureTypes)
       },
       getInternetAccount(assemblyName?: string, internetAccountId?: string) {
         if (!(assemblyName ?? internetAccountId)) {

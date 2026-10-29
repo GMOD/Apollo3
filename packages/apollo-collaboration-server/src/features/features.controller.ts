@@ -119,11 +119,13 @@ export class FeaturesController {
         `Too many bins requested, maximum is ${maxDensityBins}`,
       )
     }
+    const featureTypes = request.type === undefined ? [] : [request.type].flat()
     return this.featuresService.getFeatureDensity(
       request.refSeq,
       start,
       end,
       binSize,
+      featureTypes,
     )
   }
 
