@@ -1,7 +1,9 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
+import type { ContentBlock } from '@jbrowse/core/util/blockTypes'
 import { expect, it, jest } from '@jest/globals'
 import { alpha } from '@mui/material'
 
+import { getFeaturePx, roundPxSpan } from '../../util/glyphUtils'
 import type { LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
 
 jest.unstable_mockModule('../../components', () => ({
@@ -15,6 +17,8 @@ jest.unstable_mockModule('../../util', () => ({
   getAdjacentExons: jest.fn(),
   getContextMenuItemsForFeature: jest.fn(),
   getMinAndMaxPx: jest.fn(),
+  getFeaturePx,
+  roundPxSpan,
   getOverlappingEdge: jest.fn(),
   getRelatedFeatures: jest.fn(),
   getStreamIcon: jest.fn(),
@@ -57,7 +61,7 @@ it.each<[string, string | undefined, boolean, 'light' | 'dark']>([
       attributes: new Map(),
       children: new Map(),
       min: 0,
-      length: 20,
+      max: 20,
       strand: 1,
     } as unknown as AnnotationFeature
     const getValue = jest.fn(() => configuredColor)
@@ -66,9 +70,7 @@ it.each<[string, string | undefined, boolean, 'light' | 'dark']>([
       apolloRowHeight: 10,
       lgv: {
         bpPerPx: 1,
-        displayedRegions: [{ refName: 'ref', reversed: false }],
         offsetPx: 0,
-        bpToPx: () => ({ offsetPx: 5 }),
       },
       theme: {
         palette: { mode, text: { primary: '#000000' }, background: { paper } },
@@ -88,15 +90,26 @@ it.each<[string, string | undefined, boolean, 'light' | 'dark']>([
       },
     } as unknown as CanvasRenderingContext2D
 
-    geneGlyph.draw(ctx, gene, 0, display, 0)
+    for (const reversed of [false, true]) {
+      const block = {
+        start: 0,
+        end: 100,
+        offsetPx: 5,
+        reversed,
+      } as ContentBlock
+      fills.length = 0
+      geneGlyph.draw(display, ctx, gene, block)
 
-    expect(fills[1]).toEqual({
-      color: selected
-        ? alpha('rgb(0,0,0)', 0.7)
-        : configuredColor ?? alpha(paper, 0.7),
-      rect: [6, 31, 18, 8],
-    })
-    if (!selected && configuredColor !== undefined) {
+      expect(fills[1]).toEqual({
+        color: selected
+          ? alpha('rgb(0,0,0)', 0.7)
+          : configuredColor ?? alpha(paper, 0.7),
+        rect: [reversed ? 86 : 6, 31, 18, 8],
+      })
+    }
+    if (selected) {
+      expect(getValue).not.toHaveBeenCalled()
+    } else if (configuredColor !== undefined) {
       expect(getValue).toHaveBeenCalledWith({ featureType: type })
     }
   },

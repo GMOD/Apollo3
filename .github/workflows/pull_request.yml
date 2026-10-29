@@ -140,21 +140,22 @@ jobs:
         background: true
         # Exits non-zero when it's stopped
         continue-on-error: true
-        run:
-          exec yarn --cwd packages/apollo-collaboration-server/test/data/ serve
-          --listen 3131
+        run: exec yarn serve --listen 3131 test/data/
+        working-directory: packages/apollo-collaboration-server
       - name: Start plugin file server
         id: plugin-server
         background: true
         # Exits non-zero when it's stopped
         continue-on-error: true
-        run: exec yarn --cwd packages/jbrowse-plugin-apollo start:server
+        run: exec yarn start:server
+        working-directory: packages/jbrowse-plugin-apollo
       - name: Start JBrowse file server
         id: jbrowse-server
         background: true
         # Exits non-zero when it's stopped
         continue-on-error: true
-        run: exec yarn --cwd packages/jbrowse-plugin-apollo browse
+        run: exec yarn browse
+        working-directory: packages/jbrowse-plugin-apollo
       # `exec` so the SIGTERM from `cancel` goes to yarn, which passes it on to
       # the server so it can write its coverage before exiting
       - name: Start apollo-collaboration-server
@@ -162,9 +163,8 @@ jobs:
         background: true
         # Exits non-zero when it's stopped
         continue-on-error: true
-        run:
-          exec yarn --cwd packages/apollo-collaboration-server
-          cypress:start:coverage
+        run: exec yarn cypress:start:coverage
+        working-directory: packages/apollo-collaboration-server
       # Starting apollo builds shared and the server, so wait for it to finish
       # before the plugin build (which also builds shared)
       - name: Wait for servers to start
@@ -248,9 +248,8 @@ jobs:
         background: true
         # Exits non-zero when it's stopped
         continue-on-error: true
-        run:
-          exec yarn --cwd packages/apollo-collaboration-server/test/data/ serve
-          --listen 3131
+        run: exec yarn serve --listen 3131 test/data/
+        working-directory: packages/apollo-collaboration-server
       # `exec` so the SIGTERM from `cancel` goes to yarn, which passes it on to
       # the server so it can write its coverage before exiting
       - name: Start apollo-collaboration-server
@@ -258,9 +257,8 @@ jobs:
         background: true
         # Exits non-zero when it's stopped
         continue-on-error: true
-        run:
-          exec yarn --cwd packages/apollo-collaboration-server
-          test:cli:start:coverage
+        run: exec yarn test:cli:start:coverage
+        working-directory: packages/apollo-collaboration-server
       # Starting apollo builds shared and the server, so wait for it to finish
       # before the CLI build
       - name: Wait for apollo to start

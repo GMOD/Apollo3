@@ -9,7 +9,6 @@ import {
   type AbstractSessionModel,
   doesIntersect2,
   getContainingView,
-  getFrame,
 } from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import ErrorIcon from '@mui/icons-material/Error'
@@ -23,9 +22,10 @@ import {
   clusterResultByMessage,
   useStyles,
 } from '../../util/displayUtils'
-import { looksLikeGene } from '../../util/glyphUtils'
+import { getLeftPx, looksLikeGene } from '../../util/glyphUtils'
 import type { LinearApolloSixFrameDisplay as LinearApolloSixFrameDisplayI } from '../stateModel'
 
+import { Tooltip as LinearApolloSixFrameDisplayTooltip } from './Tooltip'
 import { TrackLines } from './TrackLines'
 
 interface LinearApolloSixFrameDisplayProps {
@@ -44,7 +44,7 @@ export const LinearApolloSixFrameDisplay = observer(
       contextMenuItems: getContextMenuItems,
       cursor,
       featuresHeight,
-      geneTrackRowNums,
+      getRowForFeature,
       isShown,
       onMouseDown,
       onMouseLeave,
@@ -57,7 +57,6 @@ export const LinearApolloSixFrameDisplay = observer(
       setOverlayCanvas,
       setTheme,
       showCheckResults,
-      showFeatureLabels,
     } = model
     const { classes } = useStyles()
     const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
@@ -67,6 +66,7 @@ export const LinearApolloSixFrameDisplay = observer(
     }, [theme, setTheme])
     const [contextCoord, setContextCoord] = useState<Coord>()
     const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
+    const [mouseCoord, setMouseCoord] = useState<Coord>()
 
     const message = regionCannotBeRendered()
     if (!isShown) {
@@ -148,17 +148,28 @@ export const LinearApolloSixFrameDisplay = observer(
                 }}
                 width={lgv.dynamicBlocks.totalWidthPx}
                 height={featuresHeight}
-                onMouseMove={onMouseMove}
-                onMouseLeave={onMouseLeave}
+                onMouseMove={(...args) => {
+                  const [event] = args
+                  setMouseCoord([event.clientX, event.clientY])
+                  onMouseMove(...args)
+                }}
+                onMouseLeave={(...args) => {
+                  setMouseCoord(undefined)
+                  onMouseLeave(...args)
+                }}
                 onMouseDown={onMouseDown}
                 onMouseUp={onMouseUp}
                 className={classes.canvas}
                 style={{ cursor: cursor ?? 'default' }}
                 data-testid="overlayCanvas"
               />
-              {lgv.displayedRegions.flatMap((region, idx) => {
+              <LinearApolloSixFrameDisplayTooltip
+                mouseCoordinate={mouseCoord}
+                model={model}
+              />
+              {lgv.dynamicBlocks.contentBlocks.flatMap((block) => {
                 const widthBp = lgv.bpPerPx * apolloRowHeight
-                const assembly = assemblyManager.get(region.assemblyName) as
+                const assembly = assemblyManager.get(block.assemblyName) as
                   | Assembly
                   | undefined
                 if (showCheckResults) {
@@ -168,10 +179,10 @@ export const LinearApolloSixFrameDisplay = observer(
                     (checkResult) =>
                       assembly?.isValidRefName(checkResult.refSeq) &&
                       assembly.getCanonicalRefName(checkResult.refSeq) ===
-                        region.refName &&
+                        block.refName &&
                       doesIntersect2(
-                        region.start,
-                        region.end,
+                        block.start,
+                        block.end,
                         checkResult.start,
                         checkResult.end,
                       ),
@@ -182,12 +193,9 @@ export const LinearApolloSixFrameDisplay = observer(
                     true,
                   )
                   return checkResults.map((checkResult) => {
-                    const left =
-                      (lgv.bpToPx({
-                        refName: region.refName,
-                        coord: checkResult.start,
-                        regionNumber: idx,
-                      })?.offsetPx ?? 0) - lgv.offsetPx
+                    const left = Math.round(
+                      getLeftPx(model, checkResult.range, block),
+                    )
                     const [feature] = checkResult.featureIds
                     if (
                       !feature?.parent ||
@@ -196,44 +204,16 @@ export const LinearApolloSixFrameDisplay = observer(
                       return null
                     }
 
-                    let row
-                    for (const loc of feature.cdsLocations) {
-                      for (const cds of loc) {
-                        const frame = getFrame(
-                          cds.min,
-                          cds.max,
-                          feature.strand ?? 1,
-                          cds.phase,
-                        )
-                        const frameOffsets = showFeatureLabels
-                          ? [0, 5, 3, 1, 15, 13, 11]
-                          : [0, 2, 1, 0, 8, 7, 6]
-                        const rowNum = frameOffsets.at(frame)
-                        if (rowNum === undefined) {
-                          continue
-                        }
-                        if (
-                          checkResult.start >= cds.min &&
-                          checkResult.start <= cds.max
-                        ) {
-                          row = rowNum - 1
-                          break
-                        }
-                      }
-                    }
+                    const row = getRowForFeature(feature, checkResult.start)
                     if (row === undefined) {
-                      const rowNum =
-                        feature.strand == 1
-                          ? geneTrackRowNums[0]
-                          : geneTrackRowNums[1]
-                      row = rowNum - 1
+                      return null
                     }
 
                     const top = row * apolloRowHeight
                     const height = apolloRowHeight
                     return (
                       <Tooltip
-                        key={checkResult._id}
+                        key={`${block.key}-${checkResult._id}`}
                         title={checkResult.message}
                       >
                         <Box

@@ -6,6 +6,8 @@ import { type Instance, addDisposer, types } from '@jbrowse/mobx-state-tree'
 import { type Theme, createTheme } from '@mui/material'
 import { autorun } from 'mobx'
 
+import { roundPxSpan } from '../../util/glyphUtils'
+
 import { layoutsModelFactory } from './layouts'
 
 export function renderingModelFactory(
@@ -143,9 +145,13 @@ export function renderingModelFactory(
                     if (!locationStartPxInfo) {
                       continue
                     }
-                    const locationStartPx =
-                      locationStartPxInfo.offsetPx - self.lgv.offsetPx
-                    const locationWidthPx = (end - start) / self.lgv.bpPerPx
+                    const {
+                      startPx: locationStartPx,
+                      widthPx: locationWidthPx,
+                    } = roundPxSpan(
+                      locationStartPxInfo.offsetPx - self.lgv.offsetPx,
+                      (end - start) / self.lgv.bpPerPx,
+                    )
                     ctx.fillStyle = 'rgba(0,255,0,.2)'
                     ctx.fillRect(locationStartPx, 1, locationWidthPx, 100)
                     ctx.fillStyle = 'black'
@@ -191,10 +197,13 @@ export function renderingModelFactory(
                 if (!layout) {
                   continue
                 }
-                const blockLeftPx = block.offsetPx - offsetPx
+                const clip = roundPxSpan(
+                  block.offsetPx - offsetPx,
+                  block.widthPx,
+                )
                 ctx.save()
                 ctx.beginPath()
-                ctx.rect(blockLeftPx, 0, block.widthPx, canvas.height)
+                ctx.rect(clip.startPx, 0, clip.widthPx, canvas.height)
                 ctx.clip()
                 const { byRow } = layout
                 for (const [row, layoutRow] of byRow.entries()) {

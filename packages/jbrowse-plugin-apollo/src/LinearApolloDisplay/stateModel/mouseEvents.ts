@@ -18,6 +18,7 @@ import {
   getPropagatedLocationChanges,
   isCDSFeature,
   isExonFeature,
+  roundPxSpan,
   selectFeatureAndOpenWidget,
 } from '../../util'
 import { isMouseOnFeatureEdge } from '../glyphs/util'
@@ -336,15 +337,23 @@ export function mouseEventsModelFactory(
               if (row === undefined) {
                 return
               }
+              const featureRefName = self.getCanonicalRefName(
+                feature.assemblyId,
+                feature.refSeq,
+              )
 
               for (const block of dynamicBlocks.contentBlocks) {
-                const blockLeftPx = block.offsetPx - offsetPx
+                const clip = roundPxSpan(
+                  block.offsetPx - offsetPx,
+                  block.widthPx,
+                )
                 ctx.save()
                 ctx.beginPath()
-                ctx.rect(blockLeftPx, 0, block.widthPx, overlayCanvas.height)
+                ctx.rect(clip.startPx, 0, clip.widthPx, overlayCanvas.height)
                 ctx.clip()
                 if (
                   block.assemblyName === feature.assemblyId &&
+                  block.refName === featureRefName &&
                   doesIntersect2(
                     block.start,
                     block.end,
@@ -372,6 +381,7 @@ export function mouseEventsModelFactory(
                   const dragMin = Math.min(current.bp, start.bp)
                   const dragMax = Math.max(current.bp, start.bp)
                   if (
+                    block.refName === start.refName &&
                     doesIntersect2(block.start, block.end, dragMin, dragMax)
                   ) {
                     const dragGlyph = self.getGlyph(dragFeature)
