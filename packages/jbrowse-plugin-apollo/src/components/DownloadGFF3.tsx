@@ -77,10 +77,14 @@ export function DownloadGFF3({
     event.preventDefault()
     setErrorMessage('')
 
-    await (internetAccountConfigId
-      ? exportFromCollaborationServer(internetAccountConfigId)
-      : downloadAssemblyGFF3(assemblyName))
-    handleClose()
+    try {
+      await (internetAccountConfigId
+        ? exportFromCollaborationServer(internetAccountConfigId)
+        : downloadAssemblyGFF3(assemblyName))
+      handleClose()
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : String(error))
+    }
   }
 
   async function exportFromCollaborationServer(
@@ -100,12 +104,9 @@ export function DownloadGFF3({
     })
     const response = await apolloFetch(uri, { method: 'GET' })
     if (!response.ok) {
-      const newErrorMessage = await createFetchErrorMessage(
-        response,
-        'Error when exporting ID',
+      throw new Error(
+        await createFetchErrorMessage(response, 'Error when exporting ID'),
       )
-      setErrorMessage(newErrorMessage)
-      return
     }
     const { exportID } = (await response.json()) as { exportID: string }
 
