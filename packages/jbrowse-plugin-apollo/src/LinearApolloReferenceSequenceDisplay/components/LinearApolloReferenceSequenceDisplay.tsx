@@ -5,7 +5,7 @@ import { getContainingView } from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { Alert, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect } from 'react'
 
 import { useStyles } from '../../util/displayUtils'
 import type { LinearApolloReferenceSequenceDisplay as LinearApolloReferenceSequenceDisplayI } from '../stateModel'
@@ -31,6 +31,25 @@ export const LinearApolloReferenceSequenceDisplay = observer(
     useEffect(() => {
       setTheme(theme)
     }, [theme, setTheme])
+    // Stable ref callbacks so React doesn't call them with null and then the
+    // node again on every render, which would set the canvas twice and redraw
+    // it.
+    // Promise.resolve() in these 2 callbacks is to avoid infinite rendering
+    // loop https://github.com/mobxjs/mobx/issues/3728#issuecomment-1715400931
+    const seqTrackCanvasRef = useCallback(
+      async (node: HTMLCanvasElement | null) => {
+        await Promise.resolve()
+        setSeqTrackCanvas(node)
+      },
+      [setSeqTrackCanvas],
+    )
+    const seqTrackOverlayCanvasRef = useCallback(
+      async (node: HTMLCanvasElement | null) => {
+        await Promise.resolve()
+        setSeqTrackOverlayCanvas(node)
+      },
+      [setSeqTrackOverlayCanvas],
+    )
 
     const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
     const message = regionCannotBeRendered()
@@ -62,22 +81,12 @@ export const LinearApolloReferenceSequenceDisplay = observer(
             }}
           >
             <canvas
-              ref={async (node: HTMLCanvasElement) => {
-                await Promise.resolve()
-                setSeqTrackCanvas(node)
-              }}
-              width={lgv.dynamicBlocks.totalWidthPx}
-              height={height}
+              ref={seqTrackCanvasRef}
               className={classes.canvas}
               data-testid="seqTrackCanvas"
             />
             <canvas
-              ref={async (node: HTMLCanvasElement) => {
-                await Promise.resolve()
-                setSeqTrackOverlayCanvas(node)
-              }}
-              width={lgv.dynamicBlocks.totalWidthPx}
-              height={height}
+              ref={seqTrackOverlayCanvasRef}
               className={classes.canvas}
               data-testid="seqTrackOverlayCanvas"
             />

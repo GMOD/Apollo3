@@ -11,12 +11,12 @@ import {
   getContainingView,
 } from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import ErrorIcon from '@mui/icons-material/Error'
 import LockIcon from '@mui/icons-material/Lock'
-import { Alert, Avatar, Badge, Box, Tooltip, useTheme } from '@mui/material'
+import { Alert, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
+import { CheckResultIcon } from '../../components/CheckResultIcon'
 import { FeatureDensityHistogram } from '../../components/FeatureDensityHistogram'
 import {
   type Coord,
@@ -66,6 +66,32 @@ export const LinearApolloSixFrameDisplay = observer(
     useEffect(() => {
       setTheme(theme)
     }, [theme, setTheme])
+    // Stable ref callbacks so React doesn't call them with null and then the
+    // node again on every render, which would set the canvas twice and redraw
+    // it.
+    // Promise.resolve() in these 3 callbacks is to avoid infinite rendering
+    // loop https://github.com/mobxjs/mobx/issues/3728#issuecomment-1715400931
+    const collaboratorCanvasRef = useCallback(
+      async (node: HTMLCanvasElement | null) => {
+        await Promise.resolve()
+        setCollaboratorCanvas(node)
+      },
+      [setCollaboratorCanvas],
+    )
+    const canvasRef = useCallback(
+      async (node: HTMLCanvasElement | null) => {
+        await Promise.resolve()
+        setCanvas(node)
+      },
+      [setCanvas],
+    )
+    const overlayCanvasRef = useCallback(
+      async (node: HTMLCanvasElement | null) => {
+        await Promise.resolve()
+        setOverlayCanvas(node)
+      },
+      [setOverlayCanvas],
+    )
     const [contextCoord, setContextCoord] = useState<Coord>()
     const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
     const [mouseCoord, setMouseCoord] = useState<Coord>()
@@ -115,8 +141,6 @@ export const LinearApolloSixFrameDisplay = observer(
           ) : null}
           {showHistogram ? <FeatureDensityHistogram model={model} /> : null}
           {message || showHistogram ? null : (
-            // Promise.resolve() in these 3 callbacks is to avoid infinite rendering loop
-            // https://github.com/mobxjs/mobx/issues/3728#issuecomment-1715400931
             <>
               <TrackLines model={model} idx={0} />
               <TrackLines
@@ -126,32 +150,17 @@ export const LinearApolloSixFrameDisplay = observer(
               />
               <TrackLines model={model} idx={2} />
               <canvas
-                ref={async (node: HTMLCanvasElement) => {
-                  await Promise.resolve()
-                  setCollaboratorCanvas(node)
-                }}
-                width={lgv.dynamicBlocks.totalWidthPx}
-                height={featuresHeight}
+                ref={collaboratorCanvasRef}
                 className={classes.canvas}
                 data-testid="collaboratorCanvas"
               />
               <canvas
-                ref={async (node: HTMLCanvasElement) => {
-                  await Promise.resolve()
-                  setCanvas(node)
-                }}
-                width={lgv.dynamicBlocks.totalWidthPx}
-                height={featuresHeight}
+                ref={canvasRef}
                 className={classes.canvas}
                 data-testid="canvas"
               />
               <canvas
-                ref={async (node: HTMLCanvasElement) => {
-                  await Promise.resolve()
-                  setOverlayCanvas(node)
-                }}
-                width={lgv.dynamicBlocks.totalWidthPx}
-                height={featuresHeight}
+                ref={overlayCanvasRef}
                 onMouseMove={(...args) => {
                   const [event] = args
                   setMouseCoord([event.clientX, event.clientY])
@@ -213,42 +222,17 @@ export const LinearApolloSixFrameDisplay = observer(
                       return null
                     }
 
-                    const top = row * apolloRowHeight
-                    const height = apolloRowHeight
                     return (
-                      <Tooltip
+                      <CheckResultIcon
                         key={`${block.key}-${checkResult._id}`}
-                        title={checkResult.message}
-                      >
-                        <Box
-                          className={classes.box}
-                          style={{
-                            top,
-                            left,
-                            height,
-                            width: height,
-                            pointerEvents: apolloDragging ? 'none' : 'auto',
-                          }}
-                        >
-                          <Badge
-                            className={classes.badge}
-                            badgeContent={checkResult.count}
-                            color="primary"
-                            overlap="circular"
-                            anchorOrigin={{
-                              vertical: 'bottom',
-                              horizontal: 'right',
-                            }}
-                            invisible={checkResult.count <= 1}
-                          >
-                            <Avatar className={classes.avatar}>
-                              <ErrorIcon
-                                data-testid={`ErrorIcon-${checkResult.start}`}
-                              />
-                            </Avatar>
-                          </Badge>
-                        </Box>
-                      </Tooltip>
+                        top={row * apolloRowHeight}
+                        left={left}
+                        size={apolloRowHeight}
+                        disablePointerEvents={Boolean(apolloDragging)}
+                        message={checkResult.message}
+                        count={checkResult.count}
+                        start={checkResult.start}
+                      />
                     )
                   })
                 }

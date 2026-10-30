@@ -1,12 +1,11 @@
 import type { CheckResultI } from '@apollo-annotation/mst'
 import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { type AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
-import ErrorIcon from '@mui/icons-material/Error'
-import { Avatar, Badge, Box, Tooltip } from '@mui/material'
 import { observer } from 'mobx-react'
 import React from 'react'
 
-import { clusterResultByMessage, useStyles } from '../../util/displayUtils'
+import { CheckResultIcon } from '../../components/CheckResultIcon'
+import { clusterResultByMessage } from '../../util/displayUtils'
 import { getLeftPx } from '../glyphs/util'
 import type { LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
 
@@ -15,7 +14,6 @@ export const CheckResultWarnings = observer(function CheckResultWarnings({
 }: {
   display: LinearApolloDisplayI
 }) {
-  const { classes } = useStyles()
   const { apolloDragging, apolloRowHeight, lgv, session, showCheckResults } =
     display
   const { assemblyManager } = session as unknown as AbstractSessionModel
@@ -56,34 +54,17 @@ export const CheckResultWarnings = observer(function CheckResultWarnings({
         return null
       }
       const row = display.getRowForFeature(feature) ?? 0
-      const top = row * apolloRowHeight
-      const height = apolloRowHeight
       return (
-        <Tooltip key={checkResult._id} title={checkResult.message}>
-          <Box
-            className={classes.box}
-            style={{
-              top,
-              left,
-              height,
-              width: height,
-              pointerEvents: apolloDragging ? 'none' : 'auto',
-            }}
-          >
-            <Badge
-              className={classes.badge}
-              badgeContent={checkResult.count}
-              color="primary"
-              overlap="circular"
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              invisible={checkResult.count <= 1}
-            >
-              <Avatar className={classes.avatar}>
-                <ErrorIcon data-testid={`ErrorIcon-${checkResult.start}`} />
-              </Avatar>
-            </Badge>
-          </Box>
-        </Tooltip>
+        <CheckResultIcon
+          key={checkResult._id}
+          top={row * apolloRowHeight}
+          left={left}
+          size={apolloRowHeight}
+          disablePointerEvents={Boolean(apolloDragging)}
+          message={checkResult.message}
+          count={checkResult.count}
+          start={checkResult.start}
+        />
       )
     })
     return null

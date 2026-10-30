@@ -118,7 +118,10 @@ function getNonExonChildren(
 }
 
 function getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature) {
-  return getLayout(display, feature).byRow.length
+  return (
+    display.featureRowCounts.get(feature._id) ??
+    getLayout(display, feature).byRow.length
+  )
 }
 
 function draw(

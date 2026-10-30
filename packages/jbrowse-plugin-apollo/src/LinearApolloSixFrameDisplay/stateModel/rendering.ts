@@ -22,6 +22,7 @@ import {
   isTranscriptFeature,
   looksLikeGene,
   roundPxSpan,
+  setCanvasSize,
 } from '../../util/glyphUtils'
 import { geneGlyph } from '../glyphs/GeneGlyph'
 import { getCDSRow, getStrandRow, rowCount } from '../rows'
@@ -257,15 +258,21 @@ export function renderingModelFactory(
               if (!self.lgv.initialized || self.displayMode !== 'features') {
                 return
               }
-              const ctx = self.collaboratorCanvas?.getContext('2d')
-              if (!ctx) {
+              const { collaboratorCanvas } = self
+              const ctx = collaboratorCanvas?.getContext('2d')
+              if (!collaboratorCanvas || !ctx) {
                 return
               }
+              setCanvasSize(
+                collaboratorCanvas,
+                self.lgv.dynamicBlocks.totalWidthPx,
+                self.featuresHeight,
+              )
               ctx.clearRect(
                 0,
                 0,
-                self.lgv.dynamicBlocks.totalWidthPx,
-                self.featuresHeight,
+                collaboratorCanvas.width,
+                collaboratorCanvas.height,
               )
               for (const collaborator of self.session.collaborators) {
                 const { locations } = collaborator
@@ -338,6 +345,11 @@ export function renderingModelFactory(
               if (!ctx) {
                 return
               }
+              setCanvasSize(
+                canvas,
+                dynamicBlocks.totalWidthPx,
+                self.featuresHeight,
+              )
               ctx.clearRect(0, 0, canvas.width, canvas.height)
 
               for (const block of dynamicBlocks.contentBlocks) {

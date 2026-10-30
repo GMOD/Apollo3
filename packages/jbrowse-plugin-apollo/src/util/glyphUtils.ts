@@ -254,6 +254,26 @@ export function roundPxSpan(leftPx: number, widthPx: number) {
 }
 
 /**
+ * Size a canvas's drawing buffer. Assigning width or height clears the canvas
+ * even if the value doesn't change, so only assign them when they differ.
+ * Call this before drawing so the drawing isn't cleared by a later resize.
+ */
+export function setCanvasSize(
+  canvas: HTMLCanvasElement,
+  width: number,
+  height: number,
+) {
+  const canvasWidth = Math.floor(width)
+  const canvasHeight = Math.floor(height)
+  if (canvas.width !== canvasWidth) {
+    canvas.width = canvasWidth
+  }
+  if (canvas.height !== canvasHeight) {
+    canvas.height = canvasHeight
+  }
+}
+
+/**
  * Whole-pixel left edge and width of a feature in a block. The width is at
  * least 1px so small features stay visible.
  */

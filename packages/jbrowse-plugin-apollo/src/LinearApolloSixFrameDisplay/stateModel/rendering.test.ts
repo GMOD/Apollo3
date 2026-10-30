@@ -28,6 +28,7 @@ jest.unstable_mockModule('../../util/glyphUtils', () => ({
     startPx: Math.round(leftPx),
     widthPx: Math.round(leftPx + widthPx) - Math.round(leftPx),
   }),
+  setCanvasSize: jest.fn(),
 }))
 jest.unstable_mockModule('../glyphs/GeneGlyph', () => ({
   geneGlyph: { draw },
