@@ -6,7 +6,7 @@ import { type Instance, addDisposer, types } from '@jbrowse/mobx-state-tree'
 import { type Theme, createTheme } from '@mui/material'
 import { autorun } from 'mobx'
 
-import { roundPxSpan } from '../../util/glyphUtils'
+import { roundPxSpan, setCanvasSize } from '../../util/glyphUtils'
 
 import { layoutsModelFactory } from './layouts'
 
@@ -115,15 +115,21 @@ export function renderingModelFactory(
               if (!self.lgv.initialized || self.displayMode !== 'features') {
                 return
               }
-              const ctx = self.collaboratorCanvas?.getContext('2d')
-              if (!ctx) {
+              const { collaboratorCanvas } = self
+              const ctx = collaboratorCanvas?.getContext('2d')
+              if (!collaboratorCanvas || !ctx) {
                 return
               }
+              setCanvasSize(
+                collaboratorCanvas,
+                self.lgv.dynamicBlocks.totalWidthPx,
+                self.featuresHeight(self.lgv.assemblyNames[0]),
+              )
               ctx.clearRect(
                 0,
                 0,
-                self.lgv.dynamicBlocks.totalWidthPx,
-                self.featuresHeight(self.lgv.assemblyNames[0]),
+                collaboratorCanvas.width,
+                collaboratorCanvas.height,
               )
               for (const collaborator of self.session.collaborators) {
                 const { locations } = collaborator
@@ -187,8 +193,14 @@ export function renderingModelFactory(
               if (!ctx) {
                 return
               }
+              setCanvasSize(
+                canvas,
+                dynamicBlocks.totalWidthPx,
+                self.featuresHeight(lgv.assemblyNames[0]),
+              )
               const featureLayouts = layouts.get(lgv.assemblyNames[0])
               if (!featureLayouts) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height)
                 return
               }
               ctx.clearRect(0, 0, canvas.width, canvas.height)

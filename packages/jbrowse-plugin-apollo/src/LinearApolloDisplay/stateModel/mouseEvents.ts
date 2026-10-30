@@ -20,6 +20,7 @@ import {
   isExonFeature,
   roundPxSpan,
   selectFeatureAndOpenWidget,
+  setCanvasSize,
 } from '../../util'
 import { isMouseOnFeatureEdge } from '../glyphs/util'
 import type { CanvasMouseEvent } from '../types'
@@ -324,6 +325,11 @@ export function mouseEventsModelFactory(
               if (!ctx) {
                 return
               }
+              setCanvasSize(
+                overlayCanvas,
+                dynamicBlocks.totalWidthPx,
+                self.featuresHeight(lgv.assemblyNames[0]),
+              )
               ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height)
               const { apolloDragging, hoveredFeature } = self
               if (!hoveredFeature) {

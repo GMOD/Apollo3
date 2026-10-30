@@ -5,6 +5,7 @@ import { type Instance, addDisposer } from '@jbrowse/mobx-state-tree'
 import { type Theme, createTheme } from '@mui/material'
 import { autorun } from 'mobx'
 
+import { setCanvasSize } from '../../util/glyphUtils'
 import { drawSequenceOverlay } from '../drawSequenceOverlay'
 import { drawSequenceTrack } from '../drawSequenceTrack'
 
@@ -66,6 +67,11 @@ export function renderingModelFactory(
               }
 
               const { bpPerPx, offsetPx, dynamicBlocks } = lgv
+              setCanvasSize(
+                seqTrackCanvas,
+                dynamicBlocks.totalWidthPx,
+                self.height,
+              )
               // we have to be really explicit about passing in individual
               // variables here and not just e.g. "lgv" so that the autorun
               // tracks the variables correctly
@@ -102,11 +108,16 @@ export function renderingModelFactory(
                 return
               }
 
+              setCanvasSize(
+                seqTrackOverlayCanvas,
+                self.lgv.dynamicBlocks.totalWidthPx,
+                self.height,
+              )
               seqTrackOverlayctx.clearRect(
                 0,
                 0,
-                self.lgv.dynamicBlocks.totalWidthPx,
-                self.height,
+                seqTrackOverlayCanvas.width,
+                seqTrackOverlayCanvas.height,
               )
 
               const {

@@ -18,6 +18,7 @@ import {
   getMousePosition,
   getPropagatedLocationChanges,
   isMousePositionWithFeature,
+  setCanvasSize,
 } from '../../util'
 import { getRowContents } from '../rows'
 import type { CanvasMouseEvent } from '../types'
@@ -289,16 +290,17 @@ export function mouseEventsModelFactory(
               if (!self.lgv.initialized || self.displayMode !== 'features') {
                 return
               }
-              const ctx = self.overlayCanvas?.getContext('2d')
-              if (!ctx) {
+              const { overlayCanvas } = self
+              const ctx = overlayCanvas?.getContext('2d')
+              if (!overlayCanvas || !ctx) {
                 return
               }
-              ctx.clearRect(
-                0,
-                0,
+              setCanvasSize(
+                overlayCanvas,
                 self.lgv.dynamicBlocks.totalWidthPx,
                 self.featuresHeight,
               )
+              ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height)
 
               const { apolloDragging, hoveredFeature } = self
               if (!hoveredFeature) {
