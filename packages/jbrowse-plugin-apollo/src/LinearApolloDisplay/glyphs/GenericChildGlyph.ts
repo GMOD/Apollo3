@@ -11,7 +11,10 @@ import type { Glyph, OverlayType } from './Glyph'
 import { drawOverlayBox, getFeatureBox, strokeRectInner } from './util'
 
 function getRowCount(display: LinearApolloDisplay, feature: AnnotationFeature) {
-  return getLayout(display, feature).byRow.length
+  return (
+    display.featureRowCounts.get(feature._id) ??
+    getLayout(display, feature).byRow.length
+  )
 }
 
 function draw(

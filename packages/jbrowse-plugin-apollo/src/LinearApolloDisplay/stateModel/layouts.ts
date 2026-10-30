@@ -19,7 +19,7 @@ import { cdsGlyph } from '../glyphs/CDSGlyph'
 import { exonGlyph } from '../glyphs/ExonGlyph'
 import { geneGlyph } from '../glyphs/GeneGlyph'
 import { genericChildGlyph } from '../glyphs/GenericChildGlyph'
-import type { Layout } from '../glyphs/Glyph'
+import type { Glyph, Layout } from '../glyphs/Glyph'
 import { transcriptGlyph } from '../glyphs/TranscriptGlyph'
 
 import { baseModelFactory } from './base'
@@ -255,6 +255,47 @@ export function layoutsModelFactory(
       },
     }))
     .views((self) => ({
+      /**
+       * The number of layout rows each feature spans, by feature ID. Glyphs
+       * use this to size a feature instead of rebuilding its layout.
+       */
+      get featureRowCounts(): Map<string, number> {
+        const rowCounts = new Map<string, number>()
+        for (const assemblyLayouts of self.layouts.values()) {
+          for (const layout of assemblyLayouts.values()) {
+            const lastRowSeen = new Map<string, number>()
+            for (const [row, layoutRow] of layout.byRow.entries()) {
+              for (const { feature } of layoutRow) {
+                const { _id } = feature
+                if (lastRowSeen.get(_id) !== row) {
+                  lastRowSeen.set(_id, row)
+                  rowCounts.set(_id, (rowCounts.get(_id) ?? 0) + 1)
+                }
+              }
+            }
+          }
+        }
+        return rowCounts
+      },
+      /**
+       * The glyph for each feature in the layouts, by feature ID, so drawing
+       * doesn't have to look up glyphs again until the layouts change.
+       */
+      get featureGlyphs(): Map<string, Glyph> {
+        const glyphs = new Map<string, Glyph>()
+        for (const assemblyLayouts of self.layouts.values()) {
+          for (const layout of assemblyLayouts.values()) {
+            for (const layoutRow of layout.byRow) {
+              for (const { feature } of layoutRow) {
+                if (!glyphs.has(feature._id)) {
+                  glyphs.set(feature._id, self.getGlyph(feature))
+                }
+              }
+            }
+          }
+        }
+        return glyphs
+      },
       highestRow(assemblyName: string) {
         const assemblyLayouts = self.layouts.get(assemblyName)
         if (!assemblyLayouts) {

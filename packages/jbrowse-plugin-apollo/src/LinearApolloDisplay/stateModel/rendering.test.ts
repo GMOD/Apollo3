@@ -44,6 +44,9 @@ jest.unstable_mockModule('./layouts', () => ({
           return 'features' as const
         },
         highestRow: () => 0,
+        get featureGlyphs() {
+          return new Map()
+        },
         getGlyph: () => ({ draw, drawOverlay }),
       })),
 }))
