@@ -12,6 +12,7 @@ import {
   CheckResult,
   type CheckResultSnapshot,
 } from '@apollo-annotation/mst'
+import type { FeatureDensity } from '@apollo-annotation/shared'
 import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import {
   type AnyConfigurationModel,
@@ -167,8 +168,16 @@ export function clientDataStoreFactory(
         self as ClientDataStoreModel,
       ),
       localDriver: new LocalDriver(self as ClientDataStoreModel),
+      /**
+       * Incremented after each change is applied and saved, so that summaries
+       * of the data (like feature density) know to refresh
+       */
+      changeCount: 0,
     }))
     .actions((self) => ({
+      incrementChangeCount() {
+        self.changeCount++
+      },
       afterCreate() {
         addDisposer(
           self,
@@ -252,6 +261,18 @@ export function clientDataStoreFactory(
           return self.collaborationServerDriver
         }
         return self.localDriver
+      },
+      /**
+       * Summarize the features in a region without loading them. Resolves to
+       * `undefined` if the region's assembly has no Apollo backend.
+       */
+      async getFeatureDensity(
+        region: Region,
+        binSize: number,
+        featureTypes?: string[],
+      ): Promise<FeatureDensity | undefined> {
+        const backendDriver = this.getBackendDriver(region.assemblyName)
+        return backendDriver?.getFeatureDensity(region, binSize, featureTypes)
       },
       getInternetAccount(assemblyName?: string, internetAccountId?: string) {
         if (!(assemblyName ?? internetAccountId)) {

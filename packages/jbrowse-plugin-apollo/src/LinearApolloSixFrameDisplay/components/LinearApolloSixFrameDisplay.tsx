@@ -17,6 +17,7 @@ import { Alert, Avatar, Badge, Box, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 
+import { FeatureDensityHistogram } from '../../components/FeatureDensityHistogram'
 import {
   type Coord,
   clusterResultByMessage,
@@ -50,7 +51,8 @@ export const LinearApolloSixFrameDisplay = observer(
       onMouseLeave,
       onMouseMove,
       onMouseUp,
-      regionCannotBeRendered,
+      densityMessage,
+      displayMode,
       session,
       setCanvas,
       setCollaboratorCanvas,
@@ -68,7 +70,8 @@ export const LinearApolloSixFrameDisplay = observer(
     const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
     const [mouseCoord, setMouseCoord] = useState<Coord>()
 
-    const message = regionCannotBeRendered()
+    const message = densityMessage
+    const showHistogram = !message && displayMode !== 'features'
     if (!isShown) {
       return null
     }
@@ -79,7 +82,8 @@ export const LinearApolloSixFrameDisplay = observer(
           className={classes.canvasContainer}
           style={{
             width: lgv.dynamicBlocks.totalWidthPx,
-            height: featuresHeight,
+            // The histogram fills the track
+            height: showHistogram ? '100%' : featuresHeight,
           }}
           onContextMenu={(event) => {
             event.preventDefault()
@@ -98,8 +102,6 @@ export const LinearApolloSixFrameDisplay = observer(
               <LockIcon />
             </div>
           ) : null}
-          {/* This type is wrong in @jbrowse/core */}
-          {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
           {message ? (
             <Alert
               severity="warning"
@@ -110,7 +112,9 @@ export const LinearApolloSixFrameDisplay = observer(
                 <div>{message}</div>
               </Tooltip>
             </Alert>
-          ) : (
+          ) : null}
+          {showHistogram ? <FeatureDensityHistogram model={model} /> : null}
+          {message || showHistogram ? null : (
             // Promise.resolve() in these 3 callbacks is to avoid infinite rendering loop
             // https://github.com/mobxjs/mobx/issues/3728#issuecomment-1715400931
             <>

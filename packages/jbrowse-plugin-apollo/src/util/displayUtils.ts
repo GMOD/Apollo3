@@ -2,7 +2,7 @@ import type { CheckResultIdsType } from '@apollo-annotation/mst'
 import type { Theme } from '@mui/material'
 import { makeStyles } from 'tss-react/mui'
 
-export { default as EditZoomThresholdDialog } from '../components/EditZoomThresholdDialog'
+export { default as FeatureDisplayThresholdDialog } from '../components/FeatureDisplayThresholdDialog'
 
 export type Coord = [number, number]
 

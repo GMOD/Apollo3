@@ -161,6 +161,7 @@ export class ChangeManager {
       }
     }
 
+    this.dataStore.incrementChangeCount()
     if (updateJobsManager) {
       jobsManager.done(job)
     }

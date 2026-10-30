@@ -272,7 +272,7 @@ export function layoutsModelFactory(
           self,
           autorun(
             () => {
-              if (!self.lgv.initialized || self.regionCannotBeRendered()) {
+              if (!self.lgv.initialized || self.displayMode !== 'features') {
                 return
               }
               // Clear out features that are no longer in the view and out of the cleanup boundary

@@ -40,7 +40,9 @@ jest.unstable_mockModule('./layouts', () => ({
         layouts,
       }))
       .views(() => ({
-        regionCannotBeRendered: () => false,
+        get displayMode() {
+          return 'features' as const
+        },
         highestRow: () => 0,
         getGlyph: () => ({ draw, drawOverlay }),
       })),

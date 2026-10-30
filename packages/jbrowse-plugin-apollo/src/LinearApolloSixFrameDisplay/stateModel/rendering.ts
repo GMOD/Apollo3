@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import type { AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
@@ -216,7 +215,7 @@ export function renderingModelFactory(
           self,
           autorun(
             () => {
-              if (!self.lgv.initialized || self.regionCannotBeRendered()) {
+              if (!self.lgv.initialized || self.displayMode !== 'features') {
                 return
               }
               for (const [id, feature] of self.seenFeatures.entries()) {
@@ -255,7 +254,7 @@ export function renderingModelFactory(
           self,
           autorun(
             () => {
-              if (!self.lgv.initialized || self.regionCannotBeRendered()) {
+              if (!self.lgv.initialized || self.displayMode !== 'features') {
                 return
               }
               const ctx = self.collaboratorCanvas?.getContext('2d')
@@ -328,7 +327,7 @@ export function renderingModelFactory(
               } = self
               if (
                 !lgv.initialized ||
-                self.regionCannotBeRendered() ||
+                self.displayMode !== 'features' ||
                 !canvas
               ) {
                 return

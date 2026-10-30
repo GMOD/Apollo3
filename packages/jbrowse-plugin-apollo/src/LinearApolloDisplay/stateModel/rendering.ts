@@ -112,7 +112,7 @@ export function renderingModelFactory(
           self,
           autorun(
             () => {
-              if (!self.lgv.initialized || self.regionCannotBeRendered()) {
+              if (!self.lgv.initialized || self.displayMode !== 'features') {
                 return
               }
               const ctx = self.collaboratorCanvas?.getContext('2d')
@@ -176,7 +176,7 @@ export function renderingModelFactory(
               const { canvas, layouts, lgv } = self
               if (
                 !lgv.initialized ||
-                self.regionCannotBeRendered() ||
+                self.displayMode !== 'features' ||
                 !canvas
               ) {
                 return

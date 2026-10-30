@@ -12,7 +12,10 @@ import type {
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 import {
+  type FeatureDensity,
   ValidationResultSet,
+  alignBins,
+  computeFeatureDensity,
   isDeleteFeatureChange,
 } from '@apollo-annotation/shared'
 import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
@@ -69,6 +72,34 @@ export class LocalDriver extends BackendDriver {
       }
     }
     return [features, checkResults]
+  }
+
+  async getFeatureDensity(
+    region: Region,
+    binSize: number,
+    featureTypes: string[] = [],
+  ): Promise<FeatureDensity> {
+    const { assemblyName, end, refName, start } = region
+    const regions = await this.getRegions(assemblyName)
+    const refNames = regions.map((r) => r.refName)
+    const db = await openDb(assemblyName, refNames)
+    const aligned = alignBins(start, end, binSize)
+    const alignedEnd = aligned.start + aligned.nBins * binSize
+    const intervals: { min: number; max: number; strand?: number }[] = []
+    const tx = db.transaction(`features-${refName}`)
+    for await (const cursor of tx.store
+      .index('min')
+      .iterate(IDBKeyRange.upperBound(alignedEnd, true))) {
+      const { max, min, strand, type } =
+        cursor.value as AnnotationFeatureSnapshot
+      if (
+        max >= aligned.start &&
+        (featureTypes.length === 0 || featureTypes.includes(type))
+      ) {
+        intervals.push({ min, max, strand })
+      }
+    }
+    return computeFeatureDensity(intervals, start, end, binSize)
   }
 
   async getSequence(region: Region): Promise<{ seq: string; refSeq: string }> {

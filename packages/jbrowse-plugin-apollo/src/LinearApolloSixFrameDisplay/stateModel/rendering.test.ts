@@ -70,7 +70,9 @@ jest.unstable_mockModule('./base', () => ({
         get regions() {
           return blocks
         },
-        regionCannotBeRendered: () => false,
+        get displayMode() {
+          return 'features' as const
+        },
       })),
 }))
 

@@ -17,6 +17,7 @@ import type {
 } from '@apollo-annotation/mst'
 import {
   type ChangeMessage,
+  type FeatureDensity,
   ValidationResultSet,
   makeUserSessionId,
 } from '@apollo-annotation/shared'
@@ -141,6 +142,40 @@ export class CollaborationServerDriver extends BackendDriver {
     return response.json() as Promise<
       [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
     >
+  }
+
+  async getFeatureDensity(
+    region: Region,
+    binSize: number,
+    featureTypes: string[] = [],
+  ) {
+    const { assemblyName, end, refName, start } = region
+    const refSeqMap = await this.getRefSeqMapping(assemblyName)
+    const refSeqEntry = refSeqMap.get(refName)
+    if (!refSeqEntry) {
+      throw new Error(`Could not find refSeq "${refName}"`)
+    }
+    const internetAccount = this.clientStore.getInternetAccount(assemblyName)
+    const url = new URL('features/getFeatureDensity', internetAccount.baseURL)
+    const searchParams = new URLSearchParams({
+      refSeq: refSeqEntry.id,
+      start: String(start),
+      end: String(end),
+      binSize: String(binSize),
+    })
+    for (const featureType of featureTypes) {
+      searchParams.append('type', featureType)
+    }
+    url.search = searchParams.toString()
+    const response = await this.fetch(internetAccount, url.toString())
+    if (!response.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'getFeatureDensity failed',
+      )
+      throw new Error(errorMessage)
+    }
+    return response.json() as Promise<FeatureDensity>
   }
 
   /**

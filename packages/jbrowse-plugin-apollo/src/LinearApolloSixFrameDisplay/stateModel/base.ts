@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
@@ -34,15 +33,20 @@ import type { ApolloInternetAccountModel } from '../../ApolloInternetAccount/mod
 import { FilterFeatures } from '../../components/FilterFeatures'
 import type { ApolloSessionModel, HoveredFeature } from '../../session'
 import type { ApolloRootModel } from '../../types'
-import { EditZoomThresholdDialog } from '../../util/displayUtils'
+import { FeatureDisplayThresholdDialog } from '../../util/displayUtils'
+import { FeatureDensityMixin } from '../../util/featureDensityModel'
 
 const minDisplayHeight = 20
+/** Codons aren't legible when zoomed out further than this */
+const maxSequenceBpPerPx = 200
 
 export function baseModelFactory(
   _pluginManager: PluginManager,
   configSchema: AnyConfigurationSchemaType,
 ) {
-  return BaseDisplay.named('BaseLinearApolloSixFrameDisplay')
+  return types
+    .compose(BaseDisplay, FeatureDensityMixin())
+    .named('BaseLinearApolloSixFrameDisplay')
     .props({
       type: types.literal('LinearApolloSixFrameDisplay'),
       configuration: ConfigurationReference(configSchema),
@@ -52,7 +56,6 @@ export function baseModelFactory(
       showStartCodons: false,
       showStopCodons: true,
       showCheckResults: true,
-      zoomThreshold: 200,
       heightPreConfig: types.maybe(
         types.refinement(
           'displayHeight',
@@ -93,9 +96,6 @@ export function baseModelFactory(
         }
         return 300
       },
-      get zoomThresholdSetting() {
-        return self.zoomThreshold ?? getConf(self, 'zoomThreshold')
-      },
     }))
     .views((self) => ({
       get rendererTypeName() {
@@ -116,10 +116,7 @@ export function baseModelFactory(
         return regions
       },
       regionCannotBeRendered(/* region */) {
-        if (self.lgv && self.lgv.bpPerPx >= self.zoomThreshold) {
-          return 'Zoom in to see annotations'
-        }
-        return
+        return self.densityMessage
       },
     }))
     .views((self) => ({
@@ -202,9 +199,6 @@ export function baseModelFactory(
       updateFilteredFeatureTypes(types: string[]) {
         self.filteredFeatureTypes = cast(types)
       },
-      setZoomThresholdSetting({ zoomThreshold }: { zoomThreshold: number }) {
-        self.zoomThreshold = zoomThreshold
-      },
     }))
     .views((self) => {
       const { filteredFeatureTypes, trackMenuItems: superTrackMenuItems } = self
@@ -281,10 +275,10 @@ export function baseModelFactory(
                   },
                 },
                 {
-                  label: 'Change zoom threshold',
+                  label: 'Feature display threshold',
                   onClick: () => {
                     getSession(self).queueDialog((handleClose) => [
-                      EditZoomThresholdDialog,
+                      FeatureDisplayThresholdDialog,
                       { model: self, handleClose },
                     ])
                   },
@@ -356,7 +350,7 @@ export function baseModelFactory(
           self,
           autorun(
             () => {
-              if (!self.lgv.initialized || self.regionCannotBeRendered()) {
+              if (!self.lgv.initialized || !self.canLoadFeatures) {
                 return
               }
               void self.session.apolloDataStore
@@ -364,7 +358,7 @@ export function baseModelFactory(
                 .catch((error: unknown) => {
                   console.error(error)
                 })
-              if (self.lgv.bpPerPx <= self.zoomThreshold) {
+              if (self.lgv.bpPerPx <= maxSequenceBpPerPx) {
                 void self.session.apolloDataStore
                   .loadRefSeq(self.regions)
                   .catch((error: unknown) => {
