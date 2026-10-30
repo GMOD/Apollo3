@@ -3,6 +3,7 @@ import type {
   TranscriptPartCoding,
 } from '@apollo-annotation/mst'
 import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import { readConfObject } from '@jbrowse/core/configuration'
 import type { MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
@@ -185,7 +186,9 @@ function draw(
 
   ctx.fillStyle = isSelectedFeature(topLevelFeature, selectedFeature)
     ? alpha('rgb(0,0,0)', 0.7)
-    : alpha(theme.palette.background.paper, 0.7)
+    : (readConfObject(session.getPluginConfiguration(), 'geneBackgroundColor', {
+        featureType: topLevelFeature.type,
+      }) as string | undefined) ?? alpha(theme.palette.background.paper, 0.7)
   ctx.fillRect(
     topLevelFeatureStartPx + 1,
     topLevelFeatureTop + 1,
