@@ -1,5 +1,7 @@
 import { type IDBPDatabase, openDB } from 'idb'
 
+import { defaultPrefixes } from '../../src/OntologyManager/OntologyStore/prefixes'
+
 /**
  * In CI, the browser sometimes fails to load one of JBrowse's code files
  * ("ChunkLoadError"), and JBrowse shows a "Fatal error" dialog instead of the
@@ -88,12 +90,15 @@ async function loadOntology(
     OntologyKey,
     unknown[]
   >
+  // The app only uses a cached ontology if its stored prefixes match the app's
+  // own (see isDatabaseCurrent). The prefixes in so.json.gz were lost when it
+  // was dumped to JSON (a Map serializes as {}), so use the app's defaults.
+  // Otherwise the app reloads the ontology in the background, and when that
+  // finishes it opens the Jobs list drawer at an unpredictable time.
   // @ts-expect-error could use more typing
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   ontologyData.meta[0].storeOptions.prefixes = new Map(
-    // @ts-expect-error could use more typing
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    Object.entries(ontologyData.meta[0].storeOptions.prefixes),
+    Object.entries(defaultPrefixes),
   )
   await openDB(name, version, {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises

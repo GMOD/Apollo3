@@ -23,7 +23,11 @@ import type ApolloPluginConfigurationSchema from '../config'
 import type { ApolloRootModel } from '../types'
 
 import OntologyStore, { type OntologyStoreOptions } from './OntologyStore'
-import { applyPrefixes, expandPrefixes } from './OntologyStore/prefixes'
+import {
+  applyPrefixes,
+  defaultPrefixes,
+  expandPrefixes,
+} from './OntologyStore/prefixes'
 import {
   type OntologyTerm,
   defaultTextIndexFields,
@@ -155,10 +159,7 @@ export const OntologyManagerType = types
   .model('OntologyManager', {
     // create, update, and delete ontologies
     ontologies: types.array(OntologyRecordType),
-    prefixes: types.optional(types.map(types.string), {
-      'GO:': 'http://purl.obolibrary.org/obo/GO_',
-      'SO:': 'http://purl.obolibrary.org/obo/SO_',
-    }),
+    prefixes: types.optional(types.map(types.string), { ...defaultPrefixes }),
   })
   .views((self) => ({
     get featureTypeOntologyName(): string {
