@@ -1,15 +1,31 @@
+/** Get the sequence of `refName` from the ##FASTA section of a GFF3 file */
+function getFastaSequence(gff3: string, refName: string): string {
+  const fastaStart = gff3.indexOf('##FASTA')
+  if (fastaStart === -1) {
+    throw new Error('GFF3 file has no ##FASTA section')
+  }
+  let currentName: string | undefined
+  const lines: string[] = []
+  for (const line of gff3.slice(fastaStart).split('\n').slice(1)) {
+    if (line.startsWith('>')) {
+      if (currentName === refName) {
+        break
+      }
+      ;[currentName] = line.slice(1).split(/\s/)
+    } else if (currentName === refName) {
+      lines.push(line.trim())
+    }
+  }
+  if (lines.length === 0) {
+    throw new Error(`No sequence found for "${refName}"`)
+  }
+  return lines.join('')
+}
+
 describe('Rubberband selection', () => {
   before(() => {
     cy.deleteAssemblies()
-    cy.wrap(
-      globalThis.indexedDB.databases().then((dbs) => {
-        for (const db of dbs) {
-          if (db.name) {
-            globalThis.indexedDB.deleteDatabase(db.name)
-          }
-        }
-      }),
-    )
+    cy.deleteIndexedDatabases()
     cy.addOntologies()
   })
 
@@ -40,7 +56,32 @@ describe('Rubberband selection', () => {
       force: true,
     })
     cy.contains('Get sequence').click()
-    cy.contains('tgtcacctcgggtactgcctctattacagaggtatcttaatggcgcatccag')
+
+    // Which bases the drag covers depends on how wide the view is (e.g. whether
+    // a drawer is open), so check that the dialog's sequence matches the region
+    // it says was selected instead of expecting a fixed sequence.
+    cy.readFile<string>(`test_data/${assemblyName}`).then((gff3) => {
+      const reference = getFastaSequence(gff3, 'ctgA').toLowerCase()
+      cy.contains('[role="dialog"]', 'Reference sequence')
+        .find('textarea:not([aria-hidden="true"])')
+        .should(($textarea) => {
+          const value = $textarea.val()
+          if (typeof value !== 'string') {
+            throw new TypeError('Sequence textarea has no value')
+          }
+          const [header = '', ...sequenceLines] = value.trim().split('\n')
+          const match = /^>ctgA:(\d+)-(\d+)$/.exec(header.trim())
+          if (!match) {
+            throw new Error(`Unexpected FASTA header "${header}"`)
+          }
+          const start = Number(match[1])
+          const end = Number(match[2])
+          expect(end, 'selection end').to.be.greaterThan(start)
+          expect(sequenceLines.join('').trim().toLowerCase()).to.equal(
+            reference.slice(start - 1, end),
+          )
+        })
+    })
   })
 
   it('Can add new feature via rubberband selection', () => {

@@ -12,15 +12,7 @@ interface GraphicalDisplay {
 describe('Different ways of editing features', () => {
   before(() => {
     cy.deleteAssemblies()
-    cy.wrap(
-      globalThis.indexedDB.databases().then((dbs) => {
-        for (const db of dbs) {
-          if (db.name) {
-            globalThis.indexedDB.deleteDatabase(db.name)
-          }
-        }
-      }),
-    )
+    cy.deleteIndexedDatabases()
     cy.addOntologies()
   })
 

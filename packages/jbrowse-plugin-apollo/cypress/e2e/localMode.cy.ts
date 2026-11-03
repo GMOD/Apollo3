@@ -140,30 +140,7 @@ function addChildFeature(
 
 describe('Local mode (no collaboration server)', () => {
   beforeEach(() => {
-    // A delete can be "blocked" for a moment while the previous test's page
-    // closes its connections. It goes ahead once they're closed, so wait for
-    // "success" rather than failing on "blocked".
-    cy.wrap(null).then({ timeout: 20_000 }, async () => {
-      const dbs = await globalThis.indexedDB.databases()
-      await Promise.all(
-        dbs.map(
-          (db) =>
-            new Promise<void>((resolve, reject) => {
-              if (!db.name) {
-                resolve()
-                return
-              }
-              const request = globalThis.indexedDB.deleteDatabase(db.name)
-              request.addEventListener('success', () => {
-                resolve()
-              })
-              request.addEventListener('error', () => {
-                reject(request.error ?? new Error('deleteDatabase failed'))
-              })
-            }),
-        ),
-      )
-    })
+    cy.deleteIndexedDatabases()
     cy.preloadSequenceOntology()
   })
 

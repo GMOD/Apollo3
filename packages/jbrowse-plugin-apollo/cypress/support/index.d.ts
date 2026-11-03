@@ -2,6 +2,7 @@
 
 declare namespace Cypress {
   interface Chainable {
+    deleteIndexedDatabases(): Chainable<void>
     addOntologies(): Chainable<void>
     preloadSequenceOntology(): Chainable<void>
     loginAsGuest(): Chainable<void>
