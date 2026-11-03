@@ -35,7 +35,8 @@ declare namespace Cypress {
     importFeatures(
       gffFile: string,
       assemblyName: string,
-      deleteExistingFeatures: boolean | undefined,
+      hasExistingFeatures?: boolean,
+      deleteExistingFeatures?: boolean,
     ): Chainable<void>
     closeSearchBox(): Chainable<void>
     refreshTableEditor(): Chainable<void>

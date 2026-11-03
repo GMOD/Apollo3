@@ -90,7 +90,7 @@ describe('Search features', () => {
     cy.searchFeatures('hgb', 2)
   })
 
-  it.only('Can handle space in attribute values', () => {
+  it('Can handle space in attribute values', () => {
     cy.addAssemblyFromGff('space.gff3', 'test_data/space.gff3')
     cy.selectAssemblyToView('space.gff3')
 

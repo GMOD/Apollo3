@@ -381,7 +381,12 @@ Cypress.Commands.add(
 
 Cypress.Commands.add(
   'importFeatures',
-  (gffFile, assemblyName, deleteExistingFeatures) => {
+  (
+    gffFile,
+    assemblyName,
+    hasExistingFeatures = false,
+    deleteExistingFeatures = false,
+  ) => {
     cy.selectFromApolloMenu(['Admin', 'Import Features'])
     cy.contains('Import Features from GFF3 file', { matchCase: false })
       .parent()
@@ -396,7 +401,7 @@ Cypress.Commands.add(
       })
     cy.contains('li', assemblyName, { timeout: 10_000 }).click()
 
-    if (deleteExistingFeatures !== undefined) {
+    if (hasExistingFeatures) {
       cy.contains('label', 'Delete existing features').within(() => {
         if (deleteExistingFeatures) {
           cy.get('input[type="checkbox"]').click()

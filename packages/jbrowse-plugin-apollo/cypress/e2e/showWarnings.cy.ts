@@ -19,11 +19,17 @@ describe('Warning signs', () => {
     cy.annotationTrackAppearance('Show both graphical and table display')
     cy.contains('cds07').rightclick()
     cy.contains('Edit feature details').click()
+    // Wait for each edit to be submitted so the checks have something to flag
+    cy.intercept('POST', '/changes').as('postChange')
     cy.get('div[data-testid="basic_information"]')
       .parent()
       .within(() => {
-        cy.get('input[value="16"]').type('{selectall}{backspace}4{enter}')
-        cy.get('input[value="27"]').type('{selectall}{backspace}24{enter}')
+        cy.get('input[value="16"]').type('{selectall}{backspace}4')
+        cy.focused().blur()
+        cy.wait('@postChange')
+        cy.get('input[value="27"]').type('{selectall}{backspace}24')
+        cy.focused().blur()
+        cy.wait('@postChange')
       })
     cy.get('button[data-testid="zoom_out"]').click()
 
@@ -37,15 +43,15 @@ describe('Warning signs', () => {
     cy.contains(/Missing stop codon/)
 
     // Fix the missing stop codon. Internal stop still expected
-    cy.intercept('POST', '/changes').as('changes')
     cy.get('div[data-testid="basic_information"]')
       .parent()
       .within(() => {
-        cy.get('input[value="24"]').type('{selectall}{backspace}27{enter}')
+        cy.get('input[value="24"]').type('{selectall}{backspace}27')
+        cy.focused().blur()
       })
     // Not zooming out here since the view may already show the whole
     // chromosome, which disables the zoom out button
-    cy.wait('@changes')
+    cy.wait('@postChange')
     cy.reload()
 
     cy.get('[data-testid^="ErrorIcon-"]', { timeout: 10_000 }).should(
@@ -112,8 +118,7 @@ describe('Warning signs', () => {
     cy.importFeatures(
       'test_data/cdsChecks/stopcodon.gff3',
       'stopcodon.gff3',
-      // eslint-disable-next-line unicorn/no-useless-undefined
-      undefined,
+      false,
     )
     cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
     cy.contains('button', 'Launch view', { timeout: 10_000 }).click()
