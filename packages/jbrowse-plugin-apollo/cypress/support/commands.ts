@@ -1,5 +1,7 @@
 import { type IDBPDatabase, openDB } from 'idb'
 
+import { defaultPrefixes } from '../../src/OntologyManager/OntologyStore/prefixes'
+
 /**
  * In CI, the browser sometimes fails to load one of JBrowse's code files
  * ("ChunkLoadError"), and JBrowse shows a "Fatal error" dialog instead of the
@@ -88,12 +90,15 @@ async function loadOntology(
     OntologyKey,
     unknown[]
   >
+  // The app only uses a cached ontology if its stored prefixes match the app's
+  // own (see isDatabaseCurrent). The prefixes in so.json.gz were lost when it
+  // was dumped to JSON (a Map serializes as {}), so use the app's defaults.
+  // Otherwise the app reloads the ontology in the background, and when that
+  // finishes it opens the Jobs list drawer at an unpredictable time.
   // @ts-expect-error could use more typing
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   ontologyData.meta[0].storeOptions.prefixes = new Map(
-    // @ts-expect-error could use more typing
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    Object.entries(ontologyData.meta[0].storeOptions.prefixes),
+    Object.entries(defaultPrefixes),
   )
   await openDB(name, version, {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -120,6 +125,35 @@ async function loadOntology(
     },
   })
 }
+
+Cypress.Commands.add('deleteIndexedDatabases', () => {
+  // A delete can be "blocked" for a moment while the previous test's page
+  // closes its connections. It goes ahead once they're closed, so wait for
+  // "success" rather than failing on "blocked". Waiting matters: if a delete
+  // is still pending when something (e.g. preloadSequenceOntology) writes to
+  // the same database, that data can be wiped out.
+  cy.wrap(null).then({ timeout: 20_000 }, async () => {
+    const dbs = await globalThis.indexedDB.databases()
+    await Promise.all(
+      dbs.map(
+        (db) =>
+          new Promise<void>((resolve, reject) => {
+            if (!db.name) {
+              resolve()
+              return
+            }
+            const request = globalThis.indexedDB.deleteDatabase(db.name)
+            request.addEventListener('success', () => {
+              resolve()
+            })
+            request.addEventListener('error', () => {
+              reject(request.error ?? new Error('deleteDatabase failed'))
+            })
+          }),
+      ),
+    )
+  })
+})
 
 Cypress.Commands.add('addOntologies', () => {
   cy.deleteMany({}, { collection: 'jbrowseconfigs' })
@@ -381,7 +415,12 @@ Cypress.Commands.add(
 
 Cypress.Commands.add(
   'importFeatures',
-  (gffFile, assemblyName, deleteExistingFeatures) => {
+  (
+    gffFile,
+    assemblyName,
+    hasExistingFeatures = false,
+    deleteExistingFeatures = false,
+  ) => {
     cy.selectFromApolloMenu(['Admin', 'Import Features'])
     cy.contains('Import Features from GFF3 file', { matchCase: false })
       .parent()
@@ -396,7 +435,7 @@ Cypress.Commands.add(
       })
     cy.contains('li', assemblyName, { timeout: 10_000 }).click()
 
-    if (deleteExistingFeatures !== undefined) {
+    if (hasExistingFeatures) {
       cy.contains('label', 'Delete existing features').within(() => {
         if (deleteExistingFeatures) {
           cy.get('input[type="checkbox"]').click()

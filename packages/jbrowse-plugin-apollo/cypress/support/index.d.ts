@@ -2,6 +2,7 @@
 
 declare namespace Cypress {
   interface Chainable {
+    deleteIndexedDatabases(): Chainable<void>
     addOntologies(): Chainable<void>
     preloadSequenceOntology(): Chainable<void>
     loginAsGuest(): Chainable<void>
@@ -35,7 +36,8 @@ declare namespace Cypress {
     importFeatures(
       gffFile: string,
       assemblyName: string,
-      deleteExistingFeatures: boolean | undefined,
+      hasExistingFeatures?: boolean,
+      deleteExistingFeatures?: boolean,
     ): Chainable<void>
     closeSearchBox(): Chainable<void>
     refreshTableEditor(): Chainable<void>

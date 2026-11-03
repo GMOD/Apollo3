@@ -1,15 +1,18 @@
+import type { AnnotationFeature } from '@apollo-annotation/mst'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+
+interface GraphicalDisplay {
+  type: string
+  seenFeatures: Map<string, AnnotationFeature>
+  getRowForFeature(feature: AnnotationFeature): number | undefined
+  apolloRowHeight: number
+  apolloDragging: { feature: AnnotationFeature; current: { bp: number } } | null
+}
+
 describe('Different ways of editing features', () => {
   before(() => {
     cy.deleteAssemblies()
-    cy.wrap(
-      globalThis.indexedDB.databases().then((dbs) => {
-        for (const db of dbs) {
-          if (db.name) {
-            globalThis.indexedDB.deleteDatabase(db.name)
-          }
-        }
-      }),
-    )
+    cy.deleteIndexedDatabases()
     cy.addOntologies()
   })
 
@@ -135,11 +138,10 @@ describe('Different ways of editing features', () => {
     cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
     cy.selectAssemblyToView('onegene.fasta.gff3', 'gx1')
     cy.annotationTrackAppearance('Show both graphical and table display')
-    // In headless mode it seems to take a long time for menus to be populated
-    cy.get('input[type="text"][value="CDS"]', { timeout: 60_000 }).rightclick({
-      timeout: 60_000,
-      force: true,
-    })
+    // Right-click the ID cell rather than the type input. Right-clicking the
+    // type input opens its autocomplete dropdown behind the dialog, and that
+    // dropdown's options then shadow the dialog's options.
+    cy.contains('td', '=CDS1', { timeout: 60_000 }).rightclick()
     cy.contains('Add child feature').click()
     cy.contains('Add new child feature')
       .parent()
@@ -175,33 +177,98 @@ describe('Different ways of editing features', () => {
     })
   })
 
-  it.skip('Can drag and move position', () => {
+  it('Can drag and move position', () => {
     const assemblyName = 'space.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
     cy.selectAssemblyToView(assemblyName, 'ctgA:9400..9600')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
-    cy.get('[data-testid="MinimizeIcon"]').eq(1).click()
-    // cy.contains('Table').click()
-    // cy.contains('Match5').click()
-    // cy.get('[data-testid="MoreVertIcon"]').click()
-    // cy.contains('Minimize track').click()
-    // cy.get('[data-testid="MoreVertIcon"]').click()
-    // cy.contains('Restore track').click()
+    cy.get('button[aria-label="Minimize drawer"]').click()
+    cy.annotationTrackAppearance('Show both graphical and table display')
+    cy.contains('tr', 'Match5', { timeout: 10_000 })
+      .find('input')
+      .should(($inputs) => {
+        expect([...$inputs].map((input) => input.value)).to.include('9520')
+      })
 
-    cy.get('[data-testid="overlayCanvas"]').then((canvas) => {
-      cy.wrap(canvas).trigger('mouseover', 700, 10) //  .rightclick()
+    // Drag the start (left edge) of Match5 from 9520 to 9451
+    cy.window().then((win) => {
+      const { session } = (
+        win as unknown as {
+          JBrowseRootModel: {
+            session: {
+              views: {
+                tracks: { displays: GraphicalDisplay[] }[]
+                bpToPx: LinearGenomeViewModel['bpToPx']
+                offsetPx: number
+              }[]
+            }
+          }
+        }
+      ).JBrowseRootModel
+      const [view] = session.views
+      const display = view.tracks[0].displays.find(
+        (d) => d.type === 'LinearApolloDisplay',
+      )
+      if (!display) {
+        throw new Error('No graphical Apollo display')
+      }
+      const feature = [...display.seenFeatures.values()].find((f) =>
+        f.attributes.get('gff_id')?.includes('Match5'),
+      )
+      if (!feature) {
+        throw new Error('Match5 not found')
+      }
+      const row = display.getRowForFeature(feature)
+      if (row === undefined) {
+        throw new Error('No Match5 layout row')
+      }
+      const startPx = view.bpToPx({
+        refName: 'ctgA',
+        coord: feature.min,
+        regionNumber: 0,
+      })
+      const endPx = view.bpToPx({
+        refName: 'ctgA',
+        coord: 9450,
+        regionNumber: 0,
+      })
+      if (!startPx || !endPx) {
+        throw new Error('Drag coordinates are outside view')
+      }
+      const x = startPx.offsetPx - view.offsetPx
+      const endX = endPx.offsetPx - view.offsetPx
+      const y = row * display.apolloRowHeight + display.apolloRowHeight / 2
+      cy.intercept('POST', '**/changes').as('dragChange')
+      cy.get('[data-testid="overlayCanvas"]').trigger('mousedown', x, y, {
+        force: true,
+        button: 0,
+        buttons: 1,
+      })
+      cy.window().then(() =>
+        expect(display.apolloDragging?.feature._id).to.equal(feature._id),
+      )
+      cy.get('[data-testid="overlayCanvas"]').trigger('mousemove', endX, y, {
+        force: true,
+        buttons: 1,
+      })
+      cy.window().then(() =>
+        expect(display.apolloDragging?.current.bp).to.equal(9450),
+      )
+      cy.get('[data-testid="overlayCanvas"]').trigger('mouseup', endX, y, {
+        force: true,
+        button: 0,
+      })
+      cy.wait('@dragChange').its('response.statusCode').should('equal', 201)
     })
-    // cy.get('[class="css-17gfnt3-verticalGuidesContainer"]').children().eq(0).trigger('mousedown', 200, 30)
-    // cy.get('[class="css-17gfnt3-verticalGuidesContainer"]').children().eq(0).trigger('mousemove', 900, 30)
-    // cy.get('[class="css-17gfnt3-verticalGuidesContainer"]').children().eq(0).trigger('mouseup', 900, 30)
 
-    // cy.get('[data-testid="trackContainer"]').children().eq(0).children().trigger('mousedown', 700, 30, { force: true })
-    // cy.get('[data-testid="trackContainer"]').children().eq(0).children().trigger('mousemove', 900, 30, { force: true })
-    // cy.get('[data-testid="trackContainer"]').children().eq(0).children().trigger('mouseup', 900, 30, { force: true })
-    // .parent().parent().trigger('mouseover')
-    // cy.get('[data-testid="canvas"]').parent().parent().trigger('mousedown', 580, 30)
-    // cy.get('[data-testid="canvas"]').parent().parent().trigger('mousemove', 200, 30)
-    // cy.get('[data-testid="canvas"]').parent().parent().trigger('mouseup', 200, 30)
+    cy.refreshTableEditor()
+    cy.contains('tr', 'Match5')
+      .find('input')
+      .should(($inputs) => {
+        const values = [...$inputs].map((input) => input.value)
+        expect(values).to.include('9451')
+        expect(values).to.include('9900')
+      })
   })
 })
