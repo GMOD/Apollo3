@@ -10,18 +10,18 @@ import {
   type UserLocation,
   filterJBrowseConfig,
 } from '@apollo-annotation/shared'
+import type { JobsListModel } from '@jbrowse/app-core'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import type assemblyManager from '@jbrowse/core/assemblyManager'
 import {
   type AnyConfigurationModel,
-  getConf,
   readConfObject,
 } from '@jbrowse/core/configuration'
 import type { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
 import {
   type AbstractSessionModel,
-  type SessionWithAddTracks,
   type SessionWithDrawerWidgets,
+  editableConfig,
   isElectron,
 } from '@jbrowse/core/util'
 import {
@@ -42,10 +42,9 @@ import {
   LoginFailedError,
 } from '../ApolloInternetAccount/loginErrors'
 import type { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { ApolloJobModel } from '../ApolloJobModel'
-import type ApolloPluginConfigurationSchema from '../config'
+import type { ApolloPluginConfigModel } from '../config'
 import { type ApolloRootModel, isApolloInternetAccount } from '../types'
-import { createFetchErrorMessage } from '../util'
+import { createFetchErrorMessage, getAssemblyMetadata } from '../util'
 
 import {
   type ClientDataStoreModel,
@@ -76,16 +75,11 @@ export function extendSession(
   pluginManager: PluginManager,
   sessionModel: ReturnType<typeof types.model>,
 ) {
-  const AnnotationFeatureExtended = pluginManager.evaluateExtensionPoint(
-    'Apollo-extendAnnotationFeature',
-    AnnotationFeatureModel,
-  ) as typeof AnnotationFeatureModel
-  const ClientDataStore = clientDataStoreFactory(AnnotationFeatureExtended)
+  const ClientDataStore = clientDataStoreFactory()
   const sm = sessionModel
     .props({
       apolloDataStore: types.optional(ClientDataStore, { typeName: 'Client' }),
-      apolloSelectedFeature: types.safeReference(AnnotationFeatureExtended),
-      jobsManager: types.optional(ApolloJobModel, {}),
+      apolloSelectedFeature: types.safeReference(AnnotationFeatureModel),
       isLocked: types.optional(types.boolean, false),
       changeInProgress: types.optional(types.boolean, false),
     })
@@ -116,7 +110,22 @@ export function extendSession(
         },
       }
     })
+    .views((self) => ({
+      get jobStatusWidget() {
+        const { widgets } = self as unknown as SessionWithDrawerWidgets
+        const jobStatusWidget =
+          widgets.get('JobsList') ??
+          // @ts-expect-error: addWidget function not detected on the session
+          self.addWidget('JobsListWidget', 'JobsList')
+        return jobStatusWidget as unknown as JobsListModel
+      },
+    }))
     .actions((self) => ({
+      showJobStatusWidget() {
+        ;(self as unknown as SessionWithDrawerWidgets).showWidget(
+          self.jobStatusWidget,
+        )
+      },
       apolloSetSelectedFeature(feature?: AnnotationFeature | string) {
         // @ts-expect-error Not sure why TS thinks these MST types don't match
         self.apolloSelectedFeature = feature
@@ -130,11 +139,7 @@ export function extendSession(
           (track) => track.trackId === trackId,
         )
         if (!hasTrack) {
-          ;(
-            getRoot<ApolloRootModel>(self).jbrowse as {
-              addTrackConf: SessionWithAddTracks['addTrackConf']
-            }
-          ).addTrackConf({
+          editableConfig(getRoot<ApolloRootModel>(self)).addTrackConf({
             type: 'ApolloTrack',
             trackId,
             name: `Annotations (${assembly.displayName})`,
@@ -151,11 +156,8 @@ export function extendSession(
       },
       getPluginConfiguration() {
         const { jbrowse } = getRoot<ApolloRootModel>(self)
-        const pluginConfiguration =
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          jbrowse.configuration.ApolloPlugin as Instance<
-            typeof ApolloPluginConfigurationSchema
-          >
+        const pluginConfiguration = jbrowse.configuration
+          .ApolloPlugin as ApolloPluginConfigModel
         return pluginConfiguration
       },
       broadcastLocations() {
@@ -294,31 +296,20 @@ export function extendSession(
               // if any tracks are open. Here we copy the session snapshot, apply an
               // empty session snapshot, and then restore the original session
               // snapshot after the updated config.json loads.
-              const pluginConfiguration =
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                jbrowse.configuration.ApolloPlugin as Instance<
-                  typeof ApolloPluginConfigurationSchema
-                >
-              const hasRole = readConfObject(
-                pluginConfiguration,
-                'hasRole',
-              ) as boolean
+              const pluginConfiguration = jbrowse.configuration
+                .ApolloPlugin as ApolloPluginConfigModel
+              const hasRole = readConfObject(pluginConfiguration, 'hasRole')
               const featureTypeOntologyName = readConfObject(
                 pluginConfiguration,
                 'featureTypeOntologyName',
-              ) as string
+              )
               const hasApolloInternetAccount = internetAccounts.some((ia) =>
                 isApolloInternetAccount(ia),
               )
               const nonApolloAssemblies = (
                 self as unknown as AbstractSessionModel
               ).assemblyManager.assemblies.filter(
-                (a) =>
-                  !(
-                    getConf(a, ['sequence', 'metadata']) as {
-                      apollo?: boolean
-                    }
-                  ).apollo,
+                (a) => !getAssemblyMetadata(a).apollo,
               )
               if (!hasApolloInternetAccount || hasRole) {
                 // Wait for assemblyManager to load before we do this part
@@ -335,7 +326,6 @@ export function extendSession(
                     readConfObject(ont, 'name') === featureTypeOntologyName,
                 )
                 if (!featureTypeOntology) {
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                   pluginConfiguration.addOntology({
                     name: 'Sequence Ontology',
                     version: '01c33c6d9b6c8dca12e7d3e37b49ee113093c2fa',
@@ -348,7 +338,6 @@ export function extendSession(
                 for (const a of nonApolloAssemblies) {
                   self.addApolloLocalTrackConfig(a)
                 }
-                // @ts-expect-error not sure why snapshot type is wrong for snapshot
                 applySnapshot(self, self.previousSnapshot)
                 reaction.dispose()
                 return
@@ -463,13 +452,24 @@ export function extendSession(
         .getTrackActions
       return {
         getTrackActions(conf: BaseTrackConfig) {
+          // Saving tracks to and removing them from Apollo changes the stored
+          // JBrowse config, which only admins can do
+          const { internetAccounts } = getRoot<ApolloRootModel>(self)
+          const isApolloAdmin = (
+            internetAccounts as ApolloInternetAccountModel[]
+          ).some(
+            (internetAccount) =>
+              internetAccount.type === 'ApolloInternetAccount' &&
+              internetAccount.role === 'admin',
+          )
           if (
+            !isApolloAdmin ||
             conf.type === 'ApolloTrack' ||
             conf.type === 'ReferenceSequenceTrack'
           ) {
             return superTrackActions?.(conf)
           }
-          const trackId = readConfObject(conf, 'trackId') as string
+          const trackId = readConfObject(conf, 'trackId')
           const sessionTrackIdentifier = '-sessionTrack'
           const isSessionTrack = trackId.endsWith(sessionTrackIdentifier)
           return isSessionTrack
@@ -520,8 +520,9 @@ export function extendSession(
                     }
                     // @ts-expect-error This method is missing in the JB types
                     self.deleteTrackConf(conf)
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                    jbrowse.addTrackConf(newTrackConfigSnapshot)
+                    editableConfig({ jbrowse }).addTrackConf(
+                      newTrackConfigSnapshot,
+                    )
                   },
                   icon: SaveIcon,
                 },
@@ -563,8 +564,7 @@ export function extendSession(
                     }
                     // @ts-expect-error This method is missing in the JB types
                     self.deleteTrackConf(conf)
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                    jbrowse.deleteTrackConf(conf)
+                    editableConfig({ jbrowse }).deleteTrackConf(conf)
                   },
                   icon: SaveIcon,
                 },

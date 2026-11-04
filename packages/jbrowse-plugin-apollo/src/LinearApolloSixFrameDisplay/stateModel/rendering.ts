@@ -51,8 +51,7 @@ function drawCodon(
     const right = Math.round(leftPx + (index + 3) / bpPerPx)
     const width = Math.max(right - left, 1)
     const codonCode = strand === 1 ? codon : revcom(codon)
-    const aminoAcidCode =
-      defaultCodonTable[codonCode as keyof typeof defaultCodonTable]
+    const aminoAcidCode = defaultCodonTable[codonCode]
     const fillColor = codonColorCode(aminoAcidCode, theme, highContrast)
     if (
       fillColor &&
@@ -289,7 +288,7 @@ export function renderingModelFactory(
                     const locationStartPxInfo = self.lgv.bpToPx({
                       refName: refSeq,
                       coord: start,
-                      regionNumber: idx,
+                      displayedRegionIndex: idx,
                     })
                     if (!locationStartPxInfo) {
                       continue

@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import chalk from 'chalk'
+import { RolldownMagicString } from 'rolldown'
 
 /** @param {string} name */
 export function safePackageName(name) {
@@ -37,6 +38,28 @@ ${baseLine}.cjs.development.js')
         fs.mkdirSync(distPath, { recursive: true })
       }
       fs.writeFileSync(path.join(distPath, 'index.js'), contents)
+    },
+  }
+}
+
+/** @returns {import('rolldown').Plugin} */
+export function esModuleInterop() {
+  return {
+    name: 'es-module-interop',
+    renderChunk(code) {
+      const s = new RolldownMagicString(code)
+      for (const match of code.matchAll(/^\s*(\w+) = __toESM\(\1, 1\);$/gm)) {
+        // Remove the ", 1" (isNodeMode) argument
+        const end = match.index + match[0].length - ');'.length
+        s.remove(end - ', 1'.length, end)
+      }
+      if (!s.hasChanged()) {
+        return null
+      }
+      return {
+        code: s.toString(),
+        map: s.generateMap({ hires: true }).toString(),
+      }
     },
   }
 }

@@ -6,6 +6,10 @@ import { alpha } from '@mui/material'
 import { getFeaturePx, roundPxSpan } from '../../util/glyphUtils'
 import type { LinearApolloSixFrameDisplayRendering } from '../stateModel/rendering'
 
+const readConfObject = jest.fn()
+jest.unstable_mockModule('@jbrowse/core/configuration', () => ({
+  readConfObject,
+}))
 jest.unstable_mockModule('../../components', () => ({
   MergeExons: jest.fn(),
   SplitExon: jest.fn(),
@@ -64,7 +68,9 @@ it.each<[string, string | undefined, boolean, 'light' | 'dark']>([
       max: 20,
       strand: 1,
     } as unknown as AnnotationFeature
-    const getValue = jest.fn(() => configuredColor)
+    readConfObject.mockReset()
+    readConfObject.mockReturnValue(configuredColor)
+    const pluginConfiguration = {}
     const paper = mode === 'light' ? '#ffffff' : '#121212'
     const display = {
       apolloRowHeight: 10,
@@ -77,7 +83,7 @@ it.each<[string, string | undefined, boolean, 'light' | 'dark']>([
       },
       session: {
         apolloDataStore: { ontologyManager: { featureTypeOntology: {} } },
-        getPluginConfiguration: () => ({ geneBackgroundColor: { getValue } }),
+        getPluginConfiguration: () => pluginConfiguration,
       },
       selectedFeature: selected ? gene : undefined,
       showFeatureLabels: false,
@@ -108,9 +114,13 @@ it.each<[string, string | undefined, boolean, 'light' | 'dark']>([
       })
     }
     if (selected) {
-      expect(getValue).not.toHaveBeenCalled()
-    } else if (configuredColor !== undefined) {
-      expect(getValue).toHaveBeenCalledWith({ featureType: type })
+      expect(readConfObject).not.toHaveBeenCalled()
+    } else {
+      expect(readConfObject).toHaveBeenCalledWith(
+        pluginConfiguration,
+        'geneBackgroundColor',
+        { featureType: type },
+      )
     }
   },
 )

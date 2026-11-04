@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.node",
+  "compilerOptions": { "noEmit": false, "outDir": "./conf" },
+  "include": ["./*.cjs"],
+}

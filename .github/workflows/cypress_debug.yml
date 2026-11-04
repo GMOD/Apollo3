@@ -22,14 +22,13 @@ jobs:
         run: yarn --immutable
 
       - name: Get latest JBrowse
-        run: yarn run jbrowse create .jbrowse
+        run: yarn run jbrowse create --nightly .jbrowse
         working-directory: packages/jbrowse-plugin-apollo
 
       - name: Start MongoDB
         uses: supercharge/mongodb-github-action@1.12.1
         with:
           mongodb-version: 8
-          mongodb-replica-set: test-rs
 
       - name: Start local file server
         id: file-server

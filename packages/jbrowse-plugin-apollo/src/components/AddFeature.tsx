@@ -306,7 +306,7 @@ export function AddFeature({
                 value={NewFeature.GENE_AND_SUBFEATURES}
                 control={<Radio />}
                 label={
-                  <Box display="flex" alignItems="center">
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     Add gene and sub-features
                     <Tooltip title="This is a shortcut to create a gene with a single mRNA, exon, and CDS">
                       <IconButton size="small">
@@ -321,7 +321,7 @@ export function AddFeature({
                 value={NewFeature.TRANSCRIPT_AND_SUBFEATURES}
                 control={<Radio />}
                 label={
-                  <Box display="flex" alignItems="center">
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     Add transcript and sub-features
                     <Tooltip title="This is a shortcut to create a single mRNA with exon and CDS, but without a parent gene">
                       <IconButton size="small">

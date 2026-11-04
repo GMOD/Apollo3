@@ -2,6 +2,8 @@ import { jest } from '@jest/globals'
 import { BadRequestException } from '@nestjs/common'
 import { Test, type TestingModule } from '@nestjs/testing'
 
+import { AssemblyAccessService } from '../assemblyAccess/assemblyAccess.service.js'
+
 import { FeaturesController } from './features.controller.js'
 import { FeaturesService } from './features.service.js'
 
@@ -15,6 +17,7 @@ describe('FeaturesController', () => {
       controllers: [FeaturesController],
       providers: [
         { provide: FeaturesService, useValue: { getFeatureDensity } },
+        { provide: AssemblyAccessService, useValue: {} },
       ],
     }).compile()
 

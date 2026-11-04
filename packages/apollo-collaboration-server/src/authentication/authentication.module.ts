@@ -7,7 +7,6 @@ import { JwtModule, type JwtModuleOptions } from '@nestjs/jwt'
 import { MongooseModule } from '@nestjs/mongoose'
 import { PassportModule } from '@nestjs/passport'
 
-import { PluginsService } from '../plugins/plugins.service.js'
 import { UsersModule } from '../users/users.module.js'
 import { JwtStrategy } from '../utils/strategies/jwt.strategy.js'
 
@@ -54,7 +53,6 @@ async function jwtConfigFactory(
     DeviceLoginService,
     JwtStrategy,
     OidcService,
-    PluginsService,
   ],
   exports: [AuthenticationService],
 })
