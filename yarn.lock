@@ -499,6 +499,7 @@ __metadata:
     react-dom: "npm:^18.2.0"
     reflect-metadata: "npm:^0.1.13"
     rxjs: "npm:^7.4.0"
+    shx: "npm:^0.3.3"
     typescript: "npm:^6.0.3"
   peerDependencies:
     "@jbrowse/mobx-state-tree": ^5.8.7
@@ -609,6 +610,7 @@ __metadata:
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     rxjs: "npm:^7.4.0"
+    shx: "npm:^0.3.3"
     typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
@@ -625,6 +627,7 @@ __metadata:
     mongoose: "npm:^9.9.3"
     reflect-metadata: "npm:^0.1.13"
     rxjs: "npm:^7.4.0"
+    shx: "npm:^0.3.3"
     typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
@@ -664,6 +667,7 @@ __metadata:
     reflect-metadata: "npm:^0.1.13"
     rimraf: "npm:^3.0.2"
     rxjs: "npm:^7.4.0"
+    shx: "npm:^0.3.3"
     tss-react: "npm:^4.9.21"
     tsx: "npm:^4.6.2"
     typescript: "npm:^6.0.3"

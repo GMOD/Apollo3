@@ -28,10 +28,42 @@ function enforceConsistentDependenciesAcrossTheProject({ Yarn }) {
   }
 }
 
+/**
+ * Whether a workspace manifest is marked `"private": true`. The manifest is
+ * typed as `any` by `@yarnpkg/types`, so narrow it from `unknown` here.
+ *
+ * @param {unknown} manifest
+ * @returns {boolean}
+ */
+function isPrivate(manifest) {
+  return (
+    typeof manifest === 'object' &&
+    manifest !== null &&
+    'private' in manifest &&
+    manifest.private === true
+  )
+}
+
+/**
+ * This rule will enforce that every published (non-private) workspace declares
+ * the same license as the repository.
+ *
+ * @param {import('@yarnpkg/types').Yarn.Constraints.Context} context
+ */
+function enforceLicenseOnPublishedWorkspaces({ Yarn }) {
+  for (const workspace of Yarn.workspaces()) {
+    if (isPrivate(workspace.manifest)) {
+      continue
+    }
+    workspace.set('license', 'Apache-2.0')
+  }
+}
+
 /** @type {import('@yarnpkg/types').Yarn.Config} */
 module.exports = defineConfig({
   constraints: (ctx) => {
     enforceConsistentDependenciesAcrossTheProject(ctx)
+    enforceLicenseOnPublishedWorkspaces(ctx)
     return Promise.resolve()
   },
 })

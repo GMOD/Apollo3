@@ -7,6 +7,7 @@
     "url": "https://github.com/GMOD/Apollo3.git",
     "directory": "packages/apollo-cli"
   },
+  "license": "Apache-2.0",
   "author": "Apollo Team",
   "type": "module",
   "exports": "./dist/index.js",
@@ -23,8 +24,8 @@
     "build": "shx rm -rf dist && tsc -b tsconfig.build.json",
     "coverage:report": "cd ../.. && tsx scripts/normalizeV8Coverage.ts coverage/tmp/cli && c8 report --config .c8rc.integration.json --temp-directory coverage/tmp/cli --report-dir coverage/cli",
     "dev": "tsx bin/dev.js",
-    "prepack": "yarn build && oclif manifest && oclif readme && prettier --write README.md",
-    "postpack": "shx rm -f oclif.manifest.json",
+    "prepack": "shx cp ../../LICENSE LICENSE && yarn build && oclif manifest && oclif readme && prettier --write README.md",
+    "postpack": "shx rm -f oclif.manifest.json LICENSE",
     "prepare": "yarn build",
     "test": "yarn tsx src/test/test.ts",
     "test:ci": "yarn tsx src/test/test.ts",

@@ -6,11 +6,14 @@
     "url": "https://github.com/GMOD/Apollo3.git",
     "directory": "packages/apollo-common"
   },
+  "license": "Apache-2.0",
   "sideEffects": false,
   "type": "module",
   "exports": "./dist/index.js",
   "scripts": {
-    "build": "tsc --build"
+    "build": "tsc --build",
+    "prepack": "shx cp ../../LICENSE LICENSE",
+    "postpack": "shx rm -f LICENSE"
   },
   "dependencies": {
     "@apollo-annotation/schemas": "workspace:^",
@@ -32,6 +35,7 @@
     "react-dom": "^18.2.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.4.0",
+    "shx": "^0.3.3",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
