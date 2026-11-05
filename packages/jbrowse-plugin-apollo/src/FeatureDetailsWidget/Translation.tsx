@@ -3,11 +3,7 @@ import type {
   ApolloRefSeqI,
   TranscriptPartCoding,
 } from '@apollo-annotation/mst'
-import {
-  type AbstractSessionModel,
-  defaultCodonTable,
-  revcom,
-} from '@jbrowse/core/util'
+import { type AbstractSessionModel, revcom } from '@jbrowse/core/util'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import ContentCutIcon from '@mui/icons-material/ContentCut'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
@@ -23,6 +19,7 @@ import React, { useRef } from 'react'
 
 import type { ApolloSessionModel } from '../session'
 import { copyToClipboard } from '../util/copyToClipboard'
+import { codonTable } from '../util/sequenceUtils'
 
 const SequenceContainer = styled('div')({
   display: 'flex',
@@ -95,8 +92,7 @@ export function Translation({
     const codonSeq = cdsSequence
       .slice(codonGenomicPos, codonGenomicPos + 3)
       .toUpperCase()
-    const protein =
-      defaultCodonTable[codonSeq as keyof typeof defaultCodonTable] || '&'
+    const protein = codonTable[codonSeq] ?? '&'
     proteinSequence.push(protein)
   }
 
