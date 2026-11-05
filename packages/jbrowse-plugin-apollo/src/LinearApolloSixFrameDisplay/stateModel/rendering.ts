@@ -2,6 +2,7 @@ import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import type { AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
 import {
+  type AbstractSessionModel,
   defaultCodonTable,
   doesIntersect2,
   getFrame,
@@ -16,6 +17,7 @@ import {
 import { type Theme, createTheme } from '@mui/material'
 import { autorun, observable } from 'mobx'
 
+import { findAssemblyByNameOrId } from '../../util/assemblyUtils'
 import { codonColorCode } from '../../util/displayUtils'
 import {
   isCDSFeature,
@@ -94,6 +96,33 @@ export function renderingModelFactory(
       getGlyph(_feature: AnnotationFeature) {
         return geneGlyph
       },
+      /**
+       * Looks up the canonical refName for a feature's refSeq. Callers pass
+       * `feature.assemblyId`/`feature.refSeq`, which are Apollo backend ids
+       * (see `ClientDataStore`), not JBrowse names - so this first resolves
+       * the refSeq id to its raw name via the Apollo data store, then asks
+       * the JBrowse assembly (found by name or id - `assemblyManager` only
+       * indexes by name) to canonicalize that name (resolving aliases).
+       */
+      getCanonicalRefName(assemblyId: string, refSeqId: string) {
+        const apolloAssembly =
+          self.session.apolloDataStore.assemblies.get(assemblyId)
+        const refSeqName = apolloAssembly?.refSeqs.get(refSeqId)?.name
+        if (!refSeqName) {
+          throw new Error('no assembly in layout')
+        }
+        const { assemblyManager } =
+          self.session as unknown as AbstractSessionModel
+        const assembly = findAssemblyByNameOrId(assemblyManager, assemblyId)
+        if (!assembly) {
+          throw new Error('no assembly in layout')
+        }
+        const canonicalRefName = assembly.getCanonicalRefName(refSeqName)
+        if (!canonicalRefName) {
+          throw new Error('no canonical refName in layout')
+        }
+        return canonicalRefName
+      },
       /** Top-level gene features that overlap the given region */
       getGenesInRegion(region: {
         assemblyName: string
@@ -101,7 +130,7 @@ export function renderingModelFactory(
         start: number
         end: number
       }) {
-        const assembly = self.session.apolloDataStore.assemblies.get(
+        const assembly = self.session.apolloDataStore.getAssemblyByName(
           region.assemblyName,
         )
         const features = assembly?.getByRefName(region.refName)?.features
@@ -224,7 +253,7 @@ export function renderingModelFactory(
                 }
               }
               for (const region of self.regions) {
-                const assembly = self.session.apolloDataStore.assemblies.get(
+                const assembly = self.session.apolloDataStore.getAssemblyByName(
                   region.assemblyName,
                 )
                 const ref = assembly?.getByRefName(region.refName)
@@ -364,7 +393,7 @@ export function renderingModelFactory(
 
                 if (showStartCodons || showStopCodons) {
                   const { apolloDataStore } = session
-                  const assembly = apolloDataStore.assemblies.get(
+                  const assembly = apolloDataStore.getAssemblyByName(
                     block.assemblyName,
                   )
                   const ref = assembly?.getByRefName(block.refName)

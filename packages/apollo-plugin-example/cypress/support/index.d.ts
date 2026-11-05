@@ -2,11 +2,11 @@
 
 declare namespace Cypress {
   interface Chainable {
-    setupJBrowseConfig(): Chainable<void>
+    preloadOntology(): Chainable<void>
     loginAsGuest(): Chainable<void>
-    deleteAssemblies(): Chainable<void>
+    clearFeatures(): Chainable<void>
     selectFromApolloMenu(menuItemNameOrPath: string | string[]): Chainable<void>
-    addAssemblyFromGff(assemblyName: string, fin: string): Chainable<void>
+    importFeatures(gffFile: string, assemblyName: string): Chainable<void>
     selectAssemblyToView(
       assemblyName: string,
       locationOrSearch?: string,

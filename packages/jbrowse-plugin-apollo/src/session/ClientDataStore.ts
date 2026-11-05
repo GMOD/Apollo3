@@ -7,7 +7,6 @@ import {
   ApolloAssembly,
   type ApolloAssemblySnapshot,
   ApolloRefSeq,
-  type BackendDriverType,
   CheckResult,
   type CheckResultSnapshot,
 } from '@apollo-annotation/mst'
@@ -33,7 +32,6 @@ import {
 import { autorun } from 'mobx'
 
 import {
-  type ApolloInternetAccount,
   type BackendDriver,
   CollaborationServerDriver,
   LocalDriver,
@@ -45,7 +43,11 @@ import {
 } from '../OntologyManager'
 import type { ApolloPluginConfigModel } from '../config'
 import type { ApolloRootModel } from '../types'
-import { getAssemblyMetadata } from '../util/assemblyUtils'
+import {
+  findAssemblyByNameOrId,
+  getApolloAssemblyId,
+  getAssemblySequenceMetadata,
+} from '../util'
 
 import type { ApolloSessionModel } from './session'
 
@@ -58,10 +60,6 @@ export function clientDataStoreFactory() {
       ontologyManager: types.optional(OntologyManagerType, {}),
     })
     .views((self) => ({
-      get internetAccounts() {
-        return getRoot<ApolloRootModel>(self).internetAccounts
-      },
-
       get pluginConfiguration() {
         return getRoot<ApolloRootModel>(self).jbrowse.configuration
           .ApolloPlugin as ApolloPluginConfigModel
@@ -75,13 +73,10 @@ export function clientDataStoreFactory() {
       },
     }))
     .actions((self) => ({
-      addAssembly(assemblyId: string, backendDriverType?: BackendDriverType) {
+      addAssembly(assemblyId: string) {
         const assemblySnapshot: ApolloAssemblySnapshot = {
           _id: assemblyId,
           refSeqs: {},
-        }
-        if (backendDriverType) {
-          assemblySnapshot.backendDriverType = backendDriverType
         }
         return self.assemblies.put(assemblySnapshot)
       },
@@ -93,7 +88,7 @@ export function clientDataStoreFactory() {
         let apolloAssembly = self.assemblies.get(assemblyId)
         if (!apolloAssembly) {
           // maybe it's a valid assembly that we haven't loaded yet
-          const assembly = assemblyManager.get(assemblyId)
+          const assembly = findAssemblyByNameOrId(assemblyManager, assemblyId)
           if (!assembly) {
             throw new Error(
               `Could not find assembly "${assemblyId}" to add feature "${feature._id}"`,
@@ -104,7 +99,7 @@ export function clientDataStoreFactory() {
         let ref = apolloAssembly.refSeqs.get(feature.refSeq)
         if (!ref) {
           // maybe it's a valid refName that we haven't loaded yet
-          const assembly = assemblyManager.get(assemblyId)
+          const assembly = findAssemblyByNameOrId(assemblyManager, assemblyId)
           if (!assembly) {
             throw new Error(
               `Could not find assembly "${assemblyId}" to add feature "${feature._id}"`,
@@ -144,7 +139,14 @@ export function clientDataStoreFactory() {
       },
       addCheckResults(checkResults: CheckResultSnapshot[]) {
         for (const checkResult of checkResults) {
-          if (!self.checkResults.has(checkResult._id)) {
+          const existing = self.checkResults.get(checkResult._id)
+          // `ids` is a safeReference array: if this checkResult was first
+          // loaded before its target feature existed in the tree (e.g. a
+          // narrower region loaded before the one containing the feature),
+          // the reference silently failed to resolve and is stuck empty.
+          // Re-putting it here re-resolves it now that the feature may have
+          // since been loaded, rather than leaving it broken forever.
+          if (!existing || existing.ids.length === 0) {
             self.checkResults.put(checkResult)
           }
         }
@@ -250,12 +252,12 @@ export function clientDataStoreFactory() {
       getBackendDriver(assemblyId: string): BackendDriver | undefined {
         const session = getSession(self)
         const { assemblyManager } = session
-        const assembly = assemblyManager.get(assemblyId)
+        const assembly = findAssemblyByNameOrId(assemblyManager, assemblyId)
         if (!assembly) {
           return
         }
-        const { internetAccountConfigId } = getAssemblyMetadata(assembly)
-        if (internetAccountConfigId) {
+        const { apollo } = getAssemblySequenceMetadata(assembly)
+        if (apollo) {
           return self.collaborationServerDriver
         }
         return self.localDriver
@@ -272,32 +274,21 @@ export function clientDataStoreFactory() {
         const backendDriver = this.getBackendDriver(region.assemblyName)
         return backendDriver?.getFeatureDensity(region, binSize, featureTypes)
       },
-      getInternetAccount(assemblyName?: string, internetAccountId?: string) {
-        if (!(assemblyName ?? internetAccountId)) {
-          throw new Error(
-            'Must provide either assemblyName or internetAccountId',
-          )
-        }
-        let configId = internetAccountId
-        if (assemblyName && !configId) {
-          const { assemblyManager } = getSession(self)
-          const assembly = assemblyManager.get(assemblyName)
-          if (!assembly) {
-            throw new Error(`No assembly found with name ${assemblyName}`)
-          }
-          ;({ internetAccountConfigId: configId } =
-            getAssemblyMetadata(assembly))
-        }
-        const { internetAccounts } = self
-        const internetAccount = internetAccounts.find(
-          (ia) => ia.internetAccountId === configId,
-        ) as ApolloInternetAccount | undefined
-        if (!internetAccount) {
-          throw new Error(
-            `No InternetAccount found with config id ${internetAccountId}`,
-          )
-        }
-        return internetAccount
+      /** Resolves a JBrowse assembly name to its Apollo backend id. */
+      getApolloAssemblyIdForName(assemblyName: string): string {
+        const { assemblyManager } = getSession(self)
+        const assemblyConfig = assemblyManager.get(assemblyName)
+        return assemblyConfig
+          ? getApolloAssemblyId(assemblyConfig)
+          : assemblyName
+      },
+    }))
+    .views((self) => ({
+      /** Looks up an assembly by its JBrowse config name (translates to the Apollo backend id first). */
+      getAssemblyByName(assemblyName: string) {
+        return self.assemblies.get(
+          self.getApolloAssemblyIdForName(assemblyName),
+        )
       },
     }))
     .actions((self) => ({
@@ -314,9 +305,10 @@ export function clientDataStoreFactory() {
             continue
           }
           const { assemblyName, refName } = region
+          const assemblyId = self.getApolloAssemblyIdForName(assemblyName)
           const assembly =
-            self.assemblies.get(assemblyName) ??
-            self.assemblies.put({ _id: assemblyName, refSeqs: {} })
+            self.assemblies.get(assemblyId) ??
+            self.assemblies.put({ _id: assemblyId, refSeqs: {} })
           const [firstFeature] = features
           const ref =
             assembly.refSeqs.get(firstFeature.refSeq) ??
@@ -341,9 +333,10 @@ export function clientDataStoreFactory() {
           }
           const { refSeq, seq } = yield backendDriver.getSequence(region)
           const { assemblyName, end, refName, start } = region
+          const assemblyId = self.getApolloAssemblyIdForName(assemblyName)
           const assembly =
-            self.assemblies.get(assemblyName) ??
-            self.assemblies.put({ _id: assemblyName, refSeqs: {} })
+            self.assemblies.get(assemblyId) ??
+            self.assemblies.put({ _id: assemblyId, refSeqs: {} })
           const ref =
             assembly.refSeqs.get(refSeq) ??
             assembly.refSeqs.put({ _id: refSeq, name: refName, sequence: [] })

@@ -14,9 +14,9 @@ describe('Feature density', () => {
     cy.loginAsGuest()
     // About 480 kb with 15 genes, so showing all of it is zoomed out past the
     // old fixed threshold of 200 bp/px but has few features
-    cy.addAssemblyFromGff(
-      'SM_V10_3.fasta.gff3.gz',
+    cy.importFeatures(
       'test_data/SM_V10_3.fasta.gff3.gz',
+      'SM_V10_3.fasta.gff3.gz',
     )
     cy.selectAssemblyToView('SM_V10_3.fasta.gff3.gz', 'SM_V10_3')
     cy.contains('Open track selector').click()
@@ -25,7 +25,7 @@ describe('Feature density', () => {
   })
 
   afterEach(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
   })
 
   it('shows sparse features when zoomed out', () => {

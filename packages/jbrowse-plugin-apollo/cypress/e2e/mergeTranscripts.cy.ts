@@ -4,12 +4,17 @@ describe('Delete feature', () => {
   })
 
   afterEach(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
   })
 
   it('Merge multiple exons', () => {
     const assemblyName = 'mergeTranscripts.gff3'
-    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
+    cy.importFeatures(
+      `test_data/${assemblyName}`,
+      assemblyName,
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
     cy.selectAssemblyToView(assemblyName, 'chr2:1..60')
 
     cy.contains('Open track selector').click()

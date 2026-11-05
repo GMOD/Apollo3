@@ -7,7 +7,9 @@ declare namespace Cypress {
     preloadSequenceOntology(): Chainable<void>
     loginAsGuest(): Chainable<void>
     openLocalApollo(): Chainable<void>
-    deleteAssemblies(): Chainable<void>
+    clearFeatures(): Chainable<void>
+    visitLocalSession(): Chainable<void>
+    clearLocalFeatures(): Chainable<void>
     selectFromTrackMenu(menuItemNameOrPath: string | string[]): Chainable<void>
     selectFromApolloMenu(menuItemNameOrPath: string | string[]): Chainable<void>
     annotationTrackAppearance(
@@ -15,12 +17,6 @@ declare namespace Cypress {
         | 'Show both graphical and table display'
         | 'Show graphical display'
         | 'Show table display',
-    ): Chainable<void>
-    addAssemblyFromGff(
-      assemblyName: string,
-      fin: string,
-      launch?: boolean,
-      loadFeatures?: boolean,
     ): Chainable<void>
     selectAssemblyToView(
       assemblyName: string,
@@ -43,5 +39,6 @@ declare namespace Cypress {
     refreshTableEditor(): Chainable<void>
     /** Log in as a separate guest session and yield its token */
     loginAsOtherGuest(): Chainable<string>
+    openAnnotationsTrack(): Chainable<void>
   }
 }

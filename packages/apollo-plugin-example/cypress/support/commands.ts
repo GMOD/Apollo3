@@ -56,38 +56,13 @@ async function loadOntology(
 }
 
 /**
- * Stores the JBrowse configuration the collaboration server merges into the
- * one it generates: the Sequence Ontology, and the example plugin's client
- * half (served by this package's `serve:dist`). The server half is loaded by
- * the server itself, from `PLUGIN_URLS`.
+ * The JBrowse configuration (the "example" assembly, the Sequence Ontology and
+ * the example plugin's client half, served by this package's `serve:dist`)
+ * comes from cypress/fixtures/jbrowse/config_example.json, which the server
+ * is told to serve with `JBROWSE_CONFIG_FILES` (see `cypress:start:example`).
+ * The server half is loaded by the server itself, from `PLUGIN_URLS`.
  */
-Cypress.Commands.add('setupJBrowseConfig', () => {
-  cy.deleteMany({}, { collection: 'jbrowseconfigs' })
-  cy.insertOne(
-    {
-      configuration: {
-        ApolloPlugin: {
-          ontologies: [
-            {
-              name: 'Sequence Ontology',
-              version: 'unversioned',
-              source: {
-                uri: 'http://localhost:9000/test_data/so-2024-11-18.json',
-                locationType: 'UriLocation',
-              },
-            },
-          ],
-        },
-      },
-      plugins: [
-        {
-          name: 'ApolloExample',
-          url: 'http://localhost:3838/dist/plugin-example.umd.development.js',
-        },
-      ],
-    },
-    { collection: 'jbrowseconfigs' },
-  )
+Cypress.Commands.add('preloadOntology', () => {
   // Preloading the ontology into IndexedDB saves parsing it in every test.
   // so.json.gz was generated from an IndexedDB dump using the script found at
   // https://gist.github.com/loilo/ed43739361ec718129a15ae5d531095b
@@ -137,35 +112,46 @@ Cypress.on('window:load', (win) => {
 })
 
 Cypress.Commands.add('loginAsGuest', () => {
-  cy.visit(`/?config=${apolloServer}/jbrowse/config.json`)
-  cy.contains('Yes, I trust it', { timeout: 10_000 }).click()
-  // The login dialog doesn't always appear (e.g. in CI), so poll for it for a
-  // few seconds and continue on if it never shows up
-  const deadline = Date.now() + 2000
-  function clickGuestLoginIfPresent() {
-    cy.get('body').then(($body) => {
-      const guestLogin = $body.find(':contains("Continue as Guest")').last()
-      if (guestLogin.length > 0) {
-        cy.wrap(guestLogin).click()
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
-        cy.wait(2000)
-        cy.reload()
-        return
-      }
-      if (Date.now() < deadline) {
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
-        cy.wait(250)
-        clickGuestLoginIfPresent()
-      }
+  // Visiting while unauthenticated redirects (server-side, before the JBrowse
+  // app loads) to the login page, which redirects back after logging in
+  cy.visit('/?config=config_example.json')
+  // Visit the link instead of clicking it. Cypress doesn't reliably wait for
+  // the page load from the click's redirects, so the next commands could get
+  // elements from the login page or from the app before it finished loading.
+  cy.contains('Continue as Guest', { timeout: 10_000 })
+    .should('have.prop', 'href')
+    .then((href) => {
+      cy.visit(String(href))
     })
-  }
-  clickGuestLoginIfPresent()
 })
 
-Cypress.Commands.add('deleteAssemblies', () => {
-  for (const collection of ['assemblies', 'features', 'checkresults']) {
+/**
+ * Assemblies are seeded at server startup from config_example.json, so only
+ * remove what the tests add, and turn the assemblies' checks back to the
+ * default ones
+ */
+Cypress.Commands.add('clearFeatures', () => {
+  for (const collection of [
+    'changes',
+    'checkresults',
+    'counters',
+    'features',
+    'files',
+  ]) {
     cy.deleteMany({}, { collection })
   }
+  cy.findMany({ isDefault: true }, { collection: 'checks' }).then(
+    (defaultChecks) => {
+      const checkIds = (defaultChecks as unknown as { _id: unknown }[]).map(
+        (check) => check._id,
+      )
+      cy.updateMany(
+        {},
+        { $set: { checks: checkIds } },
+        { collection: 'assemblies' },
+      )
+    },
+  )
 })
 
 Cypress.Commands.add(
@@ -199,14 +185,19 @@ Cypress.Commands.add(
         openApolloMenu()
       })
     }
-    cy.wrap(Cypress.$('body')).within(() => {
-      // Once the user is logged in, the Apollo session fetches the server's
-      // config and rebuilds the whole app with it, which replaces every element
-      // on the page, including an open menu. Wait for the rebuilt app, whose
-      // config has `hasRole` set.
-      cy.window({ timeout: 20_000 })
-        .its('JBrowseRootModel.jbrowse.configuration.ApolloPlugin.hasRole')
-        .should('equal', true)
+    // Once the user is logged in, the Apollo session fetches the server's
+    // config and rebuilds the whole app with it, which replaces every element
+    // on the page, including an open menu. Wait for the rebuilt app, whose
+    // config has `hasRole` set. This also waits out the page load from the
+    // login redirect, so do it before getting <body>.
+    cy.window({ timeout: 20_000 })
+      .its('JBrowseRootModel.jbrowse.configuration.ApolloPlugin.hasRole')
+      .should('equal', true)
+    // `withinSubject: null` keeps an enclosing within() from limiting the search
+    // (see https://github.com/cypress-io/cypress/issues/6666), and unlike
+    // Cypress.$('body') it gets <body> when the command runs, not when it's
+    // queued
+    cy.get('body', { withinSubject: null }).within(() => {
       openApolloMenu()
       for (const pathPart of menuItemPathPrefix) {
         cy.contains(pathPart, { timeout: 10_000 }).click()
@@ -216,32 +207,23 @@ Cypress.Commands.add(
   },
 )
 
-Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
-  cy.selectFromApolloMenu(['Admin', 'Add Assembly'])
-  cy.get('form[data-testid="submit-form"]').within(() => {
-    cy.get('input[type="TextField"]').type(assemblyName)
-    cy.contains('GFF3 input')
-      .parent()
-      .parent()
-      .within(() => {
-        cy.get('button').click()
-      })
-    cy.get('input[data-testid="gff3-input-file"]').selectFile(fin)
-    cy.intercept('/changes').as('changes')
-    cy.get('Button[data-testid="submit-button"]').click()
-    cy.wait('@changes').its('response.statusCode').should('match', /2../)
-  })
-  cy.contains('AddAssemblyAndFeaturesFromFileChange')
+Cypress.Commands.add('importFeatures', (gffFile, assemblyName) => {
+  cy.selectFromApolloMenu(['Admin', 'Import Features'])
+  cy.contains('Import Features from GFF3 file', { matchCase: false })
+    .parent()
+    .within(() => {
+      cy.contains('Upload GFF3 to load features', { matchCase: false })
+        .parent()
+        .within(() => {
+          cy.get('input[type="file"]').selectFile(gffFile)
+        })
+      cy.get('[role="combobox"]').click()
+    })
+  cy.contains('li', assemblyName, { timeout: 10_000 }).click()
+  cy.contains('button', 'Submit').click()
+  cy.contains('AddFeaturesFromFileChange')
     .parent()
     .should('contain', 'Finished')
-  cy.get('button[aria-label="Close drawer"]', { timeout: 10_000 }).click()
-  // Give JBrowse's session autosave (debounced 400ms) time to catch up so the
-  // reload doesn't restore the session from before the change finished
-  // eslint-disable-next-line cypress/no-unnecessary-waiting
-  cy.wait(1000)
-  cy.reload()
-  cy.contains('button', 'Launch view', { timeout: 10_000 }).click()
-  cy.contains('Select assembly to view', { timeout: 10_000 })
 })
 
 Cypress.Commands.add(

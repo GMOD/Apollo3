@@ -4,6 +4,7 @@ import { Logger } from '@nestjs/common'
 import { getConnectionToken, getModelToken } from '@nestjs/mongoose'
 import { Test, type TestingModule } from '@nestjs/testing'
 
+import { JBrowseConfigService } from '../jbrowse/jbrowseConfig.service.js'
 import { PluginsService } from '../plugins/plugins.service.js'
 import { Role } from '../utils/role/role.enum.js'
 
@@ -18,6 +19,12 @@ async function createService(pluginsService: Partial<PluginsService>) {
       { provide: getModelToken(Feature.name), useValue: {} },
       { provide: getConnectionToken(), useValue: {} },
       { provide: PluginsService, useValue: pluginsService },
+      {
+        provide: JBrowseConfigService,
+        useValue: {
+          readAllJBrowseFileConfigs: () => Promise.resolve(new Map()),
+        },
+      },
     ],
   }).compile()
 

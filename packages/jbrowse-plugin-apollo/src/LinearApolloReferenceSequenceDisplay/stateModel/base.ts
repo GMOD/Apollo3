@@ -8,7 +8,7 @@ import type PluginManager from '@jbrowse/core/PluginManager'
 import {
   type AnyConfigurationSchemaType,
   ConfigurationReference,
-  getConf,
+  readConfObject,
 } from '@jbrowse/core/configuration'
 import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
 import {
@@ -17,13 +17,12 @@ import {
   getSession,
 } from '@jbrowse/core/util'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
-import { addDisposer, getRoot, types } from '@jbrowse/mobx-state-tree'
+import { addDisposer, types } from '@jbrowse/mobx-state-tree'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { autorun } from 'mobx'
 
-import type { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import type { ApolloSessionModel, HoveredFeature } from '../../session'
-import type { ApolloRootModel } from '../../types'
+import { getApolloAssemblyId } from '../../util'
 import { getAssemblyMetadata } from '../../util/assemblyUtils'
 
 const minDisplayHeight = 20
@@ -99,9 +98,8 @@ export function baseModelFactory(
         })
         return regions
       },
-      get apolloInternetAccount() {
+      get role() {
         const [region] = self.regions
-        const { internetAccounts } = getRoot<ApolloRootModel>(self)
         const { assemblyName } = region
         const { assemblyManager } =
           self.session as unknown as AbstractSessionModel
@@ -109,10 +107,12 @@ export function baseModelFactory(
         if (!assembly) {
           throw new Error(`No assembly found with name ${assemblyName}`)
         }
-        const { internetAccountConfigId } = getAssemblyMetadata(assembly)
-        return internetAccounts.find(
-          (ia) => getConf(ia, 'internetAccountId') === internetAccountConfigId,
-        ) as ApolloInternetAccountModel | undefined
+        if (!getAssemblyMetadata(assembly).apollo) {
+          return 'admin'
+        }
+        return readConfObject(self.session.getPluginConfiguration(), 'role') as
+          | string
+          | undefined
       },
       get changeManager() {
         return self.session.apolloDataStore.changeManager
@@ -124,7 +124,7 @@ export function baseModelFactory(
         if (!assembly) {
           throw new Error(`Could not find assembly named ${assemblyName}`)
         }
-        return assembly.name
+        return getApolloAssemblyId(assembly)
       },
       get selectedFeature(): AnnotationFeature | undefined {
         return self.session.apolloSelectedFeature

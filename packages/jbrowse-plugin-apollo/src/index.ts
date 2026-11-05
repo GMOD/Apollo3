@@ -1,14 +1,12 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-misused-promises */
+
 import { type Change, checkRegistry } from '@apollo-annotation/common'
 import { CDSCheck, TranscriptCheck, changes } from '@apollo-annotation/shared'
 import Plugin from '@jbrowse/core/Plugin'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import {
-  type BaseInternetAccountModel,
   DisplayType,
-  InternetAccountType,
   type PluggableElementType,
   TrackType,
   type ViewType,
@@ -16,26 +14,17 @@ import {
   createBaseTrackConfig,
   createBaseTrackModel,
 } from '@jbrowse/core/pluggableElementTypes'
-import type { WorkerHandle } from '@jbrowse/core/rpc/WebWorkerRpcDriver'
 import {
   type AbstractSessionModel,
-  type Region,
   getSession,
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
 import type { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
 import { alpha } from '@mui/material'
-import { autorun } from 'mobx'
 
 import { version } from '../package.json'
 
-import {
-  configSchema as apolloInternetAccountConfigSchema,
-  modelFactory as apolloInternetAccountModelFactory,
-} from './ApolloInternetAccount'
-import { installApolloRefNameAliasAdapter } from './ApolloRefNameAliasAdapter'
-import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
 import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
 import type { ApolloSearchResult } from './ApolloTextSearchAdapter/ApolloTextSearchAdapter'
 import {
@@ -68,41 +57,19 @@ import {
   LinearApolloSixFrameDisplayComponent,
 } from './makeDisplayComponent'
 import { addTopLevelMenus } from './menus'
-import { addTopLevelAdminMenus } from './menus/topLevelMenuAdmin'
 import { registerPluginContributions } from './pluginContributions'
 import { type ApolloSessionModel, extendSession } from './session'
 import type { ClientDataStoreModel } from './session/ClientDataStore'
 import { changeHandlers } from './session/changeHandlers'
 import { clientChangeTypes } from './session/clientChangeTypes'
-import { isApolloInternetAccount } from './types'
 import { clientValidations } from './validation/ClientValidationSet'
 import { CoreValidation } from './validation/CoreValidation'
-
-interface ApolloMessageData {
-  apollo: true
-  messageId: string
-  method: string
-  region: Region
-  sequence: string
-  assembly: string
-}
 
 interface JBrowseTrackConfig {
   trackId: string
   type: string
   displays?: { type: string; displayId: string }[]
 }
-
-function isApolloMessageData(data?: unknown): data is ApolloMessageData {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'apollo' in data &&
-    data.apollo === true
-  )
-}
-
-const inWebWorker = 'WorkerGlobalScope' in globalThis
 
 const supportedJBrowseMajorVersion = 5
 
@@ -159,8 +126,6 @@ export default class ApolloPlugin extends Plugin {
   configurationSchema = ApolloPluginConfigurationSchema
 
   install(pluginManager: PluginManager) {
-    installApolloSequenceAdapter(pluginManager)
-    installApolloRefNameAliasAdapter(pluginManager)
     installApolloTextSearchAdapter(pluginManager)
 
     pluginManager.addWidgetType(() => {
@@ -201,16 +166,6 @@ export default class ApolloPlugin extends Plugin {
           pluginManager,
           'ApolloTrack',
           configSchema,
-        ),
-      })
-    })
-
-    pluginManager.addInternetAccountType(() => {
-      return new InternetAccountType({
-        name: 'ApolloInternetAccount',
-        configSchema: apolloInternetAccountConfigSchema,
-        stateModel: apolloInternetAccountModelFactory(
-          apolloInternetAccountConfigSchema,
         ),
       })
     })
@@ -377,101 +332,6 @@ export default class ApolloPlugin extends Plugin {
         }
       },
     )
-
-    if (!inWebWorker) {
-      pluginManager.addToExtensionPoint(
-        'Core-extendWorker',
-        (handle: WorkerHandle) => {
-          if (!handle.on || !handle.postMessage) {
-            return handle
-          }
-          // bound once: `postMessage` is a method reading the handle's own
-          // worker, and it is called from inside the listener
-          const postMessage = handle.postMessage.bind(handle)
-          handle.on('apollo', async (event) => {
-            if (!isApolloMessageData(event)) {
-              return
-            }
-            const { apollo, messageId, method } = event
-            switch (method) {
-              case 'getSequence': {
-                const { region } = event
-                const { assemblyName } = region
-                const dataStore = (
-                  pluginManager.rootModel?.session as
-                    | ApolloSessionModel
-                    | undefined
-                )?.apolloDataStore
-                if (!dataStore) {
-                  break
-                }
-                const backendDriver = dataStore.getBackendDriver(assemblyName)
-                if (!backendDriver) {
-                  break
-                }
-                const { seq: sequence } =
-                  await backendDriver.getSequence(region)
-                postMessage({
-                  apollo,
-                  messageId,
-                  sequence,
-                })
-                break
-              }
-              case 'getRegions': {
-                const { assembly } = event
-                const dataStore = (
-                  pluginManager.rootModel?.session as
-                    | ApolloSessionModel
-                    | undefined
-                )?.apolloDataStore
-                if (!dataStore) {
-                  break
-                }
-                const backendDriver = dataStore.getBackendDriver(assembly)
-                if (!backendDriver) {
-                  break
-                }
-                const regions = await backendDriver.getRegions(assembly)
-                postMessage({
-                  apollo,
-                  messageId,
-                  regions,
-                })
-                break
-              }
-              case 'getRefNameAliases': {
-                const { assembly } = event
-                const dataStore = (
-                  pluginManager.rootModel?.session as
-                    | ApolloSessionModel
-                    | undefined
-                )?.apolloDataStore
-                if (!dataStore) {
-                  break
-                }
-                const backendDriver = dataStore.getBackendDriver(assembly)
-                if (!backendDriver) {
-                  break
-                }
-                const refNameAliases =
-                  await backendDriver.getRefNameAliases(assembly)
-                postMessage({
-                  apollo,
-                  messageId,
-                  refNameAliases,
-                })
-                break
-              }
-              default: {
-                break
-              }
-            }
-          })
-          return handle
-        },
-      )
-    }
   }
 
   configure(pluginManager: PluginManager) {
@@ -492,18 +352,6 @@ export default class ApolloPlugin extends Plugin {
         },
       )
       addTopLevelMenus(rootModel)
-      autorun((reaction) => {
-        const { internetAccounts } = rootModel as unknown as {
-          internetAccounts: BaseInternetAccountModel[]
-        }
-        const hasAdminAccount = internetAccounts
-          .filter((ia) => isApolloInternetAccount(ia))
-          .some((internetAccount) => internetAccount.role === 'admin')
-        if (hasAdminAccount) {
-          reaction.dispose()
-          addTopLevelAdminMenus(rootModel)
-        }
-      })
     }
   }
 }

@@ -168,6 +168,6 @@ export function getMousePosition(
   const { left, top } = canvas.getBoundingClientRect()
   const x = clientX - left
   const y = clientY - top
-  const { coord: bp, index: regionNumber, refName } = lgv.pxToBp(x)
+  const { coord0: bp, index: regionNumber, refName } = lgv.pxToBp(x)
   return { x, y, refName, bp, regionNumber }
 }

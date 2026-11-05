@@ -17,7 +17,6 @@ import {
   SplitExon,
 } from '../../components'
 import type { ApolloSessionModel } from '../../session'
-import { getApolloInternetAccount } from '../../util'
 
 export function featureContextMenuItems(
   feature: AnnotationFeature | undefined,
@@ -29,9 +28,8 @@ export function featureContextMenuItems(
   changeManager: ChangeManager,
   filteredTranscripts: string[],
   updateFilteredTranscripts: (forms: string[]) => void,
+  role: string | undefined,
 ) {
-  const internetAccount = getApolloInternetAccount(session)
-  const role = internetAccount ? internetAccount.role : 'admin'
   const readOnly = !(role && ['admin', 'user'].includes(role))
   const menuItems: MenuItem[] = []
   if (feature) {
@@ -73,7 +71,6 @@ export function featureContextMenuItems(
                 changeManager,
                 sourceFeature: feature,
                 sourceAssemblyId,
-                internetAccount,
               },
             ],
           )

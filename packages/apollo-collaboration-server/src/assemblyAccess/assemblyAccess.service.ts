@@ -16,6 +16,7 @@ import { InjectConnection, InjectModel } from '@nestjs/mongoose'
 import { type Connection, Model, Types } from 'mongoose'
 import QuickLRU from 'quick-lru'
 
+import { JBrowseConfigService } from '../jbrowse/jbrowseConfig.service.js'
 import { PluginsService } from '../plugins/plugins.service.js'
 import type { RequestUser } from '../utils/requestWithUser.js'
 import { Role } from '../utils/role/role.enum.js'
@@ -25,16 +26,6 @@ const NAME_MAP_TTL_MS = 10_000
 
 /** Extension point a plugin registers to restrict access to assemblies */
 export const ASSEMBLY_ACCESS_EXTENSION_POINT = 'Apollo-AssemblyAccess'
-
-/**
- * Change types that create the assembly they name, so their assembly id cannot
- * possibly have been granted yet.
- */
-const ASSEMBLY_CREATING_CHANGES = new Set([
-  'AddAssemblyAndFeaturesFromFileChange',
-  'AddAssemblyFromExternalChange',
-  'AddAssemblyFromFileChange',
-])
 
 export type AccessKind = 'assembly' | 'refSeq' | 'feature'
 
@@ -60,6 +51,7 @@ export class AssemblyAccessService {
     @InjectConnection()
     private readonly connection: Connection,
     private readonly pluginsService: PluginsService,
+    private readonly jbrowseConfigService: JBrowseConfigService,
   ) {}
 
   private readonly logger = new Logger(AssemblyAccessService.name)
@@ -210,22 +202,15 @@ export class AssemblyAccessService {
     }
   }
 
-  /**
-   * Authorize a submitted change. Changes that create their own assembly are
-   * only allowed for unrestricted users, since a user confined to particular
-   * assemblies has no business minting new ones.
-   */
+  /** Authorize a submitted change */
   canSubmitChange(
     allowedAssemblyIds: string[],
     change: { typeName?: string; assembly?: string },
   ) {
-    const { assembly, typeName } = change
+    const { assembly } = change
     if (!assembly) {
       // Not an assembly-specific change, the role checks already cover it
       return true
-    }
-    if (typeName && ASSEMBLY_CREATING_CHANGES.has(typeName)) {
-      return false
     }
     return allowedAssemblyIds.includes(assembly)
   }
@@ -265,7 +250,11 @@ export class AssemblyAccessService {
   }
 
   private async buildNameMap() {
-    const assemblies = await this.assemblyModel.find({ status: 0 }).exec()
+    const assemblies = await this.assemblyModel.find().exec()
+    // Display names and aliases live in the JBrowse config files, not in
+    // MongoDB
+    const fileConfigs =
+      await this.jbrowseConfigService.readAllJBrowseFileConfigs()
     const map = new Map<string, string[]>()
     const add = (key: string, id: string) => {
       const ids = map.get(key)
@@ -283,11 +272,17 @@ export class AssemblyAccessService {
     for (const assembly of assemblies) {
       const id = assembly._id.toHexString()
       add(id, id)
-      for (const name of [
-        assembly.name,
-        assembly.displayName,
-        ...assembly.aliases,
-      ]) {
+      const names = [assembly.name]
+      const assemblyConfig = fileConfigs
+        .get(assembly.configId)
+        ?.assemblies?.find((config) => config.name === assembly.name)
+      if (assemblyConfig) {
+        names.push(
+          assemblyConfig.displayName ?? '',
+          ...(assemblyConfig.aliases ?? []),
+        )
+      }
+      for (const name of names) {
         if (name) {
           add(name, id)
         }

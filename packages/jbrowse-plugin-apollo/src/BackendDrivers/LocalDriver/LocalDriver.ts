@@ -149,10 +149,6 @@ export class LocalDriver extends BackendDriver {
     return regions
   }
 
-  getAssemblies(internetAccountConfigId?: string): Assembly[] {
-    return []
-  }
-
   async getRefNameAliases(assemblyName: string): Promise<RefNameAliases[]> {
     const session = getSession(this.clientStore)
     const { assemblyManager } = session

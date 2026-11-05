@@ -436,15 +436,21 @@ function getBlocksForFeature(
   display: LinearApolloSixFrameDisplayRendering,
   feature: AnnotationFeature,
 ): ContentBlock[] {
-  const { lgv, session } = display
-  const { assemblyManager } = session as unknown as AbstractSessionModel
-  return lgv.dynamicBlocks.contentBlocks.filter((block) => {
-    const assembly = assemblyManager.get(block.assemblyName)
-    return (
-      block.refName === assembly?.getCanonicalRefName(feature.refSeq) &&
-      doesIntersect2(block.start, block.end, feature.min, feature.max)
+  const { lgv } = display
+  let canonicalRefName: string
+  try {
+    canonicalRefName = display.getCanonicalRefName(
+      feature.assemblyId,
+      feature.refSeq,
     )
-  })
+  } catch {
+    return []
+  }
+  return lgv.dynamicBlocks.contentBlocks.filter(
+    (block) =>
+      block.refName === canonicalRefName &&
+      doesIntersect2(block.start, block.end, feature.min, feature.max),
+  )
 }
 
 function drawDragPreview(
@@ -776,18 +782,17 @@ function getContextMenuItems(
   mousePosition: MousePositionWithFeature,
 ): MenuItem[] {
   const {
-    apolloInternetAccount: internetAccount,
     hoveredFeature,
     changeManager,
     filteredTranscripts,
     regions,
+    role,
     selectedFeature,
     session,
   } = display
   const [region] = regions
   const currentAssemblyId = display.getAssemblyId(region.assemblyName)
   const menuItems: MenuItem[] = []
-  const role = internetAccount ? internetAccount.role : 'admin'
   const readOnly = !(role && ['admin', 'user'].includes(role))
   if (!hoveredFeature) {
     return menuItems
@@ -829,7 +834,11 @@ function getContextMenuItems(
               lgv.displayedRegions.at(mousePosition.regionNumber)?.reversed,
             ),
             onClick: () => {
-              lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
+              const refName = display.getCanonicalRefName(
+                exon.assemblyId,
+                exon.refSeq,
+              )
+              lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp, refName))
               selectFeatureAndOpenWidget(display, exon)
             },
           })
@@ -844,7 +853,11 @@ function getContextMenuItems(
               lgv.displayedRegions.at(mousePosition.regionNumber)?.reversed,
             ),
             onClick: () => {
-              lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
+              const refName = display.getCanonicalRefName(
+                exon.assemblyId,
+                exon.refSeq,
+              )
+              lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp, refName))
               selectFeatureAndOpenWidget(display, exon)
             },
           })

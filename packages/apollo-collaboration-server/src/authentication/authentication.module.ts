@@ -13,6 +13,8 @@ import { JwtStrategy } from '../utils/strategies/jwt.strategy.js'
 import { AuthenticationController } from './authentication.controller.js'
 import { AuthenticationService } from './authentication.service.js'
 import { DeviceLoginService } from './device/device-login.service.js'
+import { IndexHtmlController } from './index-html.controller.js'
+import { LoginPageController } from './login-page.controller.js'
 import { OidcService } from './oidc/oidc.service.js'
 
 interface JWTSecretConfig {
@@ -47,7 +49,11 @@ async function jwtConfigFactory(
       inject: [ConfigService],
     }),
   ],
-  controllers: [AuthenticationController],
+  controllers: [
+    AuthenticationController,
+    LoginPageController,
+    IndexHtmlController,
+  ],
   providers: [
     AuthenticationService,
     DeviceLoginService,

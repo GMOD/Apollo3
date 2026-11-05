@@ -365,15 +365,8 @@ export function getContextMenuItemsForFeature(
     | LinearApolloDisplayMouseEvents,
   sourceFeature: AnnotationFeature,
 ): MenuItem[] {
-  const {
-    apolloInternetAccount: internetAccount,
-    changeManager,
-    regions,
-    selectedFeature,
-    session,
-  } = display
+  const { changeManager, regions, role, selectedFeature, session } = display
   const menuItems: MenuItem[] = []
-  const role = internetAccount ? internetAccount.role : 'admin'
   const readOnly = !(role && ['admin', 'user'].includes(role))
   const [region] = regions
   const sourceAssemblyId = display.getAssemblyId(region.assemblyName)
@@ -398,7 +391,6 @@ export function getContextMenuItemsForFeature(
               changeManager,
               sourceFeature,
               sourceAssemblyId,
-              internetAccount,
             },
           ],
         )
@@ -493,9 +485,10 @@ export function navToFeatureCenter(
   feature: AnnotationFeature,
   paddingPct: number,
   refSeqLength: number,
+  refName: string,
 ): NavLocation {
   const paddingBp = (feature.max - feature.min) * paddingPct
   const start = Math.max(feature.min - paddingBp, 1)
   const end = Math.min(feature.max + paddingBp, refSeqLength)
-  return { refName: feature.refSeq, start, end }
+  return { refName, start, end }
 }

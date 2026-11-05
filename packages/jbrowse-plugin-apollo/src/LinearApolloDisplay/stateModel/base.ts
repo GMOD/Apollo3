@@ -7,7 +7,6 @@ import type PluginManager from '@jbrowse/core/PluginManager'
 import {
   type AnyConfigurationSchemaType,
   ConfigurationReference,
-  getConf,
 } from '@jbrowse/core/configuration'
 import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
 import {
@@ -17,20 +16,13 @@ import {
   getSession,
 } from '@jbrowse/core/util'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
-import {
-  addDisposer,
-  cast,
-  getRoot,
-  getSnapshot,
-  types,
-} from '@jbrowse/mobx-state-tree'
+import { addDisposer, cast, getSnapshot, types } from '@jbrowse/mobx-state-tree'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import FactCheckIcon from '@mui/icons-material/FactCheck'
 import InputIcon from '@mui/icons-material/Input'
 import TrackChangesIcon from '@mui/icons-material/TrackChanges'
 import { autorun } from 'mobx'
 
-import type { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { LocalDriver } from '../../BackendDrivers'
 import {
   DownloadGFF3,
@@ -41,8 +33,8 @@ import { ImportAnnotations } from '../../components/ImportAnnotations'
 import { ViewChangeLog } from '../../components/ViewChangeLog'
 import { ViewCheckResults } from '../../components/ViewCheckResults'
 import type { ApolloSessionModel, HoveredFeature } from '../../session'
-import type { ApolloRootModel } from '../../types'
-import { getAssemblyMetadata } from '../../util/assemblyUtils'
+import { getApolloAssemblyId } from '../../util'
+import { getApolloRole } from '../../util/assemblyUtils'
 import { FeatureDisplayThresholdDialog } from '../../util/displayUtils'
 import { FeatureDensityMixin } from '../../util/featureDensityModel'
 
@@ -121,9 +113,8 @@ export function baseModelFactory(
       },
     }))
     .views((self) => ({
-      get apolloInternetAccount() {
+      get role() {
         const [region] = self.regions
-        const { internetAccounts } = getRoot<ApolloRootModel>(self)
         const { assemblyName } = region
         const { assemblyManager } =
           self.session as unknown as AbstractSessionModel
@@ -131,10 +122,7 @@ export function baseModelFactory(
         if (!assembly) {
           throw new Error(`No assembly found with name ${assemblyName}`)
         }
-        const { internetAccountConfigId } = getAssemblyMetadata(assembly)
-        return internetAccounts.find(
-          (ia) => getConf(ia, 'internetAccountId') === internetAccountConfigId,
-        ) as ApolloInternetAccountModel | undefined
+        return getApolloRole(self.session, assembly)
       },
       get changeManager() {
         return self.session.apolloDataStore.changeManager
@@ -146,7 +134,7 @@ export function baseModelFactory(
         if (!assembly) {
           throw new Error(`Could not find assembly named ${assemblyName}`)
         }
-        return assembly.name
+        return getApolloAssemblyId(assembly)
       },
       get selectedFeature(): AnnotationFeature | undefined {
         return self.session.apolloSelectedFeature

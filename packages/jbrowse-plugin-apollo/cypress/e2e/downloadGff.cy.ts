@@ -8,11 +8,11 @@ describe('Download GFF', () => {
   })
 
   afterEach(() => {
-    cy.deleteAssemblies()
+    cy.clearFeatures()
   })
 
   it('Keeps export errors visible and allows retrying', () => {
-    cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
+    cy.importFeatures('test_data/volvox.fasta.gff3', 'volvox.fasta.gff3')
     cy.selectAssemblyToView('volvox')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
@@ -51,7 +51,12 @@ describe('Download GFF', () => {
   })
 
   it('Can download gff with fasta', () => {
-    cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
+    cy.importFeatures(
+      'test_data/volvox.fasta.gff3',
+      'volvox.fasta.gff3',
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
     cy.selectAssemblyToView('volvox')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
@@ -76,7 +81,12 @@ describe('Download GFF', () => {
   })
 
   it('Can download gff without fasta', () => {
-    cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
+    cy.importFeatures(
+      'test_data/volvox.fasta.gff3',
+      'volvox.fasta.gff3',
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      undefined,
+    )
     cy.selectAssemblyToView('volvox')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()

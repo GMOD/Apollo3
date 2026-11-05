@@ -47,7 +47,7 @@ export function getMousePosition(
   const x = clientX - left
   const y = clientY - top
   const {
-    coord: bp,
+    coord0: bp,
     index: regionNumber,
     assemblyName,
     refName,
@@ -82,7 +82,8 @@ export function mouseEventsModelIntermediateFactory(
       getFeaturesAtMousePosition(mousePosition: MousePosition) {
         const { bp, assemblyName, refName, y } = mousePosition
         const row = Math.floor(y / self.apolloRowHeight)
-        const featureLayout = self.layouts.get(assemblyName)?.get(refName)
+        const assemblyId = self.getAssemblyId(assemblyName)
+        const featureLayout = self.layouts.get(assemblyId)?.get(refName)
         if (!featureLayout) {
           return []
         }

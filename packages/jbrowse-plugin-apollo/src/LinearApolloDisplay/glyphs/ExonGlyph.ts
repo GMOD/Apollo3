@@ -97,16 +97,9 @@ function getContextMenuItems(
   display: LinearApolloDisplay,
   feature: AnnotationFeature,
 ): MenuItem[] {
-  const {
-    apolloInternetAccount: internetAccount,
-    changeManager,
-    regions,
-    selectedFeature,
-    session,
-  } = display
+  const { changeManager, regions, role, selectedFeature, session } = display
   const [region] = regions
   const currentAssemblyId = display.getAssemblyId(region.assemblyName)
-  const role = internetAccount ? internetAccount.role : 'admin'
   const admin = role === 'admin'
   const menuItems: MenuItem[] = []
   const adjacentExons = getAdjacentExons(feature, display)
@@ -121,7 +114,11 @@ function getContextMenuItems(
         lgv.displayedRegions.at(0)?.reversed,
       ),
       onClick: () => {
-        lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
+        const refName = display.getCanonicalRefName(
+          exon.assemblyId,
+          exon.refSeq,
+        )
+        lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp, refName))
         selectFeatureAndOpenWidget(display, exon)
       },
     })
@@ -136,7 +133,11 @@ function getContextMenuItems(
         lgv.displayedRegions.at(0)?.reversed,
       ),
       onClick: () => {
-        lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp))
+        const refName = display.getCanonicalRefName(
+          exon.assemblyId,
+          exon.refSeq,
+        )
+        lgv.navTo(navToFeatureCenter(exon, 0.1, lgv.totalBp, refName))
         selectFeatureAndOpenWidget(display, exon)
       },
     })

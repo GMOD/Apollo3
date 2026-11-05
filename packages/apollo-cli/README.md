@@ -29,10 +29,7 @@ USAGE
 
 <!-- commands -->
 
-- [`apollo assembly add-from-fasta INPUT`](#apollo-assembly-add-from-fasta-input)
-- [`apollo assembly add-from-gff INPUT-FILE`](#apollo-assembly-add-from-gff-input-file)
 - [`apollo assembly check`](#apollo-assembly-check)
-- [`apollo assembly delete`](#apollo-assembly-delete)
 - [`apollo assembly get`](#apollo-assembly-get)
 - [`apollo assembly sequence`](#apollo-assembly-sequence)
 - [`apollo change get`](#apollo-change-get)
@@ -57,109 +54,13 @@ USAGE
 - [`apollo file get`](#apollo-file-get)
 - [`apollo file upload INPUT-FILE`](#apollo-file-upload-input-file)
 - [`apollo help [COMMAND]`](#apollo-help-command)
-- [`apollo jbrowse desktop JBROWSEFILE`](#apollo-jbrowse-desktop-jbrowsefile)
-- [`apollo jbrowse get-config`](#apollo-jbrowse-get-config)
-- [`apollo jbrowse set-config INPUTFILE`](#apollo-jbrowse-set-config-inputfile)
 - [`apollo login`](#apollo-login)
 - [`apollo logout`](#apollo-logout)
-- [`apollo refseq add-alias INPUT-FILE`](#apollo-refseq-add-alias-input-file)
 - [`apollo refseq get`](#apollo-refseq-get)
+- [`apollo setup`](#apollo-setup)
 - [`apollo status`](#apollo-status)
 - [`apollo user add`](#apollo-user-add)
 - [`apollo user get`](#apollo-user-get)
-
-## `apollo assembly add-from-fasta INPUT`
-
-Add a new assembly from fasta input
-
-```
-USAGE
-  $ apollo assembly add-from-fasta INPUT [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>] [-f]
-    [-e] [--fai <value>] [--gzi <value>] [-z | -d]
-
-ARGUMENTS
-  INPUT  Input fasta file, local or remote, or id of a previously uploaded file. For local or remote files, it is
-         assumed the file is bgzip'd with `bgzip` and indexed with `samtools faidx`. The indexes are assumed to be at
-         <my.fasta.gz>.fai and <my.fasta.gz>.gzi unless the options --fai and --gzi are provided. A local file can be
-         uncompressed if the flag -e/--editable is set (but see below about using -e)
-
-FLAGS
-  -a, --assembly=<value>     Name for this assembly. Use the file name if omitted
-  -d, --decompressed         For local file input: Override autodetection and instruct that input is decompressed
-  -e, --editable             Instead of using indexed fasta lookup, the sequence is loaded into the Apollo database and
-                             is editable. Use with caution, as editing the sequence often has unintended side effects.
-  -f, --force                Delete existing assembly, if it exists
-  -z, --gzip                 For local file input: Override autodetection and instruct that input is gzip compressed
-      --config-file=<value>  Use this config file (mostly for testing)
-      --fai=<value>          Fasta index of the (not-editable) fasta file
-      --gzi=<value>          Gzi index of the (not-editable) fasta file
-      --profile=<value>      Use credentials from this profile
-      --timeout=<value>      [default: 1h] Timeout for each request to the server
-
-DESCRIPTION
-  Add a new assembly from fasta input
-
-  Add new assembly. The input fasta may be:
-  * A local file bgzip'd and indexed. It can be uncompressed if the -e/--editable is set (but see description of -e)
-  * An external fasta file bgzip'd and indexed
-  * The id of a file previously uploaded to Apollo
-
-EXAMPLES
-  From local file assuming indexes genome.gz.fai and genome.gz.gzi are present:
-
-    $ apollo assembly add-from-fasta genome.fa.gz -a myAssembly
-
-  Local file with editable sequence does not require compression and indexing:
-
-    $ apollo assembly add-from-fasta genome.fa -a myAssembly
-
-  From external source assuming there are also indexes https://.../genome.fa.gz.fai and https://.../genome.fa.gz.gzi:
-
-    $ apollo assembly add-from-fasta https://.../genome.fa.gz -a myAssembly
-```
-
-_See code:
-[src/commands/assembly/add-from-fasta.ts](https://github.com/GMOD/Apollo3/blob/v1.2.0/packages/apollo-cli/src/commands/assembly/add-from-fasta.ts)_
-
-## `apollo assembly add-from-gff INPUT-FILE`
-
-Add new assembly from gff or gft file
-
-```
-USAGE
-  $ apollo assembly add-from-gff INPUT-FILE [--profile <value>] [--config-file <value>] [--timeout <value>] [-a <value>]
-    [-o] [-f] [--no-strict]
-
-ARGUMENTS
-  INPUT-FILE  Input gff file
-
-FLAGS
-  -a, --assembly=<value>     Name for this assembly. Use the file name if omitted
-  -f, --force                Delete existing assembly, if it exists
-  -o, --omit-features        Do not import features, only upload the sequences
-      --config-file=<value>  Use this config file (mostly for testing)
-      --no-strict            If any feature lines in the GFF3 can't be processed, skip them instead of aborting the
-                             import
-      --profile=<value>      Use credentials from this profile
-      --timeout=<value>      [default: 1h] Timeout for each request to the server
-
-DESCRIPTION
-  Add new assembly from gff or gft file
-
-  The gff file is expected to contain sequences as per gff specifications. Features are also imported by default.
-
-EXAMPLES
-  Import sequences and features:
-
-    $ apollo assembly add-from-gff genome.gff -a myAssembly
-
-  Import sequences only:
-
-    $ apollo assembly add-from-gff genome.gff -a myAssembly -o
-```
-
-_See code:
-[src/commands/assembly/add-from-gff.ts](https://github.com/GMOD/Apollo3/blob/v1.2.0/packages/apollo-cli/src/commands/assembly/add-from-gff.ts)_
 
 ## `apollo assembly check`
 
@@ -204,35 +105,6 @@ EXAMPLES
 
 _See code:
 [src/commands/assembly/check.ts](https://github.com/GMOD/Apollo3/blob/v1.2.0/packages/apollo-cli/src/commands/assembly/check.ts)_
-
-## `apollo assembly delete`
-
-Delete assemblies
-
-```
-USAGE
-  $ apollo assembly delete -a <value>... [--profile <value>] [--config-file <value>] [--timeout <value>] [-v]
-
-FLAGS
-  -a, --assembly=<value>...  (required) Assembly names or IDs to delete
-  -v, --verbose              Print to stdout the array of assemblies deleted
-      --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      Use credentials from this profile
-      --timeout=<value>      [default: 1h] Timeout for each request to the server
-
-DESCRIPTION
-  Delete assemblies
-
-  Assemblies to delete may be names or IDs
-
-EXAMPLES
-  Delete multiple assemblies using name or ID:
-
-    $ apollo assembly delete -a mouse 6605826fbd0eee691f83e73f
-```
-
-_See code:
-[src/commands/assembly/delete.ts](https://github.com/GMOD/Apollo3/blob/v1.2.0/packages/apollo-cli/src/commands/assembly/delete.ts)_
 
 ## `apollo assembly get`
 
@@ -1066,110 +938,6 @@ DESCRIPTION
 _See code:
 [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/6.2.53/src/commands/help.ts)_
 
-## `apollo jbrowse desktop JBROWSEFILE`
-
-Generate JBrowse file for use with desktop client
-
-```
-USAGE
-  $ apollo jbrowse desktop JBROWSEFILE [--profile <value>] [--config-file <value>] [--timeout <value>] [-o | -w
-    <value>] [-f <value>]
-
-ARGUMENTS
-  JBROWSEFILE  Generated JBrowse file
-
-FLAGS
-  -f, --gff3-file=<value>    generated session will open the specified file
-  -o, --open                 open generated file
-  -w, --open-with=<value>    open generated file with specified application
-      --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      Use credentials from this profile
-      --timeout=<value>      [default: 1h] Timeout for each request to the server
-
-DESCRIPTION
-  Generate JBrowse file for use with desktop client
-
-  Generates a file that can be opened with JBrowse Desktop. This file has Apollo already configured and, optionally, a
-  GFF3 for local editing configured as well.
-
-EXAMPLES
-  Generate JBrowse file:
-
-    $ apollo jbrowse desktop apollo.jbrowse
-
-  Generate JBrowse file and open with default handler:
-
-    $ apollo jbrowse desktop apollo.jbrowse --open
-
-  Generate JBrowse file and open with specified application:
-
-    $ apollo jbrowse desktop apollo.jbrowse --open-with=path/to/jbrowse.AppImage
-
-  Generate JBrowse file opening specified gff3 file:
-
-    $ apollo jbrowse desktop apollo.jbrowse --gff3-file=path/to/file.gff3
-```
-
-_See code:
-[src/commands/jbrowse/desktop.ts](https://github.com/GMOD/Apollo3/blob/v1.2.0/packages/apollo-cli/src/commands/jbrowse/desktop.ts)_
-
-## `apollo jbrowse get-config`
-
-Get JBrowse configuration from Apollo
-
-```
-USAGE
-  $ apollo jbrowse get-config [--profile <value>] [--config-file <value>] [--timeout <value>]
-
-FLAGS
-  --config-file=<value>  Use this config file (mostly for testing)
-  --profile=<value>      Use credentials from this profile
-  --timeout=<value>      [default: 1h] Timeout for each request to the server
-
-DESCRIPTION
-  Get JBrowse configuration from Apollo
-
-  Print to stdout the JBrowse configuration from Apollo in JSON format
-
-EXAMPLES
-  Get JBrowse configuration:
-
-    $ apollo jbrowse get-config > config.json
-```
-
-_See code:
-[src/commands/jbrowse/get-config.ts](https://github.com/GMOD/Apollo3/blob/v1.2.0/packages/apollo-cli/src/commands/jbrowse/get-config.ts)_
-
-## `apollo jbrowse set-config INPUTFILE`
-
-Set JBrowse configuration
-
-```
-USAGE
-  $ apollo jbrowse set-config INPUTFILE [--profile <value>] [--config-file <value>] [--timeout <value>]
-
-ARGUMENTS
-  INPUTFILE  JBrowse configuration file
-
-FLAGS
-  --config-file=<value>  Use this config file (mostly for testing)
-  --profile=<value>      Use credentials from this profile
-  --timeout=<value>      [default: 1h] Timeout for each request to the server
-
-DESCRIPTION
-  Set JBrowse configuration
-
-  Set JBrowse configuration in Apollo collaboration server
-
-EXAMPLES
-  Add JBrowse configuration:
-
-    $ apollo jbrowse set-config config.json
-```
-
-_See code:
-[src/commands/jbrowse/set-config.ts](https://github.com/GMOD/Apollo3/blob/v1.2.0/packages/apollo-cli/src/commands/jbrowse/set-config.ts)_
-
 ## `apollo login`
 
 Login to Apollo
@@ -1249,38 +1017,6 @@ EXAMPLES
 _See code:
 [src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v1.2.0/packages/apollo-cli/src/commands/logout.ts)_
 
-## `apollo refseq add-alias INPUT-FILE`
-
-Add reference name aliases from a file
-
-```
-USAGE
-  $ apollo refseq add-alias INPUT-FILE -a <value> [--profile <value>] [--config-file <value>] [--timeout <value>]
-
-ARGUMENTS
-  INPUT-FILE  Input refname alias file
-
-FLAGS
-  -a, --assembly=<value>     (required) Name for this assembly.
-      --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      Use credentials from this profile
-      --timeout=<value>      [default: 1h] Timeout for each request to the server
-
-DESCRIPTION
-  Add reference name aliases from a file
-
-  Reference name aliasing is a process to make chromosomes that are named slightly differently but which refer to the
-  same thing render properly. This command reads a file with reference name aliases and adds them to the database.
-
-EXAMPLES
-  Add reference name aliases:
-
-    $ apollo refseq add-alias alias.txt -a myAssembly
-```
-
-_See code:
-[src/commands/refseq/add-alias.ts](https://github.com/GMOD/Apollo3/blob/v1.2.0/packages/apollo-cli/src/commands/refseq/add-alias.ts)_
-
 ## `apollo refseq get`
 
 Get reference sequences
@@ -1313,6 +1049,75 @@ EXAMPLES
 
 _See code:
 [src/commands/refseq/get.ts](https://github.com/GMOD/Apollo3/blob/v1.2.0/packages/apollo-cli/src/commands/refseq/get.ts)_
+
+## `apollo setup`
+
+Install and configure an Apollo collaboration server
+
+```
+USAGE
+  $ apollo setup [-d <value>] [--apollo-version <value>] [--jbrowse-dir <value>] [--jbrowse-config-files
+    <value>] [--url <value>] [--port <value>] [--name <value>] [--description <value>] [--mongodb existing|embedded]
+    [--mongodb-uri <value>] [--mongodb-dir <value>] [--login root|guest|google|microsoft...] [--root-password <value>]
+    [--guest-role admin|user|readOnly] [--google-client-id <value>] [--google-client-secret <value>]
+    [--microsoft-client-id <value>] [--microsoft-client-secret <value>] [--initial-admin-email <value>]
+    [--default-new-user-role admin|user|readOnly|none] [--upload-dir <value>] [-y] [--dry-run] [--force]
+
+FLAGS
+  -d, --install-dir=<value>              Directory to install Apollo in
+  -y, --yes                              Use the defaults for questions not answered by a flag
+      --apollo-version=<value>           Apollo version to install (default: this CLI version)
+      --default-new-user-role=<option>   Role for new users when they first log in
+                                         <options: admin|user|readOnly|none>
+      --description=<value>              Server description
+      --dry-run                          Print what setup would do and the .env, then exit
+      --force                            Rebuild the release even if it was already built
+      --google-client-id=<value>         Google client ID
+      --google-client-secret=<value>     Google client secret
+      --guest-role=<option>              Role for the guest user
+                                         <options: admin|user|readOnly>
+      --initial-admin-email=<value>      Email of a user who becomes admin on first login
+      --jbrowse-config-files=<value>     Comma-separated JBrowse config files, relative to the JBrowse directory
+      --jbrowse-dir=<value>              Existing JBrowse Web directory
+      --login=<option>...                Login methods to enable
+                                         <options: root|guest|google|microsoft>
+      --microsoft-client-id=<value>      Microsoft client ID
+      --microsoft-client-secret=<value>  Microsoft client secret
+      --mongodb=<option>                 Use an existing MongoDB server, or an embedded one
+                                         <options: existing|embedded>
+      --mongodb-dir=<value>              Directory for the embedded MongoDB data
+      --mongodb-uri=<value>              URI of an existing MongoDB server
+      --name=<value>                     Server name
+      --port=<value>                     Port for the server to listen on
+      --root-password=<value>            Root user password
+      --upload-dir=<value>               Directory for uploaded files
+      --url=<value>                      Public URL users will open Apollo at
+
+DESCRIPTION
+  Install and configure an Apollo collaboration server
+
+  Asks a few questions, then downloads and builds the collaboration server, adds the Apollo plugin to an existing
+  JBrowse Web directory, writes the server's .env file, and prints how to start the server.
+
+  JBrowse must already be installed (see "jbrowse create" from @jbrowse/cli) and have at least one config file. Setup
+  adds files to the JBrowse directory but never overwrites a file or changes a config file.
+
+  Every question has a matching flag. With --yes, setup uses the defaults for every question not answered by a flag.
+
+  Run setup again with the same install directory to upgrade to a new --apollo-version, or to roll back to an older one.
+
+EXAMPLES
+  Answer the questions interactively:
+
+    $ apollo setup
+
+  Install without questions, using an embedded MongoDB:
+
+    $ apollo setup --yes --install-dir /opt/apollo --jbrowse-dir /var/www/jbrowse --mongodb embedded
+```
+
+_See code:
+[src/commands/setup.ts](https://github.com/GMOD/Apollo3/blob/v1.2.0/packages/apollo-cli/src/commands/setup.ts)_
 
 ## `apollo status`
 

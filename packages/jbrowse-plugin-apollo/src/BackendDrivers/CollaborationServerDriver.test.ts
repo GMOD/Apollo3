@@ -14,17 +14,13 @@ import {
   jest,
 } from '@jest/globals'
 
-import { ChannelSubscriptions } from '../ApolloInternetAccount/ChannelSubscriptions'
 import { ChangeManager } from '../ChangeManager'
+import { ChannelSubscriptions } from '../session/ChannelSubscriptions'
 import type { ClientDataStoreModel } from '../session/ClientDataStore'
-import { FakeEventSource, makeFakeToken } from '../test-utils/FakeEventSource'
+import { FakeEventSource } from '../test-utils/FakeEventSource'
 
-import {
-  type ApolloInternetAccount,
-  CollaborationServerDriver,
-} from './CollaborationServerDriver'
+import { CollaborationServerDriver } from './CollaborationServerDriver'
 
-const localToken = makeFakeToken({ id: 'me', iat: 1000 })
 const localSessionId = 'me-1000'
 const otherSessionId = 'someoneElse-2000'
 
@@ -49,6 +45,46 @@ function makeChangeMessage(
   }
 }
 
+/**
+ * Make a client store that is a node in a (minimal) session tree, since the
+ * driver uses getSession() to get the session's channel subscriptions and
+ * plugin configuration
+ */
+function makeClientStore(
+  channelSubscriptions: ChannelSubscriptions,
+  setLastChangeSequenceNumber: (sequenceNumber: number) => void = jest.fn(),
+) {
+  const ClientStore = types
+    .model('ClientStore', {})
+    .volatile(() => ({
+      assemblies: new Map([
+        ['asm1', { refSeqs: new Map(), addRefSeq: jest.fn() }],
+      ]),
+    }))
+    .views(() => ({
+      getFeature: (id: string) => (id === 'feature1' ? { _id: id } : undefined),
+    }))
+  const Session = types
+    .model('Session', { clientStore: ClientStore })
+    .volatile(() => ({
+      rpcManager: {},
+      configuration: {},
+      assemblyManager: {
+        get: (name: string) =>
+          name === 'asm1'
+            ? { name, sequence: { metadata: { apollo: true, apolloId: name } } }
+            : undefined,
+      },
+      channelSubscriptions,
+    }))
+    .views(() => ({
+      getPluginConfiguration: () => ({ userSessionId: localSessionId }),
+    }))
+    .actions(() => ({ setLastChangeSequenceNumber }))
+  const session = Session.create({ clientStore: {} })
+  return session.clientStore as unknown as ClientDataStoreModel
+}
+
 /** Wait for the listener's async handler to finish */
 function flushPromises() {
   return new Promise((resolve) => setTimeout(resolve, 0))
@@ -57,8 +93,7 @@ function flushPromises() {
 describe('CollaborationServerDriver.checkEventSource', () => {
   let eventSource: FakeEventSource
   let channelSubscriptions: ChannelSubscriptions
-  let internetAccount: ApolloInternetAccount
-  let setLastChangeSequenceNumber: jest.Mock
+  let setLastChangeSequenceNumber: jest.Mock<(sequenceNumber: number) => void>
   let driver: CollaborationServerDriver
   let submit: jest.SpiedFunction<ChangeManager['submit']>
 
@@ -75,16 +110,9 @@ describe('CollaborationServerDriver.checkEventSource', () => {
     channelSubscriptions = new ChannelSubscriptions()
     channelSubscriptions.attach(eventSource as unknown as EventSource)
     setLastChangeSequenceNumber = jest.fn()
-    internetAccount = {
-      channelSubscriptions,
-      retrieveToken: () => localToken,
-      setLastChangeSequenceNumber,
-    } as unknown as ApolloInternetAccount
-    const clientStore = {
-      assemblies: new Map([['asm1', {}]]),
-      getFeature: (id: string) => (id === 'feature1' ? { _id: id } : undefined),
-    } as unknown as ClientDataStoreModel
-    driver = new CollaborationServerDriver(clientStore)
+    driver = new CollaborationServerDriver(
+      makeClientStore(channelSubscriptions, setLastChangeSequenceNumber),
+    )
     submit = jest.spyOn(ChangeManager.prototype, 'submit').mockResolvedValue()
   })
 
@@ -94,8 +122,10 @@ describe('CollaborationServerDriver.checkEventSource', () => {
 
   it('receives changes on channels registered before the event stream opens', async () => {
     const subscriptions = new ChannelSubscriptions()
-    const account = { ...internetAccount, channelSubscriptions: subscriptions }
-    driver.checkEventSource('asm1', 'ctgA', account)
+    driver = new CollaborationServerDriver(
+      makeClientStore(subscriptions, setLastChangeSequenceNumber),
+    )
+    driver.checkEventSource('asm1', 'ctgA')
 
     const laterEventSource = new FakeEventSource(
       'http://localhost/messages/events',
@@ -109,7 +139,7 @@ describe('CollaborationServerDriver.checkEventSource', () => {
 
   it('listens on the "<assembly>-<refSeq>" channel', async () => {
     const addEventListener = jest.spyOn(eventSource, 'addEventListener')
-    driver.checkEventSource('asm1', 'ctgA', internetAccount)
+    driver.checkEventSource('asm1', 'ctgA')
     expect(addEventListener).toHaveBeenCalledWith(
       'asm1-ctgA',
       expect.any(Function),
@@ -122,9 +152,9 @@ describe('CollaborationServerDriver.checkEventSource', () => {
 
   it('registers only one listener per channel', async () => {
     const addEventListener = jest.spyOn(eventSource, 'addEventListener')
-    driver.checkEventSource('asm1', 'ctgA', internetAccount)
-    driver.checkEventSource('asm1', 'ctgA', internetAccount)
-    driver.checkEventSource('asm1', 'ctgB', internetAccount)
+    driver.checkEventSource('asm1', 'ctgA')
+    driver.checkEventSource('asm1', 'ctgA')
+    driver.checkEventSource('asm1', 'ctgB')
     expect(addEventListener).toHaveBeenCalledTimes(2)
 
     eventSource.emit('asm1-ctgA', makeChangeMessage())
@@ -133,7 +163,7 @@ describe('CollaborationServerDriver.checkEventSource', () => {
   })
 
   it('applies changes from other sessions without resubmitting them', async () => {
-    driver.checkEventSource('asm1', 'ctgA', internetAccount)
+    driver.checkEventSource('asm1', 'ctgA')
     eventSource.emit('asm1-ctgA', makeChangeMessage())
     await flushPromises()
     expect(submit).toHaveBeenCalledTimes(1)
@@ -144,7 +174,7 @@ describe('CollaborationServerDriver.checkEventSource', () => {
   })
 
   it('does not reapply changes made in this session', async () => {
-    driver.checkEventSource('asm1', 'ctgA', internetAccount)
+    driver.checkEventSource('asm1', 'ctgA')
     eventSource.emit(
       'asm1-ctgA',
       makeChangeMessage({ userSessionId: localSessionId, changeSequence: 8 }),
@@ -155,7 +185,7 @@ describe('CollaborationServerDriver.checkEventSource', () => {
   })
 
   it('ignores changes to features that are not loaded', async () => {
-    driver.checkEventSource('asm1', 'ctgA', internetAccount)
+    driver.checkEventSource('asm1', 'ctgA')
     eventSource.emit('asm1-ctgA', makeChangeMessage({}, 'notLoaded'))
     await flushPromises()
     expect(setLastChangeSequenceNumber).toHaveBeenCalledWith(7)
@@ -163,7 +193,7 @@ describe('CollaborationServerDriver.checkEventSource', () => {
   })
 
   it('ignores events on channels it did not register', async () => {
-    driver.checkEventSource('asm1', 'ctgA', internetAccount)
+    driver.checkEventSource('asm1', 'ctgA')
     eventSource.emit('asm1-ctgB', makeChangeMessage({ channel: 'asm1-ctgB' }))
     await flushPromises()
     expect(setLastChangeSequenceNumber).not.toHaveBeenCalled()
@@ -220,35 +250,20 @@ describe('CollaborationServerDriver channel names', () => {
   beforeEach(() => {
     channelSubscriptions = new ChannelSubscriptions()
     subscribe = jest.spyOn(channelSubscriptions, 'subscribe')
-    const internetAccount = {
-      baseURL: 'http://localhost/',
-      channelSubscriptions,
-      getFetcher() {
-        return fakeApolloFetch
-      },
-    }
-    // getSession() looks for an MST parent with these properties, so the
-    // client store needs to be a node in a (minimal) session tree
-    const ClientStore = types.model('ClientStore', {}).views(() => ({
-      getInternetAccount: () => internetAccount,
-    }))
-    const Session = types
-      .model('Session', { clientStore: ClientStore })
-      .volatile(() => ({
-        rpcManager: {},
-        configuration: {},
-        assemblyManager: {
-          get: (name: string) => (name === 'asm1' ? {} : undefined),
-        },
-      }))
-    const session = Session.create({ clientStore: {} })
+    jest.spyOn(globalThis, 'fetch').mockImplementation(fakeApolloFetch)
+    Object.defineProperty(globalThis, 'location', {
+      value: { href: 'http://localhost/' },
+      configurable: true,
+    })
     driver = new CollaborationServerDriver(
-      session.clientStore as unknown as ClientDataStoreModel,
+      makeClientStore(channelSubscriptions),
     )
   })
 
   afterEach(() => {
     jest.restoreAllMocks()
+    // @ts-expect-error only defined for these tests
+    delete globalThis.location
   })
 
   it('subscribes using the canonical refSeq name', async () => {

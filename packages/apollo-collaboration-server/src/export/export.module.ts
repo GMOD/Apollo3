@@ -4,8 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose'
 
 import { AssembliesModule } from '../assemblies/assemblies.module.js'
 import { FeaturesModule } from '../features/features.module.js'
-import { FilesModule } from '../files/files.module.js'
-import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module.js'
+import { JBrowseConfigModule } from '../jbrowse/jbrowseConfig.module.js'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module.js'
 
 import { ExportController } from './export.controller.js'
@@ -15,10 +14,9 @@ import { ExportService } from './export.service.js'
   imports: [
     AssembliesModule,
     FeaturesModule,
-    FilesModule,
+    JBrowseConfigModule,
     MongooseModule.forFeature([{ name: Export.name, schema: ExportSchema }]),
     RefSeqsModule,
-    RefSeqChunksModule,
   ],
   providers: [ExportService],
   controllers: [ExportController],

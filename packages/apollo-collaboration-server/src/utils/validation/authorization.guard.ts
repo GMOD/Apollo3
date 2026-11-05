@@ -5,6 +5,7 @@ import {
   type ExecutionContext,
   Injectable,
   Logger,
+  UnauthorizedException,
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import type { Request } from 'express'
@@ -26,14 +27,15 @@ export class AuthorizationGuard implements CanActivate {
 
   constructor(private reflector: Reflector) {}
 
+  /**
+   * Responds with 401 when the request has no logged-in user (no user at all,
+   * or one with `Role.None`), so the client knows to send them to the login
+   * page, and with 403 when the user is logged in but lacks the required role
+   */
   canActivate(context: ExecutionContext): boolean {
+    let message: string | undefined
     try {
-      const message = this.checkAuthorization(context)
-      if (message) {
-        this.logger.warn(`Not authorized: ${message}`)
-        return false
-      }
-      return true
+      message = this.checkAuthorization(context)
     } catch (error) {
       this.logger.error(
         'Authorization check failed',
@@ -41,6 +43,17 @@ export class AuthorizationGuard implements CanActivate {
       )
       return false
     }
+    if (!message) {
+      return true
+    }
+    this.logger.warn(`Not authorized: ${message}`)
+    const { user } = context
+      .switchToHttp()
+      .getRequest<Request & { user?: JWTPayload }>()
+    if (!user || user.role === Role.None) {
+      throw new UnauthorizedException(message)
+    }
+    return false
   }
 
   /** Returns a message explaining why the user is not authorized, if they aren't */
@@ -55,7 +68,7 @@ export class AuthorizationGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>()
     const { user } = request as unknown as { user?: JWTPayload }
     if (!user) {
-      throw new Error('No user attached to request')
+      return 'No user attached to request'
     }
     const { role, username } = user
 

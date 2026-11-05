@@ -69,6 +69,7 @@ function makeContextMenuItems(
     changeManager,
     getAssemblyId,
     regions,
+    role,
     selectedFeature,
     session,
     setSelectedFeature,
@@ -88,6 +89,7 @@ function makeContextMenuItems(
       changeManager,
       filteredTranscripts,
       updateFilteredTranscripts,
+      role,
     ),
     { feature, session, location: 'TabularEditor' },
   )
@@ -97,8 +99,12 @@ function navigateHere(
   displayState: DisplayStateModel,
   feature: AnnotationFeature,
 ) {
+  const refName = displayState.getCanonicalRefName(
+    feature.assemblyId,
+    feature.refSeq,
+  )
   displayState.lgv.navTo(
-    navToFeatureCenter(feature, 0.1, displayState.lgv.totalBp),
+    navToFeatureCenter(feature, 0.1, displayState.lgv.totalBp, refName),
   )
 }
 
