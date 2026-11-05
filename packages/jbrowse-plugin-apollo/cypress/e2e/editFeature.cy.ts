@@ -251,6 +251,7 @@ describe('Different ways of editing features', () => {
                 tracks: { displays: GraphicalDisplay[] }[]
                 bpToPx: LinearGenomeViewModel['bpToPx']
                 offsetPx: number
+                bpPerPx: number
               }[]
             }
           }
@@ -286,8 +287,12 @@ describe('Different ways of editing features', () => {
       if (!startPx || !endPx) {
         throw new Error('Drag coordinates are outside view')
       }
-      const x = startPx.offsetPx - view.offsetPx
-      const endX = endPx.offsetPx - view.offsetPx
+      // Aim inside bases rather than exactly on base boundaries, where
+      // floating-point error can make pxToBp land on the neighboring base.
+      // Mousedown just inside the feature's start edge (within the 4px edge
+      // tolerance), then move to the center of base 9450.
+      const x = startPx.offsetPx - view.offsetPx + 2
+      const endX = endPx.offsetPx - view.offsetPx + 0.5 / view.bpPerPx
       const y = row * display.apolloRowHeight + display.apolloRowHeight / 2
       cy.intercept('POST', '**/changes').as('dragChange')
       cy.get('[data-testid="overlayCanvas"]').trigger('mousedown', x, y, {

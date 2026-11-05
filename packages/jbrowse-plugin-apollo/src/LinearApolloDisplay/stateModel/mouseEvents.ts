@@ -47,7 +47,7 @@ export function getMousePosition(
   const x = clientX - left
   const y = clientY - top
   const {
-    coord: bp,
+    coord0: bp,
     index: regionNumber,
     assemblyName,
     refName,
