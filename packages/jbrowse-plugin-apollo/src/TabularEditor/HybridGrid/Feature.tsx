@@ -69,6 +69,7 @@ function makeContextMenuItems(
     changeManager,
     getAssemblyId,
     regions,
+    role,
     selectedFeature,
     session,
     setSelectedFeature,
@@ -88,6 +89,7 @@ function makeContextMenuItems(
       changeManager,
       filteredTranscripts,
       updateFilteredTranscripts,
+      role,
     ),
     { feature, session, location: 'TabularEditor' },
   )

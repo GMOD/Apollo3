@@ -1,5 +1,4 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
-import { readConfObject } from '@jbrowse/core/configuration'
 import type { MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
@@ -29,11 +28,8 @@ export function featureContextMenuItems(
   changeManager: ChangeManager,
   filteredTranscripts: string[],
   updateFilteredTranscripts: (forms: string[]) => void,
+  role: string | undefined,
 ) {
-  const role =
-    (readConfObject(session.getPluginConfiguration(), 'role') as
-      | string
-      | undefined) ?? 'admin'
   const readOnly = !(role && ['admin', 'user'].includes(role))
   const menuItems: MenuItem[] = []
   if (feature) {

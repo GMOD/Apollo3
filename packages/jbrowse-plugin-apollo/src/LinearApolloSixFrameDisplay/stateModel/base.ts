@@ -7,7 +7,6 @@ import type PluginManager from '@jbrowse/core/PluginManager'
 import {
   type AnyConfigurationSchemaType,
   ConfigurationReference,
-  readConfObject,
 } from '@jbrowse/core/configuration'
 import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
 import {
@@ -24,7 +23,7 @@ import { autorun } from 'mobx'
 import { FilterFeatures } from '../../components/FilterFeatures'
 import type { ApolloSessionModel, HoveredFeature } from '../../session'
 import { getApolloAssemblyId } from '../../util'
-import { getAssemblyMetadata } from '../../util/assemblyUtils'
+import { getApolloRole } from '../../util/assemblyUtils'
 import { FeatureDisplayThresholdDialog } from '../../util/displayUtils'
 import { FeatureDensityMixin } from '../../util/featureDensityModel'
 
@@ -109,12 +108,7 @@ export function baseModelFactory(
         if (!assembly) {
           throw new Error(`No assembly found with name ${assemblyName}`)
         }
-        if (!getAssemblyMetadata(assembly).apollo) {
-          return 'admin'
-        }
-        return readConfObject(self.session.getPluginConfiguration(), 'role') as
-          | string
-          | undefined
+        return getApolloRole(self.session, assembly)
       },
       get changeManager() {
         return self.session.apolloDataStore.changeManager

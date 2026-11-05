@@ -1,6 +1,5 @@
 /* eslint-disable @eslint-react/set-state-in-effect */
 /* eslint-disable @eslint-react/static-components */
-import { readConfObject } from '@jbrowse/core/configuration'
 import { getEnv, getSession } from '@jbrowse/core/util'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import InfoIcon from '@mui/icons-material/Info'
@@ -17,6 +16,7 @@ import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import type { ApolloSessionModel } from '../session'
+import { findAssemblyByNameOrId, getApolloRole } from '../util/assemblyUtils'
 
 import { Attributes } from './Attributes'
 import { TranscriptSequence } from './TranscriptSequence'
@@ -61,11 +61,14 @@ export const ApolloTranscriptDetailsWidget = observer(
     const apolloSession = getSession(model) as unknown as ApolloSessionModel
     const currentAssembly =
       apolloSession.apolloDataStore.assemblies.get(assembly)
-    const role =
-      (readConfObject(apolloSession.getPluginConfiguration(), 'role') as
-        | string
-        | undefined) ?? 'admin'
-    const editable = ['admin', 'user'].includes(role)
+    const jbrowseAssembly = findAssemblyByNameOrId(
+      session.assemblyManager,
+      assembly,
+    )
+    const role = jbrowseAssembly
+      ? getApolloRole(apolloSession, jbrowseAssembly)
+      : undefined
+    const editable = Boolean(role && ['admin', 'user'].includes(role))
 
     if (!(feature && currentAssembly)) {
       return null

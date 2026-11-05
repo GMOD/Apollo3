@@ -106,3 +106,21 @@ export function findAssemblyByNameOrId(
   const name = readConfObject(getAssemblyConfigModel(config), 'name') as string
   return assemblyManager.get(name)
 }
+
+/**
+ * The user's Apollo role for an assembly. Assemblies that aren't served by a
+ * collaboration server (local-only assemblies) are always fully editable, so
+ * they get "admin". Otherwise it's the role in the plugin configuration that
+ * the collaboration server provides.
+ */
+export function getApolloRole(
+  session: { getPluginConfiguration(): AnyConfigurationModel },
+  assembly: Assembly,
+) {
+  if (!getAssemblyMetadata(assembly).apollo) {
+    return 'admin'
+  }
+  return readConfObject(session.getPluginConfiguration(), 'role') as
+    | string
+    | undefined
+}
