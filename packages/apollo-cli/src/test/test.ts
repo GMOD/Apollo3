@@ -294,6 +294,7 @@ server.listen(0, () => {
 
       const child = spawnChildProcess(`${apollo} setup --dry-run`, {
         shell: '/bin/bash',
+        detached: true,
       })
       let stdout = ''
       let stderr = ''
@@ -331,7 +332,7 @@ server.listen(0, () => {
 
       try {
         await answer('Install directory', `${installDir}\r`)
-        await answer('Apollo version to install', '1.3.0\r')
+        await answer('Apollo version to install', '3.0.0\r')
         await answer('Existing JBrowse Web directory', `${jbrowseDir}\r`)
         await answer('JBrowse config file(s)', 'config_mouse.json\r')
         await answer('Public URL', '\r')
@@ -361,7 +362,7 @@ server.listen(0, () => {
         for (const expected of [
           `JBROWSE_DIR=${jbrowseDir}`,
           'JBROWSE_CONFIG_FILES=config_mouse.json',
-          'PLUGIN_LOCATION=apollo-v1.3.0.js',
+          'PLUGIN_LOCATION=apollo-v3.0.0.js',
           `MONGODB_EMBEDDED_DIR=${path.join(installDir, 'data', 'mongodb')}`,
           "DESCRIPTION='Test server'",
           'ALLOW_ROOT_USER=true',
@@ -386,7 +387,13 @@ server.listen(0, () => {
           'Dry run changed the JBrowse directory',
         )
       } finally {
-        child.kill()
+        if (child.exitCode === null && child.pid !== undefined) {
+          try {
+            process.kill(-child.pid, 'SIGKILL')
+          } catch {
+            // Process group already gone
+          }
+        }
         fs.rmSync(root, { recursive: true, force: true })
       }
     },
