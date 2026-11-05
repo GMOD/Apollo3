@@ -88,7 +88,7 @@ export function getRelatedFeatures(
   }
   const children = getChildren(feature)
   for (const child of children) {
-    if (child.min < bp && child.max >= bp) {
+    if (child.min <= bp && bp < child.max) {
       relatedFeatures.push(child)
     }
   }
@@ -105,7 +105,7 @@ export function getRelatedFeatures(
         if (sib._id == feature._id) {
           continue
         }
-        if (sib.min < bp && sib.max >= bp) {
+        if (sib.min <= bp && bp < sib.max) {
           relatedFeatures.push(sib)
         }
       }

@@ -155,7 +155,7 @@ export function renderingModelFactory(
           const cds =
             bp === undefined
               ? cdss.at(0)
-              : cdss.find((c) => bp >= c.min && bp <= c.max)
+              : cdss.find((c) => bp >= c.min && bp < c.max)
           if (cds) {
             const frame = getFrame(
               cds.min,
