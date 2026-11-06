@@ -1,10 +1,11 @@
-import { defaultCodonTable, getFrame, revcom } from '@jbrowse/core/util'
+import { getFrame, revcom } from '@jbrowse/core/util'
 import type { BlockSet } from '@jbrowse/core/util/blockTypes'
 import type { Theme } from '@mui/material'
 
 import { strokeRectInner } from '../LinearApolloDisplay/glyphs/util'
 import type { ApolloSessionModel } from '../session'
 import { codonColorCode, colorCode } from '../util/displayUtils'
+import { codonTable } from '../util/sequenceUtils'
 
 function drawLetter(
   seqTrackctx: CanvasRenderingContext2D,
@@ -108,9 +109,9 @@ function drawCodon(
     const nextLeft = Math.round(leftPx + (index + 3) / bpPerPx)
     const width = nextLeft - left
     const codonCode = strand === 1 ? codon : revcom(codon)
-    const aminoAcidCode =
-      defaultCodonTable[codonCode as keyof typeof defaultCodonTable]
-    const fillColor = codonColorCode(aminoAcidCode, theme, highContrast)
+    const aminoAcidCode = codonTable[codonCode]
+    const fillColor =
+      aminoAcidCode && codonColorCode(aminoAcidCode, theme, highContrast)
     if (
       fillColor &&
       ((showStopCodons && aminoAcidCode == '*') ||
@@ -122,7 +123,9 @@ function drawCodon(
     if (1 / bpPerPx >= 4) {
       const strokeStyle = theme.palette.text.disabled
       strokeRectInner(ctx, left, top, width, rowHeight, strokeStyle)
-      drawLetter(ctx, left, top, width, aminoAcidCode)
+      if (aminoAcidCode) {
+        drawLetter(ctx, left, top, width, aminoAcidCode)
+      }
     }
   }
 }

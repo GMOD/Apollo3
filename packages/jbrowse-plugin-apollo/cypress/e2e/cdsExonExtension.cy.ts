@@ -6,7 +6,10 @@ interface GraphicalDisplay {
   seenFeatures: Map<string, AnnotationFeature>
   getRowForFeature(feature: AnnotationFeature): number | undefined
   apolloRowHeight: number
-  apolloDragging: { feature: AnnotationFeature; current: { bp: number } } | null
+  apolloDragging: {
+    feature: AnnotationFeature
+    current: { edgeBp: number }
+  } | null
 }
 
 function flatten(f: AnnotationFeature): AnnotationFeature[] {
@@ -96,7 +99,7 @@ describe('CDS boundary extension', () => {
         buttons: 1,
       })
       cy.window().then(() =>
-        expect(display.apolloDragging?.current.bp).to.equal(33),
+        expect(display.apolloDragging?.current.edgeBp).to.equal(33),
       )
       cy.get('[data-testid="overlayCanvas"]').trigger('mouseup', endX, y, {
         force: true,
