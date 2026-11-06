@@ -29,10 +29,15 @@ export const changeHandlers: ChangeHandlers = {
         let parentFeature = dataStore.getFeature(parentFeatureId)
         // maybe the parent feature hasn't been loaded yet
         if (!parentFeature) {
+          // `refSeq` is the refSeq's ID, but regions need its name. They're
+          // the same for local assemblies, but not for collaboration servers.
+          const refName =
+            dataStore.assemblies.get(assembly)?.refSeqs.get(addedFeature.refSeq)
+              ?.name ?? addedFeature.refSeq
           await dataStore.loadFeatures([
             {
               assemblyName: assembly,
-              refName: addedFeature.refSeq,
+              refName,
               start: addedFeature.min,
               end: addedFeature.max,
             },
