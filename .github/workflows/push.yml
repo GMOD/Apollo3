@@ -7,18 +7,26 @@ on:
     tags:
       - '!**'
 
+permissions: {}
+
 jobs:
+  # The build and lint jobs use the dependency cache, but they don't publish
+  # anything. The docker and deploy workflows that do publish don't use it.
   build:
     name: Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check out
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
       - name: Use Node.js 24.x
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: 24.14
-          cache: yarn
+          cache: yarn # zizmor: ignore[cache-poisoning]
       - name: Install
         run: yarn --immutable
       - name: Build collaboration server
@@ -30,14 +38,18 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check out
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
       - name: Use Node.js 24.x
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: 24.14
-          cache: yarn
+          cache: yarn # zizmor: ignore[cache-poisoning]
       - name: Install
         run: yarn --immutable
         # Have to build shared before linting so type-based lint rules can
@@ -51,14 +63,21 @@ jobs:
         run: yarn typecheck:node
   docker:
     if: ${{ github.ref == 'refs/heads/main' }}
+    permissions:
+      contents: read
+      packages: write # push images to ghcr.io
     uses: ./.github/workflows/docker.yml
     with:
       tag: dev
-    secrets: inherit
   deploy:
     needs: [docker]
     if: ${{ github.ref == 'refs/heads/main' }}
+    permissions:
+      contents: read
+      packages: read # pull images from ghcr.io
     uses: ./.github/workflows/deploy.yml
     with:
       environment: staging
-    secrets: inherit
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

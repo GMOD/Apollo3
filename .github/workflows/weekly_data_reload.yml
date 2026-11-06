@@ -4,14 +4,20 @@ on:
   schedule:
     - cron: 13 9 * * MON
 
+permissions: {}
+
 jobs:
   prod-cleanup:
     uses: ./.github/workflows/reload_demo_data.yml
     with:
       environment: prod
-    secrets: inherit
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   staging-cleanup:
     uses: ./.github/workflows/reload_demo_data.yml
     with:
       environment: staging
-    secrets: inherit
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

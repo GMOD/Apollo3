@@ -12018,6 +12018,9 @@ __metadata:
     typescript: "npm:^6.0.3"
     typescript-eslint: "npm:^8.61.0"
     yargs: "npm:^17.7.2"
+  dependenciesMeta:
+    cypress:
+      built: true
   languageName: unknown
   linkType: soft
 

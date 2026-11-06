@@ -12,6 +12,8 @@ on:
       - '!.github/**'
       - '.github/workflows/pull_request.yml'
 
+permissions: {}
+
 # Each job uploads its coverage reports to Codecov, and also as an artifact for
 # running scripts/coverageMatrix.ts locally. Extract each artifact at the repo
 # root to put the reports where the script expects them.
@@ -20,11 +22,15 @@ jobs:
   lint:
     name: Strict lint
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check out
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
       - name: Use Node.js 24.x
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: 24.14
           cache: yarn
@@ -43,11 +49,15 @@ jobs:
   unit:
     name: Unit tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check out
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
       - name: Use Node.js 24.x
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: 24.14
           cache: yarn
@@ -62,8 +72,10 @@ jobs:
         run: yarn run test:ci
         working-directory: packages/apollo-shared
       - name: Upload unit-shared coverage to Codecov
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@v7.1.1
         with:
+          # The action's SHA doesn't pin the CLI it downloads, so pin it here
+          version: v11.3.2
           token: ${{ secrets.CODECOV_TOKEN }}
           files: packages/apollo-shared/coverage/lcov.info
           flags: unit-shared
@@ -79,8 +91,9 @@ jobs:
         run: yarn run test:ci
         working-directory: packages/jbrowse-plugin-apollo
       - name: Upload unit-plugin coverage to Codecov
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@v7.1.1
         with:
+          version: v11.3.2
           token: ${{ secrets.CODECOV_TOKEN }}
           files: packages/jbrowse-plugin-apollo/coverage/lcov.info
           flags: unit-plugin
@@ -91,8 +104,9 @@ jobs:
         run: yarn run test:ci
         working-directory: packages/apollo-collaboration-server
       - name: Upload unit-server coverage to Codecov
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@v7.1.1
         with:
+          version: v11.3.2
           token: ${{ secrets.CODECOV_TOKEN }}
           files: packages/apollo-collaboration-server/coverage/lcov.info
           flags: unit-server
@@ -105,7 +119,7 @@ jobs:
           cp --parents packages/*/coverage/lcov.info coverage-artifact/
       - name: Upload coverage reports artifact
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: coverage-unit
           path: coverage-artifact/
@@ -117,11 +131,15 @@ jobs:
     # back to ubuntu-latest once MongoDB 8.0.35/8.3.14 are out.
     # https://github.com/actions/runner-images/issues/15005
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     steps:
       - name: Check out
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
       - name: Use Node.js 24.x
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: 24.14
           cache: yarn
@@ -179,7 +197,7 @@ jobs:
       # Also uploaded when tests passed on a retry, to help debug flaky tests
       - name: Upload Cypress failure screenshots
         if: ${{ !cancelled() && steps.e2e-tests.outcome != 'skipped' }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: cypress-screenshots
           path: packages/jbrowse-plugin-apollo/cypress/screenshots/
@@ -193,7 +211,7 @@ jobs:
           ${{ !cancelled() && steps.e2e-tests.outcome != 'skipped' &&
           hashFiles('packages/jbrowse-plugin-apollo/cypress/cypress-image-diff-screenshots/diff/**')
           != '' }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: cypress-image-diff
           path: |
@@ -217,8 +235,9 @@ jobs:
         working-directory: packages/jbrowse-plugin-apollo
       - name: Upload e2e coverage to Codecov
         if: ${{ !cancelled() && steps.e2e-coverage.outcome == 'success' }}
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@v7.1.1
         with:
+          version: v11.3.2
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage/e2e-browser/lcov.info,coverage/e2e-server/lcov.info
           flags: e2e
@@ -232,7 +251,7 @@ jobs:
           cp --parents coverage/e2e-*/lcov.info coverage-artifact/
       - name: Upload coverage reports artifact
         if: ${{ !cancelled() && steps.e2e-coverage.outcome == 'success' }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: coverage-e2e
           path: coverage-artifact/
@@ -244,11 +263,15 @@ jobs:
     # back to ubuntu-latest once MongoDB 8.0.35/8.3.14 are out.
     # https://github.com/actions/runner-images/issues/15005
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     steps:
       - name: Check out
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
       - name: Use Node.js 24.x
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: 24.14
           cache: yarn
@@ -283,10 +306,12 @@ jobs:
           sleep 2; done'
       # Checks that the packed CLI installs and runs. The full test suite runs
       # against the repo's build so its coverage maps back to the source.
+      # Installing without the lockfile is intended, since that's how users
+      # install it, but dependency install scripts are skipped.
       - name: Install CLI
-        run: |
+        run: | # zizmor: ignore[adhoc-packages]
           yarn pack
-          npm install --global package.tgz
+          npm install --global --ignore-scripts package.tgz
           apollo --help
         working-directory: packages/apollo-cli
       - name: Run CLI tests
@@ -304,8 +329,9 @@ jobs:
         working-directory: packages/apollo-cli
       - name: Upload cli coverage to Codecov
         if: ${{ !cancelled() && steps.cli-coverage.outcome == 'success' }}
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@v7.1.1
         with:
+          version: v11.3.2
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage/cli/lcov.info
           flags: cli
@@ -317,7 +343,7 @@ jobs:
           cp --parents coverage/cli/lcov.info coverage-artifact/
       - name: Upload coverage reports artifact
         if: ${{ !cancelled() && steps.cli-coverage.outcome == 'success' }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: coverage-cli
           path: coverage-artifact/

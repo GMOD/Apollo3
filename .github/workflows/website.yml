@@ -2,27 +2,40 @@ name: Deploy Docusaurus to website
 
 on:
   workflow_call:
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
   workflow_dispatch:
+
+permissions: {}
 
 jobs:
   reload:
     name: Deploy Docusaurus to website
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check out
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      # No dependency cache, so what gets deployed is built from a clean
+      # install
       - name: Use Node.js 24.x
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: 24.14
-          cache: yarn
+          package-manager-cache: false
       - name: Install
         run: yarn --immutable
       - name: Build website
         working-directory: packages/website
         run: yarn build
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6
+        uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

@@ -1,6 +1,8 @@
 name: Cypress debug
 on: workflow_dispatch
 
+permissions: {}
+
 jobs:
   build:
     name: End-to-end test
@@ -8,12 +10,16 @@ jobs:
     # back to ubuntu-latest once MongoDB 8.0.35/8.3.14 are out.
     # https://github.com/actions/runner-images/issues/15005
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     steps:
       - name: Check out
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Use Node.js 24.x
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: 24.14
           cache: yarn
@@ -94,7 +100,7 @@ jobs:
         cancel: file-server
 
       - name: Archive test results
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         if: '!cancelled()'
         with:
           name: cypress_results
