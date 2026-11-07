@@ -75,6 +75,7 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
         reject: (reason: string) => void,
       ) => {
         const timeoutId = setTimeout(() => {
+          removeEventListener('message', messageListener)
           reject('timeout')
         }, 20_000)
         const messageId = nanoid()
@@ -158,6 +159,7 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
           reject: (reason: string) => void,
         ) => {
           const timeoutId = setTimeout(() => {
+            removeEventListener('message', messageListener)
             reject('timeout')
           }, 20_000)
           const messageId = nanoid()
