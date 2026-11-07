@@ -2,8 +2,6 @@
 
 Login to Apollo
 
-- [`apollo login`](#apollo-login)
-
 ## `apollo login`
 
 Login to Apollo
