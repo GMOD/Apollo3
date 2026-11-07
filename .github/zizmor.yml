@@ -1,0 +1,6 @@
+rules:
+  # Suggests `$/` instead of `./` for the reusable workflow calls, but
+  # actionlint doesn't accept `$/` yet. A job-level `./` call already resolves
+  # from the same commit, so it isn't affected by files changed during the run.
+  self-repository:
+    disable: true

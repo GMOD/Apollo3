@@ -1,0 +1,72 @@
+name: Lint workflows
+
+on:
+  pull_request:
+    paths:
+      - '.github/**'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/**'
+
+permissions: {}
+
+jobs:
+  zizmor:
+    name: zizmor
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      # 1.32.0 is the first version that reads actions.lock
+      - name: Run zizmor
+        uses: zizmorcore/zizmor-action@v0.8.0
+        with:
+          version: 1.32.0
+          advanced-security: false
+          annotations: true
+          config: .github/zizmor.yml
+
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      # The image includes shellcheck, which actionlint runs on `run` scripts.
+      # The glob skips the non-workflow files in .github/workflows/deploy/.
+      - name: Run actionlint
+        run: |
+          docker run --rm --volume "${PWD}:/repo" --workdir /repo \
+            rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 \
+            -color .github/workflows/*.yml
+
+  # Fails if actions.lock is out of sync with the workflows, or if a locked
+  # commit no longer verifies against its upstream repository
+  lockfile:
+    name: Verify actions.lock
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install gh-actions-lock
+        run: gh extension install github/gh-actions-lock --pin v0.4.1
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Verify lockfile
+        run: gh actions-lock --verify
+        env:
+          GH_TOKEN: ${{ github.token }}

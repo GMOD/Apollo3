@@ -4,45 +4,103 @@ on:
   push:
     tags: v[0-9]+.[0-9]+.[0-9]+*
 
-permissions:
-  contents: read
-  id-token: write
-  packages: write
+permissions: {}
 
 jobs:
-  publish-npm:
-    name: Publish to NPM
+  # Builds and packs the packages without any publishing credentials. The
+  # publish job then uploads the tarballs without running any project code.
+  build-npm:
+    name: Build NPM packages
     runs-on: ubuntu-latest
-    environment: publish
+    permissions:
+      contents: read
     steps:
       - name: Check out
-        uses: actions/checkout@v7
-      # Setup .npmrc file to publish to npm
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      # No dependency cache, so the release is built from a clean install
       - name: Use Node.js 24.x
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: 24.14
-          registry-url: https://registry.npmjs.org
-          scope: '@apollo-annotation'
-          cache: yarn
+          package-manager-cache: false
       - name: Install
         run: yarn --immutable
       - name: Build shared
         run: yarn build
         working-directory: packages/apollo-shared
-      - name: Publish
+      # `yarn npm publish` runs these, but `yarn pack` doesn't
+      - name: Run prepublish scripts
+        run: yarn workspaces foreach --no-private --all run prepublish
+      - name: Pack
         run:
-          yarn workspaces foreach --no-private --all npm publish
-          --tolerate-republish --access public --provenance
+          yarn workspaces foreach --no-private --all pack --out
+          "${RUNNER_TEMP}/npm-packages/%s-%v.tgz"
+      - name: Upload packages
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: npm-packages
+          path: ${{ runner.temp }}/npm-packages/
+          if-no-files-found: error
+          retention-days: 1
+  publish-npm:
+    name: Publish to NPM
+    needs: [build-npm]
+    runs-on: ubuntu-latest
+    environment: publish
+    permissions:
+      id-token: write # npm trusted publishing and provenance
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v8.0.2
+        with:
+          name: npm-packages
+          path: ${{ runner.temp }}/npm-packages
+      # Set up .npmrc file to publish to npm
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24.14
+          registry-url: https://registry.npmjs.org
+          scope: '@apollo-annotation'
+          package-manager-cache: false
+      # Publishing a tarball doesn't run any of its lifecycle scripts. Versions
+      # that are already published are skipped, like `--tolerate-republish`.
+      - name: Publish
+        working-directory: ${{ runner.temp }}/npm-packages
+        run: |
+          for tarball in *.tgz; do
+            manifest=$(tar --extract --gzip --to-stdout --file="$tarball" package/package.json)
+            name=$(jq --raw-output .name <<< "$manifest")
+            version=$(jq --raw-output .version <<< "$manifest")
+            status=$(curl --silent --output /dev/null --write-out '%{http_code}' \
+              "https://registry.npmjs.org/${name/\//%2f}/${version}")
+            if [[ "$status" == 200 ]]; then
+              echo "${name}@${version} is already published, skipping"
+              continue
+            elif [[ "$status" != 404 ]]; then
+              echo "Unexpected status ${status} checking for ${name}@${version}"
+              exit 1
+            fi
+            npm publish "$tarball" --access public --provenance
+          done
   publish-docker:
     needs: [publish-npm]
+    permissions:
+      contents: read
+      packages: write # push images to ghcr.io
     uses: ./.github/workflows/docker.yml
     with:
       tag: latest
-    secrets: inherit
   deploy:
     needs: [publish-npm, publish-docker]
+    permissions:
+      contents: read
+      packages: read # pull images from ghcr.io
     uses: ./.github/workflows/deploy.yml
     with:
       environment: prod
-    secrets: inherit
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
