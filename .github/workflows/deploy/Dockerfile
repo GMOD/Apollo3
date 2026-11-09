@@ -1,4 +1,4 @@
-FROM httpd:alpine
+FROM httpd:alpine@sha256:d72968666c0a6961b07036d85fc053bc3cf640583cb1ff8360e1617818f164dc
 COPY ./httpd.conf /usr/local/apache2/conf/httpd.conf
 COPY ./apollo.js /usr/local/apache2/htdocs/
 COPY ./jbrowse-web.zip /usr/local/apache2/htdocs/

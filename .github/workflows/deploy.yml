@@ -6,6 +6,25 @@ on:
       environment:
         required: true
         type: string
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      # These are environment secrets, which the jobs below get from their
+      # `environment`, so callers don't need to pass them.
+      SSH_PRIVATE_KEY:
+        required: false
+      JWT_SECRET:
+        required: false
+      SESSION_SECRET:
+        required: false
+      GOOGLE_CLIENT_ID:
+        required: false
+      GOOGLE_CLIENT_SECRET:
+        required: false
+      ROOT_USER_PASSWORD:
+        required: false
   workflow_dispatch:
     inputs:
       environment:
@@ -13,18 +32,26 @@ on:
         type: environment
         required: true
 
+permissions: {}
+
 jobs:
   build:
     name: Build or fetch and upload
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check out
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      # No dependency cache, so what gets deployed is built from a clean
+      # install
       - name: Use Node.js 24.x
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: 24.14
-          cache: yarn
+          package-manager-cache: false
       - name: Install
         if: inputs.environment == 'staging'
         run: yarn --immutable
@@ -43,70 +70,127 @@ jobs:
           wget --output-document=- --quiet https://registry.npmjs.org/@apollo-annotation/jbrowse-plugin-apollo/ > jpa.json
           LATEST_VERSION=$(jq --raw-output '."dist-tags".latest' jpa.json)
           TARBALL=$(jq --raw-output ".versions.\"${LATEST_VERSION}\".dist.tarball" jpa.json)
-          wget --output-document=- --quiet ${TARBALL} | \
+          wget --output-document=- --quiet "${TARBALL}" | \
             tar --extract --gzip --file=- --strip=2 package/dist/jbrowse-plugin-apollo.umd.production.min.js package/dist/jbrowse-plugin-apollo.umd.production.min.js.map
           cp jbrowse-plugin-apollo.umd.production.min.js apollo.js
       - name: Upload built plugin files
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: plugin
           path: |
             packages/jbrowse-plugin-apollo/dist/apollo.js
             packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.production.min.js*
+      # Deploy the JBrowse release that matches the @jbrowse/core version
+      # Apollo is built against
+      - name: Get JBrowse version
+        id: jbrowse-version
+        run: |
+          mapfile -t versions < <(
+            awk '/^"@jbrowse\/core@/ { found = 1; next }
+              found && /^  version:/ { print $2; found = 0 }' yarn.lock | sort -u
+          )
+          if [[ ${#versions[@]} -ne 1 ]]; then
+            echo "Expected one @jbrowse/core version in yarn.lock, found: ${versions[*]}"
+            exit 1
+          fi
+          if [[ ! "${versions[0]}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "Unexpected @jbrowse/core version: ${versions[0]}"
+            exit 1
+          fi
+          echo "version=${versions[0]}" >> "$GITHUB_OUTPUT"
+      - name: Download JBrowse
+        env:
+          VERSION: ${{ steps.jbrowse-version.outputs.version }}
+        run: |
+          mkdir --parents "${RUNNER_TEMP}/jbrowse-web"
+          curl -fsSL --output "${RUNNER_TEMP}/jbrowse-web/jbrowse-web.zip" \
+            "https://github.com/GMOD/jbrowse-components/releases/download/v${VERSION}/jbrowse-web-v${VERSION}.zip"
+      # Checks the download against the sha256 GitHub recorded for the release
+      # asset
+      - name: Verify JBrowse download
+        working-directory: ${{ runner.temp }}/jbrowse-web
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.jbrowse-version.outputs.version }}
+        run: |
+          digest=$(gh api "repos/GMOD/jbrowse-components/releases/tags/v${VERSION}" \
+            --jq ".assets[] | select(.name == \"jbrowse-web-v${VERSION}.zip\") | .digest")
+          if [[ "$digest" != sha256:* ]]; then
+            echo "No sha256 digest for jbrowse-web-v${VERSION}.zip: '${digest}'"
+            exit 1
+          fi
+          echo "${digest#sha256:}  jbrowse-web.zip" | sha256sum --check --strict -
+      - name: Upload JBrowse
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: jbrowse-web
+          path: ${{ runner.temp }}/jbrowse-web/jbrowse-web.zip
+          if-no-files-found: error
+          retention-days: 1
   deploy_collab:
     name: Deploy to ${{ inputs.environment }} demo server
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     needs: [build]
+    permissions:
+      contents: read
+      packages: read # pull images from ghcr.io
+    env:
+      ENVIRONMENT: ${{ inputs.environment }}
     steps:
       - name: Check out
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
       - name: Download built plugin files
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v8.0.2
         with:
           name: plugin
           path: .github/workflows/deploy/
-      - name: Download JBrowse ZIP
-        run: |
-          if [[ ${{ inputs.environment }} == prod ]]; then
-            curl -fsSL https://s3.amazonaws.com/jbrowse.org/code/jb2/latest/jbrowse-web-latest.zip > jbrowse-web.zip
-          else
-            curl -fsSL https://s3.amazonaws.com/jbrowse.org/code/jb2/main/jbrowse-web-main.zip > jbrowse-web.zip
-          fi
-        working-directory: .github/workflows/deploy
+      - name: Download JBrowse
+        uses: actions/download-artifact@v8.0.2
+        with:
+          name: jbrowse-web
+          path: .github/workflows/deploy/
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6
+        uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
       - name: Get instance address
         id: ec2-describe-instances
+        env:
+          INSTANCE_ID: ${{ vars.INSTANCE_ID }}
         run: |
           INSTANCE_ADDRESS=$(aws ec2 describe-instances \
-            --instance-ids ${{ vars.INSTANCE_ID }} \
+            --instance-ids "$INSTANCE_ID" \
             --query "Reservations[*].Instances[*].[PublicDnsName]" \
             --output text)
           echo "INSTANCE_ADDRESS=$INSTANCE_ADDRESS" >> "$GITHUB_OUTPUT"
       - name: Set up SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          INSTANCE_ADDRESS:
+            ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }}
         run: |
           mkdir --parents ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY  }}" >  ~/.ssh/${{ inputs.environment }}
-          chmod 600 ~/.ssh/${{ inputs.environment }}
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/"$ENVIRONMENT"
+          chmod 600 ~/.ssh/"$ENVIRONMENT"
           cat >>~/.ssh/config <<END
-          Host ${{ inputs.environment }}
-            HostName ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }}
+          Host $ENVIRONMENT
+            HostName $INSTANCE_ADDRESS
             User ec2-user
-            IdentityFile ~/.ssh/${{ inputs.environment }}
+            IdentityFile ~/.ssh/$ENVIRONMENT
           END
-          ssh-keyscan -H ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H "$INSTANCE_ADDRESS" >> ~/.ssh/known_hosts
       - name: Create Docker context
         run: |
-          docker context create ${{ inputs.environment }} \
-            --docker host=ssh://${{ inputs.environment }} \
-            --description "${{ inputs.environment }} server"
+          docker context create "$ENVIRONMENT" \
+            --docker "host=ssh://$ENVIRONMENT" \
+            --description "$ENVIRONMENT server"
       - name: Log in to the GitHub Container Registry
-        uses: docker/login-action@v4
+        uses: docker/login-action@v4.7.0
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -120,38 +204,39 @@ jobs:
           ROOT_USER_PASSWORD: ${{ secrets.ROOT_USER_PASSWORD }}
           URL: ${{ vars.URL }}
           DOCKER_TAG: ${{ vars.DOCKER_TAG }}
-          ENVIRONMENT: ${{ inputs.environment }}
           PORT: ${{ vars.PORT }}
         working-directory: .github/workflows/deploy
         run: |
-          docker --context ${{ inputs.environment }} compose --project-name apollo-demo-${{ inputs.environment }}-site down
-          docker --context ${{ inputs.environment }} compose --project-name apollo-demo-${{ inputs.environment }}-site pull
-          docker --context ${{ inputs.environment }} compose --project-name apollo-demo-${{ inputs.environment }}-site up --build --detach --wait --wait-timeout 120
+          PROJECT_NAME="apollo-demo-${ENVIRONMENT}-site"
+          docker --context "$ENVIRONMENT" compose --project-name "$PROJECT_NAME" down
+          docker --context "$ENVIRONMENT" compose --project-name "$PROJECT_NAME" pull
+          docker --context "$ENVIRONMENT" compose --project-name "$PROJECT_NAME" up --build --detach --wait --wait-timeout 120
   deploy_local:
     name: Deploy to ${{ inputs.environment }} local installation
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     needs: [build]
+    permissions:
+      contents: read
+    env:
+      ENVIRONMENT: ${{ inputs.environment }}
     steps:
       - name: Check out
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
       - name: Download built plugin files
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v8.0.2
         with:
           name: plugin
           path: .github/workflows/deploy/
-      - name: Download JBrowse ZIP
-        run: |
-          mkdir tmp
-          cd tmp/
-          if [[ ${{ inputs.environment }} == prod ]]; then
-            curl -fsSL https://s3.amazonaws.com/jbrowse.org/code/jb2/latest/jbrowse-web-latest.zip > jbrowse-web.zip
-          else
-            curl -fsSL https://s3.amazonaws.com/jbrowse.org/code/jb2/main/jbrowse-web-main.zip > jbrowse-web.zip
-          fi
-        working-directory: .github/workflows/deploy
+      - name: Download JBrowse
+        uses: actions/download-artifact@v8.0.2
+        with:
+          name: jbrowse-web
+          path: .github/workflows/deploy/tmp/
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6
+        uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -159,7 +244,7 @@ jobs:
       - name: Upload
         working-directory: .github/workflows/deploy
         run: |
-          if [[ ${{ inputs.environment }} == prod ]]; then
+          if [[ "$ENVIRONMENT" == prod ]]; then
             SITE_DIR=demo
           else
             SITE_DIR=demo-staging
