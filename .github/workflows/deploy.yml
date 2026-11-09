@@ -11,8 +11,10 @@ on:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
-      # These are environment secrets, which the jobs below get from their
-      # `environment`, so callers don't need to pass them.
+      # These are environment secrets. A called workflow only sees secrets its
+      # caller passes, even with `environment` set on the job, so callers must
+      # use `secrets: inherit` for these to be available. They're declared here
+      # so actionlint knows about them.
       SSH_PRIVATE_KEY:
         required: false
       JWT_SECRET:

@@ -78,6 +78,5 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       environment: staging
-    secrets:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    # Environment secrets only reach a called workflow through `inherit`
+    secrets: inherit # zizmor: ignore[secrets-inherit]
