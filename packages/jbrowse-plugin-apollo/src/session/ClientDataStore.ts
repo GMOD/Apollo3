@@ -8,7 +8,6 @@ import {
   ApolloAssembly,
   type ApolloAssemblySnapshot,
   ApolloRefSeq,
-  type BackendDriverType,
   CheckResult,
   type CheckResultSnapshot,
 } from '@apollo-annotation/mst'
@@ -79,13 +78,10 @@ export function clientDataStoreFactory(
       },
     }))
     .actions((self) => ({
-      addAssembly(assemblyId: string, backendDriverType?: BackendDriverType) {
+      addAssembly(assemblyId: string) {
         const assemblySnapshot: ApolloAssemblySnapshot = {
           _id: assemblyId,
           refSeqs: {},
-        }
-        if (backendDriverType) {
-          assemblySnapshot.backendDriverType = backendDriverType
         }
         return self.assemblies.put(assemblySnapshot)
       },
