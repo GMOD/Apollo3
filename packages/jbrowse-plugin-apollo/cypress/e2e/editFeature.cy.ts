@@ -6,7 +6,10 @@ interface GraphicalDisplay {
   seenFeatures: Map<string, AnnotationFeature>
   getRowForFeature(feature: AnnotationFeature): number | undefined
   apolloRowHeight: number
-  apolloDragging: { feature: AnnotationFeature; current: { bp: number } } | null
+  apolloDragging: {
+    feature: AnnotationFeature
+    current: { edgeBp: number }
+  } | null
 }
 
 describe('Different ways of editing features', () => {
@@ -236,7 +239,11 @@ describe('Different ways of editing features', () => {
       if (!startPx || !endPx) {
         throw new Error('Drag coordinates are outside view')
       }
-      const x = startPx.offsetPx - view.offsetPx
+      // Mousedown just inside the feature's start edge (within the 4px edge
+      // tolerance), since exactly on the boundary floating-point error can
+      // put the mouse on the base before the feature. Then drag to the base
+      // boundary at 9450; dragged edges snap to the nearest base boundary.
+      const x = startPx.offsetPx - view.offsetPx + 2
       const endX = endPx.offsetPx - view.offsetPx
       const y = row * display.apolloRowHeight + display.apolloRowHeight / 2
       cy.intercept('POST', '**/changes').as('dragChange')
@@ -253,7 +260,7 @@ describe('Different ways of editing features', () => {
         buttons: 1,
       })
       cy.window().then(() =>
-        expect(display.apolloDragging?.current.bp).to.equal(9450),
+        expect(display.apolloDragging?.current.edgeBp).to.equal(9450),
       )
       cy.get('[data-testid="overlayCanvas"]').trigger('mouseup', endX, y, {
         force: true,

@@ -1,3 +1,11 @@
+import { defaultCodonTable } from '@jbrowse/core/util'
+
+/**
+ * `defaultCodonTable` widened so it can be indexed by any string. Codons not in
+ * the table (e.g. ones containing ambiguous bases like "NNA") yield undefined.
+ */
+export const codonTable: Partial<Record<string, string>> = defaultCodonTable
+
 const START_CODON = 'ATG'
 const STOP_CODONS = new Set(['TAA', 'TAG', 'TGA'])
 

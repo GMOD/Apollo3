@@ -146,7 +146,13 @@ export interface MousePosition {
   x: number
   y: number
   refName: string
+  /** 0-based coordinate of the base under the mouse */
   bp: number
+  /**
+   * 0-based coordinate of the base boundary nearest the mouse, i.e. where a
+   * dragged feature edge (which sits between bases) should go
+   */
+  edgeBp: number
   regionNumber: number
   feature?: AnnotationFeature
 }
@@ -159,6 +165,21 @@ export function isMousePositionWithFeature(
   return 'feature' in mousePosition
 }
 
+/**
+ * The 0-based base boundary nearest a position from `lgv.pxToBp()`. Use this
+ * rather than the base under the mouse when placing something that sits
+ * between bases, like a dragged feature edge.
+ */
+export function nearestBaseBoundary(
+  pxToBpResult: Pick<
+    ReturnType<LinearGenomeViewModel['pxToBp']>,
+    'start' | 'end' | 'reversed' | 'offset'
+  >,
+) {
+  const { end, offset, reversed, start } = pxToBpResult
+  return Math.round(reversed ? end - offset : start + offset)
+}
+
 export function getMousePosition(
   event: React.MouseEvent,
   lgv: LinearGenomeViewModel,
@@ -168,6 +189,10 @@ export function getMousePosition(
   const { left, top } = canvas.getBoundingClientRect()
   const x = clientX - left
   const y = clientY - top
-  const { coord: bp, index: regionNumber, refName } = lgv.pxToBp(x)
-  return { x, y, refName, bp, regionNumber }
+  const pxToBpResult = lgv.pxToBp(x)
+  const { coord, index: regionNumber, refName } = pxToBpResult
+  // pxToBp's `coord` is 1-based, but Apollo feature coordinates are 0-based
+  const bp = coord - 1
+  const edgeBp = nearestBaseBoundary(pxToBpResult)
+  return { x, y, refName, bp, edgeBp, regionNumber }
 }

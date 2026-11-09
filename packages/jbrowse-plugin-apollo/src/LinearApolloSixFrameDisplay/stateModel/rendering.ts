@@ -1,12 +1,7 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
 import type { AnyConfigurationSchemaType } from '@jbrowse/core/configuration'
-import {
-  defaultCodonTable,
-  doesIntersect2,
-  getFrame,
-  revcom,
-} from '@jbrowse/core/util'
+import { doesIntersect2, getFrame, revcom } from '@jbrowse/core/util'
 import {
   type Instance,
   addDisposer,
@@ -24,6 +19,7 @@ import {
   roundPxSpan,
   setCanvasSize,
 } from '../../util/glyphUtils'
+import { codonTable } from '../../util/sequenceUtils'
 import { geneGlyph } from '../glyphs/GeneGlyph'
 import { getCDSRow, getStrandRow, rowCount } from '../rows'
 
@@ -51,9 +47,9 @@ function drawCodon(
     const right = Math.round(leftPx + (index + 3) / bpPerPx)
     const width = Math.max(right - left, 1)
     const codonCode = strand === 1 ? codon : revcom(codon)
-    const aminoAcidCode =
-      defaultCodonTable[codonCode as keyof typeof defaultCodonTable]
-    const fillColor = codonColorCode(aminoAcidCode, theme, highContrast)
+    const aminoAcidCode = codonTable[codonCode]
+    const fillColor =
+      aminoAcidCode && codonColorCode(aminoAcidCode, theme, highContrast)
     if (
       fillColor &&
       ((showStopCodons && aminoAcidCode == '*') ||
@@ -155,7 +151,7 @@ export function renderingModelFactory(
           const cds =
             bp === undefined
               ? cdss.at(0)
-              : cdss.find((c) => bp >= c.min && bp <= c.max)
+              : cdss.find((c) => bp >= c.min && bp < c.max)
           if (cds) {
             const frame = getFrame(
               cds.min,
