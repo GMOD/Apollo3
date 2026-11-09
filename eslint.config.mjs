@@ -20,6 +20,7 @@ export default defineConfig([
       '**/build/',
       '**/coverage/',
       '**/dist/',
+      '**/__fixtures__/',
       'packages/website/.docusaurus/',
       'packages/jbrowse-plugin-apollo/.jbrowse/',
     ],
@@ -136,7 +137,10 @@ export default defineConfig([
   },
   {
     ...pluginCypress.configs.recommended,
-    files: ['packages/jbrowse-plugin-apollo/cypress/**/*'],
+    files: [
+      'packages/jbrowse-plugin-apollo/cypress/**/*',
+      'packages/apollo-plugin-example/cypress/**/*',
+    ],
   },
   // Don't enforce tsdoc syntax in JS files
   {

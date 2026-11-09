@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -7,11 +6,7 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { Change, type SerializedChange } from '@apollo-annotation/common'
 import {
-  type ChangeMessage,
-  type CheckResultUpdate,
-  type RequestUserInformationMessage,
   type UserLocation,
-  type UserLocationMessage,
   getDecodedToken,
   makeUserSessionId,
 } from '@apollo-annotation/shared'
@@ -33,18 +28,22 @@ import {
 import LockPersonIcon from '@mui/icons-material/LockPerson'
 import LoginIcon from '@mui/icons-material/Login'
 import { autorun } from 'mobx'
-import { io } from 'socket.io-client'
 
 import { version as pluginVersion } from '../../package.json'
-import { addTopLevelAdminMenus } from '../menus/topLevelMenuAdmin'
-import type { Collaborator } from '../session'
 import type { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 
+import { ChannelSubscriptions } from './ChannelSubscriptions'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { LoginInProgress } from './components/LoginInProgress'
 import { NoAccess } from './components/NoAccess'
 import type { ApolloInternetAccountConfigModel } from './configSchema'
+import {
+  type EventSourceHandlerContext,
+  handleCommonMessage,
+  handleRequestInformationMessage,
+  handleUserLocationMessage,
+} from './eventSourceHandlers'
 import { LoginCancelledError, LoginFailedError } from './loginErrors'
 
 interface AuthType {
@@ -603,7 +602,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           })
           if (!response.ok) {
             console.error(
-              `Error when fetching the last updates to recover socket connection — ${response.status}`,
+              `Error when fetching the last updates to recover SSE connection — ${response.status}`,
             )
             return
           }
@@ -621,12 +620,13 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
       }),
     }))
-    .volatile((self) => {
-      const { origin, pathname: path } = new URL('socket.io/', self.baseURL)
-      return { socket: io(origin, { path }) }
-    })
+    .volatile(() => ({
+      eventSource: undefined as EventSource | undefined,
+      /** Per-refSeq change channels, see `CollaborationServerDriver` */
+      channelSubscriptions: new ChannelSubscriptions(),
+    }))
     .actions((self) => ({
-      addSocketListeners() {
+      addEventSourceListeners() {
         const { session } = getRoot<ApolloRootModel>(self)
         const { notify } = session as unknown as AbstractSessionModel
         const token = self.retrieveToken()
@@ -635,10 +635,30 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
         const user = getDecodedToken(token)
         const localSessionId = makeUserSessionId(user)
-        const { socket } = self
         const { addCheckResult, changeManager, deleteCheckResult } =
           session.apolloDataStore
-        socket.on('connect', () => {
+        const context: EventSourceHandlerContext = {
+          localSessionId,
+          addCheckResult,
+          deleteCheckResult,
+          applyRemoteChange: (change) => {
+            void changeManager.submit(change, { submitToBackend: false })
+          },
+          addOrUpdateCollaborator: (collaborator) => {
+            session.addOrUpdateCollaborator(collaborator)
+          },
+          broadcastLocations: () => {
+            session.broadcastLocations()
+          },
+        }
+
+        const url = new URL('messages/events', self.baseURL)
+        url.searchParams.set('token', token)
+        const eventSource = new EventSource(url)
+        self.eventSource = eventSource
+        self.channelSubscriptions.attach(eventSource)
+
+        eventSource.addEventListener('open', () => {
           // No baseline yet, so there is nothing to be missing: this is the
           // first connect, and loadInitialState() is still fetching the
           // sequence number getMissingChanges() needs. That call would throw
@@ -652,50 +672,19 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           }
           void self.getMissingChanges()
         })
-        socket.on('connect_error', (error) => {
+        eventSource.addEventListener('error', (error) => {
           console.error(error)
           notify('Could not connect to the Apollo server.', 'error')
         })
-        socket.on('COMMON', (message: ChangeMessage | CheckResultUpdate) => {
-          if ('checkResult' in message) {
-            if (message.deleted) {
-              deleteCheckResult(message.checkResult._id)
-            } else {
-              addCheckResult(message.checkResult)
-            }
-            return
-          }
-          // Save server last change sequence into session storage
-          sessionStorage.setItem(
-            'LastChangeSequence',
-            String(message.changeSequence),
-          )
-          if (message.userSessionId === localSessionId) {
-            return // we did this change, no need to apply it again
-          }
-          const change = Change.fromJSON(message.changeInfo)
-          void changeManager.submit(change, { submitToBackend: false })
+        eventSource.addEventListener('COMMON', (event) => {
+          handleCommonMessage(JSON.parse(event.data), context)
         })
-        socket.on('USER_LOCATION', (message: UserLocationMessage) => {
-          const { channel, locations, userName, userSessionId } = message
-          if (channel === 'USER_LOCATION' && userSessionId !== localSessionId) {
-            const collaborator: Collaborator = {
-              name: userName,
-              id: userSessionId,
-              locations,
-            }
-            session.addOrUpdateCollaborator(collaborator)
-          }
+        eventSource.addEventListener('USER_LOCATION', (event) => {
+          handleUserLocationMessage(JSON.parse(event.data), context)
         })
-        socket.on(
-          'REQUEST_INFORMATION',
-          (message: RequestUserInformationMessage) => {
-            const { channel, userSessionId } = message
-            if (channel === 'REQUEST_INFORMATION' && userSessionId !== token) {
-              session.broadcastLocations()
-            }
-          },
-        )
+        eventSource.addEventListener('REQUEST_INFORMATION', (event) => {
+          handleRequestInformationMessage(JSON.parse(event.data), context)
+        })
       },
     }))
     .actions((self) => {
@@ -705,7 +694,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
         const { baseURL, controller } = self
         const url = new URL('users/userLocation', baseURL).href
-        const userLocation = new URLSearchParams(JSON.stringify(userLoc))
 
         const apolloFetch = self.getFetcher({
           locationType: 'UriLocation',
@@ -714,7 +702,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         try {
           const response = await apolloFetch(url, {
             method: 'POST',
-            body: userLocation,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userLoc),
             signal: controller.signal,
           })
           if (!response.ok) {
@@ -757,16 +746,14 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         /**
          * The half of startup that must happen exactly once. None of it is a
          * request, so nothing here is worth retrying — and all of it registers
-         * something that has no idea it has been registered before. A menu
-         * contribution is appended to a log the root model replays on every
-         * open, and each socket handler is a fresh arrow function socket.io
-         * cannot recognize as a repeat, so a second run means a second "Admin"
-         * submenu and every COMMON message submitted to the change manager
-         * twice. (The two addEventListener calls are the exception, and only by
-         * luck: the handler references are stable, so the browser de-duplicates
-         * them for us.)
+         * something that has no idea it has been registered before. Each run
+         * opens a fresh EventSource with its own handlers, so a second run
+         * means every COMMON message submitted to the change manager twice.
+         * (The two addEventListener calls are the exception, and only by luck:
+         * the handler references are stable, so the browser de-duplicates them
+         * for us.)
          *
-         * `addSocketListeners()` goes first because it is the only step that
+         * `addEventSourceListeners()` goes first because it is the only step that
          * can throw — 'No Token found', before it has registered anything — so
          * a failed run leaves nothing installed and the caller can simply try
          * again. That ordering is what lets `afterAttach` enforce "at most
@@ -787,11 +774,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             }
             return
           }
-          self.addSocketListeners()
-          const rootModel = getRoot(self)
-          if (role === 'admin' && isAbstractMenuManager(rootModel)) {
-            addTopLevelAdminMenus(rootModel)
-          }
+          self.addEventSourceListeners()
           window.addEventListener('beforeunload', beforeUnloadListener)
           document.addEventListener(
             'visibilitychange',
@@ -807,6 +790,9 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           // Get and set server last change sequence into session storage
           yield self.updateLastChangeSequenceNumber()
           // request user locations
+          if (!isAlive(self)) {
+            return
+          }
           const { baseURL } = self
           const uri = new URL('users/locations', baseURL).href
           const apolloFetch = self.getFetcher({
@@ -925,7 +911,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             try {
               self.install(self.role)
             } catch {
-              // addSocketListeners threw before registering anything, so stay
+              // addEventSourceListeners threw before registering anything, so stay
               // armed and install nothing until there is a token
               return
             }
@@ -965,7 +951,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         self.controller.abort(
           new DOMException('Cleaning up Apollo connection', 'AbortError'),
         )
-        self.socket.close()
+        self.eventSource?.close()
       },
     }))
 }

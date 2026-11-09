@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
-  type AnnotationFeatureModel,
+  AnnotationFeatureModel,
   type AnnotationFeatureSnapshot,
   ApolloAssembly,
   type ApolloAssemblySnapshot,
@@ -12,10 +11,8 @@ import {
   type CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 import type { FeatureDensity } from '@apollo-annotation/shared'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import {
   type AnyConfigurationModel,
-  getConf,
   readConfObject,
 } from '@jbrowse/core/configuration'
 import { type Region, getSession } from '@jbrowse/core/util'
@@ -40,19 +37,18 @@ import {
   CollaborationServerDriver,
   LocalDriver,
 } from '../BackendDrivers'
-import { ChangeManager } from '../ChangeManager'
+import { ChangeManager, type JobInput } from '../ChangeManager'
 import {
   OntologyManagerType,
   type TextIndexFieldDefinition,
 } from '../OntologyManager'
-import type ApolloPluginConfigurationSchema from '../config'
+import type { ApolloPluginConfigModel } from '../config'
 import type { ApolloRootModel } from '../types'
+import { getAssemblyMetadata } from '../util/assemblyUtils'
 
 import type { ApolloSessionModel } from './session'
 
-export function clientDataStoreFactory(
-  AnnotationFeatureExtended: typeof AnnotationFeatureModel,
-) {
+export function clientDataStoreFactory() {
   return types
     .model('ClientDataStore', {
       typeName: types.optional(types.literal('Client'), 'Client'),
@@ -67,11 +63,11 @@ export function clientDataStoreFactory(
 
       get pluginConfiguration() {
         return getRoot<ApolloRootModel>(self).jbrowse.configuration
-          .ApolloPlugin as Instance<typeof ApolloPluginConfigurationSchema>
+          .ApolloPlugin as ApolloPluginConfigModel
       },
       getFeature(featureId: string) {
         return resolveIdentifier(
-          AnnotationFeatureExtended,
+          AnnotationFeatureModel,
           self.assemblies,
           featureId,
         )
@@ -104,9 +100,7 @@ export function clientDataStoreFactory(
         let ref = apolloAssembly.refSeqs.get(feature.refSeq)
         if (!ref) {
           // maybe it's a valid refName that we haven't loaded yet
-          const assembly = assemblyManager.get(assemblyId) as
-            | Assembly
-            | undefined
+          const assembly = assemblyManager.get(assemblyId)
           if (!assembly) {
             throw new Error(
               `Could not find assembly "${assemblyId}" to add feature "${feature._id}"`,
@@ -200,10 +194,11 @@ export function clientDataStoreFactory(
                 const session = getSession(
                   self,
                 ) as unknown as ApolloSessionModel
-                const { jobsManager } = session
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                const { jobStatusWidget, showJobStatusWidget } = session
                 const controller = new AbortController()
                 const jobName = `Loading ontology "${name}"`
-                const job = {
+                const job: JobInput = {
                   name: jobName,
                   statusMessage: `Loading ontology "${name}", version "${version}", this may take a while`,
                   progressPct: 0,
@@ -214,19 +209,25 @@ export function clientDataStoreFactory(
                         'AbortError',
                       ),
                     )
-                    jobsManager.abortJob(job.name)
+                    jobStatusWidget.addJob({ name: job.name, state: 'aborted' })
                   },
+                  state: 'running',
                 }
                 const update = (message: string, progress: number): void => {
                   if (progress === 0) {
-                    jobsManager.runJob(job)
+                    jobStatusWidget.addJob(job)
+                    showJobStatusWidget()
                     return
                   }
                   if (progress === 100) {
-                    jobsManager.done(job)
+                    jobStatusWidget.addJob({
+                      name: job.name,
+                      statusMessage: `Loaded ontology "${name}"`,
+                      state: 'finished',
+                    })
                     return
                   }
-                  jobsManager.update(jobName, message, progress)
+                  jobStatusWidget.updateJobStatus(jobName, message, progress)
                   return
                 }
                 ontologyManager.addOntology(name, version, source, {
@@ -249,10 +250,7 @@ export function clientDataStoreFactory(
         if (!assembly) {
           return
         }
-        const { internetAccountConfigId } = getConf(assembly, [
-          'sequence',
-          'metadata',
-        ]) as { internetAccountConfigId?: string; file: string }
+        const { internetAccountConfigId } = getAssemblyMetadata(assembly)
         if (internetAccountConfigId) {
           return self.collaborationServerDriver
         }
@@ -283,10 +281,8 @@ export function clientDataStoreFactory(
           if (!assembly) {
             throw new Error(`No assembly found with name ${assemblyName}`)
           }
-          ;({ internetAccountConfigId: configId } = getConf(assembly, [
-            'sequence',
-            'metadata',
-          ]) as { internetAccountConfigId: string })
+          ;({ internetAccountConfigId: configId } =
+            getAssemblyMetadata(assembly))
         }
         const { internetAccounts } = self
         const internetAccount = internetAccounts.find(

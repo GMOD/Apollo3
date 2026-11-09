@@ -33,6 +33,8 @@ workflows:
         - 'actions/setup-node@v7.1.0'
         - 'actions/upload-artifact@v7.0.2'
         - 'codecov/codecov-action@v7.1.1'
+        - 'docker/build-push-action@v7.4.0'
+        - 'docker/setup-buildx-action@v4.4.1'
         - 'supercharge/mongodb-github-action@1.12.1'
     '.github/workflows/push.yml':
         - 'actions/checkout@v7.0.1'

@@ -14,12 +14,6 @@ type ChangeHandlers = {
   ) => Promise<void>
 }
 
-export function isLocalChange(
-  changeName: string,
-): changeName is keyof typeof localChanges {
-  return changeName in changeHandlers
-}
-
 export const changeHandlers: ChangeHandlers = {
   async AddFeatureChange(dataStore, change) {
     const { assembly, changes } = change

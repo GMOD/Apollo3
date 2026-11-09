@@ -13,7 +13,7 @@ import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, type QueryFilter } from 'mongoose'
 
-import { MessagesGateway } from '../messages/messages.gateway.js'
+import { MessagesService } from '../messages/messages.service.js'
 import {
   GUEST_USER_EMAIL,
   GUEST_USER_NAME,
@@ -68,6 +68,11 @@ function escapeRegExp(str: string) {
   return str.replaceAll(/[$()*+.?[\\\]^{|}]/g, String.raw`\$&`)
 }
 
+/** Whether an error is a MongoDB duplicate key error */
+function isDuplicateKeyError(error: unknown) {
+  return (error as { code?: number }).code === 11_000
+}
+
 @Injectable()
 export class UsersService implements OnApplicationBootstrap {
   private readonly users: User[]
@@ -75,7 +80,7 @@ export class UsersService implements OnApplicationBootstrap {
   constructor(
     @InjectModel(UserSchema.name)
     private readonly userModel: Model<UserDocument>,
-    private readonly messagesGateway: MessagesGateway,
+    private readonly messagesService: MessagesService,
     private readonly configService: ConfigService<
       {
         BROADCAST_USER_LOCATION: boolean
@@ -253,7 +258,15 @@ export class UsersService implements OnApplicationBootstrap {
       return
     }
     this.logger.log(`Adding pending initial admin user (${initialAdminEmail})`)
-    await this.addPending(initialAdminEmail, Role.Admin)
+    try {
+      await this.addPending(initialAdminEmail, Role.Admin)
+    } catch (error) {
+      // Another server process created it at the same time
+      if (isDuplicateKeyError(error)) {
+        return
+      }
+      throw error
+    }
   }
 
   /**
@@ -267,7 +280,15 @@ export class UsersService implements OnApplicationBootstrap {
         return
       }
       this.logger.log(`Adding user "${user.username}" (${user.email})`)
-      await this.addNew(user)
+      try {
+        await this.addNew(user)
+      } catch (error) {
+        // Another server process created it at the same time
+        if (isDuplicateKeyError(error)) {
+          return
+        }
+        throw error
+      }
       return
     }
     if (!existingUser) {
@@ -311,7 +332,7 @@ export class UsersService implements OnApplicationBootstrap {
         msg,
       )}"`,
     )
-    return this.messagesGateway.create(channel, msg)
+    this.messagesService.broadcast(channel, msg)
   }
 
   /**
@@ -333,6 +354,6 @@ export class UsersService implements OnApplicationBootstrap {
         msg,
       )}"`,
     )
-    return this.messagesGateway.create(channel, msg)
+    this.messagesService.broadcast(channel, msg)
   }
 }

@@ -132,3 +132,7 @@ __pycache__/
 
 # LICENSE copied into published packages during prepack
 packages/*/LICENSE
+
+# Server plugin bundles fetched from PLUGIN_URLS
+.plugin-cache
+.plugin-cache-test-*

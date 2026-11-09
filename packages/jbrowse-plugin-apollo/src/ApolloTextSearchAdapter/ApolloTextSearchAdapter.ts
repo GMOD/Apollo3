@@ -1,5 +1,7 @@
 import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import BaseResult from '@jbrowse/core/TextSearch/BaseResults'
+import BaseResult, {
+  type BaseResultArgs,
+} from '@jbrowse/core/TextSearch/BaseResults'
 import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { readConfObject } from '@jbrowse/core/configuration'
 import {
@@ -10,6 +12,19 @@ import {
 import type { AbstractSessionModel, UriLocation } from '@jbrowse/core/util'
 
 import type { ApolloSessionModel } from '../session'
+
+interface ApolloResultArgs extends BaseResultArgs {
+  matchedFeature: AnnotationFeatureSnapshot
+}
+
+export class ApolloSearchResult extends BaseResult {
+  matchedFeature: AnnotationFeatureSnapshot
+
+  constructor(args: ApolloResultArgs) {
+    super(args)
+    this.matchedFeature = args.matchedFeature
+  }
+}
 
 function getMatchedFeature(
   query: string,
@@ -30,6 +45,20 @@ function getMatchedFeature(
       return matchedFeature
     }
   }
+}
+
+// JBrowse merges hits with the same display string and overlapping locations
+// into one result, so each hit needs a name distinguishing its feature
+function getResultName(feature: AnnotationFeatureSnapshot): string {
+  const gff_id = feature.attributes?.gff_id?.join(', ')
+  if (gff_id) {
+    return gff_id
+  }
+  const gff_name = feature.attributes?.gff_name?.join(', ')
+  if (gff_name) {
+    return gff_name
+  }
+  return feature._id
 }
 
 export class ApolloTextSearchAdapter
@@ -54,13 +83,13 @@ export class ApolloTextSearchAdapter
     query: string,
   ) {
     return features.map((feature) => {
-      const matchedObject = getMatchedFeature(query, feature) ?? feature
+      const matchedFeature = getMatchedFeature(query, feature) ?? feature
       const refName = assembly.getCanonicalRefName(feature.refSeq)
-      return new BaseResult({
-        label: query,
+      return new ApolloSearchResult({
+        label: getResultName(matchedFeature),
         trackId: this.trackId,
-        locString: `${refName}:${matchedObject.min + 1}..${matchedObject.max}`,
-        matchedObject,
+        locString: `${refName}:${matchedFeature.min + 1}..${matchedFeature.max}`,
+        matchedFeature,
       })
     })
   }
@@ -78,7 +107,7 @@ export class ApolloTextSearchAdapter
     const { assemblyManager } = session as unknown as AbstractSessionModel
     for (const assemblyName of this.assemblyNames) {
       const backendDriver = apolloDataStore.getBackendDriver(assemblyName)
-      const assembly = assemblyManager.get(assemblyName) as Assembly | undefined
+      const assembly = assemblyManager.get(assemblyName)
       if (!(backendDriver && assembly)) {
         continue
       }

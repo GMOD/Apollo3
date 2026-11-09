@@ -1,4 +1,5 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
+import { basePaintedAt } from '@jbrowse/core/util/Base1DUtils'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 
 import type { ApolloSessionModel } from '../session'
@@ -166,6 +167,21 @@ export function isMousePositionWithFeature(
 }
 
 /**
+ * The 0-based base drawn at a position from `lgv.pxToBp()`. Unlike `coord0`,
+ * this is right on reversed regions too. Off the end of a region no base is
+ * drawn, so fall back to `coord0` there.
+ */
+export function baseUnderMouse(
+  pxToBpResult: Pick<
+    ReturnType<LinearGenomeViewModel['pxToBp']>,
+    'start' | 'end' | 'reversed' | 'offset' | 'oob' | 'coord0'
+  >,
+) {
+  const { coord0, offset, oob } = pxToBpResult
+  return oob ? coord0 : basePaintedAt(pxToBpResult, offset)
+}
+
+/**
  * The 0-based base boundary nearest a position from `lgv.pxToBp()`. Use this
  * rather than the base under the mouse when placing something that sits
  * between bases, like a dragged feature edge.
@@ -190,9 +206,8 @@ export function getMousePosition(
   const x = clientX - left
   const y = clientY - top
   const pxToBpResult = lgv.pxToBp(x)
-  const { coord, index: regionNumber, refName } = pxToBpResult
-  // pxToBp's `coord` is 1-based, but Apollo feature coordinates are 0-based
-  const bp = coord - 1
+  const { index: regionNumber, refName } = pxToBpResult
+  const bp = baseUnderMouse(pxToBpResult)
   const edgeBp = nearestBaseBoundary(pxToBpResult)
   return { x, y, refName, bp, edgeBp, regionNumber }
 }
