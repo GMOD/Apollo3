@@ -1,20 +1,14 @@
-/* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { readConfObject } from '@jbrowse/core/configuration'
-import { BaseSequenceAdapter } from '@jbrowse/core/data_adapters/BaseAdapter'
+import {
+  type BaseOptions,
+  BaseSequenceAdapter,
+} from '@jbrowse/core/data_adapters/BaseAdapter'
 import { ObservableCreate } from '@jbrowse/core/util/rxjs'
 import SimpleFeature, { type Feature } from '@jbrowse/core/util/simpleFeature'
 import type { NoAssemblyRegion, Region } from '@jbrowse/core/util/types'
-import { nanoid } from 'nanoid'
 
+import { isInWebWorker, requestFromMainThread } from '../mainThreadRequest'
 import type { ApolloSessionModel } from '../session'
-
-// declare global {
-//   var rpcServer: import('librpc-web-mod').RpcServer
-// }
 
 export interface RefSeq {
   _id: string
@@ -23,86 +17,49 @@ export interface RefSeq {
   length: number
 }
 
-interface ApolloMessageData {
-  apollo: true
-  messageId: string
-  sequence: string
-  regions: Region[]
-}
-
-function isApolloMessageData(data?: unknown): data is ApolloMessageData {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'apollo' in data &&
-    data.apollo === true
-  )
-}
-
-const isInWebWorker = typeof sessionStorage === 'undefined'
-
 export class ApolloSequenceAdapter extends BaseSequenceAdapter {
-  private regions: NoAssemblyRegion[] | undefined
+  private regionsP: Promise<NoAssemblyRegion[]> | undefined
 
   public async getRefNames() {
     const regions = await this.getRegions()
     return regions.map((regions) => regions.refName)
   }
 
-  public async getRegions(): Promise<NoAssemblyRegion[]> {
-    if (this.regions) {
-      return this.regions
+  /**
+   * Concurrent callers share one request. A failed request isn't cached, so
+   * the next call tries again.
+   */
+  public getRegions(): Promise<NoAssemblyRegion[]> {
+    this.regionsP ??= this.fetchRegions().catch((error: unknown) => {
+      this.regionsP = undefined
+      throw error
+    })
+    return this.regionsP
+  }
+
+  private async fetchRegions(): Promise<NoAssemblyRegion[]> {
+    const assemblyId = readConfObject(this.config, 'assemblyId') as string
+    if (!isInWebWorker()) {
+      return this.getBackendDriver(assemblyId).getRegions(assemblyId)
     }
-    const assemblyId = readConfObject(this.config, 'assemblyId')
-    if (!isInWebWorker) {
-      const dataStore = (
-        this.pluginManager?.rootModel?.session as ApolloSessionModel | undefined
-      )?.apolloDataStore
-      if (!dataStore) {
-        throw new Error('No Apollo data store found')
-      }
-      const backendDriver = dataStore.getBackendDriver(assemblyId)
-      if (!backendDriver) {
-        throw new Error('No backend driver found')
-      }
-      const regions = await backendDriver.getRegions(assemblyId)
-      this.regions = regions
-      return regions
-    }
-    const regions = await new Promise(
-      (
-        resolve: (sequence: Region[]) => void,
-        reject: (reason: string) => void,
-      ) => {
-        const timeoutId = setTimeout(() => {
-          removeEventListener('message', messageListener)
-          reject('timeout')
-        }, 20_000)
-        const messageId = nanoid()
-        const messageListener = (event: MessageEvent) => {
-          const { data } = event
-          if (!isApolloMessageData(data)) {
-            return
-          }
-          if (data.messageId !== messageId) {
-            return
-          }
-          clearTimeout(timeoutId)
-          removeEventListener('message', messageListener)
-          resolve(data.regions)
-        }
-        addEventListener('message', messageListener)
-        // @ts-expect-error waiting for types to be published
-        globalThis.rpcServer.emit('apollo', {
-          apollo: true,
-          method: 'getRegions',
-          assembly: assemblyId,
-          messageId,
-        })
-      },
-    )
-    this.regions = regions
+    const { regions } = await requestFromMainThread('getRegions', {
+      assembly: assemblyId,
+    })
     return regions
+  }
+
+  private getBackendDriver(assemblyId: string) {
+    const dataStore = (
+      this.pluginManager?.rootModel?.session as ApolloSessionModel | undefined
+    )?.apolloDataStore
+    if (!dataStore) {
+      throw new Error('No Apollo data store found')
+    }
+    const backendDriver = dataStore.getBackendDriver(assemblyId)
+    if (!backendDriver) {
+      throw new Error('No backend driver found')
+    }
+    return backendDriver
   }
 
   /**
@@ -110,81 +67,30 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
    * @param param -
    * @returns Observable of Feature objects in the region
    */
-  public getFeatures(region: Region) {
+  public getFeatures(region: Region, opts?: BaseOptions) {
     const { end, refName, start } = region
-    const assemblyId = readConfObject(this.config, 'assemblyId')
+    const assemblyId = readConfObject(this.config, 'assemblyId') as string
     const regionWithAssemblyName = { ...region, assemblyName: assemblyId }
     return ObservableCreate<Feature>(async (observer) => {
-      if (!isInWebWorker) {
-        const dataStore = (
-          this.pluginManager?.rootModel?.session as
-            | ApolloSessionModel
-            | undefined
-        )?.apolloDataStore
-        if (!dataStore) {
-          observer.error('No Apollo data store found')
-          return
+      let seq: string
+      if (isInWebWorker()) {
+        ;({ sequence: seq } = await requestFromMainThread(
+          'getSequence',
+          { region: regionWithAssemblyName },
+          { signal: opts?.signal, stopToken: opts?.stopToken },
+        ))
+      } else {
+        const backendDriver = this.getBackendDriver(assemblyId)
+        const regions = await backendDriver.getRegions(assemblyId)
+        const fullRegion = regions.find((r) => r.refName === refName)
+        if (!fullRegion) {
+          throw new Error('Cannot get region')
         }
-        const backendDriver = dataStore.getBackendDriver(assemblyId)
-        if (!backendDriver) {
-          observer.error('No backend driver found')
-          return
+        if (regionWithAssemblyName.end > fullRegion.end) {
+          regionWithAssemblyName.end = fullRegion.end
         }
-        const regions = await backendDriver.getRegions(
-          regionWithAssemblyName.assemblyName,
-        )
-        const region = regions.find(
-          (region) => region.refName === regionWithAssemblyName.refName,
-        )
-        if (!region) {
-          observer.error('Cannot get region')
-          return
-        }
-        if (regionWithAssemblyName.end > region.end) {
-          regionWithAssemblyName.end = region.end
-        }
-        const { seq } = await backendDriver.getSequence(regionWithAssemblyName)
-        observer.next(
-          new SimpleFeature({
-            id: `${refName} ${start}-${end}`,
-            data: { refName, start, end, seq },
-          }),
-        )
-        observer.complete()
-        return
+        ;({ seq } = await backendDriver.getSequence(regionWithAssemblyName))
       }
-      const seq = await new Promise(
-        (
-          resolve: (sequence: string) => void,
-          reject: (reason: string) => void,
-        ) => {
-          const timeoutId = setTimeout(() => {
-            removeEventListener('message', messageListener)
-            reject('timeout')
-          }, 20_000)
-          const messageId = nanoid()
-          const messageListener = (event: MessageEvent) => {
-            const { data } = event
-            if (!isApolloMessageData(data)) {
-              return
-            }
-            if (data.messageId !== messageId) {
-              return
-            }
-            clearTimeout(timeoutId)
-            removeEventListener('message', messageListener)
-            resolve(data.sequence)
-          }
-          addEventListener('message', messageListener)
-          // @ts-expect-error waiting for types to be published
-          globalThis.rpcServer.emit('apollo', {
-            apollo: true,
-            method: 'getSequence',
-            region: regionWithAssemblyName,
-            messageId,
-          })
-        },
-      )
       observer.next(
         new SimpleFeature({
           id: `${refName} ${start}-${end}`,

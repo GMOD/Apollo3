@@ -1,5 +1,3 @@
-import { getEventListeners } from 'node:events'
-
 import {
   afterEach,
   beforeEach,
@@ -9,109 +7,109 @@ import {
   jest,
 } from '@jest/globals'
 
+import RefNameAliasAdapter from '../ApolloRefNameAliasAdapter/ApolloRefNameAliasAdapter'
+import refNameAliasConfigSchema from '../ApolloRefNameAliasAdapter/configSchema'
+import { MAIN_THREAD_REQUEST_TIMEOUT_MS } from '../mainThreadRequest'
+import {
+  type MainThreadMessages,
+  installWorkerGlobals,
+  restoreWorkerGlobals,
+} from '../testUtil/workerGlobals'
+
 import { ApolloSequenceAdapter } from './ApolloSequenceAdapter'
 import configSchema from './configSchema'
 
 const region = { assemblyName: 'asm', refName: 'ctgA', start: 0, end: 4 }
 const regions = [{ refName: 'ctgA', start: 0, end: 100 }]
-const savedGlobals = new Map<string, PropertyDescriptor | undefined>()
-let messages: EventTarget
-const emit = jest.fn<(event: string, message: { messageId: string }) => void>()
-const removeListener = jest.fn<EventTarget['removeEventListener']>()
+let worker: MainThreadMessages
 
-function replaceGlobal(name: string, value: unknown) {
-  savedGlobals.set(name, Object.getOwnPropertyDescriptor(globalThis, name))
-  Object.defineProperty(globalThis, name, { configurable: true, value })
+function makeAdapter() {
+  return new ApolloSequenceAdapter(configSchema.create({ assemblyId: 'asm' }))
 }
 
 beforeEach(() => {
   jest.useFakeTimers()
-  messages = new EventTarget()
-  emit.mockClear()
-  removeListener.mockReset()
-  removeListener.mockImplementation((...args) => {
-    messages.removeEventListener(...args)
-  })
-  replaceGlobal('addEventListener', messages.addEventListener.bind(messages))
-  replaceGlobal('removeEventListener', removeListener)
-  replaceGlobal('rpcServer', { emit })
+  worker = installWorkerGlobals()
 })
 
 afterEach(() => {
+  // Every test must leave no pending requests behind
+  expect(worker.listenerCount()).toBe(0)
+  expect(jest.getTimerCount()).toBe(0)
   jest.useRealTimers()
-  for (const [name, descriptor] of savedGlobals) {
-    if (descriptor) {
-      Object.defineProperty(globalThis, name, descriptor)
-    } else {
-      Reflect.deleteProperty(globalThis, name)
-    }
-  }
-  savedGlobals.clear()
+  restoreWorkerGlobals()
 })
 
-function reply(messageId: string, data: object) {
-  messages.dispatchEvent(
-    new MessageEvent('message', { data: { apollo: true, messageId, ...data } }),
-  )
-}
+describe('ApolloSequenceAdapter in a worker', () => {
+  it('sends one getRegions request for concurrent callers and caches it', async () => {
+    const adapter = makeAdapter()
+    const first = adapter.getRegions()
+    const second = adapter.getRefNames()
+    expect(worker.requests()).toHaveLength(1)
+    worker.reply(worker.lastRequest().messageId, { regions })
+    expect(await first).toEqual(regions)
+    expect(await second).toEqual(['ctgA'])
+    expect(await adapter.getRegions()).toEqual(regions)
+    expect(worker.requests()).toHaveLength(1)
+  })
 
-describe.each(['getRegions', 'getFeatures'] as const)(
-  '%s worker requests',
-  (method) => {
-    function request(adapter: ApolloSequenceAdapter) {
-      return method === 'getRegions'
-        ? adapter.getRegions()
-        : new Promise((resolve, reject) => {
-            adapter
-              .getFeatures(region)
-              .subscribe({ next: resolve, error: reject })
-          })
-    }
+  it('tries getRegions again after a timeout', async () => {
+    const adapter = makeAdapter()
+    const rejected = expect(adapter.getRegions()).rejects.toThrow('Timed out')
+    await jest.advanceTimersByTimeAsync(MAIN_THREAD_REQUEST_TIMEOUT_MS)
+    await rejected
+    const retry = adapter.getRegions()
+    expect(worker.requests()).toHaveLength(2)
+    worker.reply(worker.lastRequest().messageId, { regions })
+    expect(await retry).toEqual(regions)
+  })
 
-    it('removes the message listener when a request times out', async () => {
-      const adapter = new ApolloSequenceAdapter(
-        configSchema.create({ assemblyId: 'asm' }),
-      )
-      const response = request(adapter)
-      expect(getEventListeners(messages, 'message')).toHaveLength(1)
-      const rejected = expect(response).rejects.toBe('timeout')
-      await jest.advanceTimersByTimeAsync(20_000)
-      await rejected
-      expect(getEventListeners(messages, 'message')).toHaveLength(0)
-      expect(removeListener).toHaveBeenCalledTimes(1)
-      expect(removeListener).toHaveBeenCalledWith(
-        'message',
-        expect.any(Function),
-      )
-      expect(jest.getTimerCount()).toBe(0)
+  it('returns the sequence from getFeatures', async () => {
+    const response = new Promise((resolve, reject) => {
+      makeAdapter()
+        .getFeatures(region)
+        .subscribe({ next: resolve, error: reject })
     })
+    const request = worker.lastRequest()
+    expect(request).toEqual(
+      expect.objectContaining({ method: 'getSequence', region }),
+    )
+    worker.reply(request.messageId, { sequence: 'ACGT' })
+    expect(await response).toEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({ seq: 'ACGT' }),
+      }),
+    )
+  })
 
-    it('ignores unrelated replies and cleans up after a matching reply', async () => {
-      const adapter = new ApolloSequenceAdapter(
-        configSchema.create({ assemblyId: 'asm' }),
-      )
-      const response = request(adapter)
-      const [[, message]] = emit.mock.calls
-      reply('other-request', { regions, sequence: 'ACGT' })
-      expect(removeListener).not.toHaveBeenCalled()
-      expect(jest.getTimerCount()).toBe(1)
-      reply(message.messageId, { regions, sequence: 'ACGT' })
-      const result = await response
-      if (method === 'getRegions') {
-        expect(result).toEqual(regions)
-        expect(await adapter.getRegions()).toEqual(regions)
-        expect(emit).toHaveBeenCalledTimes(1)
-      } else {
-        expect(result).toEqual(
-          expect.objectContaining({
-            data: expect.objectContaining({ seq: 'ACGT' }),
-          }),
-        )
-      }
-      expect(removeListener).toHaveBeenCalledTimes(1)
-      expect(jest.getTimerCount()).toBe(0)
-      await jest.advanceTimersByTimeAsync(20_000)
-      expect(removeListener).toHaveBeenCalledTimes(1)
+  it('cleans up getFeatures when its signal aborts', async () => {
+    const controller = new AbortController()
+    const response = new Promise((resolve, reject) => {
+      makeAdapter()
+        .getFeatures(region, { signal: controller.signal })
+        .subscribe({ next: resolve, error: reject })
     })
-  },
-)
+    expect(worker.listenerCount()).toBe(1)
+    const reason = new Error('aborted')
+    controller.abort(reason)
+    await expect(response).rejects.toBe(reason)
+  })
+})
+
+describe('ApolloRefNameAliasAdapter in a worker', () => {
+  it('cleans up after a timeout and tries again on the next call', async () => {
+    const adapter = new RefNameAliasAdapter(
+      refNameAliasConfigSchema.create({ assemblyId: 'asm' }),
+    )
+    const rejected = expect(adapter.getRefNameAliases()).rejects.toThrow(
+      'Timed out',
+    )
+    await jest.advanceTimersByTimeAsync(MAIN_THREAD_REQUEST_TIMEOUT_MS)
+    await rejected
+    expect(worker.listenerCount()).toBe(0)
+    const retry = adapter.getRefNameAliases()
+    const refNameAliases = [{ refName: 'ctgA', aliases: ['A'] }]
+    worker.reply(worker.lastRequest().messageId, { refNameAliases })
+    expect(await retry).toEqual(refNameAliases)
+  })
+})
