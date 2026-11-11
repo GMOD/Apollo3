@@ -72,7 +72,6 @@
     "rxjs": "^7.4.0",
     "sanitize-filename": "^1.6.3",
     "socket.io": "^4.5.3",
-    "stream-concat": "^1.0.0",
     "tslib": "^2.3.1",
     "tss-react": "^4.9.21",
     "undici": "^8.7.0"
@@ -91,7 +90,6 @@
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
     "@types/react": "^18.3.4",
-    "@types/stream-concat": "^2.0.0",
     "@types/supertest": "^2.0.11",
     "jest": "^29.6.2",
     "jest-util": "^30.2.0",
