@@ -7,6 +7,11 @@ server and the Apollo JBrowse plugin.
 All Apollo plugins are JBrowse plugins, so if you have experience working with
 those, the ideas here will be familiar to you.
 
+## REST API
+
+To write your own scripts or tools that work with a collaboration server, see
+the [REST API reference](../03-multi-user/03-guides/05-rest-api/index.md).
+
 ## Server-side plugins
 
 To add a server-side plugin, add a URL for the plugin file to a `PLUGIN_URLS`

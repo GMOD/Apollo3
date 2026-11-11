@@ -1,3 +1,4 @@
+import { Feature } from '@apollo-annotation/schemas'
 import {
   BadRequestException,
   Body,
@@ -11,19 +12,21 @@ import {
   Response,
   StreamableFile,
 } from '@nestjs/common'
+import { ApiOkResponse, ApiQuery } from '@nestjs/swagger'
 import type { Response as ExpressResponse } from 'express'
 
-import type {
+import {
   FeatureIdsSearchDto,
   FeatureRangeSearchDto,
 } from '../entity/gff3Object.dto.js'
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'
 
-import type {
+import {
   FeatureCountRequest,
   FeatureDensityRequest,
   GetByIndexedIdRequest,
+  SearchFeaturesRequest,
 } from './dto/feature.dto.js'
 import { FeaturesService } from './features.service.js'
 
@@ -35,22 +38,35 @@ export class FeaturesController {
   constructor(private readonly featuresService: FeaturesService) {}
   private readonly logger = new Logger(FeaturesController.name)
 
-  /**
-   * Search database for queries
-   * For testing try to go to:
-   * http://localhost:3999/features/searchFeatures?term=exonerate
-   */
+  /** Search for features by text in their IDs and attributes */
+  @ApiOkResponse({ type: [Feature] })
   @Get('searchFeatures')
-  async searchFeatures(@Query() request: { term: string; assemblies: string }) {
+  async searchFeatures(@Query() request: SearchFeaturesRequest) {
     return this.featuresService.searchFeatures(request)
   }
 
   /**
-   * Fetch features based on Reference seq, Start and End -values
-   * @param request - Contain search criteria i.e. refSeq, start and end -parameters
-   * @returns Return 'HttpStatus.OK' and array of features if search was successful
-   * or if search data was not found or in case of error throw exception
+   * Get the features in a range of a reference sequence
+   *
+   * Streams a JSON array of two arrays: the features that overlap the range,
+   * then the check results in the range.
    */
+  @ApiOkResponse({
+    schema: {
+      type: 'array',
+      minItems: 2,
+      maxItems: 2,
+      items: {
+        type: 'array',
+        items: {
+          oneOf: [
+            { $ref: '#/components/schemas/Feature' },
+            { $ref: '#/components/schemas/CheckResult' },
+          ],
+        },
+      },
+    },
+  })
   @Get('getFeatures')
   getFeaturesByRange(
     @Query() request: FeatureRangeSearchDto,
@@ -75,6 +91,7 @@ export class FeaturesController {
     })
   }
 
+  /** Get features by their IDs */
   @Post('getByIds')
   findByFeatureIds(@Body() request: FeatureIdsSearchDto) {
     this.logger.debug(`: featureIds: ${JSON.stringify(request.featureIds)}`)
@@ -84,6 +101,7 @@ export class FeaturesController {
     )
   }
 
+  /** Count features */
   @Get('count')
   async getFeatureCount(@Query() featureCountRequest: FeatureCountRequest) {
     this.logger.debug(
@@ -95,8 +113,10 @@ export class FeaturesController {
   }
 
   /**
-   * Summarize the features in a range: how many overlap it, and how many
-   * overlap each bin of the range expanded to multiples of `binSize`
+   * Summarize the density of features in a range
+   *
+   * Returns how many features overlap the range, and how many overlap each
+   * bin of the range expanded to multiples of `binSize`.
    */
   @Get('getFeatureDensity')
   getFeatureDensity(@Query() request: FeatureDensityRequest) {
@@ -129,37 +149,46 @@ export class FeaturesController {
     )
   }
 
+  /** Get a feature by an indexed ID, such as its GFF3 ID */
   @Get('getByIndexedId')
   async getById(@Query() getByIndexedIdRequest: GetByIndexedIdRequest) {
     return this.featuresService.getByIndexedId(getByIndexedIdRequest)
   }
 
   /**
-   * Get feature by featureId. When retrieving features by id, the features and any of its children are returned, but not any of its parent or sibling features.
-   * @param featureid - featureId
-   * @returns Return 'HttpStatus.OK' and the feature(s) if search was successful
-   * or if search data was not found or in case of error throw exception
+   * Get a feature
+   *
+   * Returns the feature and its children, but not its parent or sibling
+   * features.
+   * @param featureid - Feature ID
    */
+  @ApiQuery({
+    name: 'topLevel',
+    required: false,
+    type: Boolean,
+    description: 'Return the top-level feature that contains this feature',
+  })
   @Get(':featureid')
   getFeature(
     @Param('featureid') featureid: string,
     @Query('topLevel', new ParseBoolPipe({ optional: true }))
-    topLevel: boolean | undefined,
+    topLevel?: boolean,
   ) {
     this.logger.debug(`Get feature by featureId: ${featureid}`)
     return this.featuresService.findById(featureid, topLevel)
   }
 
+  /**
+   * Run the checks on a feature
+   * @param featureid - Feature ID
+   */
   @Get('check/:featureid')
   checkFeature(@Param('featureid') featureid: string) {
     return this.featuresService.checkFeature(featureid)
   }
 
-  /**
-   * Fetch all features
-   * @returns Return 'HttpStatus.OK' and array of features if search was successful
-   * or if search data was not found or in case of error throw exception
-   */
+  /** List all features */
+  @ApiOkResponse({ type: [Feature] })
   @Get()
   getAll() {
     this.logger.debug('Get all features')

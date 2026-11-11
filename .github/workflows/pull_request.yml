@@ -45,6 +45,35 @@ jobs:
         run: yarn eslint --max-warnings 0
       - name: Type check config files and scripts
         run: yarn typecheck:node
+      - name: Check OpenAPI document is up to date
+        run: |
+          yarn workspace @apollo-annotation/collaboration-server run openapi
+          if [ -n "$(git status --porcelain -- packages/apollo-collaboration-server/openapi.json)" ]; then
+            git diff -- packages/apollo-collaboration-server/openapi.json
+            echo "::error file=packages/apollo-collaboration-server/openapi.json::The OpenAPI document is out of date. Run 'yarn workspace @apollo-annotation/collaboration-server run openapi' and commit the result."
+            exit 1
+          fi
+
+  website:
+    name: Website build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24.14
+          cache: yarn
+      - name: Install
+        run: yarn --immutable
+      - name: Build website
+        run: yarn build
+        working-directory: packages/website
 
   unit:
     name: Unit tests
