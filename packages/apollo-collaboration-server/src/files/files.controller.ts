@@ -1,5 +1,6 @@
 import { Readable } from 'node:stream'
 
+import { File } from '@apollo-annotation/schemas'
 import {
   Controller,
   Delete,
@@ -16,6 +17,14 @@ import {
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiExcludeEndpoint,
+  ApiOkResponse,
+  ApiProduces,
+  ApiQuery,
+} from '@nestjs/swagger'
 import type { Request, Response } from 'express'
 
 import { FileStorageEngine } from './FileStorageEngine.js'
@@ -28,22 +37,38 @@ export class FilesController {
   constructor(private readonly filesService: FilesService) {}
   private readonly logger = new Logger(FilesController.name)
 
+  /** List uploaded files */
+  @ApiOkResponse({ type: [File] })
   @Get()
   findAll() {
     return this.filesService.findAll()
   }
 
+  @ApiExcludeEndpoint()
   @Head()
   filesHead() {
     return ''
   }
 
   /**
-   * Stream file to server and check checksum
-   * @param file - File to save
-   * @returns Return ....  if save was successful
-   * or in case of error return throw exception
+   * Upload a GFF3 or FASTA file
+   *
+   * The file can be gzip-compressed. Returns the new file's record, whose ID
+   * can be used in a change that adds an assembly or features from a file.
    */
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: { file: { type: 'string', format: 'binary' } },
+    },
+  })
+  @ApiQuery({
+    name: 'type',
+    description: "The file's type",
+    enum: ['text/x-gff3', 'text/x-fasta'],
+  })
   @Post()
   @UseInterceptors(
     FileInterceptor('file', { storage: new FileStorageEngine() }),
@@ -65,10 +90,13 @@ export class FilesController {
   }
 
   /**
-   * Download file from files -collection
-   * @param id -
-   * @returns
+   * Download an uploaded file
+   *
+   * The file is gzip-compressed if the request's `Accept-Encoding` header
+   * includes `gzip`.
+   * @param id - File ID
    */
+  @ApiProduces('text/x-gff3', 'text/x-fasta')
   @Get(':id')
   async downloadFile(
     @Param('id') id: string,
@@ -101,9 +129,11 @@ export class FilesController {
   }
 
   /**
-   * Delete file from Files collection in Mongo. Check and see if that checksum is used elsewhere in the collection; if not, delete the file as well
-   * @param id - fileId to be deleted
-   * @returns
+   * Delete an uploaded file
+   *
+   * The stored file is also removed if no other uploaded file has the same
+   * checksum.
+   * @param id - File ID
    */
   @Delete(':id')
   async remove(@Param('id') id: string) {

@@ -13,6 +13,16 @@ import {
   Req,
   Res,
 } from '@nestjs/common'
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiExcludeEndpoint,
+  ApiFoundResponse,
+  ApiOkResponse,
+  ApiQuery,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger'
 import type { Request, Response } from 'express'
 
 import { Role } from '../utils/role/role.enum.js'
@@ -29,6 +39,13 @@ import {
   renderEnterCodePage,
   renderErrorPage,
 } from './device/device-pages.js'
+import {
+  DeviceLoginStartResponse,
+  DeviceLoginTokenDto,
+  RootLoginDto,
+  StartDeviceLoginDto,
+  TokenResponse,
+} from './dto/login.dto.js'
 import { OidcService } from './oidc/oidc.service.js'
 
 declare module 'express-session' {
@@ -65,11 +82,34 @@ export class AuthenticationController {
     private readonly deviceLoginService: DeviceLoginService,
   ) {}
 
+  /** List the ways users can log in to this server */
   @Get('types')
   getLoginTypes() {
     return this.authService.getLoginTypes()
   }
 
+  /**
+   * Start a browser login
+   *
+   * Redirects to `/auth/{type}`, which redirects to the identity provider.
+   * After the user logs in, the browser is redirected to `redirect_uri` with
+   * an `access_token` (or an `error`) query parameter.
+   * @param type - Login type, one of the names from `GET /auth/types`
+   */
+  @ApiQuery({
+    name: 'redirect_uri',
+    required: false,
+    description:
+      'Where to send the user after logging in. Must be on this server, on localhost, or on an origin in ALLOWED_REDIRECT_ORIGINS.',
+  })
+  @ApiQuery({
+    name: 'prompt',
+    required: false,
+    enum: ['select_account'],
+    description:
+      'Set to `select_account` to let the user pick a different account at the identity provider',
+  })
+  @ApiFoundResponse({ description: 'Redirect to the login type' })
   @Get('login')
   @Redirect()
   handleLogin(
@@ -92,35 +132,79 @@ export class AuthenticationController {
     return { url }
   }
 
-  /** Get a new token with the user's current role */
+  /**
+   * Get a new token with the user's current role
+   *
+   * Send the current token. Use this after a user's role changes so they
+   * don't have to log in again. The new token expires when the current one
+   * would have.
+   */
+  @ApiBearerAuth()
+  @ApiCreatedResponse({ type: TokenResponse })
+  @ApiUnauthorizedResponse({ description: 'No valid token was sent' })
   @Post('refresh')
   refreshToken(@Req() req: Request) {
     return this.authService.refreshToken(req.user as Partial<DecodedJWT>)
   }
 
+  /** Log in as the guest user, if the server allows guests */
+  @ApiOkResponse({ type: TokenResponse })
+  @ApiUnauthorizedResponse({ description: "The server doesn't allow guests" })
   @Get('guest')
   guestLogin() {
     return this.authService.guestLogin()
   }
 
+  /** Log in as the root user, if the server allows it */
+  @ApiCreatedResponse({ type: TokenResponse })
+  @ApiUnauthorizedResponse({
+    description: "Wrong password, or the server doesn't allow the root user",
+  })
   @Post('root')
-  rootLogin(@Body() { password }: { password: string }) {
+  rootLogin(@Body() { password }: RootLoginDto) {
     return this.authService.rootLogin(password)
   }
 
-  /** Start a login for a device such as the CLI, see DeviceLoginService */
+  /**
+   * Start a device login
+   *
+   * For clients that can't open a browser themselves, such as the CLI. Show
+   * the user `verification_uri` and `user_code` (or `verification_uri_complete`),
+   * then poll `POST /auth/device/token` every `interval` seconds.
+   */
+  @ApiCreatedResponse({ type: DeviceLoginStartResponse })
+  @ApiBadRequestResponse({ description: 'No login type was given' })
   @Post('device')
-  startDeviceLogin(@Body() { type }: { type?: string }) {
+  startDeviceLogin(@Body() { type }: StartDeviceLoginDto) {
     if (!type) {
       throw new BadRequestException('No login type provided')
     }
     return this.deviceLoginService.create(type)
   }
 
-  /** Polled by the device until the user has logged in */
+  /**
+   * Get the token for a device login
+   *
+   * Poll this until the user has logged in. Until then it responds with status
+   * 400 and an `error` of `authorization_pending`, or `slow_down` if polled
+   * too often. An `error` of `expired_token` means the login has expired.
+   */
+  @ApiCreatedResponse({ type: TokenResponse })
+  @ApiBadRequestResponse({
+    description: "The login isn't finished, or has expired",
+    schema: {
+      type: 'object',
+      properties: {
+        error: {
+          type: 'string',
+          enum: ['authorization_pending', 'slow_down', 'expired_token'],
+        },
+      },
+    },
+  })
   @Post('device/token')
   async getDeviceLoginToken(
-    @Body() { device_code }: { device_code?: string },
+    @Body() { device_code }: DeviceLoginTokenDto,
     @Res({ passthrough: true }) res: Response,
   ) {
     if (!device_code) {
@@ -136,6 +220,7 @@ export class AuthenticationController {
   }
 
   /** Page where the user enters or confirms the device's code */
+  @ApiExcludeEndpoint()
   @Get('device')
   async deviceLoginPage(
     @Req() req: Request,
@@ -167,6 +252,7 @@ export class AuthenticationController {
   }
 
   /** The user confirmed the code, so start the login with the device's type */
+  @ApiExcludeEndpoint()
   @Post('device/confirm')
   async confirmDeviceLogin(
     @Req() req: Request,
@@ -205,6 +291,7 @@ export class AuthenticationController {
   }
 
   /** Where the login redirects with the user's token once they've logged in */
+  @ApiExcludeEndpoint()
   @Get('device/complete')
   async completeDeviceLogin(
     @Req() req: Request,
@@ -239,6 +326,32 @@ export class AuthenticationController {
     res.send(renderCompletePage())
   }
 
+  /**
+   * Log in with a login type
+   *
+   * For browser logins, this is where `GET /auth/login` redirects to, and
+   * where the identity provider redirects back to. Some login types added by
+   * plugins respond with a token directly instead.
+   * @param id - Login type, one of the names from `GET /auth/types`
+   */
+  @ApiQuery({
+    name: 'redirect_uri',
+    required: false,
+    description: 'Where to send the user after logging in',
+  })
+  @ApiQuery({
+    name: 'state',
+    required: false,
+    description:
+      'Login state passed back by the identity provider or by a login type from a plugin',
+  })
+  @ApiQuery({
+    name: 'prompt',
+    required: false,
+    enum: ['select_account'],
+    description:
+      'Set to `select_account` to let the user pick a different account at the identity provider',
+  })
   @Get(':id')
   async fallbackLogin(
     @Param('id') id: string,

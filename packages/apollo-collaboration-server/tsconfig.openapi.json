@@ -1,0 +1,8 @@
+// Builds the OpenAPI document generator, see src/openapi.ts
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist-openapi",
+  },
+  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"],
+}

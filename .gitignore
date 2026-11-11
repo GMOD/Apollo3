@@ -132,3 +132,10 @@ __pycache__/
 
 # LICENSE copied into published packages during prepack
 packages/*/LICENSE
+
+# Generated while building the collaboration server's OpenAPI document
+packages/apollo-collaboration-server/dist-openapi/
+packages/apollo-collaboration-server/src/openapi-metadata.ts
+
+# Generated API reference pages for the website
+packages/website/docs/03-multi-user/03-guides/05-rest-api/reference/
