@@ -50,11 +50,14 @@ export class OidcService {
     const proxy = configService.get('OAUTH_HTTP_PROXY', { infer: true })
     if (proxy) {
       const dispatcher = new ProxyAgent(proxy)
+      // undici's fetch returns undici's own Response type, but CustomFetch
+      // expects the global Response from @types/node, which bundles an older
+      // copy of undici's types. They're the same at runtime.
       this.customFetch = (url, options) =>
         undiciFetch(url, {
           ...options,
           dispatcher,
-        })
+        }) as unknown as Promise<Response>
       this.logger.debug(`OIDC login configured to use proxy: ${proxy}`)
     }
     if (this.providers.size > 0) {
