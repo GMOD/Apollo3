@@ -23,6 +23,7 @@ import { InjectModel } from '@nestjs/mongoose'
 import { Model, type QueryFilter } from 'mongoose'
 
 import { concatStreams } from '../utils/concatStreams.js'
+import { gunzipStream } from '../utils/gunzipStream.js'
 
 import {
   FeatureDocToGFF3FeatureStream,
@@ -138,8 +139,7 @@ export class ExportService {
     const fileStream = Readable.toWeb(
       createReadStream(path.join(fileUploadFolder, faDoc.checksum)),
     )
-    const gunzip = new DecompressionStream('gzip')
-    return [fastaLineStream, fileStream.pipeThrough(gunzip)]
+    return [fastaLineStream, fileStream.pipeThrough(gunzipStream())]
   }
 
   async streamFromRemoteFasta(
@@ -157,8 +157,7 @@ export class ExportService {
       throw new Error(`No body in response from ${fastaUrl}`)
     }
 
-    const gunzip = new DecompressionStream('gzip')
-    return [fastaLineStream, response.body.pipeThrough(gunzip)]
+    return [fastaLineStream, response.body.pipeThrough(gunzipStream())]
   }
 
   streamFromRefSeqCollection(

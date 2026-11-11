@@ -17,6 +17,8 @@ import { InjectModel } from '@nestjs/mongoose'
 import { type GenericFilehandle, LocalFile } from 'generic-filehandle2'
 import { Model } from 'mongoose'
 
+import { gunzipStream } from '../utils/gunzipStream.js'
+
 import { CreateFileDto } from './dto/create-file.dto.js'
 import {
   type FileRequest,
@@ -81,8 +83,7 @@ export class FilesService {
     if (compressed) {
       return fileStream
     }
-    const gunzip = new DecompressionStream('gzip')
-    return fileStream.pipeThrough(gunzip) as ReadableStream<Uint8Array>
+    return fileStream.pipeThrough(gunzipStream())
   }
 
   getFileHandle(file: FileDocument): GenericFilehandle {
