@@ -168,7 +168,7 @@ export function extendSession(
         }[] = []
         for (const view of (self as unknown as AbstractSessionModel).views) {
           if (view.type !== 'LinearGenomeView') {
-            return
+            continue
           }
           const lgv = view as unknown as LinearGenomeViewModel
           if (lgv.initialized) {
@@ -242,7 +242,7 @@ export function extendSession(
               for (const view of (self as unknown as AbstractSessionModel)
                 .views) {
                 if (view.type !== 'LinearGenomeView') {
-                  return
+                  continue
                 }
                 const lgv = view as unknown as LinearGenomeViewModel
                 if (lgv.initialized) {
