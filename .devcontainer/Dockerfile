@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/javascript-node:24-bookworm@sha256:1bc82e3350b0da52ca1a1b1b2e7527300bc6fdfd778287e0eed564203d66a68c
+FROM mcr.microsoft.com/devcontainers/javascript-node:26-bookworm@sha256:b47c85979be280319feb03fa4089cc8b168a13d50fc28d2f8333c15077a4989c
 
 # Install MongoDB command line tools - though mongo-database-tools not available on arm64
 ARG MONGO_TOOLS_VERSION=8.0
@@ -11,6 +11,10 @@ RUN . /etc/os-release \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /data/uploads \
     && chown -R ${USERNAME}:npm /data/uploads
+
+# Pre-create the Claude Code config dir so the named volume mounted there
+# (see devcontainer.json "mounts") is initialized as owned by node, not root.
+RUN mkdir -p /home/node/.claude && chown node:node /home/node/.claude
 
 # [Optional] Uncomment this section to install additional OS packages.
 # RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \

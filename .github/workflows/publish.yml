@@ -20,10 +20,10 @@ jobs:
         with:
           persist-credentials: false
       # No dependency cache, so the release is built from a clean install
-      - name: Use Node.js 24.x
+      - name: Use Node.js
         uses: actions/setup-node@v7.1.0
         with:
-          node-version: 24.14
+          node-version-file: .nvmrc
           package-manager-cache: false
       - name: Install
         run: yarn --immutable
@@ -58,10 +58,12 @@ jobs:
           name: npm-packages
           path: ${{ runner.temp }}/npm-packages
       # Set up .npmrc file to publish to npm
-      - name: Use Node.js 24.x
+      # This job doesn't check out the repo, so it can't read .nvmrc. Keep this
+      # in sync with the major version there.
+      - name: Use Node.js
         uses: actions/setup-node@v7.1.0
         with:
-          node-version: 24.14
+          node-version: 26
           registry-url: https://registry.npmjs.org
           scope: '@apollo-annotation'
           package-manager-cache: false

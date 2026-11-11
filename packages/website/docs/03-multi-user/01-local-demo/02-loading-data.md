@@ -77,7 +77,7 @@ one. Create a file called jbrowse.Dockerfile and paste the following contents
 into it:
 
 ```Dockerfile title="jbrowse.Dockerfile"
-FROM node:24-alpine
+FROM node:26-alpine
 RUN mkdir data && yarn global add @jbrowse/cli
 ENTRYPOINT ["jbrowse"]
 ```

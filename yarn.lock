@@ -358,7 +358,7 @@ __metadata:
     "@types/cli-progress": "npm:^3"
     "@types/cross-spawn": "npm:^6.0.6"
     "@types/ms": "npm:^2"
-    "@types/node": "npm:^24.10.9"
+    "@types/node": "npm:^22.20.5"
     "@types/react": "npm:^18.3.4"
     babel-plugin-istanbul: "npm:^6.1.1"
     bson: "npm:^7.3.1"
@@ -429,7 +429,7 @@ __metadata:
     "@types/express-session": "npm:^1"
     "@types/jest": "npm:^30.0.0"
     "@types/multer": "npm:^2.0.0"
-    "@types/node": "npm:^24.10.9"
+    "@types/node": "npm:^22.20.5"
     "@types/passport-jwt": "npm:^4.0.1"
     "@types/passport-local": "npm:^1.0.38"
     "@types/react": "npm:^18.3.4"
@@ -490,7 +490,7 @@ __metadata:
     "@jbrowse/core": "npm:^4.3.0"
     "@nestjs/common": "npm:^11.2.1"
     "@nestjs/core": "npm:^11.2.1"
-    "@types/node": "npm:^24.10.9"
+    "@types/node": "npm:^22.20.5"
     "@types/react": "npm:^18.3.4"
     bson-objectid: "npm:^2.0.4"
     generic-filehandle2: "npm:^2.2.1"
@@ -539,7 +539,7 @@ __metadata:
     "@rolldown/plugin-node-polyfills": "npm:^1.0.3"
     "@types/autosuggest-highlight": "npm:^3"
     "@types/file-saver": "npm:^2"
-    "@types/node": "npm:^24.10.9"
+    "@types/node": "npm:^22.20.5"
     "@types/prop-types": "npm:^15"
     "@types/react": "npm:^18.3.4"
     "@types/react-dom": "npm:^18"
@@ -623,7 +623,7 @@ __metadata:
     "@nestjs/common": "npm:^11.2.1"
     "@nestjs/core": "npm:^11.2.1"
     "@nestjs/mongoose": "npm:^11.0.4"
-    "@types/node": "npm:^24.10.9"
+    "@types/node": "npm:^22.20.5"
     mongoose: "npm:^9.9.3"
     reflect-metadata: "npm:^0.1.13"
     rxjs: "npm:^7.4.0"
@@ -650,7 +650,7 @@ __metadata:
     "@nestjs/common": "npm:^11.2.1"
     "@nestjs/core": "npm:^11.2.1"
     "@types/chai": "npm:^4.3.19"
-    "@types/node": "npm:^24.10.9"
+    "@types/node": "npm:^22.20.5"
     "@types/react": "npm:^18.3.4"
     bson-objectid: "npm:^2.0.4"
     c8: "npm:^12.0.0"
@@ -697,7 +697,7 @@ __metadata:
     "@docusaurus/tsconfig": "npm:^3.10.1"
     "@docusaurus/types": "npm:^3.10.1"
     "@mdx-js/react": "npm:^3.0.0"
-    "@types/node": "npm:^24.10.9"
+    "@types/node": "npm:^22.20.5"
     "@types/react": "npm:^18.3.4"
     clsx: "npm:^1.1.1"
     prism-react-renderer: "npm:^2.3.0"
@@ -10243,21 +10243,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:^22.20.5":
+  version: 22.20.5
+  resolution: "@types/node@npm:22.20.5"
+  dependencies:
+    undici-types: "npm:~6.21.0"
+  checksum: 10c0/0cf61a89c6a69917ab49f976a6bb11a29e3b348a6ae19f5827ceb91d3ade781faab58dcf3b8fa625f975f5d7536b9166ff94e8250c29272c667164f77c28fa88
+  languageName: node
+  linkType: hard
+
 "@types/node@npm:^22.5.5":
   version: 22.20.1
   resolution: "@types/node@npm:22.20.1"
   dependencies:
     undici-types: "npm:~6.21.0"
   checksum: 10c0/f2ba54d3d1fb92e1c57c78d32c3a17655b1e87363b707136f55c422b4838d4054901ce5d27f75bb0e5ecb7ebfee3804e0987822d22b473473008091857a09353
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^24.10.9":
-  version: 24.10.9
-  resolution: "@types/node@npm:24.10.9"
-  dependencies:
-    undici-types: "npm:~7.16.0"
-  checksum: 10c0/e9e436fcd2136bddb1bbe3271a89f4653910bcf6ee8047c4117f544c7905a106c039e2720ee48f28505ef2560e22fb9ead719f28bf5e075fdde0c1120e38e3b2
   languageName: node
   linkType: hard
 
@@ -11989,7 +11989,7 @@ __metadata:
     "@eslint-react/eslint-plugin": "npm:^5.8.17"
     "@eslint/js": "npm:^10.0.1"
     "@types/cross-spawn": "npm:^6.0.6"
-    "@types/node": "npm:^24.10.9"
+    "@types/node": "npm:^22.20.5"
     "@types/semver": "npm:^7"
     "@types/yargs": "npm:^17.0.32"
     "@typescript-eslint/parser": "npm:^8.61.0"
@@ -13279,10 +13279,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"buffer-equal-constant-time@npm:1.0.1, buffer-equal-constant-time@npm:^1.0.1":
+"buffer-equal-constant-time@npm:1.0.1":
   version: 1.0.1
   resolution: "buffer-equal-constant-time@npm:1.0.1"
   checksum: 10c0/fb2294e64d23c573d0dd1f1e7a466c3e978fe94a4e0f8183937912ca374619773bef8e2aceb854129d2efecbbc515bbd0cc78d2734a3e3031edb0888531bbc8e
+  languageName: node
+  linkType: hard
+
+"buffer-equal-constant-time@patch:buffer-equal-constant-time@npm%3A1.0.1#~/.yarn/patches/buffer-equal-constant-time-npm-1.0.1-41826f3419.patch":
+  version: 1.0.1
+  resolution: "buffer-equal-constant-time@patch:buffer-equal-constant-time@npm%3A1.0.1#~/.yarn/patches/buffer-equal-constant-time-npm-1.0.1-41826f3419.patch::version=1.0.1&hash=9a6869"
+  checksum: 10c0/c51eac5f37195766ff4d543c5f89ba0759db9bcacc84e2a81841aa25291d0084c42f248ca4597c060f11d3eb2fbf6c65ae812c3a9fdd4070ad79b6de08b3a616
   languageName: node
   linkType: hard
 
@@ -30859,13 +30866,6 @@ __metadata:
   version: 6.21.0
   resolution: "undici-types@npm:6.21.0"
   checksum: 10c0/c01ed51829b10aa72fc3ce64b747f8e74ae9b60eafa19a7b46ef624403508a54c526ffab06a14a26b3120d055e1104d7abe7c9017e83ced038ea5cf52f8d5e04
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:~7.16.0":
-  version: 7.16.0
-  resolution: "undici-types@npm:7.16.0"
-  checksum: 10c0/3033e2f2b5c9f1504bdc5934646cb54e37ecaca0f9249c983f7b1fc2e87c6d18399ebb05dc7fd5419e02b2e915f734d872a65da2e3eeed1813951c427d33cc9a
   languageName: node
   linkType: hard
 

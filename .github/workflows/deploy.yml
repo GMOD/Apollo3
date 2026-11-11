@@ -49,10 +49,10 @@ jobs:
           persist-credentials: false
       # No dependency cache, so what gets deployed is built from a clean
       # install
-      - name: Use Node.js 24.x
+      - name: Use Node.js
         uses: actions/setup-node@v7.1.0
         with:
-          node-version: 24.14
+          node-version-file: .nvmrc
           package-manager-cache: false
       - name: Install
         if: inputs.environment == 'staging'
