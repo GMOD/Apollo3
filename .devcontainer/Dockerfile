@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/javascript-node:24-bookworm@sha256:1bc82e3350b0da52ca1a1b1b2e7527300bc6fdfd778287e0eed564203d66a68c
+FROM mcr.microsoft.com/devcontainers/javascript-node:24-bookworm@sha256:72c2f2a9a837cf27a8cad29a6031e48d852a31d1acd716379ee0b4fa543dcfc8
 
 # Install MongoDB command line tools - though mongo-database-tools not available on arm64
 ARG MONGO_TOOLS_VERSION=8.0
