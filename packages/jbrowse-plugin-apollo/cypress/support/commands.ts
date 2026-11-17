@@ -371,7 +371,13 @@ Cypress.Commands.add('searchFeatures', (query, expectedNumOfHits) => {
   if (expectedNumOfHits === 0) {
     cy.contains(`Error: Unknown feature or sequence "${query}"`)
   } else if (expectedNumOfHits === 1) {
-    cy.wait(`@search ${query}`)
+    // Don't wait for the user location post: it's skipped when the hit is
+    // already in view. Instead wait for the location box to go from the query
+    // back to a location string, which happens once navigation is done.
+    cy.get('input[placeholder="Search for location"]')
+      .invoke('val')
+      .should('match', /^[^:\s]+:[\d,]+\.\.[\d,]+$/)
+    cy.contains('Search results').should('not.exist')
   } else {
     cy.contains('Search results')
       .parents('div')

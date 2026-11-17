@@ -92,6 +92,51 @@ export function extendSession(
     .volatile(() => ({
       apolloHoveredFeature: undefined as HoveredFeature | undefined,
       abortController: new AbortController(),
+      /**
+       * The last locations posted to each collaboration server (serialized),
+       * keyed by internet account config ID
+       */
+      lastPostedLocations: new Map<string, string>(),
+    }))
+    .views((self) => ({
+      /**
+       * The regions shown in this session's linear genome views that are on
+       * collaboration-server assemblies, grouped by the config ID of the
+       * internet account for the server that hosts each assembly
+       */
+      get collaborationLocations() {
+        const { apolloDataStore } = self
+        const locations = new Map<string, UserLocation[]>()
+        for (const view of (self as unknown as AbstractSessionModel).views) {
+          if (view.type !== 'LinearGenomeView') {
+            continue
+          }
+          const lgv = view as unknown as LinearGenomeViewModel
+          if (!lgv.initialized) {
+            continue
+          }
+          for (const block of lgv.dynamicBlocks.contentBlocks) {
+            const { assemblyName, end, refName, start } = block
+            const internetAccountConfigId =
+              apolloDataStore.getInternetAccountConfigId(assemblyName)
+            if (!internetAccountConfigId) {
+              continue
+            }
+            let accountLocations = locations.get(internetAccountConfigId)
+            if (!accountLocations) {
+              accountLocations = []
+              locations.set(internetAccountConfigId, accountLocations)
+            }
+            accountLocations.push({
+              assemblyId: assemblyName,
+              refSeq: refName,
+              start,
+              end,
+            })
+          }
+        }
+        return locations
+      },
     }))
     .extend(() => {
       const collabs = observable.array<Collaborator>([])
@@ -158,57 +203,38 @@ export function extendSession(
           >
         return pluginConfiguration
       },
-      broadcastLocations() {
+      /**
+       * Send each Apollo collaboration server the locations of this session's
+       * linear genome views that are on its assemblies. If `onlyIfChanged` is
+       * true, servers whose locations haven't changed since the last post are
+       * skipped.
+       */
+      postCollaborationLocations(
+        locations: Map<string, UserLocation[]>,
+        onlyIfChanged = false,
+      ) {
         const { internetAccounts } = getRoot<ApolloRootModel>(self)
-        const locations: {
-          assemblyName: string
-          refName: string
-          start: number
-          end: number
-        }[] = []
-        for (const view of (self as unknown as AbstractSessionModel).views) {
-          if (view.type !== 'LinearGenomeView') {
-            return
-          }
-          const lgv = view as unknown as LinearGenomeViewModel
-          if (lgv.initialized) {
-            const { dynamicBlocks } = lgv
-            for (const block of dynamicBlocks.contentBlocks) {
-              const { assemblyName, end, refName, start } = block
-              const { apolloDataStore } = self
-              if (
-                apolloDataStore.getBackendDriver(assemblyName) ===
-                apolloDataStore.collaborationServerDriver
-              ) {
-                locations.push({ assemblyName, refName, start, end })
-              }
-            }
-          }
-        }
-        if (locations.length === 0) {
-          for (const internetAccount of internetAccounts) {
-            if (isApolloInternetAccount(internetAccount)) {
-              internetAccount.postUserLocation([])
-            }
-          }
-          return
-        }
-
-        const allLocations: UserLocation[] = []
         for (const internetAccount of internetAccounts) {
-          if (isApolloInternetAccount(internetAccount)) {
-            for (const location of locations) {
-              const tmpLoc: UserLocation = {
-                assemblyId: location.assemblyName,
-                refSeq: location.refName,
-                start: location.start,
-                end: location.end,
-              }
-              allLocations.push(tmpLoc)
-            }
-            internetAccount.postUserLocation(allLocations)
+          if (!isApolloInternetAccount(internetAccount)) {
+            continue
           }
+          const { internetAccountId } = internetAccount
+          const accountLocations = locations.get(internetAccountId) ?? []
+          const serialized = JSON.stringify(accountLocations)
+          if (
+            onlyIfChanged &&
+            self.lastPostedLocations.get(internetAccountId) === serialized
+          ) {
+            continue
+          }
+          self.lastPostedLocations.set(internetAccountId, serialized)
+          internetAccount.postUserLocation(accountLocations)
         }
+      },
+    }))
+    .actions((self) => ({
+      broadcastLocations() {
+        self.postCollaborationLocations(self.collaborationLocations)
       },
     }))
     .actions((self) => ({
@@ -232,57 +258,9 @@ export function extendSession(
           self,
           autorun(
             () => {
-              // broadcastLocations() // **** This is not working and therefore we need to duplicate broadcastLocations() -method code here because autorun() does not observe changes otherwise
-              const locations: {
-                assemblyName: string
-                refName: string
-                start: number
-                end: number
-              }[] = []
-              for (const view of (self as unknown as AbstractSessionModel)
-                .views) {
-                if (view.type !== 'LinearGenomeView') {
-                  return
-                }
-                const lgv = view as unknown as LinearGenomeViewModel
-                if (lgv.initialized) {
-                  const { dynamicBlocks } = lgv
-                  for (const block of dynamicBlocks.contentBlocks) {
-                    const { assemblyName, end, refName, start } = block
-                    const { apolloDataStore } = self
-                    if (
-                      apolloDataStore.getBackendDriver(assemblyName) ===
-                      apolloDataStore.collaborationServerDriver
-                    ) {
-                      locations.push({ assemblyName, refName, start, end })
-                    }
-                  }
-                }
-              }
-              if (locations.length === 0) {
-                for (const internetAccount of internetAccounts) {
-                  if (isApolloInternetAccount(internetAccount)) {
-                    internetAccount.postUserLocation([])
-                  }
-                }
-                return
-              }
-
-              const allLocations: UserLocation[] = []
-              for (const internetAccount of internetAccounts) {
-                if (isApolloInternetAccount(internetAccount)) {
-                  for (const location of locations) {
-                    const tmpLoc: UserLocation = {
-                      assemblyId: location.assemblyName,
-                      refSeq: location.refName,
-                      start: location.start,
-                      end: location.end,
-                    }
-                    allLocations.push(tmpLoc)
-                  }
-                  internetAccount.postUserLocation(allLocations)
-                }
-              }
+              // Read the computed view here, not inside the action, because
+              // MobX doesn't track what an action reads
+              self.postCollaborationLocations(self.collaborationLocations, true)
             },
             { name: 'ApolloSessionBroadcastLocations' },
           ),
