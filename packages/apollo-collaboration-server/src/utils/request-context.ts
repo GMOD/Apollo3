@@ -5,8 +5,8 @@ interface RequestContext {
 }
 
 /**
- * Holds per-request (HTTP) or per-connection (WebSocket) context so that log
- * lines emitted anywhere in the call chain can be tied back to their origin.
+ * Holds per-request context so that log lines emitted anywhere in the call
+ * chain can be tied back to their origin.
  */
 export const requestContext = new AsyncLocalStorage<RequestContext>()
 

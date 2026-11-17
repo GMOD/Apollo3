@@ -1,9 +1,15 @@
-import { Injectable } from '@nestjs/common'
-import { WebSocketServer } from '@nestjs/websockets'
-import { Server } from 'socket.io'
+import { Injectable, type MessageEvent } from '@nestjs/common'
+import { Subject } from 'rxjs'
 
 @Injectable()
 export class MessagesService {
-  @WebSocketServer()
-  server: Server
+  private readonly events = new Subject<MessageEvent>()
+
+  broadcast(eventName: string, payload: object) {
+    this.events.next({ type: eventName, data: payload })
+  }
+
+  subscribe() {
+    return this.events.asObservable()
+  }
 }

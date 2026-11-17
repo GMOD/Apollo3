@@ -5,6 +5,7 @@
     "test",
     "dist",
     "**/*spec.ts",
+    "src/test-utils",
     // Only used to generate the OpenAPI document, see tsconfig.openapi.json
     "src/openapi.ts",
     "src/openapi-metadata.ts",

@@ -1561,7 +1561,7 @@
           "Users"
         ],
         "x-apollo-role": "readOnly",
-        "description": "Required role: readOnly or higher.\n\nThe locations are sent to connected clients over the server's WebSocket connection, not in this response."
+        "description": "Required role: readOnly or higher.\n\nThe locations are sent to connected clients as server-sent events, not in this response."
       }
     },
     "/users/{id}": {
