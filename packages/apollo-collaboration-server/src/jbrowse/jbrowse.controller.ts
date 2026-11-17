@@ -13,6 +13,13 @@ export interface RequestWithUser extends Request {
 @Controller('jbrowse')
 export class JBrowseController {
   constructor(private readonly jbrowseService: JBrowseService) {}
+  /**
+   * Get JBrowse configuration for this server
+   *
+   * Includes the theme and Apollo plugin settings. If the request has a token
+   * for a user with a role, it also includes the location of the feature type
+   * ontology.
+   */
   @Validations(Role.None)
   @Get('config.json')
   config(@Req() request: RequestWithUser) {

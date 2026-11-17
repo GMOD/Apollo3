@@ -1,7 +1,14 @@
 import type * as Preset from '@docusaurus/preset-classic'
 import remarkPluginNpm2Yarn from '@docusaurus/remark-plugin-npm2yarn'
 import type { Config } from '@docusaurus/types'
+import type * as OpenApiPlugin from 'docusaurus-plugin-openapi-docs'
 import { themes as prismThemes } from 'prism-react-renderer'
+
+import sidebarItemsGenerator from './sidebarItemsGenerator'
+
+// Where `yarn gen-api-docs` writes the REST API endpoint pages.
+// sidebarItemsGenerator.ts puts them in the sidebar.
+const restApiReferenceDir = 'docs/03-multi-user/03-guides/05-rest-api/reference'
 
 const config: Config = {
   title: 'Apollo',
@@ -44,11 +51,14 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
+          sidebarItemsGenerator,
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
             'https://github.com/GMOD/Apollo3/tree/main/packages/website/',
           remarkPlugins: [[remarkPluginNpm2Yarn, { sync: true }]],
+          // Renders the REST API endpoint pages, and other docs as usual
+          docItemComponent: '@theme/ApiItem',
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -57,9 +67,65 @@ const config: Config = {
     ],
   ],
 
+  plugins: [
+    // Generates the REST API endpoint pages from the collaboration server's
+    // OpenAPI document when running `yarn gen-api-docs`
+    [
+      'docusaurus-plugin-openapi-docs',
+      {
+        id: 'openapi',
+        docsPluginId: 'classic',
+        config: {
+          collaborationServer: {
+            specPath: '../apollo-collaboration-server/openapi.json',
+            outputDir: restApiReferenceDir,
+            showInfoPage: false,
+            // The plugin's default page template, except that the sidebar
+            // shows each endpoint's path rather than its summary. The page's
+            // sidebar_label front matter overrides any label set in the
+            // sidebar, so this has to be done in the template.
+            template: 'openapi-templates/api.mustache',
+            sidebarOptions: {
+              groupPathsBy: 'tag',
+              categoryLinkSource: 'tag',
+            },
+          } satisfies OpenApiPlugin.Options,
+        },
+      },
+    ],
+  ],
+
+  themes: ['docusaurus-theme-openapi-docs'],
+
   themeConfig: {
     // Replace with your project's social card
     // image: 'img/docusaurus-social-card.jpg',
+    // Code sample languages on the REST API endpoint pages. Only the languages
+    // listed here are shown, in this order. The other settings for each
+    // language come from the theme's defaults.
+    languageTabs: [
+      'javascript',
+      'nodejs',
+      'csharp',
+      'curl',
+      'dart',
+      'go',
+      'http',
+      'java',
+      'kotlin',
+      'c',
+      'objective-c',
+      'ocaml',
+      'php',
+      'postman-cli',
+      'powershell',
+      'python',
+      'r',
+      'ruby',
+      'rust',
+      'shell',
+      'swift',
+    ].map((language) => ({ language })),
     navbar: {
       title: 'Apollo',
       logo: {
@@ -111,6 +177,11 @@ const config: Config = {
       additionalLanguages: ['docker', 'shell-session', 'bash'],
     },
     respectPrefersColorScheme: true,
+    api: {
+      // Only keep the token for the browser tab, not across sessions
+      authPersistance: 'sessionStorage',
+      schemaExpansion: { default: 1 },
+    },
   } satisfies Preset.ThemeConfig,
 }
 

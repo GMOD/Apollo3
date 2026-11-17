@@ -17,6 +17,7 @@ const { version } = JSON.parse(
 export class HealthController {
   constructor(private health: HealthCheckService) {}
 
+  /** Check that the server is running */
   @Validations(Role.None)
   @Get()
   @HealthCheck()
@@ -24,9 +25,7 @@ export class HealthController {
     return this.health.check([])
   }
 
-  /**
-   * The server's version, so clients can confirm they match it
-   */
+  /** Get the server's version, so clients can confirm they match it */
   @Validations(Role.None)
   @Get('version')
   getVersion() {

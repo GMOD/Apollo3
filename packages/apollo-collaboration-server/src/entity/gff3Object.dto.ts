@@ -23,13 +23,18 @@ export interface FeatureChangeTmp {
   newEnd: number
 }
 
-export interface FeatureRangeSearchDto {
+export class FeatureRangeSearchDto {
+  /** Reference sequence ID */
   refSeq: string
+  /** Start of the range (0-based) */
   start: number
+  /** End of the range */
   end: number
 }
 
-export interface FeatureIdsSearchDto {
+export class FeatureIdsSearchDto {
+  /** Feature IDs to get */
   featureIds: string[]
+  /** Return the top-level features that contain the requested features */
   topLevel?: boolean
 }

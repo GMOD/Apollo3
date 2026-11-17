@@ -1,0 +1,2519 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/assemblies/checks": {
+      "post": {
+        "operationId": "AssembliesController_updateChecks",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAssemblyChecksDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set which checks run on an assembly",
+        "tags": [
+          "Assemblies"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher."
+      }
+    },
+    "/assemblies": {
+      "get": {
+        "operationId": "AssembliesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Assembly"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all assemblies",
+        "tags": [
+          "Assemblies"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher."
+      }
+    },
+    "/assemblies/{id}": {
+      "get": {
+        "operationId": "AssembliesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Assembly"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get an assembly",
+        "tags": [
+          "Assemblies"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher."
+      }
+    },
+    "/checks": {
+      "get": {
+        "operationId": "ChecksController_findAll",
+        "parameters": [
+          {
+            "name": "assembly",
+            "required": false,
+            "in": "query",
+            "description": "Only get checks for this assembly",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CheckResult"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List check results, optionally only for one assembly",
+        "tags": [
+          "Checks"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher."
+      }
+    },
+    "/checks/types": {
+      "get": {
+        "operationId": "ChecksController_getCheckTypes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Check"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List the checks the server can run",
+        "tags": [
+          "Checks"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher."
+      }
+    },
+    "/checks/range": {
+      "get": {
+        "operationId": "ChecksController_getFeatures",
+        "parameters": [
+          {
+            "name": "refSeq",
+            "required": true,
+            "in": "query",
+            "description": "Reference sequence ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "start",
+            "required": true,
+            "in": "query",
+            "description": "Start of the range (0-based)",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "end",
+            "required": true,
+            "in": "query",
+            "description": "End of the range",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CheckResult"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the check results in a range of a reference sequence",
+        "tags": [
+          "Checks"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher."
+      }
+    },
+    "/checks/{id}": {
+      "get": {
+        "operationId": "ChecksController_findByFeatureId",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CheckResult"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the check results for a feature",
+        "tags": [
+          "Checks"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher."
+      }
+    },
+    "/sequence": {
+      "get": {
+        "operationId": "SequenceController_getSequence",
+        "parameters": [
+          {
+            "name": "refSeq",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "start",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "end",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the sequence of a range of a reference sequence",
+        "tags": [
+          "Sequence"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher."
+      }
+    },
+    "/features/searchFeatures": {
+      "get": {
+        "operationId": "FeaturesController_searchFeatures",
+        "parameters": [
+          {
+            "name": "term",
+            "required": true,
+            "in": "query",
+            "description": "Text to search for in feature IDs and attributes",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assemblies",
+            "required": true,
+            "in": "query",
+            "description": "Comma-separated list of assembly IDs to search in",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Feature"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Search for features by text in their IDs and attributes",
+        "tags": [
+          "Features"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher."
+      }
+    },
+    "/features/getFeatures": {
+      "get": {
+        "operationId": "FeaturesController_getFeaturesByRange",
+        "parameters": [
+          {
+            "name": "refSeq",
+            "required": true,
+            "in": "query",
+            "description": "Reference sequence ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "start",
+            "required": true,
+            "in": "query",
+            "description": "Start of the range (0-based)",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "end",
+            "required": true,
+            "in": "query",
+            "description": "End of the range",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "$ref": "#/components/schemas/Feature"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CheckResult"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the features in a range of a reference sequence",
+        "tags": [
+          "Features"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher.\n\nStreams a JSON array of two arrays: the features that overlap the range, then the check results in the range."
+      }
+    },
+    "/features/getByIds": {
+      "post": {
+        "operationId": "FeaturesController_findByFeatureIds",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeatureIdsSearchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Feature"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get features by their IDs",
+        "tags": [
+          "Features"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher."
+      }
+    },
+    "/features/count": {
+      "get": {
+        "operationId": "FeaturesController_getFeatureCount",
+        "parameters": [
+          {
+            "name": "assemblyId",
+            "required": false,
+            "in": "query",
+            "description": "Only count features in this assembly",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "refSeqId",
+            "required": false,
+            "in": "query",
+            "description": "Only count features on this reference sequence",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "start",
+            "required": false,
+            "in": "query",
+            "description": "Only count features that end after this position",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "end",
+            "required": false,
+            "in": "query",
+            "description": "Only count features that start before this position",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count features",
+        "tags": [
+          "Features"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher."
+      }
+    },
+    "/features/getFeatureDensity": {
+      "get": {
+        "operationId": "FeaturesController_getFeatureDensity",
+        "parameters": [
+          {
+            "name": "start",
+            "required": true,
+            "in": "query",
+            "description": "Start of the range (0-based)",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "end",
+            "required": true,
+            "in": "query",
+            "description": "End of the range",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "binSize",
+            "required": true,
+            "in": "query",
+            "description": "Size of each bin, at least 1. At most 10,000 bins can be requested.",
+            "schema": {
+              "minimum": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Only count top-level features of these types. Repeat for more types.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "refSeq",
+            "required": true,
+            "in": "query",
+            "description": "Reference sequence ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Summarize the density of features in a range",
+        "tags": [
+          "Features"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher.\n\nReturns how many features overlap the range, and how many overlap each bin of the range expanded to multiples of `binSize`."
+      }
+    },
+    "/features/getByIndexedId": {
+      "get": {
+        "operationId": "FeaturesController_getById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "query",
+            "description": "Indexed ID to look for, e.g. a `gff_id` attribute value",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assemblies",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated list of assembly IDs to search in",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "topLevel",
+            "required": false,
+            "in": "query",
+            "description": "Return the top-level feature that contains the match",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Feature"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a feature by an indexed ID, such as its GFF3 ID",
+        "tags": [
+          "Features"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher."
+      }
+    },
+    "/features/{featureid}": {
+      "get": {
+        "operationId": "FeaturesController_getFeature",
+        "parameters": [
+          {
+            "name": "featureid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "topLevel",
+            "required": false,
+            "in": "query",
+            "description": "Return the top-level feature that contains this feature",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Feature"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a feature",
+        "tags": [
+          "Features"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher.\n\nReturns the feature and its children, but not its parent or sibling features."
+      }
+    },
+    "/features/check/{featureid}": {
+      "get": {
+        "operationId": "FeaturesController_checkFeature",
+        "parameters": [
+          {
+            "name": "featureid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Run the checks on a feature",
+        "tags": [
+          "Features"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher."
+      }
+    },
+    "/features": {
+      "get": {
+        "operationId": "FeaturesController_getAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Feature"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all features",
+        "tags": [
+          "Features"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher."
+      }
+    },
+    "/refSeqs": {
+      "get": {
+        "operationId": "RefSeqsController_findAll",
+        "parameters": [
+          {
+            "name": "assembly",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RefSeq"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List the reference sequences in an assembly",
+        "tags": [
+          "RefSeqs"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher."
+      }
+    },
+    "/refSeqs/{refseqid}": {
+      "get": {
+        "operationId": "RefSeqsController_getFeature",
+        "parameters": [
+          {
+            "name": "refseqid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefSeq"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a reference sequence",
+        "tags": [
+          "RefSeqs"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher."
+      }
+    },
+    "/files": {
+      "get": {
+        "operationId": "FilesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/File"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "summary": "List uploaded files",
+        "tags": [
+          "Files"
+        ],
+        "x-apollo-role": "admin",
+        "description": "Required role: admin.",
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "FilesController_uploadFile",
+        "parameters": [
+          {
+            "name": "type",
+            "required": true,
+            "in": "query",
+            "description": "The file's type",
+            "schema": {
+              "enum": [
+                "text/x-gff3",
+                "text/x-fasta"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "summary": "Upload a GFF3 or FASTA file",
+        "tags": [
+          "Files"
+        ],
+        "description": "Required role: admin.\n\nThe file can be gzip-compressed. Returns the new file's record, whose ID can be used in a change that adds an assembly or features from a file.",
+        "x-apollo-role": "admin",
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/files/{id}": {
+      "get": {
+        "operationId": "FilesController_downloadFile",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "summary": "Download an uploaded file",
+        "tags": [
+          "Files"
+        ],
+        "description": "Required role: admin.\n\nThe file is gzip-compressed if the request's `Accept-Encoding` header includes `gzip`.",
+        "x-apollo-role": "admin",
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "FilesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "summary": "Delete an uploaded file",
+        "tags": [
+          "Files"
+        ],
+        "description": "Required role: admin.\n\nThe stored file is also removed if no other uploaded file has the same checksum.",
+        "x-apollo-role": "admin",
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/auth/types": {
+      "get": {
+        "operationId": "AuthenticationController_getLoginTypes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "List the ways users can log in to this server",
+        "tags": [
+          "Authentication"
+        ],
+        "x-apollo-role": "none",
+        "description": "Required role: none.",
+        "security": []
+      }
+    },
+    "/auth/login": {
+      "get": {
+        "operationId": "AuthenticationController_handleLogin",
+        "parameters": [
+          {
+            "name": "type",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "redirect_uri",
+            "required": false,
+            "in": "query",
+            "description": "Where to send the user after logging in. Must be on this server, on localhost, or on an origin in ALLOWED_REDIRECT_ORIGINS.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "prompt",
+            "required": false,
+            "in": "query",
+            "description": "Set to `select_account` to let the user pick a different account at the identity provider",
+            "schema": {
+              "enum": [
+                "select_account"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to the login type"
+          }
+        },
+        "summary": "Start a browser login",
+        "tags": [
+          "Authentication"
+        ],
+        "x-apollo-role": "none",
+        "description": "Required role: none.\n\nRedirects to `/auth/{type}`, which redirects to the identity provider. After the user logs in, the browser is redirected to `redirect_uri` with an `access_token` (or an `error`) query parameter.",
+        "security": []
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "AuthenticationController_refreshToken",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token was sent"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a new token with the user's current role",
+        "tags": [
+          "Authentication"
+        ],
+        "x-apollo-role": "none",
+        "description": "Required role: none.\n\nSend the current token. Use this after a user's role changes so they don't have to log in again. The new token expires when the current one would have."
+      }
+    },
+    "/auth/guest": {
+      "get": {
+        "operationId": "AuthenticationController_guestLogin",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The server doesn't allow guests"
+          }
+        },
+        "summary": "Log in as the guest user, if the server allows guests",
+        "tags": [
+          "Authentication"
+        ],
+        "x-apollo-role": "none",
+        "description": "Required role: none.",
+        "security": []
+      }
+    },
+    "/auth/root": {
+      "post": {
+        "operationId": "AuthenticationController_rootLogin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RootLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Wrong password, or the server doesn't allow the root user"
+          }
+        },
+        "summary": "Log in as the root user, if the server allows it",
+        "tags": [
+          "Authentication"
+        ],
+        "x-apollo-role": "none",
+        "description": "Required role: none.",
+        "security": []
+      }
+    },
+    "/auth/device": {
+      "post": {
+        "operationId": "AuthenticationController_startDeviceLogin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartDeviceLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceLoginStartResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No login type was given"
+          }
+        },
+        "summary": "Start a device login",
+        "tags": [
+          "Authentication"
+        ],
+        "x-apollo-role": "none",
+        "description": "Required role: none.\n\nFor clients that can't open a browser themselves, such as the CLI. Show the user `verification_uri` and `user_code` (or `verification_uri_complete`), then poll `POST /auth/device/token` every `interval` seconds.",
+        "security": []
+      }
+    },
+    "/auth/device/token": {
+      "post": {
+        "operationId": "AuthenticationController_getDeviceLoginToken",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceLoginTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The login isn't finished, or has expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "enum": [
+                        "authorization_pending",
+                        "slow_down",
+                        "expired_token"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get the token for a device login",
+        "tags": [
+          "Authentication"
+        ],
+        "x-apollo-role": "none",
+        "description": "Required role: none.\n\nPoll this until the user has logged in. Until then it responds with status 400 and an `error` of `authorization_pending`, or `slow_down` if polled too often. An `error` of `expired_token` means the login has expired.",
+        "security": []
+      }
+    },
+    "/auth/{id}": {
+      "get": {
+        "operationId": "AuthenticationController_fallbackLogin",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "redirect_uri",
+            "required": false,
+            "in": "query",
+            "description": "Where to send the user after logging in",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "required": false,
+            "in": "query",
+            "description": "Login state passed back by the identity provider or by a login type from a plugin",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "prompt",
+            "required": false,
+            "in": "query",
+            "description": "Set to `select_account` to let the user pick a different account at the identity provider",
+            "schema": {
+              "enum": [
+                "select_account"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Log in with a login type",
+        "tags": [
+          "Authentication"
+        ],
+        "x-apollo-role": "none",
+        "description": "Required role: none.\n\nFor browser logins, this is where `GET /auth/login` redirects to, and where the identity provider redirects back to. Some login types added by plugins respond with a token directly instead.",
+        "security": []
+      }
+    },
+    "/users": {
+      "get": {
+        "operationId": "UsersController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortField",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated list of roles",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "roleOperator",
+            "required": false,
+            "in": "query",
+            "description": "Whether to include (default) or exclude users with the given roles",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "in",
+                "notIn"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List users",
+        "tags": [
+          "Users"
+        ],
+        "x-apollo-role": "admin",
+        "description": "Required role: admin.\n\nIf `page` and `pageSize` are given, returns `{ users, totalCount, specialUsers }`, where `users` is one page of regular users and `specialUsers` is the guest and root users (if they exist). Otherwise returns an array of all users."
+      }
+    },
+    "/users/admin": {
+      "get": {
+        "operationId": "UsersController_findAdmin",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get the first admin user",
+        "tags": [
+          "Users"
+        ],
+        "x-apollo-role": "none",
+        "description": "Required role: none.\n\nLets a user who has logged in but doesn't have a role yet find out who to contact, so it doesn't require a role.",
+        "security": []
+      }
+    },
+    "/users/locations": {
+      "get": {
+        "operationId": "UsersController_usersLocations",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Ask other users' clients to share their locations",
+        "tags": [
+          "Users"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher.\n\nThe locations are sent to connected clients over the server's WebSocket connection, not in this response."
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "operationId": "UsersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a user",
+        "tags": [
+          "Users"
+        ],
+        "x-apollo-role": "admin",
+        "description": "Required role: admin."
+      }
+    },
+    "/changes": {
+      "post": {
+        "operationId": "ChangesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitChangeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Submit a change",
+        "tags": [
+          "Changes"
+        ],
+        "x-apollo-role": "user",
+        "description": "Required role: user or higher.\n\nAll edits to annotations, assemblies, and users are made by submitting changes. The server validates and applies the change, saves it to the change log, and broadcasts it to other connected clients.\n\nEach type of change also requires a role:\n\n| Change type | Required role |\n| --- | --- |\n| `AddAssemblyAliasesChange` | user or higher |\n| `AddAssemblyAndFeaturesFromFileChange` | admin |\n| `AddAssemblyFromExternalChange` | user or higher |\n| `AddAssemblyFromFileChange` | admin |\n| `AddFeatureChange` | user or higher |\n| `AddFeaturesFromFileChange` | admin |\n| `AddRefSeqAliasesChange` | admin |\n| `AddUserChange` | admin |\n| `DeleteAssemblyChange` | admin |\n| `DeleteFeatureChange` | user or higher |\n| `DeleteUserChange` | admin |\n| `FeatureAttributeChange` | user or higher |\n| `ImportJBrowseConfigChange` | user or higher |\n| `LocationEndChange` | user or higher |\n| `LocationStartChange` | user or higher |\n| `MergeExonsChange` | user or higher |\n| `MergeTranscriptsChange` | user or higher |\n| `SplitExonChange` | user or higher |\n| `StrandChange` | user or higher |\n| `TypeChange` | user or higher |\n| `UndoMergeExonsChange` | user or higher |\n| `UndoMergeTranscriptsChange` | user or higher |\n| `UndoSplitExonChange` | user or higher |\n| `UserChange` | admin |"
+      },
+      "get": {
+        "operationId": "ChangesController_findAll",
+        "parameters": [
+          {
+            "name": "assembly",
+            "required": false,
+            "in": "query",
+            "description": "Only changes to this assembly",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "changedIds",
+            "required": false,
+            "in": "query",
+            "description": "Only changes to these feature IDs",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "reverts",
+            "required": false,
+            "in": "query",
+            "description": "Only changes that revert this change ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "user",
+            "required": false,
+            "in": "query",
+            "description": "Only changes by users whose email matches this (case-insensitive regular expression)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "typeName",
+            "required": false,
+            "in": "query",
+            "description": "Only changes of this type, e.g. `AddFeatureChange`",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "since",
+            "required": false,
+            "in": "query",
+            "description": "Only changes with a sequence number greater than this",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "Deprecated, use `sortOrder`. `1` sorts in ascending order.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of changes to return, if not using `page` and `pageSize`",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page to return, starting from 0. Requires `pageSize`.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "Number of changes in a page. Requires `page`.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortField",
+            "required": false,
+            "in": "query",
+            "description": "Field to sort by: `sequence` (default), `typeName`, `user`, or `createdAt`",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "`asc` or `desc` (default)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startTime",
+            "required": false,
+            "in": "query",
+            "description": "Only changes made at or after this time (ISO 8601)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endTime",
+            "required": false,
+            "in": "query",
+            "description": "Only changes made at or before this time (ISO 8601)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List changes from the change log",
+        "tags": [
+          "Changes"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher.\n\nReturns `{ changes, totalCount }`, where `totalCount` is the number of changes that match the filters, ignoring paging."
+      }
+    },
+    "/jbrowse/config.json": {
+      "get": {
+        "operationId": "JBrowseController_config",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get JBrowse configuration for this server",
+        "tags": [
+          "JBrowse"
+        ],
+        "x-apollo-role": "none",
+        "description": "Required role: none.\n\nIncludes the theme and Apollo plugin settings. If the request has a token for a user with a role, it also includes the location of the feature type ontology.",
+        "security": []
+      }
+    },
+    "/export/getID": {
+      "get": {
+        "operationId": "ExportController_getExportID",
+        "parameters": [
+          {
+            "name": "assembly",
+            "required": true,
+            "in": "query",
+            "description": "ID of the assembly to export",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "403": {
+            "description": "No token, or the token's user doesn't have the required role"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Start an export of an assembly as GFF3",
+        "tags": [
+          "Export"
+        ],
+        "x-apollo-role": "readOnly",
+        "description": "Required role: readOnly or higher.\n\nReturns an export ID to pass to `GET /export`. The ID is valid for 5 minutes."
+      }
+    },
+    "/export": {
+      "get": {
+        "operationId": "ExportController_exportGFF3",
+        "parameters": [
+          {
+            "name": "exportID",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeFASTA",
+            "required": false,
+            "in": "query",
+            "description": "Add the assembly's sequences in a `##FASTA` section",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "fastaWidth",
+            "required": false,
+            "in": "query",
+            "description": "Line width of the FASTA sequences",
+            "schema": {
+              "type": "integer",
+              "default": 80
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Download an assembly as GFF3",
+        "tags": [
+          "Export"
+        ],
+        "x-apollo-role": "none",
+        "description": "Required role: none.\n\nDoesn't need a token, since the export ID from `GET /export/getID` already grants access. Streams the GFF3 as a file attachment.",
+        "security": []
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "HealthController_check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Check that the server is running",
+        "tags": [
+          "Health"
+        ],
+        "x-apollo-role": "none",
+        "description": "Required role: none.",
+        "security": []
+      }
+    },
+    "/health/version": {
+      "get": {
+        "operationId": "HealthController_getVersion",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get the server's version, so clients can confirm they match it",
+        "tags": [
+          "Health"
+        ],
+        "x-apollo-role": "none",
+        "description": "Required role: none.",
+        "security": []
+      }
+    }
+  },
+  "info": {
+    "title": "Apollo Collaboration Server",
+    "description": "The REST API of the Apollo collaboration server. Most endpoints need a token in an `Authorization: Bearer <token>` header.",
+    "version": "1.2.0",
+    "contact": {},
+    "license": {
+      "name": "Apache-2.0",
+      "url": "https://spdx.org/licenses/Apache-2.0.html"
+    }
+  },
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "Log in and get tokens"
+    },
+    {
+      "name": "Assemblies",
+      "description": "Genome assemblies"
+    },
+    {
+      "name": "RefSeqs",
+      "description": "Assemblies' reference sequences"
+    },
+    {
+      "name": "Sequence",
+      "description": "Sequence data"
+    },
+    {
+      "name": "Features",
+      "description": "Annotation features"
+    },
+    {
+      "name": "Changes",
+      "description": "Submit changes and read the change log"
+    },
+    {
+      "name": "Checks",
+      "description": "Automated checks on features, such as for valid CDSs"
+    },
+    {
+      "name": "Files",
+      "description": "Upload GFF3 and FASTA files to add with a change"
+    },
+    {
+      "name": "Export",
+      "description": "Download an assembly's annotations as GFF3"
+    },
+    {
+      "name": "Users",
+      "description": "User accounts and locations"
+    },
+    {
+      "name": "JBrowse",
+      "description": "JBrowse configuration"
+    },
+    {
+      "name": "Health",
+      "description": "Server status and version"
+    }
+  ],
+  "servers": [
+    {
+      "url": "{baseUrl}",
+      "description": "Your Apollo collaboration server",
+      "variables": {
+        "baseUrl": {
+          "default": "http://localhost:3999",
+          "description": "The server's URL, as set in its URL configuration"
+        }
+      }
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "UpdateAssemblyChecksDto": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "Assembly ID"
+          },
+          "checks": {
+            "description": "IDs of the checks to run on this assembly",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "_id",
+          "checks"
+        ]
+      },
+      "Assembly": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "type": "number"
+          },
+          "user": {
+            "type": "string"
+          },
+          "externalLocation": {
+            "type": "object",
+            "properties": {
+              "fa": {
+                "type": "string"
+              },
+              "fai": {
+                "type": "string"
+              },
+              "gzi": {
+                "type": "string"
+              },
+              "_id": {
+                "type": "string",
+                "description": "ID"
+              }
+            },
+            "required": [
+              "_id"
+            ]
+          },
+          "fileIds": {
+            "type": "object",
+            "properties": {
+              "fa": {
+                "type": "string",
+                "description": "ID of a File"
+              },
+              "fai": {
+                "type": "string",
+                "description": "ID of a File"
+              },
+              "gzi": {
+                "type": "string",
+                "description": "ID of a File"
+              },
+              "_id": {
+                "type": "string",
+                "description": "ID"
+              }
+            },
+            "required": [
+              "_id"
+            ]
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "ID of a Check"
+            }
+          },
+          "file": {
+            "type": "string",
+            "description": "ID of a File"
+          },
+          "_id": {
+            "type": "string",
+            "description": "ID"
+          }
+        },
+        "required": [
+          "name",
+          "_id"
+        ]
+      },
+      "CheckResult": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "cause": {
+            "type": "string"
+          },
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "ID"
+            }
+          },
+          "refSeq": {
+            "type": "string",
+            "description": "ID of a RefSeq"
+          },
+          "start": {
+            "type": "number"
+          },
+          "end": {
+            "type": "number"
+          },
+          "ignored": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "_id": {
+            "type": "string",
+            "description": "ID"
+          }
+        },
+        "required": [
+          "ids",
+          "refSeq",
+          "start",
+          "end",
+          "_id"
+        ]
+      },
+      "Check": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "causes": {
+            "type": "array",
+            "items": {}
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "number"
+          },
+          "_id": {
+            "type": "string",
+            "description": "ID"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      },
+      "Feature": {
+        "type": "object",
+        "properties": {
+          "refSeq": {
+            "type": "string",
+            "description": "ID of a RefSeq"
+          },
+          "allIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "indexedIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "type": {
+            "type": "string"
+          },
+          "min": {
+            "type": "number"
+          },
+          "max": {
+            "type": "number"
+          },
+          "strand": {
+            "type": "number"
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "status": {
+            "type": "number"
+          },
+          "user": {
+            "type": "string"
+          },
+          "_id": {
+            "type": "string",
+            "description": "ID"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "children": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Feature"
+            }
+          }
+        },
+        "required": [
+          "refSeq",
+          "allIds",
+          "type",
+          "min",
+          "max",
+          "_id"
+        ]
+      },
+      "FeatureIdsSearchDto": {
+        "type": "object",
+        "properties": {
+          "featureIds": {
+            "description": "Feature IDs to get",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "topLevel": {
+            "type": "boolean",
+            "description": "Return the top-level features that contain the requested features"
+          }
+        },
+        "required": [
+          "featureIds"
+        ]
+      },
+      "RefSeq": {
+        "type": "object",
+        "properties": {
+          "assembly": {
+            "type": "string",
+            "description": "ID of a Assembly"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "aliases": {
+            "type": "array",
+            "items": {}
+          },
+          "length": {
+            "type": "number"
+          },
+          "chunkSize": {
+            "type": "number"
+          },
+          "status": {
+            "type": "number"
+          },
+          "user": {
+            "type": "string"
+          },
+          "_id": {
+            "type": "string",
+            "description": "ID"
+          }
+        },
+        "required": [
+          "assembly",
+          "name",
+          "length",
+          "_id"
+        ]
+      },
+      "File": {
+        "type": "object",
+        "properties": {
+          "basename": {
+            "type": "string"
+          },
+          "checksum": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "text/x-gff3",
+              "text/x-fasta",
+              "application/x-bgzip-fasta",
+              "text/x-fai",
+              "application/x-gzi"
+            ]
+          },
+          "_id": {
+            "type": "string",
+            "description": "ID"
+          }
+        },
+        "required": [
+          "basename",
+          "checksum",
+          "type",
+          "_id"
+        ]
+      },
+      "TokenResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "JWT to send in the `Authorization: Bearer` header"
+          }
+        },
+        "required": [
+          "token"
+        ]
+      },
+      "RootLoginDto": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "description": "The root user's password, set with ROOT_USER_PASSWORD"
+          }
+        },
+        "required": [
+          "password"
+        ]
+      },
+      "StartDeviceLoginDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Login type to use, one of the names from `GET /auth/types`"
+          }
+        }
+      },
+      "DeviceLoginStartResponse": {
+        "type": "object",
+        "properties": {
+          "device_code": {
+            "type": "string",
+            "description": "Secret code to poll `POST /auth/device/token` with"
+          },
+          "user_code": {
+            "type": "string",
+            "description": "Code for the user to confirm, e.g. `BCDF-GHJK`"
+          },
+          "verification_uri": {
+            "type": "string",
+            "description": "Page where the user enters the code and logs in"
+          },
+          "verification_uri_complete": {
+            "type": "string",
+            "description": "`verification_uri` with the code already filled in"
+          },
+          "expires_in": {
+            "type": "number",
+            "description": "Seconds until the login expires"
+          },
+          "interval": {
+            "type": "number",
+            "description": "Seconds to wait between polls"
+          }
+        },
+        "required": [
+          "device_code",
+          "user_code",
+          "verification_uri",
+          "verification_uri_complete",
+          "expires_in",
+          "interval"
+        ]
+      },
+      "DeviceLoginTokenDto": {
+        "type": "object",
+        "properties": {
+          "device_code": {
+            "type": "string",
+            "description": "The `device_code` from `POST /auth/device`"
+          }
+        }
+      },
+      "SubmitChangeDto": {
+        "type": "object",
+        "properties": {
+          "typeName": {
+            "type": "string",
+            "description": "The type of change",
+            "enum": [
+              "AddAssemblyAliasesChange",
+              "AddAssemblyAndFeaturesFromFileChange",
+              "AddAssemblyFromExternalChange",
+              "AddAssemblyFromFileChange",
+              "AddFeatureChange",
+              "AddFeaturesFromFileChange",
+              "AddRefSeqAliasesChange",
+              "AddUserChange",
+              "DeleteAssemblyChange",
+              "DeleteFeatureChange",
+              "DeleteUserChange",
+              "FeatureAttributeChange",
+              "ImportJBrowseConfigChange",
+              "LocationEndChange",
+              "LocationStartChange",
+              "MergeExonsChange",
+              "MergeTranscriptsChange",
+              "SplitExonChange",
+              "StrandChange",
+              "TypeChange",
+              "UndoMergeExonsChange",
+              "UndoMergeTranscriptsChange",
+              "UndoSplitExonChange",
+              "UserChange"
+            ]
+          },
+          "assembly": {
+            "type": "string",
+            "description": "Assembly ID, for changes to an assembly or its features"
+          },
+          "changedIds": {
+            "description": "IDs of the features this change modifies, for feature changes",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "typeName"
+        ],
+        "additionalProperties": true
+      }
+    }
+  }
+}

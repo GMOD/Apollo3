@@ -13,6 +13,7 @@ export class SequenceController {
 
   private readonly logger = new Logger(SequenceController.name)
 
+  /** Get the sequence of a range of a reference sequence */
   @Get()
   getSequence(@Query() request: GetSequenceDto) {
     this.logger.debug(`getSequence: ${JSON.stringify(request)}`)

@@ -8,11 +8,13 @@ import {
   Response,
   StreamableFile,
 } from '@nestjs/common'
+import { ApiProduces, ApiQuery } from '@nestjs/swagger'
 import type { Response as ExpressResponse } from 'express'
 
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'
 
+import { GetExportIDDto } from './dto/get-export-id.dto.js'
 import { ExportService } from './export.service.js'
 
 @Controller('export')
@@ -20,25 +22,39 @@ export class ExportController {
   constructor(private readonly exportService: ExportService) {}
 
   /**
-   * Get and ID to be used with exportGFF3. ID will be valid for 5 minutes.
-   * @param request -
-   * @returns The ID of an export that will be valid for 5 minutes
+   * Start an export of an assembly as GFF3
+   *
+   * Returns an export ID to pass to `GET /export`. The ID is valid for 5
+   * minutes.
    */
   @Validations(Role.ReadOnly)
   @Get('getID')
-  async getExportID(@Query() request: { assembly: string }) {
+  async getExportID(@Query() request: GetExportIDDto) {
     const exportDoc = await this.exportService.getExportID(request.assembly)
     return { exportID: exportDoc._id }
   }
 
-  /* Export GFF3 from database.
-   * e.g: curl http://localhost:3999/features/exportGFF3?exportID=624a7e97d45d7745c2532b01
+  /**
+   * Download an assembly as GFF3
    *
-   * @param request -
-   * @param res -
-   * @returns A StreamableFile of the GFF3
+   * Doesn't need a token, since the export ID from `GET /export/getID` already
+   * grants access. Streams the GFF3 as a file attachment.
+   * @param exportID - Export ID from `GET /export/getID`
    */
+  @ApiQuery({
+    name: 'includeFASTA',
+    required: false,
+    description: "Add the assembly's sequences in a `##FASTA` section",
+    schema: { type: 'boolean', default: false },
+  })
+  @ApiQuery({
+    name: 'fastaWidth',
+    required: false,
+    description: 'Line width of the FASTA sequences',
+    schema: { type: 'integer', default: 80 },
+  })
   @Validations(Role.None)
+  @ApiProduces('application/text')
   @Get()
   async exportGFF3(
     // @Query()

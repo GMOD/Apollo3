@@ -47,6 +47,7 @@
     "./*.cjs",
     "./.*.cjs",
     "./scripts/*.ts",
+    "./packages/apollo-collaboration-server/scripts/*.ts",
     "./.husky/*.cjs",
   ],
   "exclude": ["./.pnp.cjs"],

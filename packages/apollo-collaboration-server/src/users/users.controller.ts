@@ -11,6 +11,7 @@ import {
   Query,
   Req,
 } from '@nestjs/common'
+import { ApiExcludeEndpoint } from '@nestjs/swagger'
 import type { Request } from 'express'
 
 import { Role } from '../utils/role/role.enum.js'
@@ -26,7 +27,9 @@ export class UsersController {
   private readonly logger = new Logger(UsersController.name)
 
   /**
-   * Get users. If `page` and `pageSize` are given, returns
+   * List users
+   *
+   * If `page` and `pageSize` are given, returns
    * `{ users, totalCount, specialUsers }`, where `users` is one page of regular
    * users and `specialUsers` is the guest and root users (if they exist).
    * Otherwise returns an array of all users.
@@ -45,9 +48,10 @@ export class UsersController {
   }
 
   /**
-   * Get the oldest (in terms of creation date) admin email address. This is needed when user has logged in and he needs to email to admin to get role
-   * User who is calling this endpoint does not have any role yet and therefore there can not be 'Role' -validation
-   * @returns The oldest (in terms of creation date) admin email address.
+   * Get the first admin user
+   *
+   * Lets a user who has logged in but doesn't have a role yet find out who to
+   * contact, so it doesn't require a role.
    */
   @Validations(Role.None)
   @Get('admin')
@@ -56,9 +60,10 @@ export class UsersController {
   }
 
   /**
-   * Receives user location by broadcasting 'user location' -request using web sockets
-   * @param userLocation - user's location information
-   * @returns
+   * Ask other users' clients to share their locations
+   *
+   * The locations are sent to connected clients over the server's WebSocket
+   * connection, not in this response.
    */
   @Validations(Role.ReadOnly)
   @Get('locations')
@@ -71,6 +76,10 @@ export class UsersController {
     return this.usersService.requestUsersLocations(user)
   }
 
+  /**
+   * Get a user
+   * @param id - User ID
+   */
   @Validations(Role.Admin)
   @Get(':id')
   findOne(@Param('id') id: string) {
@@ -84,6 +93,9 @@ export class UsersController {
    * @param userLocDto - user's location information
    * @returns
    */
+  // Left out of the API docs because it's only for the Apollo JBrowse plugin,
+  // which sends the locations as JSON in a form-encoded body
+  @ApiExcludeEndpoint()
   @Validations(Role.ReadOnly)
   @Post('userLocation')
   userLoc(@Body() userLocDto: UserLocationDto[], @Req() req: Request) {
