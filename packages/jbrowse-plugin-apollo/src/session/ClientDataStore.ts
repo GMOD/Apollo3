@@ -258,12 +258,16 @@ export function clientDataStoreFactory(
           | undefined
         return metadata?.internetAccountConfigId
       },
+    }))
+    .views((self) => ({
+      // Uses `self` rather than `this` because callers such as ChangeManager
+      // destructure this method off the store
       getBackendDriver(assemblyId: string): BackendDriver | undefined {
         const { assemblyManager } = getSession(self)
         if (!assemblyManager.get(assemblyId)) {
           return
         }
-        if (this.getInternetAccountConfigId(assemblyId)) {
+        if (self.getInternetAccountConfigId(assemblyId)) {
           return self.collaborationServerDriver
         }
         return self.localDriver
