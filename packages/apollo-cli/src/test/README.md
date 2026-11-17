@@ -45,9 +45,3 @@ cd Apollo3/packages/apollo-cli
 ```
  yarn tsx --test-name-pattern='Print help|Feature get' src/test/test.ts
 ```
-
-# Run docker test
-
-```
-yarn tsx ./src/test/test_docker.ts
-```

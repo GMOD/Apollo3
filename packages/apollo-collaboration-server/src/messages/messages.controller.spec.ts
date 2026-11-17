@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals'
 import { RequestMethod } from '@nestjs/common'
 import {
   METHOD_METADATA,
@@ -6,12 +7,15 @@ import {
 } from '@nestjs/common/constants.js'
 import { Reflector } from '@nestjs/core'
 import { Test, type TestingModule } from '@nestjs/testing'
-import { firstValueFrom } from 'rxjs'
+import { firstValueFrom, toArray } from 'rxjs'
 
 import { Role } from '../utils/role/role.enum.js'
 import { ROLE_KEY } from '../utils/validation/validatation.decorator.js'
 
-import { MessagesController } from './messages.controller.js'
+import {
+  HEARTBEAT_INTERVAL_MS,
+  MessagesController,
+} from './messages.controller.js'
 import { MessagesService } from './messages.service.js'
 
 // Nest stores route metadata on the handler function itself
@@ -41,10 +45,34 @@ describe('MessagesController', () => {
   it('streams events broadcast by the service', async () => {
     const eventPromise = firstValueFrom(controller.events())
     service.broadcast('COMMON', { hello: 'world' })
-    await expect(eventPromise).resolves.toEqual({
+    await expect(eventPromise).resolves.toMatchObject({
       type: 'COMMON',
       data: { hello: 'world' },
     })
+  })
+
+  it('sends a ping event when the stream is idle', () => {
+    jest.useFakeTimers()
+    try {
+      const received: unknown[] = []
+      const subscription = controller
+        .events()
+        .subscribe((event) => received.push(event))
+      jest.advanceTimersByTime(HEARTBEAT_INTERVAL_MS)
+      subscription.unsubscribe()
+      expect(received).toEqual([{ type: 'ping', data: {} }])
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('ends the stream when the service shuts down', async () => {
+    const events = firstValueFrom(controller.events().pipe(toArray()))
+    service.broadcast('COMMON', { n: 1 })
+    await service.onModuleDestroy()
+    await expect(events).resolves.toMatchObject([
+      { type: 'COMMON', data: { n: 1 } },
+    ])
   })
 
   it('exposes events() as a GET SSE route at /messages/events', () => {

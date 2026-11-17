@@ -45,22 +45,31 @@ export class ChecksService implements OnApplicationBootstrap {
    * don't add duplicate checks.
    */
   async onApplicationBootstrap() {
-    for (const [key, check] of checkRegistry.getChecks()) {
-      const checkByName = await this.checkModel.find({ name: key }).exec()
-      const firstCheck = checkByName.at(0)
-      if (firstCheck) {
-        const checkByNameAndVersion = await this.checkModel
-          .find({
-            name: key,
-            version: check.version,
-          })
+    for (const [name, check] of checkRegistry.getChecks()) {
+      const { causes, isDefault, version } = check
+      const now = new Date()
+      const { upsertedCount } = await this.checkModel
+        .updateOne(
+          { name },
+          {
+            $setOnInsert: {
+              name,
+              version,
+              causes,
+              isDefault,
+              createdAt: now,
+              updatedAt: now,
+            },
+          },
+          // Don't bump updatedAt for existing checks, it decides which
+          // features get re-checked
+          { upsert: true, timestamps: false },
+        )
+        .exec()
+      if (upsertedCount === 0) {
+        await this.checkModel
+          .updateOne({ name, version: { $ne: version } }, { $set: { version } })
           .exec()
-        if (checkByNameAndVersion.length === 0) {
-          firstCheck.version = check.version
-          await firstCheck.save()
-        }
-      } else {
-        await this.checkModel.create(check)
       }
     }
   }

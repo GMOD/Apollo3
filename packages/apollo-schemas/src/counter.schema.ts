@@ -13,3 +13,6 @@ export class Counter {
 }
 
 export const CounterSchema = SchemaFactory.createForClass(Counter)
+
+// Several server processes may create the same counter at once
+CounterSchema.index({ id: 1 }, { unique: true })

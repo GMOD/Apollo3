@@ -1923,12 +1923,37 @@
             }
           }
         },
+        "summary": "Check that the server can serve requests",
+        "tags": [
+          "Health"
+        ],
+        "x-apollo-role": "none",
+        "description": "Required role: none.\n\nPasses when this process can reach MongoDB and is receiving live updates from other server processes. Suitable for a load balancer health check or a Kubernetes readiness probe.",
+        "security": []
+      }
+    },
+    "/health/live": {
+      "get": {
+        "operationId": "HealthController_live",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
         "summary": "Check that the server is running",
         "tags": [
           "Health"
         ],
         "x-apollo-role": "none",
-        "description": "Required role: none.",
+        "description": "Required role: none.\n\nPasses whether or not this process can reach MongoDB. Suitable for a Kubernetes liveness probe, so a MongoDB outage doesn't restart every server process.",
         "security": []
       }
     },
