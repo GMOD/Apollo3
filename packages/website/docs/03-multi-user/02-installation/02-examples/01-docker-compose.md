@@ -318,6 +318,23 @@ remove a MongoDB service, be sure to update this value.
 This should match what's on the right side of the colon in the `volumes` section
 (e.g. `/data/uploads`).
 
+The collaboration server runs as the non-root `node` user (UID 1000), so this
+folder must be writable by that user. A new named volume mounted at
+`/data/uploads` is set up correctly automatically. If you use a bind mount
+instead, make sure UID 1000 can write to that folder on the host.
+
+:::note Upgrading from older versions
+
+Older versions of the collaboration server image ran as root, so an existing
+uploads volume may have files owned by root that the server can no longer write.
+Before starting the new version, fix the ownership once with:
+
+```sh
+docker compose run --rm --user root --entrypoint chown apollo-collaboration-server -R node:node /data/uploads
+```
+
+:::
+
 ##### `URL`
 
 The URL of the server that's hosting Apollo.

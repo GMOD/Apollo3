@@ -6,4 +6,5 @@ LABEL org.opencontainers.image.description="Apollo CLI"
 ARG APOLLO_CLI_VERSION=latest
 RUN npm install --global @apollo-annotation/cli@${APOLLO_CLI_VERSION}
 ENV APOLLO_DISABLE_CONFIG_CREATE=1
+USER node
 ENTRYPOINT ["apollo"]
