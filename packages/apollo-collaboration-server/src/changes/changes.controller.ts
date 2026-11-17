@@ -5,7 +5,10 @@ import { Body, Controller, Get, Logger, Post, Query, Req } from '@nestjs/common'
 import { ApiBody } from '@nestjs/swagger'
 import type { Request } from 'express'
 
+import { AssemblyAccess } from '../assemblyAccess/assemblyAccess.decorator.js'
+import { AssemblyAccessService } from '../assemblyAccess/assemblyAccess.service.js'
 import { ParseChangePipe } from '../utils/parse-change.pipe.js'
+import type { RequestWithUser } from '../utils/requestWithUser.js'
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'
 
@@ -16,7 +19,10 @@ import { SubmitChangeDto } from './dto/submit-change.dto.js'
 @Validations(Role.ReadOnly)
 @Controller('changes')
 export class ChangesController {
-  constructor(private readonly changesService: ChangesService) {}
+  constructor(
+    private readonly changesService: ChangesService,
+    private readonly assemblyAccessService: AssemblyAccessService,
+  ) {}
   private readonly logger = new Logger(ChangesController.name)
 
   /**
@@ -27,6 +33,7 @@ export class ChangesController {
    * change log, and broadcasts it to other connected clients.
    */
   @ApiBody({ type: SubmitChangeDto })
+  @AssemblyAccess({ kind: 'change' })
   @Post()
   @Validations(Role.User)
   async create(@Body(ParseChangePipe) change: Change, @Req() request: Request) {
@@ -48,9 +55,20 @@ export class ChangesController {
    * Returns `{ changes, totalCount }`, where `totalCount` is the number of
    * changes that match the filters, ignoring paging.
    */
+  @AssemblyAccess({
+    kind: 'assembly',
+    in: 'query',
+    key: 'assembly',
+    optional: true,
+  })
   @Get()
-  async findAll(@Query() changeFilter: FindChangeDto) {
+  async findAll(
+    @Query() changeFilter: FindChangeDto,
+    @Req() request: RequestWithUser,
+  ) {
     this.logger.debug(`ChangeFilter: ${JSON.stringify(changeFilter)}`)
-    return this.changesService.findAll(changeFilter)
+    const allowedAssemblyIds =
+      await this.assemblyAccessService.getAllowedAssemblyIds(request.user)
+    return this.changesService.findAll(changeFilter, allowedAssemblyIds)
   }
 }

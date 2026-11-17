@@ -23,6 +23,7 @@ export default defineConfig([
       // Generated while building the OpenAPI document
       'packages/apollo-collaboration-server/dist-openapi/',
       'packages/apollo-collaboration-server/src/openapi-metadata.ts',
+      '**/__fixtures__/',
       'packages/website/.docusaurus/',
       'packages/website/docs/03-multi-user/03-guides/05-rest-api/reference/',
       'packages/jbrowse-plugin-apollo/.jbrowse/',

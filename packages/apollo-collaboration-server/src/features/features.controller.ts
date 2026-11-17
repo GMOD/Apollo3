@@ -9,16 +9,20 @@ import {
   ParseBoolPipe,
   Post,
   Query,
+  Req,
   Response,
   StreamableFile,
 } from '@nestjs/common'
 import { ApiOkResponse, ApiQuery } from '@nestjs/swagger'
 import type { Response as ExpressResponse } from 'express'
 
+import { AssemblyAccess } from '../assemblyAccess/assemblyAccess.decorator.js'
+import { AssemblyAccessService } from '../assemblyAccess/assemblyAccess.service.js'
 import {
   FeatureIdsSearchDto,
   FeatureRangeSearchDto,
 } from '../entity/gff3Object.dto.js'
+import type { RequestWithUser } from '../utils/requestWithUser.js'
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'
 
@@ -35,11 +39,20 @@ const maxDensityBins = 10_000
 @Validations(Role.ReadOnly)
 @Controller('features')
 export class FeaturesController {
-  constructor(private readonly featuresService: FeaturesService) {}
+  constructor(
+    private readonly featuresService: FeaturesService,
+    private readonly assemblyAccessService: AssemblyAccessService,
+  ) {}
   private readonly logger = new Logger(FeaturesController.name)
 
   /** Search for features by text in their IDs and attributes */
   @ApiOkResponse({ type: [Feature] })
+  @AssemblyAccess({
+    kind: 'assembly',
+    in: 'query',
+    key: 'assemblies',
+    list: true,
+  })
   @Get('searchFeatures')
   async searchFeatures(@Query() request: SearchFeaturesRequest) {
     return this.featuresService.searchFeatures(request)
@@ -67,6 +80,7 @@ export class FeaturesController {
       },
     },
   })
+  @AssemblyAccess({ kind: 'refSeq', in: 'query', key: 'refSeq' })
   @Get('getFeatures')
   getFeaturesByRange(
     @Query() request: FeatureRangeSearchDto,
@@ -92,6 +106,12 @@ export class FeaturesController {
   }
 
   /** Get features by their IDs */
+  @AssemblyAccess({
+    kind: 'feature',
+    in: 'body',
+    key: 'featureIds',
+    list: true,
+  })
   @Post('getByIds')
   findByFeatureIds(@Body() request: FeatureIdsSearchDto) {
     this.logger.debug(`: featureIds: ${JSON.stringify(request.featureIds)}`)
@@ -102,13 +122,24 @@ export class FeaturesController {
   }
 
   /** Count features */
+  @AssemblyAccess(
+    { kind: 'assembly', in: 'query', key: 'assemblyId', optional: true },
+    { kind: 'refSeq', in: 'query', key: 'refSeqId', optional: true },
+  )
   @Get('count')
-  async getFeatureCount(@Query() featureCountRequest: FeatureCountRequest) {
+  async getFeatureCount(
+    @Query() featureCountRequest: FeatureCountRequest,
+    @Req() request: RequestWithUser,
+  ) {
     this.logger.debug(
       `Get features count by ${JSON.stringify(featureCountRequest)}`,
     )
-    const count =
-      await this.featuresService.getFeatureCount(featureCountRequest)
+    const allowedAssemblyIds =
+      await this.assemblyAccessService.getAllowedAssemblyIds(request.user)
+    const count = await this.featuresService.getFeatureCount(
+      featureCountRequest,
+      allowedAssemblyIds,
+    )
     return { count }
   }
 
@@ -118,6 +149,7 @@ export class FeaturesController {
    * Returns how many features overlap the range, and how many overlap each
    * bin of the range expanded to multiples of `binSize`.
    */
+  @AssemblyAccess({ kind: 'refSeq', in: 'query', key: 'refSeq' })
   @Get('getFeatureDensity')
   getFeatureDensity(@Query() request: FeatureDensityRequest) {
     const start = Number(request.start)
@@ -150,6 +182,12 @@ export class FeaturesController {
   }
 
   /** Get a feature by an indexed ID, such as its GFF3 ID */
+  @AssemblyAccess({
+    kind: 'assembly',
+    in: 'query',
+    key: 'assemblies',
+    list: true,
+  })
   @Get('getByIndexedId')
   async getById(@Query() getByIndexedIdRequest: GetByIndexedIdRequest) {
     return this.featuresService.getByIndexedId(getByIndexedIdRequest)
@@ -168,6 +206,7 @@ export class FeaturesController {
     type: Boolean,
     description: 'Return the top-level feature that contains this feature',
   })
+  @AssemblyAccess({ kind: 'feature', in: 'params', key: 'featureid' })
   @Get(':featureid')
   getFeature(
     @Param('featureid') featureid: string,
@@ -182,6 +221,7 @@ export class FeaturesController {
    * Run the checks on a feature
    * @param featureid - Feature ID
    */
+  @AssemblyAccess({ kind: 'feature', in: 'params', key: 'featureid' })
   @Get('check/:featureid')
   checkFeature(@Param('featureid') featureid: string) {
     return this.featuresService.checkFeature(featureid)
@@ -190,8 +230,10 @@ export class FeaturesController {
   /** List all features */
   @ApiOkResponse({ type: [Feature] })
   @Get()
-  getAll() {
+  async getAll(@Req() request: RequestWithUser) {
     this.logger.debug('Get all features')
-    return this.featuresService.findAll()
+    const allowedAssemblyIds =
+      await this.assemblyAccessService.getAllowedAssemblyIds(request.user)
+    return this.featuresService.findAll(allowedAssemblyIds)
   }
 }
