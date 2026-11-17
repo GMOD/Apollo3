@@ -28,7 +28,7 @@ You'll need `docker` to be installed.
   (alternatively, run the `just setup` recipe, see below).
 - Run FE: `pnpm start` from `jbrowse-components/products/jbrowse-web`
   (alternatively, run the `just run-jbrowse` recipe).
-- Use the _Task: Run Task -> Start_ command in VS Code
+- Use the _Tasks: Run Task -> Start: dev_ command in VS Code
 
 ## Directly on the development computer
 

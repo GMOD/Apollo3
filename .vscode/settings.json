@@ -7,4 +7,5 @@
   "js/ts.tsdk.promptToUseWorkspaceVersion": true,
   "eslint.nodePath": ".yarn/sdks",
   "prettier.prettierPath": ".yarn/sdks/prettier/index.cjs",
+  "npm.packageManager": "yarn",
 }
