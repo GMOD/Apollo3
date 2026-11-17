@@ -198,7 +198,7 @@ export const Attributes = observer(function Attributes({
                 secondary={
                   editingKey === key ? (
                     <AttributeEditor
-                      session={session}
+                      session={session as unknown as AbstractSessionModel}
                       attributeValues={values as string[] | undefined}
                       setAttribute={(newValues) => {
                         setEditingKey(null)
@@ -222,7 +222,7 @@ export const Attributes = observer(function Attributes({
               primary={<AttributeKey attributeKey={newKey} />}
               secondary={
                 <NewKeyAttributeEditor
-                  session={session}
+                  session={session as unknown as AbstractSessionModel}
                   attributeValues={[]}
                   setAttribute={(newValues) => {
                     if (newValues) {

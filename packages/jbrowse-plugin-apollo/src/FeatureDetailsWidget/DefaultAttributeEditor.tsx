@@ -1,19 +1,13 @@
+import type { AttributeEditorProps } from '@apollo-annotation/common/client'
 import AddBoxIcon from '@mui/icons-material/AddBox'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { Button, DialogActions, IconButton } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 
-import type { ApolloSessionModel } from '../session'
-
 import { StringTextField } from './StringTextField'
 
-export interface AttributeEditorProps {
-  session: ApolloSessionModel
-  attributeValues?: string[]
-  setAttribute: (newAttribute?: string[]) => void
-  isNew?: boolean
-}
+export type { AttributeEditorProps } from '@apollo-annotation/common/client'
 
 export const DefaultAttributeEditor = observer(function DefaultAttributeEditor({
   attributeValues,

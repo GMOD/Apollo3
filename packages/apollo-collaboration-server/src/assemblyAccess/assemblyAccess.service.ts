@@ -2,7 +2,7 @@ import type {
   AssemblyAccess,
   AssemblyAccessProps,
   AssemblyGrant,
-} from '@apollo-annotation/common'
+} from '@apollo-annotation/common/server'
 import {
   Assembly,
   type AssemblyDocument,

@@ -1,18 +1,24 @@
 import {
-  type ApolloServerHookRegistrar,
-  ApolloServerPlugin,
-  type AssemblyGrant,
   type ChangeConstructor,
+  type ChangeRule,
   type Check,
-  type CustomAuthHandler,
-  type Validation,
   changeRegistry,
   checkRegistry,
 } from '@apollo-annotation/common'
-import { validationRegistry } from '@apollo-annotation/shared'
+import {
+  type ApolloServerHookRegistrar,
+  ApolloServerPlugin,
+  type AssemblyGrant,
+  type CustomAuthHandler,
+  type ServerChangeType,
+  type ServerValidation,
+} from '@apollo-annotation/common/server'
 import { jest } from '@jest/globals'
 import { getConnectionToken } from '@nestjs/mongoose'
 import { Test, type TestingModule } from '@nestjs/testing'
+
+import { serverChangeTypes } from '../changes/serverChangeTypes.js'
+import { serverValidations } from '../utils/validation/ServerValidationSet.js'
 
 import { APOLLO_PLUGINS } from './plugins.constants.js'
 import { PluginsService } from './plugins.service.js'
@@ -122,6 +128,57 @@ describe('PluginsService', () => {
       expect(service.pluginRoutes).toEqual([routeA, routeB])
     })
 
+    it('finds plugin routes by method and path, with path parameters', async () => {
+      const getRoute = {
+        method: 'GET',
+        path: '/my-plugin/widgets/:id',
+        handler: noopHandler,
+      }
+      const postRoute = {
+        method: 'post',
+        path: '/my-plugin/widgets',
+        handler: noopHandler,
+      }
+      const service = await createService([
+        new FakePlugin('routes-plugin', (registrar) => {
+          registrar.registerHook('Apollo-RegisterRoutes', (routes) => [
+            ...routes,
+            getRoute,
+            postRoute,
+          ])
+        }),
+      ])
+
+      await service.onModuleInit()
+
+      expect(service.findRoute('GET', '/my-plugin/widgets/a%20b')).toEqual({
+        route: getRoute,
+        params: { id: 'a b' },
+      })
+      expect(service.findRoute('POST', '/my-plugin/widgets')?.route).toBe(
+        postRoute,
+      )
+      expect(service.findRoute('GET', '/my-plugin/widgets')).toBeUndefined()
+      expect(
+        service.findRoute('DELETE', '/my-plugin/widgets/1'),
+      ).toBeUndefined()
+    })
+
+    it('aborts startup when a plugin route has an invalid path', async () => {
+      const service = await createService([
+        new FakePlugin('bad-route-plugin', (registrar) => {
+          registrar.registerHook('Apollo-RegisterRoutes', (routes) => [
+            ...routes,
+            { method: 'GET', path: '/bad/:', handler: noopHandler },
+          ])
+        }),
+      ])
+
+      await expect(service.onModuleInit()).rejects.toThrow(
+        /Invalid path "\/bad\/:"/,
+      )
+    })
+
     it('aborts startup when a startup-fatal hook throws', async () => {
       const service = await createService([
         new FakePlugin('broken-routes-plugin', (registrar) => {
@@ -164,15 +221,20 @@ describe('PluginsService', () => {
       expect(registerCustomAuth).toHaveBeenCalledTimes(1)
     })
 
-    it('registers plugin-contributed Change types into the shared changeRegistry', async () => {
+    it('registers plugin-contributed change types with their handlers', async () => {
       const name = unique('TestChange')
       // eslint-disable-next-line @typescript-eslint/no-extraneous-class
       class FakeChange {}
+      const changeType: ServerChangeType = {
+        changeType: FakeChange as unknown as ChangeConstructor,
+        handler: jest.fn<ServerChangeType['handler']>(),
+        requiredRole: 'admin',
+      }
       const service = await createService([
         new FakePlugin('change-plugin', (registrar) => {
           registrar.registerHook('Apollo-RegisterChangeTypes', (types) => ({
             ...types,
-            [name]: FakeChange as unknown as ChangeConstructor,
+            [name]: changeType,
           }))
         }),
       ])
@@ -180,6 +242,8 @@ describe('PluginsService', () => {
       await service.onModuleInit()
 
       expect(changeRegistry.getChangeType(name)).toBe(FakeChange)
+      expect(serverChangeTypes.get(name)).toBe(changeType)
+      expect(serverChangeTypes.getRequiredRole(name)).toBe('admin')
     })
 
     it('registers plugin-contributed Checks into the shared checkRegistry', async () => {
@@ -205,20 +269,25 @@ describe('PluginsService', () => {
       expect(checkRegistry.getCheck(name)).toBe(check)
     })
 
-    it('registers plugin-contributed Validations into the shared validationRegistry', async () => {
-      const validation = { name: unique('TestValidation') } as Validation
+    it('registers plugin-contributed change rules and server validations', async () => {
+      const rule = {
+        name: unique('TestRule'),
+        validate: jest.fn(),
+      } as ChangeRule
+      const validation = { name: unique('TestValidation') } as ServerValidation
       const service = await createService([
         new FakePlugin('validation-plugin', (registrar) => {
           registrar.registerHook(
             'Apollo-RegisterValidations',
-            (validations) => [...validations, validation],
+            (validations) => [...validations, rule, validation],
           )
         }),
       ])
 
       await service.onModuleInit()
 
-      expect(validationRegistry.validations.has(validation)).toBe(true)
+      expect(serverValidations.rules.has(rule)).toBe(true)
+      expect(serverValidations.validations.has(validation)).toBe(true)
     })
   })
 

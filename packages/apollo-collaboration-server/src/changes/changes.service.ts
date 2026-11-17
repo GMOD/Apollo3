@@ -4,6 +4,7 @@ import {
   isAssemblySpecificChange,
   isFeatureChange,
 } from '@apollo-annotation/common'
+import type { ServerValidationContext } from '@apollo-annotation/common/server'
 import {
   Assembly,
   type AssemblyDocument,
@@ -21,9 +22,7 @@ import {
   type AddFeatureChangeDetails,
   type ChangeMessage,
   type DecodedJWT,
-  changes,
   makeUserSessionId,
-  validationRegistry,
 } from '@apollo-annotation/shared'
 import {
   Logger,
@@ -35,9 +34,13 @@ import { Model, type QueryFilter, Types } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service.js'
 import { MessagesService } from '../messages/messages.service.js'
+import { serverValidations } from '../utils/validation/ServerValidationSet.js'
 
-import { ChangeHandlersService } from './changeHandlers.service.js'
 import { FindChangeDto } from './dto/find-change.dto.js'
+import {
+  type InternalChangeContext,
+  serverChangeTypes,
+} from './serverChangeTypes.js'
 
 const STATUS_ZERO_CHANGE_TYPES = new Set([
   'AddAssemblyAndFeaturesFromFileChange',
@@ -59,7 +62,6 @@ export class ChangesService {
     private readonly changeModel: Model<ChangeDocument>,
     private readonly countersService: CountersService,
     private readonly messagesService: MessagesService,
-    private readonly changeHandlersService: ChangeHandlersService,
   ) {}
 
   private readonly logger = new Logger(ChangesService.name)
@@ -71,7 +73,20 @@ export class ChangesService {
       await this.countersService.getNextSequenceValue('changeCounter')
     const uniqUserId = `${user.email}-${sequence}` // Same user can upload data from more than one client
 
-    const validationResult = await validationRegistry.backendPreValidate(change)
+    const validationContext: ServerValidationContext = {
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
+      connection: this.featureModel.db,
+      logger: this.logger,
+    }
+    const validationResult = await serverValidations.preValidate(
+      change,
+      validationContext,
+    )
     if (!validationResult.ok) {
       const errorMessage = validationResult.resultsMessages
       throw new UnprocessableEntityException(
@@ -100,12 +115,13 @@ export class ChangesService {
     }
 
     try {
-      const handler =
-        this.changeHandlersService[change.typeName as keyof typeof changes]
-      // @ts-expect-error change not narrowed
-      await handler.bind(this.changeHandlersService)(change, {
-        user: uniqUserId,
-      })
+      const changeContext: InternalChangeContext = {
+        ...validationContext,
+        uniqueUserId: uniqUserId,
+      }
+      await serverChangeTypes
+        .get(change.typeName)
+        .handler(change, changeContext)
     } catch (error) {
       // Clean up old "temporary document" -documents
       this.logger.error(
@@ -144,9 +160,9 @@ export class ChangesService {
       throw error
     }
     const changeDoc = savedChangedLogDoc
-    const validationResult2 = await validationRegistry.backendPostValidate(
+    const validationResult2 = await serverValidations.postValidate(
       change,
-      { featureModel: this.featureModel },
+      validationContext,
     )
     if (!validationResult2.ok) {
       const errorMessage = validationResult2.resultsMessages
