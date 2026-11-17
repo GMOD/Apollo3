@@ -18,6 +18,7 @@ import {
   getPropagatedLocationChanges,
   isCDSFeature,
   isExonFeature,
+  nearestBaseBoundary,
   roundPxSpan,
   selectFeatureAndOpenWidget,
   setCanvasSize,
@@ -32,7 +33,13 @@ export interface MousePosition {
   y: number
   assemblyName: string
   refName: string
+  /** 0-based coordinate of the base under the mouse */
   bp: number
+  /**
+   * 0-based coordinate of the base boundary nearest the mouse, i.e. where a
+   * dragged feature edge (which sits between bases) should go
+   */
+  edgeBp: number
   regionNumber: number
 }
 
@@ -45,13 +52,12 @@ export function getMousePosition(
   const { left, top } = canvas.getBoundingClientRect()
   const x = clientX - left
   const y = clientY - top
-  const {
-    coord: bp,
-    index: regionNumber,
-    assemblyName,
-    refName,
-  } = lgv.pxToBp(x)
-  return { x, y, assemblyName, refName, bp, regionNumber }
+  const pxToBpResult = lgv.pxToBp(x)
+  const { coord, index: regionNumber, assemblyName, refName } = pxToBpResult
+  // pxToBp's `coord` is 1-based, but Apollo feature coordinates are 0-based
+  const bp = coord - 1
+  const edgeBp = nearestBaseBoundary(pxToBpResult)
+  return { x, y, assemblyName, refName, bp, edgeBp, regionNumber }
 }
 
 export function mouseEventsModelIntermediateFactory(
@@ -194,7 +200,7 @@ export function mouseEventsModelFactory(
           const assembly = self.getAssemblyId(region.assemblyName) as string
           const changes = getPropagatedLocationChanges(
             feature,
-            current.bp,
+            current.edgeBp,
             edge,
             shrinkParent,
             self.session,
@@ -382,8 +388,8 @@ export function mouseEventsModelFactory(
                     start,
                     feature: dragFeature,
                   } = apolloDragging
-                  const dragMin = Math.min(current.bp, start.bp)
-                  const dragMax = Math.max(current.bp, start.bp)
+                  const dragMin = Math.min(current.edgeBp, start.edgeBp)
+                  const dragMax = Math.max(current.edgeBp, start.edgeBp)
                   if (
                     block.refName === start.refName &&
                     doesIntersect2(block.start, block.end, dragMin, dragMax)

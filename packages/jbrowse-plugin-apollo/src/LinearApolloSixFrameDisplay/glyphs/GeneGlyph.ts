@@ -745,7 +745,7 @@ function getTooltipLines(
   let cds: TranscriptPartCoding | undefined = undefined
   for (const loc of feature.cdsLocations) {
     for (const cdsLoc of loc) {
-      if (bp >= cdsLoc.min && bp <= cdsLoc.max) {
+      if (bp >= cdsLoc.min && bp < cdsLoc.max) {
         cds = cdsLoc
         break
       }

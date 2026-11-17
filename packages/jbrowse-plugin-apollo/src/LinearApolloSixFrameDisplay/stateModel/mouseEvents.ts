@@ -64,7 +64,7 @@ export function mouseEventsModelIntermediateFactory(
         }
         const genes = self
           .getGenesInRegion(region)
-          .filter((gene) => bp >= gene.min && bp <= gene.max)
+          .filter((gene) => bp >= gene.min && bp < gene.max)
         const transcripts = genes.flatMap((gene) =>
           [...(gene.children?.values() ?? [])].filter((child) =>
             featureTypeOntology.isTypeOf(child.type, 'transcript'),
@@ -83,7 +83,7 @@ export function mouseEventsModelIntermediateFactory(
                   featureTypeOntology.isTypeOf(exon.type, 'exon') &&
                   (exon.strand === 1 ? 1 : -1) === strand &&
                   bp >= exon.min &&
-                  bp <= exon.max,
+                  bp < exon.max,
               ) ?? genes.find((gene) => (gene.strand === 1 ? 1 : -1) === strand)
         } else {
           const { frame } = rowContents
@@ -97,7 +97,7 @@ export function mouseEventsModelIntermediateFactory(
               .some(
                 (cds) =>
                   bp >= cds.min &&
-                  bp <= cds.max &&
+                  bp < cds.max &&
                   getFrame(
                     cds.min,
                     cds.max,
@@ -201,7 +201,7 @@ export function mouseEventsModelFactory(
         const assembly = self.getAssemblyId(region.assemblyName) as string
         const changes = getPropagatedLocationChanges(
           feature,
-          current.bp,
+          current.edgeBp,
           edge,
           shrinkParent,
           self.session,

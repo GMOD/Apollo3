@@ -1,0 +1,55 @@
+version: 2
+updates:
+  # Keeps the actions up to date, and regenerates their entries in
+  # .github/workflows/actions.lock in the same pull request. The cooldown skips
+  # releases until they've been out for a week, so a compromised release has
+  # time to be noticed and pulled first.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns:
+          - '*'
+
+  # Keeps the digests of pinned base images (and the Dockerfile syntax
+  # directive) up to date as their tags are rebuilt. Major versions (e.g. Node
+  # or MongoDB) are upgraded by hand, so they're ignored here.
+  - package-ecosystem: docker
+    directories:
+      - /
+      - /.devcontainer
+      - /.github/workflows/deploy
+      - /packages/apollo-cli
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-major
+    groups:
+      docker:
+        patterns:
+          - '*'
+
+  - package-ecosystem: docker-compose
+    directories:
+      - /.devcontainer
+      - /.github/workflows/deploy
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-major
+    groups:
+      docker-compose:
+        patterns:
+          - '*'

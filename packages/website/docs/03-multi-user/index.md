@@ -1,3 +1,5 @@
+import Link from '@docusaurus/Link'
+
 # Multiple users
 
 In a multi-user Apollo installation, users connect to an **Apollo Collaboration
@@ -15,8 +17,8 @@ multi-user Apollo setup. This will allow you to get familiar with the various
 pieces of an Apollo installation and try things out like adding assemblies and
 bulk importing annotations.
 
-<a href="./01-local-demo/01-setting-up.md" className="button button--primary button--lg">Local
-demo tutorial</a>
+<Link to="/docs/multi-user/local-demo/setting-up" className="button button--primary button--lg">Local
+demo tutorial</Link>
 
 ## Installation
 
@@ -24,8 +26,8 @@ If you've tried out the local demo of Apollo and are ready to install it
 yourself, check out our installation guide, which has examples of different
 installation options.
 
-<a href="multi-user/installation/background" className="button button--primary button--lg">Installation
-guide</a>
+<Link to="/docs/multi-user/installation/background" className="button button--primary button--lg">Installation
+guide</Link>
 
 ## Guides
 

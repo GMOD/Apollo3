@@ -32,6 +32,43 @@ function compareCanvasSnapshot(testId: string, name: string) {
   })
 }
 
+interface HoverTestView {
+  bpToPx(args: {
+    refName: string
+    coord: number
+    regionNumber: number
+  }): { offsetPx: number } | undefined
+  offsetPx: number
+  displayedRegions: { refName: string }[]
+  tracks: { displays: { type: string; apolloRowHeight: number }[] }[]
+}
+
+/**
+ * The number of pixels drawn on a canvas, optionally only in a band of rows
+ * given in CSS pixels
+ */
+function countCanvasPixels($canvas: JQuery, top = 0, height?: number) {
+  const canvas = $canvas[0] as HTMLCanvasElement
+  const ctx = canvas.getContext('2d')
+  if (!ctx) {
+    throw new Error('No canvas context')
+  }
+  const scale = canvas.height / canvas.getBoundingClientRect().height
+  const { data } = ctx.getImageData(
+    0,
+    Math.round(top * scale),
+    canvas.width,
+    height === undefined ? canvas.height : Math.round(height * scale),
+  )
+  let count = 0
+  for (let i = 3; i < data.length; i += 4) {
+    if (data[i] > 0) {
+      count++
+    }
+  }
+  return count
+}
+
 describe('Simple tests for visuals', () => {
   beforeEach(() => {
     cy.loginAsGuest()
@@ -95,6 +132,62 @@ describe('Simple tests for visuals', () => {
     it('Shows main display for multiple regions', () => {
       showAllRegions()
       compareCanvasSnapshot('canvas', 'linear-apollo-display-multi-region')
+    })
+
+    it('Highlights a hovered feature and shows its tooltip', () => {
+      // Wait for the features to be drawn, so there's something to hover
+      cy.get('canvas[data-testid="canvas"]', { timeout: 10_000 }).should(
+        ($canvas: JQuery) => {
+          expect(countCanvasPixels($canvas)).to.be.greaterThan(0)
+        },
+      )
+      cy.window().then((win) => {
+        const [view] = (
+          win as unknown as {
+            JBrowseRootModel: { session: { views: HoverTestView[] } }
+          }
+        ).JBrowseRootModel.session.views
+        const display = view.tracks
+          .flatMap((track) => track.displays)
+          .find((d) => d.type === 'LinearApolloDisplay')
+        if (!display) {
+          throw new Error('No graphical Apollo display')
+        }
+        const { apolloRowHeight } = display
+        // The middle of the CDS's second segment (741..985), which the first
+        // row shows
+        const px = view.bpToPx({
+          refName: view.displayedRegions[0].refName,
+          coord: 860,
+          regionNumber: 0,
+        })
+        if (!px) {
+          throw new Error('Hover position is outside view')
+        }
+        const x = px.offsetPx - view.offsetPx
+        const y = apolloRowHeight / 2
+
+        cy.get('canvas[data-testid="overlayCanvas"]')
+          .as('overlay')
+          .should(($canvas) => {
+            expect(countCanvasPixels($canvas, 0, apolloRowHeight)).to.eq(0)
+          })
+        cy.get('@overlay').trigger('mousemove', x, y)
+
+        cy.contains('Type: CDS').should('contain.text', 'Loc: 61..1874')
+        cy.get('@overlay').should(($canvas: JQuery) => {
+          expect(
+            countCanvasPixels($canvas, 0, apolloRowHeight),
+          ).to.be.greaterThan(0)
+        })
+
+        // React builds onMouseLeave from mouseout events, not mouseleave
+        cy.get('@overlay').trigger('mouseout')
+        cy.contains('Type: CDS').should('not.exist')
+        cy.get('@overlay').should(($canvas: JQuery) => {
+          expect(countCanvasPixels($canvas, 0, apolloRowHeight)).to.eq(0)
+        })
+      })
     })
 
     it('Shows six frame display for multiple regions', () => {

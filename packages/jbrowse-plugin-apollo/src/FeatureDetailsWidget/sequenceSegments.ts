@@ -1,5 +1,7 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
-import { defaultCodonTable, revcom } from '@jbrowse/core/util'
+import { revcom } from '@jbrowse/core/util'
+
+import { codonTable } from '../util/sequenceUtils'
 
 export type SegmentType =
   | 'upOrDownstream'
@@ -105,8 +107,7 @@ export function getSequenceSegments(
       let protein = ''
       for (let i = 0; i < wholeSequence.length; i += 3) {
         const codonSeq: string = wholeSequence.slice(i, i + 3).toUpperCase()
-        protein +=
-          defaultCodonTable[codonSeq as keyof typeof defaultCodonTable] || '&'
+        protein += codonTable[codonSeq] ?? '&'
       }
       segments.push({ type: 'protein', sequence: protein, locs })
       return segments

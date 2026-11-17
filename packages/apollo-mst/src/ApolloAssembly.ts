@@ -2,20 +2,11 @@ import { type Instance, type SnapshotIn, types } from '@jbrowse/mobx-state-tree'
 
 import { ApolloRefSeq } from './ApolloRefSeq.js'
 
-export type BackendDriverType = 'CollaborationServerDriver' | 'LocalDriver'
-
 export const ApolloAssembly = types
   .model('ApolloAssembly', {
     _id: types.identifier,
     refSeqs: types.map(ApolloRefSeq),
     comments: types.array(types.string),
-    backendDriverType: types.optional(
-      types.enumeration('backendDriverType', [
-        'CollaborationServerDriver',
-        'LocalDriver',
-      ]),
-      'CollaborationServerDriver',
-    ),
   })
   .views((self) => ({
     getByRefName(refName: string) {

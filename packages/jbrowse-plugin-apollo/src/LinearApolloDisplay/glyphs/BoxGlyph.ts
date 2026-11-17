@@ -63,8 +63,8 @@ function drawDragPreview(
     return
   }
   const { current, start } = apolloDragging
-  const min = Math.min(current.bp, start.bp)
-  const max = Math.max(current.bp, start.bp)
+  const min = Math.min(current.edgeBp, start.edgeBp)
+  const max = Math.max(current.edgeBp, start.edgeBp)
 
   const [top, left, width, height] = getFeatureBox(
     display,

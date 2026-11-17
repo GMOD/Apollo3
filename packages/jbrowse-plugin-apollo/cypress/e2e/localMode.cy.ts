@@ -140,30 +140,7 @@ function addChildFeature(
 
 describe('Local mode (no collaboration server)', () => {
   beforeEach(() => {
-    // A delete can be "blocked" for a moment while the previous test's page
-    // closes its connections. It goes ahead once they're closed, so wait for
-    // "success" rather than failing on "blocked".
-    cy.wrap(null).then({ timeout: 20_000 }, async () => {
-      const dbs = await globalThis.indexedDB.databases()
-      await Promise.all(
-        dbs.map(
-          (db) =>
-            new Promise<void>((resolve, reject) => {
-              if (!db.name) {
-                resolve()
-                return
-              }
-              const request = globalThis.indexedDB.deleteDatabase(db.name)
-              request.addEventListener('success', () => {
-                resolve()
-              })
-              request.addEventListener('error', () => {
-                reject(request.error ?? new Error('deleteDatabase failed'))
-              })
-            }),
-        ),
-      )
-    })
+    cy.deleteIndexedDatabases()
     cy.preloadSequenceOntology()
   })
 
@@ -291,8 +268,8 @@ describe('Local mode (no collaboration server)', () => {
       .should('have.length', 4)
 
     // Add the CDS from the mRNA's right-click menu in the graphical display.
-    // The view shows ctgA:1..10000, so x=361 is around bp 4000, in the first
-    // intron, and y=10 is the mRNA's row.
+    // The view shows ctgA:1..10000 across its full width, so x=361 is around
+    // bp 2800, in the first intron, and y=10 is the mRNA's row.
     cy.get('[data-testid="overlayCanvas"]').rightclick(361, 10)
     cy.contains('[role="menuitem"]', /^mRNA$/).click()
     cy.contains('[role="menuitem"]', 'Add coding sequence').click()
@@ -304,6 +281,13 @@ describe('Local mode (no collaboration server)', () => {
       cy.get('input[value="1315"]')
       cy.get('input[value="7600"]')
     })
+    // Right-clicking the mRNA opened its details in a drawer, which narrows the
+    // view so the end of the CDS is off screen. Show the whole gene again so
+    // all of its warnings can be seen.
+    cy.get('input[placeholder="Search for location"]').type(
+      '{selectall}{backspace}ctgA:1..10000{enter}',
+    )
+    cy.currentLocationEquals('ctgA', 1, 10_000, 10)
 
     // The splice sites are canonical and the CDS has start and stop codons, so
     // there are no warnings

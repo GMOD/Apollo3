@@ -10,6 +10,12 @@
  * ```
  */
 
+/** The prefixes the ontology manager uses unless configured otherwise */
+export const defaultPrefixes: Readonly<Record<string, string>> = {
+  'GO:': 'http://purl.obolibrary.org/obo/GO_',
+  'SO:': 'http://purl.obolibrary.org/obo/SO_',
+}
+
 /**
  * Mirrors the read-only subset of IMSTMap's API these functions need.
  * IMSTMap doesn't extend Map and its entries() predates TypeScript's

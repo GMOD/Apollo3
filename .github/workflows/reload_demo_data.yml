@@ -7,6 +7,17 @@ on:
         description: Environment in which to reload data
         type: string
         required: true
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      # These are environment secrets, which the job below gets from its
+      # `environment`, so callers don't need to pass them.
+      SSH_PRIVATE_KEY:
+        required: false
+      ROOT_USER_PASSWORD:
+        required: false
   workflow_dispatch:
     inputs:
       environment:
@@ -14,68 +25,80 @@ on:
         type: environment
         required: true
 
+permissions: {}
+
 jobs:
   reload:
     name: Clean up ${{ inputs.environment }} demo server
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+    env:
+      ENVIRONMENT: ${{ inputs.environment }}
     steps:
-      - name: Check out
-        uses: actions/checkout@v7
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6
+        uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
       - name: Get instance address
         id: ec2-describe-instances
+        env:
+          INSTANCE_ID: ${{ vars.INSTANCE_ID }}
         run: |
           INSTANCE_ADDRESS=$(aws ec2 describe-instances \
-            --instance-ids ${{ vars.INSTANCE_ID }} \
+            --instance-ids "$INSTANCE_ID" \
             --query "Reservations[*].Instances[*].[PublicDnsName]" \
             --output text)
           echo "INSTANCE_ADDRESS=$INSTANCE_ADDRESS" >> "$GITHUB_OUTPUT"
       - name: Set up SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          INSTANCE_ADDRESS:
+            ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }}
         run: |
           mkdir --parents ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/${{ inputs.environment }}
-          chmod 600 ~/.ssh/${{ inputs.environment }}
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/"$ENVIRONMENT"
+          chmod 600 ~/.ssh/"$ENVIRONMENT"
           cat >>~/.ssh/config <<END
-          Host ${{ inputs.environment }}
-            HostName ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }}
+          Host $ENVIRONMENT
+            HostName $INSTANCE_ADDRESS
             User ec2-user
-            IdentityFile ~/.ssh/${{ inputs.environment }}
+            IdentityFile ~/.ssh/$ENVIRONMENT
             ServerAliveInterval 60
             ServerAliveCountMax 10
           END
-          ssh-keyscan -H ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H "$INSTANCE_ADDRESS" >> ~/.ssh/known_hosts
       - name: Create Docker context
         run: |
-          docker context create ${{ inputs.environment }} \
-            --docker host=ssh://${{ inputs.environment }} \
-            --description "${{ inputs.environment }} server"
+          docker context create "$ENVIRONMENT" \
+            --docker "host=ssh://$ENVIRONMENT" \
+            --description "$ENVIRONMENT server"
       - name: Load data
+        env:
+          DOCKER_TAG: ${{ vars.DOCKER_TAG }}
+          PORT: ${{ vars.PORT }}
+          ROOT_USER_PASSWORD: ${{ secrets.ROOT_USER_PASSWORD }}
         run: |
-          docker --context ${{ inputs.environment }} pull ghcr.io/gmod/apollo-cli:${{ vars.DOCKER_TAG }}
+          docker --context "$ENVIRONMENT" pull "ghcr.io/gmod/apollo-cli:${DOCKER_TAG}"
           function apollo() {
             docker \
-              --context ${{ inputs.environment }} \
+              --context "$ENVIRONMENT" \
               run \
               --rm \
               --interactive \
               --add-host host.docker.internal=host-gateway \
               --volume /home/ec2-user/.config/apollo-cli:/root/.config/apollo-cli \
               --volume /home/ec2-user/data:/data \
-              --env APOLLO_PROFILE=${{ inputs.environment }} \
-              ghcr.io/gmod/apollo-cli:${{ vars.DOCKER_TAG }} \
+              --env "APOLLO_PROFILE=${ENVIRONMENT}" \
+              "ghcr.io/gmod/apollo-cli:${DOCKER_TAG}" \
               "$@"
           }
 
           set -x
-          apollo config address http://host.docker.internal:${{ vars.PORT }}/apollo
+          apollo config address "http://host.docker.internal:${PORT}/apollo"
           apollo config accessType root
-          apollo config rootPassword ${{ secrets.ROOT_USER_PASSWORD }}
+          apollo config rootPassword "$ROOT_USER_PASSWORD"
           apollo login --force
 
           apollo jbrowse set-config /data/config.json

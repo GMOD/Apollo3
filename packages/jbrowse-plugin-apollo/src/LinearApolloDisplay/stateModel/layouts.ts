@@ -249,7 +249,7 @@ export function layoutsModelFactory(
         }
         return layoutRow
           .filter(({ feature }) => {
-            return bp >= feature.min && bp <= feature.max
+            return bp >= feature.min && bp < feature.max
           })
           .map((row) => row.feature)
       },

@@ -129,3 +129,6 @@ packages/apollo-collaboration-server/test/uploaded
 
 # Python
 __pycache__/
+
+# LICENSE copied into published packages during prepack
+packages/*/LICENSE
