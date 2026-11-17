@@ -25,6 +25,7 @@ RUN yarn build
 FROM base
 LABEL org.opencontainers.image.source=https://github.com/GMOD/Apollo3
 LABEL org.opencontainers.image.description="Apollo CLI"
+RUN apk add --no-cache tini
 WORKDIR /app
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn/ .yarn/
@@ -33,4 +34,7 @@ COPY --from=build /app/packages/apollo-cli/dist ./packages/apollo-cli/dist
 RUN yarn workspaces focus --production @apollo-annotation/cli
 WORKDIR /app/packages/apollo-cli
 ENV APOLLO_DISABLE_CONFIG_CREATE=1
-ENTRYPOINT ["yarn", "node", "bin/run.js"]
+# Run node directly instead of through `yarn node`, so yarn isn't left between
+# Docker and the CLI. Node doesn't get default signal handling as PID 1, so tini
+# runs as PID 1 and passes signals (like Ctrl-C) on to node.
+ENTRYPOINT ["/sbin/tini", "--", "node", "--require", "/app/.pnp.cjs", "--experimental-loader", "/app/.pnp.loader.mjs", "bin/run.js"]
