@@ -1,6 +1,6 @@
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import { observer } from 'mobx-react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 
 import type { ApolloSessionModel } from '../session'
 
@@ -43,19 +43,12 @@ export const TranscriptSequence = observer(function TranscriptSequence({
     ? selectedOption
     : defaultSelectedOption
 
-  const sequenceSegments = useMemo(
-    () =>
-      refData
-        ? getSequenceSegments(effectiveSelectedOption, feature, (min, max) =>
-            refData.getSequence(min, max),
-          )
-        : [],
-    [refData, feature, effectiveSelectedOption],
-  )
-  const locationIntervals = useMemo(
-    () => getLocationIntervals(sequenceSegments),
-    [sequenceSegments],
-  )
+  const sequenceSegments = refData
+    ? getSequenceSegments(effectiveSelectedOption, feature, (min, max) =>
+        refData.getSequence(min, max),
+      )
+    : []
+  const locationIntervals = getLocationIntervals(sequenceSegments)
 
   if (!(currentAssembly && refData)) {
     return null

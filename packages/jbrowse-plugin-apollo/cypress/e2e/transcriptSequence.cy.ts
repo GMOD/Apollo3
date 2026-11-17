@@ -6,6 +6,40 @@ describe('Warning signs', () => {
   afterEach(() => {
     cy.deleteAssemblies()
   })
+  it('Updates an open sequence when the transcript is edited', () => {
+    cy.addAssemblyFromGff('sequence-updates', 'test_data/mergeTranscripts.gff3')
+    cy.selectAssemblyToView('sequence-updates', 'chr2:1..60')
+    cy.contains('Open track selector').click()
+    cy.contains('Annotations (').click()
+    cy.get('button[aria-label="Minimize drawer"]').click()
+    cy.annotationTrackAppearance('Show table display')
+    cy.contains('td', 'Id=mrna02').scrollIntoView()
+    cy.contains('td', 'Id=mrna02').should('be.visible').rightclick()
+    cy.contains('Edit transcript details').click()
+    cy.contains('Sequence').parent().parent().click()
+    cy.contains('>chr2:3-28(strand=+;length=26)').should(
+      'contain',
+      'tTTGGTGtagCAAAGTACTGTTAGGG',
+    )
+
+    cy.contains('Id=exon2')
+      .parent()
+      .find('input[value="28"]')
+      .type('{selectall}{backspace}32{enter}')
+    cy.contains('>chr2:3-32(strand=+;length=30)').should(
+      'contain',
+      'tTTGGTGtagCAAAGTACTGTTAGGGGTTA',
+    )
+    cy.contains('Id=exon2')
+      .parent()
+      .find('input[value="32"]')
+      .type('{selectall}{backspace}30{enter}')
+    cy.contains('>chr2:3-30(strand=+;length=28)').should(
+      'contain',
+      'tTTGGTGtagCAAAGTACTGTTAGGGGT',
+    )
+  })
+
   it('Sequences from feature on reverse strand', () => {
     cy.addAssemblyFromGff(
       'SM_V10_3.fasta.gff3.gz',
