@@ -228,7 +228,7 @@ Now we need to install Node.js on the server. The default Node.js available via
 version.
 
 ```sh
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash -
+curl -fsSL https://deb.nodesource.com/setup_26.x | sudo bash -
 sudo apt install -y nodejs
 ```
 
@@ -244,10 +244,11 @@ rm apollo.tar.gz apollo.json
 mv GMOD-Apollo3-*/ Apollo/
 ```
 
-To install Apollo, we'll need the tool `yarn`, which can be enabled through
-Node.js by running
+To install Apollo, we'll need the tool `yarn`, which is provided by Corepack.
+Node.js no longer includes Corepack, so install and enable it by running
 
 ```sh
+sudo npm install --global corepack
 sudo corepack enable
 ```
 

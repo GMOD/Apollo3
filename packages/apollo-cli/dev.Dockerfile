@@ -1,6 +1,10 @@
 # syntax=docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
 
-FROM node:24-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8 AS setup
+FROM node:26-alpine@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216 AS base
+RUN npm install --global corepack@0.36.0 && corepack enable yarn
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+
+FROM node:26-alpine@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216 AS setup
 WORKDIR /app
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn/ .yarn/
@@ -8,7 +12,7 @@ COPY packages/ packages/
 RUN find packages/ -type f \! \( -name "package.json" -o -name "yarn.lock" \) -delete && \
 find . -type d -empty -delete
 
-FROM node:24-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8 AS build
+FROM base AS build
 WORKDIR /app
 COPY --from=setup /app .
 RUN yarn install --immutable
@@ -18,9 +22,10 @@ RUN yarn build
 WORKDIR /app/packages/apollo-cli
 RUN yarn build
 
-FROM node:24-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8
+FROM base
 LABEL org.opencontainers.image.source=https://github.com/GMOD/Apollo3
 LABEL org.opencontainers.image.description="Apollo CLI"
+RUN apk add --no-cache tini
 WORKDIR /app
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn/ .yarn/
@@ -29,4 +34,7 @@ COPY --from=build /app/packages/apollo-cli/dist ./packages/apollo-cli/dist
 RUN yarn workspaces focus --production @apollo-annotation/cli
 WORKDIR /app/packages/apollo-cli
 ENV APOLLO_DISABLE_CONFIG_CREATE=1
-ENTRYPOINT ["yarn", "node", "bin/run.js"]
+# Run node directly instead of through `yarn node`, so yarn isn't left between
+# Docker and the CLI. Node doesn't get default signal handling as PID 1, so tini
+# runs as PID 1 and passes signals (like Ctrl-C) on to node.
+ENTRYPOINT ["/sbin/tini", "--", "node", "--require", "/app/.pnp.cjs", "--experimental-loader", "/app/.pnp.loader.mjs", "bin/run.js"]
