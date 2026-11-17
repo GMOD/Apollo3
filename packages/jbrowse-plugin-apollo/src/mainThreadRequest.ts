@@ -1,4 +1,3 @@
-import { checkStopToken } from '@jbrowse/core/util'
 import type { NoAssemblyRegion, Region } from '@jbrowse/core/util/types'
 import type RpcServer from 'librpc-web-mod/dist/server'
 import { nanoid } from 'nanoid'
@@ -12,13 +11,8 @@ declare global {
 /** How long a worker waits for the main thread to answer a request */
 export const MAIN_THREAD_REQUEST_TIMEOUT_MS = 20_000
 
-/** How often a pending request checks whether JBrowse has cancelled it */
-const STOP_TOKEN_CHECK_INTERVAL_MS = 1000
-
 export interface MainThreadRequestOptions {
   signal?: AbortSignal
-  /** JBrowse's cancellation token, which can only be polled */
-  stopToken?: string
 }
 
 /** The requests a worker can make, and the reply each one gets */
@@ -91,19 +85,18 @@ function handleReply(event: MessageEvent<unknown>) {
  * from a web worker.
  *
  * The request is cleaned up however it ends: a reply, an error reply, the
- * timeout, `signal` aborting, `stopToken` being stopped, or `rpcServer.emit`
- * throwing. Cancelling only stops the worker from waiting; the main thread
- * still finishes the request and its reply is ignored.
+ * timeout, `signal` aborting, or `rpcServer.emit` throwing. Cancelling only
+ * stops the worker from waiting; the main thread still finishes the request
+ * and its reply is ignored.
  */
 export function requestFromMainThread<M extends MainThreadRequestMethod>(
   method: M,
   params: MainThreadRequests[M]['params'],
-  { signal, stopToken }: MainThreadRequestOptions = {},
+  { signal }: MainThreadRequestOptions = {},
 ): Promise<MainThreadRequests[M]['reply']> {
   return new Promise((resolve, reject) => {
     try {
       signal?.throwIfAborted()
-      checkStopToken(stopToken)
     } catch (error) {
       reject(toError(error))
       return
@@ -112,7 +105,6 @@ export function requestFromMainThread<M extends MainThreadRequestMethod>(
 
     const settle = () => {
       clearTimeout(timeoutId)
-      clearInterval(stopTokenIntervalId)
       signal?.removeEventListener('abort', onAbort)
       pendingRequests.delete(messageId)
       if (pendingRequests.size === 0) {
@@ -129,16 +121,6 @@ export function requestFromMainThread<M extends MainThreadRequestMethod>(
     const timeoutId = setTimeout(() => {
       fail(new Error(`Timed out waiting for the main thread to ${method}`))
     }, MAIN_THREAD_REQUEST_TIMEOUT_MS)
-    const stopTokenIntervalId =
-      stopToken === undefined
-        ? undefined
-        : setInterval(() => {
-            try {
-              checkStopToken(stopToken)
-            } catch (error) {
-              fail(error)
-            }
-          }, STOP_TOKEN_CHECK_INTERVAL_MS)
 
     if (pendingRequests.size === 0) {
       addEventListener('message', handleReply)

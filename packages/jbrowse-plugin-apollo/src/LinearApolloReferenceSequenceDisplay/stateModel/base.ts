@@ -5,7 +5,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import {
   type AnyConfigurationSchemaType,
   ConfigurationReference,
@@ -14,11 +13,9 @@ import {
 import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
 import {
   type AbstractSessionModel,
-  type Region,
   getContainingView,
   getSession,
 } from '@jbrowse/core/util'
-import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import { addDisposer, getRoot, types } from '@jbrowse/mobx-state-tree'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
@@ -27,6 +24,7 @@ import { autorun } from 'mobx'
 import type { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import type { ApolloSessionModel, HoveredFeature } from '../../session'
 import type { ApolloRootModel } from '../../types'
+import { getAssemblyMetadata } from '../../util/assemblyUtils'
 
 const minDisplayHeight = 20
 
@@ -49,18 +47,6 @@ export function baseModelFactory(
         ),
       ),
       sequenceRowHeight: 15,
-    })
-    .views((self) => {
-      const { configuration, renderProps: superRenderProps } = self
-      return {
-        renderProps() {
-          return {
-            ...superRenderProps(),
-            ...getParentRenderProps(self),
-            config: configuration.renderer,
-          }
-        },
-      }
     })
     .views((self) => ({
       get lgv() {
@@ -95,12 +81,15 @@ export function baseModelFactory(
     .views((self) => ({
       get expandedRegions() {
         const regions = self.lgv.dynamicBlocks.contentBlocks.map((block) => {
-          const { assemblyName, end, refName, start } = block
-          const { parentRegion } = block as unknown as { parentRegion: Region }
-          const expandedStart = Math.round(
-            Math.max(start - 5, parentRegion.start),
-          )
-          const expandedEnd = Math.round(Math.min(end + 5, parentRegion.end))
+          const { assemblyName, displayedRegionIndex, end, refName, start } =
+            block
+          let expandedStart = Math.round(start - 5)
+          let expandedEnd = Math.round(end + 5)
+          if (displayedRegionIndex !== undefined) {
+            const parentRegion = self.lgv.displayedRegions[displayedRegionIndex]
+            expandedStart = Math.round(Math.max(start - 5, parentRegion.start))
+            expandedEnd = Math.round(Math.min(end + 5, parentRegion.end))
+          }
           return {
             assemblyName,
             refName,
@@ -116,16 +105,11 @@ export function baseModelFactory(
         const { assemblyName } = region
         const { assemblyManager } =
           self.session as unknown as AbstractSessionModel
-        const assembly = assemblyManager.get(assemblyName) as
-          | Assembly
-          | undefined
+        const assembly = assemblyManager.get(assemblyName)
         if (!assembly) {
           throw new Error(`No assembly found with name ${assemblyName}`)
         }
-        const { internetAccountConfigId } = getConf(assembly, [
-          'sequence',
-          'metadata',
-        ]) as { internetAccountConfigId: string }
+        const { internetAccountConfigId } = getAssemblyMetadata(assembly)
         return internetAccounts.find(
           (ia) => getConf(ia, 'internetAccountId') === internetAccountConfigId,
         ) as ApolloInternetAccountModel | undefined

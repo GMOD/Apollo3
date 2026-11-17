@@ -101,7 +101,9 @@ const useStyles = makeStyles()((theme) => ({
     gap: theme.spacing(1),
     padding: theme.spacing(0, 1),
     height: bannerHeight,
-    fontSize: theme.typography.caption.fontSize,
+    // MUI's caption size. JBrowse v5's theme doesn't define typography
+    // variants, so theme.typography.caption is undefined at runtime.
+    fontSize: '0.75rem',
     background: theme.palette.background.paper,
     opacity: 0.9,
     zIndex: 1,

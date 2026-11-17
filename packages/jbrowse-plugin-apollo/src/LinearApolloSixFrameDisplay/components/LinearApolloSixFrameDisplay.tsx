@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 
 import type { CheckResultI } from '@apollo-annotation/mst'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { Menu, type MenuItem } from '@jbrowse/core/ui'
 import {
   type AbstractSessionModel,
@@ -182,9 +181,7 @@ export const LinearApolloSixFrameDisplay = observer(
               />
               {lgv.dynamicBlocks.contentBlocks.flatMap((block) => {
                 const widthBp = lgv.bpPerPx * apolloRowHeight
-                const assembly = assemblyManager.get(block.assemblyName) as
-                  | Assembly
-                  | undefined
+                const assembly = assemblyManager.get(block.assemblyName)
                 if (showCheckResults) {
                   const filteredCheckResults = [
                     ...session.apolloDataStore.checkResults.values(),
@@ -240,19 +237,12 @@ export const LinearApolloSixFrameDisplay = observer(
               })}
               <Menu
                 open={contextMenuItems.length > 0}
-                onMenuItemClick={(_, callback) => {
+                onMenuItemClick={(callback) => {
                   callback()
                   setContextMenuItems([])
                 }}
                 onClose={() => {
                   setContextMenuItems([])
-                }}
-                slotProps={{
-                  transition: {
-                    onExit: () => {
-                      setContextMenuItems([])
-                    },
-                  },
                 }}
                 anchorReference="anchorPosition"
                 anchorPosition={

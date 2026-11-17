@@ -203,10 +203,10 @@ export const Feature = observer(function FeatureRow({
               fetchValidTerms={fetchValidTypeTerms.bind(null, feature)}
               renderInput={(params) => {
                 return (
-                  <div ref={params.InputProps.ref}>
+                  <div ref={params.slotProps.input.ref}>
                     <input
                       type="text"
-                      {...params.inputProps}
+                      {...params.slotProps.htmlInput}
                       className={classes.typeInputElement}
                       style={{ width: 170 }}
                     />

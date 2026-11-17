@@ -77,7 +77,7 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
         ;({ sequence: seq } = await requestFromMainThread(
           'getSequence',
           { region: regionWithAssemblyName },
-          { signal: opts?.signal, stopToken: opts?.stopToken },
+          { signal: opts?.signal },
         ))
       } else {
         const backendDriver = this.getBackendDriver(assemblyId)

@@ -10,13 +10,10 @@ import {
   jest,
 } from '@jest/globals'
 
+import { extendSession } from './session'
+
 const postToServerA = jest.fn()
 const postToServerB = jest.fn()
-
-jest.unstable_mockModule('../ApolloJobModel', () => ({
-  ApolloJobModel: types.model({}),
-}))
-const { extendSession } = await import('./session')
 
 function assembly(internetAccountConfigId?: string) {
   return {

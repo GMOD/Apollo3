@@ -48,11 +48,14 @@ describe('Rubberband selection', () => {
     cy.selectAssemblyToView(assemblyName, 'ctgA:1..10000')
 
     cy.get('[data-testid="rubberband_controls"]').trigger('mouseover')
-    cy.get('[data-testid="rubberband_controls"]').trigger('mousedown', 100, 5)
+    cy.get('[data-testid="rubberband_controls"]').trigger('mousedown', 100, 5, {
+      button: 0,
+    })
     cy.get('[data-testid="rubberband_controls"]').trigger('mousemove', 120, 5, {
       force: true,
     })
     cy.get('[data-testid="rubberband_controls"]').trigger('mouseup', 120, 5, {
+      button: 0,
       force: true,
     })
     cy.contains('Get sequence').click()
@@ -98,11 +101,14 @@ describe('Rubberband selection', () => {
     cy.annotationTrackAppearance('Show both graphical and table display')
 
     cy.get('[data-testid="rubberband_controls"]').trigger('mouseover')
-    cy.get('[data-testid="rubberband_controls"]').trigger('mousedown', 100, 5)
+    cy.get('[data-testid="rubberband_controls"]').trigger('mousedown', 100, 5, {
+      button: 0,
+    })
     cy.get('[data-testid="rubberband_controls"]').trigger('mousemove', 120, 5, {
       force: true,
     })
     cy.get('[data-testid="rubberband_controls"]').trigger('mouseup', 120, 5, {
+      button: 0,
       force: true,
     })
     cy.contains('Add new feature').click()
@@ -127,11 +133,14 @@ describe('Rubberband selection', () => {
     cy.get('input[type="text"][value="gene"]', { timeout: 10_000 })
 
     cy.get('[data-testid="rubberband_controls"]').trigger('mouseover')
-    cy.get('[data-testid="rubberband_controls"]').trigger('mousedown', 140, 5)
+    cy.get('[data-testid="rubberband_controls"]').trigger('mousedown', 140, 5, {
+      button: 0,
+    })
     cy.get('[data-testid="rubberband_controls"]').trigger('mousemove', 160, 5, {
       force: true,
     })
     cy.get('[data-testid="rubberband_controls"]').trigger('mouseup', 160, 5, {
+      button: 0,
       force: true,
     })
     cy.contains('Add new feature').click()

@@ -21,13 +21,12 @@ import {
   ValidationResultSet,
   makeUserSessionId,
 } from '@apollo-annotation/shared'
-import { getConf } from '@jbrowse/core/configuration'
 import type { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { type Region, getSession } from '@jbrowse/core/util'
 import type { Socket } from 'socket.io-client'
 
 import { ChangeManager, type SubmitOpts } from '../ChangeManager'
-import { createFetchErrorMessage } from '../util'
+import { createFetchErrorMessage, getAssemblyMetadata } from '../util'
 
 import {
   BackendDriver,
@@ -411,14 +410,8 @@ export class CollaborationServerDriver extends BackendDriver {
   getAssemblies(internetAccountId?: string) {
     const { assemblyManager } = getSession(this.clientStore)
     return assemblyManager.assemblies.filter((assembly) => {
-      const sequenceMetadata = getConf(assembly, ['sequence', 'metadata']) as
-        | { apollo: boolean; internetAccountConfigId?: string }
-        | undefined
-      if (
-        sequenceMetadata &&
-        sequenceMetadata.apollo &&
-        sequenceMetadata.internetAccountConfigId
-      ) {
+      const sequenceMetadata = getAssemblyMetadata(assembly)
+      if (sequenceMetadata.apollo && sequenceMetadata.internetAccountConfigId) {
         if (internetAccountId) {
           return sequenceMetadata.internetAccountConfigId === internetAccountId
         }

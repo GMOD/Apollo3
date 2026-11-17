@@ -1,5 +1,4 @@
 import type { CheckResultI } from '@apollo-annotation/mst'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { type AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
 import React from 'react'
@@ -22,9 +21,7 @@ export const CheckResultWarnings = observer(function CheckResultWarnings({
   }
   return lgv.dynamicBlocks.contentBlocks.map((block) => {
     const widthBp = lgv.bpPerPx * apolloRowHeight
-    const assembly = assemblyManager.get(block.assemblyName) as
-      | Assembly
-      | undefined
+    const assembly = assemblyManager.get(block.assemblyName)
     if (!assembly) {
       return null
     }

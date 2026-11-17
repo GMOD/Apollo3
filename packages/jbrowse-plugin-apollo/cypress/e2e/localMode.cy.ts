@@ -149,9 +149,14 @@ describe('Local mode (no collaboration server)', () => {
 
     // Create a feature
     cy.get('[data-testid="rubberband_controls"]').trigger('mouseover')
-    cy.get('[data-testid="rubberband_controls"]').trigger('mousedown', 100, 5)
-    cy.get('[data-testid="rubberband_controls"]').trigger('mousemove', 120, 5)
+    cy.get('[data-testid="rubberband_controls"]').trigger('mousedown', 100, 5, {
+      button: 0,
+    })
+    cy.get('[data-testid="rubberband_controls"]').trigger('mousemove', 120, 5, {
+      force: true,
+    })
     cy.get('[data-testid="rubberband_controls"]').trigger('mouseup', 120, 5, {
+      button: 0,
       force: true,
     })
     cy.contains('Add new feature').click()
@@ -228,9 +233,14 @@ describe('Local mode (no collaboration server)', () => {
 
     // Add a gene on the + strand
     cy.get('[data-testid="rubberband_controls"]').trigger('mouseover')
-    cy.get('[data-testid="rubberband_controls"]').trigger('mousedown', 100, 5)
-    cy.get('[data-testid="rubberband_controls"]').trigger('mousemove', 120, 5)
+    cy.get('[data-testid="rubberband_controls"]').trigger('mousedown', 100, 5, {
+      button: 0,
+    })
+    cy.get('[data-testid="rubberband_controls"]').trigger('mousemove', 120, 5, {
+      force: true,
+    })
     cy.get('[data-testid="rubberband_controls"]').trigger('mouseup', 120, 5, {
+      button: 0,
       force: true,
     })
     cy.contains('Add new feature').click()
