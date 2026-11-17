@@ -1,5 +1,9 @@
 # syntax=docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
 
+FROM node:26-alpine@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216 AS base
+RUN npm install --global corepack@0.36.0 && corepack enable yarn
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+
 FROM node:26-alpine@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216 AS setup
 WORKDIR /app
 COPY package.json yarn.lock .yarnrc.yml ./
@@ -8,7 +12,7 @@ COPY packages/ packages/
 RUN find packages/ -type f \! \( -name "package.json" -o -name "yarn.lock" \) -delete && \
 find . -type d -empty -delete
 
-FROM node:26-alpine@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216 AS build
+FROM base AS build
 WORKDIR /app
 COPY --from=setup /app .
 RUN yarn install --immutable
@@ -18,7 +22,7 @@ RUN yarn build
 WORKDIR /app/packages/apollo-cli
 RUN yarn build
 
-FROM node:26-alpine@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216
+FROM base
 LABEL org.opencontainers.image.source=https://github.com/GMOD/Apollo3
 LABEL org.opencontainers.image.description="Apollo CLI"
 WORKDIR /app
