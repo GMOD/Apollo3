@@ -134,6 +134,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     needs: [build]
+    concurrency:
+      group: deploy-collab-${{ inputs.environment }}
+      cancel-in-progress: false
     permissions:
       contents: read
       packages: read # pull images from ghcr.io
@@ -218,6 +221,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     needs: [build]
+    # Queue uploads to the same site directory instead of letting them overlap
+    concurrency:
+      group: deploy-local-${{ inputs.environment }}
+      cancel-in-progress: false
     permissions:
       contents: read
     env:
