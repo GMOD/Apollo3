@@ -139,3 +139,7 @@ packages/apollo-collaboration-server/src/openapi-metadata.ts
 
 # Generated API reference pages for the website
 packages/website/docs/03-multi-user/03-guides/05-rest-api/reference/
+
+# Server plugin bundles fetched from PLUGIN_URLS
+.plugin-cache
+.plugin-cache-test-*

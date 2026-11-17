@@ -17,5 +17,6 @@
     { "path": "../apollo-mst" },
     { "path": "../apollo-schemas" },
     { "path": "../apollo-shared" },
+    { "path": "./tsconfig.node.json" },
   ],
 }

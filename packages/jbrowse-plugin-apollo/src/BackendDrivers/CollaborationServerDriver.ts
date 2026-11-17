@@ -21,13 +21,12 @@ import {
   ValidationResultSet,
   makeUserSessionId,
 } from '@apollo-annotation/shared'
-import { getConf } from '@jbrowse/core/configuration'
 import type { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { type Region, getSession } from '@jbrowse/core/util'
-import type { Socket } from 'socket.io-client'
 
+import type { ChannelSubscriptions } from '../ApolloInternetAccount/ChannelSubscriptions'
 import { ChangeManager, type SubmitOpts } from '../ChangeManager'
-import { createFetchErrorMessage } from '../util'
+import { createFetchErrorMessage, getAssemblyMetadata } from '../util'
 
 import {
   BackendDriver,
@@ -55,7 +54,7 @@ type RefSeqMap = Map<string, RefSeq>
 
 export interface ApolloInternetAccount extends BaseInternetAccountModel {
   baseURL: string
-  socket: Socket
+  channelSubscriptions: ChannelSubscriptions
   setLastChangeSequenceNumber(sequenceNumber: number): void
   getMissingChanges(): void
 }
@@ -138,7 +137,7 @@ export class CollaborationServerDriver extends BackendDriver {
       )
       throw new Error(errorMessage)
     }
-    this.checkSocket(assemblyName, refName, internetAccount)
+    this.checkEventSource(assemblyName, refName, internetAccount)
     return response.json() as Promise<
       [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
     >
@@ -179,21 +178,22 @@ export class CollaborationServerDriver extends BackendDriver {
   }
 
   /**
-   * Checks if there is assembly-refSeq specific socket. If not, it opens one
+   * Listen for changes on the assembly-refSeq specific channel, if not already
+   * listening. This works even before the internet account has connected to
+   * the server's event stream.
    * @param assembly - assemblyId
    * @param refSeq - refSeqName
    * @param internetAccount - internet account
    */
-  checkSocket(
+  checkEventSource(
     assembly: string,
     refSeq: string,
     internetAccount: ApolloInternetAccount,
   ) {
-    const { socket } = internetAccount
     const channel = `${assembly}-${refSeq}`
-
-    if (!socket.hasListeners(channel)) {
-      socket.on(channel, async (message: ChangeMessage) => {
+    internetAccount.channelSubscriptions.subscribe(channel, (event) => {
+      void (async () => {
+        const message = JSON.parse(event.data) as ChangeMessage
         const token = internetAccount.retrieveToken()
         if (!token) {
           return
@@ -209,8 +209,8 @@ export class CollaborationServerDriver extends BackendDriver {
         if (isFeatureChange(change) && this.haveDataForChange(change)) {
           await changeManager.submit(change, { submitToBackend: false })
         }
-      })
-    }
+      })()
+    })
   }
 
   private haveDataForChange(change: FeatureChange): boolean {
@@ -282,7 +282,7 @@ export class CollaborationServerDriver extends BackendDriver {
     )
     this.inFlight.set(inFlightKey, seqPromise)
     const seq = await seqPromise
-    this.checkSocket(assemblyName, refName, internetAccount)
+    this.checkEventSource(assemblyName, refName, internetAccount)
     this.inFlight.delete(inFlightKey)
     return { seq, refSeq }
   }
@@ -411,14 +411,8 @@ export class CollaborationServerDriver extends BackendDriver {
   getAssemblies(internetAccountId?: string) {
     const { assemblyManager } = getSession(this.clientStore)
     return assemblyManager.assemblies.filter((assembly) => {
-      const sequenceMetadata = getConf(assembly, ['sequence', 'metadata']) as
-        | { apollo: boolean; internetAccountConfigId?: string }
-        | undefined
-      if (
-        sequenceMetadata &&
-        sequenceMetadata.apollo &&
-        sequenceMetadata.internetAccountConfigId
-      ) {
+      const sequenceMetadata = getAssemblyMetadata(assembly)
+      if (sequenceMetadata.apollo && sequenceMetadata.internetAccountConfigId) {
         if (internetAccountId) {
           return sequenceMetadata.internetAccountConfigId === internetAccountId
         }

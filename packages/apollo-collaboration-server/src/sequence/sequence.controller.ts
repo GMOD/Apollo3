@@ -1,5 +1,6 @@
 import { Controller, Get, Logger, Query } from '@nestjs/common'
 
+import { AssemblyAccess } from '../assemblyAccess/assemblyAccess.decorator.js'
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'
 
@@ -14,6 +15,7 @@ export class SequenceController {
   private readonly logger = new Logger(SequenceController.name)
 
   /** Get the sequence of a range of a reference sequence */
+  @AssemblyAccess({ kind: 'refSeq', in: 'query', key: 'refSeq' })
   @Get()
   getSequence(@Query() request: GetSequenceDto) {
     this.logger.debug(`getSequence: ${JSON.stringify(request)}`)

@@ -46,9 +46,9 @@ needs is dependent on how many files will need to be uploaded.
 
 ### MongoDB Database
 
-The Apollo Collaboration Server stores its data in a MongoDB database. Since the
-server uses some specialized MongoDB functionality, the database needs to be in
-a replica set configuration. The database can be on the same machine as the
+The Apollo Collaboration Server stores its data in a MongoDB database. A plain,
+single MongoDB instance is sufficient; no special configuration (such as a
+replica set) is required. The database can be on the same machine as the
 collaboration server, or it can be external.
 
 ## Deployment examples

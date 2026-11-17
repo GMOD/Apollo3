@@ -130,19 +130,12 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
           <CheckResultWarnings display={model} />
           <Menu
             open={contextMenuItems.length > 0}
-            onMenuItemClick={(_, callback) => {
+            onMenuItemClick={(callback) => {
               callback()
               setContextMenuItems([])
             }}
             onClose={() => {
               setContextMenuItems([])
-            }}
-            slotProps={{
-              transition: {
-                onExit: () => {
-                  setContextMenuItems([])
-                },
-              },
             }}
             anchorReference="anchorPosition"
             anchorPosition={

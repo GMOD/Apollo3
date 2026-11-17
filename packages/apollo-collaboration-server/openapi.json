@@ -1561,7 +1561,7 @@
           "Users"
         ],
         "x-apollo-role": "readOnly",
-        "description": "Required role: readOnly or higher.\n\nThe locations are sent to connected clients over the server's WebSocket connection, not in this response."
+        "description": "Required role: readOnly or higher.\n\nThe locations are sent to connected clients as server-sent events, not in this response."
       }
     },
     "/users/{id}": {
@@ -1644,7 +1644,7 @@
           "Changes"
         ],
         "x-apollo-role": "user",
-        "description": "Required role: user or higher.\n\nAll edits to annotations, assemblies, and users are made by submitting changes. The server validates and applies the change, saves it to the change log, and broadcasts it to other connected clients.\n\nEach type of change also requires a role:\n\n| Change type | Required role |\n| --- | --- |\n| `AddAssemblyAliasesChange` | user or higher |\n| `AddAssemblyAndFeaturesFromFileChange` | admin |\n| `AddAssemblyFromExternalChange` | user or higher |\n| `AddAssemblyFromFileChange` | admin |\n| `AddFeatureChange` | user or higher |\n| `AddFeaturesFromFileChange` | admin |\n| `AddRefSeqAliasesChange` | admin |\n| `AddUserChange` | admin |\n| `DeleteAssemblyChange` | admin |\n| `DeleteFeatureChange` | user or higher |\n| `DeleteUserChange` | admin |\n| `FeatureAttributeChange` | user or higher |\n| `ImportJBrowseConfigChange` | user or higher |\n| `LocationEndChange` | user or higher |\n| `LocationStartChange` | user or higher |\n| `MergeExonsChange` | user or higher |\n| `MergeTranscriptsChange` | user or higher |\n| `SplitExonChange` | user or higher |\n| `StrandChange` | user or higher |\n| `TypeChange` | user or higher |\n| `UndoMergeExonsChange` | user or higher |\n| `UndoMergeTranscriptsChange` | user or higher |\n| `UndoSplitExonChange` | user or higher |\n| `UserChange` | admin |"
+        "description": "Required role: user or higher.\n\nAll edits to annotations, assemblies, and users are made by submitting changes. The server validates and applies the change, saves it to the change log, and broadcasts it to other connected clients.\n\nEach type of change also requires a role:\n\n| Change type | Required role |\n| --- | --- |\n| `AddAssemblyAliasesChange` | admin |\n| `AddAssemblyAndFeaturesFromFileChange` | admin |\n| `AddAssemblyFromExternalChange` | admin |\n| `AddAssemblyFromFileChange` | admin |\n| `AddFeatureChange` | user or higher |\n| `AddFeaturesFromFileChange` | admin |\n| `AddRefSeqAliasesChange` | admin |\n| `AddUserChange` | admin |\n| `DeleteAssemblyChange` | admin |\n| `DeleteFeatureChange` | user or higher |\n| `DeleteUserChange` | admin |\n| `FeatureAttributeChange` | user or higher |\n| `ImportJBrowseConfigChange` | admin |\n| `LocationEndChange` | user or higher |\n| `LocationStartChange` | user or higher |\n| `MergeExonsChange` | user or higher |\n| `MergeTranscriptsChange` | user or higher |\n| `SplitExonChange` | user or higher |\n| `StrandChange` | user or higher |\n| `TypeChange` | user or higher |\n| `UndoMergeExonsChange` | user or higher |\n| `UndoMergeTranscriptsChange` | user or higher |\n| `UndoSplitExonChange` | user or higher |\n| `UserChange` | admin |"
       },
       "get": {
         "operationId": "ChangesController_findAll",
@@ -1923,12 +1923,37 @@
             }
           }
         },
+        "summary": "Check that the server can serve requests",
+        "tags": [
+          "Health"
+        ],
+        "x-apollo-role": "none",
+        "description": "Required role: none.\n\nPasses when this process can reach MongoDB and is receiving live updates from other server processes. Suitable for a load balancer health check or a Kubernetes readiness probe.",
+        "security": []
+      }
+    },
+    "/health/live": {
+      "get": {
+        "operationId": "HealthController_live",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
         "summary": "Check that the server is running",
         "tags": [
           "Health"
         ],
         "x-apollo-role": "none",
-        "description": "Required role: none.",
+        "description": "Required role: none.\n\nPasses whether or not this process can reach MongoDB. Suitable for a Kubernetes liveness probe, so a MongoDB outage doesn't restart every server process.",
         "security": []
       }
     },

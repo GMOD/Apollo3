@@ -4,7 +4,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import type { AnnotationFeature } from '@apollo-annotation/mst'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import {
   type AnyConfigurationSchemaType,
   ConfigurationReference,
@@ -17,7 +16,6 @@ import {
   getContainingView,
   getSession,
 } from '@jbrowse/core/util'
-import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import {
   addDisposer,
@@ -44,6 +42,7 @@ import { ViewChangeLog } from '../../components/ViewChangeLog'
 import { ViewCheckResults } from '../../components/ViewCheckResults'
 import type { ApolloSessionModel, HoveredFeature } from '../../session'
 import type { ApolloRootModel } from '../../types'
+import { getAssemblyMetadata } from '../../util/assemblyUtils'
 import { FeatureDisplayThresholdDialog } from '../../util/displayUtils'
 import { FeatureDensityMixin } from '../../util/featureDensityModel'
 
@@ -71,18 +70,6 @@ export function baseModelFactory(
       ),
       filteredFeatureTypes: types.array(types.string),
       loadingState: false,
-    })
-    .views((self) => {
-      const { configuration, renderProps: superRenderProps } = self
-      return {
-        renderProps() {
-          return {
-            ...superRenderProps(),
-            ...getParentRenderProps(self),
-            config: configuration.renderer,
-          }
-        },
-      }
     })
     .volatile(() => ({
       scrollTop: 0,
@@ -140,16 +127,11 @@ export function baseModelFactory(
         const { assemblyName } = region
         const { assemblyManager } =
           self.session as unknown as AbstractSessionModel
-        const assembly = assemblyManager.get(assemblyName) as
-          | Assembly
-          | undefined
+        const assembly = assemblyManager.get(assemblyName)
         if (!assembly) {
           throw new Error(`No assembly found with name ${assemblyName}`)
         }
-        const { internetAccountConfigId } = getConf(assembly, [
-          'sequence',
-          'metadata',
-        ]) as { internetAccountConfigId: string }
+        const { internetAccountConfigId } = getAssemblyMetadata(assembly)
         return internetAccounts.find(
           (ia) => getConf(ia, 'internetAccountId') === internetAccountConfigId,
         ) as ApolloInternetAccountModel | undefined

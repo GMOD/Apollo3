@@ -105,26 +105,21 @@ export class LocalDriver extends BackendDriver {
   async getSequence(region: Region): Promise<{ seq: string; refSeq: string }> {
     const session = getSession(this.clientStore)
     const { assemblyManager } = session
-    const assembly = (await assemblyManager.waitForAssembly(
-      region.assemblyName,
-    )) as Assembly | undefined
+    const assembly = await assemblyManager.waitForAssembly(region.assemblyName)
     if (!assembly) {
       throw new Error(`Assembly not found: "${region.assemblyName}"`)
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { configuration } = assembly
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    if (!configuration) {
+      throw new Error(
+        `Assembly configuration not found: "${region.assemblyName}"`,
+      )
+    }
     const { adapter: adapterConf } = configuration.sequence
     const { pluginManager } = getEnv(this.clientStore)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
     const type = pluginManager.getAdapterType(adapterConf.type)
-    if (!type) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      throw new Error(`No adapter found for "${adapterConf.type}"`)
-    }
     const CLASS = await type.getAdapterClass()
     const adapter = new CLASS(
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       adapterConf,
       undefined,
       pluginManager,
@@ -142,9 +137,7 @@ export class LocalDriver extends BackendDriver {
   async getRegions(assemblyName: string): Promise<Region[]> {
     const session = getSession(this.clientStore)
     const { assemblyManager } = session
-    const assembly = (await assemblyManager.waitForAssembly(assemblyName)) as
-      | Assembly
-      | undefined
+    const assembly = await assemblyManager.waitForAssembly(assemblyName)
     if (!assembly) {
       throw new Error(`Assembly not found: "${assemblyName}"`)
     }
@@ -162,29 +155,19 @@ export class LocalDriver extends BackendDriver {
   async getRefNameAliases(assemblyName: string): Promise<RefNameAliases[]> {
     const session = getSession(this.clientStore)
     const { assemblyManager } = session
-    const assembly = (await assemblyManager.waitForAssembly(assemblyName)) as
-      | Assembly
-      | undefined
+    const assembly = await assemblyManager.waitForAssembly(assemblyName)
     if (!assembly) {
       throw new Error(`Assembly not found: "${assemblyName}"`)
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { configuration } = assembly
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    if (!configuration) {
+      throw new Error(`Assembly configuration not found: "${assemblyName}"`)
+    }
     const { refNameAliases } = configuration
-    if (!refNameAliases) {
-      return []
-    }
     const { pluginManager } = getEnv(this.clientStore)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
     const type = pluginManager.getAdapterType(refNameAliases.adapter.type)
-    if (!type) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      throw new Error(`No adapter found for "${refNameAliases.adapter.type}"`)
-    }
     const CLASS = await type.getAdapterClass()
     const adapter = new CLASS(
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       refNameAliases.adapter,
       undefined,
       pluginManager,

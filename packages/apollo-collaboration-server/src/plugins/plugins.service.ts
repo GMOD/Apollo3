@@ -1,57 +1,211 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-import { ApolloPlugin } from '@apollo-annotation/common'
-import { Inject, Injectable, Logger } from '@nestjs/common'
+import {
+  type ChangeRule,
+  type Check,
+  checkRegistry,
+} from '@apollo-annotation/common'
+import {
+  APOLLO_SERVER_HOOK_SEVERITY,
+  type ApolloServerHookName,
+  type ApolloServerHookRegistrar,
+  type ApolloServerPlugin,
+  type CustomAuthHandler,
+  type PluginRoute,
+  type ServerChangeType,
+  type ServerValidation,
+} from '@apollo-annotation/common/server'
+import { Inject, Injectable, Logger, type OnModuleInit } from '@nestjs/common'
+import { InjectConnection } from '@nestjs/mongoose'
+import type { Connection } from 'mongoose'
+import { type MatchFunction, type ParamData, match } from 'path-to-regexp'
+
+import { serverChangeTypes } from '../changes/serverChangeTypes.js'
+import { serverValidations } from '../utils/validation/ServerValidationSet.js'
 
 import { APOLLO_PLUGINS } from './plugins.constants.js'
 
+interface RegisteredHook {
+  pluginName: string
+  callback: (extendee: unknown, props: unknown) => unknown
+}
+
 @Injectable()
-export class PluginsService {
+export class PluginsService implements OnModuleInit {
   private readonly logger = new Logger(PluginsService.name)
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-  extensionPoints = new Map<string, Function[]>()
+  private readonly hooks = new Map<ApolloServerHookName, RegisteredHook[]>()
 
-  constructor(@Inject(APOLLO_PLUGINS) private plugins: ApolloPlugin[]) {
-    for (const plugin of plugins) {
-      plugin.apolloInstall({
-        addToExtensionPoint: this.addToExtensionPoint.bind(this),
-      })
-    }
-  }
+  pluginRoutes: PluginRoute[] = []
+  private readonly routeMatchers = new Map<
+    PluginRoute,
+    MatchFunction<ParamData>
+  >()
 
-  addToExtensionPoint<T>(
-    extensionPointName: string,
-    callback: (extendee: T, props: Record<string, unknown>) => T,
-  ) {
-    let callbacks = this.extensionPoints.get(extensionPointName)
-    if (!callbacks) {
-      callbacks = []
-      this.extensionPoints.set(extensionPointName, callbacks)
-    }
-    callbacks.push(callback)
-  }
+  private customAuthHandlers = new Map<string, CustomAuthHandler>()
 
-  evaluateExtensionPoint<T>(
-    extensionPointName: string,
-    extendee: T,
-    props?: Record<string, unknown>,
-  ) {
-    const callbacks = this.extensionPoints.get(extensionPointName)
-    let accumulator = extendee
-    if (!callbacks) {
-      return accumulator
+  constructor(
+    @Inject(APOLLO_PLUGINS) private readonly plugins: ApolloServerPlugin[],
+    @InjectConnection() private readonly connection: Connection,
+  ) {}
+
+  async onModuleInit() {
+    for (const plugin of this.plugins) {
+      const registrar: ApolloServerHookRegistrar = {
+        registerHook: (name, callback) => {
+          this.registerHook(
+            plugin.name,
+            name,
+            callback as (extendee: unknown, props: unknown) => unknown,
+          )
+        },
+      }
+      await plugin.install(registrar)
     }
-    for (const callback of callbacks) {
+
+    await this.evaluateStartupHook('Apollo-MongoDB', undefined, {
+      connection: this.connection,
+    })
+
+    this.pluginRoutes = await this.evaluateStartupHook<PluginRoute[]>(
+      'Apollo-RegisterRoutes',
+      [],
+      { connection: this.connection },
+    )
+    for (const route of this.pluginRoutes) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        accumulator = callback(accumulator, props)
+        this.routeMatchers.set(
+          route,
+          match(route.path, { decode: decodeURIComponent }),
+        )
       } catch (error) {
-        this.logger.error(
-          `Plugin callback for extension point "${extensionPointName}" failed`,
-          error instanceof Error ? error.stack : String(error),
+        throw new Error(
+          `Invalid path "${route.path}" in plugin route: ${String(error)}`,
+          { cause: error },
         )
       }
     }
-    return accumulator
+
+    this.customAuthHandlers = await this.evaluateStartupHook<
+      Map<string, CustomAuthHandler>
+    >('Apollo-RegisterCustomAuth', new Map(), {})
+
+    const changeTypes = await this.evaluateStartupHook<
+      Record<string, ServerChangeType>
+    >('Apollo-RegisterChangeTypes', {}, {})
+    for (const [name, changeType] of Object.entries(changeTypes)) {
+      serverChangeTypes.register(name, changeType)
+    }
+
+    const checks = await this.evaluateStartupHook<Check[]>(
+      'Apollo-RegisterChecks',
+      [],
+      {},
+    )
+    for (const check of checks) {
+      checkRegistry.registerCheck(check.name, check)
+    }
+
+    const validations = await this.evaluateStartupHook<
+      (ChangeRule | ServerValidation)[]
+    >('Apollo-RegisterValidations', [], {})
+    for (const validation of validations) {
+      serverValidations.register(validation)
+    }
+  }
+
+  /** Find the plugin route for a request, and the path's parameter values */
+  findRoute(method: string, path: string) {
+    for (const route of this.pluginRoutes) {
+      if (route.method.toUpperCase() !== method.toUpperCase()) {
+        continue
+      }
+      const result = this.routeMatchers.get(route)?.(path)
+      if (result) {
+        return { route, params: result.params }
+      }
+    }
+    return
+  }
+
+  /** Custom login methods plugins registered, collected once at startup. */
+  getCustomAuthHandlers() {
+    return this.customAuthHandlers
+  }
+
+  hasHook(name: ApolloServerHookName) {
+    return (this.hooks.get(name)?.length ?? 0) > 0
+  }
+
+  private registerHook(
+    pluginName: string,
+    name: ApolloServerHookName,
+    callback: (extendee: unknown, props: unknown) => unknown,
+  ) {
+    let registered = this.hooks.get(name)
+    if (!registered) {
+      registered = []
+      this.hooks.set(name, registered)
+    }
+    registered.push({ pluginName, callback })
+  }
+
+  /**
+   * Evaluated once at boot. A callback that throws is logged with the
+   * offending plugin's name and rethrown, aborting server startup — these
+   * hooks run before any traffic is served, so failing loudly here costs
+   * nothing and prevents a silently-broken deployment from going live.
+   */
+  private async evaluateStartupHook<T>(
+    name: ApolloServerHookName,
+    extendee: T,
+    props: Record<string, unknown>,
+  ): Promise<T> {
+    if (APOLLO_SERVER_HOOK_SEVERITY[name] !== 'startup-fatal') {
+      throw new Error(`Internal error: "${name}" is not a startup-fatal hook`)
+    }
+    let accumulator: unknown = extendee
+    for (const { callback, pluginName } of this.hooks.get(name) ?? []) {
+      try {
+        accumulator = await callback(accumulator, props)
+      } catch (error) {
+        this.logger.error(
+          `Plugin "${pluginName}" threw while handling "${name}" during startup`,
+          error instanceof Error ? error.stack : String(error),
+        )
+        throw error
+      }
+    }
+    return accumulator as T
+  }
+
+  /**
+   * Evaluated per request. A callback that throws is logged with the
+   * offending plugin's name and rethrown rather than swallowed — swallowing
+   * it would make a throwing plugin indistinguishable from no plugin being
+   * registered at all, which for a security-relevant hook means failing open
+   * instead of closed. Callers must catch this and deny.
+   */
+  async evaluateSecurityHook<T>(
+    name: ApolloServerHookName,
+    extendee: T,
+    props: Record<string, unknown>,
+  ): Promise<T> {
+    if (APOLLO_SERVER_HOOK_SEVERITY[name] !== 'request-fail-closed') {
+      throw new Error(
+        `Internal error: "${name}" is not a request-fail-closed hook`,
+      )
+    }
+    let accumulator: unknown = extendee
+    for (const { callback, pluginName } of this.hooks.get(name) ?? []) {
+      try {
+        accumulator = await callback(accumulator, props)
+      } catch (error) {
+        this.logger.error(
+          `Plugin "${pluginName}" threw while handling "${name}"; denying by default`,
+          error instanceof Error ? error.stack : String(error),
+        )
+        throw error
+      }
+    }
+    return accumulator as T
   }
 }

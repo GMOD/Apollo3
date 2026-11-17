@@ -11,6 +11,7 @@ import {
 import { ApiProduces, ApiQuery } from '@nestjs/swagger'
 import type { Response as ExpressResponse } from 'express'
 
+import { AssemblyAccess } from '../assemblyAccess/assemblyAccess.decorator.js'
 import { Role } from '../utils/role/role.enum.js'
 import { Validations } from '../utils/validation/validatation.decorator.js'
 
@@ -27,6 +28,12 @@ export class ExportController {
    * Returns an export ID to pass to `GET /export`. The ID is valid for 5
    * minutes.
    */
+  // This is where assembly access is enforced for exports. The download
+  // endpoint can't check it: the client opens that URL in a new tab, so it
+  // carries no token and has no user to authorize. The export ID is the
+  // capability, and it's only ever handed to a user allowed to see the
+  // assembly.
+  @AssemblyAccess({ kind: 'assembly', in: 'query', key: 'assembly' })
   @Validations(Role.ReadOnly)
   @Get('getID')
   async getExportID(@Query() request: GetExportIDDto) {

@@ -54,8 +54,9 @@ validates the change, applies it, records it in the change log, and sends it to
 the other connected clients so they can update. The change log can be read with
 [`GET /changes`](reference/changes-controller-find-all.api.mdx).
 
-The server sends changes to clients over a [Socket.IO](https://socket.io/)
-connection, which isn't covered in this reference.
+The server sends changes to clients as
+[server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
+from `GET /messages/events`, which isn't covered in this reference.
 
 ## Endpoints
 

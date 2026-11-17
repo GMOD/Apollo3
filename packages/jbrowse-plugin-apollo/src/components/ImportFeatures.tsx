@@ -7,7 +7,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { AddFeaturesFromFileChange } from '@apollo-annotation/shared'
 import type { Assembly } from '@jbrowse/core/assemblyManager/assembly'
-import { getConf } from '@jbrowse/core/configuration'
 import {
   Button,
   Checkbox,
@@ -27,9 +26,9 @@ import type {
   ApolloInternetAccount,
   CollaborationServerDriver,
 } from '../BackendDrivers'
-import type { ChangeManager } from '../ChangeManager'
+import type { ChangeManager, JobInput } from '../ChangeManager'
 import type { ApolloSessionModel } from '../session'
-import { createFetchErrorMessage } from '../util'
+import { createFetchErrorMessage, getAssemblyMetadata } from '../util'
 
 import { Dialog } from './Dialog'
 
@@ -86,10 +85,7 @@ export function ImportFeatures({
     }
     const updateFeaturesCount = async () => {
       // TODO: this code will not work for running on desktop
-      const { internetAccountConfigId } = getConf(selectedAssembly, [
-        'sequence',
-        'metadata',
-      ]) as { internetAccountConfigId?: string }
+      const { internetAccountConfigId } = getAssemblyMetadata(selectedAssembly)
       const apolloInternetAccount = getInternetAccount(
         selectedAssembly.name,
         internetAccountConfigId,
@@ -142,9 +138,6 @@ export function ImportFeatures({
     setLoading(true)
     setSubmitted(true)
 
-    // let fileChecksum = ''
-    let fileId = ''
-
     if (!file) {
       setErrorMessage('must select a file')
       return
@@ -155,10 +148,7 @@ export function ImportFeatures({
       return
     }
 
-    const { internetAccountConfigId } = getConf(selectedAssembly, [
-      'sequence',
-      'metadata',
-    ]) as { internetAccountConfigId?: string }
+    const { internetAccountConfigId } = getAssemblyMetadata(selectedAssembly)
     const apolloInternetAccount = getInternetAccount(
       selectedAssembly.name,
       internetAccountConfigId,
@@ -180,10 +170,10 @@ export function ImportFeatures({
 
     handleClose()
 
-    const { jobsManager } = session
+    const { jobStatusWidget, showJobStatusWidget } = session
     const controller = new AbortController()
 
-    const job = {
+    const job: JobInput = {
       name: `Importing features for ${selectedAssembly.displayName}`,
       statusMessage: 'Uploading file, this may take awhile',
       progressPct: 0,
@@ -194,32 +184,36 @@ export function ImportFeatures({
             'AbortError',
           ),
         )
-        jobsManager.abortJob(job.name)
+        jobStatusWidget.addJob({ name: job.name, state: 'aborted' })
       },
+      state: 'running',
     }
 
-    jobsManager.runJob(job)
+    jobStatusWidget.addJob(job)
+    showJobStatusWidget()
 
-    if (apolloFetchFile) {
-      const { signal } = controller
-      const response = await apolloFetchFile(uri, {
-        method: 'POST',
-        body: formData,
-        signal,
+    const { signal } = controller
+    const response = await apolloFetchFile(uri, {
+      method: 'POST',
+      body: formData,
+      signal,
+    })
+    if (!response.ok) {
+      const newErrorMessage = await createFetchErrorMessage(
+        response,
+        'Error when inserting new features (while uploading file)',
+      )
+      jobStatusWidget.addJob({
+        name: job.name,
+        statusMessage: newErrorMessage,
+        state: 'aborted',
       })
-      if (!response.ok) {
-        const newErrorMessage = await createFetchErrorMessage(
-          response,
-          'Error when inserting new features (while uploading file)',
-        )
-        jobsManager.abortJob(job.name, newErrorMessage)
-        setErrorMessage(newErrorMessage)
-        return
-      }
-      const result = await response.json()
-      // fileChecksum = result.checksum
-      fileId = result._id
+      setErrorMessage(newErrorMessage)
+      return
     }
+    const result = await response.json()
+    // fileChecksum = result.checksum
+    const fileId = result._id
 
     // Add features
     const change = new AddFeaturesFromFileChange({
@@ -230,9 +224,13 @@ export function ImportFeatures({
       deleteExistingFeatures: deleteFeatures,
     })
 
-    jobsManager.done(job)
+    jobStatusWidget.addJob({
+      name: job.name,
+      statusMessage: 'Imported features',
+      state: 'finished',
+    })
 
-    await changeManager.submit(change, { updateJobsManager: true })
+    await changeManager.submit(change, { updateJobStatusWidget: true })
   }
 
   return (

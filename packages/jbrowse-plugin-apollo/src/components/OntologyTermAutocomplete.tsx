@@ -192,7 +192,9 @@ export function OntologyTermAutocomplete({
         }
         return option.lbl ?? ''
       }}
-      isOptionEqualToValue={(option, val) => option.lbl === val.lbl}
+      isOptionEqualToValue={(option, val) =>
+        option.lbl === (typeof val === 'string' ? val : val.lbl)
+      }
       onChange={handleChange}
     />
   )

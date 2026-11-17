@@ -1,11 +1,6 @@
 import { type FeatureDensity, niceBinSize } from '@apollo-annotation/shared'
 import { getConf } from '@jbrowse/core/configuration'
-import {
-  type Region,
-  getContainingView,
-  getSession,
-  isContainedWithin,
-} from '@jbrowse/core/util'
+import { type Region, getContainingView, getSession } from '@jbrowse/core/util'
 import { addDisposer, types } from '@jbrowse/mobx-state-tree'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { autorun } from 'mobx'
@@ -32,24 +27,24 @@ const maxUnderLimitEntries = 10
 export const featureDensityConfigSlots = {
   thresholdMode: {
     model: types.enumeration('ThresholdMode', ['auto', 'fixed']),
-    type: 'stringEnum',
+    type: 'stringEnum' as const,
     defaultValue: 'auto',
     description:
       'When to show a feature density histogram instead of features. `auto` shows features when there are at most `maxFeatureCount` in view. `fixed` shows features when zoomed in to less than `zoomThreshold` bp per px.',
   },
   maxFeatureCount: {
-    type: 'number',
+    type: 'number' as const,
     defaultValue: 200,
     description:
       'In `auto` mode, the most features to show before showing a feature density histogram instead',
   },
   zoomThreshold: {
-    type: 'number',
+    type: 'number' as const,
     defaultValue: 200,
     description:
       'In `fixed` mode, the bp per px at or above which a feature density histogram is shown instead of features',
   },
-}
+} as const
 
 export interface DensityStats {
   key: string
@@ -100,6 +95,23 @@ function countsAtLeast(countedTypes: string[], featureTypes: string[]) {
     featureTypes.length > 0 &&
     featureTypes.every((type) => countedTypes.includes(type))
   )
+}
+
+/**
+ * Return whether the first region is completely contained within the second region
+ *
+ * @param left1 - candidate inner region left
+ * @param right1 - candidate inner region right
+ * @param left2 - candidate outer region left
+ * @param right2 - candidate outer region right
+ */
+function isContainedWithin(
+  left1: number,
+  right1: number,
+  left2: number,
+  right2: number,
+) {
+  return left2 <= left1 && right2 >= right1
 }
 
 /**

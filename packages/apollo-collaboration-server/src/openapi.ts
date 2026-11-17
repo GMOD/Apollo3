@@ -26,8 +26,8 @@ import {
 } from '@nestjs/swagger'
 import { Schema as MongooseSchema, type SchemaType } from 'mongoose'
 
+import { ADMIN_CHANGE_TYPES } from './changes/changeHandlers.service.js'
 import { Role } from './utils/role/role.enum.js'
-import { getRequiredRoleForChange } from './utils/validation/validatation.changeTypePermissions.js'
 
 const packageRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -408,7 +408,7 @@ function describeChangeBody(document: OpenAPIObject) {
   }
   const rows = typeNames.map(
     (name) =>
-      `| \`${name}\` | ${roleDescriptions[getRequiredRoleForChange(name)]} |`,
+      `| \`${name}\` | ${roleDescriptions[ADMIN_CHANGE_TYPES.has(name) ? Role.Admin : Role.User]} |`,
   )
   operation.description = [
     operation.description,

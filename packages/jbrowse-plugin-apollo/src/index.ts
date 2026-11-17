@@ -1,21 +1,12 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { changeRegistry, checkRegistry } from '@apollo-annotation/common'
-import type { AnnotationFeature } from '@apollo-annotation/mst'
-import {
-  CDSCheck,
-  CoreValidation,
-  ParentChildValidation,
-  TranscriptCheck,
-  changes,
-  validationRegistry,
-} from '@apollo-annotation/shared'
+import { type Change, checkRegistry } from '@apollo-annotation/common'
+import { CDSCheck, TranscriptCheck, changes } from '@apollo-annotation/shared'
 import Plugin from '@jbrowse/core/Plugin'
 import type PluginManager from '@jbrowse/core/PluginManager'
-import type BaseResult from '@jbrowse/core/TextSearch/BaseResults'
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import {
+  type BaseInternetAccountModel,
   DisplayType,
   InternetAccountType,
   type PluggableElementType,
@@ -25,6 +16,7 @@ import {
   createBaseTrackConfig,
   createBaseTrackModel,
 } from '@jbrowse/core/pluggableElementTypes'
+import type { WorkerHandle } from '@jbrowse/core/rpc/WebWorkerRpcDriver'
 import {
   type AbstractSessionModel,
   type Region,
@@ -34,6 +26,7 @@ import {
 import type { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
 import { alpha } from '@mui/material'
+import { autorun } from 'mobx'
 
 import { version } from '../package.json'
 
@@ -44,6 +37,7 @@ import {
 import { installApolloRefNameAliasAdapter } from './ApolloRefNameAliasAdapter'
 import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
 import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
+import type { ApolloSearchResult } from './ApolloTextSearchAdapter/ApolloTextSearchAdapter'
 import {
   ApolloFeatureDetailsWidget,
   ApolloFeatureDetailsWidgetModel,
@@ -66,8 +60,8 @@ import {
 import { AddFeature } from './components'
 import ApolloPluginConfigurationSchema from './config'
 import {
+  annotationFromAlignmentRead,
   annotationFromJBrowseFeature,
-  annotationFromPileup,
 } from './extensions'
 import type { MainThreadReply } from './mainThreadRequest'
 import {
@@ -75,14 +69,15 @@ import {
   LinearApolloSixFrameDisplayComponent,
 } from './makeDisplayComponent'
 import { addTopLevelMenus } from './menus'
+import { addTopLevelAdminMenus } from './menus/topLevelMenuAdmin'
+import { registerPluginContributions } from './pluginContributions'
 import { type ApolloSessionModel, extendSession } from './session'
-
-interface RpcHandle {
-  client: {
-    on?(event: string, listener: (event: MessageEvent) => void): void
-  }
-  worker: Worker
-}
+import type { ClientDataStoreModel } from './session/ClientDataStore'
+import { changeHandlers } from './session/changeHandlers'
+import { clientChangeTypes } from './session/clientChangeTypes'
+import { isApolloInternetAccount } from './types'
+import { clientValidations } from './validation/ClientValidationSet'
+import { CoreValidation } from './validation/CoreValidation'
 
 interface ApolloMessageData {
   apollo: true
@@ -110,7 +105,7 @@ function isApolloMessageData(data?: unknown): data is ApolloMessageData {
 
 const inWebWorker = 'WorkerGlobalScope' in globalThis
 
-const supportedJBrowseMajorVersion = 4
+const supportedJBrowseMajorVersion = 5
 
 /**
  * Throws if this plugin is loaded in a JBrowse it wasn't built for. The JBrowse
@@ -138,8 +133,17 @@ function checkJBrowseVersion(pluginManager: PluginManager) {
   }
 }
 
-for (const [changeName, change] of Object.entries(changes)) {
-  changeRegistry.registerChange(changeName, change)
+for (const [changeName, changeType] of Object.entries(changes)) {
+  const handler = changeHandlers[changeName as keyof typeof changeHandlers] as
+    | ((dataStore: ClientDataStoreModel, change: Change) => Promise<void>)
+    | undefined
+  clientChangeTypes.register(changeName, {
+    changeType,
+    handler: handler
+      ? (change, { dataStore }) =>
+          handler(dataStore as ClientDataStoreModel, change)
+      : undefined,
+  })
 }
 
 const cdsCheck = new CDSCheck()
@@ -148,14 +152,12 @@ checkRegistry.registerCheck(cdsCheck.name, cdsCheck)
 const transcriptCheck = new TranscriptCheck()
 checkRegistry.registerCheck(transcriptCheck.name, transcriptCheck)
 
-validationRegistry.registerValidation(new CoreValidation())
-validationRegistry.registerValidation(new ParentChildValidation())
+clientValidations.register(new CoreValidation())
 
 export default class ApolloPlugin extends Plugin {
   name = 'ApolloPlugin'
   version = version
-  configurationSchema: ReturnType<typeof ConfigurationSchema> =
-    ApolloPluginConfigurationSchema
+  configurationSchema = ApolloPluginConfigurationSchema
 
   install(pluginManager: PluginManager) {
     installApolloSequenceAdapter(pluginManager)
@@ -187,7 +189,7 @@ export default class ApolloPlugin extends Plugin {
     pluginManager.addTrackType(() => {
       const configSchema = ConfigurationSchema(
         'ApolloTrack',
-        { adapter: '' },
+        {},
         {
           baseConfiguration: createBaseTrackConfig(pluginManager),
           explicitIdentifier: 'trackId',
@@ -260,9 +262,9 @@ export default class ApolloPlugin extends Plugin {
       })
     })
 
+    // @ts-expect-error Extendee type doesn't match for some reason
     pluginManager.addToExtensionPoint(
       'Core-extendSession',
-      // @ts-expect-error not sure how to deal with snapshot model types
       extendSession.bind(this, pluginManager),
     )
 
@@ -270,28 +272,29 @@ export default class ApolloPlugin extends Plugin {
       'Core-extendPluggableElement',
       (pluggableElement: PluggableElementType) => {
         if (pluggableElement.name === 'LinearGenomeView') {
-          const { stateModel } = pluggableElement as ViewType
-          const lgv = stateModel as LinearGenomeViewStateModel
-          const newStateModel = lgv.views((self) => {
-            const superRubberBandMenuItems = self.rubberBandMenuItems
-            return {
-              rubberBandMenuItems() {
-                return [
-                  ...superRubberBandMenuItems(),
-                  {
-                    label: 'Add new feature',
-                    icon: AddIcon,
-                    onClick: () => {
-                      const session = getSession(
-                        self,
-                      ) as unknown as ApolloSessionModel
-                      const { leftOffset, rightOffset } = self
-                      const selectedRegions = self.getSelectedRegions(
-                        leftOffset,
-                        rightOffset,
-                      )
-                      ;(session as unknown as AbstractSessionModel).queueDialog(
-                        (doneCallback) => [
+          ;(pluggableElement as ViewType).extendStateModel((stateModel) => {
+            const lgv: LinearGenomeViewStateModel = stateModel
+            return lgv.views((self) => {
+              const superRubberBandMenuItems = self.rubberBandMenuItems
+              return {
+                rubberBandMenuItems() {
+                  return [
+                    ...superRubberBandMenuItems(),
+                    {
+                      label: 'Add new feature',
+                      icon: AddIcon,
+                      onClick: () => {
+                        const session = getSession(
+                          self,
+                        ) as unknown as ApolloSessionModel
+                        const { leftOffset, rightOffset } = self
+                        const selectedRegions = self.getSelectedRegions(
+                          leftOffset,
+                          rightOffset,
+                        )
+                        ;(
+                          session as unknown as AbstractSessionModel
+                        ).queueDialog((doneCallback) => [
                           AddFeature,
                           {
                             session,
@@ -302,15 +305,14 @@ export default class ApolloPlugin extends Plugin {
                             changeManager:
                               session.apolloDataStore.changeManager,
                           },
-                        ],
-                      )
+                        ])
+                      },
                     },
-                  },
-                ]
-              },
-            }
+                  ]
+                },
+              }
+            })
           })
-          ;(pluggableElement as ViewType).stateModel = newStateModel
         }
         return pluggableElement
       },
@@ -318,13 +320,14 @@ export default class ApolloPlugin extends Plugin {
 
     pluginManager.addToExtensionPoint(
       'Core-extendPluggableElement',
-      annotationFromPileup,
+      annotationFromAlignmentRead,
     )
     pluginManager.addToExtensionPoint(
       'Core-extendPluggableElement',
       annotationFromJBrowseFeature,
     )
 
+    // @ts-expect-error Extendee type doesn't match for some reason
     pluginManager.addToExtensionPoint(
       'Core-preProcessTrackConfig',
       (snap: JBrowseTrackConfig): JBrowseTrackConfig => {
@@ -362,23 +365,17 @@ export default class ApolloPlugin extends Plugin {
       },
     )
 
-    pluginManager.addToExtensionPoint(
+    pluginManager.listenToExtensionPoint(
       'LinearGenomeView-searchResultSelected',
-      (_: any, props: Record<string, unknown>) => {
-        const { session, result } = props as {
-          session: ApolloSessionModel
-          result: BaseResult
-        }
+      ({ result, session }) => {
         const trackId = result.getTrackId()
-        const matchedFeature = result.matchedObject
+        const { matchedFeature } = result as ApolloSearchResult
 
-        if (trackId?.startsWith('apollo_track_') && matchedFeature) {
-          const geneFeature = matchedFeature as AnnotationFeature
-          void session.apolloSetEventualSelectedFeature(geneFeature._id)
+        if (trackId?.startsWith('apollo_track_')) {
+          void (
+            session as unknown as ApolloSessionModel
+          ).apolloSetEventualSelectedFeature(matchedFeature._id)
         }
-
-        /* eslint-disable-next-line @typescript-eslint/no-unsafe-return */
-        return _
       },
     )
 
@@ -426,11 +423,14 @@ export default class ApolloPlugin extends Plugin {
       }
       pluginManager.addToExtensionPoint(
         'Core-extendWorker',
-        (handle: RpcHandle) => {
-          if (!('on' in handle.client && handle.client.on)) {
+        (handle: WorkerHandle) => {
+          if (!handle.on || !handle.postMessage) {
             return handle
           }
-          handle.client.on('apollo', async (event: MessageEvent) => {
+          // bound once: `postMessage` is a method reading the handle's own
+          // worker, and it is called from inside the listener
+          const postMessage = handle.postMessage.bind(handle)
+          handle.on('apollo', async (event) => {
             if (!isApolloMessageData(event)) {
               return
             }
@@ -447,7 +447,7 @@ export default class ApolloPlugin extends Plugin {
                 error: error instanceof Error ? error.message : String(error),
               }
             }
-            handle.worker.postMessage(reply)
+            postMessage(reply)
           })
           return handle
         },
@@ -457,7 +457,9 @@ export default class ApolloPlugin extends Plugin {
 
   configure(pluginManager: PluginManager) {
     checkJBrowseVersion(pluginManager)
-    if (isAbstractMenuManager(pluginManager.rootModel)) {
+    registerPluginContributions(pluginManager)
+    const { rootModel } = pluginManager
+    if (isAbstractMenuManager(rootModel)) {
       pluginManager.jexl.addFunction(
         'geneBackgroundColor',
         (featureType: string) => {
@@ -470,7 +472,19 @@ export default class ApolloPlugin extends Plugin {
           return
         },
       )
-      addTopLevelMenus(pluginManager.rootModel)
+      addTopLevelMenus(rootModel)
+      autorun((reaction) => {
+        const { internetAccounts } = rootModel as unknown as {
+          internetAccounts: BaseInternetAccountModel[]
+        }
+        const hasAdminAccount = internetAccounts
+          .filter((ia) => isApolloInternetAccount(ia))
+          .some((internetAccount) => internetAccount.role === 'admin')
+        if (hasAdminAccount) {
+          reaction.dispose()
+          addTopLevelAdminMenus(rootModel)
+        }
+      })
     }
   }
 }

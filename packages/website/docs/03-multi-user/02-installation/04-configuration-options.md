@@ -136,11 +136,35 @@ MICROSOFT_CLIENT_SECRET=client_secret_here
 # Possible values are admin, readOnly and user; defaults to readonly
 # GUEST_USER_ROLE=readOnly
 
-# Comma-separated list of Apollo plugins to use
-# PLUGIN_URLS=https://example.com/apollo-plugin-example.umd.production.min.js
+# Comma-separated list of npm package specifiers to load as server plugins.
+# Only works for packages in the collaboration server's own dependencies, so
+# not with the published Docker image unless you build your own image. Use
+# PLUGIN_URLS instead.
+# PLUGIN_PACKAGES=my-apollo-server-plugin
+
+# Comma-separated list of http(s) URLs to fetch server plugin bundles from at
+# startup, with no rebuild required. This is how to add plugins to the
+# published Docker image. Bundles must be a single Node-targeted ESM/CJS file,
+# not a browser/UMD bundle (server-side Apollo plugins have their own,
+# Node-only plugin system - see the developer guide). Fetched bundles are
+# cached by content hash under PLUGIN_CACHE_DIR.
+# PLUGIN_URLS=https://example.com/my-apollo-server-plugin.mjs
 # Alternatively, can be a path to a file with a list of plugin URLs, one URL per
 # line
 # PLUGIN_URLS_FILE=/data/plugin-urls
+
+# Optional comma-separated list of url=sha256hash pairs, checked against the
+# corresponding PLUGIN_URLS entry before it is loaded. If cached, a URL with a
+# configured hash skips the network fetch entirely on restart.
+# PLUGIN_INTEGRITY=https://example.com/my-apollo-server-plugin.mjs=3f2504e...
+
+# Directory used to cache fetched PLUGIN_URLS bundles by content hash.
+# Defaults to a ".plugin-cache" directory inside the collaboration server
+# package. Imports such as "@apollo-annotation/common" in a fetched bundle are
+# resolved from the server's own dependencies only if this directory is inside
+# the server package; if you set it elsewhere, plugins loaded from URLs must be
+# fully self-contained bundles.
+# PLUGIN_CACHE_DIR=/app/packages/apollo-collaboration-server/.plugin-cache
 
 # HTTP/HTTPS proxy for OAuth requests, if your server is behind a proxy
 # OAUTH_HTTP_PROXY=http://proxy.example.com:8080
@@ -150,4 +174,17 @@ MICROSOFT_CLIENT_SECRET=client_secret_here
 # this computer (localhost), so this is only needed if JBrowse is served from a
 # different origin than Apollo, e.g. a different domain or port.
 # ALLOWED_REDIRECT_ORIGINS=https://jbrowse.example.org
+
+# Size in bytes of the MongoDB capped collection used to send live updates
+# between server processes, defaults to 67108864 (64 MiB). Only used when the
+# collection is first created.
+# EVENTS_COLLECTION_SIZE=67108864
 ```
+
+## Restricting assembly access
+
+By default every logged-in user can see and act on every assembly on the server,
+subject to their role. To restrict users to particular assemblies, add a
+server-side plugin that registers the `Apollo-AssemblyAccess` extension point —
+see [Restricting assembly access](../../04-developer-guide/assembly-access.md)
+in the developer guide.
