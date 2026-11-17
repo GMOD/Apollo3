@@ -29,10 +29,10 @@ jobs:
         uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-      - name: Use Node.js 24.x
+      - name: Use Node.js
         uses: actions/setup-node@v7.1.0
         with:
-          node-version: 24.14
+          node-version-file: .nvmrc
           cache: yarn
       - name: Install
         run: yarn --immutable
@@ -56,10 +56,10 @@ jobs:
         uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-      - name: Use Node.js 24.x
+      - name: Use Node.js
         uses: actions/setup-node@v7.1.0
         with:
-          node-version: 24.14
+          node-version-file: .nvmrc
           cache: yarn
       - name: Install
         run: yarn --immutable
@@ -128,8 +128,9 @@ jobs:
   e2e:
     name: Cypress tests
     # MongoDB 8 refuses to start on the ubuntu-24.04 runner's 7.0 kernel. Go
-    # back to ubuntu-latest once MongoDB 8.0.35/8.3.14 are out.
+    # back to ubuntu-latest once MongoDB 8.0.37/8.3.16 are out.
     # https://github.com/actions/runner-images/issues/15005
+    # https://jira.mongodb.org/browse/SERVER-131779
     runs-on: ubuntu-22.04
     permissions:
       contents: read
@@ -138,10 +139,10 @@ jobs:
         uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-      - name: Use Node.js 24.x
+      - name: Use Node.js
         uses: actions/setup-node@v7.1.0
         with:
-          node-version: 24.14
+          node-version-file: .nvmrc
           cache: yarn
       - name: Install
         run: yarn --immutable
@@ -260,8 +261,9 @@ jobs:
   cli:
     name: CLI tests
     # MongoDB 8 refuses to start on the ubuntu-24.04 runner's 7.0 kernel. Go
-    # back to ubuntu-latest once MongoDB 8.0.35/8.3.14 are out.
+    # back to ubuntu-latest once MongoDB 8.0.37/8.3.16 are out.
     # https://github.com/actions/runner-images/issues/15005
+    # https://jira.mongodb.org/browse/SERVER-131779
     runs-on: ubuntu-22.04
     permissions:
       contents: read
@@ -270,10 +272,10 @@ jobs:
         uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-      - name: Use Node.js 24.x
+      - name: Use Node.js
         uses: actions/setup-node@v7.1.0
         with:
-          node-version: 24.14
+          node-version-file: .nvmrc
           cache: yarn
       - name: Install
         run: yarn --immutable
