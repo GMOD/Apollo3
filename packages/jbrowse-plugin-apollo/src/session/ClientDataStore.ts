@@ -242,18 +242,28 @@ export function clientDataStoreFactory(
       },
     }))
     .views((self) => ({
-      getBackendDriver(assemblyId: string): BackendDriver | undefined {
-        const session = getSession(self)
-        const { assemblyManager } = session
+      /**
+       * The config ID of the internet account for the collaboration server
+       * that hosts this assembly. `undefined` if the assembly isn't loaded or
+       * isn't on a collaboration server.
+       */
+      getInternetAccountConfigId(assemblyId: string): string | undefined {
+        const { assemblyManager } = getSession(self)
         const assembly = assemblyManager.get(assemblyId)
         if (!assembly) {
           return
         }
-        const { internetAccountConfigId } = getConf(assembly, [
-          'sequence',
-          'metadata',
-        ]) as { internetAccountConfigId?: string; file: string }
-        if (internetAccountConfigId) {
+        const metadata = getConf(assembly, ['sequence', 'metadata']) as
+          | { internetAccountConfigId?: string }
+          | undefined
+        return metadata?.internetAccountConfigId
+      },
+      getBackendDriver(assemblyId: string): BackendDriver | undefined {
+        const { assemblyManager } = getSession(self)
+        if (!assemblyManager.get(assemblyId)) {
+          return
+        }
+        if (this.getInternetAccountConfigId(assemblyId)) {
           return self.collaborationServerDriver
         }
         return self.localDriver

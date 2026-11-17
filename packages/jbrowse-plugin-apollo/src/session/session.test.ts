@@ -1,11 +1,6 @@
 import type PluginManager from '@jbrowse/core/PluginManager'
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
-import {
-  type Instance,
-  applySnapshot,
-  destroy,
-  types,
-} from '@jbrowse/mobx-state-tree'
+import { type Instance, destroy, types } from '@jbrowse/mobx-state-tree'
 import {
   afterEach,
   beforeEach,
@@ -15,21 +10,30 @@ import {
   jest,
 } from '@jest/globals'
 
-const postUserLocation = jest.fn()
-const Assembly = types.model({ backendDriverType: types.string })
+const postToServerA = jest.fn()
+const postToServerB = jest.fn()
 
-const ClientDataStore = types.model({
-  typeName: types.optional(types.string, 'Client'),
-  assemblies: types.map(Assembly),
-  checkResults: types.map(types.frozen()),
-})
-jest.unstable_mockModule('./ClientDataStore', () => ({
-  clientDataStoreFactory: () => ClientDataStore,
-}))
 jest.unstable_mockModule('../ApolloJobModel', () => ({
   ApolloJobModel: types.model({}),
 }))
 const { extendSession } = await import('./session')
+
+function assembly(internetAccountConfigId?: string) {
+  return {
+    configuration: {
+      sequence: {
+        metadata: internetAccountConfigId
+          ? { apollo: true, internetAccountConfigId }
+          : { apollo: true, file: 'local.fa' },
+      },
+    },
+  }
+}
+const assemblies = new Map([
+  ['remote', assembly('serverA')],
+  ['remoteB', assembly('serverB')],
+  ['local', assembly()],
+])
 
 const BaseSession = types
   .model({
@@ -37,7 +41,15 @@ const BaseSession = types
     name: types.string,
     views: types.array(types.frozen()),
   })
-  .volatile(() => ({ assemblyManager: { assemblies: [] } }))
+  .volatile(() => ({
+    // So that `getSession()` in ClientDataStore recognizes this as a session
+    rpcManager: {},
+    configuration: {},
+    assemblyManager: {
+      assemblies: [],
+      get: (name: string) => assemblies.get(name),
+    },
+  }))
   .actions((self) => ({
     setViews(views: unknown[]) {
       self.views.replace(views)
@@ -57,7 +69,18 @@ const pluginConfiguration = ConfigurationSchema('ApolloPlugin', {
   },
 })
 const Root = types.model({ session: Session }).volatile(() => ({
-  internetAccounts: [{ type: 'ApolloInternetAccount', postUserLocation }],
+  internetAccounts: [
+    {
+      type: 'ApolloInternetAccount',
+      internetAccountId: 'serverA',
+      postUserLocation: postToServerA,
+    },
+    {
+      type: 'ApolloInternetAccount',
+      internetAccountId: 'serverB',
+      postUserLocation: postToServerB,
+    },
+  ],
   jbrowse: { configuration: { ApolloPlugin: pluginConfiguration.create() } },
 }))
 const linear = {
@@ -72,10 +95,7 @@ const linear = {
 const circular = { type: 'CircularView' }
 const location = { assemblyId: 'remote', refSeq: 'ctgA', start: 10, end: 20 }
 let root: ReturnType<typeof Root.create>
-let session: Instance<typeof BaseSession> & {
-  apolloDataStore: Instance<typeof ClientDataStore>
-  broadcastLocations(): void
-}
+let session: Instance<typeof BaseSession> & { broadcastLocations(): void }
 let savedLocation: PropertyDescriptor | undefined
 
 beforeEach(() => {
@@ -88,15 +108,8 @@ beforeEach(() => {
     session: { id: 'session', name: 'session', views: [] },
   } as never)
   session = root.session as unknown as typeof session
-  applySnapshot(session.apolloDataStore, {
-    typeName: 'Client',
-    checkResults: {},
-    assemblies: {
-      remote: { backendDriverType: 'CollaborationServerDriver' },
-      local: { backendDriverType: 'LocalDriver' },
-    },
-  })
-  postUserLocation.mockClear()
+  postToServerA.mockClear()
+  postToServerB.mockClear()
 })
 
 afterEach(() => {
@@ -115,25 +128,25 @@ describe.each([
 ])('%s', (_name, views) => {
   it('broadcasts the linear location automatically', () => {
     session.setViews(views)
-    expect(postUserLocation).toHaveBeenLastCalledWith([location])
+    expect(postToServerA).toHaveBeenLastCalledWith([location])
   })
 
   it('broadcasts the linear location explicitly', () => {
     session.setViews(views)
-    postUserLocation.mockClear()
+    postToServerA.mockClear()
     session.broadcastLocations()
-    expect(postUserLocation).toHaveBeenLastCalledWith([location])
+    expect(postToServerA).toHaveBeenLastCalledWith([location])
   })
 })
 
 it('clears the previous location when only a circular view remains', () => {
   session.setViews([linear])
-  postUserLocation.mockClear()
+  postToServerA.mockClear()
   session.setViews([circular])
-  expect(postUserLocation).toHaveBeenLastCalledWith([])
-  postUserLocation.mockClear()
+  expect(postToServerA).toHaveBeenLastCalledWith([])
+  postToServerA.mockClear()
   session.broadcastLocations()
-  expect(postUserLocation).toHaveBeenLastCalledWith([])
+  expect(postToServerA).toHaveBeenLastCalledWith([])
 })
 
 it.each([
@@ -161,19 +174,65 @@ it.each([
     },
   ],
 ])('omits %s locations', (_name, view) => {
+  session.setViews([linear])
+  postToServerA.mockClear()
   session.setViews([view])
-  expect(postUserLocation).toHaveBeenLastCalledWith([])
-  postUserLocation.mockClear()
+  expect(postToServerA).toHaveBeenLastCalledWith([])
+  postToServerA.mockClear()
   session.broadcastLocations()
-  expect(postUserLocation).toHaveBeenLastCalledWith([])
+  expect(postToServerA).toHaveBeenLastCalledWith([])
 })
 
 it('clears the previous location when all views close', () => {
   session.setViews([linear])
-  postUserLocation.mockClear()
+  postToServerA.mockClear()
   session.setViews([])
-  expect(postUserLocation).toHaveBeenLastCalledWith([])
-  postUserLocation.mockClear()
+  expect(postToServerA).toHaveBeenLastCalledWith([])
+  postToServerA.mockClear()
   session.broadcastLocations()
-  expect(postUserLocation).toHaveBeenLastCalledWith([])
+  expect(postToServerA).toHaveBeenLastCalledWith([])
+})
+
+function linearOn(assemblyName: string, refName = 'ctgA') {
+  return {
+    ...linear,
+    dynamicBlocks: {
+      contentBlocks: [{ assemblyName, refName, start: 10, end: 20 }],
+    },
+  }
+}
+
+it('sends each server only the locations on its own assemblies', () => {
+  session.setViews([linearOn('remote'), linearOn('remoteB', 'ctgB')])
+  expect(postToServerA).toHaveBeenLastCalledWith([location])
+  expect(postToServerB).toHaveBeenLastCalledWith([
+    { ...location, assemblyId: 'remoteB', refSeq: 'ctgB' },
+  ])
+  postToServerA.mockClear()
+  postToServerB.mockClear()
+  session.broadcastLocations()
+  expect(postToServerA).toHaveBeenLastCalledWith([location])
+  expect(postToServerB).toHaveBeenLastCalledWith([
+    { ...location, assemblyId: 'remoteB', refSeq: 'ctgB' },
+  ])
+})
+
+it("doesn't repost locations that haven't changed", () => {
+  // The session already posted [] to both servers when it was created
+  session.setViews([circular])
+  session.setViews([circular, circular])
+  expect(postToServerA).not.toHaveBeenCalled()
+  expect(postToServerB).not.toHaveBeenCalled()
+  session.setViews([linear])
+  expect(postToServerA).toHaveBeenCalledTimes(1)
+  expect(postToServerA).toHaveBeenLastCalledWith([location])
+  // Server B's locations are still [], so it isn't posted to again
+  expect(postToServerB).not.toHaveBeenCalled()
+})
+
+it('always posts when broadcasting explicitly', () => {
+  session.setViews([circular])
+  postToServerA.mockClear()
+  session.broadcastLocations()
+  expect(postToServerA).toHaveBeenLastCalledWith([])
 })
