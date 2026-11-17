@@ -5,3 +5,21 @@
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Version control and local build output. Stale `dist` or `.tsbuildinfo` files
+# from a local build would otherwise end up in the image.
+.git
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+**/coverage
+**/.nyc_output
+
+# Large local folders not needed to build the images. Keep
+# `packages/website/package.json`, since `yarn install` needs every workspace.
+packages/website/.yarn
+packages/website/build
+packages/website/.docusaurus
+packages/website/static
+packages/jbrowse-plugin-apollo/.jbrowse
+packages/jbrowse-plugin-apollo/package.tgz
