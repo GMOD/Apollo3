@@ -13,8 +13,7 @@ describe('Warning signs', () => {
     cy.contains('Annotations (').click()
     cy.get('button[aria-label="Minimize drawer"]').click()
     cy.annotationTrackAppearance('Show table display')
-    cy.contains('td', 'Id=mrna02').scrollIntoView()
-    cy.contains('td', 'Id=mrna02').should('be.visible').rightclick()
+    cy.contains('td', 'Id=mrna02').rightclick({ scrollBehavior: 'center' })
     cy.contains('Edit transcript details').click()
     cy.contains('Sequence').parent().parent().click()
     cy.contains('>chr2:3-28(strand=+;length=26)').should(
