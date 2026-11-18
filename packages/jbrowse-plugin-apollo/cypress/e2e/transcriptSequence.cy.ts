@@ -7,7 +7,10 @@ describe('Warning signs', () => {
     cy.deleteAssemblies()
   })
   it('Updates an open sequence when the transcript is edited', () => {
-    cy.addAssemblyFromGff('sequence-updates', 'test_data/mergeTranscripts.gff3')
+    cy.addAssemblyFromGff(
+      'sequence-updates',
+      'test_data/transcriptSequence.gff3',
+    )
     cy.selectAssemblyToView('sequence-updates', 'chr2:1..60')
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
@@ -21,18 +24,16 @@ describe('Warning signs', () => {
       'tTTGGTGtagCAAAGTACTGTTAGGG',
     )
 
-    cy.contains('Id=exon2')
-      .parent()
-      .find('input[value="28"]')
-      .type('{selectall}{backspace}32{enter}')
+    cy.get('#panel2-content input[value="28"]').type(
+      '{selectall}{backspace}32{enter}',
+    )
     cy.contains('>chr2:3-32(strand=+;length=30)').should(
       'contain',
       'tTTGGTGtagCAAAGTACTGTTAGGGGTTA',
     )
-    cy.contains('Id=exon2')
-      .parent()
-      .find('input[value="32"]')
-      .type('{selectall}{backspace}30{enter}')
+    cy.get('#panel2-content input[value="32"]').type(
+      '{selectall}{backspace}30{enter}',
+    )
     cy.contains('>chr2:3-30(strand=+;length=28)').should(
       'contain',
       'tTTGGTGtagCAAAGTACTGTTAGGGGT',
