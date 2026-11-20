@@ -23,12 +23,13 @@ sudo apt update
 Now install the tools we need by running
 
 ```sh
-sudo apt install -y apache2 unzip
+sudo apt install -y apache2 jq unzip
 ```
 
 This installs:
 
 - apache2, which is the web server we'll use to server JBrowse
+- jq, for reading version information when downloading Apollo
 - unzip, for decompressing the JBrowse installation files
 
 By default, apache2 serves files located in the `/var/www/html` directory. We'll
@@ -57,13 +58,17 @@ in a file called `apollo.js` in the directory with the other JBrowse files.
 
 ```sh
 curl -fsSL https://registry.npmjs.org/@apollo-annotation/jbrowse-plugin-apollo/ > jpa.json
-LATEST_VERSION=$(jq -r '."dist-tags".latest' jpa.json)
-TARBALL_URL=$(jq -r ".versions.\"${LATEST_VERSION}\".dist.tarball" jpa.json)
+APOLLO_VERSION=$(jq -r '."dist-tags".latest' jpa.json)
+echo "Installing Apollo JBrowse plugin version ${APOLLO_VERSION}"
+TARBALL_URL=$(jq -r ".versions.\"${APOLLO_VERSION}\".dist.tarball" jpa.json)
 curl -fsSL ${TARBALL_URL} | \
   tar --extract --gzip --file=- --strip=2 package/dist/jbrowse-plugin-apollo.umd.production.min.js
 mv jbrowse-plugin-apollo.umd.production.min.js apollo.js
 rm jpa.json
 ```
+
+Take note of the version this prints. The Apollo Collaboration Server we install
+later needs to be the same version as the plugin.
 
 In order to test that this worked, we'll need to create a temporary JBrowse
 config file. We'll use the text editor `nano` in this tutorial, but feel free to
@@ -92,13 +97,9 @@ That will open the `nano` editor. Paste or type the following into the file:
 To save the file, press <kbd>Ctrl</kbd> + <kbd>O</kbd> and then
 <kbd>Enter</kbd>, and to exit `nano`, press <kbd>Ctrl</kbd> + <kbd>X</kbd>.
 
-Now open the same link as before (or refresh the page). You should now see the
-JBrowse start screen. Choose an "Empty" session.
-
-![JBrowse start screen](jbrowse_start_screen.png)
-
-If Apollo has been installed successfully, you'll see a menu called "Apollo" at
-the top of the page.
+Now open the same link as before (or refresh the page). If Apollo has been
+installed successfully, you'll see a menu called "Apollo" at the top of the
+page.
 
 ![Menu bar of JBrowse with an "Apollo" menu](apollo_top_menu.png)
 
@@ -232,17 +233,23 @@ curl -fsSL https://deb.nodesource.com/setup_26.x | sudo bash -
 sudo apt install -y nodejs
 ```
 
-Now we'll fetch the Apollo installation files.
+Now we'll fetch the Apollo installation files. The Apollo Collaboration Server
+and the Apollo JBrowse plugin must be the same version, so we look up the
+plugin's version again and download the server code for that version.
 
 ```sh
 cd ~
-curl -fsSL https://api.github.com/repos/GMOD/Apollo3/releases/latest > apollo.json
-TARBALL_URL=$(jq -r '.tarball_url' apollo.json)
-curl -fsSL ${TARBALL_URL} > apollo.tar.gz
-tar xvf apollo.tar.gz
-rm apollo.tar.gz apollo.json
-mv GMOD-Apollo3-*/ Apollo/
+APOLLO_VERSION=$(curl -fsSL https://registry.npmjs.org/@apollo-annotation/jbrowse-plugin-apollo/ | jq -r '."dist-tags".latest')
+echo "Installing Apollo Collaboration Server version ${APOLLO_VERSION}"
+curl -fsSL https://github.com/GMOD/Apollo3/archive/refs/tags/v${APOLLO_VERSION}.tar.gz > apollo.tar.gz
+tar xf apollo.tar.gz
+rm apollo.tar.gz
+mv Apollo3-${APOLLO_VERSION}/ Apollo/
 ```
+
+Check that the version this prints is the same one that was printed when you
+installed the plugin. If a new version of Apollo was released in between, go
+back and re-run the plugin installation commands so the versions match.
 
 To install Apollo, we'll need the tool `yarn`, which is provided by Corepack.
 Node.js no longer includes Corepack, so install and enable it by running
@@ -289,9 +296,61 @@ Now we can start Apollo by running
 yarn start:prod
 ```
 
-Open the URL of your server. Open an "Empty" session, and then choose "Continue
-as Guest" in the dialog that appears.
-
-![Login dialog](apollo_login.png)
+Open the URL of your server. Since guest access is the only login type
+configured, Apollo will log you in as a guest automatically. If you've opened
+this page before, do a hard refresh (<kbd>Ctrl</kbd> + <kbd>Shift</kbd> +
+<kbd>R</kbd>, or <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd> on a Mac) to
+make sure your browser isn't using an old copy of `apollo.js`.
 
 Congratulations, Apollo is now ready to use!
+
+## Upgrading Apollo
+
+To upgrade Apollo, update the plugin and the server together so they stay the
+same version. First stop the running server (<kbd>Ctrl</kbd> + <kbd>C</kbd> in
+the terminal where you ran `yarn start:prod`). Then re-run the plugin
+installation commands from
+[Set up Apollo JBrowse plugin](#set-up-apollo-jbrowse-plugin) (in
+`/var/www/html/`, skipping the test `config.json`). Then replace the server
+code, keeping your `.env` file:
+
+```sh
+cd ~
+cp Apollo/packages/apollo-collaboration-server/.env .
+rm -r Apollo/
+APOLLO_VERSION=$(curl -fsSL https://registry.npmjs.org/@apollo-annotation/jbrowse-plugin-apollo/ | jq -r '."dist-tags".latest')
+curl -fsSL https://github.com/GMOD/Apollo3/archive/refs/tags/v${APOLLO_VERSION}.tar.gz > apollo.tar.gz
+tar xf apollo.tar.gz
+rm apollo.tar.gz
+mv Apollo3-${APOLLO_VERSION}/ Apollo/
+mv .env Apollo/packages/apollo-collaboration-server/
+cd Apollo/
+yarn
+cd packages/apollo-collaboration-server/
+yarn build
+yarn start:prod
+```
+
+Finally, do a hard refresh in your browser to load the new plugin.
+
+## Troubleshooting
+
+### Apollo says the server and plugin versions don't match
+
+The Apollo JBrowse plugin and the Apollo Collaboration Server must be the same
+version. Since version 1.2.0, the plugin checks this when it loads, and if they
+don't match it shows an error like "The Apollo server at ... is version 1.1.2,
+but this Apollo plugin is version 1.2.0".
+
+Older plugin versions don't do this check, so a mismatch shows up in other ways.
+For example, the login dialog may show buttons with no text, and clicking one
+sends you to a URL ending in `auth/login?type=undefined`.
+
+You can check which server version you have with
+
+```sh
+jq -r .version ~/Apollo/packages/apollo-collaboration-server/package.json
+```
+
+To fix a mismatch, follow the steps in [Upgrading Apollo](#upgrading-apollo) to
+re-install both at the same version.
