@@ -26,9 +26,9 @@ this:
 
 ```sh-session
 $ apollo --version
-@apollo-annotation/cli/0.3.4 linux-x64 node-v18.20.4
+@apollo-annotation/cli/1.2.0 linux-x64 node-v24.22.0
 $ jbrowse --version
-@jbrowse/cli/2.18.0 linux-x64 node-v18.20.4
+@jbrowse/cli version 4.3.0
 ```
 
 If that worked, you can move on to
@@ -44,6 +44,13 @@ directory.
 ```sh
 mkdir cli
 touch cli/config.yml
+```
+
+Next, download the newest Apollo CLI image. This makes sure you aren't using an
+older copy you may have downloaded before.
+
+```sh
+docker pull ghcr.io/gmod/apollo-cli
 ```
 
 Now we'll create a function that wraps the Docker commands that we need to run
@@ -69,7 +76,7 @@ output:
 
 ```sh-session
 $ apollo --version
-@apollo-annotation/cli/0.3.4 linux-x64 node-v18.20.4
+@apollo-annotation/cli/1.2.0 linux-x64 node-v24.22.0
 ```
 
 JBrowse does not provide a Docker image for its CLI, so we'll have to create
@@ -78,7 +85,7 @@ into it:
 
 ```Dockerfile title="jbrowse.Dockerfile"
 FROM node:26-alpine
-RUN mkdir data && yarn global add @jbrowse/cli
+RUN mkdir data && npm install -g @jbrowse/cli
 ENTRYPOINT ["jbrowse"]
 ```
 
@@ -109,15 +116,18 @@ the output looks something like this:
 
 ```sh-session
 $ jbrowse --version
-@jbrowse/cli/2.18.0 linux-x64 node-v18.20.4
+@jbrowse/cli version 4.3.0
 ```
 
 ## Configuring the Apollo CLI
 
-Open a new terminal in the same directory where you ran the setup commands. To
-use the Apollo CLI, we need to configure it with the information for the running
-Apollo installation. You can have multiple profiles configured, but we will use
-a single default profile. Run these commands:
+Open a new terminal in the same directory where you ran the setup commands. If
+you are using Docker to run the CLI tools, paste the `apollo` and `jbrowse`
+functions from above into this new terminal as well, since shell functions don't
+carry over between terminals. To use the Apollo CLI, we need to configure it
+with the information for the running Apollo installation. You can have multiple
+profiles configured, but we will use a single default profile. Run these
+commands:
 
 ```sh
 apollo config address http://localhost/apollo
@@ -134,9 +144,8 @@ If you need to log in again, run `apollo logout` first, or use
 ## Adding assemblies and annotations
 
 The next step is to add an assembly. We're going to use a trimmed-down assembly
-that only includes a single chromosome. This is so that the data is small enough
-to be self-contained inside this repository, without the need for any external
-data.
+that only includes a single chromosome. This keeps the demo data small enough to
+download quickly.
 
 We are going to use a FASTA file that has been prepared with `bgzip` and
 `samtools` to be compressed and indexed. The organism this assembly belongs to
@@ -201,12 +210,12 @@ HAEMATOBIUM_ID=$(
 )
 ```
 
-In order to make the evidence track data available to JBrowse, the
-`jbrowse_data/` is visible inside our running application as a directory called
-`data/` that is visible to JBrowse. Inside this directory, we have an RNA-seq
-file in CRAM format for each of the assemblies, as well as a file that shows
-synteny relationships between the two assemblies. This particular file was
-generated with `tblastx`.
+The evidence track data is in the `jbrowse_data/` directory. The `compose.yml`
+file mounts that directory into the running application, where JBrowse sees it
+as a directory called `data/`. Inside this directory, we have an RNA-seq file in
+CRAM format for each of the assemblies, as well as a file that shows synteny
+relationships between the two assemblies. This particular file was generated
+with `tblastx`.
 
 The first step is to get the JBrowse configuration stored in Apollo so we can
 update it. Run these commands:

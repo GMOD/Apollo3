@@ -3,7 +3,13 @@
 To run this demo, you'll need to have
 [Docker](//docs.docker.com/engine/install/) (minimum version 27) and
 [Docker Compose](//docs.docker.com/compose/install/) (minimum version 2.17.0)
-installed, as well as [`jq`](https://jqlang.github.io/jq/).
+installed, as well as [`jq`](https://jqlang.github.io/jq/), `wget`, and `unzip`.
+
+The demo also needs ports 80, 3999, and 27017 to be free on your computer. If
+something else is already using one of them (for example, another Apollo
+installation or a dev container that forwards those ports), stop it before
+starting the demo. Otherwise Docker will fail with an error like
+`failed to bind host port 0.0.0.0:27017/tcp: address already in use`.
 
 We also recommend a Node.js package manager (such as `npm` or `yarn`) to make
 things easier, but we will provide directions for doing everything without one
@@ -116,7 +122,7 @@ services:
           rs.status()
           console.log('replica set ok')
         } catch {
-          rs.initiate()
+          rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'db:27017' }] })
           console.log('replica set initiated')
         }
         "
@@ -133,6 +139,23 @@ volumes:
   uploads: null
 ```
 
-Now in the terminal, run `docker compose up`. You should see a stream of logs
-from the Docker containers. If you do, Apollo is now running! You can use
-<kbd>Ctrl</kbd> + <kbd>C</kbd> in the terminal to stop Apollo when you are done.
+Now in the terminal, run these commands:
+
+```sh
+docker compose pull
+docker compose build --pull --no-cache
+docker compose up
+```
+
+The first two commands make sure you have the newest versions of Apollo and
+JBrowse, even if you have older copies from a previous run. (The `client` image
+downloads the latest JBrowse and Apollo plugin when it's built, so it needs to
+be rebuilt without Docker's cache to pick up new releases.) You should see a
+stream of logs from the Docker containers. If you do, Apollo is now running! You
+can use <kbd>Ctrl</kbd> + <kbd>C</kbd> in the terminal to stop Apollo when you
+are done.
+
+If you've run this demo before, your browser may still have the old version of
+the Apollo plugin cached. When you open Apollo later in this guide, do a hard
+refresh (<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd>, or <kbd>Cmd</kbd> +
+<kbd>Shift</kbd> + <kbd>R</kbd> on a Mac) to make sure you get the new one.
