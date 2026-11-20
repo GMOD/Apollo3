@@ -16,7 +16,7 @@ $ npm install -g @apollo-annotation/cli
 $ apollo COMMAND
 running command...
 $ apollo (--version)
-@apollo-annotation/cli/1.2.0 linux-x64 node-v26.13.1
+@apollo-annotation/cli/1.2.0 darwin-arm64 node-v26.13.1
 $ apollo --help [COMMAND]
 USAGE
   $ apollo COMMAND
@@ -111,7 +111,7 @@ EXAMPLES
 
   Local file with editable sequence does not require compression and indexing:
 
-    $ apollo assembly add-from-fasta genome.fa -a myAssembly
+    $ apollo assembly add-from-fasta genome.fa -e -a myAssembly
 
   From external source assuming there are also indexes https://.../genome.fa.gz.fai and https://.../genome.fa.gz.gzi:
 
