@@ -40,6 +40,24 @@ describe('Warning signs', () => {
     )
   })
 
+  it('Shows the sequence in the strand reported by feature details', () => {
+    const assemblyName = 'feature-sequence-strand'
+    cy.addAssemblyFromGff(assemblyName, 'test_data/cdsChecks/stopcodon.gff3')
+    cy.selectAssemblyToView(assemblyName, 'chr9:1..45')
+    cy.contains('Open track selector').click()
+    cy.contains('Annotations (').click()
+    cy.get('button[aria-label="Minimize drawer"]').click()
+    cy.annotationTrackAppearance('Show table display')
+
+    cy.contains('td', 'Id=cds09.1').rightclick({ scrollBehavior: 'center' })
+    cy.contains('Edit feature details').click()
+    cy.get('#panel2-header').click()
+    cy.contains('>chr9:24-7(strand=-;length=18)').should(
+      'contain',
+      'ATGCAAAGTACACATGGG',
+    )
+  })
+
   it('Sequences from feature on reverse strand', () => {
     cy.addAssemblyFromGff(
       'SM_V10_3.fasta.gff3.gz',
