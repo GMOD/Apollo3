@@ -27,7 +27,7 @@ export default class AddFasta extends FileCommand {
     {
       description:
         'Local file with editable sequence does not require compression and indexing:',
-      command: '<%= config.bin %> <%= command.id %> genome.fa -a myAssembly',
+      command: '<%= config.bin %> <%= command.id %> genome.fa -e -a myAssembly',
     },
     {
       description:
@@ -150,14 +150,14 @@ often has unintended side effects.',
       const gziIsFileId = await this.isFileId(gzi)
       const faiIsFileId = await this.isFileId(fai)
 
-      if (!fs.existsSync(gzi) && !gziIsFileId && !flags.editable) {
+      if (!fs.existsSync(gzi) && !gziIsFileId) {
         this.error(
           `Only bgzip'd and indexed fasta files are supported unless option -e/--editable is set. "${gzi}" is neither a file or a file id`,
         )
       }
       if (!fs.existsSync(fai) && !faiIsFileId) {
         this.error(
-          `Only bgzip'd and indexed fasta files are supported at the moment. "${fai}" is neither a file or a file id`,
+          `Only bgzip'd and indexed fasta files are supported unless option -e/--editable is set. "${fai}" is neither a file or a file id`,
         )
       }
 
