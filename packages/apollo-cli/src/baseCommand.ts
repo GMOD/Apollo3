@@ -166,7 +166,10 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
       method: 'POST',
     }
     const response = await this.fetch(endpoint, optionsWithAuth, { json: true })
-    return response.json()
+    // Some endpoints (e.g. POST /changes for non-assembly-specific changes)
+    // respond with an empty body
+    const text = await response.text()
+    return text ? (JSON.parse(text) as unknown) : undefined
   }
 
   public async get(
