@@ -1,4 +1,4 @@
-import { getSession } from '@jbrowse/core/util'
+import { getSession, revcom } from '@jbrowse/core/util'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {
   Accordion,
@@ -48,6 +48,7 @@ export const ApolloFeatureDetailsWidget = observer(
       return null
     }
     const { max, min } = feature
+    const strand = feature.strand === -1 ? -1 : 1
     const sequence = refSeq.getSequence(min, max)
     if (!sequence) {
       void session.apolloDataStore.loadRefSeq([
@@ -55,7 +56,13 @@ export const ApolloFeatureDetailsWidget = observer(
       ])
     }
     const sequenceSegments: SequenceSegment[] = sequence
-      ? [{ type: 'plain', sequence, locs: [{ min, max }] }]
+      ? [
+          {
+            type: 'plain',
+            sequence: strand === -1 ? revcom(sequence) : sequence,
+            locs: [{ min, max }],
+          },
+        ]
       : []
     const locationIntervals = getLocationIntervals(sequenceSegments)
 
@@ -115,7 +122,7 @@ export const ApolloFeatureDetailsWidget = observer(
             {panelState.includes('sequence') && sequence && (
               <SequenceViewer
                 refSeqName={refName}
-                strand={feature.strand === -1 ? -1 : 1}
+                strand={strand}
                 locationIntervals={locationIntervals}
                 sequenceSegments={sequenceSegments}
               />
