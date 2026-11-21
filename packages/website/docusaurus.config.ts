@@ -4,6 +4,7 @@ import type { Config } from '@docusaurus/types'
 import type * as OpenApiPlugin from 'docusaurus-plugin-openapi-docs'
 import { themes as prismThemes } from 'prism-react-renderer'
 
+import { demoUrl } from './demoUrl'
 import sidebarItemsGenerator from './sidebarItemsGenerator'
 
 // Where `yarn gen-api-docs` writes the REST API endpoint pages.
@@ -140,6 +141,7 @@ const config: Config = {
           label: 'Docs',
         },
         { to: 'blog', label: 'Blog', position: 'left' },
+        { href: demoUrl, label: 'Demo', position: 'left' },
         { to: 'contact', label: 'Contact', position: 'left' },
         {
           href: 'https://github.com/GMOD/Apollo3',
