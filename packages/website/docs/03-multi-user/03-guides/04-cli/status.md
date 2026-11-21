@@ -2,8 +2,6 @@
 
 View authentication status
 
-- [`apollo status`](#apollo-status)
-
 ## `apollo status`
 
 View authentication status
