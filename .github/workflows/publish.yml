@@ -105,3 +105,27 @@ jobs:
       environment: prod
     # Environment secrets only reach a called workflow through `inherit`
     secrets: inherit # zizmor: ignore[secrets-inherit]
+  # Creates a draft GitHub release from the release's blog post, to be checked
+  # and published by hand. Runs after the deploy so the link to the post works.
+  github-release:
+    name: Create draft GitHub release
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the release
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Use Node.js
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - name: Install
+        run: yarn --immutable
+      - name: Create draft release
+        run: yarn release-notes github "${GITHUB_REF_NAME}" --create --draft
+        env:
+          GH_TOKEN: ${{ github.token }}

@@ -1,6 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { findReleasePost } from './releasePosts.js'
+
 import { sync } from 'cross-spawn'
 import { inc } from 'semver'
 import yargs from 'yargs/yargs'
@@ -45,6 +47,8 @@ function exec(executable: string, args?: string[]) {
 
 const usage = `Prepare and push source code for new tag release. See code for details. Steps are:
 
+* Check that the release's blog post exists (see 'yarn release-notes new')
+
 * 'yarn version' to update non-private packages and the collaboration server to <tag>
 
 * 'git add' all (and only) the package.json files from previous step
@@ -74,6 +78,12 @@ const argv = yargs(process.argv.slice(2))
       describe: 'Commit message [Tag release <tag>]',
       type: 'string',
     },
+    'skip-notes': {
+      describe:
+        "Release without a blog post (the GitHub release uses GitHub's generated notes)",
+      type: 'boolean',
+      default: false,
+    },
     'root-dir': {
       alias: 'r',
       default: '.',
@@ -93,6 +103,18 @@ if (!newVersion) {
 }
 
 const m = message ?? `Tag release v${newVersion}`
+
+const post = findReleasePost(newVersion)
+if (!argv['skip-notes']) {
+  if (!post) {
+    throw new Error(
+      `No blog post found for v${newVersion}. Run "yarn release-notes new ${newVersion}" first and write the notes, or pass --skip-notes.`,
+    )
+  }
+  if (fs.readFileSync(post.file, 'utf8').includes('TODO:')) {
+    throw new Error(`${post.file} still has TODO notes in it`)
+  }
+}
 
 exec('yarn', [
   'workspaces',
@@ -123,6 +145,11 @@ exec('git', [
 ])
 updateCitationFile(newVersion)
 exec('git', ['add', 'CITATION.cff'])
+if (post) {
+  // A post with images is a folder, so add the whole folder
+  const isFolder = path.basename(post.file).startsWith('index.')
+  exec('git', ['add', isFolder ? post.dir : post.file])
+}
 exec('git', ['commit', '--message', m])
 exec('git', ['tag', '--annotate', `v${newVersion}`, '--message', m])
 exec('git', ['push', '--follow-tags'])
