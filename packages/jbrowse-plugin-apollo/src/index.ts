@@ -50,6 +50,7 @@ import {
   ApolloTranscriptDetailsModel,
   ApolloTranscriptDetailsWidget,
 } from './FeatureDetailsWidget'
+import { installApolloHelpWidget } from './HelpWidget'
 import {
   configSchema as linearApolloDisplayConfigSchema,
   stateModelFactory as LinearApolloDisplayStateModelFactory,
@@ -161,6 +162,7 @@ export default class ApolloPlugin extends Plugin {
     installApolloSequenceAdapter(pluginManager)
     installApolloRefNameAliasAdapter(pluginManager)
     installApolloTextSearchAdapter(pluginManager)
+    installApolloHelpWidget(pluginManager)
 
     pluginManager.addWidgetType(() => {
       const configSchema = ConfigurationSchema('ApolloFeatureDetailsWidget', {})
