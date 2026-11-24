@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+
 import type * as Preset from '@docusaurus/preset-classic'
 import remarkPluginNpm2Yarn from '@docusaurus/remark-plugin-npm2yarn'
 import type { Config } from '@docusaurus/types'
@@ -9,6 +11,15 @@ import sidebarItemsGenerator from './sidebarItemsGenerator'
 // Where `yarn gen-api-docs` writes the REST API endpoint pages.
 // sidebarItemsGenerator.ts puts them in the sidebar.
 const restApiReferenceDir = 'docs/03-multi-user/03-guides/05-rest-api/reference'
+
+// The released Apollo version shown on the homepage. Release tags (vX.Y.Z)
+// match the plugin package's version.
+const { version: apolloVersion } = JSON.parse(
+  readFileSync(
+    new URL('../jbrowse-plugin-apollo/package.json', import.meta.url),
+    'utf8',
+  ),
+) as { version: string }
 
 const config: Config = {
   title: 'Apollo',
@@ -28,6 +39,8 @@ const config: Config = {
   projectName: 'Apollo3', // Usually your repo name.
 
   onBrokenLinks: 'throw',
+
+  customFields: { apolloVersion },
 
   trailingSlash: false,
 
@@ -98,8 +111,8 @@ const config: Config = {
   themes: ['docusaurus-theme-openapi-docs'],
 
   themeConfig: {
-    // Replace with your project's social card
-    // image: 'img/docusaurus-social-card.jpg',
+    // Preview image for links shared on social media and chat apps (1200×630)
+    image: 'img/social-card.png',
     // Code sample languages on the REST API endpoint pages. Only the languages
     // listed here are shown, in this order. The other settings for each
     // language come from the theme's defaults.
@@ -152,20 +165,44 @@ const config: Config = {
       style: 'dark',
       links: [
         {
-          title: 'Learn',
+          title: 'Docs',
+          items: [
+            { label: 'Introduction', to: 'docs' },
+            { label: 'User guide', to: 'docs/user-guide' },
+            { label: 'Single-user setup', to: 'docs/single-user' },
+            { label: 'Multi-user setup', to: 'docs/multi-user' },
+            { label: 'Developer guide', to: 'docs/developer-guide' },
+          ],
+        },
+        {
+          title: 'Community',
           items: [
             {
-              label: 'Docs',
-              to: 'docs',
+              label: 'Discussions',
+              href: 'https://github.com/GMOD/Apollo3/discussions',
             },
+            {
+              label: 'Report a bug',
+              href: 'https://github.com/GMOD/Apollo3/issues/new/choose',
+            },
+            { label: 'Contact', to: 'contact' },
+            { label: 'Blog', to: 'blog' },
           ],
         },
         {
           title: 'More',
           items: [
-            { label: 'Blog', to: 'blog' },
-            { label: 'Contact', to: 'contact' },
             { label: 'GitHub', href: 'https://github.com/GMOD/Apollo3' },
+            { label: 'Cite Apollo', to: '/#cite' },
+            {
+              label: 'License',
+              href: 'https://github.com/GMOD/Apollo3/blob/main/LICENSE',
+            },
+            {
+              label: 'Code of conduct',
+              href: 'https://github.com/GMOD/Apollo3/blob/main/CODE_OF_CONDUCT.md',
+            },
+            { label: 'JBrowse', href: 'https://jbrowse.org' },
           ],
         },
       ],

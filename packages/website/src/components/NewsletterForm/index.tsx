@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react'
 
+import styles from './styles.module.css'
+
 type MailerLiteFn = ((...args: unknown[]) => void) & { q?: unknown[] }
 
 declare global {
@@ -37,5 +39,9 @@ export default function NewsletterForm(): React.JSX.Element {
     }
   }, [])
 
-  return <div className="ml-embedded" data-form={FORM_ID} />
+  return (
+    <section id="apollo-newsletter" className={styles.newsletter}>
+      <div className="ml-embedded" data-form={FORM_ID} />
+    </section>
+  )
 }

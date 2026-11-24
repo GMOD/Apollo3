@@ -1,76 +1,59 @@
 # jbrowse-plugin-apollo
 
-## Testing with cypress
+The Apollo client: a [JBrowse 2](https://jbrowse.org/jb2/) plugin for genome
+annotation. See [apollo.jbrowse.org](https://apollo.jbrowse.org) for user
+documentation, including how to load the plugin in JBrowse Web or JBrowse
+Desktop.
 
-These notes setup cypress and run tests. These notes are likely to change.
+## End-to-end tests with Cypress
 
-- One time step: **Outside** the Apollo dev container
-  [install cypress](https://docs.cypress.io/guides/getting-started/installing-cypress).
-  E.g. on your OS terminal (not vscode) run:
+The Cypress tests run against a local JBrowse with this plugin and a
+collaboration server that uses the `apolloTestDb` MongoDB database. MongoDB must
+be running on `localhost:27017`.
 
-```
-yarn --cwd packages/jbrowse-plugin-apollo add cypress --dev
-yarn --cwd packages/jbrowse-plugin-apollo add cypress-mongodb --dev
-```
+### Start the services
 
-Add these lines to the `packageExtensions` section of `.yarnrc.yml`:
+1. Install JBrowse into `.jbrowse/` (once, or when you want a different
+   version). In VS Code run the `jbrowse: install version` task, or run:
 
-```
-  cypress-mongodb@*:
-    dependencies:
-      bson: "*"
-```
+   ```sh
+   yarn workspace @apollo-annotation/jbrowse-plugin-apollo jbrowse create .jbrowse
+   ```
 
-Then run `yarn` again.
+2. Start everything the tests need. In VS Code run the `Start: e2e` task. It
+   starts:
 
----
+   - the collaboration server on port 3999 with `apolloTestDb` and guest users
+     as admins (the same settings as the server's `cypress:start` script)
+   - a server for the test data on port 3131
+   - the plugin build in watch mode, served on port 9000
+   - JBrowse, served from `.jbrowse/` on port 8999
 
-- Start [jbrowse](https://github.com/GMOD/jbrowse-components): You may want to
-  pull the latest code to be consistent with the GitHub workflow
+   If you change the test database name, change it in `cypress.config.ts` too.
 
-```
-cd /path/to/jbrowse-components
-git pull
-yarn --cwd products/jbrowse-web start
-```
+### Run the tests
 
-- Start Apollo server. Within the docker container (_i.e_ within vscode) and in
-  distinct terminals run:
+Open the Cypress runner (or run the `cypress: open` task):
 
-```
-yarn --cwd packages/apollo-shared start
+```sh
+yarn workspace @apollo-annotation/jbrowse-plugin-apollo cypress open
 ```
 
-```
-yarn --cwd packages/apollo-collaboration-server run cypress:start
-```
+Choose "E2E Testing", then a browser, then a spec from `cypress/e2e/`.
 
-```
-yarn --cwd packages/jbrowse-plugin-apollo start
-```
+To run tests headless:
 
-If above you change the name for the test database (`apolloTestDb`), change
-accordingly in `commands.ts`
+```sh
+# All specs
+yarn workspace @apollo-annotation/jbrowse-plugin-apollo cypress:run
 
-- Open cypress in the testing directory, _i.e._ where yo have the relevant
-  `package.json`. Typically (again outside the dev container/vscode):
-
-```
-yarn --cwd packages/jbrowse-plugin-apollo run cypress open --config baseUrl=http://localhost:3000
-```
-
-- For end-to-end testing, click "E2E Testing" `->` Chrome `->`
-  `Start E2E Testing`. Click on one of the available test scripts.
-
-To run tests locally in headless mode:
-
-```
-yarn --cwd packages/jbrowse-plugin-apollo run cypress run \
-  --browser chrome \
-  --config '{"baseUrl": "http://localhost:3000",
-             "screenshotOnRunFailure": true,
-             "video": true,
-             "videoCompression": false,
-             "retries": {"runMode": 0}}' \
+# A single spec
+yarn workspace @apollo-annotation/jbrowse-plugin-apollo cypress:run \
   --spec cypress/e2e/editFeature.cy.ts
+
+# With screenshots and video on failure, and no retries
+yarn workspace @apollo-annotation/jbrowse-plugin-apollo cypress:debug \
+  --config retries=0 --spec cypress/e2e/editFeature.cy.ts
 ```
+
+`yarn test:e2e` builds the plugin first and then runs all specs, as CI does.

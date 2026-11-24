@@ -1,0 +1,22 @@
+.section {
+  padding: 3rem 0 2rem;
+  background-color: var(--ifm-color-emphasis-100);
+}
+
+.path {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  text-align: center;
+}
+
+.path p {
+  flex-grow: 1;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}

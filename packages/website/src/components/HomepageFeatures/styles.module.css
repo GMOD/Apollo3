@@ -1,11 +1,40 @@
 .features {
-  display: flex;
-  align-items: center;
   padding: 2rem 0;
-  width: 100%;
 }
 
-.featureSvg {
-  height: 200px;
-  width: 200px;
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1.5rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-card-border-radius);
+  background-color: var(--ifm-card-background-color);
+}
+
+.card p {
+  flex-grow: 1;
+}
+
+.cardLink {
+  font-weight: var(--ifm-font-weight-semibold);
+}
+
+.credit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.credit p {
+  margin: 0;
+}
+
+.creditLogo {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
 }

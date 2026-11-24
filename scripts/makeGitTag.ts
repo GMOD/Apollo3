@@ -14,6 +14,25 @@ function getCurrentVersion() {
   return packageJSON.version
 }
 
+// Set the release version and date in CITATION.cff, failing if the file no
+// longer has the expected fields so the release isn't tagged with stale values
+function updateCitationFile(version: string) {
+  const citationPath = 'CITATION.cff'
+  const releaseDate = new Date().toISOString().slice(0, 10)
+  let citation = fs.readFileSync(citationPath, 'utf8')
+  for (const [field, value] of [
+    ['version', version],
+    ['date-released', releaseDate],
+  ]) {
+    const fieldPattern = new RegExp(`^${field}: .*$`, 'm')
+    if (!fieldPattern.test(citation)) {
+      throw new Error(`Could not find "${field}" in ${citationPath}`)
+    }
+    citation = citation.replace(fieldPattern, `${field}: "${value}"`)
+  }
+  fs.writeFileSync(citationPath, citation)
+}
+
 function exec(executable: string, args?: string[]) {
   const child = sync(executable, args, { stdio: 'inherit' })
   if (child.error) {
@@ -29,6 +48,9 @@ const usage = `Prepare and push source code for new tag release. See code for de
 * 'yarn version' to update non-private packages and the collaboration server to <tag>
 
 * 'git add' all (and only) the package.json files from previous step
+
+* Update the version in the docker-compose docs and the version and release
+  date in CITATION.cff, and 'git add' them
 
 * 'git commit'
 
@@ -99,6 +121,8 @@ exec('git', [
   'add',
   'packages/website/docs/03-multi-user/02-installation/02-examples/01-docker-compose.md',
 ])
+updateCitationFile(newVersion)
+exec('git', ['add', 'CITATION.cff'])
 exec('git', ['commit', '--message', m])
 exec('git', ['tag', '--annotate', `v${newVersion}`, '--message', m])
 exec('git', ['push', '--follow-tags'])

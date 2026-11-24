@@ -1,53 +1,42 @@
-<!-- vim-markdown-toc GFM -->
+# apollo-cli tests
 
-- [Setup](#setup)
-- [Run CLI tests](#run-cli-tests)
-- [Run docker test](#run-docker-test)
+These tests run the CLI against a live collaboration server.
 
-<!-- vim-markdown-toc -->
+## Setup
 
-These are instructions to execute the CLI tests.
+In VS Code, open the project in its dev container (Ctrl+Shift+P, then
+`Dev Containers: Reopen in Container`). Then start what the tests need:
+Ctrl+Shift+P, then `Tasks: Run Task`, then `Start: CLI tests`. This starts a
+collaboration server that uses the `apolloTestCliDb` database and allows root
+login, plus a server for the test data on port 3131.
 
-# Setup
+Without VS Code, start the same things yourself:
 
-In VSCode open the Apollo project as container as usual (Ctrl+Shift+P then
-`Dev container: Open folder in container`). Start Apollo for CLI testing:
-Ctrl+Shift+P then `Run task` (enter) `Start-cli-test`.
-
-Alternatively, the Apollo server must be configured to accept root user access
-with the password the tests expect. For this, add the following to
-`packages/apollo-collaboration-server/.development.local.env` (a gitignored file
-that overrides `.development.env`):
-
-```
-ALLOW_ROOT_USER=true
-ROOT_USER_PASSWORD=pass
+```sh
+yarn workspace @apollo-annotation/collaboration-server test:cli:start
 ```
 
-then restart the collaboration server to make changes effective.
-
-# Run CLI tests
-
-Change to:
-
-```
-cd Apollo3/packages/apollo-cli
+```sh
+cd packages/apollo-collaboration-server
+yarn serve --no-request-logging --listen 3131 --no-port-switching test/data/
 ```
 
-- To run all tests:
+## Run the CLI tests
 
-```
-* yarn tsx src/test/test.ts
-```
+Run all tests:
 
-- To run only tests matching aregular expression:
-
-```
- yarn tsx --test-name-pattern='Print help|Feature get' src/test/test.ts
+```sh
+yarn workspace @apollo-annotation/cli tsx src/test/test.ts
 ```
 
-# Run docker test
+Run only the tests whose names match a regular expression:
 
+```sh
+yarn workspace @apollo-annotation/cli tsx --test-name-pattern='Print help|Feature get' src/test/test.ts
 ```
-yarn tsx ./src/test/test_docker.ts
+
+## Run the Docker test
+
+```sh
+yarn workspace @apollo-annotation/cli tsx src/test/test_docker.ts
 ```

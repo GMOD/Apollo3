@@ -1,0 +1,63 @@
+/*
+ * Restyle the MailerLite embed to match the site and follow light and dark
+ * mode. MailerLite's own rules use an ID selector and !important, so these
+ * rules repeat the section's ID to outrank them (two IDs beat one).
+ */
+
+.newsletter {
+  padding: 1rem 0 3rem;
+}
+
+:global(#apollo-newsletter#apollo-newsletter) :global(.ml-form-embedWrapper) {
+  background-color: transparent !important;
+}
+
+:global(#apollo-newsletter#apollo-newsletter)
+  :global(.ml-form-embedContainer)
+  h4 {
+  color: var(--ifm-heading-color) !important;
+  font-family: var(--ifm-heading-font-family) !important;
+  font-size: var(--ifm-h2-font-size) !important;
+  font-weight: var(--ifm-heading-font-weight) !important;
+  text-align: center !important;
+}
+
+:global(#apollo-newsletter#apollo-newsletter)
+  :global(.ml-form-embedContainer)
+  p {
+  color: var(--ifm-font-color-base) !important;
+  font-family: var(--ifm-font-family-base) !important;
+  font-size: var(--ifm-font-size-base) !important;
+  text-align: center !important;
+}
+
+:global(#apollo-newsletter#apollo-newsletter)
+  :global(.ml-form-embedContainer)
+  input {
+  border-color: var(--ifm-color-emphasis-300) !important;
+  background-color: var(--ifm-background-surface-color) !important;
+  color: var(--ifm-font-color-base) !important;
+  font-family: var(--ifm-font-family-base) !important;
+}
+
+:global(#apollo-newsletter#apollo-newsletter)
+  :global(.ml-form-embedContainer)
+  input::placeholder {
+  color: var(--ifm-color-emphasis-600) !important;
+}
+
+:global(#apollo-newsletter#apollo-newsletter)
+  :global(.ml-form-embedContainer)
+  button {
+  border-color: var(--ifm-color-primary) !important;
+  background-color: var(--ifm-color-primary) !important;
+  color: #fff !important;
+  font-family: var(--ifm-font-family-base) !important;
+}
+
+:global(#apollo-newsletter#apollo-newsletter)
+  :global(.ml-form-embedContainer)
+  button:hover {
+  border-color: var(--ifm-color-primary-dark) !important;
+  background-color: var(--ifm-color-primary-dark) !important;
+}
