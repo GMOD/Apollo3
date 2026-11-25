@@ -7,6 +7,7 @@ import type * as OpenApiPlugin from 'docusaurus-plugin-openapi-docs'
 import { themes as prismThemes } from 'prism-react-renderer'
 
 import sidebarItemsGenerator from './sidebarItemsGenerator'
+import { mainDemoUrl } from './src/demoUrls'
 
 // Where `yarn gen-api-docs` writes the REST API endpoint pages.
 // sidebarItemsGenerator.ts puts them in the sidebar.
@@ -152,6 +153,7 @@ const config: Config = {
           position: 'left',
           label: 'Docs',
         },
+        { href: mainDemoUrl, label: 'Demo', position: 'left' },
         { to: 'blog', label: 'Blog', position: 'left' },
         { to: 'contact', label: 'Contact', position: 'left' },
         {
