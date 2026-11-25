@@ -44,7 +44,7 @@ export const TranscriptWidgetSummary = observer(
           <TableRow>
             <HeaderTableCell>Location</HeaderTableCell>
             <TableCell>
-              {props.refName}:{feature.min}..{feature.max}
+              {props.refName}:{feature.min + 1}..{feature.max}
             </TableCell>
           </TableRow>
           <TableRow>
