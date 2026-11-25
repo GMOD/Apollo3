@@ -2,8 +2,6 @@
 
 Logout of Apollo
 
-- [`apollo logout`](#apollo-logout)
-
 ## `apollo logout`
 
 Logout of Apollo
