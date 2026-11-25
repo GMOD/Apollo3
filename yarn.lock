@@ -12326,6 +12326,7 @@ __metadata:
     globals: "npm:^15.12.0"
     husky: "npm:^9.0.11"
     lint-staged: "npm:^15.2.2"
+    marked: "npm:^18.2.1"
     npm-run-all: "npm:^4.1.5"
     prettier: "npm:^3.3.2"
     prettier-plugin-packagejson: "npm:^3.0.2"
@@ -23096,6 +23097,15 @@ __metadata:
   version: 3.0.3
   resolution: "markdown-table@npm:3.0.3"
   checksum: 10c0/47433a3f31e4637a184e38e873ab1d2fadfb0106a683d466fec329e99a2d8dfa09f091fa42202c6f13ec94aef0199f449a684b28042c636f2edbc1b7e1811dcd
+  languageName: node
+  linkType: hard
+
+"marked@npm:^18.2.1":
+  version: 18.2.1
+  resolution: "marked@npm:18.2.1"
+  bin:
+    marked: bin/marked.js
+  checksum: 10c0/6b266b2b20b2cc7e4275087f6c32f8a1b7f9ce5e73e233a4f46614a59617b7afc8d613bbcb57bacaea5da8f6ad5a830fe10384564106d2d1afb354ba1b0bb9e0
   languageName: node
   linkType: hard
 
