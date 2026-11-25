@@ -2,8 +2,6 @@
 
 Logout of Apollo
 
-- [`apollo logout`](#apollo-logout)
-
 ## `apollo logout`
 
 Logout of Apollo
@@ -33,4 +31,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v1.2.0/packages/apollo-cli/src/commands/logout.ts)_
+[src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v1.3.0/packages/apollo-cli/src/commands/logout.ts)_

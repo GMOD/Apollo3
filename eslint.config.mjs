@@ -14,6 +14,7 @@ import tseslint from 'typescript-eslint'
 export default defineConfig([
   {
     ignores: [
+      '.claude/',
       '.pnp.*',
       '.yarn/',
       '**/bin/',
@@ -36,7 +37,10 @@ export default defineConfig([
   {
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },
-      parserOptions: { projectService: true },
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     plugins: {
       tsdoc: pluginTSDoc,

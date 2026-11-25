@@ -21,3 +21,35 @@
   align-items: center;
   justify-content: center;
 }
+
+.buttons {
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1.5rem 0 1rem;
+}
+
+.heroDescription {
+  max-width: 44rem;
+  margin: 1rem auto 0;
+  font-size: 1.15rem;
+}
+
+.release {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+/* Links on the colored hero background need the hero's text color */
+.heroDescription a,
+.release a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* Outline button that stays legible on the colored hero background */
+.heroOutlineButton {
+  --ifm-button-border-color: #fff;
+  /* Infima colors outline secondary buttons' text with this variable */
+  --ifm-font-color-base: #fff;
+}

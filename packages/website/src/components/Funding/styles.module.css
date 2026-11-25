@@ -1,0 +1,9 @@
+.section {
+  padding: 1rem 0 2rem;
+}
+
+.text {
+  max-width: 44rem;
+  margin: 0 auto;
+  text-align: center;
+}

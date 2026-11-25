@@ -1,11 +1,31 @@
-.features {
-  display: flex;
-  align-items: center;
+.demo {
   padding: 2rem 0;
-  width: 100%;
 }
 
-.featureSvg {
-  height: 200px;
-  width: 200px;
+.figure {
+  margin: 0;
+  text-align: center;
+}
+
+.imageLink {
+  display: block;
+  border-radius: var(--ifm-global-radius);
+  transition: transform var(--ifm-transition-fast);
+}
+
+.imageLink:hover {
+  transform: translateY(-2px);
+}
+
+.imageLink img {
+  display: block;
+  width: 100%;
+  border-radius: var(--ifm-global-radius);
+}
+
+.caption {
+  max-width: 44rem;
+  margin: 1rem auto 0;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.95rem;
 }

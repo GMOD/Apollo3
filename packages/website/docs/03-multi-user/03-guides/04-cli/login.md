@@ -2,8 +2,6 @@
 
 Login to Apollo
 
-- [`apollo login`](#apollo-login)
-
 ## `apollo login`
 
 Login to Apollo
@@ -50,4 +48,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/login.ts](https://github.com/GMOD/Apollo3/blob/v1.2.0/packages/apollo-cli/src/commands/login.ts)_
+[src/commands/login.ts](https://github.com/GMOD/Apollo3/blob/v1.3.0/packages/apollo-cli/src/commands/login.ts)_

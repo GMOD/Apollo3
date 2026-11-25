@@ -1,33 +1,31 @@
 import Link from '@docusaurus/Link'
-import DocusaurusImageUrl from '@site/static/img/demo_screenshot.png'
+import { mainDemoUrl } from '@site/src/demoUrls'
+import demoScreenshotUrl from '@site/static/img/demo_screenshot.png'
 import React from 'react'
-
-import { demoUrl } from '../../../demoUrl'
 
 import styles from './styles.module.css'
 
-export default function HomepageFeatures(): React.JSX.Element {
+export default function DemoLink(): React.JSX.Element {
   return (
-    <section className={styles.features}>
+    <section className={styles.demo}>
       <div className="container">
-        <div className="row">
-          <div className="text--center">
-            <div className={styles.buttons}>
-              <Link
-                className="button button--secondary button--lg"
-                href={demoUrl}
-                target="_blank"
-              >
-                Try a Demo — 🧬
-              </Link>
-            </div>
+        <figure className={styles.figure}>
+          <Link to={mainDemoUrl} target="_blank" className={styles.imageLink}>
             <img
-              className="item shadow--md margin-vert--md"
-              src={DocusaurusImageUrl}
-              alt="description here"
+              className="shadow--md"
+              src={demoScreenshotUrl}
+              alt="Apollo running in JBrowse 2. A synteny view compares gene models in Trichuris muris and Trichuris trichiura, with a table of the selected gene's features below. A side panel shows the selected transcript's exon coordinates, protein translation, attributes, and sequence."
             />
-          </div>
-        </div>
+          </Link>
+          <figcaption className={styles.caption}>
+            Editing <i>Trichuris trichiura</i> gene models alongside a related
+            species in a synteny view. The side panel shows the selected
+            transcript's exons, translation, attributes, and sequence.{' '}
+            <Link to={mainDemoUrl} target="_blank">
+              Open the demo
+            </Link>
+          </figcaption>
+        </figure>
       </div>
     </section>
   )

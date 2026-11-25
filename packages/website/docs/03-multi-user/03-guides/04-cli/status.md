@@ -2,8 +2,6 @@
 
 View authentication status
 
-- [`apollo status`](#apollo-status)
-
 ## `apollo status`
 
 View authentication status
@@ -27,4 +25,4 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/status.ts](https://github.com/GMOD/Apollo3/blob/v1.2.0/packages/apollo-cli/src/commands/status.ts)_
+[src/commands/status.ts](https://github.com/GMOD/Apollo3/blob/v1.3.0/packages/apollo-cli/src/commands/status.ts)_
