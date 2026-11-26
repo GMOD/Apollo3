@@ -265,8 +265,6 @@ jobs:
           aws s3 sync ./ s3://apollo.jbrowse.org/$SITE_DIR/ \
             --exclude "data/*" \
             --exclude "config.json" \
-            --exclude "jbrowse-plugin-apollo.umd.production.min.js*" \
-            --exclude "jbrowse-plugin-apollo-intro.iife.production.min.js*" \
             --delete
           aws cloudfront create-invalidation \
             --distribution-id EL84YTOVCGNJZ \

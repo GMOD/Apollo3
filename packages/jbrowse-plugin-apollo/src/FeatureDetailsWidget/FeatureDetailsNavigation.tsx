@@ -37,7 +37,7 @@ export const FeatureDetailsNavigation = observer(
               }}
             >
               {parent.type}
-              {getFeatureNameOrId(parent)} ({parent.min}..{parent.max})
+              {getFeatureNameOrId(parent)} ({parent.min + 1}..{parent.max})
             </Button>
           </div>
         )}
@@ -55,7 +55,7 @@ export const FeatureDetailsNavigation = observer(
                   }}
                 >
                   {child.type}
-                  {getFeatureNameOrId(child)} ({child.min}..{child.max})
+                  {getFeatureNameOrId(child)} ({child.min + 1}..{child.max})
                 </Button>
               </div>
             ))}

@@ -1,0 +1,40 @@
+.section {
+  padding: 3rem 0 2rem;
+}
+
+.citations {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 52rem;
+  margin: 1.5rem auto 0;
+}
+
+.citation {
+  padding: 1rem 1.25rem;
+  border-left: 4px solid var(--ifm-color-primary);
+  border-radius: var(--ifm-global-radius);
+  background-color: var(--ifm-color-emphasis-100);
+}
+
+.label {
+  margin-bottom: 0.25rem;
+  font-weight: var(--ifm-font-weight-semibold);
+}
+
+.reference {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.bibtex summary {
+  cursor: pointer;
+  color: var(--ifm-color-primary);
+  font-size: 0.9rem;
+  font-weight: var(--ifm-font-weight-semibold);
+}
+
+.bibtex :global(.theme-code-block) {
+  margin: 0.5rem 0 0;
+}

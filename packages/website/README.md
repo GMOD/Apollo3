@@ -1,45 +1,40 @@
 # Website
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern
-static website generator.
+The source for [apollo.jbrowse.org](https://apollo.jbrowse.org), built with
+[Docusaurus](https://docusaurus.io/).
 
-### Installation
+Run `yarn` once at the root of the repository to install dependencies.
 
-```
-$ yarn
-```
+## Local development
 
-### Local Development
-
-```
-$ yarn start
+```sh
+yarn workspace @apollo-annotation/website start
 ```
 
-This command starts a local development server and opens up a browser window.
-Most changes are reflected live without having to restart the server.
+This starts a local development server and opens a browser window. Most changes
+show up without restarting the server.
 
-### Build
+## Build
 
-```
-$ yarn build
-```
-
-This command generates static content into the `build` directory and can be
-served using any static contents hosting service.
-
-### Deployment
-
-Using SSH:
-
-```
-$ USE_SSH=true yarn deploy
+```sh
+yarn workspace @apollo-annotation/website build
 ```
 
-Not using SSH:
+This writes the static site to `build/`. Pull requests check that the site
+builds.
 
-```
-$ GIT_USER=<Your GitHub username> yarn deploy
-```
+## Generated content
 
-If you are using GitHub pages for hosting, this command is a convenient way to
-build the website and push to the `gh-pages` branch.
+Don't edit these docs by hand:
+
+- **CLI reference** (`docs/03-multi-user/03-guides/04-cli/`): the CLI's
+  `version` script regenerates it from the commands in `packages/apollo-cli`.
+- **REST API reference**: `yarn gen-api-docs` generates it from the
+  collaboration server's OpenAPI spec.
+
+## Deployment
+
+The site deploys to AWS (S3 and CloudFront) through the "Deploy Docusaurus to
+website" GitHub Actions workflow (`.github/workflows/website.yml`). Run it from
+the Actions tab. Don't use `yarn deploy`: it's Docusaurus's GitHub Pages deploy,
+which this site doesn't use.
