@@ -111,7 +111,7 @@ EXAMPLES
 
   Local file with editable sequence does not require compression and indexing:
 
-    $ apollo assembly add-from-fasta genome.fa -a myAssembly
+    $ apollo assembly add-from-fasta genome.fa -e -a myAssembly
 
   From external source assuming there are also indexes https://.../genome.fa.gz.fai and https://.../genome.fa.gz.gzi:
 

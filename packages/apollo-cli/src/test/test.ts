@@ -2889,6 +2889,17 @@ EOF`,
       `Expected "-e/--editable" error:\n${p.stderr}`,
     )
 
+    p = new Shell(
+      `${apollo} assembly add-from-fasta ${P} test_data/tiny.fasta.gz --fai missing.fai`,
+      false,
+    )
+    assert.ok(p.returncode != 0, 'Expected adding fasta without a FAI to fail')
+    assert.ok(
+      p.stderr.includes('unless option -e/--editable is set') &&
+        p.stderr.includes('missing.fai'),
+      `Expected the editable hint and the missing FAI path:\n${p.stderr}`,
+    )
+
     // Setting --gzi & --fai
     new Shell(
       `${apollo} assembly add-from-fasta ${P} -f test_data/tiny2.fasta.gz --gzi test_data/tiny.fasta.gz.gzi --fai test_data/tiny.fasta.gz.fai`,
